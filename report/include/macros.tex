@@ -1,0 +1,79 @@
+%%% Local Variables:
+%%% TeX-master: "../thesis"
+%%% End:
+
+%% macros
+%%%%%%%%%
+\newcommand{\loremipsum}{\todo[inline]{Lorem Ipsum}}
+
+%% misc
+%%%%%%%%%
+\DeclareMathOperator{\pto}{\rightharpoonup}     % partial function arrow
+\DeclareMathOperator{\powerset}{\mathcal{P}}    % powerset
+\DeclareMathOperator{\proj}{\upharpoonright}    % projection
+\DeclareMathOperator{\fst}{\pi_1}               % A x B → A
+\DeclareMathOperator{\snd}{\pi_2}               % A x B → B
+\DeclareMathOperator{\ft}{ft}                   % field domain assignment
+\DeclareMathOperator{\rt}{rt}                   % register domain asignment
+\newcommand{\p}[2]{#1(#2)}
+\newcommand{\influence}[2]{#1 \triangleright #2}
+\newcommand{\return}[1]{\triangledown #1}
+\newcommand{\ins}[1]{\mathtt{#1}}
+\newcommand{\fresh}[1]{\mathtt{fresh}(#1)}
+\newcommand{\default}[1]{\mathtt{default}(#1)}
+\DeclareMathOperator{\DVMseq}{DVM_{seq}}
+\DeclareMathOperator{\DVMstat}{DVM_{stat}}
+\DeclareMathOperator{\DVMdyn}{DVM_{dyn}}
+\newcommand{\cs}[1]{\langle #1 \rangle}
+\newcommand{\updatemds}{\mathit{update\text{-}mds}}
+
+%% sets
+%%%%%%%%%
+\DeclareMathOperator{\nat}{\mathbb{N}}          % natural numbers
+\DeclareMathOperator{\integer}{\mathbb{Z}}      % integers
+\DeclareMathOperator{\C}{\mathcal{C}}           % classes
+\DeclareMathOperator{\M}{\mathcal{M}}           % methods
+\DeclareMathOperator{\Mid}{\mathcal{M}_{id}}    % method identifiers
+\DeclareMathOperator{\F}{\mathcal{F}}           % fields
+\DeclareMathOperator{\V}{\mathcal{V}}           % values
+\DeclareMathOperator{\Val}{\mathbb{V}}          % instruction dependend values
+\DeclareMathOperator{\Loc}{\mathcal{L}}         % locations
+\DeclareMathOperator{\PP}{\mathcal{PP}}         % program points
+\DeclareMathOperator{\R}{\mathcal{R}}           % registers
+\DeclareMathOperator{\Heap}{\mathcal{H}}        % heaps
+\DeclareMathOperator{\CS}{\mathcal{CS}}                   % call stacks
+\DeclareMathOperator{\Conf}{\mathit{Conf}}      % configurations
+\DeclareMathOperator{\LConf}{\mathit{Conf_l}}   % local configurations
+\DeclareMathOperator{\Ins}{\mathcal{I}}         % instructions
+\DeclareMathOperator{\InsSeq}{\mathcal{I}_{seq}}
+\DeclareMathOperator{\InsStat}{\mathcal{I}_{stat}}
+\DeclareMathOperator{\InsDyn}{\mathcal{I}_{dyn}}
+\DeclareMathOperator{\Ann}{\mathit{Ann}}
+\DeclareMathOperator{\Mod}{\mathit{Mod}}        % modes
+\DeclareMathOperator{\Mds}{\mathit{Mds}}        % mode states
+\DeclareMathOperator{\Conffinal}{\mathit{Conf}_F}               % final configurations
+\DeclareMathOperator{\Events}{E}                % the set of events for thread creation and synchronization
+\DeclareMathOperator{\Dom}{\mathcal{D}}      % the security domain
+\DeclareMathOperator{\Obj}{\C \times \F \pto \V}                % objects
+
+%% relations
+%%%%%%%%%%%%%
+\newcommand{\leadstolocal}[1]{\overset{#1}{\rightarrowtriangle}}        % local transition relation
+
+%% elements
+%%%%%%%%%%%%
+\newcommand{\res}{v_{res}}             % return register
+\DeclareMathOperator{\Prg}{P}                   % program
+\DeclareMathOperator{\this}{\mathtt{this}}      % this pointer
+\DeclareMathOperator{\asmnoread}{\mathit{asm-noread}}           % mode asm-noread
+\DeclareMathOperator{\asmnowrite}{\mathit{asm-nowrite}}         % mode asm-nowrite
+\DeclareMathOperator{\guarnoread}{\mathit{guar-noread}}         % mode guar-noread
+\DeclareMathOperator{\guarnowrite}{\mathit{guar-nowrite}}       % mode guar-noread
+\DeclareMathOperator{\confinitial}{\mathit{conf}_0}             % initial configuration
+\DeclareMathOperator{\nullpointer}{\mathit{null}}                      % null pointer
+\newcommand{\evententer}[1]{\blacklozenge #1}                   % event for entering a monitor region
+\newcommand{\eventleave}[1]{\lozenge #1}         % event for leaving a monitor region
+\DeclareMathOperator{\noevent}{\varepsilon}       % symbol for no event
+\DeclareMathOperator{\emptycs}{\langle\rangle}
+\newcommand{\low}{low}
+\newcommand{\high}{high}
