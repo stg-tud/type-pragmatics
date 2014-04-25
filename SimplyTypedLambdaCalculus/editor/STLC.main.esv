@@ -1,0 +1,16 @@
+module STLC.main
+
+imports STLC-Builders STLC-Refactorings STLC-Colorer STLC-Completions STLC-Folding STLC-Outliner STLC-References STLC-Syntax
+
+language General properties
+                  
+  name          : STLC
+  id            : SimplyTypedLambdaCalculs
+  extends       : Root
+                  
+  description   : "Spoofax/IMP-generated editor for the STLC language"
+  url           : http://strategoxt.org
+                  
+  extensions    : stl
+  table         : include/STLC.tbl
+  start symbols : Module

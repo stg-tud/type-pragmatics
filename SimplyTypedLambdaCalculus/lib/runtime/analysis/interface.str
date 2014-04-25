@@ -1,0 +1,8 @@
+module runtime/analysis/interface
+
+rules
+
+	analysis-pre-trans = fail
+	analysis-post-trans(|ctx) = fail
+	analysis-disable-persist = fail
+

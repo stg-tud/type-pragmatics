@@ -1,0 +1,14 @@
+module runtime/analysis/analysis
+
+imports
+	
+	libstratego-lib
+	
+	runtime/analysis/-
+	runtime/index/-
+	runtime/nabl/-
+	runtime/properties/-
+	runtime/relations/-
+	runtime/task/-
+	runtime/types/-
+

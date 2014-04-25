@@ -1,0 +1,8 @@
+module runtime/editor/editor
+
+imports
+	
+	libstratego-lib
+	
+	runtime/editor/-
+

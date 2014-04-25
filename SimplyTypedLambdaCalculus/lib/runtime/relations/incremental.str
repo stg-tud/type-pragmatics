@@ -1,0 +1,20 @@
+module runtime/relations/incremental
+
+imports
+	
+	runtime/relations/entries
+	runtime/nabl/uri
+	runtime/nabl/incremental
+	runtime/task/core
+	
+rules
+	
+	relation-add-read(|task-id) = (nabl-is-uri; nabl-add-uri-read(|task-id)) <+ task-add-read(|task-id) 
+
+rules
+	
+	relation-get-changed-reads:
+		changed-entry* -> read-term*
+		with
+		  read-term* := <filter(relation-tuple-key); map(try(nabl-replace-uri-qualifier(|())))> changed-entry*
+
