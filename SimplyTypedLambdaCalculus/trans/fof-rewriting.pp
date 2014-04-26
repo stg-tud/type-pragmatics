@@ -9,7 +9,10 @@
 	Pred.2:iter-star-sep -- _1 ",",
 	Abs -- "abs("_1 "," _2 "," _3 ")",
 	App -- "app(" _1 "," _2 ")",
+	Fork -- "fork(" _1 ")",
+	Join -- "join(" _1 ")",
 	TyNat -- "nat",
+	TyFuture --  "future(" _1 ")",
 	TyFunction -- "arrow(" _1 "," _2 ")",
 	PremiseCons -- "(" _1 "&" _2 ")",
 	

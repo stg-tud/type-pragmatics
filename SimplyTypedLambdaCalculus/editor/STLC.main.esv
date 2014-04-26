@@ -10,6 +10,9 @@ language General properties
                   
   description   : "Spoofax/IMP-generated editor for the STLC language"
   url           : http://strategoxt.org
+
+  provider      : include/stlc-java.jar
+  provider      : include/stlc.ctree
                   
   extensions    : stl
   table         : include/STLC.tbl

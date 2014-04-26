@@ -154,6 +154,21 @@ rules // Debugging
       index-setup(|<language>, [project-path], $[[project-path]/[path]]);
       index-reload
     
+    	// Prints the abstract syntax ATerm of a selection.
+	debug-show-aterm:
+		(selected, position, ast, path, project-path) -> (filename, result)
+		with
+			filename := <guarantee-extension(|"aterm")> path;
+			result	 := selected
+			
+	// Prints the analyzed annotated abstract syntax ATerm of a selection.
+	debug-show-analyzed:
+		(selected, position, ast, path, project-path) -> (filename, result)
+		with
+			filename := <guarantee-extension(|"analyzed.aterm")> path;
+			result	 := ast
+
+    
 rules // Utility
   
   // Queue analysis for given list of files.

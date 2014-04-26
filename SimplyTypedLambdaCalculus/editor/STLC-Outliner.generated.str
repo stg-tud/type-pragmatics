@@ -1,0 +1,11 @@
+module editor/STLC-Outliner.generated
+
+imports
+  include/STLC
+  lib/runtime/editor/outline-library
+
+rules
+
+  outline = simple-label-outline(to-outline-label)
+  
+  to-outline-label = ?Module(<id>, _)
