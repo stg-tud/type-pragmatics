@@ -1,6 +1,6 @@
 module STLC.main
 
-imports STLC-Builders STLC-Refactorings STLC-Colorer STLC-Completions STLC-Folding STLC-Outliner STLC-References STLC-Syntax
+imports STLC-Menus STLC-Refactorings STLC-Colorer STLC-Completions STLC-Folding STLC-Outliner STLC-References STLC-Syntax
 
 language General properties
                   
