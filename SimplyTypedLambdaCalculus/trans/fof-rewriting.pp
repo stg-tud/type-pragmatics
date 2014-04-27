@@ -1,7 +1,8 @@
 [
-	File -- V [ _1 ],
+	File -- V [ _1 _2 ],
 	Formula -- H hs=1 ["fof('" _1 "'," _2 "," _3 ")."],
 	Axiom -- "axiom",
+	Conjecture -- "conjecture",
 	All -- "![" _1 "] : (" _2 ")",
 	All.1:iter-star-sep -- _1 ",",
 	Impl -- "(" _1 "=>" _2 ")",
@@ -20,5 +21,7 @@
 	Meta -- _1,
 	Var -- _1,
 	PremiseList -- _1,
-	MetaVariable -- _1
+	MetaVariable -- _1,
+	
+	Nat -- _1
 ]

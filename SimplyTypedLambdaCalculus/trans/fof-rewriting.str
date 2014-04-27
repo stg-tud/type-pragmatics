@@ -20,13 +20,13 @@ signature
     	All   : List(Var) * Prop -> Prop
     	
     	Axiom : Type
-    	//Conjecture : Type
+    	Conjecture : Type
     	Formula : String * Type * Prop -> FOF
     	
-    	File : List(Formula) -> File
+    	File : List(Formula) * List(Formula) -> File
 
 rules
-	R : Module(_, Definitions(Rules)) -> File(Rules)
+	R : Module(_, Rules(R), DerivedRules(DR)) -> File(R, <map(T)> DR)
 	
 	R : CtxEmpty() -> Pred("empty", [])
 	R : CtxBindVar(ID, TYPE, CTX) -> Pred("bind", [ID, TYPE, CTX])
@@ -42,8 +42,11 @@ rules
 			premiseVariables := <collect-all(?MetaVariable(_))> PREMISES;
 			consequenceVariables := <collect-all(?MetaVariable(_))> CONSEQUENCE;
 			boundVariables := <union> (premiseVariables, consequenceVariables)
+			
+	T : Formula(N, _, P) -> Formula(N, Conjecture(), P)
 			 
 
 strategies
 	main = io-wrap(trans)
 	trans = innermost(R)
+	to-conjecture = T
