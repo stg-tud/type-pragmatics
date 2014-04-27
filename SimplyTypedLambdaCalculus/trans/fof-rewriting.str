@@ -35,7 +35,7 @@ rules
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
 	R : VarInContextJudgment(ID, TYPE, CTX) -> Pred("lookup", [ID, CTX, TYPE])
 	
-	R : TypingRule([], RuleName(_, NAME), CONSEQUENCE) -> Formula(NAME, Axiom(), All([], CONSEQUENCE))
+	R : TypingRule(RuleName(_, NAME), CONSEQUENCE) -> Formula(NAME, Axiom(), All([], CONSEQUENCE))
 	R : TypingRule(PREMISES, RuleName(_, NAME), CONSEQUENCE) -> Formula(NAME, Axiom(), All(boundVariables, Impl(PREMISES, CONSEQUENCE)))
 		with
 			//TODO: In which cases can meta-variables be bound?

@@ -1,5 +1,7 @@
 module rules
 
+rules 
+
 ~X : ~T in ~C
 ============== T-var
 ~C |- ~X : ~T
@@ -12,3 +14,8 @@ module rules
 ~C |- ~F : ~S
 ==================== T-app
 ~C |- ~E ~F : ~T
+
+derived-rules
+
+==================== id-nat
+(x : Nat; ()) |- x : Nat

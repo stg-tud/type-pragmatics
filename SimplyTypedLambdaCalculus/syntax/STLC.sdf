@@ -16,9 +16,9 @@ exports
   	    %% Syntax for typing rules
   		TypingRulePremises RuleSepName TypingRuleConsequence
   			-> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col && 2.first.col == 3.first.col)"}
+  		RuleSepName TypingRuleConsequence -> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col)"}
   			
   		TypingRulePremiseList -> TypingRulePremises {cons("PremiseList")}
-  							  -> TypingRulePremises {cons("NoPremises")}
   		
   		OffTypingJudgment -> TypingRuleConsequence
   		
