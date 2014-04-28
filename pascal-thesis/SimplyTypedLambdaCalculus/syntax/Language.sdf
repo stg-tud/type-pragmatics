@@ -6,7 +6,13 @@ exports
 	lexical syntax
  		-> EOF
  		[\ \t\n\r] -> LAYOUT
- 		"//" ~[\n]+ "\n" -> LAYOUT
+ 		
+ 		"//" CommentText CommentTerm -> LAYOUT
+ 		~[\n\r]* -> CommentText
+ 		[\r] -> CommentTerm
+ 		[\n] -> CommentTerm
+ 		[\r][\n] -> CommentTerm
+ 		EOF -> CommentTerm
 		
 		[a-zA-Z][a-zA-Z0-9]* -> ID
 		[0-9]+ -> NAT
@@ -30,9 +36,12 @@ exports
 		NAT -/- [0-9]
 		Keyword -/- [a-zA-Z0-9]
 		PrimitiveType -/- [a-zA-Z0-9]
+		CommentText -/- ~[\n\r]
+		EOF -/- ~[]
 		
 	context-free restrictions
 		LAYOUT? -/- [\ \t\n\r]
+		LAYOUT? -/- [\/].[\/]
 			
 	lexical syntax 
 		{ID "."}+ -> MID

@@ -15,6 +15,6 @@ completions
 completions
   // Semantic (identifier) completion:   
                                          
-  completion proposer                  : editor-complete
+  // completion proposer                  : editor-complete
                                          
   completion trigger                   : "."
