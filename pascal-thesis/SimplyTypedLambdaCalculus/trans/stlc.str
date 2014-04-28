@@ -13,7 +13,7 @@ rules // Analysis
 rules // Debugging
   
   // Prints the abstract syntax ATerm of a selection.
-  debug-generate-aterm:
+  debug-show-aterm:
     (selected, position, ast, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"aterm")> path;

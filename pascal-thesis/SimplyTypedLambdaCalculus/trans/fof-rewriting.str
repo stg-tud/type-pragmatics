@@ -15,6 +15,7 @@ signature
     	//Or    : Prop * Prop -> Prop
     	Impl  : List(Prop) * Prop -> Prop
     	//Eq    : Prop * Prop -> Prop
+    	Neq : Prop * Prop -> Prop
     	Var   : String -> Prop
     	Pred  : String * List(Prop) -> Prop //TODO: Make this more typesafe 
     	All   : List(Var) * Prop -> Prop
@@ -45,9 +46,16 @@ rules
 			boundVariables := <union> (premiseVariables, consequenceVariables)
 			
 	T : Formula(N, _, P) -> Formula(N, Conjecture(), P)
-			 
+
+rules
+	lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All(["X", "T", "CTX"],
+	                     Pred("lookup", [Var("X"), Pred("bind", [Var("X"), Var("T"), Var("CTX")]), Var("T")])))
+	lookup-ctx-step = !Formula("lookup ctx step", Axiom(), All(["X", "Y", "T", "T2", "CTX"],
+	                     Impl(PremiseCons(Neq("X", "Y"), Pred("lookup", [Var("X"), Var("CTX"), Var("T")])),
+	                          Pred("lookup", [Var("X"), Pred("bind", [Var("Y"), Var("T2"), Var("CTX")]), Var("T")]))))
+	base-rules = ![<lookup-ctx-base>, <lookup-ctx-step>]
 
 strategies
 	main = io-wrap(trans)
-	trans = innermost(R)
+	trans = innermost(R); File(\xs -> <conc> (<base-rules>, xs)\, id)
 	to-conjecture = T
