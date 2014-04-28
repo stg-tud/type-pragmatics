@@ -9,9 +9,12 @@
 	Exists.1:iter-star-sep -- _1 ",",
 	Impl -- "(" _1 " => " _2 ")",
 	Neq -- "(" _1 "!=" _2 ")",
+	Eq -- "(" _1 "==" _2 ")",
 	Pred -- _1 "(" _2 ")",
 	Pred.2:iter-star-sep -- _1 ",",
-	JudgementCons -- "(" _1 " & " _2 ")",
+	TermApp -- _1 "(" _2 ")",
+	TermApp.2:iter-star-sep -- _1 ",",
+	And -- "(" _1 " & " _2 ")",
 	EqualityJudgement -- "(" _1 " = " _2 ")",
 	
 	MetaVariable -- _1,

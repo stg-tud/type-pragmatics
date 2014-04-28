@@ -9,15 +9,16 @@ signature
 		// Constructors that are commented are currently not used.
 		//False : Prop
     	//True  : Prop
-    	Atom  : String -> Prop
+    	// Atom  : String -> Prop
     	//Not   : Prop -> Prop
-    	//And   : Prop * Prop -> Prop
-    	//Or    : Prop * Prop -> Prop
+    	And   : Prop * Prop -> Prop
+    	// Or    : Prop * Prop -> Prop
     	Impl  : List(Prop) * Prop -> Prop
-    	//Eq    : Prop * Prop -> Prop
+    	Eq    : Prop * Prop -> Prop
     	Neq : Prop * Prop -> Prop
     	Var   : String -> Prop
-    	Pred  : String * List(Prop) -> Prop //TODO: Make this more typesafe 
+    	Pred  : String * List(Prop) -> Prop //TODO: Make this more typesafe
+    	TermApp  : String * List(Prop) -> Prop //TODO: Make this more typesafe 
     	All   : List(Var) * Prop -> Prop
     	Exists : List(Var) * Prop -> Prop
     	
@@ -31,23 +32,28 @@ rules
 	R : Module(_, Rules(R), Some(DerivedRules(DR))) -> File(R, <map(T)> DR)
 	R : Module(_, Rules(R), Some(DerivedRules(DR))) -> File(R, [])
 	
-	R : CtxEmpty() -> Pred("empty", [])
-	R : CtxBindVar(ID, TYPE, CTX) -> Pred("bind", [ID, TYPE, CTX])
+	R : CtxEmpty() -> TermApp("empty", [])
+	R : CtxBindVar(ID, TYPE, CTX) -> TermApp("bind", [ID, TYPE, CTX])
 	
-	
+	R : PremiseList(p) -> p
+	R : ConsequenceList(p) -> p
+	R : JudgementCons(j1, j2) -> And(j1, j2)
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
 	R : VarInContextJudgment(ID, TYPE, CTX) -> Pred("lookup", [ID, CTX, TYPE])
+	R : EqualityJudgement(t1, t2) -> Eq(t1, t2)
 	
-	R : App(e1, e2) -> Pred("app", [e1, e2])
-	R : Abs(e1, e2, e3) -> Pred("abs", [e1, e2, e3])
-	R : TyFunction(e1, e2) -> Pred("arrow", [e1, e2])
-	R : TyFuture(e1) -> Pred("future", [e1])
-	R : TyNat() -> Pred("nat", [])
+	R : App(e1, e2) -> TermApp("app", [e1, e2])
+	R : Abs(e1, e2, e3) -> TermApp("abs", [e1, e2, e3])
+	R : TyFunction(e1, e2) -> TermApp("arrow", [e1, e2])
+	R : TyFuture(e1) -> TermApp("future", [e1])
+	R : TyNat() -> TermApp("nat", [])
 	R : TyVar(v) -> Var(v)
+	R : Meta(v) -> Var(v)
+	R : MetaVariable(v) -> v
 	
-	R : Fork(x) -> Pred("fork", [x])
-	R : Join(x) -> Pred("join", [x])
-	R : Par(x) -> Pred("par", [x])
+	R : Fork(x) -> TermApp("fork", [x])
+	R : Join(x) -> TermApp("join", [x])
+	R : Par(x) -> TermApp("par", [x])
 	
 
 	
@@ -57,8 +63,8 @@ rules
 		with
 			//TODO: In which cases can meta-variables be bound?
 			body := Impl(PREMISES, CONSEQUENCE);
-			universalVars := <collect-all(?MetaVariable(_))> PREMISES;
-			consequenceVariables := <collect-all(?MetaVariable(_))> CONSEQUENCE;
+			universalVars := <collect-all(?Var(_))> PREMISES;
+			consequenceVariables := <collect-all(?Var(_))> CONSEQUENCE;
 			exitentialVars := <diff> (consequenceVariables, universalVars);
 			exist-term := <make-exists> (exitentialVars, body);
 			all-term := <make-all> (universalVars, exist-term)
@@ -71,11 +77,11 @@ rules
 	T : Formula(N, _, P) -> Formula(N, Conjecture(), P)
 
 rules
-	lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All(["X", "T", "CTX"],
-	                     Pred("lookup", [Var("X"), Pred("bind", [Var("X"), Var("T"), Var("CTX")]), Var("T")])))
-	lookup-ctx-step = !Formula("lookup ctx step", Axiom(), All(["X", "Y", "T", "T2", "CTX"],
-	                     Impl(JudgementCons(Neq("X", "Y"), Pred("lookup", [Var("X"), Var("CTX"), Var("T")])),
-	                          Pred("lookup", [Var("X"), Pred("bind", [Var("Y"), Var("T2"), Var("CTX")]), Var("T")]))))
+	lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Var("X"), Var("T"), Var("CTX")],
+	                     Pred("lookup", [Var("X"), TermApp("bind", [Var("X"), Var("T"), Var("CTX")]), Var("T")])))
+	lookup-ctx-step = !Formula("lookup ctx step", Axiom(), All([Var("X"), Var("Y"), Var("T"), Var("T2"), Var("CTX")],
+	                     Impl(And(Neq(Var("X"), Var("Y")), Pred("lookup", [Var("X"), Var("CTX"), Var("T")])),
+	                          Pred("lookup", [Var("X"), TermApp("bind", [Var("Y"), Var("T2"), Var("CTX")]), Var("T")]))))
 	base-rules = ![<lookup-ctx-base>, <lookup-ctx-step>]
 
 strategies
