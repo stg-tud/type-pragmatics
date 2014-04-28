@@ -6,6 +6,7 @@ imports
   libstratego-aterm
   include/STLC
   fof-rewriting
+  smt-rewriting
 
 rules // Incremental code generation of project using compilation library.
       
@@ -17,7 +18,16 @@ rules // Incremental code generation of project using compilation library.
     filename := <guarantee-extension(|"fof")> path;
     formula := <trans> selected;
     result := <pp-formula> formula
-    
+
   pp-formula =
     ast2abox(|[<parse-pptable-file> "trans/fof-rewriting.pp"]);
     box2text-string(|100)
+
+
+  generate-smt :
+  	   (selected, position, ast, path, project-path) -> (filename, result)
+  with
+    filename := <guarantee-extension(|"smt")> path;
+    formula := <smt-trans> selected;
+    result := <pp-smt> formula
+    

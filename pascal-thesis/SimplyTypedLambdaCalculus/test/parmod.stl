@@ -1,0 +1,85 @@
+module parmod
+
+rules
+
+~X : ~T in ~C
+============== T-var
+~C |- ~X : ~T
+ 
+(~X : ~S ; ~C) |- ~E : ~T
+===================================== T-abs
+~C |- (\ ~X : ~S . ~E) : ~S -> ~T
+ 
+~C |- ~E : ~S -> ~T
+~C |- ~F : ~S
+==================== T-app
+~C |- ~E ~F : ~T
+
+~C |- ~E : ~T
+========================== T-fork
+~C |- fork ~E : Future[~T]
+
+~C |- ~E : Future[~T]
+===================== T-join
+~C |- join ~E : ~T
+
+
+// type rule of par extension
+//   may not be used during verification of derived rules
+// ~C |- ~E : ~T
+// ================= T-par
+// ~C |- par ~E : ~T
+
+
+~C |- eabs : ~T
+===================== T-IH-par-abs
+~C |- (par eabs) : ~T
+
+~C |- (\ ~X:~S. ~E) : ~T
+========================= T-abs-inversion
+~T = ~S -> ~T2
+(~X:~S; ~C) |- ~E : ~T2
+
+
+~C |- eapp1 : ~T
+====================== T-IH-par-app-1
+~C |- (par eapp1) : ~T
+
+~C |- eapp2 : ~T
+====================== T-IH-par-app-2
+~C |- (par eapp2) : ~T
+
+~C |- ~E ~F : ~T
+==================== T-app-inversion
+~C |- ~E : ~S -> ~T
+~C |- ~F : ~S
+
+
+
+derived-rules
+
+// par x => x
+// 
+// ** succeeds trivially
+// ~C |- x : t
+// =========== T-par-x
+// ~C |- x : t
+
+// par (\x:T. e) ==> \x:T. (par e)
+// 
+// ** requried lemmas: T-IH-par-abs, T-abs-inversion
+// ~C |- \xabs:sabs. eabs : tabs
+// =================================== T-par-abs
+// ~C |- \xabs:sabs. (par eabs) : tabs
+
+
+// par (e1 e2) ==> 
+//     let v1 = fork (par e1) in
+//     let v2 = fork (par e2) in
+//     (join v1) (join v2)
+// where v1, v2 are fresh
+//
+// ** requried lemmas: T-IH-par-app-1 T-IH-par-app-2, T-app-inversion
+~C |- (eapp1 eapp2) : tapp
+================================================================ T-par-app
+~C |- (join (fork (par eapp1))) (join (fork (par eapp2))) : tapp

@@ -1,0 +1,24 @@
+module smt-rewriting
+
+imports include/STLC
+imports libstratego-lib
+imports trans/fof-rewriting
+
+signature
+	constructors
+		DeclFun : ID * List(Sort) * Sort -> Stmt
+		Term : Sort
+
+rules
+	main = io-wrap(smt-trans)
+	smt-trans = trans; fof-to-smt
+	
+	fof-to-smt : File(axioms, conjectures) -> decls
+	where
+		preds := <collect-all(?Pred(_,_))> (axioms, conjectures);
+		decls := <map(pred-to-fun-decl); make-set> preds
+	
+	pred-to-fun-decl :
+		Pred(name,args) -> DeclFun(name, <map(!Term())> args, Term())
+	
+	pp-smt = id

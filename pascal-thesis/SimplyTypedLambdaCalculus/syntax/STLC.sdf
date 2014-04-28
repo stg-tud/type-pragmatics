@@ -1,6 +1,7 @@
 module STLC
 
 imports Language
+imports Par
 
 exports 
 	lexical syntax

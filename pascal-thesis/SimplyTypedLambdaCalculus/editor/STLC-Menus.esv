@@ -36,4 +36,5 @@ menus
   menu: "Generation"
     
     action: "Generate FOF"         = generate-fof (openeditor) (realtime)
+    action: "Generate SMT"         = generate-smt (openeditor) (realtime)
 
