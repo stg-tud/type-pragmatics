@@ -1,4 +1,0 @@
-fof(' T-var ', axiom , ![ C , X , T ] : ( ( lookup ( X , C , T ) => tcheck ( C , X , T ) ) ) ).
-fof(' T-abs ', axiom , ![ C , E , S , T ] : ( ( tcheck ( bind ( X , S , C ) , E , T ) => tcheck ( C , abs( X , S , E ) , arrow( S , T ) ) ) ) ).
-fof(' T-app ', axiom , ![ S , C , E , F , T ] : ( ( ( tcheck ( C , E , arrow( S , T ) ) & tcheck ( C , F , S ) ) => tcheck ( C , app( E , F ) , T ) ) ) ).
-fof(' id-nat ', conjecture , ![ ] : ( tcheck ( bind ( x , nat , empty ( ) ) , x , nat ) ) ).
