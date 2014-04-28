@@ -14,21 +14,21 @@ exports
   		RuleSep Name -> RuleSepName {cons("RuleName"), "layout(1.first.line = 2.last.line)"}
   		
   	    %% Syntax for typing rules
-  		TypingRulePremises RuleSepName TypingRuleConsequence
+  		TypingRulePremises RuleSepName TypingRuleConsequences
   			-> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col && 2.first.col == 3.first.col)"}
-  		RuleSepName TypingRuleConsequence -> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col)"}
+  		RuleSepName TypingRuleConsequences -> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col)"}
   			
-  		TypingRulePremiseList -> TypingRulePremises {cons("PremiseList")}
+  		TypingRuleJudgementList -> TypingRulePremises {cons("PremiseList")}
   		
-  		OffTypingJudgment -> TypingRuleConsequence
+  		TypingRuleJudgementList -> TypingRuleConsequences  {cons("ConsequenceList")}
   		
   		TypingJudgment -> OffTypingJudgment %% Does not parse {"layout(1.first.col < 1.left.col)"}
   		
-  		OffTypingRuleJudgment -> TypingRulePremiseList
-  		OffTypingRuleJudgment TypingRulePremiseList -> TypingRulePremiseList {cons("PremiseCons"),
-  									   									   "layout(1.first.col == 2.first.col)"}
+  		OffTypingRuleJudgment -> TypingRuleJudgementList
+  		OffTypingRuleJudgment TypingRuleJudgementList -> TypingRuleJudgementList {cons("JudgementCons"),
+  									   									   layout("1.first.col == 2.first.col && 2.first.line - 1.last.line == num(1)")}
   																			   
-  		TypingRuleJudgment -> OffTypingRuleJudgment %% Does not parse {"layout(1.first.col < 1.left.col)"}
+  		TypingRuleJudgment -> OffTypingRuleJudgment {layout("1.first.col < 1.left.col")}
   		
   		
   	    %% Syntax for contexts
@@ -43,9 +43,13 @@ exports
 		Context "|-" Expr ":" Type -> TypingJudgment {cons("TypingJudgment")}
 		ID ":" Type "in" Context -> VarInContextJudgment   {cons("VarInContextJudgment")}
 		Meta ":" Type "in" Context -> VarInContextJudgment {cons("VarInContextJudgment")}
+		
+		Expr "=" Expr -> EqualityJudgment {cons("EqualityJudgement")}
+		Type "=" Type -> EqualityJudgment {cons("EqualityJudgement")}
 
 		TypingJudgment -> TypingRuleJudgment
 		VarInContextJudgment  -> TypingRuleJudgment
+		EqualityJudgment -> TypingRuleJudgment
 		
 	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
 	
