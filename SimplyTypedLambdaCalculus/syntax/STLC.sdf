@@ -55,5 +55,5 @@ exports
 		"derived-rules" TypingRule* -> DerivedRules {cons("DerivedRules")}
 		
 		%% TODO: Make derived rules optional
-		ModuleDec Rules DerivedRules-> Module {cons("Module")}						
+		ModuleDec Rules DerivedRules?-> Module {cons("Module")}						
 	context-free start-symbols Module

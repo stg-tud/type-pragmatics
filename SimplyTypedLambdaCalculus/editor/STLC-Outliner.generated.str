@@ -8,4 +8,4 @@ rules
 
   outline = simple-label-outline(to-outline-label)
   
-  to-outline-label = ?Module(<id>, _)
+  to-outline-label = ?Module(<id>, _, _)

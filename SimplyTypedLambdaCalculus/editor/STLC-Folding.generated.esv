@@ -21,4 +21,6 @@ folding Default folding definitions
   //   Definition._ (disabled)
   
   Module.Module
-  Definitions.Definitions
+  Rules.Rules
+  OptDerivedRules2
+  DerivedRules.DerivedRules

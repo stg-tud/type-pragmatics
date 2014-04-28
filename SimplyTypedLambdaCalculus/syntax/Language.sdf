@@ -30,6 +30,9 @@ exports
 		Keyword -/- [a-zA-Z0-9]
 		PrimitiveType -/- [a-zA-Z0-9]
 		
+	context-free restrictions
+		LAYOUT? -/- [\ \t\n\r]
+			
 	lexical syntax 
 		{ID "."}+ -> MID
 		ID "." {MID "."}+ -> QID 
@@ -76,4 +79,3 @@ exports
 		"\\" ID ":" Type "." Expr -> Expr {cons("Abs")}
 		"\\" Meta ":" Type "." Expr -> Expr {cons("Abs")}
 		"if" Expr "then" Expr "else" Expr -> Expr {cons("Cond")}
-		
