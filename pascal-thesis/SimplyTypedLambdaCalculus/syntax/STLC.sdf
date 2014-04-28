@@ -1,0 +1,59 @@
+module STLC
+
+imports Language
+
+exports 
+	lexical syntax
+  		"===" "="* -> RuleSep
+  		[a-zA-Z0-9\-]+ -> Name
+  		
+  	lexical restrictions
+  		RuleSep -/- [\=]
+  		
+  	context-free syntax
+  		RuleSep Name -> RuleSepName {cons("RuleName"), "layout(1.first.line = 2.last.line)"}
+  		
+  	    %% Syntax for typing rules
+  		TypingRulePremises RuleSepName TypingRuleConsequence
+  			-> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col && 2.first.col == 3.first.col)"}
+  		RuleSepName TypingRuleConsequence -> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col)"}
+  			
+  		TypingRulePremiseList -> TypingRulePremises {cons("PremiseList")}
+  		
+  		OffTypingJudgment -> TypingRuleConsequence
+  		
+  		TypingJudgment -> OffTypingJudgment %% Does not parse {"layout(1.first.col < 1.left.col)"}
+  		
+  		OffTypingRuleJudgment -> TypingRulePremiseList
+  		OffTypingRuleJudgment TypingRulePremiseList -> TypingRulePremiseList {cons("PremiseCons"),
+  									   									   "layout(1.first.col == 2.first.col)"}
+  																			   
+  		TypingRuleJudgment -> OffTypingRuleJudgment %% Does not parse {"layout(1.first.col < 1.left.col)"}
+  		
+  		
+  	    %% Syntax for contexts
+  		"()" -> Context {cons("CtxEmpty")}
+		ID ":" Type ";" Context -> Context {cons("CtxBindVar")}
+		Meta ":" Type ";" Context -> Context {cons("CtxBindVar")}
+		"(" Context ")" -> Context {bracket}
+		Meta -> Context {cons("MetaVariable")}
+  		  					  
+  					
+	    %% Syntax for typing judgemnts 
+		Context "|-" Expr ":" Type -> TypingJudgment {cons("TypingJudgment")}
+		ID ":" Type "in" Context -> VarInContextJudgment   {cons("VarInContextJudgment")}
+		Meta ":" Type "in" Context -> VarInContextJudgment {cons("VarInContextJudgment")}
+
+		TypingJudgment -> TypingRuleJudgment
+		VarInContextJudgment  -> TypingRuleJudgment
+		
+	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
+	
+	context-free syntax
+		"module" MID -> ModuleDec {cons("ModuleDec")}
+		"rules" TypingRule* -> Rules {cons("Rules")}
+		"derived-rules" TypingRule* -> DerivedRules {cons("DerivedRules")}
+		
+		%% TODO: Make derived rules optional
+		ModuleDec Rules DerivedRules?-> Module {cons("Module")}						
+	context-free start-symbols Module

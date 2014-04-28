@@ -1,0 +1,25 @@
+module generate
+
+imports
+  libstratego-lib
+  libstratego-gpp
+  libstratego-aterm
+  include/STLC
+  lib/editor-common.generated
+  lib/compilation-library.generated
+  fof-rewriting
+
+rules // Incremental code generation of project using compilation library.
+      
+  // See lib/compilation-library.generated.str for documentation
+
+  generate-fof :
+  	   (selected, position, ast, path, project-path) -> (filename, result)
+  with
+    filename := <guarantee-extension(|"fof")> path;
+    formula := <trans> selected;
+    result := <pp-formula> formula
+    
+  pp-formula =
+    ast2abox(|[<parse-pptable-file> "trans/fof-rewriting.pp"]);
+    box2text-string(|100)

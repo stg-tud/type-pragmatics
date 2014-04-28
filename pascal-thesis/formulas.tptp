@@ -1,0 +1,79 @@
+-- Type rules for the simply typed lambda calculus (+Nat) formalized
+-- as first-order formulas
+
+fof('zero nat_literal',
+    axiom,
+    nat_literal(zero))
+.
+
+fof('succ(n) nat literal',
+    axiom,
+    (! [N] : (nat_literal(N) => nat_literal(succ(N)))))
+.
+
+
+fof('lookup ctx return',
+    axiom,
+    (! [X, T, CTX] : (lookup(X, bind(X, T, CTX),T))))
+.
+
+
+fof('lookup ctx step',
+    axiom,
+    (! [X, Y, T, T2, CTX] : ( ((X != Y) & lookup(X, CTX, T)) 
+                         => (lookup(X, bind(Y, T2, CTX),T)))))
+.
+
+fof('lookup type var',
+    axiom,
+    (! [CTX,X,T] : (lookup(X, CTX, T) => tcheck(CTX, X, T))))
+.
+
+
+fof('nat literals type nat',
+    axiom,
+    (! [CTX, N] : (nat_literal(N) => tcheck(CTX, N, nat))))
+.
+
+fof('succ of nat is nat',
+    axiom,
+    (![CTX, N] : (tcheck(CTX,N,nat) => tcheck(CTX, succ(N), nat)) ))
+.
+
+fof('plus type nat',
+    axiom,
+    (! [CTX,X,Y] : ((tcheck(CTX,X,nat) & tcheck(CTX,Y,nat)) => tcheck(CTX,plus(X,Y), nat))))
+.
+
+fof('abstraction',
+    axiom,
+    (! [CTX,X,E,T1,T2] : (tcheck(bind(X,T1,CTX), E, T2) => tcheck(CTX, abs(X,T1,E), arrow(T1,T2)))
+    )).
+
+fof('application',
+    axiom,
+    (! [CTX,E1,E2,T1,T2 ] : ((tcheck(CTX, E1, arrow(T1,T2)) & tcheck(CTX, E2, T1)) => tcheck(CTX, app(E1, E2), T2))
+    )).
+
+
+-- Some tests
+    
+fof('x0+3 has type nat',
+    conjecture,
+    tcheck(bind(x0,nat,empty), 
+           plus(x0, succ(succ(succ(zero)))), 
+           nat)).
+
+           
+fof('succ(succ(x0+3)) has type nat',
+    conjecture,
+    tcheck(bind(x0,nat,empty), 
+           plus(succ(succ(x0)), succ(succ(succ(zero)))), 
+           nat)).
+
+fof('identity function',
+    conjecture,
+    tcheck(empty, 
+           abs(x, nat, x), 
+           arrow(nat, nat)
+    )).

@@ -1,0 +1,53 @@
+module fof-rewriting
+
+imports include/STLC
+imports libstratego-lib
+
+signature
+	sorts Prop FOF File
+	constructors
+		// Constructors that are commented are currently not used.
+		//False : Prop
+    	//True  : Prop
+    	Atom  : String -> Prop
+    	//Not   : Prop -> Prop
+    	//And   : Prop * Prop -> Prop
+    	//Or    : Prop * Prop -> Prop
+    	Impl  : List(Prop) * Prop -> Prop
+    	//Eq    : Prop * Prop -> Prop
+    	Var   : String -> Prop
+    	Pred  : String * List(Prop) -> Prop //TODO: Make this more typesafe 
+    	All   : List(Var) * Prop -> Prop
+    	
+    	Axiom : Type
+    	Conjecture : Type
+    	Formula : String * Type * Prop -> FOF
+    	
+    	File : List(Formula) * List(Formula) -> File
+
+rules
+	R : Module(_, Rules(R), Some(DerivedRules(DR))) -> File(R, <map(T)> DR)
+	R : Module(_, Rules(R), Some(DerivedRules(DR))) -> File(R, [])
+	
+	R : CtxEmpty() -> Pred("empty", [])
+	R : CtxBindVar(ID, TYPE, CTX) -> Pred("bind", [ID, TYPE, CTX])
+	
+	
+	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
+	R : VarInContextJudgment(ID, TYPE, CTX) -> Pred("lookup", [ID, CTX, TYPE])
+	
+	R : TypingRule(RuleName(_, NAME), CONSEQUENCE) -> Formula(NAME, Axiom(), All([], CONSEQUENCE))
+	R : TypingRule(PREMISES, RuleName(_, NAME), CONSEQUENCE) -> Formula(NAME, Axiom(), All(boundVariables, Impl(PREMISES, CONSEQUENCE)))
+		with
+			//TODO: In which cases can meta-variables be bound?
+			premiseVariables := <collect-all(?MetaVariable(_))> PREMISES;
+			consequenceVariables := <collect-all(?MetaVariable(_))> CONSEQUENCE;
+			boundVariables := <union> (premiseVariables, consequenceVariables)
+			
+	T : Formula(N, _, P) -> Formula(N, Conjecture(), P)
+			 
+
+strategies
+	main = io-wrap(trans)
+	trans = innermost(R)
+	to-conjecture = T

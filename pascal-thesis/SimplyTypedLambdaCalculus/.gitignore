@@ -1,0 +1,9 @@
+bin,
+.cache
+include/
+editor/java/trans
+editor/SimplyTypedLambdaCalculus-*.generated.esv
+syntax/SimplyTypedLambdaCalculus*.generated.esv
+.settings/org.eclipse.jdt.core.prefs
+lib/*.generated.str
+lib-refactoring/*.generated.str

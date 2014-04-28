@@ -1,0 +1,64 @@
+#+TITLE: Schedule Master Thesis
+
+Available time: 6 months / 24 weeks
+Start (planed): 17. April 2014
+End (approximated): 17. October 2014
+
+Rough plan:
+2 Weeks Exploration
+3 Weeks Design of specification language
+5-6 Weeks Implementation of first-order generator
+9-10 Weeks Implementation of type checker generator
+2 Weeks Developing Case Studies
+2 Weeks Proof reading, Code Cleanup, …
+
+Activities:
+* Exploration
+  - Develop a prototype for the simply-typed lambda calculus
+  - Read about type systems for case studies
+  - Explore how well automated theorem provers are suited for checking
+    derivability / admissability of extensions or type checking in
+    general
+  - Search for related work
+* Design of the specification language
+  - Questions that need to be answered:
+    1) How to make the language independent of the source language?
+    2) How to model side conditions in type systems that remain in
+       semi-formal or non-mechanical systems implicit?
+    3) How to make the rules reusable?
+    4) Is there some natural distinction between building blocks of the
+       typing rules?
+  - Define the structure of the AST in an agnostic way
+  - Create a library for transforming and analysing specifications
+    with the goal to have a clear interface for implementations
+    besides the two planed ones.
+* Implementation of the transformation into first order formulas
+  - Create an abstract syntax that can be pretty printed in arbitrary
+    first-order formula representations, also provide a clear
+    interface for that
+  - Create a test suite that tries to type check example programs
+    using different theorem provers
+  - Generate example programs from the type rules to enable automated
+    testing and have a good base coverage
+  - Think about limitations of first-order theorem provers with regard
+    to type checking
+* Implementation of the type checker generator
+  - Analyse the type checkers already available and written in spoofax
+  - Check related work that touches
+    1) general design of type systems
+    2) optimizations
+    3) problems on implementing certain kinds of type checkers
+  - What does "fast" actually mean? How can we justify that our type
+    checker is fast?
+  - What can be done to ensure that the type checker is correct? Is
+    there any way to obtain strong guarantees (ideally proofs) of the
+    correctness of the generated type checker
+* Developing case studies
+  - [#A] Defining a type system for C would be useful for the group
+  - [#B] Defining a type system for C++'s template system
+* Exploring possible applications of the results
+  - Security type systems, e.g. for the detection of information flows
+  - Automation of proofs by translation into first-order formulas and
+    exploiting the possibility of using […].
+  - Figure out, what are the restrictions of the results, which
+    applications are prevented by them
