@@ -2,8 +2,8 @@ bin,
 .cache
 include/
 editor/java/trans
-editor/SimplyTypedLambdaCalculus-*.generated.esv
-syntax/SimplyTypedLambdaCalculus*.generated.esv
+editor/STLC-*.generated.esv
+syntax/STLC.generated.pp
 .settings/org.eclipse.jdt.core.prefs
 lib/*.generated.str
 lib-refactoring/*.generated.str
