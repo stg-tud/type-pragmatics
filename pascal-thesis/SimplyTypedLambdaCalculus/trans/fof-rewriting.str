@@ -29,8 +29,8 @@ signature
     	File : List(Formula) * List(Formula) -> File
 
 rules
-	R : Module(_, Rules(R), Some(DerivedRules(DR))) -> File(R, <map(T)> DR)
-	R : Module(_, Rules(R), Some(DerivedRules(DR))) -> File(R, [])
+	R : Module(_, Rules(R), Some(DerivedRules(DR))) -> File(R, DR)
+	R : Module(_, Rules(R), None()) -> File(R, [])
 	
 	R : CtxEmpty() -> TermApp("empty", [])
 	R : CtxBindVar(ID, TYPE, CTX) -> TermApp("bind", [ID, TYPE, CTX])
@@ -43,12 +43,13 @@ rules
 	R : EqualityJudgement(t1, t2) -> Eq(t1, t2)
 	
 	R : App(e1, e2) -> TermApp("app", [e1, e2])
-	R : Abs(e1, e2, e3) -> TermApp("abs", [e1, e2, e3])
+	R : Abs(Meta(v), e2, e3) -> TermApp("abs", [Meta(v), e2, e3])
+	R : Abs(e1, e2, e3) -> TermApp("abs", [Var(e1), e2, e3])
 	R : TyFunction(e1, e2) -> TermApp("arrow", [e1, e2])
 	R : TyFuture(e1) -> TermApp("future", [e1])
 	R : TyNat() -> TermApp("nat", [])
 	R : TyVar(v) -> Var(v)
-	R : Meta(v) -> Var(v)
+	// R : Meta(v) -> Var(v)
 	R : MetaVariable(v) -> v
 	
 	R : Fork(x) -> TermApp("fork", [x])
@@ -63,8 +64,8 @@ rules
 		with
 			//TODO: In which cases can meta-variables be bound?
 			body := Impl(PREMISES, CONSEQUENCE);
-			universalVars := <collect-all(?Var(_))> PREMISES;
-			consequenceVariables := <collect-all(?Var(_))> CONSEQUENCE;
+			universalVars := <collect-all(?Meta(_))> PREMISES;
+			consequenceVariables := <collect-all(?Meta(_))> CONSEQUENCE;
 			exitentialVars := <diff> (consequenceVariables, universalVars);
 			exist-term := <make-exists> (exitentialVars, body);
 			all-term := <make-all> (universalVars, exist-term)
@@ -75,16 +76,26 @@ rules
 	make-all : (vars, body) -> All(vars, body)
 			
 	T : Formula(N, _, P) -> Formula(N, Conjecture(), P)
+	
+	compose-formulas :
+		(Formula(N1, kind, P1), Formula(N2, kind, P2)) ->
+		Formula(N, kind, P)
+	where
+		N := <conc-strings> (N1, " AND ", N2);
+		P := And(P1, P2)
+	compose-formulas = debug(!"compose-formulas failed: "); fail
+
+	prepare-conjecture = map(to-conjecture); (?[] <+ foldr1(compose-formulas))
 
 rules
-	lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Var("X"), Var("T"), Var("CTX")],
-	                     Pred("lookup", [Var("X"), TermApp("bind", [Var("X"), Var("T"), Var("CTX")]), Var("T")])))
-	lookup-ctx-step = !Formula("lookup ctx step", Axiom(), All([Var("X"), Var("Y"), Var("T"), Var("T2"), Var("CTX")],
-	                     Impl(And(Neq(Var("X"), Var("Y")), Pred("lookup", [Var("X"), Var("CTX"), Var("T")])),
-	                          Pred("lookup", [Var("X"), TermApp("bind", [Var("Y"), Var("T2"), Var("CTX")]), Var("T")]))))
+	lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Meta("X"), Meta("T"), Meta("CTX")],
+	                     Pred("lookup", [Meta("X"), TermApp("bind", [Meta("X"), Meta("T"), Meta("CTX")]), Meta("T")])))
+	lookup-ctx-step = !Formula("lookup ctx step", Axiom(), All([Meta("X"), Meta("Y"), Meta("T"), Meta("T2"), Meta("CTX")],
+	                     Impl(And(Neq(Meta("X"), Meta("Y")), Pred("lookup", [Meta("X"), Meta("CTX"), Meta("T")])),
+	                          Pred("lookup", [Meta("X"), TermApp("bind", [Meta("Y"), Meta("T2"), Meta("CTX")]), Meta("T")]))))
 	base-rules = ![<lookup-ctx-base>, <lookup-ctx-step>]
 
 strategies
 	main = io-wrap(trans)
-	trans = innermost(R); File(\xs -> <conc> (<base-rules>, xs)\, id)
+	trans = innermost(R); File(\xs -> <conc> (<base-rules>, xs)\, prepare-conjecture)
 	to-conjecture = T

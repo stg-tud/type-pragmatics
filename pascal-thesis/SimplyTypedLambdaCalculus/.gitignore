@@ -7,3 +7,4 @@ syntax/STLC.generated.pp
 .settings/org.eclipse.jdt.core.prefs
 lib/*.generated.str
 lib-refactoring/*.generated.str
+*.aterm

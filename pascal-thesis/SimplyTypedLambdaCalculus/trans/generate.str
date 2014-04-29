@@ -17,12 +17,13 @@ rules // Incremental code generation of project using compilation library.
   with
     filename := <guarantee-extension(|"fof")> path;
     formula := <trans> selected;
-    result := <pp-formula> formula
+    result := <pp-formula <+ pp-debug(pp-formula)> formula
 
   pp-formula =
     ast2abox(|[<parse-pptable-file> "trans/fof-rewriting.pp"]);
     box2text-string(|100)
-
+  
+  pp-debug(pp) = bottomup(is-string <+ is-list <+ pp <+ debug(!"pp failed: "))
 
   generate-smt :
   	   (selected, position, ast, path, project-path) -> (filename, result)

@@ -9,6 +9,7 @@ signature
 		DeclFun : ID * List(Sort) * Sort -> Stmt
 		DefFun : ID * List(Tuple(ID, Sort)) * Sort * Expr -> Stmt
 		Assert : Prop -> Stmt
+		CheckSat : Stmt
 		Term : Sort
 		Bool : Sort
 		SmtList : List(Expr) -> Expr
@@ -17,32 +18,50 @@ rules
 	main = io-wrap(smt-trans)
 	smt-trans = trans; fof-to-smt
 	
-	fof-to-smt : File(axioms, conjectures) -> <conc> (booldecls, termdecls, assert-defines, asserts)
+	fof-to-smt : 
+		File(axioms, conjecture) -> 
+		<conc> (booldecls, termdecls, consttermdecls, axiom-defines, smt-axioms, [conjecture-define, conjecture-assert, check-sat])
 	where
-		preds := <collect-all(?Pred(_,_))> (axioms, conjectures);
-		termapps := <collect-all(?TermApp(_,_))> (axioms, conjectures);
+		preds := <collect-all(?Pred(_,_))> (axioms, conjecture);
+		termapps := <collect-all(?TermApp(_,_))> (axioms, conjecture);
+		vars := <collect-all(?Var(_))> (axioms, conjecture);
 		booldecls := <map(pred-to-fun-decl); make-set> preds;
 		termdecls := <map(termapp-to-fun-decl); make-set> termapps;
-		assert-defines := <map(formula-to-define)> axioms;
-		asserts := <map(formula-to-assert)> axioms
+		consttermdecls := <map(var-to-fun-decl); make-set> vars;
+		axiom-defines := <map(formula-to-define)> axioms;
+		smt-axioms := <map(formula-to-assert)> axioms;
+		conjecture-define := <formula-to-define> conjecture;
+		conjecture-assert := <conjecture-define-to-assert> conjecture-define;
+		check-sat := SmtList([Var("check-sat")])
+	fof-to-smt = debug(!"fof-to-smt failed: "); fail
 	
 	pred-to-fun-decl :
 		Pred(name,args) -> DeclFun(name, <map(!Term())> args, Bool())
+	pred-to-fun-decl = debug(!"pred-to-fun-decl failed: "); fail
+	
+	var-to-fun-decl : Var(v) -> <termapp-to-fun-decl> TermApp(<conc-strings> ("const-",v), [])
 	
 	termapp-to-fun-decl :
 		TermApp("abs",args) -> <termapp-to-fun-decl> TermApp("fabs", args)
 	termapp-to-fun-decl :
 		TermApp(name,args) -> DeclFun(name, <map(!Term())> args, Term())
-	termapp-to-fun-decl = debug(!"fail: "); fail
+	termapp-to-fun-decl = debug(!"termapp-to-fun-decl failed: "); fail
 	
 	formula-to-define :
 		Formula(name, _, prop) -> DefFun(<fun-name> name, [], Bool(), <prop-to-smt> prop)
+	formula-to-define = debug(!"formula-to-define failed: "); fail
+	
 	formula-to-assert :
 		Formula(name, _, prop) -> Assert(Var(<fun-name> name))
+	formula-to-assert = debug(!"formula-to-assert failed: "); fail
 	fun-name = string-as-chars(map(try(?' ';!	'-')))
+	
+	conjecture-define-to-assert : 
+		DefFun(name, _, _, _) -> Assert(SmtList([Var("!"), Var(name)])) // negated conjecture
 
 rules
-	prop-to-smt : Var(v) -> Var(v)
+	prop-to-smt : Var(v) -> Var(<conc-strings> ("const-",v))
+	prop-to-smt : Meta(v) -> Meta(v)
 	prop-to-smt : Neq(e1, e2) -> SmtList([Var("distinct"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : TermApp("abs", args) -> <prop-to-smt> TermApp("fabs", args)
 	prop-to-smt : Pred(name, args) -> SmtList([Var(name) | <map(prop-to-smt)> args])
@@ -73,6 +92,7 @@ rules
 	pp-smt-inner : Term() -> "Term"
 	pp-smt-inner : Bool() -> "Bool"
 	pp-smt-inner : Var(v) -> v
+	pp-smt-inner : Meta(v) -> v
 	pp-smt-inner = debug(!"pp-smt-inner failed: "); fail
 	
 	pp-smt-list(|sep) : [] -> ""

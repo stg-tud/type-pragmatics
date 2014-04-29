@@ -6,9 +6,9 @@ rules
 ============== T-var
 ~C |- ~X : ~T
  
-(~X : ~S ; ~C) |- ~E : ~T
+(~X:~S; ~C) |- ~E : ~T
 ===================================== T-abs
-~C |- (\ ~X : ~S . ~E) : ~S -> ~T
+~C |- (\~X:~S. ~E) : ~S -> ~T
  
 ~C |- ~E : ~S -> ~T
 ~C |- ~F : ~S
@@ -68,9 +68,9 @@ derived-rules
 // par (\x:T. e) ==> \x:T. (par e)
 // 
 // ** requried lemmas: T-IH-par-abs, T-abs-inversion
-// ~C |- \xabs:sabs. eabs : tabs
-// =================================== T-par-abs
-// ~C |- \xabs:sabs. (par eabs) : tabs
+~C |- \xabs:sabs. eabs : tabs
+=================================== T-par-abs
+~C |- \xabs:sabs. (par eabs) : tabs
 
 
 // par (e1 e2) ==> 
