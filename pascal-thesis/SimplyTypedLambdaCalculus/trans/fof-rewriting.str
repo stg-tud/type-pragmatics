@@ -50,7 +50,10 @@ rules
 	R : TyNat() -> TermApp("nat", [])
 	R : TyVar(v) -> Var(v)
 	// R : Meta(v) -> Var(v)
-	R : MetaVariable(v) -> v
+	R : MetaVariable(Meta(v)) -> Meta(v2) where v2 := <string-as-chars(map(to-upper))> v
+	R : Var(v) -> Var(v2)
+		where v2 := <string-as-chars(map(to-lower))> v
+		    ; <not(equal)> (v, v2)
 	
 	R : Fork(x) -> TermApp("fork", [x])
 	R : Join(x) -> TermApp("join", [x])
