@@ -30,7 +30,7 @@
 (define-fun T-abs-inversion () Bool (forall ((T Term) (X Term) (S Term) (C Term) (E Term) (T2 Term)) (exists ((T2 Term)) (=> (tcheck C (fabs X S E) T) (and true (and (= T (arrow S T2)) (tcheck (bind X S C) E T2)))))))
 (define-fun T-IH-par-app-1 () Bool (forall ((C Term) (T Term)) (=> (tcheck C const-eapp1 T) (tcheck C (par const-eapp1) T))))
 (define-fun T-IH-par-app-2 () Bool (forall ((C Term) (T Term)) (=> (tcheck C const-eapp2 T) (tcheck C (par const-eapp2) T))))
-(define-fun T-app-inversion () Bool (forall ((E Term) (T Term) (C Term) (F Term) (S Term)) (=> (tcheck C (app E F) T) (and (tcheck C E (arrow S T)) (tcheck C F S)))))
+(define-fun T-app-inversion () Bool (forall ((E Term) (T Term) (C Term) (F Term) (S Term)) (exists ((S Term)) (=> (tcheck C (app E F) T) (and true (and (tcheck C E (arrow S T)) (tcheck C F S)))))))
 (assert lookup-ctx-base)
 (assert lookup-ctx-step)
 (assert T-var)

@@ -52,6 +52,7 @@ exists ~T2
 
 ~C |- ~E ~F : ~T
 ==================== T-app-inversion
+exists ~S
 ~C |- ~E : ~S -> ~T
 ~C |- ~F : ~S
 
