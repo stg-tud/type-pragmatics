@@ -22,15 +22,16 @@ exports
   		TypingRuleJudgementList -> TypingRulePremises {cons("PremiseList")}
   		
   		TypingRuleJudgementList -> TypingRuleConsequences  {cons("ConsequenceList")}
-  		
-  		TypingJudgment -> OffTypingJudgment %% Does not parse {"layout(1.first.col < 1.left.col)"}
+  		OrTypingRuleJudgementList -> TypingRuleConsequences  {cons("ConsequenceList")}
   		
   		OffTypingRuleJudgment -> TypingRuleJudgementList
   		OffTypingRuleJudgment TypingRuleJudgementList -> TypingRuleJudgementList {cons("JudgementCons"),
   									   									   layout("1.first.col == 2.first.col && 2.first.line - 1.last.line == num(1)")}
   																			   
   		TypingRuleJudgment -> OffTypingRuleJudgment {layout("1.first.col < 1.left.col")}
-  		
+
+		"OR" TypingRuleJudgementList -> OrTypingRuleJudgementList {layout("1.first.col < 2.first.col")}
+		"OR" TypingRuleJudgementList OrTypingRuleJudgementList -> OrTypingRuleJudgementList {"OrJudgementCons", layout("1.first.col < 2.first.col && 1.first.col == 3.first.col")}
   		
   	    %% Syntax for contexts
   		"()" -> Context {cons("CtxEmpty")}
@@ -45,15 +46,15 @@ exports
 		ID ":" Type "in" Context -> VarInContextJudgment   {cons("VarInContextJudgment")}
 		Meta ":" Type "in" Context -> VarInContextJudgment {cons("VarInContextJudgment")}
 		
-		Expr "=" Expr -> EqualityJudgment {cons("EqualityJudgement")}
+		Expr "=" Expr -> EqualityJudgment {cons("EqualityJudgement"), prefer}
 		Type "=" Type -> EqualityJudgment {cons("EqualityJudgement")}
 		
-		"exists" {Meta ","}+ -> ExistsJudgment {cons("ExistsJudgment")}
-
-		ExistsJudgment -> TypingRuleJudgment
+		"exists" {Meta ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ExistsJudgment"), layout("1.first.col < 3.first.col && 1.first.line < 3.first.line")}
+		
 		TypingJudgment -> TypingRuleJudgment
 		VarInContextJudgment  -> TypingRuleJudgment
 		EqualityJudgment -> TypingRuleJudgment
+		ExistsJudgment -> TypingRuleJudgment
 		
 	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
 	

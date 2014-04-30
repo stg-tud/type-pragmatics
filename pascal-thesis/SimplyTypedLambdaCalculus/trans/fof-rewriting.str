@@ -2,6 +2,7 @@ module fof-rewriting
 
 imports include/STLC
 imports libstratego-lib
+imports stlc
 
 signature
 	sorts Prop FOF File
@@ -12,7 +13,7 @@ signature
     	// Atom  : String -> Prop
     	//Not   : Prop -> Prop
     	And   : Prop * Prop -> Prop
-    	// Or    : Prop * Prop -> Prop
+    	Or    : Prop * Prop -> Prop
     	Impl  : List(Prop) * Prop -> Prop
     	Eq    : Prop * Prop -> Prop
     	Neq : Prop * Prop -> Prop
@@ -41,13 +42,17 @@ rules
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
 	R : VarInContextJudgment(ID, TYPE, CTX) -> Pred("lookup", [ID, CTX, TYPE])
 	R : EqualityJudgement(t1, t2) -> Eq(t1, t2)
+	R : OrJudgementCons(j1, j2) -> Or(j1, j2)
+	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)
 	
+	R : Plus(e1, e2) -> TermApp("plus", [e1, e2])
+	R : Rational(e1, e2) -> TermApp("rat", [e1, e2])
 	R : App(e1, e2) -> TermApp("app", [e1, e2])
 	R : Abs(Meta(v), e2, e3) -> TermApp("abs", [Meta(v), e2, e3])
 	R : Abs(e1, e2, e3) -> TermApp("abs", [Var(e1), e2, e3])
 	R : TyFunction(e1, e2) -> TermApp("arrow", [e1, e2])
 	R : TyFuture(e1) -> TermApp("future", [e1])
-	R : TyNat() -> TermApp("nat", [])
+	R : TyNat() -> Var("nat")
 	R : TyVar(v) -> Var(v)
 	// R : Meta(v) -> Var(v)
 	R : MetaVariable(Meta(v)) -> Meta(v2) where v2 := <string-as-chars(map(to-upper))> v
@@ -68,10 +73,7 @@ rules
 			//TODO: In which cases can meta-variables be bound?
 			body := <try(\ Impl(True(), p) -> p \)> Impl(PREMISES, CONSEQUENCE);
 			universalVars := <collect-all(?Meta(_))> (PREMISES, CONSEQUENCE);
-			exitentialVars := <collect-all(?ExistsJudgment(<id>)); concat> (PREMISES, CONSEQUENCE);
-			exist-free-body := <bottomup(try(\ExistsJudgment(_) -> True()\))> body;
-			exist-term := <make-exists> (exitentialVars, exist-free-body);
-			all-term := <make-all> (universalVars, exist-term)
+			all-term := <make-all> (universalVars, body)
 
 	make-exists : ([], body) -> body
 	make-exists : (vars, body) -> Exists(vars, body)

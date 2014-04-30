@@ -7,6 +7,9 @@ imports
   include/STLC
   generate
 
+signature constructors
+	OrJudgementCons : A * B -> C
+
 rules // Analysis
   
 

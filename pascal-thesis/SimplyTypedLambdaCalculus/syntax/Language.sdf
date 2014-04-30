@@ -91,3 +91,4 @@ exports
 		"\\" Meta ":" Type "." Expr -> Expr {cons("Abs")}
 		"if" Expr "then" Expr "else" Expr -> Expr {cons("Cond")}
 		Expr "+" Expr -> Expr {cons("Plus"), right}
+		Expr "#" Expr -> Expr {cons("Rational"), non-assoc}

@@ -1,0 +1,25 @@
+module Rational
+
+rules
+
+~C |- ~e1 : Nat
+~C |- ~e2 : Nat
+========================= T-float
+~C |- ~e1#~e2  : Rational
+
+~C |- ~e1 : Rational
+~C |- ~e2 : Rational
+========================== T-plus
+~C |- ~e1 + ~e2 : Rational
+
+
+~C |- ~e : ~T
+==================== T-Rational-inv
+OR
+  exists ~e1, ~e2
+	  ~e = ~e1#~e2
+	  ~T = Rational
+OR
+  exists ~e1, ~e2
+	  ~e = ~e1 + ~e2
+	  ~T = Rational

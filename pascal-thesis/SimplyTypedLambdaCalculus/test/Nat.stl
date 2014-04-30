@@ -1,0 +1,30 @@
+module Nat
+
+rules
+
+================ T-zero
+~C |- zero : Nat
+
+~C |- ~e : Nat
+====================== T-succ
+~C |- succ(~e) : Nat
+
+~C |- ~e1 : Nat
+~C |- ~e2 : Nat
+===================== T-plus
+~C |- ~e1 + ~e2 : Nat
+
+
+~C |- ~e : ~T
+==================== T-Nat-inv
+OR
+  ~e = zero
+  ~T = Nat
+OR
+  exists ~epred
+	  ~e = succ(~epred)
+	  ~T = Nat
+OR
+  exists ~e1, ~e2
+	  ~e = ~e1 + ~e2
+	  ~T = Nat
