@@ -47,7 +47,10 @@ exports
 		
 		Expr "=" Expr -> EqualityJudgment {cons("EqualityJudgement")}
 		Type "=" Type -> EqualityJudgment {cons("EqualityJudgement")}
+		
+		"exists" {Meta ","}+ -> ExistsJudgment {cons("ExistsJudgment")}
 
+		ExistsJudgment -> TypingRuleJudgment
 		TypingJudgment -> TypingRuleJudgment
 		VarInContextJudgment  -> TypingRuleJudgment
 		EqualityJudgment -> TypingRuleJudgment

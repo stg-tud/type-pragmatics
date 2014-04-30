@@ -7,8 +7,8 @@ signature
 	sorts Prop FOF File
 	constructors
 		// Constructors that are commented are currently not used.
-		//False : Prop
-    	//True  : Prop
+		False : Prop
+    	True  : Prop
     	// Atom  : String -> Prop
     	//Not   : Prop -> Prop
     	And   : Prop * Prop -> Prop
@@ -58,16 +58,16 @@ rules
 	
 
 	
-	R : TypingRule(RuleName(_, NAME), CONSEQUENCE) -> Formula(NAME, Axiom(), All([], CONSEQUENCE))
+	R : TypingRule(name, CONSEQUENCE) -> TypingRule(True(), name, CONSEQUENCE)
 	R : TypingRule(PREMISES, RuleName(_, NAME), CONSEQUENCE) ->
 		Formula(NAME, Axiom(), all-term)
 		with
 			//TODO: In which cases can meta-variables be bound?
-			body := Impl(PREMISES, CONSEQUENCE);
-			universalVars := <collect-all(?Meta(_))> PREMISES;
-			consequenceVariables := <collect-all(?Meta(_))> CONSEQUENCE;
-			exitentialVars := <diff> (consequenceVariables, universalVars);
-			exist-term := <make-exists> (exitentialVars, body);
+			body := <try(\ Impl(True(), p) -> p \)> Impl(PREMISES, CONSEQUENCE);
+			universalVars := <collect-all(?Meta(_))> (PREMISES, CONSEQUENCE);
+			exitentialVars := <collect-all(?ExistsJudgment(<id>)); concat> (PREMISES, CONSEQUENCE);
+			exist-free-body := <bottomup(try(\ExistsJudgment(_) -> True()\))> body;
+			exist-term := <make-exists> (exitentialVars, exist-free-body);
 			all-term := <make-all> (universalVars, exist-term)
 
 	make-exists : ([], body) -> body

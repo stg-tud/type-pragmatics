@@ -1,6 +1,3 @@
-(set-option :produce-unsat-cores true) ; enable generation of unsat cores
-(set-option :produce-models true) ; enable model generation
-(set-option :produce-proofs true) ; enable proof generation
 
 (declare-sort Term 0)
 (declare-fun lookup (Term Term Term) Bool)
@@ -24,16 +21,16 @@
 (declare-fun const-tabs () Term)
 (define-fun lookup-ctx-base () Bool (forall ((X Term) (T Term) (CTX Term)) (lookup X (bind X T CTX) T)))
 (define-fun lookup-ctx-step () Bool (forall ((X Term) (Y Term) (T Term) (T2 Term) (CTX Term)) (=> (and (distinct X Y) (lookup X CTX T)) (lookup X (bind Y T2 CTX) T))))
-(define-fun T-var () Bool (forall ((X Term) (C Term) (T Term)) (=> (lookup X C T) (tcheck C X T))))
-(define-fun T-abs () Bool (forall ((X Term) (S Term) (C Term) (E Term) (T Term)) (=> (tcheck (bind X S C) E T) (tcheck C (fabs X S E) (arrow S T)))))
-(define-fun T-app () Bool (forall ((E Term) (T Term) (C Term) (F Term) (S Term)) (=> (and (tcheck C E (arrow S T)) (tcheck C F S)) (tcheck C (app E F) T))))
+(define-fun T-var () Bool (forall ((C Term) (X Term) (T Term)) (=> (lookup X C T) (tcheck C X T))))
+(define-fun T-abs () Bool (forall ((C Term) (X Term) (E Term) (S Term) (T Term)) (=> (tcheck (bind X S C) E T) (tcheck C (fabs X S E) (arrow S T)))))
+(define-fun T-app () Bool (forall ((S Term) (C Term) (E Term) (F Term) (T Term)) (=> (and (tcheck C E (arrow S T)) (tcheck C F S)) (tcheck C (app E F) T))))
 (define-fun T-fork () Bool (forall ((C Term) (E Term) (T Term)) (=> (tcheck C E T) (tcheck C (fork E) (future T)))))
 (define-fun T-join () Bool (forall ((C Term) (E Term) (T Term)) (=> (tcheck C E (future T)) (tcheck C (join E) T))))
 (define-fun T-IH-par-abs () Bool (forall ((C Term) (T Term)) (=> (tcheck C const-eabs T) (tcheck C (par const-eabs) T))))
-(define-fun T-abs-inversion () Bool (forall ((C Term) (X Term) (S Term) (E Term) (T Term)) (exists ((T2 Term)) (=> (tcheck C (fabs X S E) T) (and (= T (arrow S T2)) (tcheck (bind X S C) E T2))))))
+(define-fun T-abs-inversion () Bool (forall ((T Term) (X Term) (S Term) (C Term) (E Term) (T2 Term)) (exists ((T2 Term)) (=> (tcheck C (fabs X S E) T) (and true (and (= T (arrow S T2)) (tcheck (bind X S C) E T2)))))))
 (define-fun T-IH-par-app-1 () Bool (forall ((C Term) (T Term)) (=> (tcheck C const-eapp1 T) (tcheck C (par const-eapp1) T))))
 (define-fun T-IH-par-app-2 () Bool (forall ((C Term) (T Term)) (=> (tcheck C const-eapp2 T) (tcheck C (par const-eapp2) T))))
-(define-fun T-app-inversion () Bool (forall ((C Term) (E Term) (F Term) (T Term)) (exists ((S Term)) (=> (tcheck C (app E F) T) (and (tcheck C E (arrow S T)) (tcheck C F S))))))
+(define-fun T-app-inversion () Bool (forall ((E Term) (T Term) (C Term) (F Term) (S Term)) (=> (tcheck C (app E F) T) (and (tcheck C E (arrow S T)) (tcheck C F S)))))
 (assert lookup-ctx-base)
 (assert lookup-ctx-step)
 (assert T-var)

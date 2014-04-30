@@ -37,6 +37,7 @@ rules
 
 ~C |- (\ ~X:~S. ~E) : ~T
 ========================= T-abs-inversion
+exists ~T2
 ~T = ~S -> ~T2
 (~X:~S; ~C) |- ~E : ~T2
 

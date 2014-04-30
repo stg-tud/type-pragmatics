@@ -16,6 +16,8 @@
 	TermApp.2:iter-star-sep -- _1 ",",
 	And -- "(" _1 " & " _2 ")",
 	EqualityJudgement -- "(" _1 " = " _2 ")",
+	True -- "$true",
+	False -- "$false",
 	
 	MetaVariable -- _1,
 	Meta -- _1,

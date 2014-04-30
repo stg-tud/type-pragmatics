@@ -72,6 +72,8 @@ rules
 	conjecture-define-to-check = debug(!"conjecture-defines-to-asserts failed: "); fail
 
 rules
+	prop-to-smt : True() -> Var("true")
+	prop-to-smt : False() -> Var("false")
 	prop-to-smt : Var(v) -> Var(<conc-strings> ("const-",v))
 	prop-to-smt : Meta(v) -> Meta(v)
 	prop-to-smt : Neq(e1, e2) -> SmtList([Var("distinct"), <prop-to-smt> e1, <prop-to-smt> e2])

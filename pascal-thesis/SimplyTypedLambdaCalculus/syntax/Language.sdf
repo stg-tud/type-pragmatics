@@ -44,8 +44,9 @@ exports
 		LAYOUT? -/- [\/].[\/]
 			
 	lexical syntax 
-		{ID "."}+ -> MID
-		ID "." {MID "."}+ -> QID 
+		[a-zA-Z][a-zA-Z0-9]* -> MID
+		MID "." MID -> MID
+		MID "." ID -> QID
 		
 	lexical restrictions
 		MID -/- [\.]
@@ -89,3 +90,4 @@ exports
 		"\\" ID ":" Type "." Expr -> Expr {cons("Abs")}
 		"\\" Meta ":" Type "." Expr -> Expr {cons("Abs")}
 		"if" Expr "then" Expr "else" Expr -> Expr {cons("Cond")}
+		Expr "+" Expr -> Expr {cons("Plus"), right}
