@@ -65,14 +65,6 @@ derived-rules
 =========== T-par-x
 ~C |- x : t
 
-// par (\x:T. e) ==> \x:T. (par e)
-// 
-// ** requried lemmas: T-IH-par-abs, T-abs-inversion
-~C |- \xabs:sabs. eabs : tabs
-=================================== T-par-abs
-~C |- \xabs:sabs. (par eabs) : tabs
-
-
 // par (e1 e2) ==> 
 //     let v1 = fork (par e1) in
 //     let v2 = fork (par e2) in
@@ -83,3 +75,10 @@ derived-rules
 ~C |- (eapp1 eapp2) : tapp
 ================================================================ T-par-app
 ~C |- (join (fork (par eapp1))) (join (fork (par eapp2))) : tapp
+
+// par (\x:T. e) ==> \x:T. (par e)
+// 
+// ** requried lemmas: T-IH-par-abs, T-abs-inversion
+~C |- \xabs:sabs. eabs : tabs
+=================================== T-par-abs
+~C |- \xabs:sabs. (par eabs) : tabs
