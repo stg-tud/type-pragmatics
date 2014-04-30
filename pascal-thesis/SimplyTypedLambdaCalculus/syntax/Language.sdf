@@ -87,6 +87,7 @@ exports
 		Meta -> Expr {cons("MetaVariable")}
 		
 		Expr Expr -> Expr {cons("App"), left}
+		ID "(" {Expr ","}+ ")" -> Expr {cons("FApp"), prefer}
 		"\\" ID ":" Type "." Expr -> Expr {cons("Abs")}
 		"\\" Meta ":" Type "." Expr -> Expr {cons("Abs")}
 		"if" Expr "then" Expr "else" Expr -> Expr {cons("Cond")}

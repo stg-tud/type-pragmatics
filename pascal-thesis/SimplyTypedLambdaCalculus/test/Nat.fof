@@ -2,6 +2,6 @@
 fof('lookup ctx base', axiom, ![X,T,CTX] : (lookup(X,bind(X,T,CTX),T))).
 fof('lookup ctx step', axiom, ![X,Y,T,T2,CTX] : ((((X!=Y) & lookup(X,CTX,T)) => lookup(X,bind(Y,T2,CTX),T)))).
 fof('T-zero', axiom, ![C] : (tcheck(C,zero,nat))).
-fof('T-succ', axiom, ![C,E] : ((tcheck(C,E,nat) => tcheck(C,app(succ,E),nat)))).
+fof('T-succ', axiom, ![C,E] : ((tcheck(C,E,nat) => tcheck(C,succ(E),nat)))).
 fof('T-plus', axiom, ![C,E1,E2] : (((tcheck(C,E1,nat) & tcheck(C,E2,nat)) => tcheck(C,plus(E1,E2),nat)))).
-fof('T-Nat-inv', axiom, ![C,epred,EPRED,e1,e2,E,E1,E2,T] : ((tcheck(C,E,T) => (((E=zero) & (T=nat)) | (?[epred] : (((E=app(succ,EPRED)) & (T=nat))) | ?[e1,e2] : (((E=plus(E1,E2)) & (T=nat)))))))).
+fof('T-Nat-inv', axiom, ![C,epred,EPRED,e1,e2,E,E1,E2,T] : ((tcheck(C,E,T) => (((E=zero) & (T=nat)) | (?[epred] : (((E=succ(EPRED)) & (T=nat))) | ?[e1,e2] : (((E=plus(E1,E2)) & (T=nat)))))))).

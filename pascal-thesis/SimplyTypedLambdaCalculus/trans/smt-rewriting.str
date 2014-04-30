@@ -81,6 +81,7 @@ rules
 	prop-to-smt : Pred(name, args) -> SmtList([Var(name) | <map(prop-to-smt)> args])
 	prop-to-smt : TermApp(name, args) -> SmtList([Var(name) | <map(prop-to-smt)> args])
 	prop-to-smt : Eq(e1, e2) -> SmtList([Var("="), <prop-to-smt> e1, <prop-to-smt> e2])
+	prop-to-smt : Or(e1, e2) -> SmtList([Var("or"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : And(e1, e2) -> SmtList([Var("and"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : Impl(e1, e2) -> SmtList([Var("=>"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : All(vars, prop) -> SmtList([Var("forall"), SmtList(all-vars), <prop-to-smt> prop])

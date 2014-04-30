@@ -1,6 +1,7 @@
 
 fof('lookup ctx base', axiom, ![X,T,CTX] : (lookup(X,bind(X,T,CTX),T))).
 fof('lookup ctx step', axiom, ![X,Y,T,T2,CTX] : ((((X!=Y) & lookup(X,CTX,T)) => lookup(X,bind(Y,T2,CTX),T)))).
+
 fof('T-var', axiom, ![C,X,T] : ((lookup(X,C,T) => tcheck(C,X,T)))).
 fof('T-abs', axiom, ![C,X,E,S,T] : ((tcheck(bind(X,S,C),E,T) => tcheck(C,abs(X,S,E),arrow(S,T))))).
 fof('T-app', axiom, ![S,C,E,F,T] : (((tcheck(C,E,arrow(S,T)) & tcheck(C,F,S)) => tcheck(C,app(E,F),T)))).

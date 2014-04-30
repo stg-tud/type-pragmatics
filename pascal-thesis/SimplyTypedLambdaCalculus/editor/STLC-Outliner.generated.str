@@ -9,3 +9,4 @@ rules
   outline = simple-label-outline(to-outline-label)
   
   to-outline-label = ?Module(<id>, _, _)
+  to-outline-label = ?FApp(<id>, _)

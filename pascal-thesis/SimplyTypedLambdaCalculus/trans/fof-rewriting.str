@@ -48,6 +48,7 @@ rules
 	R : Plus(e1, e2) -> TermApp("plus", [e1, e2])
 	R : Rational(e1, e2) -> TermApp("rat", [e1, e2])
 	R : App(e1, e2) -> TermApp("app", [e1, e2])
+	R : FApp(name, es) -> TermApp(name, es)
 	R : Abs(Meta(v), e2, e3) -> TermApp("abs", [Meta(v), e2, e3])
 	R : Abs(e1, e2, e3) -> TermApp("abs", [Var(e1), e2, e3])
 	R : TyFunction(e1, e2) -> TermApp("arrow", [e1, e2])

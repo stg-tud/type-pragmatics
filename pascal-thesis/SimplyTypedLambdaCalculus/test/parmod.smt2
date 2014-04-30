@@ -46,14 +46,17 @@
 (define-fun T-par-x () Bool (forall ((C Term)) (=> (tcheck C const-x const-t) (tcheck C const-x const-t))))
 (define-fun T-par-app () Bool (forall ((C Term)) (=> (tcheck C (app const-eapp1 const-eapp2) const-tapp) (tcheck C (app (join (fork (par const-eapp1))) (join (fork (par const-eapp2)))) const-tapp))))
 (define-fun T-par-abs () Bool (forall ((C Term)) (=> (tcheck C (fabs const-xabs const-sabs const-eabs) const-tabs) (tcheck C (fabs const-xabs const-sabs (par const-eabs)) const-tabs))))
+
 (push 1)
 (assert (not T-par-x))
 (check-sat)
 (pop 1)
+
 (push 1)
 (assert (not T-par-app))
 (check-sat)
 (pop 1)
+
 (push 1)
 (assert (not T-par-abs))
 (check-sat)
