@@ -85,7 +85,7 @@ rules
 		P := And(P1, P2)
 	compose-formulas = debug(!"compose-formulas failed: "); fail
 
-	prepare-conjecture = map(to-conjecture); (?[] <+ foldr1(compose-formulas))
+	compose-conjectures = (?[] <+ ?[<id>] <+ foldr1(compose-formulas))
 
 rules
 	lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Meta("X"), Meta("T"), Meta("CTX")],
@@ -97,5 +97,6 @@ rules
 
 strategies
 	main = io-wrap(trans)
-	trans = innermost(R); File(\xs -> <conc> (<base-rules>, xs)\, prepare-conjecture)
+	trans = innermost(R); File(\xs -> <conc> (<base-rules>, xs)\, map(to-conjecture))
+	fof-trans = trans; File(id, compose-conjectures)
 	to-conjecture = T

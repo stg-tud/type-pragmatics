@@ -9,9 +9,9 @@ signature
 		DeclFun : ID * List(Sort) * Sort -> Stmt
 		DefFun : ID * List(Tuple(ID, Sort)) * Sort * Expr -> Stmt
 		Assert : Prop -> Stmt
-		CheckSat : Stmt
 		Term : Sort
 		Bool : Sort
+		SmtLit : String -> Expr
 		SmtList : List(Expr) -> Expr
 
 rules
@@ -20,7 +20,14 @@ rules
 	
 	fof-to-smt : 
 		File(axioms, conjecture) -> 
-		<conc> (booldecls, termdecls, consttermdecls, axiom-defines, smt-axioms, [conjecture-define, conjecture-assert, check-sat])
+		<conc> (
+			booldecls,
+			termdecls, 
+			consttermdecls, 
+			axiom-defines, 
+			smt-axioms, 
+			conjecture-defines, 
+			conjecture-checks)
 	where
 		preds := <collect-all(?Pred(_,_))> (axioms, conjecture);
 		termapps := <collect-all(?TermApp(_,_))> (axioms, conjecture);
@@ -30,9 +37,8 @@ rules
 		consttermdecls := <map(var-to-fun-decl); make-set> vars;
 		axiom-defines := <map(formula-to-define)> axioms;
 		smt-axioms := <map(formula-to-assert)> axioms;
-		conjecture-define := <formula-to-define> conjecture;
-		conjecture-assert := <conjecture-define-to-assert> conjecture-define;
-		check-sat := SmtList([Var("check-sat")])
+		conjecture-defines := <map(formula-to-define)> conjecture;
+		conjecture-checks := <mapconcat(conjecture-define-to-check)> conjecture-defines
 	fof-to-smt = debug(!"fof-to-smt failed: "); fail
 	
 	pred-to-fun-decl :
@@ -56,8 +62,14 @@ rules
 	formula-to-assert = debug(!"formula-to-assert failed: "); fail
 	fun-name = string-as-chars(map(try(?' ';!	'-')))
 	
-	conjecture-define-to-assert : 
-		DefFun(name, _, _, _) -> Assert(SmtList([Var("!"), Var(name)])) // negated conjecture
+	conjecture-define-to-check : 
+		DefFun(name, _, _, _) -> [push, assert, check, pop] // negated conjecture
+	where
+		push := SmtList([Var("push"), SmtLit("1")]);
+		assert := Assert(SmtList([Var("not"), Var(name)]));
+		check := SmtList([Var("check-sat")]);
+		pop := SmtList([Var("pop"), SmtLit("1")])
+	conjecture-define-to-check = debug(!"conjecture-defines-to-asserts failed: "); fail
 
 rules
 	prop-to-smt : Var(v) -> Var(<conc-strings> ("const-",v))
@@ -88,6 +100,7 @@ rules
 		DefFun(name, args, res, body) -> $[(define-fun [name] ([<pp-smt-list(|" ")> args]) [<pp-smt-inner> res] [<pp-smt-inner> body])]
 	pp-smt-inner :
 		Assert(e) -> $[(assert [<pp-smt-inner> e])]
+	pp-smt-inner : SmtLit(s) -> s
 	pp-smt-inner : SmtList(k) -> $[([<pp-smt-list(|" ")> k])]
 	pp-smt-inner : Term() -> "Term"
 	pp-smt-inner : Bool() -> "Bool"

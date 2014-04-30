@@ -61,9 +61,9 @@ derived-rules
 // par x => x
 // 
 // ** succeeds trivially
-// ~C |- x : t
-// =========== T-par-x
-// ~C |- x : t
+~C |- x : t
+=========== T-par-x
+~C |- x : t
 
 // par (\x:T. e) ==> \x:T. (par e)
 // 

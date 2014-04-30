@@ -16,7 +16,7 @@ rules // Incremental code generation of project using compilation library.
   	   (selected, position, ast, path, project-path) -> (filename, result)
   with
     filename := <guarantee-extension(|"fof")> path;
-    formula := <trans> selected;
+    formula := <fof-trans <+ error(!"fof-trans failed: ")> selected;
     result := <pp-formula <+ pp-debug(pp-formula)> formula
 
   pp-formula =
@@ -32,3 +32,4 @@ rules // Incremental code generation of project using compilation library.
     formula := <smt-trans> selected;
     result := <pp-smt> formula
     
+  error(s) = debug(s);fail
