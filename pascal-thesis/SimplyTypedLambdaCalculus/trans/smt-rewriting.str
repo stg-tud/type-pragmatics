@@ -38,7 +38,7 @@ rules
 		axiom-defines := <map(formula-to-define)> axioms;
 		smt-axioms := <map(formula-to-assert)> axioms;
 		conjecture-defines := <map(formula-to-define)> conjecture;
-		conjecture-checks := <mapconcat(conjecture-define-to-check)> conjecture-defines
+		conjecture-checks := <mapconcat(conjecture-define-to-check); try(?[];![SmtList([Var("check-sat")])])> conjecture-defines
 	fof-to-smt = debug(!"fof-to-smt failed: "); fail
 	
 	pred-to-fun-decl :

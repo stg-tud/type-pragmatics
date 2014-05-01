@@ -12,17 +12,16 @@ exports
   		RuleSep -/- [\=]
   		
   	context-free syntax
-  		RuleSep Name -> RuleSepName {cons("RuleName"), "layout(1.first.line = 2.last.line)"}
+  		RuleSep Name -> RuleSepName {cons("RuleName"), layout("1.first.line == 2.last.line")}
   		
   	    %% Syntax for typing rules
   		TypingRulePremises RuleSepName TypingRuleConsequences
-  			-> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col && 2.first.col == 3.first.col)"}
-  		RuleSepName TypingRuleConsequences -> TypingRule {cons("TypingRule"), "layout(1.first.col == 2.first.col)"}
+  			-> TypingRule {cons("TypingRule"), layout("1.first.col == 2.first.col && 2.first.col == 3.first.col && 1.last.line + num(1) == 2.first.line")}
+  		RuleSepName TypingRuleConsequences -> TypingRule {cons("TypingRule"), layout("1.first.col == 2.first.col")}
   			
   		TypingRuleJudgementList -> TypingRulePremises {cons("PremiseList")}
   		
   		TypingRuleJudgementList -> TypingRuleConsequences  {cons("ConsequenceList")}
-  		OrTypingRuleJudgementList -> TypingRuleConsequences  {cons("ConsequenceList")}
   		
   		OffTypingRuleJudgment -> TypingRuleJudgementList
   		OffTypingRuleJudgment TypingRuleJudgementList -> TypingRuleJudgementList {cons("JudgementCons"),
@@ -30,12 +29,15 @@ exports
   																			   
   		TypingRuleJudgment -> OffTypingRuleJudgment {layout("1.first.col < 1.left.col")}
 
-		"OR" TypingRuleJudgementList -> OrTypingRuleJudgementList {layout("1.first.col < 2.first.col")}
-		"OR" TypingRuleJudgementList OrTypingRuleJudgementList -> OrTypingRuleJudgementList {"OrJudgementCons", layout("1.first.col < 2.first.col && 1.first.col == 3.first.col")}
+		OrTypingRuleJudgement -> OffTypingRuleJudgment
+		"OR" OrCaseList -> OrTypingRuleJudgement {cons("OrJudgement")}
+		
+		"=>" TypingRuleJudgementList -> OrCaseList {cons("OrEnd")}
+		"=>" TypingRuleJudgementList OrCaseList -> OrCaseList {cons("OrCons"), layout("1.first.col == 3.first.col")}
   		
   	    %% Syntax for contexts
   		"()" -> Context {cons("CtxEmpty")}
-		ID ":" Type ";" Context -> Context {cons("CtxBindVar")}
+		Var ":" Type ";" Context -> Context {cons("CtxBindVar")}
 		Meta ":" Type ";" Context -> Context {cons("CtxBindVar")}
 		"(" Context ")" -> Context {bracket}
 		Meta -> Context {cons("MetaVariable")}
@@ -43,11 +45,16 @@ exports
   					
 	    %% Syntax for typing judgemnts 
 		Context "|-" Expr ":" Type -> TypingJudgment {cons("TypingJudgment")}
-		ID ":" Type "in" Context -> VarInContextJudgment   {cons("VarInContextJudgment")}
+		Var ":" Type "in" Context -> VarInContextJudgment   {cons("VarInContextJudgment")}
 		Meta ":" Type "in" Context -> VarInContextJudgment {cons("VarInContextJudgment")}
 		
 		Expr "=" Expr -> EqualityJudgment {cons("EqualityJudgement"), prefer}
 		Type "=" Type -> EqualityJudgment {cons("EqualityJudgement")}
+		Context "=" Context -> EqualityJudgment {cons("EqualityJudgement")}
+		
+		Expr "!=" Expr -> EqualityJudgment {cons("NotEqualityJudgement"), prefer}
+		Type "!=" Type -> EqualityJudgment {cons("NotEqualityJudgement")}
+		Context "!=" Context -> EqualityJudgment {cons("NotEqualityJudgement")}
 		
 		"exists" {Meta ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ExistsJudgment"), layout("1.first.col < 3.first.col && 1.first.line < 3.first.line")}
 		

@@ -2,6 +2,16 @@ module rules
 
 rules 
 
+~x:~T in (~x:~T2; ~C)
+====================== Lookup-Base
+~T = ~T2
+
+~x != ~y
+~x:~T in ~C
+===================== Lookup-Step
+~x:~T in (~y:~T2; ~C)
+
+
 ~X : ~T in ~C
 ============== T-var
 ~C |- ~X : ~T

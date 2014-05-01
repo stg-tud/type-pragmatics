@@ -16,10 +16,9 @@ rules
 ~C |- ~e : ~T
 ==================== T-Rational-inv
 OR
-  exists ~e1, ~e2
-	  ~e = ~e1#~e2
-	  ~T = Rational
-OR
-  exists ~e1, ~e2
-	  ~e = ~e1 + ~e2
-	  ~T = Rational
+=> exists ~e1, ~e2
+     ~e = ~e1#~e2
+     ~T = Rational
+=> exists ~e1, ~e2
+     ~e = ~e1 + ~e2
+     ~T = Rational

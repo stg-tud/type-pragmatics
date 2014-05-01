@@ -2,7 +2,6 @@ module fof-rewriting
 
 imports include/STLC
 imports libstratego-lib
-imports stlc
 
 signature
 	sorts Prop FOF File
@@ -42,8 +41,11 @@ rules
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
 	R : VarInContextJudgment(ID, TYPE, CTX) -> Pred("lookup", [ID, CTX, TYPE])
 	R : EqualityJudgement(t1, t2) -> Eq(t1, t2)
-	R : OrJudgementCons(j1, j2) -> Or(j1, j2)
+	R : NotEqualityJudgement(t1, t2) -> Neq(t1, t2)
 	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)
+	R : OrJudgement(p) -> p
+	R : OrEnd(p) -> p
+	R : OrCons(p1, p2) -> Or(p1, p2)
 	
 	R : Plus(e1, e2) -> TermApp("plus", [e1, e2])
 	R : Rational(e1, e2) -> TermApp("rat", [e1, e2])
@@ -56,9 +58,12 @@ rules
 	R : TyNat() -> Var("nat")
 	R : TyVar(v) -> Var(v)
 	// R : Meta(v) -> Var(v)
-	R : MetaVariable(Meta(v)) -> Meta(v2) where v2 := <string-as-chars(map(to-upper))> v
+	R : MetaVariable(v) -> v
 	R : Var(v) -> Var(v2)
 		where v2 := <string-as-chars(map(to-lower))> v
+		    ; <not(equal)> (v, v2)
+	R : Meta(v) -> Meta(v2)
+		where v2 := <string-as-chars(map(to-upper))> v
 		    ; <not(equal)> (v, v2)
 	
 	R : Fork(x) -> TermApp("fork", [x])
@@ -73,7 +78,9 @@ rules
 		with
 			//TODO: In which cases can meta-variables be bound?
 			body := <try(\ Impl(True(), p) -> p \)> Impl(PREMISES, CONSEQUENCE);
-			universalVars := <collect-all(?Meta(_))> (PREMISES, CONSEQUENCE);
+			metaVars := <collect-all(?Meta(_))> (PREMISES, CONSEQUENCE);
+			existsVars := <collect-all(?ExistsJudgment(<id>,_) + ?Exists(<id>,_)); concat> (PREMISES, CONSEQUENCE);
+			universalVars := <diff> (metaVars, existsVars);
 			all-term := <make-all> (universalVars, body)
 
 	make-exists : ([], body) -> body
@@ -94,15 +101,16 @@ rules
 	compose-conjectures = (?[] <+ ?[<id>] <+ foldr1(compose-formulas))
 
 rules
-	lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Meta("X"), Meta("T"), Meta("CTX")],
-	                     Pred("lookup", [Meta("X"), TermApp("bind", [Meta("X"), Meta("T"), Meta("CTX")]), Meta("T")])))
-	lookup-ctx-step = !Formula("lookup ctx step", Axiom(), All([Meta("X"), Meta("Y"), Meta("T"), Meta("T2"), Meta("CTX")],
-	                     Impl(And(Neq(Meta("X"), Meta("Y")), Pred("lookup", [Meta("X"), Meta("CTX"), Meta("T")])),
-	                          Pred("lookup", [Meta("X"), TermApp("bind", [Meta("Y"), Meta("T2"), Meta("CTX")]), Meta("T")]))))
-	base-rules = ![<lookup-ctx-base>, <lookup-ctx-step>]
+	// lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Meta("X"), Meta("T"), Meta("T2"), Meta("CTX")],
+	//                      Impl(Pred("lookup", [Meta("X"), TermApp("bind", [Meta("X"), Meta("T2"), Meta("CTX")]), Meta("T")]),
+	//                           Eq(Meta("T"), Meta("T2")))))
+	// lookup-ctx-step = !Formula("lookup ctx step", Axiom(), All([Meta("X"), Meta("Y"), Meta("T"), Meta("T2"), Meta("CTX")],
+	//                      Impl(And(Neq(Meta("X"), Meta("Y")), Pred("lookup", [Meta("X"), Meta("CTX"), Meta("T")])),
+	//                           Pred("lookup", [Meta("X"), TermApp("bind", [Meta("Y"), Meta("T2"), Meta("CTX")]), Meta("T")]))))
+	// base-rules = ![<lookup-ctx-base>, <lookup-ctx-step>]
 
 strategies
 	main = io-wrap(trans)
-	trans = innermost(R); File(\xs -> <conc> (<base-rules>, xs)\, map(to-conjecture))
+	trans = innermost(R); File(id, map(to-conjecture))
 	fof-trans = trans; File(id, compose-conjectures)
 	to-conjecture = T

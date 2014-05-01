@@ -2,6 +2,15 @@ module Nat
 
 rules
 
+~x:~T in (~x:~T2; ~C)
+====================== Lookup-Base
+~T = ~T2
+
+~x != ~y
+~x:~T in ~C
+===================== Lookup-Step
+~x:~T in (~y:~T2; ~C)
+
 ================ T-zero
 ~C |- zero : Nat
 
@@ -18,13 +27,11 @@ rules
 ~C |- ~e : ~T
 ==================== T-Nat-inv
 OR
-  ~e = zero
-  ~T = Nat
-OR
-  exists ~epred
-	  ~e = succ(~epred)
-	  ~T = Nat
-OR
-  exists ~e1, ~e2
-	  ~e = ~e1 + ~e2
-	  ~T = Nat
+=> ~e = zero
+   ~T = Nat
+=> exists ~epred
+     ~e = succ(~epred)
+     ~T = Nat
+=> exists ~e1, ~e2
+     ~e = ~e1 + ~e2
+     ~T = Nat

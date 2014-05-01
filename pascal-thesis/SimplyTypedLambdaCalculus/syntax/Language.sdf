@@ -21,6 +21,8 @@ exports
 		Keyword -> ID {reject}
 		PrimitiveType -> ID {reject}
 		
+		"OR" -> Keyword
+		"exists" -> Keyword
 		"if" -> Keyword
 		"then" -> Keyword
 		"else" -> Keyword
@@ -79,7 +81,8 @@ exports
 	sorts Expr
 	
 	context-free syntax
-		ID -> Expr {cons("Var")}
+		ID -> Var {cons("Var")}
+		Var -> Expr
 		QID -> Expr {cons("QVar")}
 		"(" Expr ")" -> Expr {bracket}
 		NAT -> Expr {cons("Nat")}
