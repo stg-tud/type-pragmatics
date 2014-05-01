@@ -1,0 +1,158 @@
+module Subst
+
+rules
+
+~x:~T in (~x:~T2; ~C)
+====================== Lookup-Base
+~T = ~T2
+
+~x != ~y
+~x:~T in ~C
+===================== Lookup-Step
+~x:~T in (~y:~T2; ~C)
+
+~x1 != ~x2
+================================================= Context-Swap
+(~x1:~T1; ~x2:~T2; ~C1) = (~x2:~T2; ~x1:~T1; ~C2)
+
+===================================== Context-Duplicate
+(~x:~T1; ~x:~T2; ~C1) = (~x:~T1; ~C2)
+
+~C |- ~e : ~T
+====================== T-Weak
+(~x:~S; ~C) |- ~e : ~T
+
+
+
+var(~x) = var(~y)
+================= Cong-var-true
+~x = ~y
+
+var(~x) != var(~y)
+================== Cong-var-false
+~x != ~y
+
+~e1 ~f1 = ~e2 ~f2
+====================== Cong-app-true
+~e1 = ~e2
+~f1 = ~f2
+
+~e1 ~f1 != ~e2 ~f2
+======================= Cong-app-false
+OR
+=> ~e1 != ~e2
+=> ~f1 != ~f2
+
+\~x1:~T1. ~e1 = \~x2:~T2. ~e2
+============================= Cong-abs-true
+~x1 = ~x2
+~T1 = ~T2
+~e1 = ~e2
+
+\~x1:~T1. ~e1 != \~x2:~T2. ~e2
+============================= Cong-abs-false
+OR
+=> ~x1 != ~x2
+=> ~T1 != ~T2
+=> ~e1 != ~e2
+
+
+
+================== Cong-var-app
+var(~x) != ~e1 ~e2
+
+===================== Cong-var-abs
+var(~x) != \~y:~T. ~e
+
+===================== Cong-abs-app
+\~x:~T. ~e != ~e1 ~e2 
+
+
+// ****** type rules
+
+~x:~T in ~C
+================== T-var
+~C |- var(~x) : ~T
+
+(~X:~S; ~C) |- ~E : ~T
+===================================== T-abs
+~C |- (\~X:~S. ~E) : ~S -> ~T
+
+~C |- ~e1 : ~S -> ~T
+~C |- ~e2 : ~S
+==================== T-app
+~C |- ~e1 ~e2 : ~T
+
+
+
+~C |- ~e : ~T
+=============================== T-inv
+OR
+=> exists ~x
+     ~e = var(~x)
+     ~x:~T in ~C
+=> exists ~x, ~e2, ~T1, ~T2
+     ~e = \~x:~T1. ~e2
+     ~T = ~T1 -> ~T2
+     (~x:~T1; ~C) |- ~e2 : ~T2
+=> exists ~e1, ~e2, ~S
+     ~e = ~e1 ~e2
+     ~C |- ~e1 : ~S -> ~T
+     ~C |- ~e2 : ~S
+
+
+// Substitution lemma, this is what we want prove by induction
+//
+// ~C |- ~e : ~T
+// (~x:~T; ~C) |- ~e2 : ~T2
+// ============================== T-subst
+// ~C |- subst(~x, ~e, ~e2) : ~T2
+
+~C |- ~e : ~T
+(~x:~T; ~C) |- e1app : ~T2
+============================== T-subst-IH-app1
+~C |- subst(~x, ~e, e1app) : ~T2
+
+~C |- ~e : ~T
+(~x:~T; ~C) |- e2app : ~T2
+============================== T-subst-IH-app2
+~C |- subst(~x, ~e, e2app) : ~T2
+
+~C |- ~e : ~T
+(~x:~T; ~C) |- eabs : ~T2
+============================== T-subst-IH-abs
+~C |- subst(~x, ~e, eabs) : ~T2
+
+
+derived-rules
+
+~e2 = var(~x)
+subst(~x, ~e, ~e2) = ~e
+~C |- ~e : ~T
+(~x:~T; ~C) |- ~e2 : ~T2
+============================== T-subst-var
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+
+~e2 = e1app e2app
+subst(~x, ~e, ~e2) = subst(~x, ~e, e1app) subst(~x, ~e, e2app)
+~C |- ~e : ~T
+(~x:~T; ~C) |- ~e2 : ~T2
+============================================================== T-subst-app
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+~e2 = \~y:~S. ~e3
+~x = ~y
+subst(~x, ~e, ~e2) = \~y:~s. ~e3
+~C |- ~e : ~T
+(~x:~T; ~C) |- ~e2 : ~T2
+================================ T-subst-abs-1
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+~e2 = \~y:~S. eabs
+~x != ~y
+subst(~x, ~e, ~e2) = \~y:~S. subst(~x, ~e, eabs)
+~C |- ~e : ~T
+(~x:~T; ~C) |- ~e2 : ~T2
+================================================= T-subst-abs-2
+~C |- subst(~x, ~e, ~e2) : ~T2
