@@ -40,12 +40,17 @@ rules
 	R : JudgementCons(j1, j2) -> And(j1, j2)
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
 	R : VarInContextJudgment(ID, TYPE, CTX) -> Pred("lookup", [ID, CTX, TYPE])
-	R : EqualityJudgement(t1, t2) -> Eq(t1, t2)
-	R : NotEqualityJudgement(t1, t2) -> Neq(t1, t2)
+	R : EqualityJudgementE(t1, t2) -> Eq(t1, t2)
+	R : EqualityJudgementT(t1, t2) -> Eq(t1, t2)
+	R : EqualityJudgementC(t1, t2) -> Eq(t1, t2)
+	R : NotEqualityJudgementE(t1, t2) -> Neq(t1, t2)
+	R : NotEqualityJudgementT(t1, t2) -> Neq(t1, t2)
+	R : NotEqualityJudgementC(t1, t2) -> Neq(t1, t2)
 	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)
 	R : OrJudgement(p) -> p
 	R : OrEnd(p) -> p
 	R : OrCons(p1, p2) -> Or(p1, p2)
+	R : ReductionJudgment(e1, e2) -> Pred("reduce", [e1, e2])
 	
 	R : Plus(e1, e2) -> TermApp("plus", [e1, e2])
 	R : Rational(e1, e2) -> TermApp("rat", [e1, e2])

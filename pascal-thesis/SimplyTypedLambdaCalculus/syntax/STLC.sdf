@@ -48,20 +48,23 @@ exports
 		Var ":" Type "in" Context -> VarInContextJudgment   {cons("VarInContextJudgment")}
 		Meta ":" Type "in" Context -> VarInContextJudgment {cons("VarInContextJudgment")}
 		
-		Expr "=" Expr -> EqualityJudgment {cons("EqualityJudgement"), prefer}
-		Type "=" Type -> EqualityJudgment {cons("EqualityJudgement")}
-		Context "=" Context -> EqualityJudgment {cons("EqualityJudgement")}
+		Expr "=" Expr -> EqualityJudgment {cons("EqualityJudgementE"), prefer}
+		Type "=" Type -> EqualityJudgment {cons("EqualityJudgementT")}
+		Context "=" Context -> EqualityJudgment {cons("EqualityJudgementC"), avoid}
 		
-		Expr "!=" Expr -> EqualityJudgment {cons("NotEqualityJudgement"), prefer}
-		Type "!=" Type -> EqualityJudgment {cons("NotEqualityJudgement")}
-		Context "!=" Context -> EqualityJudgment {cons("NotEqualityJudgement")}
+		Expr "!=" Expr -> EqualityJudgment {cons("NotEqualityJudgementE"), prefer}
+		Type "!=" Type -> EqualityJudgment {cons("NotEqualityJudgementT")}
+		Context "!=" Context -> EqualityJudgment {cons("NotEqualityJudgementC"), avoid}
 		
 		"exists" {Meta ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ExistsJudgment"), layout("1.first.col < 3.first.col && 1.first.line < 3.first.line")}
+		
+		Expr "->" Expr -> ReductionJudgment {cons("ReductionJudgment")}
 		
 		TypingJudgment -> TypingRuleJudgment
 		VarInContextJudgment  -> TypingRuleJudgment
 		EqualityJudgment -> TypingRuleJudgment
 		ExistsJudgment -> TypingRuleJudgment
+		ReductionJudgment -> TypingRuleJudgment
 		
 	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
 	

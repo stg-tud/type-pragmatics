@@ -2,26 +2,9 @@ module Subst
 
 rules
 
-~x:~T in (~x:~T2; ~C)
-====================== Lookup-Base
-~T = ~T2
-
-~x != ~y
-~x:~T in ~C
-===================== Lookup-Step
-~x:~T in (~y:~T2; ~C)
-
-~x1 != ~x2
-================================================= Context-Swap
-(~x1:~T1; ~x2:~T2; ~C1) = (~x2:~T2; ~x1:~T1; ~C2)
-
-===================================== Context-Duplicate
-(~x:~T1; ~x:~T2; ~C1) = (~x:~T1; ~C2)
-
-~C |- ~e : ~T
-====================== T-Weak
-(~x:~S; ~C) |- ~e : ~T
-
+// ***************************
+// Equational theory for terms
+// ***************************
 
 
 var(~x) = var(~y)
@@ -56,6 +39,16 @@ OR
 => ~T1 != ~T2
 => ~e1 != ~e2
 
+~T1 -> ~T2 = ~U1 -> ~U2
+======================= Cong-arrow-true
+~T1 = ~U1
+~T2 = ~U2
+
+~T1 -> ~T2 != ~U1 -> ~U2
+======================== Cong-arrow-false
+OR
+=> ~T1 != ~U1
+=> ~T2 != ~U2
 
 
 ================== Cong-var-app
@@ -68,7 +61,37 @@ var(~x) != \~y:~T. ~e
 \~x:~T. ~e != ~e1 ~e2 
 
 
-// ****** type rules
+// *************************
+// Context rules
+// *************************
+
+~x:~T in (~x:~T2; ~C)
+====================== Lookup-Base
+~T = ~T2
+
+~x != ~y
+~x:~T in ~C
+====================== Lookup-Step
+~x:~T2 in (~y:~Ty; ~C)
+~T = ~T2
+
+~x1 != ~x2
+================================================= Context-Swap
+(~x1:~T1; ~x2:~T2; ~C1) = (~x2:~T2; ~x1:~T1; ~C2)
+
+===================================== Context-Duplicate
+(~x:~T1; ~x:~T2; ~C1) = (~x:~T1; ~C2)
+
+~C |- ~e : ~T
+====================== T-Weak
+(~x:~S; ~C) |- ~e : ~T
+
+
+
+// **********
+// type rules
+// **********
+
 
 ~x:~T in ~C
 ================== T-var
@@ -101,7 +124,11 @@ OR
      ~C |- ~e2 : ~S
 
 
-// Substitution lemma, this is what we want prove by induction
+// ******************
+// Substitution lemma
+// ******************
+
+// This is what we want prove by induction
 //
 // ~C |- ~e : ~T
 // (~x:~T; ~C) |- ~e2 : ~T2
@@ -125,6 +152,9 @@ OR
 
 
 derived-rules
+
+// Prove substitution lemma by induction on recursive structure of `subst`
+// Each derived rule represents one induction case.
 
 ~e2 = var(~x)
 subst(~x, ~e, ~e2) = ~e
