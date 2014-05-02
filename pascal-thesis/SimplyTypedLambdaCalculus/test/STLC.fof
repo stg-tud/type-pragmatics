@@ -1,0 +1,25 @@
+
+fof('Cong-var-true', axiom, (![X,Y] : ((var(X)=var(Y)) => (X=Y)))).
+fof('Cong-var-false', axiom, (![X,Y] : ((var(X)!=var(Y)) => (X!=Y)))).
+fof('Cong-app-true', axiom, (![E1,E2,F1,F2] : ((app(E1,F1)=app(E2,F2)) => ((E1=E2) & (F1=F2))))).
+fof('Cong-app-false', axiom, (![E1,E2,F1,F2] : ((app(E1,F1)!=app(E2,F2)) => ((E1!=E2) | (F1!=F2))))).
+fof('Cong-abs-true', axiom, (![X1,X2,T1,T2,E1,E2] : ((abs(X1,T1,E1)=abs(X2,T2,E2)) => ((X1=X2) & ((T1=T2) & (E1=E2)))))).
+fof('Cong-abs-false', axiom, (![X1,X2,T1,T2,E1,E2] : ((abs(X1,T1,E1)!=abs(X2,T2,E2)) => ((X1!=X2) | ((T1!=T2) | (E1!=E2)))))).
+fof('Cong-arrow-true', axiom, (![T1,U1,T2,U2] : ((arrow(T1,T2)=arrow(U1,U2)) => ((T1=U1) & (T2=U2))))).
+fof('Cong-arrow-false', axiom, (![T1,U1,T2,U2] : ((arrow(T1,T2)!=arrow(U1,U2)) => ((T1!=U1) | (T2!=U2))))).
+fof('Cong-var-app', axiom, (![X,E1,E2] : (var(X)!=app(E1,E2)))).
+fof('Cong-var-abs', axiom, (![X,Y,T,E] : (var(X)!=abs(Y,T,E)))).
+fof('Cong-abs-app', axiom, (![X,T,E,E1,E2] : (abs(X,T,E)!=app(E1,E2)))).
+fof('Lookup-Base', axiom, (![X,C,T,T2] : (lookup(X,bind(X,T2,C),T) => (T=T2)))).
+fof('Lookup-Step', axiom, (![X,Y,TY,C,T,T2] : (((X!=Y) & lookup(X,C,T)) => (lookup(X,bind(Y,TY,C),T2) & (T=T2))))).
+fof('Context-Swap', axiom, (![C1,X2,T2,X1,T1,C2] : ((X1!=X2) => (bind(X1,T1,bind(X2,T2,C1))=bind(X2,T2,bind(X1,T1,C2)))))).
+fof('Context-Duplicate', axiom, (![T2,C1,X,T1,C2] : (bind(X,T1,bind(X,T2,C1))=bind(X,T1,C2)))).
+fof('T-Weak', axiom, (![X,S,C,E,T] : (tcheck(C,E,T) => tcheck(bind(X,S,C),E,T)))).
+fof('T-var', axiom, (![C,X,T] : (lookup(X,C,T) => tcheck(C,var(X),T)))).
+fof('T-abs', axiom, (![C,X,E,S,T] : (tcheck(bind(X,S,C),E,T) => tcheck(C,abs(X,S,E),arrow(S,T))))).
+fof('T-app', axiom, (![S,C,E1,E2,T] : ((tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S)) => tcheck(C,app(E1,E2),T)))).
+fof('T-inv', axiom, (![E,T,C] : (tcheck(C,E,T) => ((?[X] : ((E=var(X)) & lookup(X,C,T))) | ((?[X,E2,T1,T11,T2] : ((E=abs(X,T1,E2)) & ((T=arrow(T1,T2)) & ((T1=T11) & tcheck(bind(X,T11,C),E2,T2))))) | (?[E1,E2,S1] : ((E=app(E1,E2)) & (tcheck(C,E1,arrow(S1,T)) & tcheck(C,E2,S1))))))))).
+fof('T-subst', axiom, (![T,C,X,E,E2,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2)) => tcheck(C,subst(X,E,E2),T2)))).
+fof('T-Preservation-IH-app1', axiom, (![C,T] : ((tcheck(C,e1fun,T) & reduce(e1fun,e1funred)) => tcheck(C,e1funred,T)))).
+fof('T-Preservation-IH-app2', axiom, (![C,T] : ((tcheck(C,e1arg,T) & reduce(e1arg,e1argred)) => tcheck(C,e1argred,T)))).
+fof('T-Preservation-beta AND T-Preservation-App1 AND T-Preservation-App2', conjecture, ((![S,X,E1ARG,E1BODY,E1,C,E2,T] : (((E1=app(abs(X,S,E1BODY),E1ARG)) & ((E2=subst(X,E1ARG,E1BODY)) & (tcheck(C,E1,T) & reduce(E1,E2)))) => tcheck(C,E2,T))) & ((![E1ARG,E1,C,E2,T] : (((E1=app(e1fun,E1ARG)) & (reduce(e1fun,e1funred) & ((E2=app(e1funred,E1ARG)) & (tcheck(C,E1,T) & reduce(E1,E2))))) => tcheck(C,E2,T))) & (![E1FUN,E1,C,E2,T] : (((E1=app(E1FUN,e1arg)) & (reduce(e1arg,e1argred) & ((E2=app(E1FUN,e1argred)) & (tcheck(C,E1,T) & reduce(E1,E2))))) => tcheck(C,E2,T)))))).
