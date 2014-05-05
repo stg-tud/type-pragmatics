@@ -90,7 +90,7 @@ exports
 		"local" "{" ModuleDef* "}" -> ModuleDef {cons("Local")}
 		"syntax" SyntaxDef* -> ModuleDef {cons("Syntax")}
 		"axioms" TypingRule* -> ModuleDef {cons("Axioms")}
-		"axiom" TypingRule* -> ModuleDef {ast("Axioms([<1>])")}
+		"axiom" TypingRule -> ModuleDef {ast("Axioms([<1>])")}
 		
 		"goals" TypingRule* -> ModuleDef {cons("Goals")}
 		"goal" TypingRule -> ModuleDef {ast("Goals([<1>])")}
