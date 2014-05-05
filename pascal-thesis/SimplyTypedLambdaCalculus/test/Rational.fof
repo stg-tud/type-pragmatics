@@ -1,6 +1,0 @@
-
-fof('lookup ctx base', axiom, ![X,T,CTX] : (lookup(X,bind(X,T,CTX),T))).
-fof('lookup ctx step', axiom, ![X,Y,T,T2,CTX] : ((((X!=Y) & lookup(X,CTX,T)) => lookup(X,bind(Y,T2,CTX),T)))).
-fof('T-float', axiom, ![C,E1,E2] : (((tcheck(C,E1,nat) & tcheck(C,E2,nat)) => tcheck(C,rat(E1,E2),rational)))).
-fof('T-plus', axiom, ![C,E1,E2] : (((tcheck(C,E1,rational) & tcheck(C,E2,rational)) => tcheck(C,plus(E1,E2),rational)))).
-fof('T-Rational-inv', axiom, ![C,e1,e2,E,E1,E2,T] : ((tcheck(C,E,T) => (?[e1,e2] : (((E=rat(E1,E2)) & (T=rational))) | ?[e1,e2] : (((E=plus(E1,E2)) & (T=rational))))))).

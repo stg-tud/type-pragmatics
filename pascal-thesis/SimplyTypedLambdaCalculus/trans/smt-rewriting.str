@@ -18,8 +18,9 @@ rules
 	main = io-wrap(smt-trans)
 	smt-trans = trans; fof-to-smt
 	
-	fof-to-smt : 
-		File(axioms, conjecture) -> 
+	fof-to-smt :
+		(axioms,conjecture) -> 
+		// File(axioms, conjecture) -> 
 		<conc> (
 			booldecls,
 			termdecls, 
@@ -54,11 +55,11 @@ rules
 	termapp-to-fun-decl = debug(!"termapp-to-fun-decl failed: "); fail
 	
 	formula-to-define :
-		Formula(name, _, prop) -> DefFun(<fun-name> name, [], Bool(), <prop-to-smt> prop)
+		Formula(name, prop) -> DefFun(<fun-name> name, [], Bool(), <prop-to-smt> prop)
 	formula-to-define = debug(!"formula-to-define failed: "); fail
 	
 	formula-to-assert :
-		Formula(name, _, prop) -> Assert(Var(<fun-name> name))
+		Formula(name, prop) -> Assert(Var(<fun-name> name))
 	formula-to-assert = debug(!"formula-to-assert failed: "); fail
 	fun-name = string-as-chars(map(try(?' ';!	'-')))
 	

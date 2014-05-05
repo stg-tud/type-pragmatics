@@ -1,6 +1,6 @@
 module rules
 
-rules 
+axioms 
 
 ~x:~T in (~x:~T2; ~C)
 ====================== Lookup-Base
@@ -25,7 +25,7 @@ rules
 ==================== T-app
 ~C |- ~E ~F : ~T
 
-derived-rules
+goals
 
 ==================== id-nat
 (x : Nat; ()) |- x : Nat

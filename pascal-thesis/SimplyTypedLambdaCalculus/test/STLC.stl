@@ -1,6 +1,6 @@
 module Subst
 
-rules
+axioms
 
 // ***************************
 // Equational theory for terms
@@ -156,7 +156,7 @@ e1arg -> e1argred
 ~C |- e1argred : ~T
 
 
-derived-rules
+goals
 
 // Prove type preservation by induction on recursive structure of reduction relation
 // Each derived rule represents one induction case.

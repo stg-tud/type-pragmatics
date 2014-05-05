@@ -12,12 +12,31 @@ rules // Incremental code generation of project using compilation library.
       
   // See lib/compilation-library.generated.str for documentation
 
+  generate-files(|base) = generate-files(|base, 0)
+  
+  generate-files(|base, i) : [] -> []
+  generate-files(|base, i) : [output | rest] -> [outfile | <generate-files(|base, <inc> i)> rest]
+  where
+    <get-extension> base => ext;
+    <remove-extension> base => basename;
+    <conc-strings> (basename, "-", <int-to-string> i) => filename;
+    <add-extension> (filename, ext) => outfile;
+    <write-file> (outfile, output)
+  
+  write-file : (file, output) -> <id>
+  where
+    <fopen> (file, "w") => stream;
+    <fputs> (output, stream);
+    <fclose> stream
+    
   generate-fof :
-  	   (selected, position, ast, path, project-path) -> (filename, result)
+  	   (selected, position, ast, path, project-path) -> result
   with
     filename := <guarantee-extension(|"fof")> path;
-    formula := <fof-trans <+ error(!"fof-trans failed: ")> selected;
-    result := <pp-formula <+ pp-debug(pp-formula)> formula
+    goals := <fof-trans <+ error(!"fof-trans failed: ")> selected;
+    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
+    outfiles := <generate-files(|filename)> strings;
+    result := <if <?[]> goals then !None() else !(<Hd> outfiles, <Hd> strings) end> ()
 
   pp-formula =
     ast2abox(|[<parse-pptable-file> "trans/fof-rewriting.pp"]);

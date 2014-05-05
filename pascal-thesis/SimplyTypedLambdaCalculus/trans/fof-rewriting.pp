@@ -1,5 +1,5 @@
 [
-	File -- V [ _1 _2 ],
+	FOFGoal -- V [ _1 _2 ],
 	Formula -- H hs=0 ["fof('" _1 "', " _2 ", " _3 ")."],
 	Axiom -- "axiom",
 	Conjecture -- "conjecture",

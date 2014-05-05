@@ -25,13 +25,11 @@ signature
     	Axiom : Type
     	Conjecture : Type
     	Formula : String * Type * Prop -> FOF
+    	Formula : String * Prop -> FOF
     	
-    	File : List(Formula) * List(Formula) -> File
+    	FOFGoal : List(Formula) * Formula -> File
 
 rules
-	R : Module(_, Rules(R), Some(DerivedRules(DR))) -> File(R, DR)
-	R : Module(_, Rules(R), None()) -> File(R, [])
-	
 	R : CtxEmpty() -> TermApp("empty", [])
 	R : CtxBindVar(ID, TYPE, CTX) -> TermApp("bind", [ID, TYPE, CTX])
 	
@@ -79,7 +77,7 @@ rules
 	
 	R : TypingRule(name, CONSEQUENCE) -> TypingRule(True(), name, CONSEQUENCE)
 	R : TypingRule(PREMISES, RuleName(_, NAME), CONSEQUENCE) ->
-		Formula(NAME, Axiom(), all-term)
+		Formula(NAME, all-term)
 		with
 			//TODO: In which cases can meta-variables be bound?
 			body := <try(\ Impl(True(), p) -> p \)> Impl(PREMISES, CONSEQUENCE);
@@ -93,17 +91,14 @@ rules
 	make-all : ([], body) -> body
 	make-all : (vars, body) -> All(vars, body)
 			
-	T : Formula(N, _, P) -> Formula(N, Conjecture(), P)
-	
-	compose-formulas :
-		(Formula(N1, kind, P1), Formula(N2, kind, P2)) ->
-		Formula(N, kind, P)
+	compose-formula-p :
+		(Formula(N1, P1), Formula(N2, P2)) -> Formula(N, P)
 	where
 		N := <conc-strings> (N1, " AND ", N2);
 		P := And(P1, P2)
-	compose-formulas = debug(!"compose-formulas failed: "); fail
+	compose-formula-p = debug(!"compose-formula-p failed: "); fail
 
-	compose-conjectures = (?[] <+ ?[<id>] <+ foldr1(compose-formulas))
+	compose-formulas = (?[] <+ ?[<id>] <+ foldr1(compose-formula-p))
 
 rules
 	// lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Meta("X"), Meta("T"), Meta("T2"), Meta("CTX")],
@@ -116,6 +111,24 @@ rules
 
 strategies
 	main = io-wrap(trans)
-	trans = innermost(R); File(id, map(to-conjecture))
-	fof-trans = trans; File(id, compose-conjectures)
-	to-conjecture = T
+	trans = innermost(R)
+	fof-trans = trans; generate-fof-goals
+	
+	generate-fof-goals : Module(_, imps, body) -> <conc; generate-fof-goals(|[])> (imps, body) 
+	
+	generate-fof-goals(|axioms) : [] -> []
+	generate-fof-goals(|axioms) : [Axioms(fs) | rest] -> others
+		where
+			newAxioms := <map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
+			axioms2 := <conc> (axioms, newAxioms); 
+			others := <generate-fof-goals(|axioms2)> rest
+	generate-fof-goals(|axioms) : [Goals(fs) | rest] -> [goal | others]
+		where
+			formula := <compose-formulas> fs;
+			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
+			goal := FOFGoal(axioms, conjecture);
+			others := <generate-fof-goals(|axioms)> rest
+	generate-fof-goals(|axioms) = debug(!"generate-fof-goals failed: "); fail
+
+	
+	

@@ -1,6 +1,6 @@
 module parmod
 
-rules
+axioms
 
 ~x:~T in (~x:~T2; ~C)
 ====================== Lookup-Base
@@ -67,7 +67,7 @@ exists ~S
 
 
 
-derived-rules
+goals
 
 // par x => x
 // 

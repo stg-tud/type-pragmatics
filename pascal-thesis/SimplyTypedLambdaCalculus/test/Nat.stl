@@ -1,6 +1,6 @@
 module Nat
 
-rules
+axioms
 
 ~x:~T in (~x:~T2; ~C)
 ====================== Lookup-Base

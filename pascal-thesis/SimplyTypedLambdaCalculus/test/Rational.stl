@@ -1,6 +1,6 @@
 module Rational
 
-rules
+axioms
 
 ~C |- ~e1 : Nat
 ~C |- ~e2 : Nat

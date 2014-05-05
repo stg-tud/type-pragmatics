@@ -1,0 +1,6 @@
+fof('Lookup-Base', axiom, (![X,C,T,T2] : (lookup(X,bind(X,T2,C),T) => (T=T2)))).
+fof('Lookup-Step', axiom, (![X,Y,T2,C,T] : (((X!=Y) & lookup(X,C,T)) => lookup(X,bind(Y,T2,C),T)))).
+fof('T-var', axiom, (![C,X,T] : (lookup(X,C,T) => tcheck(C,X,T)))).
+fof('T-abs', axiom, (![C,X,E,S,T] : (tcheck(bind(X,S,C),E,T) => tcheck(C,abs(X,S,E),arrow(S,T))))).
+fof('T-app', axiom, (![S,C,E,F,T] : ((tcheck(C,E,arrow(S,T)) & tcheck(C,F,S)) => tcheck(C,app(E,F),T)))).
+fof('id-nat', conjecture, tcheck(bind(x,nat,empty()),x,nat)).
