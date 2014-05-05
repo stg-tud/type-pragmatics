@@ -6,6 +6,7 @@ imports
   libstratego-aterm
   include/STLC
   generate
+  editor/STLC-Outliner
 
 rules // Analysis
   
