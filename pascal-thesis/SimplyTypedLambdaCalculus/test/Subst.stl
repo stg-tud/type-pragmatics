@@ -162,7 +162,15 @@ derived-rules
 subst(~x, ~e, ~e2) = ~e
 ~C |- ~e : ~T
 (~x:~T; ~C) |- ~e2 : ~T2
-============================== T-subst-var
+============================== T-subst-var-1
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+~e2 = var(~x)
+~x != ~y
+subst(~y, ~e, ~e2) = ~e2
+~C |- ~e : ~T
+(~x:~T; ~C) |- ~e2 : ~T2
+============================== T-subst-var-2
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
 
