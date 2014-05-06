@@ -128,7 +128,7 @@ bind(~x, ~T, ~C) |- ~e2 : ~T2
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
 local {
-	constructors
+	consts
 		e1app : Exp
 		e2app : Exp
 	
@@ -160,8 +160,7 @@ bind(~x, ~T, ~C) |- ~e2 : ~T2
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
 local {
-	constructors
-		eabs : Exp
+	const eabs : Exp
 	
 	axiom
 	~C |- ~e : ~T

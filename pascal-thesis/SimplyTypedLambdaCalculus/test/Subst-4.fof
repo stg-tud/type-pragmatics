@@ -1,20 +1,20 @@
 
-fof('EQ-var', axiom, (![VAR235,VAR236] : ((var(VAR235)=var(VAR236)) <=> (VAR235=VAR236)))).
-fof('EQ-abs', axiom, (![VAR237,TYP185,EXP237,VAR238,TYP186,EXP238] : ((abs(VAR237,TYP185,EXP237)=abs(VAR238,TYP186,EXP238)) <=> ((VAR237=VAR238) & ((TYP185=TYP186) & (EXP237=EXP238)))))).
-fof('EQ-app', axiom, (![EXP239,EXP240,EXP241,EXP242] : ((app(EXP239,EXP240)=app(EXP241,EXP242)) <=> ((EXP239=EXP241) & (EXP240=EXP242))))).
+fof('EQ-var', axiom, (![VAR297,VAR298] : ((var(VAR297)=var(VAR298)) <=> (VAR297=VAR298)))).
+fof('EQ-abs', axiom, (![VAR299,TYP225,EXP312,VAR300,TYP226,EXP313] : ((abs(VAR299,TYP225,EXP312)=abs(VAR300,TYP226,EXP313)) <=> ((VAR299=VAR300) & ((TYP225=TYP226) & (EXP312=EXP313)))))).
+fof('EQ-app', axiom, (![EXP314,EXP315,EXP316,EXP317] : ((app(EXP314,EXP315)=app(EXP316,EXP317)) <=> ((EXP314=EXP316) & (EXP315=EXP317))))).
 fof('EQ-empty', axiom, ((empty=empty) <=> $true)).
-fof('EQ-bind', axiom, (![VAR239,TYP187,CTX80,VAR240,TYP188,CTX81] : ((bind(VAR239,TYP187,CTX80)=bind(VAR240,TYP188,CTX81)) <=> ((VAR239=VAR240) & ((TYP187=TYP188) & (CTX80=CTX81)))))).
-fof('EQ-arrow', axiom, (![TYP189,TYP190,TYP191,TYP192] : ((arrow(TYP189,TYP190)=arrow(TYP191,TYP192)) <=> ((TYP189=TYP191) & (TYP190=TYP192))))).
+fof('EQ-bind', axiom, (![VAR301,TYP227,CTX95,VAR302,TYP228,CTX96] : ((bind(VAR301,TYP227,CTX95)=bind(VAR302,TYP228,CTX96)) <=> ((VAR301=VAR302) & ((TYP227=TYP228) & (CTX95=CTX96)))))).
+fof('EQ-arrow', axiom, (![TYP229,TYP230,TYP231,TYP232] : ((arrow(TYP229,TYP230)=arrow(TYP231,TYP232)) <=> ((TYP229=TYP231) & (TYP230=TYP232))))).
 fof('EQ-nothing', axiom, ((nothing=nothing) <=> $true)).
-fof('EQ-some', axiom, (![TYPE48,TYPE49] : ((some(TYPE48)=some(TYPE49)) <=> (TYPE48=TYPE49)))).
-fof('DIFF-var-abs', axiom, (![VAR241,VAR242,TYP193,EXP243] : (var(VAR241)!=abs(VAR242,TYP193,EXP243)))).
-fof('DIFF-var-app', axiom, (![VAR243,EXP244,EXP245] : (var(VAR243)!=app(EXP244,EXP245)))).
-fof('DIFF-abs-app', axiom, (![VAR244,TYP194,EXP246,EXP247,EXP248] : (abs(VAR244,TYP194,EXP246)!=app(EXP247,EXP248)))).
-fof('DIFF-empty-bind', axiom, (![VAR245,TYP195,CTX82] : (empty!=bind(VAR245,TYP195,CTX82)))).
-fof('DIFF-nothing-some', axiom, (![TYPE50] : (nothing!=some(TYPE50)))).
-fof('lookup50', axiom, (![X,VAR247,CTX84,RESULT42] : ((((VAR247=X) & (CTX84=empty)) & (RESULT42=lookup(VAR247,CTX84))) => ($true => (RESULT42=nothing))))).
-fof('lookup48', axiom, (![C,VAR246,CTX83,X,Y,RESULT41,TY] : ((((VAR246=X) & (CTX83=bind(Y,TY,C))) & (RESULT41=lookup(VAR246,CTX83))) => (((X=Y) & $true) => (RESULT41=some(TY)))))).
-fof('lookup49', axiom, (![TY,VAR246,CTX83,Y,RESULT41,X,C] : ((((VAR246=X) & (CTX83=bind(Y,TY,C))) & (RESULT41=lookup(VAR246,CTX83))) => (((~(X=Y)) & $true) => (RESULT41=lookup(X,C)))))).
+fof('EQ-some', axiom, (![TYPE57,TYPE58] : ((some(TYPE57)=some(TYPE58)) <=> (TYPE57=TYPE58)))).
+fof('DIFF-var-abs', axiom, (![VAR303,VAR304,TYP233,EXP318] : (var(VAR303)!=abs(VAR304,TYP233,EXP318)))).
+fof('DIFF-var-app', axiom, (![VAR305,EXP319,EXP320] : (var(VAR305)!=app(EXP319,EXP320)))).
+fof('DIFF-abs-app', axiom, (![VAR306,TYP234,EXP321,EXP322,EXP323] : (abs(VAR306,TYP234,EXP321)!=app(EXP322,EXP323)))).
+fof('DIFF-empty-bind', axiom, (![VAR307,TYP235,CTX97] : (empty!=bind(VAR307,TYP235,CTX97)))).
+fof('DIFF-nothing-some', axiom, (![TYPE59] : (nothing!=some(TYPE59)))).
+fof('lookup59', axiom, (![X,VAR309,CTX99,RESULT57] : ((((VAR309=X) & (CTX99=empty)) & (RESULT57=lookup(VAR309,CTX99))) => ($true => (RESULT57=nothing))))).
+fof('lookup57', axiom, (![C,VAR308,CTX98,X,Y,RESULT56,TY] : ((((VAR308=X) & (CTX98=bind(Y,TY,C))) & (RESULT56=lookup(VAR308,CTX98))) => (((X=Y) & $true) => (RESULT56=some(TY)))))).
+fof('lookup58', axiom, (![TY,VAR308,CTX98,Y,RESULT56,X,C] : ((((VAR308=X) & (CTX98=bind(Y,TY,C))) & (RESULT56=lookup(VAR308,CTX98))) => (((~(X=Y)) & $true) => (RESULT56=lookup(X,C)))))).
 fof('T-var', axiom, (![C,X,T] : ((lookup(X,C)=some(T)) => tcheck(C,var(X),T)))).
 fof('T-abs', axiom, (![C,X,E,S,T] : (tcheck(bind(X,S,C),E,T) => tcheck(C,abs(X,S,E),arrow(S,T))))).
 fof('T-app', axiom, (![S,C,E1,E2,T] : ((tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S)) => tcheck(C,app(E1,E2),T)))).
@@ -22,14 +22,11 @@ fof('T-inv', axiom, (![E,T,C] : (tcheck(C,E,T) => ((?[X] : ((E=var(X)) & (lookup
 fof('T-Context-Duplicate', axiom, (![Y,TY,X,TX,C,E,T] : (((X=Y) & tcheck(bind(X,TX,bind(Y,TY,C)),E,T)) => tcheck(bind(X,TX,C),E,T)))).
 fof('T-Context-Swap', axiom, (![Y,TY,X,TX,C,E,T] : (((X!=Y) & tcheck(bind(X,TX,bind(Y,TY,C)),E,T)) => tcheck(bind(Y,TY,bind(X,TX,C)),E,T)))).
 fof('T-Weak', axiom, (![X,S,C,E,T] : (((lookup(X,C)=nothing) & tcheck(C,E,T)) => tcheck(bind(X,S,C),E,T)))).
-fof('subst18', axiom, (![VAR250,EXP253,EXP254,X,Y,RESULT45,E] : ((((VAR250=X) & ((EXP253=E) & (EXP254=var(Y)))) & (RESULT45=subst(VAR250,EXP253,EXP254))) => (((X=Y) & $true) => (RESULT45=E))))).
-fof('subst19', axiom, (![E,VAR250,EXP253,EXP254,X,RESULT45,Y] : ((((VAR250=X) & ((EXP253=E) & (EXP254=var(Y)))) & (RESULT45=subst(VAR250,EXP253,EXP254))) => (((~(X=Y)) & $true) => (RESULT45=var(Y)))))).
-fof('subst17', axiom, (![VAR249,EXP251,EXP252,RESULT44,E1,X,E,E2] : ((((VAR249=X) & ((EXP251=E) & (EXP252=app(E1,E2)))) & (RESULT44=subst(VAR249,EXP251,EXP252))) => ($true => (RESULT44=app(subst(X,E,E1),subst(X,E,E2))))))).
-fof('subst15', axiom, (![E,VAR248,EXP249,EXP250,X,RESULT43,Y,T,E1] : ((((VAR248=X) & ((EXP249=E) & (EXP250=abs(Y,T,E1)))) & (RESULT43=subst(VAR248,EXP249,EXP250))) => (((X=Y) & $true) => (RESULT43=abs(Y,T,E1)))))).
-fof('subst16', axiom, (![VAR248,EXP249,EXP250,RESULT43,Y,T,X,E,E1] : ((((VAR248=X) & ((EXP249=E) & (EXP250=abs(Y,T,E1)))) & (RESULT43=subst(VAR248,EXP249,EXP250))) => (((~(X=Y)) & $true) => (RESULT43=abs(Y,T,subst(X,E,E1))))))).
+fof('subst33', axiom, (![VAR312,EXP328,EXP329,X,Y,RESULT60,E] : ((((VAR312=X) & ((EXP328=E) & (EXP329=var(Y)))) & (RESULT60=subst(VAR312,EXP328,EXP329))) => (((X=Y) & $true) => (RESULT60=E))))).
+fof('subst34', axiom, (![E,VAR312,EXP328,EXP329,X,RESULT60,Y] : ((((VAR312=X) & ((EXP328=E) & (EXP329=var(Y)))) & (RESULT60=subst(VAR312,EXP328,EXP329))) => (((~(X=Y)) & $true) => (RESULT60=var(Y)))))).
+fof('subst32', axiom, (![VAR311,EXP326,EXP327,RESULT59,E1,X,E,E2] : ((((VAR311=X) & ((EXP326=E) & (EXP327=app(E1,E2)))) & (RESULT59=subst(VAR311,EXP326,EXP327))) => ($true => (RESULT59=app(subst(X,E,E1),subst(X,E,E2))))))).
+fof('subst30', axiom, (![E,VAR310,EXP324,EXP325,X,RESULT58,Y,T,E1] : ((((VAR310=X) & ((EXP324=E) & (EXP325=abs(Y,T,E1)))) & (RESULT58=subst(VAR310,EXP324,EXP325))) => (((X=Y) & $true) => (RESULT58=abs(Y,T,E1)))))).
+fof('subst31', axiom, (![VAR310,EXP324,EXP325,RESULT58,Y,T,X,E,E1] : ((((VAR310=X) & ((EXP324=E) & (EXP325=abs(Y,T,E1)))) & (RESULT58=subst(VAR310,EXP324,EXP325))) => (((~(X=Y)) & $true) => (RESULT58=abs(Y,T,subst(X,E,E1))))))).
 fof('EQ-eabs', axiom, ((eabs=eabs) <=> $true)).
-fof('DIFF-var-eabs', axiom, (![VAR255] : (var(VAR255)!=eabs))).
-fof('DIFF-abs-eabs', axiom, (![VAR256,TYP198,EXP261] : (abs(VAR256,TYP198,EXP261)!=eabs))).
-fof('DIFF-app-eabs', axiom, (![EXP262,EXP263] : (app(EXP262,EXP263)!=eabs))).
 fof('T-subst-IH-abs', axiom, (![T,C,X,E,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),eabs,T2)) => tcheck(C,subst(X,E,eabs),T2)))).
 fof('T-subst-abs-2', conjecture, (![S,Y,T,C,X,E,E2,T2] : (((E2=abs(Y,S,eabs)) & ((X!=Y) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2)))) => tcheck(C,subst(X,E,E2),T2)))).
