@@ -128,6 +128,10 @@ strategies
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
 			goal := FOFGoal(axioms, conjecture);
 			others := <generate-fof-goals(|axioms)> rest
+	generate-fof-goals(|axioms) : [Local(xs) | rest] -> <conc> (goals,  others)
+		where
+			goals := <generate-fof-goals(|axioms)> xs;
+			others := <generate-fof-goals(|axioms)> rest
 	generate-fof-goals(|axioms) = debug(!"generate-fof-goals failed: "); fail
 
 	

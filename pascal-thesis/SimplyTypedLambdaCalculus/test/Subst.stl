@@ -137,23 +137,6 @@ OR
 // ============================== T-subst
 // ~C |- subst(~x, ~e, ~e2) : ~T2
 
-~C |- ~e : ~T
-(~x:~T; ~C) |- e1app : ~T2
-============================== T-subst-IH-app1
-~C |- subst(~x, ~e, e1app) : ~T2
-
-~C |- ~e : ~T
-(~x:~T; ~C) |- e2app : ~T2
-============================== T-subst-IH-app2
-~C |- subst(~x, ~e, e2app) : ~T2
-
-~C |- ~e : ~T
-(~x:~T; ~C) |- eabs : ~T2
-============================== T-subst-IH-abs
-~C |- subst(~x, ~e, eabs) : ~T2
-
-
-
 // Prove substitution lemma by induction on recursive structure of `subst`
 // Each derived rule represents one induction case.
 
@@ -174,13 +157,26 @@ subst(~y, ~e, ~e2) = ~e2
 ============================== T-subst-var-2
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
-goal
-~e2 = e1app e2app
-subst(~x, ~e, ~e2) = subst(~x, ~e, e1app) subst(~x, ~e, e2app)
-~C |- ~e : ~T
-(~x:~T; ~C) |- ~e2 : ~T2
-============================================================== T-subst-app
-~C |- subst(~x, ~e, ~e2) : ~T2
+local {
+	axioms
+	~C |- ~e : ~T
+	(~x:~T; ~C) |- e1app : ~T2
+	============================== T-subst-IH-app1
+	~C |- subst(~x, ~e, e1app) : ~T2
+	
+	~C |- ~e : ~T
+	(~x:~T; ~C) |- e2app : ~T2
+	============================== T-subst-IH-app2
+	~C |- subst(~x, ~e, e2app) : ~T2
+	
+	goal
+	~e2 = e1app e2app
+	subst(~x, ~e, ~e2) = subst(~x, ~e, e1app) subst(~x, ~e, e2app)
+	~C |- ~e : ~T
+	(~x:~T; ~C) |- ~e2 : ~T2
+	============================================================== T-subst-app
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
 
 goal
 ~e2 = \~y:~S. ~e3
@@ -191,11 +187,26 @@ subst(~x, ~e, ~e2) = \~y:~s. ~e3
 ================================ T-subst-abs-1
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
-goal
-~e2 = \~y:~S. eabs
-~x != ~y
-subst(~x, ~e, ~e2) = \~y:~S. subst(~x, ~e, eabs)
+local {
+	axiom
+	~C |- ~e : ~T
+	(~x:~T; ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+
+	goal
+	~e2 = \~y:~S. eabs
+	~x != ~y
+	subst(~x, ~e, ~e2) = \~y:~S. subst(~x, ~e, eabs)
+	~C |- ~e : ~T
+	(~x:~T; ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+// substitution lemma becomes an axiom after the proof
+axiom
 ~C |- ~e : ~T
 (~x:~T; ~C) |- ~e2 : ~T2
-================================================= T-subst-abs-2
+============================== T-subst
 ~C |- subst(~x, ~e, ~e2) : ~T2

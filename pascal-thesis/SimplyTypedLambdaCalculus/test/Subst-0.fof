@@ -19,7 +19,4 @@ fof('T-var', axiom, (![C,X,T] : (lookup(X,C,T) => tcheck(C,var(X),T)))).
 fof('T-abs', axiom, (![C,X,E,S,T] : (tcheck(bind(X,S,C),E,T) => tcheck(C,abs(X,S,E),arrow(S,T))))).
 fof('T-app', axiom, (![S,C,E1,E2,T] : ((tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S)) => tcheck(C,app(E1,E2),T)))).
 fof('T-inv', axiom, (![E,T,C] : (tcheck(C,E,T) => ((?[X] : ((E=var(X)) & lookup(X,C,T))) | ((?[X,E2,T1,T2] : ((E=abs(X,T1,E2)) & ((T=arrow(T1,T2)) & tcheck(bind(X,T1,C),E2,T2)))) | (?[E1,E2,S] : ((E=app(E1,E2)) & (tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S))))))))).
-fof('T-subst-IH-app1', axiom, (![T,C,X,E,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),e1app,T2)) => tcheck(C,subst(X,E,e1app),T2)))).
-fof('T-subst-IH-app2', axiom, (![T,C,X,E,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),e2app,T2)) => tcheck(C,subst(X,E,e2app),T2)))).
-fof('T-subst-IH-abs', axiom, (![T,C,X,E,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),eabs,T2)) => tcheck(C,subst(X,E,eabs),T2)))).
 fof('T-subst-var-1', conjecture, (![T,C,X,E,E2,T2] : (((E2=var(X)) & ((subst(X,E,E2)=E) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2)))) => tcheck(C,subst(X,E,E2),T2)))).
