@@ -1,65 +1,19 @@
 module Subst
 
+sorts
+  Var Exp Typ Ctx
+
+constructors
+  var : Var -> Exp
+  abs : Var Typ Exp -> Exp
+  app : Exp Exp -> Exp
+
+  empty : Ctx
+  bind : Var Typ Ctx -> Ctx
+
+  arrow : Typ Typ -> Typ  
+
 axioms
-
-// ***************************
-// Equational theory for terms
-// ***************************
-
-
-var(~x) = var(~y)
-================= Cong-var-true
-~x = ~y
-
-var(~x) != var(~y)
-================== Cong-var-false
-~x != ~y
-
-~e1 ~f1 = ~e2 ~f2
-====================== Cong-app-true
-~e1 = ~e2
-~f1 = ~f2
-
-~e1 ~f1 != ~e2 ~f2
-======================= Cong-app-false
-OR
-=> ~e1 != ~e2
-=> ~f1 != ~f2
-
-\~x1:~T1. ~e1 = \~x2:~T2. ~e2
-============================= Cong-abs-true
-~x1 = ~x2
-~T1 = ~T2
-~e1 = ~e2
-
-\~x1:~T1. ~e1 != \~x2:~T2. ~e2
-============================= Cong-abs-false
-OR
-=> ~x1 != ~x2
-=> ~T1 != ~T2
-=> ~e1 != ~e2
-
-~T1 -> ~T2 = ~U1 -> ~U2
-======================= Cong-arrow-true
-~T1 = ~U1
-~T2 = ~U2
-
-~T1 -> ~T2 != ~U1 -> ~U2
-======================== Cong-arrow-false
-OR
-=> ~T1 != ~U1
-=> ~T2 != ~U2
-
-
-================== Cong-var-app
-var(~x) != ~e1 ~e2
-
-===================== Cong-var-abs
-var(~x) != \~y:~T. ~e
-
-===================== Cong-abs-app
-\~x:~T. ~e != ~e1 ~e2 
-
 
 // *************************
 // Context rules

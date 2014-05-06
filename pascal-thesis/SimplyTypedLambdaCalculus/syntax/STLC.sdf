@@ -69,34 +69,29 @@ exports
 	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
 	
 	lexical syntax
-		~[\"\n\r\t\ ]+ -> TerminalLex
-		[a-zA-Z][a-zA-Z0-9]* -> Nonterminal
+		[a-zA-Z][a-zA-Z0-9]* -> Sort
 	lexical restrictions
-		TerminalLex -/- ~[\"\n\r\t\ ]
-		Nonterminal -/- [a-zA-Z0-9]
+		Sort -/- [a-zA-Z0-9]
 		
 	
 	context-free syntax
-		Nonterminal "::=" {SyntaxRHS "|"}+ -> SyntaxDef {cons("SyntaxDef")}
-		
-		"\"" TerminalLex "\"" -> Terminal {bracket}
-		Terminal -> SyntaxRHSElem {cons("Terminal")}
-		Nonterminal -> SyntaxRHSElem {cons("Nonterminal")}
-		SyntaxRHSElem+ -> SyntaxRHS
+		ID ":" Sort+ "->" Sort -> ConstructorDecl {cons("ConstructorDecl")}
+		ID ":" Sort -> ConstructorDecl {cons("ConstructorDecl")}
 	
 	context-free syntax
 		"import" MID -> Import {cons("Import")}
 		
 		"local" "{" ModuleDef* "}" -> ModuleDef {cons("Local")}
-		"syntax" SyntaxDef* -> ModuleDef {cons("Syntax")}
+
+		"sorts" Sort* -> ModuleDef {cons("Sorts")}
+		"constructors" ConstructorDecl* -> ModuleDef {cons("Constructors")}
+
 		"axioms" TypingRule* -> ModuleDef {cons("Axioms")}
 		"axiom" TypingRule -> ModuleDef {ast("Axioms([<1>])")}
 		
 		"goals" TypingRule* -> ModuleDef {cons("Goals")}
 		"goal" TypingRule -> ModuleDef {ast("Goals([<1>])")}
 		
-		
-		%% TODO: Make derived rules optional
 		"module" MID Import* ModuleDef*-> Module {cons("Module")}
 								
 	context-free start-symbols Module

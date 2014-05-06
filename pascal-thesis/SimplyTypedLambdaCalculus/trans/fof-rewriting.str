@@ -14,6 +14,7 @@ signature
     	And   : Prop * Prop -> Prop
     	Or    : Prop * Prop -> Prop
     	Impl  : List(Prop) * Prop -> Prop
+    	BiImpl  : Prop * Prop -> Prop
     	Eq    : Prop * Prop -> Prop
     	Neq : Prop * Prop -> Prop
     	Var   : String -> Prop
@@ -86,10 +87,14 @@ rules
 			universalVars := <diff> (metaVars, existsVars);
 			all-term := <make-all> (universalVars, body)
 
+	R : ConstructorDecl(name, res) -> ConstructorDecl(name, [], res)
+
 	make-exists : ([], body) -> body
 	make-exists : (vars, body) -> Exists(vars, body)
 	make-all : ([], body) -> body
 	make-all : (vars, body) -> All(vars, body)
+	make-termapp : (v, []) -> v
+	make-termapp : (v, args) -> TermApp(v, args)
 			
 	compose-formula-p :
 		(Formula(N1, P1), Formula(N2, P2)) -> Formula(N, P)
@@ -98,7 +103,10 @@ rules
 		P := And(P1, P2)
 	compose-formula-p = debug(!"compose-formula-p failed: "); fail
 
-	compose-formulas = (?[] <+ ?[<id>] <+ foldr1(compose-formula-p))
+	compose-formulas = reduce-list(compose-formula-p)
+	
+	reduce-list(s) = ?[] <+ ?[<id>] <+ foldr1(s)
+	reduce-list(s|init) = (?[];!init) <+ ?[<id>] <+ foldr1(s)
 
 rules
 	// lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Meta("X"), Meta("T"), Meta("T2"), Meta("CTX")],
@@ -109,30 +117,79 @@ rules
 	//                           Pred("lookup", [Meta("X"), TermApp("bind", [Meta("Y"), Meta("T2"), Meta("CTX")]), Meta("T")]))))
 	// base-rules = ![<lookup-ctx-base>, <lookup-ctx-step>]
 
+	constructor-axiom : ConstructorDecl(name, args, res) -> Formula(ax-name, Axiom(), <make-all> (vars, BiImpl(Eq(t1, t2), arg-eqs-and)))
+	where
+		ax-name := <conc-strings> ("EQ-", name);
+		args1 := <map(string-as-chars(map(to-upper)); newname; !Meta(<id>))> args;
+		args2 := <map(string-as-chars(map(to-upper)); newname; !Meta(<id>))> args;
+		vars := <conc> (args1, args2);
+		t1 := <make-termapp> (name, args1);
+		t2 := <make-termapp> (name, args2);
+		arg-eqs := <zip; map(\(a1, a2) -> Eq(a1, a2)\)> (args1, args2);
+		arg-eqs-and := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> arg-eqs
+	constructor-axiom = debug(!"constructor-axioms failed: "); fail
+
+	constructor-diff-axioms(|cons) : [] -> []
+	constructor-diff-axioms(|cons) : [c|cs] -> <conc> (c-axioms, others)
+	where
+		c-axioms := <map(\cons-c -> <constructor-diff-axiom> (cons-c, c)\); filter(not(?None()))> cons;
+		new-cons := <conc> (cons, [c]);
+		others := <constructor-diff-axioms(|new-cons)> cs
+	
+	constructor-diff-axiom :
+		(ConstructorDecl(old-name, old-args, old-res), ConstructorDecl(new-name, new-args, new-res)) ->
+		Formula(ax-name, Axiom(), <make-all> (vars, Neq(old-t, new-t)))
+	where
+		<equal> (old-res, new-res);
+		ax-name := <conc-strings> ("DIFF-",old-name,"-",new-name);
+		old-vars := <map(string-as-chars(map(to-upper)); newname; !Meta(<id>))> old-args;
+		new-vars := <map(string-as-chars(map(to-upper)); newname; !Meta(<id>))> new-args;
+		vars := <conc> (old-vars, new-vars);
+		old-t := <make-termapp> (old-name, old-vars);
+		new-t := <make-termapp> (new-name, new-vars)
+	constructor-diff-axiom :
+		(ConstructorDecl(old-name, old-args, old-res), ConstructorDecl(new-name, new-args, new-res)) ->
+		None()
+	where
+		<not(equal)> (old-res, new-res)
+	constructor-diff-axiom = debug(!"constructor-diff-axiom failed: "); fail
+		
+
 strategies
 	main = io-wrap(trans)
 	trans = innermost(R)
 	fof-trans = trans; generate-fof-goals
 	
-	generate-fof-goals : Module(_, imps, body) -> <conc; generate-fof-goals(|[])> (imps, body) 
+	generate-fof-goals : Module(_, imps, body) -> <conc; generate-fof-goals(|[], [])> (imps, body) 
 	
-	generate-fof-goals(|axioms) : [] -> []
-	generate-fof-goals(|axioms) : [Axioms(fs) | rest] -> others
+	generate-fof-goals(|axioms, cons) : [] -> []
+	generate-fof-goals(|axioms, cons) : [Axioms(fs) | rest] -> others
 		where
 			newAxioms := <map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
 			axioms2 := <conc> (axioms, newAxioms); 
-			others := <generate-fof-goals(|axioms2)> rest
-	generate-fof-goals(|axioms) : [Goals(fs) | rest] -> [goal | others]
+			others := <generate-fof-goals(|axioms2, cons)> rest
+	generate-fof-goals(|axioms, cons) : [Goals(fs) | rest] -> [goal | others]
 		where
 			formula := <compose-formulas> fs;
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
 			goal := FOFGoal(axioms, conjecture);
-			others := <generate-fof-goals(|axioms)> rest
-	generate-fof-goals(|axioms) : [Local(xs) | rest] -> <conc> (goals,  others)
+			others := <generate-fof-goals(|axioms, cons)> rest
+	generate-fof-goals(|axioms, cons) : [Local(xs) | rest] -> <conc> (goals,  others)
 		where
-			goals := <generate-fof-goals(|axioms)> xs;
-			others := <generate-fof-goals(|axioms)> rest
-	generate-fof-goals(|axioms) = debug(!"generate-fof-goals failed: "); fail
+			goals := <generate-fof-goals(|axioms, cons)> xs;
+			others := <generate-fof-goals(|axioms, cons)> rest
+	generate-fof-goals(|axioms, cons) : [Sorts(xs) | rest] -> others
+		where
+			others := <generate-fof-goals(|axioms, cons)> rest
+	generate-fof-goals(|axioms, cons) : [Constructors(cs) | rest] -> others
+		where
+			cs-axioms := <map(constructor-axiom)> cs;
+			cs-diff-axioms := <constructor-diff-axioms(|cons)> cs;
+			axioms2 := <conc> (axioms, cs-axioms, cs-diff-axioms); 
+			cons2 := <conc> (cons, cs);
+			others := <generate-fof-goals(|axioms2, cons2)> rest
+
+	generate-fof-goals(|axioms, cons) = debug(!"generate-fof-goals failed: "); fail
 
 	
 	
