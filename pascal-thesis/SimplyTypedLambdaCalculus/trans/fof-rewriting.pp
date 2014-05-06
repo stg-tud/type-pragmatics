@@ -17,6 +17,7 @@
 	TermApp.2:iter-star-sep -- _1 ",",
 	And -- "(" _1 " & " _2 ")",
 	Or -- "(" _1 " | " _2 ")",
+	Not -- "(~" _1 ")",
 	EqualityJudgement -- "(" _1 " = " _2 ")",
 	True -- "$true",
 	False -- "$false",

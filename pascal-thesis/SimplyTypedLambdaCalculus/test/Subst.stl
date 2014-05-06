@@ -11,36 +11,37 @@ constructors
   empty : Ctx
   bind : Var Typ Ctx -> Ctx
 
-  arrow : Typ Typ -> Typ  
+  arrow : Typ Typ -> Typ
+  
+  nothing : OptType
+  some : Type -> OptType
 
+function
+lookup : Var Ctx -> OptType
+lookup(x, empty) = nothing
+lookup(x, bind(y, Ty, C)) = 
+  if (x == y)
+  then some(Ty)
+  else lookup(x, C)
+  
 axioms
-
 // *************************
 // Context rules
 // *************************
 
-~x:~T in (~x:~T2; ~C)
-====================== Lookup-Base
-~T = ~T2
+// ~x1 != ~x2
+// ~C1 = ~C2
+// ================================================= Context-Swap
+// (~x1:~T1; ~x2:~T2; ~C1) = (~x2:~T2; ~x1:~T1; ~C2)
+// 
+// ~C1 = ~C2
+// ===================================== Context-Duplicate
+// (~x:~T1; ~x:~T2; ~C1) = (~x:~T1; ~C2)
 
-~x != ~y
-~x:~T in ~C
-====================== Lookup-Step
-~x:~T2 in (~y:~Ty; ~C)
-~T = ~T2
-
-~x1 != ~x2
-~C1 = ~C2
-================================================= Context-Swap
-(~x1:~T1; ~x2:~T2; ~C1) = (~x2:~T2; ~x1:~T1; ~C2)
-
-~C1 = ~C2
-===================================== Context-Duplicate
-(~x:~T1; ~x:~T2; ~C1) = (~x:~T1; ~C2)
-
+lookup(~x, ~C) = nothing
 ~C |- ~e : ~T
-====================== T-Weak
-(~x:~S; ~C) |- ~e : ~T
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
 
 
 
@@ -49,18 +50,18 @@ axioms
 // **********
 
 
-~x:~T in ~C
-================== T-var
+lookup(~x, ~C) = some(~T)
+========================= T-var
 ~C |- var(~x) : ~T
 
-(~X:~S; ~C) |- ~E : ~T
+bind(~x, ~S, ~C) |- ~e : ~T
 ===================================== T-abs
-~C |- (\~X:~S. ~E) : ~S -> ~T
+~C |- abs(~x, ~S, ~e) : arrow(~S, ~T)
 
-~C |- ~e1 : ~S -> ~T
+~C |- ~e1 : arrow(~S, ~T)
 ~C |- ~e2 : ~S
-==================== T-app
-~C |- ~e1 ~e2 : ~T
+========================= T-app
+~C |- app(~e1, ~e2) : ~T
 
 
 
@@ -69,14 +70,14 @@ axioms
 OR
 => exists ~x
      ~e = var(~x)
-     ~x:~T in ~C
+     lookup(~x, ~C) = some(~T)
 => exists ~x, ~e2, ~T1, ~T2
-     ~e = \~x:~T1. ~e2
-     ~T = ~T1 -> ~T2
-     (~x:~T1; ~C) |- ~e2 : ~T2
+     ~e = abs(~x, ~T1, ~e2)
+     ~T = arrow(~T1, ~T2)
+     bind(~x, ~T1, ~C) |- ~e2 : ~T2
 => exists ~e1, ~e2, ~S
-     ~e = ~e1 ~e2
-     ~C |- ~e1 : ~S -> ~T
+     ~e = app(~e1, ~e2)
+     ~C |- ~e1 : arrow(~S, ~T)
      ~C |- ~e2 : ~S
 
 
@@ -84,10 +85,22 @@ OR
 // Substitution lemma
 // ******************
 
+// function
+// subst : Var Exp Exp -> Exp
+// subst(x, e, var(y)) =
+// 	if x == y
+// 	then e
+// 	else var(y)
+// subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
+// subst(x, e, abs(y, T, e1)) =
+// 	if x == y
+// 	then abs(y, T, e1)
+// 	else abs(y, T, subst(x, e, e1))
+
 // This is what we want prove by induction
 //
 // ~C |- ~e : ~T
-// (~x:~T; ~C) |- ~e2 : ~T2
+// bind(~x, ~T, ~C) |- ~e2 : ~T2
 // ============================== T-subst
 // ~C |- subst(~x, ~e, ~e2) : ~T2
 
@@ -96,71 +109,66 @@ OR
 
 goal
 ~e2 = var(~x)
-subst(~x, ~e, ~e2) = ~e
 ~C |- ~e : ~T
-(~x:~T; ~C) |- ~e2 : ~T2
+bind(~x, ~T, ~C) |- ~e2 : ~T2
 ============================== T-subst-var-1
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
-goal
-~e2 = var(~x)
-~x != ~y
-subst(~y, ~e, ~e2) = ~e2
-~C |- ~e : ~T
-(~x:~T; ~C) |- ~e2 : ~T2
-============================== T-subst-var-2
-~C |- subst(~x, ~e, ~e2) : ~T2
-
-local {
-	axioms
-	~C |- ~e : ~T
-	(~x:~T; ~C) |- e1app : ~T2
-	============================== T-subst-IH-app1
-	~C |- subst(~x, ~e, e1app) : ~T2
-	
-	~C |- ~e : ~T
-	(~x:~T; ~C) |- e2app : ~T2
-	============================== T-subst-IH-app2
-	~C |- subst(~x, ~e, e2app) : ~T2
-	
-	goal
-	~e2 = e1app e2app
-	subst(~x, ~e, ~e2) = subst(~x, ~e, e1app) subst(~x, ~e, e2app)
-	~C |- ~e : ~T
-	(~x:~T; ~C) |- ~e2 : ~T2
-	============================================================== T-subst-app
-	~C |- subst(~x, ~e, ~e2) : ~T2
-}
-
-goal
-~e2 = \~y:~S. ~e3
-~x = ~y
-subst(~x, ~e, ~e2) = \~y:~s. ~e3
-~C |- ~e : ~T
-(~x:~T; ~C) |- ~e2 : ~T2
-================================ T-subst-abs-1
-~C |- subst(~x, ~e, ~e2) : ~T2
-
-local {
-	axiom
-	~C |- ~e : ~T
-	(~x:~T; ~C) |- eabs : ~T2
-	============================== T-subst-IH-abs
-	~C |- subst(~x, ~e, eabs) : ~T2
-
-	goal
-	~e2 = \~y:~S. eabs
-	~x != ~y
-	subst(~x, ~e, ~e2) = \~y:~S. subst(~x, ~e, eabs)
-	~C |- ~e : ~T
-	(~x:~T; ~C) |- ~e2 : ~T2
-	================================================= T-subst-abs-2
-	~C |- subst(~x, ~e, ~e2) : ~T2
-}
-
-// substitution lemma becomes an axiom after the proof
-axiom
-~C |- ~e : ~T
-(~x:~T; ~C) |- ~e2 : ~T2
-============================== T-subst
-~C |- subst(~x, ~e, ~e2) : ~T2
+// goal
+// ~e2 = var(~x)
+// ~x != ~y
+// ~C |- ~e : ~T
+// bind(~x, ~T, ~C) |- ~e2 : ~T2
+// ============================== T-subst-var-2
+// ~C |- subst(~x, ~e, ~e2) : ~T2
+// 
+// local {
+// 	axioms
+// 	~C |- ~e : ~T
+// 	bind(~x, ~T, ~C) |- e1app : ~T2
+// 	============================== T-subst-IH-app1
+// 	~C |- subst(~x, ~e, e1app) : ~T2
+// 	
+// 	~C |- ~e : ~T
+// 	bind(~x, ~T, ~C) |- e2app : ~T2
+// 	============================== T-subst-IH-app2
+// 	~C |- subst(~x, ~e, e2app) : ~T2
+// 	
+// 	goal
+// 	~e2 = app(e1app, e2app)
+// 	~C |- ~e : ~T
+// 	bind(~x, ~T, ~C) |- ~e2 : ~T2
+// 	============================================================== T-subst-app
+// 	~C |- subst(~x, ~e, ~e2) : ~T2
+// }
+// 
+// goal
+// ~e2 = abs(~y, ~S, ~e3)
+// ~x = ~y
+// ~C |- ~e : ~T
+// bind(~x, ~T, ~C) |- ~e2 : ~T2
+// ================================ T-subst-abs-1
+// ~C |- subst(~x, ~e, ~e2) : ~T2
+// 
+// local {
+// 	axiom
+// 	~C |- ~e : ~T
+// 	bind(~x, ~T, ~C) |- eabs : ~T2
+// 	============================== T-subst-IH-abs
+// 	~C |- subst(~x, ~e, eabs) : ~T2
+// 
+// 	goal
+// 	~e2 = abs(~y, ~S, eabs)
+// 	~x != ~y
+// 	~C |- ~e : ~T
+// 	bind(~x, ~T, ~C) |- ~e2 : ~T2
+// 	================================================= T-subst-abs-2
+// 	~C |- subst(~x, ~e, ~e2) : ~T2
+// }
+// 
+// // substitution lemma becomes an axiom after the proof
+// axiom
+// ~C |- ~e : ~T
+// bind(~x, ~T, ~C) |- ~e2 : ~T2
+// ============================== T-subst
+// ~C |- subst(~x, ~e, ~e2) : ~T2

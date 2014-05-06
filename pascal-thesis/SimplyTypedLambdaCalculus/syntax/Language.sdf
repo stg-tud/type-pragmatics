@@ -54,45 +54,45 @@ exports
 		MID -/- [\.]
 		QID -/- [\.]
 		
-exports
-	
-	sorts Type TyDecl TyDecls TyDecls1
-	
-	context-free syntax
-		"~" ID -> Meta {cons("Meta")}
-		ID -> Type {cons("TyVar")}
-		"Nat" -> Type {cons("TyNat")}
-		"String" -> Type {cons("TyString")}
-		Type "->" Type -> Type {cons("TyFunction")}
-		Meta -> Type {cons("MetaVariable")}
-		"(" Type ")" -> Type {bracket}
-		
-		ID ":" Type -> TyDecl {cons("TyDecl")}
-		Meta ":" Type -> TypDecl {cons("TyDecl")}
-		
-		                -> TyDecls  {cons("TyDeclsNil")}
-    	TyDecl TyDecls1 -> TyDecls  {cons("TyDeclsCons")}
-                        -> TyDecls1 {cons("TyDeclsNil")}
-		
-		"," TyDecl TyDecls1 -> TyDecls1 {cons("TyDeclsCons")}
-			
-exports 
-
-	sorts Expr
-	
-	context-free syntax
-		ID -> Var {cons("Var")}
-		Var -> Expr
-		QID -> Expr {cons("QVar")}
-		"(" Expr ")" -> Expr {bracket}
-		NAT -> Expr {cons("Nat")}
-		STRING -> Expr {cons("String")}
-		Meta -> Expr {cons("MetaVariable")}
-		
-		Expr Expr -> Expr {cons("App"), left}
-		ID "(" {Expr ","}+ ")" -> Expr {cons("FApp"), prefer}
-		"\\" ID ":" Type "." Expr -> Expr {cons("Abs")}
-		"\\" Meta ":" Type "." Expr -> Expr {cons("Abs")}
-		"if" Expr "then" Expr "else" Expr -> Expr {cons("Cond")}
-		Expr "+" Expr -> Expr {cons("Plus"), right}
-		Expr "#" Expr -> Expr {cons("Rational"), non-assoc}
+%% exports
+%% 	
+%% 	sorts Type TyDecl TyDecls TyDecls1
+%% 	
+%% 	context-free syntax
+%% 		"~" ID -> Meta {cons("Meta")}
+%% 		ID -> Type {cons("TyVar")}
+%% 		"Nat" -> Type {cons("TyNat")}
+%% 		"String" -> Type {cons("TyString")}
+%% 		Type "->" Type -> Type {cons("TyFunction")}
+%% 		Meta -> Type {cons("MetaVariable")}
+%% 		"(" Type ")" -> Type {bracket}
+%% 		
+%% 		ID ":" Type -> TyDecl {cons("TyDecl")}
+%% 		Meta ":" Type -> TypDecl {cons("TyDecl")}
+%% 		
+%% 		                -> TyDecls  {cons("TyDeclsNil")}
+%%     	TyDecl TyDecls1 -> TyDecls  {cons("TyDeclsCons")}
+%%                         -> TyDecls1 {cons("TyDeclsNil")}
+%% 		
+%% 		"," TyDecl TyDecls1 -> TyDecls1 {cons("TyDeclsCons")}
+%% 			
+%% exports 
+%% 
+%% 	sorts Expr
+%% 	
+%% 	context-free syntax
+%% 		ID -> Var {cons("Var")}
+%% 		Var -> Expr
+%% 		QID -> Expr {cons("QVar")}
+%% 		"(" Expr ")" -> Expr {bracket}
+%% 		NAT -> Expr {cons("Nat")}
+%% 		STRING -> Expr {cons("String")}
+%% 		Meta -> Expr {cons("MetaVariable")}
+%% 		
+%% 		Expr Expr -> Expr {cons("App"), left}
+%% 		ID "(" {Expr ","}+ ")" -> Expr {cons("FApp"), prefer}
+%% 		"\\" ID ":" Type "." Expr -> Expr {cons("Abs")}
+%% 		"\\" Meta ":" Type "." Expr -> Expr {cons("Abs")}
+%% 		"if" Expr "then" Expr "else" Expr -> Expr {cons("Cond")}
+%% 		Expr "+" Expr -> Expr {cons("Plus"), right}
+%% 		Expr "#" Expr -> Expr {cons("Rational"), non-assoc}

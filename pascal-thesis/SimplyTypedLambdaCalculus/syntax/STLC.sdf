@@ -1,7 +1,7 @@
 module STLC
 
 imports Language
-imports Par
+%% imports Par
 
 exports 
 	lexical syntax
@@ -35,36 +35,18 @@ exports
 		"=>" TypingRuleJudgementList -> OrCaseList {cons("OrEnd")}
 		"=>" TypingRuleJudgementList OrCaseList -> OrCaseList {cons("OrCons"), layout("1.first.col == 3.first.col")}
   		
-  	    %% Syntax for contexts
-  		"()" -> Context {cons("CtxEmpty")}
-		Var ":" Type ";" Context -> Context {cons("CtxBindVar")}
-		Meta ":" Type ";" Context -> Context {cons("CtxBindVar")}
-		"(" Context ")" -> Context {bracket}
-		Meta -> Context {cons("MetaVariable")}
-  		  					  
-  					
 	    %% Syntax for typing judgemnts 
-		Context "|-" Expr ":" Type -> TypingJudgment {cons("TypingJudgment")}
-		Var ":" Type "in" Context -> VarInContextJudgment   {cons("VarInContextJudgment")}
-		Meta ":" Type "in" Context -> VarInContextJudgment {cons("VarInContextJudgment")}
+		FunctionExp "|-" FunctionExp ":" FunctionExp -> TypingJudgment {cons("TypingJudgment")}
 		
-		Expr "=" Expr -> EqualityJudgment {cons("EqualityJudgementE"), prefer}
-		Type "=" Type -> EqualityJudgment {cons("EqualityJudgementT")}
-		Context "=" Context -> EqualityJudgment {cons("EqualityJudgementC"), avoid}
+		FunctionExp "=" FunctionExp -> EqualityJudgment {cons("EqualityJudgement")}
 		
-		Expr "!=" Expr -> EqualityJudgment {cons("NotEqualityJudgementE"), prefer}
-		Type "!=" Type -> EqualityJudgment {cons("NotEqualityJudgementT")}
-		Context "!=" Context -> EqualityJudgment {cons("NotEqualityJudgementC"), avoid}
+		FunctionExp "!=" FunctionExp -> EqualityJudgment {cons("NotEqualityJudgement")}
 		
-		"exists" {Meta ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ExistsJudgment"), layout("1.first.col < 3.first.col && 1.first.line < 3.first.line")}
-		
-		Expr "->" Expr -> ReductionJudgment {cons("ReductionJudgment")}
+		"exists" {MetaVar ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ExistsJudgment"), layout("1.first.col < 3.first.col && 1.first.line < 3.first.line")}
 		
 		TypingJudgment -> TypingRuleJudgment
-		VarInContextJudgment  -> TypingRuleJudgment
 		EqualityJudgment -> TypingRuleJudgment
 		ExistsJudgment -> TypingRuleJudgment
-		ReductionJudgment -> TypingRuleJudgment
 		
 	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
 	
@@ -76,7 +58,25 @@ exports
 	
 	context-free syntax
 		ID ":" Sort+ "->" Sort -> ConstructorDecl {cons("ConstructorDecl")}
-		ID ":" Sort -> ConstructorDecl {cons("ConstructorDecl")}
+		ID ":" Sort -> ConstructorDecl {ast("ConstructorDecl(<1>, [], <2>)")}
+	
+	context-free syntax
+		FunctionSig FunctionEq+ -> FunctionDef {cons("FunctionDef")}
+		ID ":" Sort+ "->" Sort -> FunctionSig{cons("FunctionSig")}
+		ID "=" FunctionExp -> FunctionEq {ast("FunctionEq(<1>, [], <2>)")}
+		ID "(" {FunctionPattern ","}* ")" "=" FunctionExp -> FunctionEq {cons("FunctionEq")}
+		
+		ID -> FunctionExp {cons("FunctionExpVar")}
+		"if" FunctionExp "then" FunctionExp "else" FunctionExp -> FunctionExp {cons("FunctionExpIf")}
+		ID "(" {FunctionExp ","}* ")" -> FunctionExp {cons("FunctionExpApp")}
+		FunctionExp "==" FunctionExp -> FunctionExp {cons("FunctionExpEq")}
+		FunctionExp "!=" FunctionExp -> FunctionExp {cons("FunctionExpNeq")}
+		"(" FunctionExp ")" -> FunctionExp {bracket}
+		MetaVar -> FunctionExp {cons("FunctionExpMeta")}
+		"~" ID -> MetaVar {cons("Meta")}
+		
+		ID -> FunctionPattern {cons("FunctionPatVar")}
+		ID "(" {FunctionPattern ","}* ")" -> FunctionPattern {cons("FunctionPatApp")}
 	
 	context-free syntax
 		"import" MID -> Import {cons("Import")}
@@ -85,6 +85,9 @@ exports
 
 		"sorts" Sort* -> ModuleDef {cons("Sorts")}
 		"constructors" ConstructorDecl* -> ModuleDef {cons("Constructors")}
+
+		"functions" FunctionDef* -> ModuleDef {cons("Functions")}
+		"function" FunctionDef -> ModuleDef {ast("Functions([<1>])")}
 
 		"axioms" TypingRule* -> ModuleDef {cons("Axioms")}
 		"axiom" TypingRule -> ModuleDef {ast("Axioms([<1>])")}

@@ -16,7 +16,7 @@ signature
 
 rules
 	main = io-wrap(smt-trans)
-	smt-trans = trans; fof-to-smt
+	smt-trans = to-prop; fof-to-smt
 	
 	fof-to-smt :
 		(axioms,conjecture) -> 

@@ -10,7 +10,7 @@ signature
 		False : Prop
     	True  : Prop
     	// Atom  : String -> Prop
-    	//Not   : Prop -> Prop
+    	Not   : Prop -> Prop
     	And   : Prop * Prop -> Prop
     	Or    : Prop * Prop -> Prop
     	Impl  : List(Prop) * Prop -> Prop
@@ -31,38 +31,35 @@ signature
     	FOFGoal : List(Formula) * Formula -> File
 
 rules
-	R : CtxEmpty() -> TermApp("empty", [])
-	R : CtxBindVar(ID, TYPE, CTX) -> TermApp("bind", [ID, TYPE, CTX])
+	R : FunctionExpVar(v) -> Var(v)
+	R : FunctionExpMeta(Meta(v)) -> Meta(v)
+	R : FunctionExpNeq(t1, t2) -> Neq(t1, t2)
+	R : FunctionExpEq(t1, t2) -> Eq(t1, t2)
+	R : FunctionExpApp(f, args) -> <make-termapp> (f, args)
 	
 	R : PremiseList(p) -> p
 	R : ConsequenceList(p) -> p
 	R : JudgementCons(j1, j2) -> And(j1, j2)
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
-	R : VarInContextJudgment(ID, TYPE, CTX) -> Pred("lookup", [ID, CTX, TYPE])
-	R : EqualityJudgementE(t1, t2) -> Eq(t1, t2)
-	R : EqualityJudgementT(t1, t2) -> Eq(t1, t2)
-	R : EqualityJudgementC(t1, t2) -> Eq(t1, t2)
-	R : NotEqualityJudgementE(t1, t2) -> Neq(t1, t2)
-	R : NotEqualityJudgementT(t1, t2) -> Neq(t1, t2)
-	R : NotEqualityJudgementC(t1, t2) -> Neq(t1, t2)
+	R : EqualityJudgement(t1, t2) -> Eq(t1, t2)
+	R : NotEqualityJudgement(t1, t2) -> Neq(t1, t2)
 	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)
 	R : OrJudgement(p) -> p
 	R : OrEnd(p) -> p
 	R : OrCons(p1, p2) -> Or(p1, p2)
-	R : ReductionJudgment(e1, e2) -> Pred("reduce", [e1, e2])
 	
-	R : Plus(e1, e2) -> TermApp("plus", [e1, e2])
-	R : Rational(e1, e2) -> TermApp("rat", [e1, e2])
-	R : App(e1, e2) -> TermApp("app", [e1, e2])
-	R : FApp(name, es) -> TermApp(name, es)
-	R : Abs(Meta(v), e2, e3) -> TermApp("abs", [Meta(v), e2, e3])
-	R : Abs(e1, e2, e3) -> TermApp("abs", [Var(e1), e2, e3])
-	R : TyFunction(e1, e2) -> TermApp("arrow", [e1, e2])
-	R : TyFuture(e1) -> TermApp("future", [e1])
-	R : TyNat() -> Var("nat")
-	R : TyVar(v) -> Var(v)
+	// R : Plus(e1, e2) -> TermApp("plus", [e1, e2])
+	// R : Rational(e1, e2) -> TermApp("rat", [e1, e2])
+	// R : App(e1, e2) -> TermApp("app", [e1, e2])
+	// R : FApp(name, es) -> TermApp(name, es)
+	// R : Abs(Meta(v), e2, e3) -> TermApp("abs", [Meta(v), e2, e3])
+	// R : Abs(e1, e2, e3) -> TermApp("abs", [Var(e1), e2, e3])
+	// R : TyFunction(e1, e2) -> TermApp("arrow", [e1, e2])
+	// R : TyFuture(e1) -> TermApp("future", [e1])
+	// R : TyNat() -> Var("nat")
+	// R : TyVar(v) -> Var(v)
 	// R : Meta(v) -> Var(v)
-	R : MetaVariable(v) -> v
+	// R : MetaVariable(v) -> v
 	R : Var(v) -> Var(v2)
 		where v2 := <string-as-chars(map(to-lower))> v
 		    ; <not(equal)> (v, v2)
@@ -70,9 +67,9 @@ rules
 		where v2 := <string-as-chars(map(to-upper))> v
 		    ; <not(equal)> (v, v2)
 	
-	R : Fork(x) -> TermApp("fork", [x])
-	R : Join(x) -> TermApp("join", [x])
-	R : Par(x) -> TermApp("par", [x])
+	// R : Fork(x) -> TermApp("fork", [x])
+	// R : Join(x) -> TermApp("join", [x])
+	// R : Par(x) -> TermApp("par", [x])
 	
 
 	
@@ -87,14 +84,14 @@ rules
 			universalVars := <diff> (metaVars, existsVars);
 			all-term := <make-all> (universalVars, body)
 
-	R : ConstructorDecl(name, res) -> ConstructorDecl(name, [], res)
-
 	make-exists : ([], body) -> body
 	make-exists : (vars, body) -> Exists(vars, body)
 	make-all : ([], body) -> body
 	make-all : (vars, body) -> All(vars, body)
 	make-termapp : (v, []) -> v
 	make-termapp : (v, args) -> TermApp(v, args)
+	make-var = string-as-chars(map(to-lower)); !Var(<id>)
+	make-meta = string-as-chars(map(to-upper)); !Meta(<id>)
 			
 	compose-formula-p :
 		(Formula(N1, P1), Formula(N2, P2)) -> Formula(N, P)
@@ -120,8 +117,8 @@ rules
 	constructor-axiom : ConstructorDecl(name, args, res) -> Formula(ax-name, Axiom(), <make-all> (vars, BiImpl(Eq(t1, t2), arg-eqs-and)))
 	where
 		ax-name := <conc-strings> ("EQ-", name);
-		args1 := <map(string-as-chars(map(to-upper)); newname; !Meta(<id>))> args;
-		args2 := <map(string-as-chars(map(to-upper)); newname; !Meta(<id>))> args;
+		args1 := <map(newname; make-meta)> args;
+		args2 := <map(newname; make-meta)> args;
 		vars := <conc> (args1, args2);
 		t1 := <make-termapp> (name, args1);
 		t2 := <make-termapp> (name, args2);
@@ -142,8 +139,8 @@ rules
 	where
 		<equal> (old-res, new-res);
 		ax-name := <conc-strings> ("DIFF-",old-name,"-",new-name);
-		old-vars := <map(string-as-chars(map(to-upper)); newname; !Meta(<id>))> old-args;
-		new-vars := <map(string-as-chars(map(to-upper)); newname; !Meta(<id>))> new-args;
+		old-vars := <map(newname; make-meta)> old-args;
+		new-vars := <map(newname; make-meta)> new-args;
 		vars := <conc> (old-vars, new-vars);
 		old-t := <make-termapp> (old-name, old-vars);
 		new-t := <make-termapp> (new-name, new-vars)
@@ -154,23 +151,83 @@ rules
 		<not(equal)> (old-res, new-res)
 	constructor-diff-axiom = debug(!"constructor-diff-axiom failed: "); fail
 		
+		
+	function-axioms(|cons) : FunctionDef(FunctionSig(_,arg-types,_), eqs) -> <mapconcat(function-eq-axioms(|arg-types, cons))> eqs
+	
+	function-eq-axioms(|arg-types, cons) : FunctionEq(name, pats, exp) -> result
+	where
+		arg-vars := <map(newname; make-meta)> arg-types;
+		result-term := <make-termapp> (Var(name), arg-vars);
+		result-var := Meta(<newname> "RESULT");
+		result-bind := Eq(result-var, result-term);
+		pat-binds :=  <map(function-pat-prop(|cons))> pats;
+		pat-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-binds);
+		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> pat-props;
+		exp-props := <function-exp-props(|cons)> exp;
+		result := <map(make-function-formula(|name, And(pat-prop, result-bind), result-var))> exp-props 
+	function-eq-axioms(|arg-sorts) = debug(!"function-eq-axioms failed: "); fail
+	
+	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-var> v
+	where <elem(|v)> cons
+	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-meta> v
+	where <not(elem(|v))> cons
+	
+	function-pat-prop(|cons) : FunctionPatApp(f, ts) -> <make-termapp> (fvar, args)
+	where
+		fvar := <make-var> f;
+		args := <map(function-pat-prop(|cons))> ts
+	function-pat-prop(|cons) = debug(!"function-pat-prop failed: "); fail
+	
+	function-exp-props(|cons) : FunctionExpVar(v) -> [(True(),<make-var> v)]
+	where <elem(|v)> cons
+	function-exp-props(|cons) : FunctionExpVar(v) -> [(True(),<make-meta> v)]
+	where <not(elem(|v))> cons
+	function-exp-props(|cons) : FunctionExpIf(c, t, e) -> <conc> (result1, result2)
+	where
+		[(True(), c-prop)] := <function-exp-props(|cons)> c; // TODO support conditionals in condition
+		t-props := <function-exp-props(|cons)> t;
+		e-props := <function-exp-props(|cons)> e;
+		result1 := <map(\(a,b) -> (And(c-prop,a), b)\)> t-props;
+		result2 := <map(\(a,b) -> (And(Not(c-prop),a), b)\)> e-props
+	function-exp-props(|cons) : FunctionExpEq(e1, e2) -> [(True(), Eq(e1-prop, e2-prop))]
+	where
+		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in equality operands
+		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in equality operands
+		id
+	function-exp-props(|cons) : FunctionExpApp(f, es) -> [(True(), <make-termapp> (f, es-props))]
+	where
+		es-props := <map(function-exp-props(|cons); ?[(True(), <id>)])> es // TODO support conditionals as function arguments
+	function-exp-props(|cons) = debug(!"function-exp-axioms(|name, pat-props) failed: "); fail
+
+	make-function-formula(|name, pat-prop, result-term) : 
+		(cond, p) -> 
+		Formula(fname, Axiom(), <make-all>(vars, body))
+	where
+		fname := <newname> name;
+		body := Impl(pat-prop, Impl(cond, Eq(result-term, p)));
+		vars := <collect-all(?Meta(_))> body
+		
+	crossproduct : ([], ys) -> []
+	crossproduct : (xs, []) -> []
+	crossproduct : ([x|xs], ys) -> <conc> (<map(\ y -> (x,y)\)> ys, <crossproduct> (xs, ys))
+	
+	elem(|t) = where(!(t, <id>); elem)
 
 strategies
-	main = io-wrap(trans)
-	trans = innermost(R)
-	fof-trans = trans; generate-fof-goals
+	to-prop = innermost(R)
+	fof-trans = generate-fof-goals
 	
 	generate-fof-goals : Module(_, imps, body) -> <conc; generate-fof-goals(|[], [])> (imps, body) 
 	
 	generate-fof-goals(|axioms, cons) : [] -> []
 	generate-fof-goals(|axioms, cons) : [Axioms(fs) | rest] -> others
 		where
-			newAxioms := <map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
+			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
 			axioms2 := <conc> (axioms, newAxioms); 
 			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Goals(fs) | rest] -> [goal | others]
 		where
-			formula := <compose-formulas> fs;
+			formula := <to-prop; compose-formulas> fs;
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
 			goal := FOFGoal(axioms, conjecture);
 			others := <generate-fof-goals(|axioms, cons)> rest
@@ -188,6 +245,12 @@ strategies
 			axioms2 := <conc> (axioms, cs-axioms, cs-diff-axioms); 
 			cons2 := <conc> (cons, cs);
 			others := <generate-fof-goals(|axioms2, cons2)> rest
+	generate-fof-goals(|axioms, cons) : [Functions(fs) | rest] -> others
+		where
+			cons-names := <map(?ConstructorDecl(<id>, _, _))> cons;
+			fs-axioms := <mapconcat(function-axioms(|cons-names))> fs;
+			axioms2 := <conc> (axioms, fs-axioms); 
+			others := <generate-fof-goals(|axioms2, cons)> rest
 
 	generate-fof-goals(|axioms, cons) = debug(!"generate-fof-goals failed: "); fail
 

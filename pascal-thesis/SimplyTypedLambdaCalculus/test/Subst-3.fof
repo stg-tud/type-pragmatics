@@ -1,21 +1,23 @@
 
-fof('EQ-var', axiom, (![VAR11,VAR12] : ((var(VAR11)=var(VAR12)) <=> (VAR11=VAR12)))).
-fof('EQ-abs', axiom, (![VAR13,TYP11,EXP12,VAR14,TYP12,EXP13] : ((abs(VAR13,TYP11,EXP12)=abs(VAR14,TYP12,EXP13)) <=> ((VAR13=VAR14) & ((TYP11=TYP12) & (EXP12=EXP13)))))).
-fof('EQ-app', axiom, (![EXP14,EXP15,EXP16,EXP17] : ((app(EXP14,EXP15)=app(EXP16,EXP17)) <=> ((EXP14=EXP16) & (EXP15=EXP17))))).
+fof('EQ-var', axiom, (![VAR39,VAR40] : ((var(VAR39)=var(VAR40)) <=> (VAR39=VAR40)))).
+fof('EQ-abs', axiom, (![VAR41,TYP33,EXP36,VAR42,TYP34,EXP37] : ((abs(VAR41,TYP33,EXP36)=abs(VAR42,TYP34,EXP37)) <=> ((VAR41=VAR42) & ((TYP33=TYP34) & (EXP36=EXP37)))))).
+fof('EQ-app', axiom, (![EXP38,EXP39,EXP40,EXP41] : ((app(EXP38,EXP39)=app(EXP40,EXP41)) <=> ((EXP38=EXP40) & (EXP39=EXP41))))).
 fof('EQ-empty', axiom, ((empty=empty) <=> $true)).
-fof('EQ-bind', axiom, (![VAR15,TYP13,CTX3,VAR16,TYP14,CTX4] : ((bind(VAR15,TYP13,CTX3)=bind(VAR16,TYP14,CTX4)) <=> ((VAR15=VAR16) & ((TYP13=TYP14) & (CTX3=CTX4)))))).
-fof('EQ-arrow', axiom, (![TYP15,TYP16,TYP17,TYP18] : ((arrow(TYP15,TYP16)=arrow(TYP17,TYP18)) <=> ((TYP15=TYP17) & (TYP16=TYP18))))).
-fof('DIFF-var-abs', axiom, (![VAR17,VAR18,TYP19,EXP18] : (var(VAR17)!=abs(VAR18,TYP19,EXP18)))).
-fof('DIFF-var-app', axiom, (![VAR19,EXP19,EXP20] : (var(VAR19)!=app(EXP19,EXP20)))).
-fof('DIFF-abs-app', axiom, (![VAR20,TYP20,EXP21,EXP22,EXP23] : (abs(VAR20,TYP20,EXP21)!=app(EXP22,EXP23)))).
-fof('DIFF-empty-bind', axiom, (![VAR21,TYP21,CTX5] : (empty!=bind(VAR21,TYP21,CTX5)))).
-fof('Lookup-Base', axiom, (![X,C,T,T2] : (lookup(X,bind(X,T2,C),T) => (T=T2)))).
-fof('Lookup-Step', axiom, (![X,Y,TY,C,T,T2] : (((X!=Y) & lookup(X,C,T)) => (lookup(X,bind(Y,TY,C),T2) & (T=T2))))).
-fof('Context-Swap', axiom, (![C1,X2,T2,X1,T1,C2] : (((X1!=X2) & (C1=C2)) => (bind(X1,T1,bind(X2,T2,C1))=bind(X2,T2,bind(X1,T1,C2)))))).
-fof('Context-Duplicate', axiom, (![T2,C1,X,T1,C2] : ((C1=C2) => (bind(X,T1,bind(X,T2,C1))=bind(X,T1,C2))))).
-fof('T-Weak', axiom, (![X,S,C,E,T] : (tcheck(C,E,T) => tcheck(bind(X,S,C),E,T)))).
-fof('T-var', axiom, (![C,X,T] : (lookup(X,C,T) => tcheck(C,var(X),T)))).
+fof('EQ-bind', axiom, (![VAR43,TYP35,CTX15,VAR44,TYP36,CTX16] : ((bind(VAR43,TYP35,CTX15)=bind(VAR44,TYP36,CTX16)) <=> ((VAR43=VAR44) & ((TYP35=TYP36) & (CTX15=CTX16)))))).
+fof('EQ-arrow', axiom, (![TYP37,TYP38,TYP39,TYP40] : ((arrow(TYP37,TYP38)=arrow(TYP39,TYP40)) <=> ((TYP37=TYP39) & (TYP38=TYP40))))).
+fof('EQ-nothing', axiom, ((nothing=nothing) <=> $true)).
+fof('EQ-some', axiom, (![TYPE9,TYPE10] : ((some(TYPE9)=some(TYPE10)) <=> (TYPE9=TYPE10)))).
+fof('DIFF-var-abs', axiom, (![VAR45,VAR46,TYP41,EXP42] : (var(VAR45)!=abs(VAR46,TYP41,EXP42)))).
+fof('DIFF-var-app', axiom, (![VAR47,EXP43,EXP44] : (var(VAR47)!=app(EXP43,EXP44)))).
+fof('DIFF-abs-app', axiom, (![VAR48,TYP42,EXP45,EXP46,EXP47] : (abs(VAR48,TYP42,EXP45)!=app(EXP46,EXP47)))).
+fof('DIFF-empty-bind', axiom, (![VAR49,TYP43,CTX17] : (empty!=bind(VAR49,TYP43,CTX17)))).
+fof('DIFF-nothing-some', axiom, (![TYPE11] : (nothing!=some(TYPE11)))).
+fof('lookup11', axiom, (![X,VAR51,CTX19,RESULT203] : ((((VAR51=X) & (CTX19=empty)) & (RESULT203=lookup(VAR51,CTX19))) => ($true => (RESULT203=nothing))))).
+fof('lookup9', axiom, (![C,VAR50,CTX18,X,Y,RESULT202,TY] : ((((VAR50=X) & (CTX18=bind(Y,TY,C))) & (RESULT202=lookup(VAR50,CTX18))) => (((X=Y) & $true) => (RESULT202=some(TY)))))).
+fof('lookup10', axiom, (![TY,VAR50,CTX18,Y,RESULT202,X,C] : ((((VAR50=X) & (CTX18=bind(Y,TY,C))) & (RESULT202=lookup(VAR50,CTX18))) => (((~(X=Y)) & $true) => (RESULT202=lookup(X,C)))))).
+fof('T-Weak', axiom, (![X,S,C,E,T] : (((lookup(X,C)=nothing) & tcheck(C,E,T)) => tcheck(bind(X,S,C),E,T)))).
+fof('T-var', axiom, (![C,X,T] : ((lookup(X,C)=some(T)) => tcheck(C,var(X),T)))).
 fof('T-abs', axiom, (![C,X,E,S,T] : (tcheck(bind(X,S,C),E,T) => tcheck(C,abs(X,S,E),arrow(S,T))))).
 fof('T-app', axiom, (![S,C,E1,E2,T] : ((tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S)) => tcheck(C,app(E1,E2),T)))).
-fof('T-inv', axiom, (![E,T,C] : (tcheck(C,E,T) => ((?[X] : ((E=var(X)) & lookup(X,C,T))) | ((?[X,E2,T1,T2] : ((E=abs(X,T1,E2)) & ((T=arrow(T1,T2)) & tcheck(bind(X,T1,C),E2,T2)))) | (?[E1,E2,S] : ((E=app(E1,E2)) & (tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S))))))))).
-fof('T-subst-abs-1', conjecture, (![Y,S,E3,T,C,X,E,E2,T2] : (((E2=abs(Y,S,E3)) & ((X=Y) & ((subst(X,E,E2)=abs(Y,S,E3)) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2))))) => tcheck(C,subst(X,E,E2),T2)))).
+fof('T-inv', axiom, (![E,T,C] : (tcheck(C,E,T) => ((?[X] : ((E=var(X)) & (lookup(X,C)=some(T)))) | ((?[X,E2,T1,T2] : ((E=abs(X,T1,E2)) & ((T=arrow(T1,T2)) & tcheck(bind(X,T1,C),E2,T2)))) | (?[E1,E2,S] : ((E=app(E1,E2)) & (tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S))))))))).
+fof('T-subst-abs-1', conjecture, (![S,E3,Y,T,C,X,E,E2,T2] : (((E2=abs(Y,S,E3)) & ((X=Y) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2)))) => tcheck(C,subst(X,E,E2),T2)))).
