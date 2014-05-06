@@ -244,6 +244,12 @@ strategies
 			axioms2 := <conc> (axioms, cs-axioms, cs-diff-axioms); 
 			cons2 := <conc> (cons, cs);
 			others := <generate-fof-goals(|axioms2, cons2)> rest
+	generate-fof-goals(|axioms, cons) : [Consts(cs) | rest] -> others
+		where
+			cs-axioms := <map(constructor-axiom)> cs;
+			axioms2 := <conc> (axioms, cs-axioms); 
+			cons2 := <conc> (cons, cs);
+			others := <generate-fof-goals(|axioms2, cons2)> rest
 	generate-fof-goals(|axioms, cons) : [Functions(fs) | rest] -> others
 		where
 			cons-names := <map(?ConstructorDecl(<id>, _, _))> cons;

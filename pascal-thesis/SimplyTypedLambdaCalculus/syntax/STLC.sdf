@@ -58,8 +58,9 @@ exports
 	
 	context-free syntax
 		ID ":" Sort+ "->" Sort -> ConstructorDecl {cons("ConstructorDecl")}
-		ID ":" Sort -> ConstructorDecl {ast("ConstructorDecl(<1>, [], <2>)")}
-	
+		ConstDecl -> ConstructorDecl
+		ID ":" Sort -> ConstDecl {ast("ConstructorDecl(<1>, [], <2>)")}
+		
 	context-free syntax
 		FunctionSig FunctionEq+ -> FunctionDef {cons("FunctionDef")}
 		ID ":" Sort+ "->" Sort -> FunctionSig{cons("FunctionSig")}
@@ -84,7 +85,12 @@ exports
 		"local" "{" ModuleDef* "}" -> ModuleDef {cons("Local")}
 
 		"sorts" Sort* -> ModuleDef {cons("Sorts")}
+		
 		"constructors" ConstructorDecl* -> ModuleDef {cons("Constructors")}
+		"constructor" ConstructorDecl -> ModuleDef {ast("Constructors([<1>])")}
+
+		"consts" ConstDecl* -> ModuleDef {cons("Consts")}
+		"const" ConstDecl -> ModuleDef {ast("Consts([<1>])")}
 
 		"functions" FunctionDef* -> ModuleDef {cons("Functions")}
 		"function" FunctionDef -> ModuleDef {ast("Functions([<1>])")}

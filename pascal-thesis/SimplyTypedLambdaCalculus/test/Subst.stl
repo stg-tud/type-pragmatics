@@ -24,31 +24,12 @@ lookup(x, bind(y, Ty, C)) =
   then some(Ty)
   else lookup(x, C)
   
-axioms
-// *************************
-// Context rules
-// *************************
-
-// ~x1 != ~x2
-// ~C1 = ~C2
-// ================================================= Context-Swap
-// (~x1:~T1; ~x2:~T2; ~C1) = (~x2:~T2; ~x1:~T1; ~C2)
-// 
-// ~C1 = ~C2
-// ===================================== Context-Duplicate
-// (~x:~T1; ~x:~T2; ~C1) = (~x:~T1; ~C2)
-
-lookup(~x, ~C) = nothing
-~C |- ~e : ~T
-=========================== T-Weak
-bind(~x, ~S, ~C) |- ~e : ~T
-
-
 
 // **********
 // type rules
 // **********
 
+axioms
 
 lookup(~x, ~C) = some(~T)
 ========================= T-var
@@ -79,6 +60,29 @@ OR
      ~e = app(~e1, ~e2)
      ~C |- ~e1 : arrow(~S, ~T)
      ~C |- ~e2 : ~S
+
+
+// *************************
+// Context rules
+// *************************
+
+axioms
+~x = ~y
+bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-Context-Duplicate
+bind(~x, ~Tx, ~C) |- ~e : ~T
+
+~x != ~y
+bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-Context-Swap
+bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T
+
+lookup(~x, ~C) = nothing
+~C |- ~e : ~T
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
+
+
 
 
 // ******************
@@ -143,7 +147,7 @@ local {
 	~e2 = app(e1app, e2app)
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- ~e2 : ~T2
-	============================================================== T-subst-app
+	============================== T-subst-app
 	~C |- subst(~x, ~e, ~e2) : ~T2
 }
 

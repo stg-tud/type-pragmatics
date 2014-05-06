@@ -58,6 +58,14 @@ rules
 			cs-diff-asserts := <map(formula-to-assert)> cs-diff-formulas;
 			cons2 := <conc> (cons, cs);
 			others := <generate-smt-goals(|cons2)> rest
+	generate-smt-goals(|cons) : [Consts(cs) | rest] -> <conc> (cs-decls, cs-defines, cs-asserts, others)
+		where
+			cs-decls := <map(constructor-to-fun-decl)> cs;
+			cs-formulas := <map(constructor-axiom)> cs;
+			cs-defines := <map(formula-to-define)> cs-formulas;
+			cs-asserts := <map(formula-to-assert)> cs-formulas;
+			cons2 := <conc> (cons, cs);
+			others := <generate-smt-goals(|cons2)> rest
 	generate-smt-goals(|cons) : [Functions(fs) | rest] -> <conc> (fs-decls, defines, asserts, others)
 		where
 			fs-decls := <map(function-to-function-decl)> fs;
