@@ -41,6 +41,7 @@ rules
 	R : ConsequenceList(p) -> p
 	R : JudgementCons(j1, j2) -> And(j1, j2)
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
+	R : ReduceJudgment(e1, e2) -> Pred("reduce", [e1, e2])
 	R : EqualityJudgement(t1, t2) -> Eq(t1, t2)
 	R : NotEqualityJudgement(t1, t2) -> Neq(t1, t2)
 	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)

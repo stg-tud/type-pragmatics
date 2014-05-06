@@ -42,11 +42,14 @@ exports
 		
 		FunctionExp "!=" FunctionExp -> EqualityJudgment {cons("NotEqualityJudgement")}
 		
+		FunctionExp "->" FunctionExp -> ReduceJudgment {cons("ReduceJudgment")}
+		
 		"exists" {MetaVar ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ExistsJudgment"), layout("1.first.col < 3.first.col && 1.first.line < 3.first.line")}
 		
 		TypingJudgment -> TypingRuleJudgment
 		EqualityJudgment -> TypingRuleJudgment
 		ExistsJudgment -> TypingRuleJudgment
+		ReduceJudgment -> TypingRuleJudgment
 		
 	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
 	

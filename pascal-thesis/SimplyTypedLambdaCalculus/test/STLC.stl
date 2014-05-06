@@ -1,187 +1,168 @@
 module STLC
 
-import Subst
 
-// axioms
-// 
-// // ***************************
-// // Equational theory for terms
-// // ***************************
-// 
-// 
-// var(~x) = var(~y)
-// ================= Cong-var-true
-// ~x = ~y
-// 
-// var(~x) != var(~y)
-// ================== Cong-var-false
-// ~x != ~y
-// 
-// ~e1 ~f1 = ~e2 ~f2
-// ====================== Cong-app-true
-// ~e1 = ~e2
-// ~f1 = ~f2
-// 
-// ~e1 ~f1 != ~e2 ~f2
-// ======================= Cong-app-false
-// OR
-// => ~e1 != ~e2
-// => ~f1 != ~f2
-// 
-// \~x1:~T1. ~e1 = \~x2:~T2. ~e2
-// ============================= Cong-abs-true
-// ~x1 = ~x2
-// ~T1 = ~T2
-// ~e1 = ~e2
-// 
-// \~x1:~T1. ~e1 != \~x2:~T2. ~e2
-// ============================= Cong-abs-false
-// OR
-// => ~x1 != ~x2
-// => ~T1 != ~T2
-// => ~e1 != ~e2
-// 
-// ~T1 -> ~T2 = ~U1 -> ~U2
-// ======================= Cong-arrow-true
-// ~T1 = ~U1
-// ~T2 = ~U2
-// 
-// ~T1 -> ~T2 != ~U1 -> ~U2
-// ======================== Cong-arrow-false
-// OR
-// => ~T1 != ~U1
-// => ~T2 != ~U2
-// 
-// ================== Cong-var-app
-// var(~x) != ~e1 ~e2
-// 
-// ===================== Cong-var-abs
-// var(~x) != \~y:~T. ~e
-// 
-// ===================== Cong-abs-app
-// \~x:~T. ~e != ~e1 ~e2 
-// 
-// 
-// // *************************
-// // Context rules
-// // *************************
-// 
-// ~x:~T in (~x:~T2; ~C)
-// ====================== Lookup-Base
-// ~T = ~T2
-// 
-// ~x != ~y
-// ~x:~T in ~C
-// ====================== Lookup-Step
-// ~x:~T2 in (~y:~Ty; ~C)
-// ~T = ~T2
-// 
-// ~x1 != ~x2
-// ~C1 = ~C2
-// ================================================= Context-Swap
-// (~x1:~T1; ~x2:~T2; ~C1) = (~x2:~T2; ~x1:~T1; ~C2)
-// 
-// ~C1 = ~C2
-// ===================================== Context-Duplicate
-// (~x:~T1; ~x:~T2; ~C1) = (~x:~T1; ~C2)
-// 
-// ~C |- ~e : ~T
-// ====================== T-Weak
-// (~x:~S; ~C) |- ~e : ~T
-// 
-// 
-// 
-// // **********
-// // type rules
-// // **********
-// 
-// 
-// ~x:~T in ~C
-// ================== T-var
-// ~C |- var(~x) : ~T
-// 
-// (~x:~S; ~C) |- ~e : ~T
-// ===================================== T-abs
-// ~C |- (\~x:~S. ~e) : ~S -> ~T
-// 
-// ~C |- ~e1 : ~S -> ~T
-// ~C |- ~e2 : ~S
-// ==================== T-app
-// ~C |- ~e1 ~e2 : ~T
-// 
-// 
-// 
-// ~C |- ~e : ~T
-// =============================== T-inv
-// OR
-// => exists ~x
-//      ~e = var(~x)
-//      ~x:~T in ~C
-// => exists ~x, ~e2, ~T1, ~T11, ~T2
-//      ~e = \~x:~T1. ~e2
-//      ~T = ~T1 -> ~T2
-//      ~T1 = ~T11
-//      (~x:~T11; ~C) |- ~e2 : ~T2
-// => exists ~e1, ~e2, ~S1
-//      ~e = ~e1 ~e2
-//      ~C |- ~e1 : ~S1 -> ~T
-//      ~C |- ~e2 : ~S1
-// 
-// 
-// // ******************
-// // Substitution lemma
-// // ******************
-// 
-// ~C |- ~e : ~T
-// (~x:~T; ~C) |- ~e2 : ~T2
-// ============================== T-subst
-// ~C |- subst(~x, ~e, ~e2) : ~T2
-// 
-// 
-// // ******************************
-// // Type preservation of reduction
-// // ******************************
-// 
-// // ~C |- ~e1 : ~T
-// // ~e1 -> ~e2
-// // =============== T-Preservation
-// // ~C |- ~e2 : ~T
-// 
-// ~C |- e1fun : ~T
-// e1fun -> e1funred
-// ==================== T-Preservation-IH-app1
-// ~C |- e1funred : ~T
-// 
-// ~C |- e1arg : ~T
-// e1arg -> e1argred
-// ==================== T-Preservation-IH-app2
-// ~C |- e1argred : ~T
-// 
-// 
-// goals
-// 
-// // Prove type preservation by induction on recursive structure of reduction relation
-// // Each derived rule represents one induction case.
-// 
-// ~e1 = (\~x:~S. ~e1body) ~e1arg
-// ~e2 = subst(~x, ~e1arg, ~e1body)
-// ~C |- ~e1 : ~T
-// ~e1 -> ~e2
-// ================================ T-Preservation-beta
-// ~C |- ~e2 : ~T
-// 
-// ~e1 = e1fun ~e1arg
-// e1fun -> e1funred
-// ~e2 = e1funred ~e1arg
-// ~C |- ~e1 : ~T
-// ~e1 -> ~e2
-// ================================ T-Preservation-App1
-// ~C |- ~e2 : ~T
-// 
-// ~e1 = ~e1fun e1arg
-// e1arg -> e1argred
-// ~e2 = ~e1fun e1argred
-// ~C |- ~e1 : ~T
-// ~e1 -> ~e2
-// ================================ T-Preservation-App2
-// ~C |- ~e2 : ~T
+sorts
+  Var Exp Typ Ctx
+
+constructors
+  var : Var -> Exp
+  abs : Var Typ Exp -> Exp
+  app : Exp Exp -> Exp
+
+  empty : Ctx
+  bind : Var Typ Ctx -> Ctx
+
+  arrow : Typ Typ -> Typ
+  
+  nothing : OptType
+  some : Type -> OptType
+
+function
+lookup : Var Ctx -> OptType
+lookup(x, empty) = nothing
+lookup(x, bind(y, Ty, C)) = 
+  if (x == y)
+  then some(Ty)
+  else lookup(x, C)
+  
+
+// **********
+// type rules
+// **********
+
+axioms
+
+lookup(~x, ~C) = some(~T)
+========================= T-var
+~C |- var(~x) : ~T
+
+bind(~x, ~S, ~C) |- ~e : ~T
+===================================== T-abs
+~C |- abs(~x, ~S, ~e) : arrow(~S, ~T)
+
+~C |- ~e1 : arrow(~S, ~T)
+~C |- ~e2 : ~S
+========================= T-app
+~C |- app(~e1, ~e2) : ~T
+
+
+
+~C |- ~e : ~T
+=============================== T-inv
+OR
+=> exists ~x
+     ~e = var(~x)
+     lookup(~x, ~C) = some(~T)
+=> exists ~x, ~e2, ~T1, ~T2
+     ~e = abs(~x, ~T1, ~e2)
+     ~T = arrow(~T1, ~T2)
+     bind(~x, ~T1, ~C) |- ~e2 : ~T2
+=> exists ~e1, ~e2, ~S
+     ~e = app(~e1, ~e2)
+     ~C |- ~e1 : arrow(~S, ~T)
+     ~C |- ~e2 : ~S
+
+
+// *************************
+// Context rules
+// *************************
+
+axioms
+~x = ~y
+bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-Context-Duplicate
+bind(~x, ~Tx, ~C) |- ~e : ~T
+
+~x != ~y
+bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-Context-Swap
+bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T
+
+lookup(~x, ~C) = nothing
+~C |- ~e : ~T
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
+
+
+
+
+// ******************
+// Substitution lemma
+// ******************
+
+function
+subst : Var Exp Exp -> Exp
+subst(x, e, var(y)) =
+	if x == y
+	then e
+	else var(y)
+subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
+subst(x, e, abs(y, T, e1)) =
+	if x == y
+	then abs(y, T, e1)
+	else abs(y, T, subst(x, e, e1))
+
+axiom
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+
+// ******************************
+// Type preservation of reduction
+// ******************************
+
+
+// Prove type preservation by induction on recursive structure of reduction relation
+// Each derived rule represents one induction case.
+
+goal
+~e1 = app(abs(~x, ~S, ~e1body), ~e1arg)
+~e2 = subst(~x, ~e1arg, ~e1body)
+~C |- ~e1 : ~T
+~e1 -> ~e2
+================================ T-Preservation-beta
+~C |- ~e2 : ~T
+
+local {
+	consts
+		e1fun : Exp
+		e1funred : Exp
+	
+	axiom	
+	~C |- e1fun : ~T
+	e1fun -> e1funred
+	==================== T-Preservation-IH-app1
+	~C |- e1funred : ~T
+
+	goal
+	~e1 = app(e1fun, ~e1arg)
+	e1fun -> e1funred
+	~e2 = app(e1funred, ~e1arg)
+	~C |- ~e1 : ~T
+	~e1 -> ~e2
+	================================ T-Preservation-App1
+	~C |- ~e2 : ~T
+}
+
+local {
+	consts
+		e1arg : Exp
+		e1argred : Exp
+	
+	axiom
+	~C |- e1arg : ~T
+	e1arg -> e1argred
+	==================== T-Preservation-IH-app2
+	~C |- e1argred : ~T
+
+	goal	
+	~e1 = app(~e1fun, e1arg)
+	e1arg -> e1argred
+	~e2 = app(~e1fun, e1argred)
+	~C |- ~e1 : ~T
+	~e1 -> ~e2
+	================================ T-Preservation-App2
+	~C |- ~e2 : ~T
+}
