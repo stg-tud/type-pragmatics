@@ -85,17 +85,17 @@ OR
 // Substitution lemma
 // ******************
 
-// function
-// subst : Var Exp Exp -> Exp
-// subst(x, e, var(y)) =
-// 	if x == y
-// 	then e
-// 	else var(y)
-// subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
-// subst(x, e, abs(y, T, e1)) =
-// 	if x == y
-// 	then abs(y, T, e1)
-// 	else abs(y, T, subst(x, e, e1))
+function
+subst : Var Exp Exp -> Exp
+subst(x, e, var(y)) =
+	if x == y
+	then e
+	else var(y)
+subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
+subst(x, e, abs(y, T, e1)) =
+	if x == y
+	then abs(y, T, e1)
+	else abs(y, T, subst(x, e, e1))
 
 // This is what we want prove by induction
 //
@@ -108,20 +108,21 @@ OR
 // Each derived rule represents one induction case.
 
 goal
-~e2 = var(~x)
+~e2 = var(~y)
+~x = ~y
 ~C |- ~e : ~T
 bind(~x, ~T, ~C) |- ~e2 : ~T2
 ============================== T-subst-var-1
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
-// goal
-// ~e2 = var(~x)
-// ~x != ~y
-// ~C |- ~e : ~T
-// bind(~x, ~T, ~C) |- ~e2 : ~T2
-// ============================== T-subst-var-2
-// ~C |- subst(~x, ~e, ~e2) : ~T2
-// 
+goal
+~e2 = var(~y)
+~x != ~y
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-var-2
+~C |- subst(~x, ~e, ~e2) : ~T2
+
 // local {
 // 	axioms
 // 	~C |- ~e : ~T
