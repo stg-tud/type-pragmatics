@@ -123,53 +123,53 @@ bind(~x, ~T, ~C) |- ~e2 : ~T2
 ============================== T-subst-var-2
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
-// local {
-// 	axioms
-// 	~C |- ~e : ~T
-// 	bind(~x, ~T, ~C) |- e1app : ~T2
-// 	============================== T-subst-IH-app1
-// 	~C |- subst(~x, ~e, e1app) : ~T2
-// 	
-// 	~C |- ~e : ~T
-// 	bind(~x, ~T, ~C) |- e2app : ~T2
-// 	============================== T-subst-IH-app2
-// 	~C |- subst(~x, ~e, e2app) : ~T2
-// 	
-// 	goal
-// 	~e2 = app(e1app, e2app)
-// 	~C |- ~e : ~T
-// 	bind(~x, ~T, ~C) |- ~e2 : ~T2
-// 	============================================================== T-subst-app
-// 	~C |- subst(~x, ~e, ~e2) : ~T2
-// }
-// 
-// goal
-// ~e2 = abs(~y, ~S, ~e3)
-// ~x = ~y
-// ~C |- ~e : ~T
-// bind(~x, ~T, ~C) |- ~e2 : ~T2
-// ================================ T-subst-abs-1
-// ~C |- subst(~x, ~e, ~e2) : ~T2
-// 
-// local {
-// 	axiom
-// 	~C |- ~e : ~T
-// 	bind(~x, ~T, ~C) |- eabs : ~T2
-// 	============================== T-subst-IH-abs
-// 	~C |- subst(~x, ~e, eabs) : ~T2
-// 
-// 	goal
-// 	~e2 = abs(~y, ~S, eabs)
-// 	~x != ~y
-// 	~C |- ~e : ~T
-// 	bind(~x, ~T, ~C) |- ~e2 : ~T2
-// 	================================================= T-subst-abs-2
-// 	~C |- subst(~x, ~e, ~e2) : ~T2
-// }
-// 
-// // substitution lemma becomes an axiom after the proof
-// axiom
-// ~C |- ~e : ~T
-// bind(~x, ~T, ~C) |- ~e2 : ~T2
-// ============================== T-subst
-// ~C |- subst(~x, ~e, ~e2) : ~T2
+local {
+	axioms
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e1app : ~T2
+	============================== T-subst-IH-app1
+	~C |- subst(~x, ~e, e1app) : ~T2
+	
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e2app : ~T2
+	============================== T-subst-IH-app2
+	~C |- subst(~x, ~e, e2app) : ~T2
+	
+	goal
+	~e2 = app(e1app, e2app)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	============================================================== T-subst-app
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+goal
+~e2 = abs(~y, ~S, ~e3)
+~x = ~y
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+================================ T-subst-abs-1
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+local {
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+
+	goal
+	~e2 = abs(~y, ~S, eabs)
+	~x != ~y
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+// substitution lemma becomes an axiom after the proof
+axiom
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst
+~C |- subst(~x, ~e, ~e2) : ~T2
