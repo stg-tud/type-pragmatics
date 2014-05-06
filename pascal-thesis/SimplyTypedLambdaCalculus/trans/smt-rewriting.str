@@ -16,8 +16,61 @@ signature
 
 rules
 	main = io-wrap(smt-trans)
-	smt-trans = to-prop; fof-to-smt
+	smt-trans = generate-smt-goals
+		
+	generate-smt-goals : Module(_, imps, body) -> <conc; generate-smt-goals(|[tcheck-cons]); prepend(|[tcheck-decl])> (imps, body)
+	where
+		tcheck-cons := ConstructorDecl("tcheck", ["Term","Term","Term"], "Bool");
+		tcheck-decl := DeclFun("tcheck", [Term(),Term(),Term()], Bool())
 	
+	generate-smt-goals(|cons) : [] -> []
+	generate-smt-goals(|cons) : [Axioms(fs) | rest] -> <conc> (defines, asserts, others)
+		where
+			// consts := <collect-all(?Var(_))> fs;
+			// const-decls := <mapconcat(const-to-function-decl(|cons))> consts;
+			formulas := <to-prop> fs;
+			defines := <map(formula-to-define)> formulas;
+			asserts := <map(formula-to-assert)> formulas;
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Goals(fs) | rest] -> <conc> ([<push>, define, assert, <check-sat>, <pop>], others)
+		where
+			// consts := <collect-all(?Var(_))> fs;
+			// const-decls := <mapconcat(const-to-function-decl(|cons))> consts;
+			formula := <to-prop; compose-formulas> fs;
+			define := <formula-to-define> formula;
+			assert := <\Formula(name,_) -> Assert(SmtList([Var("not"), Var(name)]))\> formula;
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Local(xs) | rest] -> <conc> ([<push>], goals, [<pop>],  others)
+		where
+			goals := <generate-smt-goals(|cons)> xs;
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Sorts(xs) | rest] -> others
+		where
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Constructors(cs) | rest] -> <conc> (cs-decls, cs-defines, cs-asserts, cs-diff-defines, cs-diff-asserts, others)
+		where
+			cs-decls := <map(constructor-to-fun-decl)> cs;
+			cs-formulas := <map(constructor-axiom)> cs;
+			cs-defines := <map(formula-to-define)> cs-formulas;
+			cs-asserts := <map(formula-to-assert)> cs-formulas;
+			cs-diff-formulas := <constructor-diff-axioms(|cons)> cs;
+			cs-diff-defines := <map(formula-to-define)> cs-diff-formulas;
+			cs-diff-asserts := <map(formula-to-assert)> cs-diff-formulas;
+			cons2 := <conc> (cons, cs);
+			others := <generate-smt-goals(|cons2)> rest
+	generate-smt-goals(|cons) : [Functions(fs) | rest] -> <conc> (fs-decls, defines, asserts, others)
+		where
+			fs-decls := <map(function-to-function-decl)> fs;
+			cs-names := <map(?ConstructorDecl(<id>, _, _))> cons;
+			formulas := <mapconcat(function-axioms(|cs-names))> fs;
+			defines := <map(formula-to-define)> formulas;
+			asserts := <map(formula-to-assert)> formulas;
+			others := <generate-smt-goals(|cons)> rest
+
+	generate-smt-goals(|cons) = debug(!"generate-smt-goals failed: "); fail
+
+	
+rules
 	fof-to-smt :
 		(axioms,conjecture) -> 
 		// File(axioms, conjecture) -> 
@@ -46,7 +99,7 @@ rules
 		Pred(name,args) -> DeclFun(name, <map(!Term())> args, Bool())
 	pred-to-fun-decl = debug(!"pred-to-fun-decl failed: "); fail
 	
-	var-to-fun-decl : Var(v) -> <termapp-to-fun-decl> TermApp(<conc-strings> ("const-",v), [])
+	var-to-fun-decl : Var(v) -> <termapp-to-fun-decl> TermApp(v, [])
 	
 	termapp-to-fun-decl :
 		TermApp("abs",args) -> <termapp-to-fun-decl> TermApp("fabs", args)
@@ -54,10 +107,31 @@ rules
 		TermApp(name,args) -> DeclFun(name, <map(!Term())> args, Term())
 	termapp-to-fun-decl = debug(!"termapp-to-fun-decl failed: "); fail
 	
+	constructor-to-fun-decl :
+		ConstructorDecl("abs",args, res) -> <constructor-to-fun-decl> ConstructorDecl("fabs", args, res)
+	constructor-to-fun-decl : 
+		ConstructorDecl(name, args, res) -> DeclFun(name, <map(!Term())> args, Term())
+	
+	function-to-function-decl :
+		FunctionDef(FunctionSig("abs", args, res), defs) -> <function-to-function-decl> FunctionDef(FunctionSig("fabs", args, res), defs)
+	function-to-function-decl : 
+		FunctionDef(FunctionSig(name, args, res), defs) -> DeclFun(name, <map(!Term())> args, Term())
+	
+	const-to-function-decl(|cons) : Var(v) -> []
+	where
+		<elem(?ConstructorDecl(v, _, _))> cons
+	const-to-function-decl(|cons) : Var(v) -> [<constructor-to-fun-decl> ConstructorDecl(v, [], Term())]
+	where
+		<not(elem(?ConstructorDecl(v, _, _)))> cons
+	
+	formula-to-define :
+		Formula(name, _, prop) -> <formula-to-define> Formula(name, prop)
 	formula-to-define :
 		Formula(name, prop) -> DefFun(<fun-name> name, [], Bool(), <prop-to-smt> prop)
 	formula-to-define = debug(!"formula-to-define failed: "); fail
 	
+	formula-to-assert :
+		Formula(name, _, prop) -> <formula-to-assert> Formula(name, prop)
 	formula-to-assert :
 		Formula(name, prop) -> Assert(Var(<fun-name> name))
 	formula-to-assert = debug(!"formula-to-assert failed: "); fail
@@ -73,18 +147,26 @@ rules
 	conjecture-define-to-check = debug(!"conjecture-defines-to-asserts failed: "); fail
 
 rules
+	push = !SmtList([Var("push"), SmtLit("1")])
+	check-sat = !SmtList([Var("check-sat")])
+	pop = !SmtList([Var("pop"), SmtLit("1")])
+
+
+rules
 	prop-to-smt : True() -> Var("true")
 	prop-to-smt : False() -> Var("false")
-	prop-to-smt : Var(v) -> Var(<conc-strings> ("const-",v))
+	prop-to-smt : Var(v) -> Var(v)
 	prop-to-smt : Meta(v) -> Meta(v)
 	prop-to-smt : Neq(e1, e2) -> SmtList([Var("distinct"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : TermApp("abs", args) -> <prop-to-smt> TermApp("fabs", args)
 	prop-to-smt : Pred(name, args) -> SmtList([Var(name) | <map(prop-to-smt)> args])
 	prop-to-smt : TermApp(name, args) -> SmtList([Var(name) | <map(prop-to-smt)> args])
+	prop-to-smt : Not(e) -> SmtList([Var("not"), <prop-to-smt> e])
 	prop-to-smt : Eq(e1, e2) -> SmtList([Var("="), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : Or(e1, e2) -> SmtList([Var("or"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : And(e1, e2) -> SmtList([Var("and"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : Impl(e1, e2) -> SmtList([Var("=>"), <prop-to-smt> e1, <prop-to-smt> e2])
+	prop-to-smt : BiImpl(e1, e2) -> <prop-to-smt> And(Impl(e1, e2), Impl(e2, e1))
 	prop-to-smt : All(vars, prop) -> SmtList([Var("forall"), SmtList(all-vars), <prop-to-smt> prop])
 		where all-vars := <map(\ v -> SmtList([v, Term()]) \)> vars
 	prop-to-smt : Exists(vars, prop) -> SmtList([Var("exists"), SmtList(exists-vars), <prop-to-smt> prop])

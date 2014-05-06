@@ -88,8 +88,8 @@ rules
 	make-exists : (vars, body) -> Exists(vars, body)
 	make-all : ([], body) -> body
 	make-all : (vars, body) -> All(vars, body)
-	make-termapp : (v, []) -> v
-	make-termapp : (v, args) -> TermApp(v, args)
+	make-termapp : (v, []) -> <make-var> v
+	make-termapp : (v, args) -> TermApp(<make-var;?Var(<id>)> v, args)
 	make-var = string-as-chars(map(to-lower)); !Var(<id>)
 	make-meta = string-as-chars(map(to-upper)); !Meta(<id>)
 			
@@ -157,7 +157,7 @@ rules
 	function-eq-axioms(|arg-types, cons) : FunctionEq(name, pats, exp) -> result
 	where
 		arg-vars := <map(newname; make-meta)> arg-types;
-		result-term := <make-termapp> (Var(name), arg-vars);
+		result-term := <make-termapp> (name, arg-vars);
 		result-var := Meta(<newname> "RESULT");
 		result-bind := Eq(result-var, result-term);
 		pat-binds :=  <map(function-pat-prop(|cons))> pats;
@@ -172,9 +172,8 @@ rules
 	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-meta> v
 	where <not(elem(|v))> cons
 	
-	function-pat-prop(|cons) : FunctionPatApp(f, ts) -> <make-termapp> (fvar, args)
+	function-pat-prop(|cons) : FunctionPatApp(f, ts) -> <make-termapp> (f, args)
 	where
-		fvar := <make-var> f;
 		args := <map(function-pat-prop(|cons))> ts
 	function-pat-prop(|cons) = debug(!"function-pat-prop failed: "); fail
 	
