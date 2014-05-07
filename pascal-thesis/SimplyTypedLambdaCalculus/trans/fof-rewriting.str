@@ -2,6 +2,7 @@ module fof-rewriting
 
 imports include/STLC
 imports libstratego-lib
+imports runtime/nabl/-
 
 signature
 	sorts Prop FOF File
@@ -118,8 +119,8 @@ rules
 	constructor-axiom : ConstructorDecl(name, args, res) -> Formula(ax-name, Axiom(), <make-all> (vars, BiImpl(Eq(t1, t2), arg-eqs-and)))
 	where
 		ax-name := <conc-strings> ("EQ-", name);
-		args1 := <map(newname; make-meta)> args;
-		args2 := <map(newname; make-meta)> args;
+		args1 := <map(?SortRef(<id>); newname; make-meta)> args;
+		args2 := <map(?SortRef(<id>); newname; make-meta)> args;
 		vars := <conc> (args1, args2);
 		t1 := <make-termapp> (name, args1);
 		t2 := <make-termapp> (name, args2);
@@ -140,8 +141,8 @@ rules
 	where
 		<equal> (old-res, new-res);
 		ax-name := <conc-strings> ("DIFF-",old-name,"-",new-name);
-		old-vars := <map(newname; make-meta)> old-args;
-		new-vars := <map(newname; make-meta)> new-args;
+		old-vars := <map(?SortRef(<id>); newname; make-meta)> old-args;
+		new-vars := <map(?SortRef(<id>); newname; make-meta)> new-args;
 		vars := <conc> (old-vars, new-vars);
 		old-t := <make-termapp> (old-name, old-vars);
 		new-t := <make-termapp> (new-name, new-vars)
@@ -157,7 +158,7 @@ rules
 	
 	function-eq-axioms(|arg-types, cons) : FunctionEq(name, pats, exp) -> result
 	where
-		arg-vars := <map(newname; make-meta)> arg-types;
+		arg-vars := <map(?SortRef(<id>); newname; make-meta)> arg-types;
 		result-term := <make-termapp> (name, arg-vars);
 		result-var := Meta(<newname> "RESULT");
 		result-bind := Eq(result-var, result-term);
@@ -257,6 +258,11 @@ strategies
 			fs-axioms := <mapconcat(function-axioms(|cons-names))> fs;
 			axioms2 := <conc> (axioms, fs-axioms); 
 			others := <generate-fof-goals(|axioms2, cons)> rest
+	// generate-fof-goals(|axioms, cons) : [Import(m) | rest] -> []
+	// 	where
+	// 		mod := <nabl-get-all-definitions; Hd> m;
+	// 		<debug> mod;
+	// 		<nabl-uri; nabl-uri-path; debug> mod
 
 	generate-fof-goals(|axioms, cons) = debug(!"generate-fof-goals failed: "); fail
 

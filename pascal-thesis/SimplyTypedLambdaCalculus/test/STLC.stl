@@ -1,6 +1,6 @@
 module STLC
 
-import Subst
+// import Subst
 
 sorts
   Var Exp Typ Ctx OptTyp
