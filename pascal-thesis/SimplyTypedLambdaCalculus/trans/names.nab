@@ -1,0 +1,122 @@
+module names
+
+imports
+  include/STLC
+  
+namespaces Module Sort Symbol Axiom Goal
+
+binding rules
+
+	Module(m, _, _):
+		defines Module m
+		scopes Sort, Symbol, Axiom, Goal
+		
+	Import(m):
+		refers to Module m
+
+	SortDef(s):
+		defines Sort s
+	SortRef(s):
+		refers to Sort s
+	
+	ConstructorDecl(c, _, _):
+		defines Symbol c
+
+	FunctionDef(FunctionSig(f, _, _),_):
+		defines Symbol f
+	FunctionEq(f, pat, body):
+		scopes Symbol
+		
+	FunctionPatVar(v):
+		refers to Symbol v
+		defines Symbol v
+	FunctionPatApp(f, args):
+		refers to Symbol f
+
+	FunctionExpVar(v):
+		refers to Symbol v
+	FunctionExpApp(f, args):
+		refers to Symbol f
+
+
+
+//   MainClass(c, _, _):
+//   	defines Class c of type MainType()
+//   	
+//   Class(c, p, _, ms):
+//     defines Class c 
+//     implicitly defines Implicit This() of type ClassType(c)
+//     scopes Field, Method, Implicit
+//     
+//     // error $[Multiple definitions for class [c].] on c 
+//     //   when c refers to Class c'
+//     //    and c' != c
+//       
+//   Parent(p):
+//     imports 
+//       Field,  imported Field, 
+//       Method, imported Method 
+//     from Class p
+//     
+//     // error "Cannot inherit from main class" on p
+//     //   when p has type MainType()
+//       
+//   ClassType(c):
+//     refers to Class c
+//     // error "Cannot instantiate main class" on c
+//     //    when c has type MainType()
+//       
+//   NewObject(c):
+//     refers to Class c
+//     // error "Cannot instantiate main class" on c
+//     //   when c has type MainType()  
+//          
+// binding rules // methods
+//          
+//   Method(t, m, ps, _, _, _):
+//     defines Method m 
+//       of type (t*, t)
+//   		where ps has type t*
+//     scopes Variable
+//     // note "Overriding parent method" on m
+//     //   where m refers to Method m' of type t
+//     // otherwise error "Overloaded method" on m
+//     //   where m refers to Method m
+//       
+//   Call(e, m, _):
+//     refers to Method m in Class c
+//     where e has type ClassType(c)
+//   
+// binding rules // fields
+// 
+//   Field(t, f):
+//     defines Field f of type t
+//     // error $[Hiding inherited field [f]] on f
+//     //   when f refers to imported Field f
+//       
+//   This(): 
+//   	refers to Implicit This()
+//   	
+// binding rules // variables
+// 
+//   Param(t, v):
+//     defines Variable v 
+//       of type t 
+//     // warning $[Parameter [v] hides field] on v
+//     //   when v refers to Field v
+//     // error $[Duplicate variable [v]] on v
+//     //   when v refers to Variable v
+//       
+//   Var(t, v):
+//     defines Variable v 
+//       of type t  
+//     // warning $[Variable [v] hides field] on v
+//     //   when v refers to Field v
+//     // error $[Duplicate variable [v]] on v
+//     //   when v refers to Variable v
+//       
+//   VarRef(x):
+//     refers to Variable x
+//     otherwise refers to Field x
+//     //otherwise error $[Missing declaration of variable [x]] on x
+//     

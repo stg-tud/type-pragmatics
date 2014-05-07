@@ -1,7 +1,7 @@
 module Subst
 
 sorts
-  Var Exp Typ Ctx
+  Var Exp Typ Ctx OptTyp
 
 constructors
   var : Var -> Exp
@@ -13,11 +13,11 @@ constructors
 
   arrow : Typ Typ -> Typ
   
-  nothing : OptType
-  some : Type -> OptType
+  nothing : OptTyp
+  some : Typ -> OptTyp
 
 function
-lookup : Var Ctx -> OptType
+lookup : Var Ctx -> OptTyp
 lookup(x, empty) = nothing
 lookup(x, bind(y, Ty, C)) = 
   if (x == y)
@@ -174,6 +174,12 @@ local {
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- ~e2 : ~T2
 	================================================= T-subst-abs-2
+	// bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
+	// exists ~S2
+	// 	~T2 = arrow(~S, ~S2)
+	// 	bind(~y, ~S, bind(~x, ~T, ~C)) |- eabs : ~S2
+	// 	bind(~x, ~T, bind(~y, ~S, ~C)) |- eabs : ~S2
+	// 	bind(~y, ~S, ~C) |- subst(~x, ~e, eabs) : ~S2
 	~C |- subst(~x, ~e, ~e2) : ~T2
 }
 

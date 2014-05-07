@@ -14,6 +14,8 @@ language General properties
   provider      : include/stlc-java.jar
   provider      : include/stlc.ctree
                   
+  observer : editor-analyze
+                  
   extensions    : stl
   table         : include/STLC.tbl
   start symbols : Module

@@ -18,6 +18,8 @@ rules
   to-outline-label = ?node; ?Sorts(_); !"sorts"; literals-to-outline-label(|node)
   to-outline-label = ?node; ?Constructors(_); !"constructors"; literals-to-outline-label(|node)
   to-outline-label = ?node; ?Local(_); !"local"; literals-to-outline-label(|node)
+  to-outline-label = ?SortDef(<id>)
+  to-outline-label = ?ConstructorDecl(<id>, _, _)
   to-outline-label = ?TypingRule(_, RuleName(_, <id>), _)
 
   outline-expand-to-level = !3

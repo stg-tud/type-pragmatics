@@ -54,19 +54,22 @@ exports
 	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
 	
 	lexical syntax
-		[a-zA-Z][a-zA-Z0-9]* -> Sort
+		[a-zA-Z][a-zA-Z0-9]* -> SortLex
 	lexical restrictions
-		Sort -/- [a-zA-Z0-9]
+		SortLex -/- [a-zA-Z0-9]
 		
 	
 	context-free syntax
-		ID ":" Sort+ "->" Sort -> ConstructorDecl {cons("ConstructorDecl")}
+		SortLex -> SortDef {cons("SortDef")}
+		SortLex -> SortRef {cons("SortRef")}
+		
+		ID ":" SortRef+ "->" SortRef -> ConstructorDecl {cons("ConstructorDecl")}
 		ConstDecl -> ConstructorDecl
-		ID ":" Sort -> ConstDecl {ast("ConstructorDecl(<1>, [], <2>)")}
+		ID ":" SortRef -> ConstDecl {ast("ConstructorDecl(<1>, [], <2>)")}
 		
 	context-free syntax
 		FunctionSig FunctionEq+ -> FunctionDef {cons("FunctionDef")}
-		ID ":" Sort+ "->" Sort -> FunctionSig{cons("FunctionSig")}
+		ID ":" SortRef+ "->" SortRef -> FunctionSig{cons("FunctionSig")}
 		ID "=" FunctionExp -> FunctionEq {ast("FunctionEq(<1>, [], <2>)")}
 		ID "(" {FunctionPattern ","}* ")" "=" FunctionExp -> FunctionEq {cons("FunctionEq")}
 		
@@ -87,7 +90,7 @@ exports
 		
 		"local" "{" ModuleDef* "}" -> ModuleDef {cons("Local")}
 
-		"sorts" Sort* -> ModuleDef {cons("Sorts")}
+		"sorts" SortDef* -> ModuleDef {cons("Sorts")}
 		
 		"constructors" ConstructorDecl* -> ModuleDef {cons("Constructors")}
 		"constructor" ConstructorDecl -> ModuleDef {ast("Constructors([<1>])")}

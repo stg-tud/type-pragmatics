@@ -1,8 +1,9 @@
 module STLC
 
+import Subst
 
 sorts
-  Var Exp Typ Ctx
+  Var Exp Typ Ctx OptTyp
 
 constructors
   var : Var -> Exp
@@ -14,11 +15,11 @@ constructors
 
   arrow : Typ Typ -> Typ
   
-  nothing : OptType
-  some : Type -> OptType
+  nothing : OptTyp
+  some : Typ -> OptTyp
 
 function
-lookup : Var Ctx -> OptType
+lookup : Var Ctx -> OptTyp
 lookup(x, empty) = nothing
 lookup(x, bind(y, Ty, C)) = 
   if (x == y)

@@ -34,7 +34,7 @@ exports
 		
 	lexical restrictions
 		ID -/- [a-zA-Z0-9]
-		Meta -/- [a-zA-Z0-9]
+		%% Meta -/- [a-zA-Z0-9]
 		NAT -/- [0-9]
 		Keyword -/- [a-zA-Z0-9]
 		PrimitiveType -/- [a-zA-Z0-9]
