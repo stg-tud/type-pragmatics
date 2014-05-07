@@ -10,50 +10,52 @@ imports
 
 rules
 
-  nabl-get-scope =
-    ?Module(m, _, _)
-    ; ![ NablNsSort()
-       , NablNsSymbol()
-       , NablNsAxiom()
-       , NablNsGoal()
-       ]
-
   nabl-get-name :
-    Module(m, _, _) -> m
+    mod@Module(m, _, _) -> m
 
   nabl-name-apply(s) =
-    Module(s, id, id)
+    id
 
   nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, partition__, uniques__, uri__, states__) =
-    ?Module(m, _, _)
-    ; origin-track-forced(
-        Module(
-          nabl-def(
-            ?c-uri1__
-          , ?s-uri1__
-          | lang__
-          , partition__
-          , uniques__
-          , uri__
-          , uri__
-          , NablNsModule()
-          , Unique()
-          , Current()
-          , [ NablNsSort()
-            , NablNsSymbol()
-            , NablNsAxiom()
-            , NablNsGoal()
-            ]
-          , []
-          )
-        , id
-        , id
-        )
-      |
-      )
+    ?mod@Module(m, _, _)
+    ; (id
+       ; origin-track-forced(
+           Module(
+             nabl-def(
+               ?c-uri1__
+             , ?s-uri1__
+             | lang__
+             , partition__
+             , uniques__
+             , uri__
+             , uri__
+             , NablNsModule()
+             , Unique()
+             , Current()
+             , []
+             , []
+             )
+           , id
+           , id
+           )
+         |
+         ))
     ; match(child-uris__|c-uri1__)
     ; match(sibl-uris__|s-uri1__)
     ; match(implicits__|[])
+
+  nabl-prop-site(|lang__, partition__, uris__, states__, implicits__) =
+    ?mod@Module(m, _, _)
+    ; (id
+       ; Module(
+           nabl-store-props(
+           | partition__
+           , [Prop(NablProp_module-ref(), mod, [])]
+           )
+         , id
+         , id
+         ))
+    ; fail
 
   nabl-get-name :
     Import(m) -> m
@@ -367,3 +369,62 @@ signature
     NablNsSymbol : Namespace
     NablNsAxiom  : Namespace
     NablNsGoal   : Namespace
+
+
+signature
+  constructors
+    NablProp_module-ref : Property
+
+
+rules
+
+  nabl-custom-properties(add-properties) =
+    ![NablProp_module-ref()] ; add-properties
+
+  module-ref-is(|task*) =
+    nabl-prop-calc(|task*, [])
+
+  module-ref-task(|task*) =
+    get-or-create-property-task(|task*, NablProp_module-ref())
+
+  module-ref-is(|task*, dep*) =
+    nabl-prop-calc(|task*, dep*)
+
+  module-ref-list(|task*) =
+    nabl-prop-list(|task*, [])
+
+  module-ref-list(|task*, dep*) =
+    nabl-prop-list(|task*, dep*)
+
+  module-ref-lookup(|task*) =
+    nabl-prop-lookup(|NablProp_module-ref(), task*, [])
+
+  module-ref-lookup(|task*, dep*) =
+    nabl-prop-lookup(|NablProp_module-ref(), task*, dep*)
+
+  module-ref-match(|task*, expected) =
+    nabl-prop-match(
+    | NablProp_module-ref()
+    , task*
+    , Eq()
+    , expected
+    )
+
+  module-ref-match(|task*, relation, expected) =
+    nabl-prop-match(|NablProp_module-ref(), task*, relation, expected)
+
+  create-module-ref-task(|task*) =
+    fail
+
+  get-module-ref =
+    get-property(|NablProp_module-ref())
+
+  store-module-ref(|partition, prop) =
+    nabl-store-prop(
+    | partition
+    , Prop(NablProp_module-ref(), prop, [])
+    )
+
+  create-property-task(|partition, kind):
+    term -> <create-module-ref-task(|partition)> term
+    where NablProp_module-ref() := kind

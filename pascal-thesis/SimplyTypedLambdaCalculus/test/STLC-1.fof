@@ -28,4 +28,7 @@ fof('subst62', axiom, (![VAR206,EXP230,EXP231,RESULT63,E1,X,E,E2] : ((((VAR206=X
 fof('subst60', axiom, (![E,VAR205,EXP228,EXP229,X,RESULT62,Y,T,E1] : ((((VAR205=X) & ((EXP228=E) & (EXP229=abs(Y,T,E1)))) & (RESULT62=subst(VAR205,EXP228,EXP229))) => (((X=Y) & $true) => (RESULT62=abs(Y,T,E1)))))).
 fof('subst61', axiom, (![VAR205,EXP228,EXP229,RESULT62,Y,T,X,E,E1] : ((((VAR205=X) & ((EXP228=E) & (EXP229=abs(Y,T,E1)))) & (RESULT62=subst(VAR205,EXP228,EXP229))) => (((~(X=Y)) & $true) => (RESULT62=abs(Y,T,subst(X,E,E1))))))).
 fof('T-subst', axiom, (![T,C,X,E,E2,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2)) => tcheck(C,subst(X,E,E2),T2)))).
-fof('T-Preservation-beta', conjecture, (![S,X,E1ARG,E1BODY,E1,C,E2,T] : (((E1=app(abs(X,S,E1BODY),E1ARG)) & ((E2=subst(X,E1ARG,E1BODY)) & (tcheck(C,E1,T) & reduce(E1,E2)))) => tcheck(C,E2,T)))).
+fof('EQ-e1fun', axiom, ((e1fun=e1fun) <=> $true)).
+fof('EQ-e1funred', axiom, ((e1funred=e1funred) <=> $true)).
+fof('T-Preservation-IH-app1', axiom, (![C,T] : ((tcheck(C,e1fun,T) & reduce(e1fun,e1funred)) => tcheck(C,e1funred,T)))).
+fof('T-Preservation-App1', conjecture, (![E1ARG,E1,C,E2,T] : (((E1=app(e1fun,E1ARG)) & (reduce(e1fun,e1funred) & ((E2=app(e1funred,E1ARG)) & (tcheck(C,E1,T) & reduce(E1,E2))))) => tcheck(C,E2,T)))).

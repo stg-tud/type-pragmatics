@@ -3,6 +3,7 @@ module smt-rewriting
 imports include/STLC
 imports libstratego-lib
 imports trans/fof-rewriting
+imports names
 
 signature
 	constructors
@@ -72,11 +73,18 @@ rules
 	generate-smt-goals(|cons) : [Functions(fs) | rest] -> <conc> (fs-decls, defines, asserts, others)
 		where
 			fs-decls := <map(function-to-function-decl)> fs;
-			cs-names := <map(?ConstructorDecl(<id>, _, _))> cons;
+			cs-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
 			formulas := <mapconcat(function-axioms(|cs-names))> fs;
 			defines := <map(formula-to-define)> formulas;
 			asserts := <map(formula-to-assert)> formulas;
 			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Import(m) | rest] -> others
+		where
+			Module(_, imps, body) := <get-module-ref> m;
+			filtered-body := <filter(not(?Goals(_) + ?Local(_)))> body;
+			new-rest := <conc> (imps, filtered-body, rest);
+			others := <generate-smt-goals(|cons)> new-rest
+
 
 	generate-smt-goals(|cons) = debug(!"generate-smt-goals failed: "); fail
 

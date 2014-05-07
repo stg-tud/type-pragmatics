@@ -7,12 +7,15 @@ namespaces Module Sort Symbol Axiom Goal
 
 binding rules
 
-	Module(m, _, _):
+	mod@Module(m, _, _):
 		defines unique Module m
-		scopes Sort, Symbol, Axiom, Goal
+			of module-ref mod
+		// scopes Sort, Symbol, Axiom, Goal
 		
 	Import(m):
 		refers to Module m
+		// imports Sort, Symbol, Axiom from mod
+		// where m has module-ref mod
 
 	SortDef(s):
 		defines Sort s
@@ -38,6 +41,6 @@ binding rules
 	FunctionExpApp(f, args):
 		refers to Symbol f
 
-// properties
-// 
-//   module-ref of Module : ModuleRef
+properties
+
+  module-ref of Module : ModuleRef
