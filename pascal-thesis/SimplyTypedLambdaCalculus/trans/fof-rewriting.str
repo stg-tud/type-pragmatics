@@ -43,9 +43,9 @@ rules
 	R : JudgementCons(j1, j2) -> And(j1, j2)
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
 	R : ReduceJudgment(e1, e2) -> Pred("reduce", [e1, e2])
-	R : EqualityJudgement(t1, t2) -> Eq(t1, t2)
-	R : NotEqualityJudgement(t1, t2) -> Neq(t1, t2)
+	R : FunctionExpJudgment(e) -> e
 	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)
+	R : NotJudgment(j) -> Not(j)
 	R : OrJudgement(p) -> p
 	R : OrEnd(p) -> p
 	R : OrCons(p1, p2) -> Or(p1, p2)
@@ -192,13 +192,32 @@ rules
 		result2 := <map(\(a,b) -> (And(Not(c-prop),a), b)\)> e-props
 	function-exp-props(|cons) : FunctionExpEq(e1, e2) -> [(True(), Eq(e1-prop, e2-prop))]
 	where
-		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in equality operands
-		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in equality operands
+		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
+		id
+	function-exp-props(|cons) : FunctionExpNeq(e1, e2) -> [(True(), Neq(e1-prop, e2-prop))]
+	where
+		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
+		id
+	function-exp-props(|cons) : FunctionExpAnd(e1, e2) -> [(True(), And(e1-prop, e2-prop))]
+	where
+		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
+		id
+	function-exp-props(|cons) : FunctionExpOr(e1, e2) -> [(True(), Or(e1-prop, e2-prop))]
+	where
+		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
+		id
+	function-exp-props(|cons) : FunctionExpNot(e) -> [(True(), Not(e-prop))]
+	where
+		[(True(), e-prop)] := <function-exp-props(|cons)> e; // TODO support conditionals in operands
 		id
 	function-exp-props(|cons) : FunctionExpApp(f, es) -> [(True(), <make-termapp> (f, es-props))]
 	where
 		es-props := <map(function-exp-props(|cons); ?[(True(), <id>)])> es // TODO support conditionals as function arguments
-	function-exp-props(|cons) = debug(!"function-exp-axioms(|name, pat-props) failed: "); fail
+	function-exp-props(|cons) = debug(!"function-exp-props(|name, pat-props) failed: "); fail
 
 	make-function-formula(|name, pat-prop, result-term) : 
 		(cond, p) -> 

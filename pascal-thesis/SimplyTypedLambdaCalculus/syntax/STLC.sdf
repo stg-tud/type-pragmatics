@@ -38,18 +38,19 @@ exports
 	    %% Syntax for typing judgemnts 
 		FunctionExp "|-" FunctionExp ":" FunctionExp -> TypingJudgment {cons("TypingJudgment")}
 		
-		FunctionExp "=" FunctionExp -> EqualityJudgment {cons("EqualityJudgement")}
-		
-		FunctionExp "!=" FunctionExp -> EqualityJudgment {cons("NotEqualityJudgement")}
+		FunctionExp -> FunctionExpJudgment {cons("FunctionExpJudgment")}
 		
 		FunctionExp "->" FunctionExp -> ReduceJudgment {cons("ReduceJudgment")}
 		
 		"exists" {MetaVar ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ExistsJudgment"), layout("1.first.col < 3.first.col && 1.first.line < 3.first.line")}
 		
+		"not" TypingRuleJudgment -> NotJudgment {cons("NotJudgment")}
+		
 		TypingJudgment -> TypingRuleJudgment
-		EqualityJudgment -> TypingRuleJudgment
+		FunctionExpJudgment -> TypingRuleJudgment
 		ExistsJudgment -> TypingRuleJudgment
 		ReduceJudgment -> TypingRuleJudgment
+		NotJudgment -> TypingRuleJudgment
 		
 	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
 	
@@ -76,14 +77,25 @@ exports
 		ID -> FunctionExp {cons("FunctionExpVar")}
 		"if" FunctionExp "then" FunctionExp "else" FunctionExp -> FunctionExp {cons("FunctionExpIf")}
 		ID "(" {FunctionExp ","}* ")" -> FunctionExp {cons("FunctionExpApp")}
-		FunctionExp "==" FunctionExp -> FunctionExp {cons("FunctionExpEq")}
-		FunctionExp "!=" FunctionExp -> FunctionExp {cons("FunctionExpNeq")}
 		"(" FunctionExp ")" -> FunctionExp {bracket}
 		MetaVar -> FunctionExp {cons("FunctionExpMeta")}
 		"~" ID -> MetaVar {cons("Meta")}
 		
 		ID -> FunctionPattern {cons("FunctionPatVar")}
 		ID "(" {FunctionPattern ","}* ")" -> FunctionPattern {cons("FunctionPatApp")}
+		
+	context-free priorities
+		"!" FunctionExp -> FunctionExp {cons("FunctionExpNot")}
+	>
+		{non-assoc:
+		FunctionExp "==" FunctionExp -> FunctionExp {cons("FunctionExpEq")}
+		FunctionExp "!=" FunctionExp -> FunctionExp {cons("FunctionExpNeq")}
+		}
+	>
+		FunctionExp "&&" FunctionExp -> FunctionExp {cons("FunctionExpAnd"), right}
+	>
+		FunctionExp "||" FunctionExp -> FunctionExp {cons("FunctionExpOr"), right}
+
 	
 	context-free syntax
 		"import" MID -> Import {cons("Import")}

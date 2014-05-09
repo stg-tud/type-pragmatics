@@ -23,7 +23,6 @@ lookup(x, bind(y, Ty, C)) =
   if (x == y)
   then some(Ty)
   else lookup(x, C)
-  
 
 // **********
 // type rules
@@ -31,8 +30,8 @@ lookup(x, bind(y, Ty, C)) =
 
 axioms
 
-lookup(~x, ~C) = some(~T)
-========================= T-var
+lookup(~x, ~C) == some(~T)
+========================== T-var
 ~C |- var(~x) : ~T
 
 bind(~x, ~S, ~C) |- ~e : ~T
@@ -50,14 +49,14 @@ bind(~x, ~S, ~C) |- ~e : ~T
 =============================== T-inv
 OR
 => exists ~x
-     ~e = var(~x)
-     lookup(~x, ~C) = some(~T)
+     ~e == var(~x)
+     lookup(~x, ~C) == some(~T)
 => exists ~x, ~e2, ~T1, ~T2
-     ~e = abs(~x, ~T1, ~e2)
-     ~T = arrow(~T1, ~T2)
+     ~e == abs(~x, ~T1, ~e2)
+     ~T == arrow(~T1, ~T2)
      bind(~x, ~T1, ~C) |- ~e2 : ~T2
 => exists ~e1, ~e2, ~S
-     ~e = app(~e1, ~e2)
+     ~e == app(~e1, ~e2)
      ~C |- ~e1 : arrow(~S, ~T)
      ~C |- ~e2 : ~S
 
@@ -66,8 +65,14 @@ OR
 // Context rules
 // *************************
 
+function
+isFreeVar : Var Exp -> Bool
+isFreeVar(v, var(x)) = x == v
+isFreeVar(v, abs(x, T, e)) = x != v && isFreeVar(v, e) 
+isFreeVar(v, app(e1, e2))= isFreeVar(v, e1) || isFreeVar(v, e2)
+
 axioms
-~x = ~y
+~x == ~y
 bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
 =========================================== T-Context-Duplicate
 bind(~x, ~Tx, ~C) |- ~e : ~T
@@ -77,7 +82,7 @@ bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
 =========================================== T-Context-Swap
 bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T
 
-lookup(~x, ~C) = nothing
+!isFreeVar(~x, ~e)
 ~C |- ~e : ~T
 =========================== T-Weak
 bind(~x, ~S, ~C) |- ~e : ~T
@@ -112,15 +117,15 @@ subst(x, e, abs(y, T, e1)) =
 // Each derived rule represents one induction case.
 
 goal
-~e2 = var(~y)
-~x = ~y
+~e2 == var(~y)
+~x == ~y
 ~C |- ~e : ~T
 bind(~x, ~T, ~C) |- ~e2 : ~T2
 ============================== T-subst-var-1
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
 goal
-~e2 = var(~y)
+~e2 == var(~y)
 ~x != ~y
 ~C |- ~e : ~T
 bind(~x, ~T, ~C) |- ~e2 : ~T2
@@ -128,10 +133,10 @@ bind(~x, ~T, ~C) |- ~e2 : ~T2
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
 local {
-	consts
-		e1app : Exp
-		e2app : Exp
-	
+	// consts
+	// 	e1app : Exp
+	// 	e2app : Exp
+	// 
 	axioms
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- e1app : ~T2
@@ -144,7 +149,7 @@ local {
 	~C |- subst(~x, ~e, e2app) : ~T2
 	
 	goal
-	~e2 = app(e1app, e2app)
+	~e2 == app(e1app, e2app)
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- ~e2 : ~T2
 	============================== T-subst-app
@@ -152,8 +157,8 @@ local {
 }
 
 goal
-~e2 = abs(~y, ~S, ~e3)
-~x = ~y
+~e2 == abs(~y, ~S, ~e3)
+~x == ~y
 ~C |- ~e : ~T
 bind(~x, ~T, ~C) |- ~e2 : ~T2
 ================================ T-subst-abs-1
@@ -169,18 +174,18 @@ local {
 	~C |- subst(~x, ~e, eabs) : ~T2
 
 	goal
-	~e2 = abs(~y, ~S, eabs)
+	~e2 == abs(~y, ~S, eabs)
 	~x != ~y
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- ~e2 : ~T2
 	================================================= T-subst-abs-2
-	// bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
-	// exists ~S2
-	// 	~T2 = arrow(~S, ~S2)
-	// 	bind(~y, ~S, bind(~x, ~T, ~C)) |- eabs : ~S2
-	// 	bind(~x, ~T, bind(~y, ~S, ~C)) |- eabs : ~S2
-	// 	bind(~y, ~S, ~C) |- subst(~x, ~e, eabs) : ~S2
-	~C |- subst(~x, ~e, ~e2) : ~T2
+	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
+	exists ~S2
+		~T2 == arrow(~S, ~S2)
+		bind(~y, ~S, bind(~x, ~T, ~C)) |- eabs : ~S2
+		bind(~x, ~T, bind(~y, ~S, ~C)) |- eabs : ~S2
+		// bind(~y, ~S, ~C) |- subst(~x, ~e, eabs) : ~S2
+	// ~C |- subst(~x, ~e, ~e2) : ~T2
 }
 
 // substitution lemma becomes an axiom after the proof

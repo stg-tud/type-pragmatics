@@ -23,7 +23,7 @@ local {
 		e1fun : Exp
 		e1funred : Exp
 	
-	axiom	
+	axiom	 
 	~C |- e1fun : ~T
 	e1fun -> e1funred
 	==================== T-Preservation-IH-app1

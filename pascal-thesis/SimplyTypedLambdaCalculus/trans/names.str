@@ -10,6 +10,14 @@ imports
 
 rules
 
+  nabl-get-scope =
+    ?mod@Module(m, _, _)
+    ; ![ NablNsSort()
+       , NablNsSymbol()
+       , NablNsAxiom()
+       , NablNsGoal()
+       ]
+
   nabl-get-name :
     mod@Module(m, _, _) -> m
 
@@ -32,7 +40,11 @@ rules
              , NablNsModule()
              , Unique()
              , Current()
-             , []
+             , [ NablNsSort()
+               , NablNsSymbol()
+               , NablNsAxiom()
+               , NablNsGoal()
+               ]
              , []
              )
            , id
@@ -40,13 +52,28 @@ rules
            )
          |
          ))
-    ; match(child-uris__|c-uri1__)
-    ; match(sibl-uris__|s-uri1__)
-    ; match(implicits__|[])
+    ; where(i-2__ := <nabl-def(
+                        ?c-uri2__
+                      , ?s-uri2__
+                      | lang__
+                      , partition__
+                      , uniques__
+                      , c-uri1__
+                      , s-uri1__
+                      , NablNsSort()
+                      , Unique()
+                      , Current()
+                      , []
+                      , []
+                      )> "Bool")
+    ; match(child-uris__|c-uri2__)
+    ; match(sibl-uris__|s-uri2__)
+    ; match(implicits__|[i-2__])
 
   nabl-prop-site(|lang__, partition__, uris__, states__, implicits__) =
     ?mod@Module(m, _, _)
-    ; (id
+    ; (where([i-2__] := implicits__)
+       ; id
        ; Module(
            nabl-store-props(
            | partition__
@@ -81,6 +108,33 @@ rules
               )
             ]
           )
+        )
+      |
+      )
+
+  nabl-import-site(|lang__, partition__, uniques__, uris__, states__) =
+    ?Import(m)
+    ; origin-track-forced(
+        nabl-import(
+        | lang__
+        , partition__
+        , uniques__
+        , uris__
+        , [ Wildcard(
+              [ Import(lang__, NablNsSort())
+              , Import(lang__, NablNsSymbol())
+              , Import(lang__, NablNsAxiom())
+              ]
+            , Context(
+                NablNsModule()
+              , m
+              , []
+              , Current()
+              )
+            , Current()
+            , []
+            )
+          ]
         )
       |
       )

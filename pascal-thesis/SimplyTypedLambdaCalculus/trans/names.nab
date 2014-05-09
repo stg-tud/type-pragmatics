@@ -10,11 +10,12 @@ binding rules
 	mod@Module(m, _, _):
 		defines unique Module m
 			of module-ref mod
-		// scopes Sort, Symbol, Axiom, Goal
+		implicitly defines Sort "Bool"
+		scopes Sort, Symbol, Axiom, Goal
 		
 	Import(m):
-		refers to Module m
-		// imports Sort, Symbol, Axiom from mod
+		imports Sort, Symbol, Axiom from Module m
+		// refers to Module m
 		// where m has module-ref mod
 
 	SortDef(s):
