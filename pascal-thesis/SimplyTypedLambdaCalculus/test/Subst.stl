@@ -88,6 +88,17 @@ bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T
 bind(~x, ~S, ~C) |- ~e : ~T
 
 
+// ******
+// Gensym
+// ******
+
+function
+gensym : Exp -> Var
+
+axiom
+gensym(~e) == ~v
+================= gensym-is-fresh
+isFreeVar(~v, ~e)
 
 
 // ******************
@@ -104,7 +115,9 @@ subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
 subst(x, e, abs(y, T, e1)) =
 	if x == y
 	then abs(y, T, e1)
-	else abs(y, T, subst(x, e, e1))
+	else if !isFreeVar(y, e)
+	     then abs(y, T, subst(x, e, e1))
+	     else abs(gensym(e), T, subst(x, e, subst(y, var(gensym(e)), e1)))
 
 // This is what we want prove by induction
 //

@@ -69,8 +69,9 @@ exports
 		ID ":" SortRef -> ConstDecl {ast("ConstructorDecl(<1>, [], <2>)")}
 		
 	context-free syntax
-		FunctionSig FunctionEq+ -> FunctionDef {cons("FunctionDef")}
+		FunctionSig FunctionEq* -> FunctionDef {cons("FunctionDef")}
 		ID ":" SortRef+ "->" SortRef -> FunctionSig{cons("FunctionSig")}
+		ID ":" SortRef -> FunctionSig{ast("FunctionSig(<1>, [], <2>)")}
 		ID "=" FunctionExp -> FunctionEq {ast("FunctionEq(<1>, [], <2>)")}
 		ID "(" {FunctionPattern ","}* ")" "=" FunctionExp -> FunctionEq {cons("FunctionEq")}
 		
