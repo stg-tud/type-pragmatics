@@ -27,7 +27,17 @@ exports
 		"then" -> Keyword
 		"else" -> Keyword
 		"module" -> Keyword
-		"type" -> Keyword
+		"goal" -> Keyword
+		"goals" -> Keyword
+		"axiom" -> Keyword
+		"axioms" -> Keyword
+		"const" -> Keyword
+		"consts" -> Keyword
+		"function" -> Keyword
+		"functions" -> Keyword
+		"local" -> Keyword
+		"sorts" -> Keyword
+		"import" -> Keyword
 		
 		"Nat" -> PrimitiveType
 		"String" -> PrimitiveType
