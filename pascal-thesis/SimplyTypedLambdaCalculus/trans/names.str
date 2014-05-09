@@ -139,6 +139,24 @@ rules
       |
       )
 
+  nabl-scoping-site =
+    ?Local(_)
+    ; nabl-scope(
+      | [ NablNsSort()
+        , NablNsSymbol()
+        , NablNsAxiom()
+        , NablNsGoal()
+        ]
+      )
+
+  nabl-get-scope =
+    ?Local(_)
+    ; ![ NablNsSort()
+       , NablNsSymbol()
+       , NablNsAxiom()
+       , NablNsGoal()
+       ]
+
   nabl-get-name :
     SortDef(s) -> s
 

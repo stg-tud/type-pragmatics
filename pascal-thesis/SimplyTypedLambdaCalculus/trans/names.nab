@@ -18,6 +18,9 @@ binding rules
 		// refers to Module m
 		// where m has module-ref mod
 
+	Local(_):
+		scopes Sort, Symbol, Axiom, Goal
+
 	SortDef(s):
 		defines Sort s
 	SortRef(s):
