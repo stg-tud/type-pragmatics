@@ -74,6 +74,9 @@ exports
 		ID "=" FunctionExp -> FunctionEq {ast("FunctionEq(<1>, [], <2>)")}
 		ID "(" {FunctionPattern ","}* ")" "=" FunctionExp -> FunctionEq {cons("FunctionEq")}
 		
+		RelationSig FunctionEq+ -> RelationDef {cons("FunctionDef")}
+		ID ":" SortRef+ -> RelationSig{ast("FunctionSig(<1>, <2>, RelBool())")}
+		
 		ID -> FunctionExp {cons("FunctionExpVar")}
 		"if" FunctionExp "then" FunctionExp "else" FunctionExp -> FunctionExp {cons("FunctionExpIf")}
 		ID "(" {FunctionExp ","}* ")" -> FunctionExp {cons("FunctionExpApp")}
@@ -112,6 +115,9 @@ exports
 
 		"functions" FunctionDef* -> ModuleDef {cons("Functions")}
 		"function" FunctionDef -> ModuleDef {ast("Functions([<1>])")}
+
+		"relations" RelationDef* -> ModuleDef {cons("Functions")}
+		"relation" RelationDef -> ModuleDef {ast("Functions([<1>])")}
 
 		"axioms" TypingRule* -> ModuleDef {cons("Axioms")}
 		"axiom" TypingRule -> ModuleDef {ast("Axioms([<1>])")}

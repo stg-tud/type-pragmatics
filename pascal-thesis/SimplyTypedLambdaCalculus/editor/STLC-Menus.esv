@@ -9,9 +9,9 @@ menus
   
   menu: "Syntax"
     
-    // action: "Format"               = editor-format (openeditor) (realtime)
+    action: "Format"               = editor-format (openeditor) (realtime) (source)
     action: "Show abstract syntax" = debug-show-aterm (openeditor) (realtime) (meta) (source)
-    // action: "Show analyzed syntax" = debug-show-analyzed-selection (openeditor) (meta)
+    action: "Show analyzed syntax" = debug-show-analyzed (openeditor) (meta)
     
   menu: "Analysis"
     
@@ -24,6 +24,7 @@ menus
     
     submenu: "Show index"
       action: "Project"            = debug-index-project (openeditor) (meta)
+      action: "Project (resolved)" = debug-index-project-resolve (openeditor) (meta)
       action: "Partition"          = debug-index-partition (openeditor) (meta)
     end
     
@@ -33,8 +34,10 @@ menus
       action: "Selection"          = debug-task-selection (openeditor) (meta)
     end
   
+  
   menu: "Generation"
     
     action: "Generate FOF"         = generate-fof (openeditor) (realtime)
     action: "Generate SMT"         = generate-smt (openeditor) (realtime)
+
 

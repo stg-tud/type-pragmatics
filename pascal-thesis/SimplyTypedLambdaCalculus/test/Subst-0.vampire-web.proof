@@ -1,0 +1,322 @@
+
+
+% START OF SYSTEM OUTPUT
+Hi Geoff, go and have some cold beer while I am trying to solve this very hard problem!
+% remaining time: 599 next slice time: 3
+lrs-1010_7_bs=unit_only:bsr=unit_only:cond=fast:drc=off:ep=on:flr=on:lcm=predicate:nwc=1.7:stl=30:sgo=on:spo=on:spl=sat:ssfq=1.1:ssnc=none:sp=occurrence_1 on SOT_IGWT
+% Refutation found. Thanks to Tanya!
+% SZS status Theorem for SOT_IGWT
+% SZS output start Proof for SOT_IGWT
+fof(f1886,plain,(
+  $false),
+  inference(subsumption_resolution,[],[f1880,f117])).
+fof(f117,plain,(
+  tcheck(sK3,sK5,sK2)),
+  inference(cnf_transformation,[],[f99])).
+fof(f99,plain,(
+  var(sK1) = sK6 & sK1 = sK4 & tcheck(sK3,sK5,sK2) & tcheck(bind(sK4,sK2,sK3),sK6,sK7) & ~tcheck(sK3,subst(sK4,sK5,sK6),sK7)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1,sK2,sK3,sK4,sK5,sK6,sK7])],[f68])).
+fof(f68,plain,(
+  ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6))),
+  inference(flattening,[],[f67])).
+fof(f67,plain,(
+  ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6))),
+  inference(ennf_transformation,[],[f31])).
+fof(f31,plain,(
+  ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6))),
+  inference(rectify,[],[f30])).
+fof(f30,negated_conjecture,(
+  ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56))),
+  inference(negated_conjecture,[],[f29])).
+fof(f29,conjecture,(
+  ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56))),
+  file('/tmp/SystemOnTPTPFormReply3304/SOT_IGWTRg','T-subst-var-1')).
+fof(f1880,plain,(
+  ~tcheck(sK3,sK5,sK2)),
+  inference(backward_demodulation,[],[f1878,f244])).
+fof(f244,plain,(
+  ~tcheck(sK3,sK5,sK7)),
+  inference(backward_demodulation,[],[f243,f240])).
+fof(f240,plain,(
+  ~tcheck(sK3,subst(sK1,sK5,sK6),sK7)),
+  inference(backward_demodulation,[],[f116,f119])).
+fof(f119,plain,(
+  ~tcheck(sK3,subst(sK4,sK5,sK6),sK7)),
+  inference(cnf_transformation,[],[f99])).
+fof(f116,plain,(
+  sK1 = sK4),
+  inference(cnf_transformation,[],[f99])).
+fof(f243,plain,(
+  ( ! [X0] : (subst(sK1,X0,sK6) = X0) )),
+  inference(superposition,[],[f191,f115])).
+fof(f115,plain,(
+  var(sK1) = sK6),
+  inference(cnf_transformation,[],[f99])).
+fof(f191,plain,(
+  ( ! [X6,X4] : (subst(X4,X6,var(X4)) = X6) )),
+  inference(equality_resolution,[],[f190])).
+fof(f190,plain,(
+  ( ! [X6,X4,X0] : (subst(X0,X6,var(X4)) = X6 | X0 != X4) )),
+  inference(equality_resolution,[],[f189])).
+fof(f189,plain,(
+  ( ! [X6,X4,X0,X1] : (subst(X0,X1,var(X4)) = X6 | X1 != X6 | X0 != X4) )),
+  inference(equality_resolution,[],[f188])).
+fof(f188,plain,(
+  ( ! [X6,X4,X2,X0,X1] : (subst(X0,X1,X2) = X6 | var(X4) != X2 | X1 != X6 | X0 != X4) )),
+  inference(equality_resolution,[],[f187])).
+fof(f187,plain,(
+  ( ! [X6,X4,X2,X0,X5,X1] : (X5 = X6 | subst(X0,X1,X2) != X5 | var(X4) != X2 | X1 != X6 | X0 != X4) )),
+  inference(equality_resolution,[],[f161])).
+fof(f161,plain,(
+  ( ! [X6,X4,X2,X0,X5,X3,X1] : (X5 = X6 | X3 != X4 | subst(X0,X1,X2) != X5 | var(X4) != X2 | X1 != X6 | X0 != X3) )),
+  inference(cnf_transformation,[],[f84])).
+fof(f84,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : (X0 != X3 | X1 != X6 | var(X4) != X2 | subst(X0,X1,X2) != X5 | X3 != X4 | X5 = X6)),
+  inference(flattening,[],[f83])).
+fof(f83,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : ((X0 != X3 | X1 != X6 | var(X4) != X2 | subst(X0,X1,X2) != X5) | (X3 != X4 | X5 = X6))),
+  inference(ennf_transformation,[],[f55])).
+fof(f55,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : ((X0 = X3 & X1 = X6 & var(X4) = X2 & subst(X0,X1,X2) = X5) => (X3 = X4 => X5 = X6))),
+  inference(true_and_false_elimination,[],[f54])).
+fof(f54,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : ((X0 = X3 & X1 = X6 & var(X4) = X2 & subst(X0,X1,X2) = X5) => ((X3 = X4 & $true) => X5 = X6))),
+  inference(rectify,[],[f24])).
+fof(f24,axiom,(
+  ! [X58,X59,X60,X40,X47,X61,X51] : ((X40 = X58 & X51 = X59 & var(X47) = X60 & subst(X58,X59,X60) = X61) => ((X40 = X47 & $true) => X51 = X61))),
+  file('/tmp/SystemOnTPTPFormReply3304/SOT_IGWTRg',subst28)).
+fof(f1878,plain,(
+  sK2 = sK7),
+  inference(resolution,[],[f1875,f238])).
+fof(f238,plain,(
+  ( ! [X0,X1] : (~sQ16_eqProxy(X0,X1) | X0 = X1) )),
+  inference(equality_proxy_axiom,[],[f213])).
+fof(f213,plain,(
+  ! [X1,X0] : (sQ16_eqProxy(X0,X1) <=> X0 = X1)),
+  introduced(equality_proxy_definition,[new_symbols(naming,[sQ16_eqProxy])])).
+fof(f1875,plain,(
+  sQ16_eqProxy(sK2,sK7)),
+  inference(resolution,[],[f1872,f237])).
+fof(f237,plain,(
+  ( ! [X0] : (sQ16_eqProxy(X0,X0)) )),
+  inference(equality_proxy_axiom,[],[f213])).
+fof(f1872,plain,(
+  ( ! [X3] : (~sQ16_eqProxy(some(X3),some(sK2)) | sQ16_eqProxy(X3,sK7)) )),
+  inference(superposition,[],[f216,f1869])).
+fof(f1869,plain,(
+  some(sK2) = some(sK7)),
+  inference(subsumption_resolution,[],[f1861,f237])).
+fof(f1861,plain,(
+  ~sQ16_eqProxy(sK6,sK6) | some(sK2) = some(sK7)),
+  inference(resolution,[],[f1821,f239])).
+fof(f239,plain,(
+  tcheck(bind(sK1,sK2,sK3),sK6,sK7)),
+  inference(backward_demodulation,[],[f116,f118])).
+fof(f118,plain,(
+  tcheck(bind(sK4,sK2,sK3),sK6,sK7)),
+  inference(cnf_transformation,[],[f99])).
+fof(f1821,plain,(
+  ( ! [X10,X8,X7,X9] : (~tcheck(bind(sK1,X7,X8),X10,X9) | ~sQ16_eqProxy(sK6,X10) | some(X7) = some(X9)) )),
+  inference(superposition,[],[f1807,f198])).
+fof(f198,plain,(
+  ( ! [X6,X4,X0] : (some(X6) = lookup(X4,bind(X4,X6,X0))) )),
+  inference(equality_resolution,[],[f197])).
+fof(f197,plain,(
+  ( ! [X6,X4,X0,X1] : (some(X6) = lookup(X1,bind(X4,X6,X0)) | X1 != X4) )),
+  inference(equality_resolution,[],[f196])).
+fof(f196,plain,(
+  ( ! [X6,X4,X2,X0,X1] : (some(X6) = lookup(X1,X2) | bind(X4,X6,X0) != X2 | X1 != X4) )),
+  inference(equality_resolution,[],[f195])).
+fof(f195,plain,(
+  ( ! [X6,X4,X2,X0,X5,X1] : (some(X6) = X5 | lookup(X1,X2) != X5 | bind(X4,X6,X0) != X2 | X1 != X4) )),
+  inference(equality_resolution,[],[f163])).
+fof(f163,plain,(
+  ( ! [X6,X4,X2,X0,X5,X3,X1] : (some(X6) = X5 | X3 != X4 | lookup(X1,X2) != X5 | bind(X4,X6,X0) != X2 | X1 != X3) )),
+  inference(cnf_transformation,[],[f88])).
+fof(f88,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : (X1 != X3 | bind(X4,X6,X0) != X2 | lookup(X1,X2) != X5 | X3 != X4 | some(X6) = X5)),
+  inference(flattening,[],[f87])).
+fof(f87,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : ((X1 != X3 | bind(X4,X6,X0) != X2 | lookup(X1,X2) != X5) | (X3 != X4 | some(X6) = X5))),
+  inference(ennf_transformation,[],[f59])).
+fof(f59,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : ((X1 = X3 & bind(X4,X6,X0) = X2 & lookup(X1,X2) = X5) => (X3 = X4 => some(X6) = X5))),
+  inference(true_and_false_elimination,[],[f58])).
+fof(f58,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : ((X1 = X3 & bind(X4,X6,X0) = X2 & lookup(X1,X2) = X5) => ((X3 = X4 & $true) => some(X6) = X5))),
+  inference(rectify,[],[f15])).
+fof(f15,axiom,(
+  ! [X44,X45,X46,X40,X47,X48,X49] : ((X40 = X45 & bind(X47,X49,X44) = X46 & lookup(X45,X46) = X48) => ((X40 = X47 & $true) => some(X49) = X48))),
+  file('/tmp/SystemOnTPTPFormReply3304/SOT_IGWTRg',lookup15)).
+fof(f1807,plain,(
+  ( ! [X2,X0,X1] : (some(X1) = lookup(sK1,X0) | ~sQ16_eqProxy(sK6,X2) | ~tcheck(X0,X2,X1)) )),
+  inference(duplicate_literal_removal,[],[f1795])).
+fof(f1795,plain,(
+  ( ! [X2,X0,X1] : (some(X1) = lookup(sK1,X0) | ~sQ16_eqProxy(sK6,X2) | ~tcheck(X0,X2,X1) | ~tcheck(X0,X2,X1) | ~sQ16_eqProxy(sK6,X2)) )),
+  inference(superposition,[],[f1789,f1368])).
+fof(f1368,plain,(
+  ( ! [X2,X0,X1] : (sK1 = sK12(X1,X2,X0) | ~tcheck(X1,X0,X2) | ~sQ16_eqProxy(sK6,X0)) )),
+  inference(resolution,[],[f1343,f238])).
+fof(f1343,plain,(
+  ( ! [X30,X28,X29] : (sQ16_eqProxy(sK1,sK12(X28,X29,X30)) | ~sQ16_eqProxy(sK6,X30) | ~tcheck(X28,X30,X29)) )),
+  inference(duplicate_literal_removal,[],[f1331])).
+fof(f1331,plain,(
+  ( ! [X30,X28,X29] : (~sQ16_eqProxy(sK6,X30) | sQ16_eqProxy(sK1,sK12(X28,X29,X30)) | ~sQ16_eqProxy(sK6,X30) | ~tcheck(X28,X30,X29)) )),
+  inference(superposition,[],[f247,f1316])).
+fof(f1316,plain,(
+  ( ! [X37,X38,X36] : (var(sK12(X36,X37,X38)) = X38 | ~sQ16_eqProxy(sK6,X38) | ~tcheck(X36,X38,X37)) )),
+  inference(subsumption_resolution,[],[f1297,f832])).
+fof(f832,plain,(
+  ( ! [X61,X59,X60] : (~sP0(X61,X60,X59) | ~sQ16_eqProxy(sK6,X59)) )),
+  inference(superposition,[],[f245,f129])).
+fof(f129,plain,(
+  ( ! [X2,X0,X1] : (abs(sK8(X2,X1,X0),sK10(X2,X1,X0),sK9(X2,X1,X0)) = X2 | ~sP0(X0,X1,X2)) )),
+  inference(cnf_transformation,[],[f104])).
+fof(f104,plain,(
+  ! [X0,X1,X2] : (~sP0(X0,X1,X2) | (abs(sK8(X2,X1,X0),sK10(X2,X1,X0),sK9(X2,X1,X0)) = X2 & arrow(sK10(X2,X1,X0),sK11(X2,X1,X0)) = X1 & tcheck(bind(sK8(X2,X1,X0),sK10(X2,X1,X0),X0),sK9(X2,X1,X0),sK11(X2,X1,X0))))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK8,sK9,sK10,sK11])],[f103])).
+fof(f103,plain,(
+  ! [X0,X1,X2] : (~sP0(X0,X1,X2) | ? [X3,X4,X5,X6] : (abs(X3,X5,X4) = X2 & arrow(X5,X6) = X1 & tcheck(bind(X3,X5,X0),X4,X6)))),
+  inference(rectify,[],[f102])).
+fof(f102,plain,(
+  ! [X2,X1,X0] : (~sP0(X2,X1,X0) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)))),
+  inference(nnf_transformation,[],[f97])).
+fof(f97,plain,(
+  ! [X2,X1,X0] : (~sP0(X2,X1,X0) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)))),
+  introduced(predicate_definition_introduction,[new_symbols(naming,[sP0])])).
+fof(f245,plain,(
+  ( ! [X2,X0,X1] : (~sQ16_eqProxy(sK6,abs(X0,X1,X2))) )),
+  inference(superposition,[],[f220,f115])).
+fof(f220,plain,(
+  ( ! [X2,X0,X3,X1] : (~sQ16_eqProxy(var(X0),abs(X1,X2,X3))) )),
+  inference(equality_proxy_replacement,[],[f139,f213])).
+fof(f139,plain,(
+  ( ! [X2,X0,X3,X1] : (var(X0) != abs(X1,X2,X3)) )),
+  inference(cnf_transformation,[],[f40])).
+fof(f40,plain,(
+  ! [X0,X1,X2,X3] : var(X0) != abs(X1,X2,X3)),
+  inference(rectify,[],[f9])).
+fof(f9,axiom,(
+  ! [X24,X25,X26,X27] : var(X24) != abs(X25,X26,X27)),
+  file('/tmp/SystemOnTPTPFormReply3304/SOT_IGWTRg','DIFF-var-abs')).
+fof(f1297,plain,(
+  ( ! [X37,X38,X36] : (~sQ16_eqProxy(sK6,X38) | sP0(X36,X37,X38) | var(sK12(X36,X37,X38)) = X38 | ~tcheck(X36,X38,X37)) )),
+  inference(superposition,[],[f241,f132])).
+fof(f132,plain,(
+  ( ! [X2,X0,X1] : (app(sK13(X2,X1,X0),sK14(X2,X1,X0)) = X0 | sP0(X2,X1,X0) | var(sK12(X2,X1,X0)) = X0 | ~tcheck(X2,X0,X1)) )),
+  inference(cnf_transformation,[],[f106])).
+fof(f106,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | (var(sK12(X2,X1,X0)) = X0 & some(X1) = lookup(sK12(X2,X1,X0),X2)) | sP0(X2,X1,X0) | (app(sK13(X2,X1,X0),sK14(X2,X1,X0)) = X0 & tcheck(X2,sK13(X2,X1,X0),arrow(sK15(X2,X1,X0),X1)) & tcheck(X2,sK14(X2,X1,X0),sK15(X2,X1,X0))))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK12,sK13,sK14,sK15])],[f105])).
+fof(f105,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X6] : (var(X6) = X0 & some(X1) = lookup(X6,X2)) | sP0(X2,X1,X0) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))),
+  inference(rectify,[],[f98])).
+fof(f98,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | sP0(X2,X1,X0) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))),
+  inference(definition_folding,[],[f70,f97])).
+fof(f70,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))),
+  inference(flattening,[],[f69])).
+fof(f69,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | (? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))))),
+  inference(ennf_transformation,[],[f38])).
+fof(f38,plain,(
+  ! [X0,X1,X2] : (tcheck(X2,X0,X1) => (? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))))),
+  inference(rectify,[],[f20])).
+fof(f20,axiom,(
+  ! [X51,X50,X44] : (tcheck(X44,X51,X50) => (? [X40] : (var(X40) = X51 & some(X50) = lookup(X40,X44)) | ? [X40,X54,X55,X56] : (abs(X40,X55,X54) = X51 & arrow(X55,X56) = X50 & tcheck(bind(X40,X55,X44),X54,X56)) | ? [X53,X54,X52] : (app(X53,X54) = X51 & tcheck(X44,X53,arrow(X52,X50)) & tcheck(X44,X54,X52))))),
+  file('/tmp/SystemOnTPTPFormReply3304/SOT_IGWTRg','T-inv')).
+fof(f241,plain,(
+  ( ! [X0,X1] : (~sQ16_eqProxy(sK6,app(X0,X1))) )),
+  inference(superposition,[],[f217,f115])).
+fof(f217,plain,(
+  ( ! [X2,X0,X1] : (~sQ16_eqProxy(var(X0),app(X1,X2))) )),
+  inference(equality_proxy_replacement,[],[f127,f213])).
+fof(f127,plain,(
+  ( ! [X2,X0,X1] : (var(X0) != app(X1,X2)) )),
+  inference(cnf_transformation,[],[f36])).
+fof(f36,plain,(
+  ! [X0,X1,X2] : var(X0) != app(X1,X2)),
+  inference(rectify,[],[f10])).
+fof(f10,axiom,(
+  ! [X28,X29,X30] : var(X28) != app(X29,X30)),
+  file('/tmp/SystemOnTPTPFormReply3304/SOT_IGWTRg','DIFF-var-app')).
+fof(f247,plain,(
+  ( ! [X0] : (~sQ16_eqProxy(sK6,var(X0)) | sQ16_eqProxy(sK1,X0)) )),
+  inference(superposition,[],[f215,f115])).
+fof(f215,plain,(
+  ( ! [X0,X1] : (~sQ16_eqProxy(var(X0),var(X1)) | sQ16_eqProxy(X0,X1)) )),
+  inference(equality_proxy_replacement,[],[f123,f213,f213])).
+fof(f123,plain,(
+  ( ! [X0,X1] : (X0 = X1 | var(X0) != var(X1)) )),
+  inference(cnf_transformation,[],[f100])).
+fof(f100,plain,(
+  ! [X0,X1] : ((var(X0) != var(X1) | X0 = X1) & (X0 != X1 | var(X0) = var(X1)))),
+  inference(nnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  ! [X0,X1] : (var(X0) = var(X1) <=> X0 = X1)),
+  file('/tmp/SystemOnTPTPFormReply3304/SOT_IGWTRg','EQ-var')).
+fof(f1789,plain,(
+  ( ! [X39,X41,X40] : (some(X40) = lookup(sK12(X39,X40,X41),X39) | ~sQ16_eqProxy(sK6,X41) | ~tcheck(X39,X41,X40)) )),
+  inference(subsumption_resolution,[],[f1767,f832])).
+fof(f1767,plain,(
+  ( ! [X39,X41,X40] : (~sQ16_eqProxy(sK6,X41) | sP0(X39,X40,X41) | some(X40) = lookup(sK12(X39,X40,X41),X39) | ~tcheck(X39,X41,X40)) )),
+  inference(superposition,[],[f241,f133])).
+fof(f133,plain,(
+  ( ! [X2,X0,X1] : (app(sK13(X2,X1,X0),sK14(X2,X1,X0)) = X0 | sP0(X2,X1,X0) | some(X1) = lookup(sK12(X2,X1,X0),X2) | ~tcheck(X2,X0,X1)) )),
+  inference(cnf_transformation,[],[f106])).
+fof(f216,plain,(
+  ( ! [X0,X1] : (~sQ16_eqProxy(some(X0),some(X1)) | sQ16_eqProxy(X0,X1)) )),
+  inference(equality_proxy_replacement,[],[f125,f213,f213])).
+fof(f125,plain,(
+  ( ! [X0,X1] : (X0 = X1 | some(X0) != some(X1)) )),
+  inference(cnf_transformation,[],[f101])).
+fof(f101,plain,(
+  ! [X0,X1] : ((some(X0) != some(X1) | X0 = X1) & (X0 != X1 | some(X0) = some(X1)))),
+  inference(nnf_transformation,[],[f35])).
+fof(f35,plain,(
+  ! [X0,X1] : (some(X0) = some(X1) <=> X0 = X1)),
+  inference(rectify,[],[f8])).
+fof(f8,axiom,(
+  ! [X22,X23] : (some(X22) = some(X23) <=> X22 = X23)),
+  file('/tmp/SystemOnTPTPFormReply3304/SOT_IGWTRg','EQ-some')).
+% SZS output end Proof for SOT_IGWT
+% ------------------------------
+% Version: Vampire 3.0 (revision 1803, CASC-24-only license, for any other Vampire license check http://vprover.org/)
+% SZS status Unsatisfiable
+
+% Active clauses: 150
+% Passive clauses: 501
+% Generated clauses: 1703
+% Final active clauses: 141
+% Final passive clauses: 339
+% Input formulas: 29
+% Initial clauses: 55
+% 
+% Duplicate literals: 127
+% Fw subsumption resolutions: 40
+% Fw demodulations: 62
+% Bw demodulations: 10
+% Condensations: 53
+% 
+% Equational tautologies: 9
+% Forward subsumptions: 899
+% Backward subsumptions: 10
+% Fw demodulations to eq. taut.: 14
+% Bw demodulations to eq. taut.: 1
+% 
+% Binary resolution: 96
+% Forward superposition: 544
+% Backward superposition: 710
+% Self superposition: 14
+% 
+% Memory used [KB]: 1151
+% Time elapsed: 0.103 s
+% ------------------------------
+% ------------------------------
+% Success in time 0.11 s
+
+% END OF SYSTEM OUTPUT
+% RESULT: SOT_IGWTRg - Vampire---3.0 says Theorem - CPU = 0.00 WC = 0.70 
+% OUTPUT: SOT_IGWTRg - Vampire---3.0 says Refutation - CPU = 0.00 WC = 0.70 
+

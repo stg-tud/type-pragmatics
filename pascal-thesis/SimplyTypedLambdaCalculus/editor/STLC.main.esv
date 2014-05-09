@@ -1,21 +1,31 @@
 module STLC.main
 
-imports STLC-Menus STLC-Refactorings STLC-Colorer STLC-Completions STLC-Folding STLC-Outliner STLC-References STLC-Syntax
+imports
+  STLC-Colorer
+  STLC-Completions
+  STLC-Folding
+  STLC-Menus
+  STLC-Refactorings
+  STLC-References
+  STLC-Syntax
+  STLC-Views
 
 language General properties
-                  
-  name          : STLC
-  id            : SimplyTypedLambdaCalculs
-  extends       : Root
-                  
-  description   : "Spoofax/IMP-generated editor for the STLC language"
-  url           : http://strategoxt.org
-
-  provider      : include/stlc-java.jar
-  provider      : include/stlc.ctree
-                  
-  observer : editor-analyze
-                  
-  extensions    : stl
-  table         : include/STLC.tbl
-  start symbols : Module
+  
+  name:          STLC
+  id:            SimplyTypedLambdaCalculus
+  extends:       Root
+  
+  description:   "Spoofax-generated editor for the STLC language"
+  url:           http://strategoxt.org
+  
+  extensions:    stl
+  table:         include/STLC.tbl
+  start symbols: Module
+  
+  provider:      include/stlc.ctree
+  provider:      include/stlc-java.jar
+  
+  observer:      editor-analyze (multifile)
+  
+  on save:       editor-save

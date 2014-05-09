@@ -115,7 +115,9 @@ rules
 	fof-to-smt = debug(!"fof-to-smt failed: "); fail
 	
 	pred-to-fun-decl :
-		Pred(name,args) -> DeclFun(name, <map(!Term())> args, Bool())
+		Pred(name,args) -> DeclFun(fname, <map(!Term())> args, Bool())
+	where
+		fname := <string-as-chars([to-lower|id])> name
 	pred-to-fun-decl = debug(!"pred-to-fun-decl failed: "); fail
 	
 	var-to-fun-decl : Var(v) -> <termapp-to-fun-decl> TermApp(v, [])
@@ -134,7 +136,7 @@ rules
 	function-to-function-decl :
 		FunctionDef(FunctionSig("abs", args, res), defs) -> <function-to-function-decl> FunctionDef(FunctionSig("fabs", args, res), defs)
 	function-to-function-decl : 
-		FunctionDef(FunctionSig(name, args, res), defs) -> DeclFun(name, <map(!Term())> args, Term())
+		FunctionDef(FunctionSig(name, args, res), defs) -> DeclFun(name, <map(sort-type)> args, <sort-type> res)
 	
 	const-to-function-decl(|cons) : Var(v) -> []
 	where
@@ -164,6 +166,9 @@ rules
 		check := SmtList([Var("check-sat")]);
 		pop := SmtList([Var("pop"), SmtLit("1")])
 	conjecture-define-to-check = debug(!"conjecture-defines-to-asserts failed: "); fail
+	
+	sort-type : RelBool() -> Bool()
+	sort-type : _ -> Term()
 
 rules
 	push = !SmtList([Var("push"), SmtLit("1")])
@@ -185,12 +190,15 @@ rules
 	prop-to-smt : Or(e1, e2) -> SmtList([Var("or"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : And(e1, e2) -> SmtList([Var("and"), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : Impl(e1, e2) -> SmtList([Var("=>"), <prop-to-smt> e1, <prop-to-smt> e2])
-	prop-to-smt : BiImpl(e1, e2) -> <prop-to-smt> And(Impl(e1, e2), Impl(e2, e1))
+	prop-to-smt : BiImpl(e1, e2) -> SmtList([Var("="), <prop-to-smt> e1, <prop-to-smt> e2])
 	prop-to-smt : All(vars, prop) -> SmtList([Var("forall"), SmtList(all-vars), <prop-to-smt> prop])
-		where all-vars := <map(\ v -> SmtList([v, Term()]) \)> vars
+		where all-vars := <map(make-typed-var)> vars
 	prop-to-smt : Exists(vars, prop) -> SmtList([Var("exists"), SmtList(exists-vars), <prop-to-smt> prop])
 		where exists-vars := <map(\ v -> SmtList([v, Term()]) \)> vars
 	prop-to-smt = debug(!"prop-to-smt failed: "); fail
+
+	make-typed-var : v{type} -> SmtList([v, <sort-type> type])
+	make-typed-var : v -> SmtList([v, Term()])
 
 rules
 	pp-smt = 

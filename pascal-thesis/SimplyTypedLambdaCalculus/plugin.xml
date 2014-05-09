@@ -1,12 +1,24 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
-
 <plugin>
-       <extension point="org.eclipse.imp.runtime.languageDescription">
-          <language extensions="stl" description="STLC" language="STLC" derivedFrom="DynamicRoot" validator="SimplyTypedLambdaCalculs.STLCValidator" validatorClass="SimplyTypedLambdaCalculs.STLCValidator"></language>
-       </extension>
-       <extension id="SimplyTypedLambdaCalculs.parser" name="STLC Parser" point="org.eclipse.imp.runtime.parser">
-          <parser class="SimplyTypedLambdaCalculs.STLCParseController" language="STLC">
-          </parser>
-       </extension>    
-    </plugin>
+   <extension
+         point="org.eclipse.imp.runtime.languageDescription">
+      <language
+            extensions="stl"
+            description="STLC"
+            language="STLC"
+            derivedFrom="DynamicRoot"
+            validator="SimplyTypedLambdaCalculus.STLCValidator"
+            validatorClass="SimplyTypedLambdaCalculus.STLCValidator"
+      ></language>
+   </extension>
+   <extension
+         id="SimplyTypedLambdaCalculus.parser"
+         name="STLC Parser"
+         point="org.eclipse.imp.runtime.parser">
+      <parser
+            class="SimplyTypedLambdaCalculus.STLCParseController"
+            language="STLC">
+      </parser>
+   </extension>    
+</plugin>

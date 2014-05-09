@@ -1,0 +1,507 @@
+% START OF SYSTEM OUTPUT
+Hi Geoff, go and have some cold beer while I am trying to solve this very hard problem!
+% remaining time: 599 next slice time: 3
+lrs-1010_7_bs=unit_only:bsr=unit_only:cond=fast:drc=off:ep=on:flr=on:lcm=predicate:nwc=1.7:stl=30:sgo=on:spo=on:spl=sat:ssfq=1.1:ssnc=none:sp=occurrence_1 on SOT_8PXC
+% (5540)Time limit reached!
+% ------------------------------
+% Version: Vampire 3.0 (revision 1803, CASC-24-only license, for any other Vampire license check http://vprover.org/)
+% SZS status Timeout
+% Termination phase: Saturation
+
+% Active clauses: 392
+% Passive clauses: 2984
+% Generated clauses: 9623
+% Final active clauses: 390
+% Final passive clauses: 2583
+% Input formulas: 29
+% Initial clauses: 55
+% 
+% Duplicate literals: 634
+% Fw subsumption resolutions: 98
+% Fw demodulations: 579
+% Bw demodulations: 11
+% Condensations: 308
+% 
+% Equational tautologies: 20
+% Forward subsumptions: 4880
+% Fw demodulations to eq. taut.: 173
+% 
+% Binary resolution: 871
+% Factoring: 13
+% Forward superposition: 3182
+% Backward superposition: 3908
+% Self superposition: 29
+% 
+% Memory used [KB]: 6652
+% Time elapsed: 0.400 s
+% ------------------------------
+% ------------------------------
+% remaining time: 595 next slice time: 3
+dis-1002_6_bs=off:drc=off:nwc=1.1:nicw=on:sd=1:ss=axioms:st=3.0:sio=off:spl=sat:sser=off_1 on SOT_8PXC
+% (5542)Time limit reached!
+% ------------------------------
+% Version: Vampire 3.0 (revision 1803, CASC-24-only license, for any other Vampire license check http://vprover.org/)
+% SZS status Timeout
+% Termination phase: Saturation
+
+% Active clauses: 292
+% Passive clauses: 5350
+% Generated clauses: 13064
+% Final active clauses: 289
+% Final passive clauses: 4921
+% Input formulas: 29
+% Initial clauses: 37
+% 
+% Selected by SInE selection: 19
+% SInE iterations: 1
+% 
+% Duplicate literals: 655
+% Trivial inequalities: 250
+% Fw subsumption resolutions: 18
+% Fw demodulations: 1148
+% Bw demodulations: 3
+% 
+% Simple tautologies: 109
+% Equational tautologies: 11
+% Forward subsumptions: 5323
+% Fw demodulations to eq. taut.: 387
+% 
+% Binary resolution: 212
+% Forward superposition: 4413
+% Backward superposition: 6458
+% Self superposition: 56
+% Equality factoring: 5
+% Equality resolution: 17
+% 
+% Memory used [KB]: 6652
+% Time elapsed: 0.400 s
+% ------------------------------
+% ------------------------------
+% remaining time: 591 next slice time: 6
+ott+1_5:1_bs=off:bsr=unit_only:cond=fast:drc=off:nwc=5:ss=axioms:sos=all_4 on SOT_8PXC
+% (5543)Time limit reached!
+% ------------------------------
+% Version: Vampire 3.0 (revision 1803, CASC-24-only license, for any other Vampire license check http://vprover.org/)
+% SZS status Timeout
+% Termination phase: Saturation
+
+% Active clauses: 174
+% Passive clauses: 4782
+% Generated clauses: 9288
+% Final active clauses: 174
+% Final passive clauses: 4623
+% Input formulas: 29
+% Initial clauses: 28
+% 
+% Selected by SInE selection: 15
+% SInE iterations: 3
+% 
+% Duplicate literals: 52
+% Fw subsumption resolutions: 14
+% Fw demodulations: 1301
+% Bw demodulations: 3
+% 
+% Equational tautologies: 5
+% Forward subsumptions: 2789
+% Fw demodulations to eq. taut.: 216
+% 
+% Forward superposition: 4148
+% Backward superposition: 3758
+% Self superposition: 8
+% Equality resolution: 1
+% 
+% Memory used [KB]: 11897
+% Time elapsed: 0.700 s
+% ------------------------------
+% ------------------------------
+% remaining time: 584 next slice time: 28
+ott+2_20_cond=fast:drc=off:flr=on:lcm=reverse:nwc=1.1:nicw=on:sio=off:spl=sat:sser=off:ssfp=10000:ssfq=1.2:ssnc=none:sp=reverse_arity:updr=off_25 on SOT_8PXC
+% (5544)Time limit reached!
+% ------------------------------
+% Version: Vampire 3.0 (revision 1803, CASC-24-only license, for any other Vampire license check http://vprover.org/)
+% SZS status Timeout
+% Termination phase: Saturation
+
+% Active clauses: 1658
+% Passive clauses: 14014
+% Generated clauses: 51055
+% Final active clauses: 1608
+% Final passive clauses: 9867
+% Input formulas: 29
+% Initial clauses: 53
+% 
+% Duplicate literals: 653
+% Trivial inequalities: 337
+% Fw subsumption resolutions: 371
+% Fw demodulations: 12228
+% Bw demodulations: 5
+% Condensations: 436
+% 
+% Simple tautologies: 11
+% Equational tautologies: 46
+% Forward subsumptions: 22870
+% Backward subsumptions: 2534
+% Fw demodulations to eq. taut.: 52
+% 
+% Binary resolution: 448
+% Forward superposition: 28376
+% Backward superposition: 8073
+% Self superposition: 50
+% Equality resolution: 28
+% 
+% Memory used [KB]: 30191
+% Time elapsed: 2.900 s
+% ------------------------------
+% ------------------------------
+% remaining time: 555 next slice time: 3
+lrs+1011_8:1_bd=off:bs=off:bsr=unit_only:cond=fast:drc=off:fde=none:nwc=1:nicw=on:stl=240:sos=all:sio=off:spo=on:ssac=none:ssfp=1000:ssfq=1.1:ssnc=all_dependent_1 on SOT_8PXC
+% (5545)Time limit reached!
+% ------------------------------
+% Version: Vampire 3.0 (revision 1803, CASC-24-only license, for any other Vampire license check http://vprover.org/)
+% SZS status Timeout
+% Termination phase: Saturation
+
+% Active clauses: 543
+% Passive clauses: 3067
+% Generated clauses: 7577
+% Final active clauses: 543
+% Final passive clauses: 2562
+% Input formulas: 29
+% Initial clauses: 53
+% 
+% Duplicate literals: 72
+% Trivial inequalities: 357
+% Fw subsumption resolutions: 174
+% Bw subsumption resolutions: 1
+% Fw demodulations: 916
+% 
+% Simple tautologies: 2
+% Equational tautologies: 40
+% Forward subsumptions: 2590
+% Fw demodulations to eq. taut.: 72
+% 
+% Binary resolution: 3982
+% Forward superposition: 824
+% Backward superposition: 777
+% Self superposition: 12
+% Equality resolution: 4
+% 
+% Split clauses: 298
+% Split components: 695
+% Introduced splitting names: 158
+% 
+% Memory used [KB]: 4733
+% Time elapsed: 0.400 s
+% ------------------------------
+% ------------------------------
+% remaining time: 551 next slice time: 107
+dis+1_2:3_bs=off:drc=off:lcm=predicate:nwc=3:nicw=on:ss=included:st=1.5:sos=on:sagn=off:sio=off:spl=sat:sser=off:sp=occurrence_97 on SOT_8PXC
+% Refutation found. Thanks to Tanya!
+% SZS status Theorem for SOT_8PXC
+% SZS output start Proof for SOT_8PXC
+fof(f595,plain,(
+  $false),
+  inference(subsumption_resolution,[],[f594,f250])).
+fof(f250,plain,(
+  ~tcheck(sK5,sK8,sK9)),
+  inference(forward_demodulation,[],[f233,f230])).
+fof(f230,plain,(
+  ( ! [X23] : (subst(sK3,X23,sK8) = sK8) )),
+  inference(superposition,[],[f212,f115])).
+fof(f115,plain,(
+  abs(sK3,sK1,sK2) = sK8),
+  inference(cnf_transformation,[],[f99])).
+fof(f99,plain,(
+  abs(sK3,sK1,sK2) = sK8 & sK3 = sK6 & tcheck(sK5,sK7,sK4) & tcheck(bind(sK6,sK4,sK5),sK8,sK9) & ~tcheck(sK5,subst(sK6,sK7,sK8),sK9)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1,sK2,sK3,sK4,sK5,sK6,sK7,sK8,sK9])],[f68])).
+fof(f68,plain,(
+  ? [X0,X1,X2,X3,X4,X5,X6,X7,X8] : (abs(X2,X0,X1) = X7 & X2 = X5 & tcheck(X4,X6,X3) & tcheck(bind(X5,X3,X4),X7,X8) & ~tcheck(X4,subst(X5,X6,X7),X8))),
+  inference(flattening,[],[f67])).
+fof(f67,plain,(
+  ? [X0,X1,X2,X3,X4,X5,X6,X7,X8] : ((abs(X2,X0,X1) = X7 & X2 = X5 & tcheck(X4,X6,X3) & tcheck(bind(X5,X3,X4),X7,X8)) & ~tcheck(X4,subst(X5,X6,X7),X8))),
+  inference(ennf_transformation,[],[f31])).
+fof(f31,plain,(
+  ~! [X0,X1,X2,X3,X4,X5,X6,X7,X8] : ((abs(X2,X0,X1) = X7 & X2 = X5 & tcheck(X4,X6,X3) & tcheck(bind(X5,X3,X4),X7,X8)) => tcheck(X4,subst(X5,X6,X7),X8))),
+  inference(rectify,[],[f30])).
+fof(f30,negated_conjecture,(
+  ~! [X52,X70,X47,X50,X44,X40,X51,X54,X56] : ((abs(X47,X52,X70) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56))),
+  inference(negated_conjecture,[],[f29])).
+fof(f29,conjecture,(
+  ! [X52,X70,X47,X50,X44,X40,X51,X54,X56] : ((abs(X47,X52,X70) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56))),
+  file('/tmp/SystemOnTPTPFormReply5505/SOT_8PXCHA','T-subst-abs-1')).
+fof(f212,plain,(
+  ( ! [X6,X2,X8,X7] : (abs(X6,X7,X8) = subst(X6,X2,abs(X6,X7,X8))) )),
+  inference(equality_resolution,[],[f211])).
+fof(f211,plain,(
+  ( ! [X6,X2,X8,X7,X1] : (abs(X6,X7,X8) = subst(X1,X2,abs(X6,X7,X8)) | X1 != X6) )),
+  inference(equality_resolution,[],[f210])).
+fof(f210,plain,(
+  ( ! [X6,X2,X0,X8,X7,X1] : (abs(X6,X7,X8) = subst(X1,X2,abs(X6,X7,X8)) | X0 != X2 | X1 != X6) )),
+  inference(equality_resolution,[],[f209])).
+fof(f209,plain,(
+  ( ! [X6,X2,X0,X8,X7,X3,X1] : (abs(X6,X7,X8) = subst(X1,X2,X3) | abs(X6,X7,X8) != X3 | X0 != X2 | X1 != X6) )),
+  inference(equality_resolution,[],[f208])).
+fof(f208,plain,(
+  ( ! [X6,X2,X0,X8,X7,X5,X3,X1] : (abs(X6,X7,X8) = X5 | subst(X1,X2,X3) != X5 | abs(X6,X7,X8) != X3 | X0 != X2 | X1 != X6) )),
+  inference(equality_resolution,[],[f167])).
+fof(f167,plain,(
+  ( ! [X6,X4,X2,X0,X8,X7,X5,X3,X1] : (abs(X6,X7,X8) = X5 | X4 != X6 | subst(X1,X2,X3) != X5 | abs(X6,X7,X8) != X3 | X0 != X2 | X1 != X4) )),
+  inference(cnf_transformation,[],[f96])).
+fof(f96,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6,X7,X8] : (X1 != X4 | X0 != X2 | abs(X6,X7,X8) != X3 | subst(X1,X2,X3) != X5 | X4 != X6 | abs(X6,X7,X8) = X5)),
+  inference(flattening,[],[f95])).
+fof(f95,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6,X7,X8] : ((X1 != X4 | X0 != X2 | abs(X6,X7,X8) != X3 | subst(X1,X2,X3) != X5) | (X4 != X6 | abs(X6,X7,X8) = X5))),
+  inference(ennf_transformation,[],[f66])).
+fof(f66,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6,X7,X8] : ((X1 = X4 & X0 = X2 & abs(X6,X7,X8) = X3 & subst(X1,X2,X3) = X5) => (X4 = X6 => abs(X6,X7,X8) = X5))),
+  inference(true_and_false_elimination,[],[f65])).
+fof(f65,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6,X7,X8] : ((X1 = X4 & X0 = X2 & abs(X6,X7,X8) = X3 & subst(X1,X2,X3) = X5) => ((X4 = X6 & $true) => abs(X6,X7,X8) = X5))),
+  inference(rectify,[],[f27])).
+fof(f27,axiom,(
+  ! [X51,X66,X67,X68,X40,X69,X47,X50,X53] : ((X40 = X66 & X51 = X67 & abs(X47,X50,X53) = X68 & subst(X66,X67,X68) = X69) => ((X40 = X47 & $true) => abs(X47,X50,X53) = X69))),
+  file('/tmp/SystemOnTPTPFormReply5505/SOT_8PXCHA',subst25)).
+fof(f233,plain,(
+  ~tcheck(sK5,subst(sK3,sK7,sK8),sK9)),
+  inference(forward_demodulation,[],[f119,f116])).
+fof(f116,plain,(
+  sK3 = sK6),
+  inference(cnf_transformation,[],[f99])).
+fof(f119,plain,(
+  ~tcheck(sK5,subst(sK6,sK7,sK8),sK9)),
+  inference(cnf_transformation,[],[f99])).
+fof(f594,plain,(
+  tcheck(sK5,sK8,sK9)),
+  inference(forward_demodulation,[],[f593,f115])).
+fof(f593,plain,(
+  tcheck(sK5,abs(sK3,sK1,sK2),sK9)),
+  inference(forward_demodulation,[],[f584,f434])).
+fof(f434,plain,(
+  arrow(sK1,sK13(sK8,sK9,bind(sK3,sK4,sK5))) = sK9),
+  inference(backward_demodulation,[],[f411,f252])).
+fof(f252,plain,(
+  arrow(sK12(sK8,sK9,bind(sK3,sK4,sK5)),sK13(sK8,sK9,bind(sK3,sK4,sK5))) = sK9),
+  inference(resolution,[],[f246,f130])).
+fof(f130,plain,(
+  ( ! [X2,X0,X1] : (~sP0(X0,X1,X2) | arrow(sK12(X2,X1,X0),sK13(X2,X1,X0)) = X1) )),
+  inference(cnf_transformation,[],[f104])).
+fof(f104,plain,(
+  ! [X0,X1,X2] : (~sP0(X0,X1,X2) | (abs(sK10(X2,X1,X0),sK12(X2,X1,X0),sK11(X2,X1,X0)) = X2 & arrow(sK12(X2,X1,X0),sK13(X2,X1,X0)) = X1 & tcheck(bind(sK10(X2,X1,X0),sK12(X2,X1,X0),X0),sK11(X2,X1,X0),sK13(X2,X1,X0))))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK10,sK11,sK12,sK13])],[f103])).
+fof(f103,plain,(
+  ! [X0,X1,X2] : (~sP0(X0,X1,X2) | ? [X3,X4,X5,X6] : (abs(X3,X5,X4) = X2 & arrow(X5,X6) = X1 & tcheck(bind(X3,X5,X0),X4,X6)))),
+  inference(rectify,[],[f102])).
+fof(f102,plain,(
+  ! [X2,X1,X0] : (~sP0(X2,X1,X0) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)))),
+  inference(nnf_transformation,[],[f97])).
+fof(f97,plain,(
+  ! [X2,X1,X0] : (~sP0(X2,X1,X0) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)))),
+  introduced(predicate_definition_introduction,[new_symbols(naming,[sP0])])).
+fof(f246,plain,(
+  sP0(bind(sK3,sK4,sK5),sK9,sK8)),
+  inference(subsumption_resolution,[],[f245,f222])).
+fof(f222,plain,(
+  ( ! [X2,X1] : (app(X1,X2) != sK8) )),
+  inference(superposition,[],[f147,f115])).
+fof(f147,plain,(
+  ( ! [X4,X2,X0,X3,X1] : (abs(X0,X1,X2) != app(X3,X4)) )),
+  inference(cnf_transformation,[],[f45])).
+fof(f45,plain,(
+  ! [X0,X1,X2,X3,X4] : abs(X0,X1,X2) != app(X3,X4)),
+  inference(rectify,[],[f11])).
+fof(f11,axiom,(
+  ! [X31,X32,X33,X34,X35] : abs(X31,X32,X33) != app(X34,X35)),
+  file('/tmp/SystemOnTPTPFormReply5505/SOT_8PXCHA','DIFF-abs-app')).
+fof(f245,plain,(
+  sP0(bind(sK3,sK4,sK5),sK9,sK8) | app(sK15(bind(sK3,sK4,sK5),sK9,sK8),sK16(bind(sK3,sK4,sK5),sK9,sK8)) = sK8),
+  inference(subsumption_resolution,[],[f237,f221])).
+fof(f221,plain,(
+  ( ! [X0] : (var(X0) != sK8) )),
+  inference(superposition,[],[f139,f115])).
+fof(f139,plain,(
+  ( ! [X2,X0,X3,X1] : (var(X0) != abs(X1,X2,X3)) )),
+  inference(cnf_transformation,[],[f40])).
+fof(f40,plain,(
+  ! [X0,X1,X2,X3] : var(X0) != abs(X1,X2,X3)),
+  inference(rectify,[],[f9])).
+fof(f9,axiom,(
+  ! [X24,X25,X26,X27] : var(X24) != abs(X25,X26,X27)),
+  file('/tmp/SystemOnTPTPFormReply5505/SOT_8PXCHA','DIFF-var-abs')).
+fof(f237,plain,(
+  sP0(bind(sK3,sK4,sK5),sK9,sK8) | var(sK14(bind(sK3,sK4,sK5),sK9,sK8)) = sK8 | app(sK15(bind(sK3,sK4,sK5),sK9,sK8),sK16(bind(sK3,sK4,sK5),sK9,sK8)) = sK8),
+  inference(resolution,[],[f231,f132])).
+fof(f132,plain,(
+  ( ! [X2,X0,X1] : (~tcheck(X2,X0,X1) | sP0(X2,X1,X0) | var(sK14(X2,X1,X0)) = X0 | app(sK15(X2,X1,X0),sK16(X2,X1,X0)) = X0) )),
+  inference(cnf_transformation,[],[f106])).
+fof(f106,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | (var(sK14(X2,X1,X0)) = X0 & some(X1) = lookup(sK14(X2,X1,X0),X2)) | sP0(X2,X1,X0) | (app(sK15(X2,X1,X0),sK16(X2,X1,X0)) = X0 & tcheck(X2,sK15(X2,X1,X0),arrow(sK17(X2,X1,X0),X1)) & tcheck(X2,sK16(X2,X1,X0),sK17(X2,X1,X0))))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK14,sK15,sK16,sK17])],[f105])).
+fof(f105,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X6] : (var(X6) = X0 & some(X1) = lookup(X6,X2)) | sP0(X2,X1,X0) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))),
+  inference(rectify,[],[f98])).
+fof(f98,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | sP0(X2,X1,X0) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))),
+  inference(definition_folding,[],[f70,f97])).
+fof(f70,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))),
+  inference(flattening,[],[f69])).
+fof(f69,plain,(
+  ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | (? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))))),
+  inference(ennf_transformation,[],[f38])).
+fof(f38,plain,(
+  ! [X0,X1,X2] : (tcheck(X2,X0,X1) => (? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))))),
+  inference(rectify,[],[f20])).
+fof(f20,axiom,(
+  ! [X51,X50,X44] : (tcheck(X44,X51,X50) => (? [X40] : (var(X40) = X51 & some(X50) = lookup(X40,X44)) | ? [X40,X54,X55,X56] : (abs(X40,X55,X54) = X51 & arrow(X55,X56) = X50 & tcheck(bind(X40,X55,X44),X54,X56)) | ? [X53,X54,X52] : (app(X53,X54) = X51 & tcheck(X44,X53,arrow(X52,X50)) & tcheck(X44,X54,X52))))),
+  file('/tmp/SystemOnTPTPFormReply5505/SOT_8PXCHA','T-inv')).
+fof(f231,plain,(
+  tcheck(bind(sK3,sK4,sK5),sK8,sK9)),
+  inference(forward_demodulation,[],[f118,f116])).
+fof(f118,plain,(
+  tcheck(bind(sK6,sK4,sK5),sK8,sK9)),
+  inference(cnf_transformation,[],[f99])).
+fof(f411,plain,(
+  sK1 = sK12(sK8,sK9,bind(sK3,sK4,sK5))),
+  inference(trivial_inequality_removal,[],[f405])).
+fof(f405,plain,(
+  sK8 != sK8 | sK1 = sK12(sK8,sK9,bind(sK3,sK4,sK5))),
+  inference(superposition,[],[f225,f251])).
+fof(f251,plain,(
+  abs(sK10(sK8,sK9,bind(sK3,sK4,sK5)),sK12(sK8,sK9,bind(sK3,sK4,sK5)),sK11(sK8,sK9,bind(sK3,sK4,sK5))) = sK8),
+  inference(resolution,[],[f246,f129])).
+fof(f129,plain,(
+  ( ! [X2,X0,X1] : (~sP0(X0,X1,X2) | abs(sK10(X2,X1,X0),sK12(X2,X1,X0),sK11(X2,X1,X0)) = X2) )),
+  inference(cnf_transformation,[],[f104])).
+fof(f225,plain,(
+  ( ! [X10,X11,X9] : (abs(X9,X10,X11) != sK8 | sK1 = X10) )),
+  inference(superposition,[],[f152,f115])).
+fof(f152,plain,(
+  ( ! [X4,X2,X0,X5,X3,X1] : (abs(X0,X1,X2) != abs(X3,X4,X5) | X1 = X4) )),
+  inference(cnf_transformation,[],[f112])).
+fof(f112,plain,(
+  ! [X0,X1,X2,X3,X4,X5] : ((abs(X0,X1,X2) != abs(X3,X4,X5) | (X0 = X3 & X1 = X4 & X2 = X5)) & (X0 != X3 | X1 != X4 | X2 != X5 | abs(X0,X1,X2) = abs(X3,X4,X5)))),
+  inference(flattening,[],[f111])).
+fof(f111,plain,(
+  ! [X0,X1,X2,X3,X4,X5] : ((abs(X0,X1,X2) != abs(X3,X4,X5) | (X0 = X3 & X1 = X4 & X2 = X5)) & ((X0 != X3 | X1 != X4 | X2 != X5) | abs(X0,X1,X2) = abs(X3,X4,X5)))),
+  inference(nnf_transformation,[],[f49])).
+fof(f49,plain,(
+  ! [X0,X1,X2,X3,X4,X5] : (abs(X0,X1,X2) = abs(X3,X4,X5) <=> (X0 = X3 & X1 = X4 & X2 = X5))),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ! [X2,X3,X4,X5,X6,X7] : (abs(X2,X3,X4) = abs(X5,X6,X7) <=> (X2 = X5 & X3 = X6 & X4 = X7))),
+  file('/tmp/SystemOnTPTPFormReply5505/SOT_8PXCHA','EQ-abs')).
+fof(f584,plain,(
+  tcheck(sK5,abs(sK3,sK1,sK2),arrow(sK1,sK13(sK8,sK9,bind(sK3,sK4,sK5))))),
+  inference(resolution,[],[f565,f148])).
+fof(f148,plain,(
+  ( ! [X4,X2,X0,X3,X1] : (~tcheck(bind(X1,X3,X0),X2,X4) | tcheck(X0,abs(X1,X3,X2),arrow(X3,X4))) )),
+  inference(cnf_transformation,[],[f74])).
+fof(f74,plain,(
+  ! [X0,X1,X2,X3,X4] : (~tcheck(bind(X1,X3,X0),X2,X4) | tcheck(X0,abs(X1,X3,X2),arrow(X3,X4)))),
+  inference(ennf_transformation,[],[f46])).
+fof(f46,plain,(
+  ! [X0,X1,X2,X3,X4] : (tcheck(bind(X1,X3,X0),X2,X4) => tcheck(X0,abs(X1,X3,X2),arrow(X3,X4)))),
+  inference(rectify,[],[f18])).
+fof(f18,axiom,(
+  ! [X44,X40,X51,X52,X50] : (tcheck(bind(X40,X52,X44),X51,X50) => tcheck(X44,abs(X40,X52,X51),arrow(X52,X50)))),
+  file('/tmp/SystemOnTPTPFormReply5505/SOT_8PXCHA','T-abs')).
+fof(f565,plain,(
+  tcheck(bind(sK3,sK1,sK5),sK2,sK13(sK8,sK9,bind(sK3,sK4,sK5)))),
+  inference(resolution,[],[f562,f199])).
+fof(f199,plain,(
+  ( ! [X6,X4,X2,X5,X3,X1] : (~tcheck(bind(X2,X3,bind(X2,X1,X4)),X5,X6) | tcheck(bind(X2,X3,X4),X5,X6)) )),
+  inference(equality_resolution,[],[f164])).
+fof(f164,plain,(
+  ( ! [X6,X4,X2,X0,X5,X3,X1] : (tcheck(bind(X2,X3,X4),X5,X6) | ~tcheck(bind(X2,X3,bind(X0,X1,X4)),X5,X6) | X0 != X2) )),
+  inference(cnf_transformation,[],[f90])).
+fof(f90,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : (X0 != X2 | ~tcheck(bind(X2,X3,bind(X0,X1,X4)),X5,X6) | tcheck(bind(X2,X3,X4),X5,X6))),
+  inference(flattening,[],[f89])).
+fof(f89,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : ((X0 != X2 | ~tcheck(bind(X2,X3,bind(X0,X1,X4)),X5,X6)) | tcheck(bind(X2,X3,X4),X5,X6))),
+  inference(ennf_transformation,[],[f60])).
+fof(f60,plain,(
+  ! [X0,X1,X2,X3,X4,X5,X6] : ((X0 = X2 & tcheck(bind(X2,X3,bind(X0,X1,X4)),X5,X6)) => tcheck(bind(X2,X3,X4),X5,X6))),
+  inference(rectify,[],[f21])).
+fof(f21,axiom,(
+  ! [X47,X49,X40,X57,X44,X51,X50] : ((X40 = X47 & tcheck(bind(X40,X57,bind(X47,X49,X44)),X51,X50)) => tcheck(bind(X40,X57,X44),X51,X50))),
+  file('/tmp/SystemOnTPTPFormReply5505/SOT_8PXCHA','T-Context-Duplicate')).
+fof(f562,plain,(
+  tcheck(bind(sK3,sK1,bind(sK3,sK4,sK5)),sK2,sK13(sK8,sK9,bind(sK3,sK4,sK5)))),
+  inference(forward_demodulation,[],[f561,f412])).
+fof(f412,plain,(
+  sK3 = sK10(sK8,sK9,bind(sK3,sK4,sK5))),
+  inference(trivial_inequality_removal,[],[f404])).
+fof(f404,plain,(
+  sK8 != sK8 | sK3 = sK10(sK8,sK9,bind(sK3,sK4,sK5))),
+  inference(superposition,[],[f223,f251])).
+fof(f223,plain,(
+  ( ! [X4,X5,X3] : (abs(X3,X4,X5) != sK8 | sK3 = X3) )),
+  inference(superposition,[],[f151,f115])).
+fof(f151,plain,(
+  ( ! [X4,X2,X0,X5,X3,X1] : (abs(X0,X1,X2) != abs(X3,X4,X5) | X0 = X3) )),
+  inference(cnf_transformation,[],[f112])).
+fof(f561,plain,(
+  tcheck(bind(sK10(sK8,sK9,bind(sK3,sK4,sK5)),sK1,bind(sK3,sK4,sK5)),sK2,sK13(sK8,sK9,bind(sK3,sK4,sK5)))),
+  inference(forward_demodulation,[],[f560,f411])).
+fof(f560,plain,(
+  tcheck(bind(sK10(sK8,sK9,bind(sK3,sK4,sK5)),sK12(sK8,sK9,bind(sK3,sK4,sK5)),bind(sK3,sK4,sK5)),sK2,sK13(sK8,sK9,bind(sK3,sK4,sK5)))),
+  inference(forward_demodulation,[],[f253,f410])).
+fof(f410,plain,(
+  sK2 = sK11(sK8,sK9,bind(sK3,sK4,sK5))),
+  inference(trivial_inequality_removal,[],[f406])).
+fof(f406,plain,(
+  sK8 != sK8 | sK2 = sK11(sK8,sK9,bind(sK3,sK4,sK5))),
+  inference(superposition,[],[f227,f251])).
+fof(f227,plain,(
+  ( ! [X17,X15,X16] : (abs(X15,X16,X17) != sK8 | sK2 = X17) )),
+  inference(superposition,[],[f153,f115])).
+fof(f153,plain,(
+  ( ! [X4,X2,X0,X5,X3,X1] : (abs(X0,X1,X2) != abs(X3,X4,X5) | X2 = X5) )),
+  inference(cnf_transformation,[],[f112])).
+fof(f253,plain,(
+  tcheck(bind(sK10(sK8,sK9,bind(sK3,sK4,sK5)),sK12(sK8,sK9,bind(sK3,sK4,sK5)),bind(sK3,sK4,sK5)),sK11(sK8,sK9,bind(sK3,sK4,sK5)),sK13(sK8,sK9,bind(sK3,sK4,sK5)))),
+  inference(resolution,[],[f246,f131])).
+fof(f131,plain,(
+  ( ! [X2,X0,X1] : (~sP0(X0,X1,X2) | tcheck(bind(sK10(X2,X1,X0),sK12(X2,X1,X0),X0),sK11(X2,X1,X0),sK13(X2,X1,X0))) )),
+  inference(cnf_transformation,[],[f104])).
+% SZS output end Proof for SOT_8PXC
+% ------------------------------
+% Version: Vampire 3.0 (revision 1803, CASC-24-only license, for any other Vampire license check http://vprover.org/)
+% SZS status Unsatisfiable
+
+% Active clauses: 115
+% Passive clauses: 268
+% Generated clauses: 359
+% Final active clauses: 111
+% Final passive clauses: 158
+% Input formulas: 29
+% Initial clauses: 53
+% 
+% Selected by SInE selection: 29
+% SInE iterations: 1
+% 
+% Trivial inequalities: 5
+% Fw subsumption resolutions: 14
+% Fw demodulations: 26
+% Bw demodulations: 4
+% 
+% Equational tautologies: 9
+% Forward subsumptions: 68
+% Fw demodulations to eq. taut.: 3
+% 
+% Binary resolution: 126
+% Forward superposition: 51
+% Backward superposition: 128
+% 
+% Memory used [KB]: 511
+% Time elapsed: 0.017 s
+% ------------------------------
+% ------------------------------
+% Success in time 4.826 s
+
+% END OF SYSTEM OUTPUT
+% RESULT: SOT_8PXCHA - Vampire---3.0 says Theorem - CPU = 4.41 WC = 4.82 
+% OUTPUT: SOT_8PXCHA - Vampire---3.0 says Refutation - CPU = 4.41 WC = 4.83 
+

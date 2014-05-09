@@ -5,6 +5,7 @@ editor/java/trans
 editor/STLC-*.generated.esv
 syntax/STLC.generated.pp
 .settings/org.eclipse.jdt.core.prefs
+editor/*.generated.esv
 lib/*.generated.str
 lib-refactoring/*.generated.str
 *.aterm

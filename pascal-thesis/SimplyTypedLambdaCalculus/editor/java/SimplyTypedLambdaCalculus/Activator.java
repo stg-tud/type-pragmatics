@@ -1,4 +1,4 @@
-package SimplyTypedLambdaCalculs;
+package SimplyTypedLambdaCalculus;
 
 import org.eclipse.imp.preferences.PreferencesService;
 import org.eclipse.imp.runtime.PluginBase;

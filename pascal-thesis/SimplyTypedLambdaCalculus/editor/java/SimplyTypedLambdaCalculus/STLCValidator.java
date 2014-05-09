@@ -1,4 +1,4 @@
-package SimplyTypedLambdaCalculs;
+package SimplyTypedLambdaCalculus;
 
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;

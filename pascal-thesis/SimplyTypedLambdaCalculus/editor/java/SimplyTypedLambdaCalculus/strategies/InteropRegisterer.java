@@ -1,4 +1,4 @@
-package SimplyTypedLambdaCalculs.strategies;
+package SimplyTypedLambdaCalculus.strategies;
 
 import org.strategoxt.lang.JavaInteropRegisterer;
 import org.strategoxt.lang.Strategy;

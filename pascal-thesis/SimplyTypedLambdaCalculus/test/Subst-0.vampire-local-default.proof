@@ -1,0 +1,218 @@
+Refutation found. Thanks to Tanya!
+1101. $false (0:0) [sat splitting refutation 1100,369,385,383,381,1043,434,436,385,458]
+458. $false {12} (0:0) [subsumption resolution 451,168]
+168. tcheck(sK11,sK13,sK10) (0:4) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+451. ~tcheck(sK11,sK13,sK10) {12} (0:4) [backward demodulation 449,219]
+219. ~tcheck(sK11,sK13,sK15) (0:4) [backward demodulation 218,217]
+217. ~tcheck(sK11,subst(sK9,sK13,sK14),sK15) (0:7) [backward demodulation 167,170]
+170. ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) (0:7) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+167. sK9 = sK12 (0:3) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+218. subst(sK9,X0,sK14) = X0 (1:6) [superposition 198,166]
+166. var(sK9) = sK14 (0:4) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+198. subst(X4,X6,var(X4)) = X6 (0:7) [equality resolution 197]
+197. subst(X0,X6,var(X4)) = X6 | X0 != X4 (0:10) [equality resolution 196]
+196. subst(X0,X1,var(X4)) = X6 | X1 != X6 | X0 != X4 (0:13) [equality resolution 195]
+195. subst(X0,X1,X2) = X6 | var(X4) != X2 | X1 != X6 | X0 != X4 (0:16) [equality resolution 194]
+194. X5 = X6 | subst(X0,X1,X2) != X5 | var(X4) != X2 | X1 != X6 | X0 != X4 (0:19) [equality resolution 161]
+161. X5 = X6 | X3 != X4 | subst(X0,X1,X2) != X5 | var(X4) != X2 | X1 != X6 | X0 != X3 (0:22) [cnf transformation 89]
+89. ! [X0,X1,X2,X3,X4,X5,X6] : (X0 != X3 | X1 != X6 | var(X4) != X2 | subst(X0,X1,X2) != X5 | X3 != X4 | X5 = X6) [flattening 88]
+88. ! [X0,X1,X2,X3,X4,X5,X6] : ((X0 != X3 | X1 != X6 | var(X4) != X2 | subst(X0,X1,X2) != X5) | (X3 != X4 | X5 = X6)) [ennf transformation 58]
+58. ! [X0,X1,X2,X3,X4,X5,X6] : ((X0 = X3 & X1 = X6 & var(X4) = X2 & subst(X0,X1,X2) = X5) => (X3 = X4 => X5 = X6)) [true and false elimination 57]
+57. ! [X0,X1,X2,X3,X4,X5,X6] : ((X0 = X3 & X1 = X6 & var(X4) = X2 & subst(X0,X1,X2) = X5) => ((X3 = X4 & $true) => X5 = X6)) [rectify 24]
+24. ! [X58,X59,X60,X40,X47,X61,X51] : ((X40 = X58 & X51 = X59 & var(X47) = X60 & subst(X58,X59,X60) = X61) => ((X40 = X47 & $true) => X51 = X61)) [input]
+449. sK10 = sK15 {12} (2:3) [equality resolution 440]
+440. some(sK10) != some(X8) | sK15 = X8 {12} (1:8) [superposition 136,436]
+436. some(sK10) = some(sK15) {12} (0:5) [sat splitting component]
+136. some(X0) != some(X1) | X0 = X1 (0:8) [cnf transformation 111]
+111. ! [X0,X1] : ((some(X0) != some(X1) | X0 = X1) & (X0 != X1 | some(X0) = some(X1))) [nnf transformation 37]
+37. ! [X0,X1] : (some(X0) = some(X1) <=> X0 = X1) [rectify 8]
+8. ! [X22,X23] : (some(X22) = some(X23) <=> X22 = X23) [input]
+385. sP0(bind(sK9,sK10,sK11),sK15,sK14) {10} (0:7) [sat splitting component]
+436. some(sK10) = some(sK15) {12} (0:5) [sat splitting component]
+434. some(sK10) = some(sK15) | sP0(bind(sK9,sK10,sK11),sK15,sK14) {8} (1:12) [forward demodulation 433,189]
+189. some(X6) = lookup(X4,bind(X4,X6,X0)) (0:9) [equality resolution 188]
+188. some(X6) = lookup(X1,bind(X4,X6,X0)) | X1 != X4 (0:12) [equality resolution 187]
+187. some(X6) = lookup(X1,X2) | bind(X4,X6,X0) != X2 | X1 != X4 (0:15) [equality resolution 186]
+186. some(X6) = X5 | lookup(X1,X2) != X5 | bind(X4,X6,X0) != X2 | X1 != X4 (0:18) [equality resolution 144]
+144. some(X6) = X5 | X3 != X4 | lookup(X1,X2) != X5 | bind(X4,X6,X0) != X2 | X1 != X3 (0:21) [cnf transformation 73]
+73. ! [X0,X1,X2,X3,X4,X5,X6] : (X1 != X3 | bind(X4,X6,X0) != X2 | lookup(X1,X2) != X5 | X3 != X4 | some(X6) = X5) [flattening 72]
+72. ! [X0,X1,X2,X3,X4,X5,X6] : ((X1 != X3 | bind(X4,X6,X0) != X2 | lookup(X1,X2) != X5) | (X3 != X4 | some(X6) = X5)) [ennf transformation 46]
+46. ! [X0,X1,X2,X3,X4,X5,X6] : ((X1 = X3 & bind(X4,X6,X0) = X2 & lookup(X1,X2) = X5) => (X3 = X4 => some(X6) = X5)) [true and false elimination 45]
+45. ! [X0,X1,X2,X3,X4,X5,X6] : ((X1 = X3 & bind(X4,X6,X0) = X2 & lookup(X1,X2) = X5) => ((X3 = X4 & $true) => some(X6) = X5)) [rectify 15]
+15. ! [X44,X45,X46,X40,X47,X48,X49] : ((X40 = X45 & bind(X47,X49,X44) = X46 & lookup(X45,X46) = X48) => ((X40 = X47 & $true) => some(X49) = X48)) [input]
+433. some(sK15) = lookup(sK9,bind(sK9,sK10,sK11)) | sP0(bind(sK9,sK10,sK11),sK15,sK14) {8} (1:16) [forward demodulation 432,399]
+399. sK5(bind(sK9,sK10,sK11),sK15,sK14) = sK9 {8} (2:9) [trivial inequality removal 396]
+396. sK14 != sK14 | sK5(bind(sK9,sK10,sK11),sK15,sK14) = sK9 {8} (2:12) [superposition 220,383]
+383. var(sK5(bind(sK9,sK10,sK11),sK15,sK14)) = sK14 {8} (0:10) [sat splitting component]
+220. var(X0) != sK14 | sK9 = X0 (1:7) [superposition 118,166]
+166. var(sK9) = sK14 (0:4) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+118. var(X0) != var(X1) | X0 = X1 (0:8) [cnf transformation 102]
+102. ! [X0,X1] : ((var(X0) != var(X1) | X0 = X1) & (X0 != X1 | var(X0) = var(X1))) [nnf transformation 1]
+1. ! [X0,X1] : (var(X0) = var(X1) <=> X0 = X1) [input]
+432. sP0(bind(sK9,sK10,sK11),sK15,sK14) | some(sK15) = lookup(sK5(bind(sK9,sK10,sK11),sK15,sK14),bind(sK9,sK10,sK11)) {8} (1:22) [subsumption resolution 425,393]
+393. app(X5,X6) != sK14 {8} (1:5) [superposition 139,383]
+383. var(sK5(bind(sK9,sK10,sK11),sK15,sK14)) = sK14 {8} (0:10) [sat splitting component]
+139. var(X0) != app(X1,X2) (0:6) [cnf transformation 39]
+39. ! [X0,X1,X2] : var(X0) != app(X1,X2) [rectify 10]
+10. ! [X28,X29,X30] : var(X28) != app(X29,X30) [input]
+425. sP0(bind(sK9,sK10,sK11),sK15,sK14) | some(sK15) = lookup(sK5(bind(sK9,sK10,sK11),sK15,sK14),bind(sK9,sK10,sK11)) | app(sK6(bind(sK9,sK10,sK11),sK15,sK14),sK7(bind(sK9,sK10,sK11),sK15,sK14)) = sK14 (1:39) [resolution 153,216]
+216. tcheck(bind(sK9,sK10,sK11),sK14,sK15) (0:7) [backward demodulation 167,169]
+169. tcheck(bind(sK12,sK10,sK11),sK14,sK15) (0:7) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+167. sK9 = sK12 (0:3) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+153. ~tcheck(X2,X0,X1) | sP0(X2,X1,X0) | some(X1) = lookup(sK5(X2,X1,X0),X2) | app(sK6(X2,X1,X0),sK7(X2,X1,X0)) = X0 (0:28) [cnf transformation 116]
+116. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | (var(sK5(X2,X1,X0)) = X0 & some(X1) = lookup(sK5(X2,X1,X0),X2)) | sP0(X2,X1,X0) | (app(sK6(X2,X1,X0),sK7(X2,X1,X0)) = X0 & tcheck(X2,sK6(X2,X1,X0),arrow(sK8(X2,X1,X0),X1)) & tcheck(X2,sK7(X2,X1,X0),sK8(X2,X1,X0)))) [skolemisation 115]
+115. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X6] : (var(X6) = X0 & some(X1) = lookup(X6,X2)) | sP0(X2,X1,X0) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))) [rectify 101]
+101. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | sP0(X2,X1,X0) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))) [definition folding 81,100]
+100. ! [X2,X1,X0] : (~sP0(X2,X1,X0) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9))) [predicate definition introduction]
+81. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))) [flattening 80]
+80. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | (? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))) [ennf transformation 53]
+53. ! [X0,X1,X2] : (tcheck(X2,X0,X1) => (? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))) [rectify 20]
+20. ! [X51,X50,X44] : (tcheck(X44,X51,X50) => (? [X40] : (var(X40) = X51 & some(X50) = lookup(X40,X44)) | ? [X40,X54,X55,X56] : (abs(X40,X55,X54) = X51 & arrow(X55,X56) = X50 & tcheck(bind(X40,X55,X44),X54,X56)) | ? [X53,X54,X52] : (app(X53,X54) = X51 & tcheck(X44,X53,arrow(X52,X50)) & tcheck(X44,X54,X52)))) [input]
+1043. $false {10} (3:0) [trivial inequality removal 1042]
+1042. sK14 != sK14 {10} (3:3) [superposition 1029,166]
+166. var(sK9) = sK14 (0:4) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+1029. var(X18) != sK14 {10} (2:4) [superposition 138,461]
+461. abs(sK1(sK14,sK15,bind(sK9,sK10,sK11)),sK3(sK14,sK15,bind(sK9,sK10,sK11)),sK2(sK14,sK15,bind(sK9,sK10,sK11))) = sK14 {10} (1:24) [resolution 385,149]
+149. ~sP0(X0,X1,X2) | abs(sK1(X2,X1,X0),sK3(X2,X1,X0),sK2(X2,X1,X0)) = X2 (0:19) [cnf transformation 114]
+114. ! [X0,X1,X2] : (~sP0(X0,X1,X2) | (abs(sK1(X2,X1,X0),sK3(X2,X1,X0),sK2(X2,X1,X0)) = X2 & arrow(sK3(X2,X1,X0),sK4(X2,X1,X0)) = X1 & tcheck(bind(sK1(X2,X1,X0),sK3(X2,X1,X0),X0),sK2(X2,X1,X0),sK4(X2,X1,X0)))) [skolemisation 113]
+113. ! [X0,X1,X2] : (~sP0(X0,X1,X2) | ? [X3,X4,X5,X6] : (abs(X3,X5,X4) = X2 & arrow(X5,X6) = X1 & tcheck(bind(X3,X5,X0),X4,X6))) [rectify 112]
+112. ! [X2,X1,X0] : (~sP0(X2,X1,X0) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9))) [nnf transformation 100]
+100. ! [X2,X1,X0] : (~sP0(X2,X1,X0) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9))) [predicate definition introduction]
+385. sP0(bind(sK9,sK10,sK11),sK15,sK14) {10} (0:7) [sat splitting component]
+138. var(X0) != abs(X1,X2,X3) (0:7) [cnf transformation 38]
+38. ! [X0,X1,X2,X3] : var(X0) != abs(X1,X2,X3) [rectify 9]
+9. ! [X24,X25,X26,X27] : var(X24) != abs(X25,X26,X27) [input]
+381. app(sK6(bind(sK9,sK10,sK11),sK15,sK14),sK7(bind(sK9,sK10,sK11),sK15,sK14)) = sK14 {6} (0:17) [sat splitting component]
+383. var(sK5(bind(sK9,sK10,sK11),sK15,sK14)) = sK14 {8} (0:10) [sat splitting component]
+385. sP0(bind(sK9,sK10,sK11),sK15,sK14) {10} (0:7) [sat splitting component]
+369. sP0(bind(sK9,sK10,sK11),sK15,sK14) | var(sK5(bind(sK9,sK10,sK11),sK15,sK14)) = sK14 | app(sK6(bind(sK9,sK10,sK11),sK15,sK14),sK7(bind(sK9,sK10,sK11),sK15,sK14)) = sK14 (1:34) [resolution 152,216]
+216. tcheck(bind(sK9,sK10,sK11),sK14,sK15) (0:7) [backward demodulation 167,169]
+169. tcheck(bind(sK12,sK10,sK11),sK14,sK15) (0:7) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+167. sK9 = sK12 (0:3) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+152. ~tcheck(X2,X0,X1) | sP0(X2,X1,X0) | var(sK5(X2,X1,X0)) = X0 | app(sK6(X2,X1,X0),sK7(X2,X1,X0)) = X0 (0:26) [cnf transformation 116]
+116. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | (var(sK5(X2,X1,X0)) = X0 & some(X1) = lookup(sK5(X2,X1,X0),X2)) | sP0(X2,X1,X0) | (app(sK6(X2,X1,X0),sK7(X2,X1,X0)) = X0 & tcheck(X2,sK6(X2,X1,X0),arrow(sK8(X2,X1,X0),X1)) & tcheck(X2,sK7(X2,X1,X0),sK8(X2,X1,X0)))) [skolemisation 115]
+115. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X6] : (var(X6) = X0 & some(X1) = lookup(X6,X2)) | sP0(X2,X1,X0) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))) [rectify 101]
+101. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | sP0(X2,X1,X0) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))) [definition folding 81,100]
+100. ! [X2,X1,X0] : (~sP0(X2,X1,X0) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9))) [predicate definition introduction]
+81. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | ? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5))) [flattening 80]
+80. ! [X0,X1,X2] : (~tcheck(X2,X0,X1) | (? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))) [ennf transformation 53]
+53. ! [X0,X1,X2] : (tcheck(X2,X0,X1) => (? [X10] : (var(X10) = X0 & some(X1) = lookup(X10,X2)) | ? [X6,X7,X8,X9] : (abs(X6,X8,X7) = X0 & arrow(X8,X9) = X1 & tcheck(bind(X6,X8,X2),X7,X9)) | ? [X3,X4,X5] : (app(X3,X4) = X0 & tcheck(X2,X3,arrow(X5,X1)) & tcheck(X2,X4,X5)))) [rectify 20]
+20. ! [X51,X50,X44] : (tcheck(X44,X51,X50) => (? [X40] : (var(X40) = X51 & some(X50) = lookup(X40,X44)) | ? [X40,X54,X55,X56] : (abs(X40,X55,X54) = X51 & arrow(X55,X56) = X50 & tcheck(bind(X40,X55,X44),X54,X56)) | ? [X53,X54,X52] : (app(X53,X54) = X51 & tcheck(X44,X53,arrow(X52,X50)) & tcheck(X44,X54,X52)))) [input]
+1100. $false {6} (2:0) [trivial inequality removal 1099]
+1099. sK14 != sK14 {6} (2:3) [superposition 1083,166]
+166. var(sK9) = sK14 (0:4) [cnf transformation 117]
+117. var(sK9) = sK14 & sK9 = sK12 & tcheck(sK11,sK13,sK10) & tcheck(bind(sK12,sK10,sK11),sK14,sK15) & ~tcheck(sK11,subst(sK12,sK13,sK14),sK15) [skolemisation 99]
+99. ? [X0,X1,X2,X3,X4,X5,X6] : (var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6) & ~tcheck(X2,subst(X3,X4,X5),X6)) [flattening 98]
+98. ? [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) & ~tcheck(X2,subst(X3,X4,X5),X6)) [ennf transformation 69]
+69. ~! [X0,X1,X2,X3,X4,X5,X6] : ((var(X0) = X5 & X0 = X3 & tcheck(X2,X4,X1) & tcheck(bind(X3,X1,X2),X5,X6)) => tcheck(X2,subst(X3,X4,X5),X6)) [rectify 30]
+30. ~! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [negated conjecture 29]
+29. ! [X47,X50,X44,X40,X51,X54,X56] : ((var(X47) = X54 & X40 = X47 & tcheck(X44,X51,X50) & tcheck(bind(X40,X50,X44),X54,X56)) => tcheck(X44,subst(X40,X51,X54),X56)) [input]
+1083. var(X8) != sK14 {6} (1:4) [superposition 139,381]
+381. app(sK6(bind(sK9,sK10,sK11),sK15,sK14),sK7(bind(sK9,sK10,sK11),sK15,sK14)) = sK14 {6} (0:17) [sat splitting component]
+139. var(X0) != app(X1,X2) (0:6) [cnf transformation 39]
+39. ! [X0,X1,X2] : var(X0) != app(X1,X2) [rectify 10]
+10. ! [X28,X29,X30] : var(X28) != app(X29,X30) [input]
+------------------------------
+Version: Vampire 3.0 (commit e3e1a68)
+Termination reason: Refutation
+
+Active clauses: 127
+Passive clauses: 424
+Generated clauses: 925
+Final active clauses: 97
+Final passive clauses: 214
+Input formulas: 29
+Initial clauses: 53
+
+Duplicate literals: 1
+Trivial inequalities: 6
+Fw subsumption resolutions: 11
+Fw demodulations: 83
+Bw demodulations: 36
+
+Equational tautologies: 21
+Forward subsumptions: 331
+Backward subsumptions: 14
+Fw demodulations to eq. taut.: 30
+Bw demodulations to eq. taut.: 1
+
+Binary resolution: 65
+Forward superposition: 234
+Backward superposition: 361
+Self superposition: 8
+Equality resolution: 16
+
+Split clauses: 10
+Split components: 27
+SAT solver clauses: 19
+SAT solver unit clauses: 4
+SAT solver binary clauses: 3
+SAT solver learnt clauses: 1
+
+Sat splits: 10
+Sat splitting refutations: 7
+
+Memory used [KB]: 1663
+Time elapsed: 0.027 s
+------------------------------
+------------------------------

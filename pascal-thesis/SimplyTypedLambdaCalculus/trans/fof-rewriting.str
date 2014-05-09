@@ -30,12 +30,14 @@ signature
     	Formula : String * Prop -> FOF
     	
     	FOFGoal : List(Formula) * Formula -> File
+    	RelBool : Sort
 
 rules
 	R : FunctionExpVar(v) -> Var(v)
 	R : FunctionExpMeta(Meta(v)) -> Meta(v)
 	R : FunctionExpNeq(t1, t2) -> Neq(t1, t2)
 	R : FunctionExpEq(t1, t2) -> Eq(t1, t2)
+	R : FunctionExpNot(t) -> Not(t)
 	R : FunctionExpApp(f, args) -> <make-termapp> (f, args)
 	
 	R : PremiseList(p) -> p
@@ -63,10 +65,10 @@ rules
 	// R : Meta(v) -> Var(v)
 	// R : MetaVariable(v) -> v
 	R : Var(v) -> Var(v2)
-		where v2 := <string-as-chars(map(to-lower))> v
+		where v2 := <string-as-chars([to-lower|id])> v
 		    ; <not(equal)> (v, v2)
 	R : Meta(v) -> Meta(v2)
-		where v2 := <string-as-chars(map(to-upper))> v
+		where v2 := <string-as-chars([to-upper|id])> v
 		    ; <not(equal)> (v, v2)
 	
 	// R : Fork(x) -> TermApp("fork", [x])
@@ -92,8 +94,10 @@ rules
 	make-all : (vars, body) -> All(vars, body)
 	make-termapp : (v, []) -> <make-var> v
 	make-termapp : (v, args) -> TermApp(<make-var;?Var(<id>)> v, args)
-	make-var = string-as-chars(map(to-lower)); !Var(<id>)
-	make-meta = string-as-chars(map(to-upper)); !Meta(<id>)
+	make-var = string-as-chars([to-lower|id]); !Var(<id>)
+	make-meta = string-as-chars([to-upper|id]); !Meta(<id>)
+	make-eq : (t1{RelBool()}, t2) -> BiImpl(t1{RelBool()}, t2)
+	make-eq : (t1, t2) -> Eq(t1, t2)
 			
 	compose-formula-p :
 		(Formula(N1, P1), Formula(N2, P2)) -> Formula(N, P)
@@ -154,10 +158,11 @@ rules
 	constructor-diff-axiom = debug(!"constructor-diff-axiom failed: "); fail
 		
 		
-	function-axioms(|cons) : FunctionDef(FunctionSig(_,arg-types,_), eqs) -> <mapconcat(function-eq-axioms(|arg-types, cons))> eqs
+	function-axioms(|cons) : FunctionDef(FunctionSig(_,arg-types,res-type), eqs) -> <mapconcat(function-eq-axioms(|arg-types, res-type, cons))> eqs
 	
-	function-eq-axioms(|arg-types, cons) : FunctionEq(name, pats, exp) -> result
+	function-eq-axioms(|arg-types, res-type, cons) : FunctionEq(name, pats, exp) -> result
 	where
+		<not(?RelBool())> res-type;
 		arg-vars := <map(?SortRef(<id>); newname; make-meta)> arg-types;
 		result-term := <make-termapp> (name, arg-vars);
 		result-var := Meta(<newname> "RESULT");
@@ -167,6 +172,16 @@ rules
 		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> pat-props;
 		exp-props := <function-exp-props(|cons)> exp;
 		result := <map(make-function-formula(|name, And(pat-prop, result-bind), result-var))> exp-props 
+	function-eq-axioms(|arg-types, res-type, cons) : FunctionEq(name, pats, exp) -> result
+	where
+		<?RelBool()> res-type;
+		arg-vars := <map(?SortRef(<id>); newname; make-meta)> arg-types;
+		result-term := <make-termapp> (name, arg-vars);
+		pat-binds :=  <map(function-pat-prop(|cons))> pats;
+		pat-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-binds);
+		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> pat-props;
+		exp-props := <function-exp-props(|cons)> exp;
+		result := <map(make-function-formula(|name, pat-prop, result-term{RelBool()}))> exp-props 
 	function-eq-axioms(|arg-sorts) = debug(!"function-eq-axioms failed: "); fail
 	
 	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-var> v
@@ -219,19 +234,21 @@ rules
 		es-props := <map(function-exp-props(|cons); ?[(True(), <id>)])> es // TODO support conditionals as function arguments
 	function-exp-props(|cons) = debug(!"function-exp-props(|name, pat-props) failed: "); fail
 
-	make-function-formula(|name, pat-prop, result-term) : 
+	make-function-formula(|name, pat-prop, result-var) : 
 		(cond, p) -> 
 		Formula(fname, Axiom(), <make-all>(vars, body))
 	where
 		fname := <newname> name;
-		body := Impl(pat-prop, Impl(cond, Eq(result-term, p)));
+		body := Impl(pat-prop, Impl(cond, <make-eq> (result-var, p)));
 		vars := <collect-all(?Meta(_))> body
-			
+	
 	crossproduct : ([], ys) -> []
 	crossproduct : (xs, []) -> []
 	crossproduct : ([x|xs], ys) -> <conc> (<map(\ y -> (x,y)\)> ys, <crossproduct> (xs, ys))
 	
 	elem(|t) = where(!(<strip-annos> t, <id>); elem)
+	
+	put-type(|t) = ?term; !term{t}
 
 strategies
 	to-prop = innermost(R)

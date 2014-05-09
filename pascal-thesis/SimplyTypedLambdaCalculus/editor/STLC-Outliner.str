@@ -4,22 +4,7 @@ imports
   include/STLC
   lib/runtime/editor/outline-library
   lib/runtime/editor/origins
-  // editor/STLC-Outliner.generated
+  editor/STLC-Outliner.generated
 
 rules
   
-  outline = simple-label-outline(to-outline-label)
-
-  to-outline-label = ?Module(<id>, _, _)
-  to-outline-label = ?node; ?Goals(_); !"goals"; literals-to-outline-label(|node)
-  to-outline-label = ?node; ?Goals(_); !"goal"; literals-to-outline-label(|node)
-  to-outline-label = ?node; ?Axioms(_); !"axioms"; literals-to-outline-label(|node)
-  to-outline-label = ?node; ?Axioms(_); !"axiom"; literals-to-outline-label(|node)
-  to-outline-label = ?node; ?Sorts(_); !"sorts"; literals-to-outline-label(|node)
-  to-outline-label = ?node; ?Constructors(_); !"constructors"; literals-to-outline-label(|node)
-  to-outline-label = ?node; ?Local(_); !"local"; literals-to-outline-label(|node)
-  to-outline-label = ?SortDef(<id>)
-  to-outline-label = ?ConstructorDecl(<id>, _, _)
-  to-outline-label = ?TypingRule(_, RuleName(_, <id>), _)
-
-  outline-expand-to-level = !3

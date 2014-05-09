@@ -1,0 +1,48 @@
+Refutation not found, non-redundant clauses discarded
+------------------------------
+Version: Vampire 3.0 (commit e3e1a68)
+Termination reason: Refutation not found, non-redundant clauses discarded
+
+Active clauses: 7264
+Passive clauses: 151599
+Generated clauses: 619479
+Final active clauses: 1533
+Input formulas: 33
+Initial clauses: 56
+Discarded non-redundant clauses: 96338
+
+Duplicate literals: 596
+Trivial inequalities: 352
+Fw subsumption resolutions: 6159
+Fw demodulations: 322587
+Bw demodulations: 82504
+
+Simple tautologies: 22
+Equational tautologies: 127
+Forward subsumptions: 118104
+Backward subsumptions: 16791
+Fw demodulations to eq. taut.: 880
+Bw demodulations to eq. taut.: 48
+
+Binary resolution: 3486
+Forward superposition: 43227
+Backward superposition: 79540
+Self superposition: 110
+Equality factoring: 23
+Equality resolution: 130
+
+Split clauses: 4090
+Split components: 8306
+SAT solver clauses: 9272
+SAT solver unit clauses: 44
+SAT solver binary clauses: 476
+SAT solver learnt clauses: 15
+SAT solver learnt literals: 130
+
+Sat splits: 4090
+Sat splitting refutations: 4221
+
+Memory used [KB]: 504938
+Time elapsed: 60.073 s
+------------------------------
+------------------------------

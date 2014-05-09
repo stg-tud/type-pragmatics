@@ -1,4 +1,4 @@
-package SimplyTypedLambdaCalculs.strategies;
+package SimplyTypedLambdaCalculus.strategies;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;

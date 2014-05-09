@@ -1,4 +1,4 @@
-package SimplyTypedLambdaCalculs;
+package SimplyTypedLambdaCalculus;
 
 public class STLCParseController extends STLCParseControllerGenerated 
 { }
