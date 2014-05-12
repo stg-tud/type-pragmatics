@@ -44,6 +44,8 @@ binding rules
 		refers to Symbol v
 	FunctionExpApp(f, args):
 		refers to Symbol f
+	FunctionExpLet(v, e1, e2):
+		defines Symbol v in e2
 
 properties
 

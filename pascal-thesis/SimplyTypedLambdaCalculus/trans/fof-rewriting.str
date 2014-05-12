@@ -219,6 +219,12 @@ rules
 		e-props := <function-exp-props(|cons)> e;
 		result1 := <map(\(a,b) -> (And(c-prop,a), b)\)> t-props;
 		result2 := <map(\(a,b) -> (And(Not(c-prop),a), b)\)> e-props
+	function-exp-props(|cons) : FunctionExpLet(x, e1, e2) -> [(eq-prop, e2-prop)]
+	where
+		var := <make-fresh; make-meta> x;
+		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in bound expression
+		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in bound expression
+		eq-prop := Eq(var, e1-prop)
 	function-exp-props(|cons) : FunctionExpEq(e1, e2) -> [(True(), Eq(e1-prop, e2-prop))]
 	where
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands

@@ -83,6 +83,7 @@ exports
 		"undefined" -> FunctionExp {cons("FunctionExpUndefined")}
 		ID -> FunctionExp {cons("FunctionExpVar")}
 		"if" FunctionExp "then" FunctionExp "else" FunctionExp -> FunctionExp {cons("FunctionExpIf")}
+		"let" ID "=" FunctionExp "in" FunctionExp -> FunctionExp {cons("FunctionExpLet")}
 		ID "(" {FunctionExp ","}* ")" -> FunctionExp {cons("FunctionExpApp")}
 		"(" FunctionExp ")" -> FunctionExp {bracket}
 		MetaVar -> FunctionExp {cons("FunctionExpMeta")}
@@ -95,6 +96,7 @@ exports
 		"!" FunctionExp -> FunctionExp {cons("FunctionExpNot")}
 	>
 		{non-assoc:
+		FunctionExp "=" FunctionExp -> FunctionExp {cons("FunctionExpEq")}
 		FunctionExp "==" FunctionExp -> FunctionExp {cons("FunctionExpEq")}
 		FunctionExp "!=" FunctionExp -> FunctionExp {cons("FunctionExpNeq")}
 		}

@@ -429,6 +429,56 @@ rules
       |
       )
 
+  nabl-scoping-site =
+    ?FunctionExpLet(v, e1, e2)
+    ; origin-track-forced(
+        FunctionExpLet(
+          id
+        , id
+        , nabl-scope(|[NablNsSymbol()])
+        )
+      |
+      )
+
+  nabl-get-name :
+    FunctionExpLet(v, e1, e2) -> v
+
+  nabl-name-apply(s) =
+    FunctionExpLet(s, id, id)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, partition__, uniques__, uri__, states__) =
+    ?FunctionExpLet(v, e1, e2)
+    ; origin-track-forced(
+        FunctionExpLet(
+          nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , partition__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsSymbol()
+          , Unique()
+          , [DefScope(e2)]
+          , []
+          , []
+          )
+        , id
+        , id
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
+
+  nabl-external-def-site(|lang__, partition__, uniques__, uri__, states__, implicits__) =
+    ?FunctionExpLet(v, e1, e2)
+    ; uri1__ := <nabl-uri> v
+    ; <nabl-def-alias(|partition__, uri1__)> e2
+    ; fail
+
 
 imports
   include/STLC

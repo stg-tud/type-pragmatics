@@ -19,6 +19,7 @@ fof('T-var', axiom, (![C,X,T] : ((lookup(X,C)=some(T)) => tcheck(C,var(X),T)))).
 fof('T-abs', axiom, (![C,X,E,S,T] : (tcheck(bind(X,S,C),E,T) => tcheck(C,abs(X,S,E),arrow(S,T))))).
 fof('T-app', axiom, (![S,C,E1,E2,T] : ((tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S)) => tcheck(C,app(E1,E2),T)))).
 fof('T-inv', axiom, (![E,T,C] : (tcheck(C,E,T) => ((?[X] : ((E=var(X)) & (lookup(X,C)=some(T)))) | ((?[X,E2,T1,T2] : ((E=abs(X,T1,E2)) & ((T=arrow(T1,T2)) & tcheck(bind(X,T1,C),E2,T2)))) | (?[E1,E2,S] : ((E=app(E1,E2)) & (tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S))))))))).
+fof('T-var2', axiom, (![C,X,T] : tcheck(bind(X,T,C),var(X),T))).
 fof('isFreeVar0', axiom, (![X,V,Var0,Exp0] : (((Var0=V) & (Exp0=var(X))) => ($true => ((X=V) => isFreeVar(Var0,Exp0)))))).
 fof('isFreeVar1', axiom, (![T,X,V,E,Var0,Exp0] : (((Var0=V) & (Exp0=abs(X,T,E))) => ($true => (((X!=V) & isFreeVar(V,E)) => isFreeVar(Var0,Exp0)))))).
 fof('isFreeVar2', axiom, (![E1,V,E2,Var0,Exp0] : (((Var0=V) & (Exp0=app(E1,E2))) => ($true => ((isFreeVar(V,E1) | isFreeVar(V,E2)) => isFreeVar(Var0,Exp0)))))).
@@ -30,6 +31,6 @@ fof('subst0', axiom, (![Var0,Exp0,Exp1,X,Y,RESULT,E] : ((((Var0=X) & ((Exp0=E) &
 fof('subst1', axiom, (![E,Var0,Exp0,Exp1,X,RESULT,Y] : ((((Var0=X) & ((Exp0=E) & (Exp1=var(Y)))) & (RESULT=subst(Var0,Exp0,Exp1))) => (((~(X=Y)) & $true) => (RESULT=var(Y)))))).
 fof('subst2', axiom, (![Var0,Exp0,Exp1,RESULT,E1,X,E,E2] : ((((Var0=X) & ((Exp0=E) & (Exp1=app(E1,E2)))) & (RESULT=subst(Var0,Exp0,Exp1))) => ($true => (RESULT=app(subst(X,E,E1),subst(X,E,E2))))))).
 fof('subst3', axiom, (![E,Var0,Exp0,Exp1,X,RESULT,Y,T,E1] : ((((Var0=X) & ((Exp0=E) & (Exp1=abs(Y,T,E1)))) & (RESULT=subst(Var0,Exp0,Exp1))) => (((X=Y) & $true) => (RESULT=abs(Y,T,E1)))))).
-fof('subst4', axiom, (![Var0,Exp0,Exp1,RESULT,T,X,Y,E,E1] : ((((Var0=X) & ((Exp0=E) & (Exp1=abs(Y,T,E1)))) & (RESULT=subst(Var0,Exp0,Exp1))) => (((~(X=Y)) & (isFreeVar(Y,E) & $true)) => (RESULT=abs(gensym(app(E,E1)),T,subst(X,E,subst(Y,var(gensym(app(E,E1))),E1)))))))).
+fof('subst4', axiom, (![Var0,Exp0,Exp1,Fresh0,RESULT,T,X,E,Y,Fresh,E1] : ((((Var0=X) & ((Exp0=E) & (Exp1=abs(Y,T,E1)))) & (RESULT=subst(Var0,Exp0,Exp1))) => (((~(X=Y)) & (isFreeVar(Y,E) & (Fresh0=gensym(app(app(E,E1),var(X)))))) => (RESULT=abs(Fresh,T,subst(X,E,subst(Y,var(Fresh),E1)))))))).
 fof('subst5', axiom, (![Var0,Exp0,Exp1,RESULT,Y,T,X,E,E1] : ((((Var0=X) & ((Exp0=E) & (Exp1=abs(Y,T,E1)))) & (RESULT=subst(Var0,Exp0,Exp1))) => (((~(X=Y)) & ((~isFreeVar(Y,E)) & $true)) => (RESULT=abs(Y,T,subst(X,E,E1))))))).
-fof('T-subst-var-2', conjecture, (![Y,T,C,X,E,E2,T2] : (((E2=var(Y)) & ((X!=Y) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2)))) => tcheck(C,subst(X,E,E2),T2)))).
+fof('T-subst-var-1', conjecture, (![Y,T,C,X,E,E2,T2] : (((E2=var(Y)) & ((X=Y) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2)))) => tcheck(C,subst(X,E,E2),T2)))).
