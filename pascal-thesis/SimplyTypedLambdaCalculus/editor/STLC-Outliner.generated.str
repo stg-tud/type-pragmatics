@@ -11,7 +11,7 @@ rules
   to-outline-label = ?Module(<id>, _, _)
   to-outline-label = ?ConstructorDecl(<id>, _, _)
   to-outline-label = ?FunctionSig(<id>, _, _)
-  to-outline-label = ?FunctionEq(<id>, _, _)
   to-outline-label = ?FunctionPatApp(<id>, _)
   to-outline-label = ?FunctionExpApp(<id>, _)
+  to-outline-label = ?FunctionEq(<id>, _, _)
   to-outline-label = ?ExistsJudgment(_, <id>)

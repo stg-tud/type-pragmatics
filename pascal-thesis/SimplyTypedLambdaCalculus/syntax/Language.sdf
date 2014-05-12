@@ -38,6 +38,7 @@ exports
 		"local" -> Keyword
 		"sorts" -> Keyword
 		"import" -> Keyword
+		"undefined" -> Keyword
 		
 		"Nat" -> PrimitiveType
 		"String" -> PrimitiveType

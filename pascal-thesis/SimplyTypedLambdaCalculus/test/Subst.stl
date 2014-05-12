@@ -1,7 +1,9 @@
 module Subst
 
+
 sorts
   Var Exp Typ Ctx OptTyp
+
 
 constructors
   var : Var -> Exp
@@ -67,9 +69,9 @@ OR
 
 relation
 isFreeVar : Var Exp
-isFreeVar(v, var(x)) = x == v
-isFreeVar(v, abs(x, T, e)) = x != v && isFreeVar(v, e) 
-isFreeVar(v, app(e1, e2))= isFreeVar(v, e1) || isFreeVar(v, e2)
+isFreeVar(v, var(x))       <= x == v
+isFreeVar(v, abs(x, T, e)) <= x != v && isFreeVar(v, e) 
+isFreeVar(v, app(e1, e2))  <= isFreeVar(v, e1) || isFreeVar(v, e2)
 
 axioms
 ~x == ~y
@@ -87,18 +89,36 @@ bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T
 =========================== T-Weak
 bind(~x, ~S, ~C) |- ~e : ~T
 
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong
+~C |- ~e : ~T
+
 
 // ******
 // Gensym
 // ******
 
-function
-gensym : Exp -> Var
+functions
+gensym1 : Exp -> Var
+gensym2 : Exp Exp -> Var
+gensym3 : Exp Exp Exp -> Var
 
-axiom
-gensym(~e) == ~v
-================= gensym-is-fresh
-isFreeVar(~v, ~e)
+axioms
+gensym1(~e) == ~v
+================== gensym1-is-fresh
+!isFreeVar(~v, ~e)
+
+gensym2(~e1,~e2) == ~v
+====================== gensym2-is-fresh
+!isFreeVar(~v, ~e1)
+!isFreeVar(~v, ~e2)
+
+gensym3(~e1,~e2,~e3) == ~v
+========================== gensym3-is-fresh
+!isFreeVar(~v, ~e1)
+!isFreeVar(~v, ~e2)
+!isFreeVar(~v, ~e3)
 
 
 // ******************
@@ -112,12 +132,11 @@ subst(x, e, var(y)) =
 	then e
 	else var(y)
 subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
-subst(x, e, abs(y, T, e1)) =
-	if x == y
-	then abs(y, T, e1)
-	else if !isFreeVar(y, e)
-	     then abs(y, T, subst(x, e, e1))
-	     else abs(gensym(e), T, subst(x, e, subst(y, var(gensym(e)), e1)))
+subst(x, e, abs(y, T, e1)) = //abs(y, T, subst(x, e, e1))
+	if x == y || isFreeVar(y, e)
+	then undefined
+	else abs(y, T, subst(x, e, e1))
+
 
 // This is what we want prove by induction
 //
@@ -169,14 +188,6 @@ local {
 	~C |- subst(~x, ~e, ~e2) : ~T2
 }
 
-goal
-~e2 == abs(~y, ~S, ~e3)
-~x == ~y
-~C |- ~e : ~T
-bind(~x, ~T, ~C) |- ~e2 : ~T2
-================================ T-subst-abs-1
-~C |- subst(~x, ~e, ~e2) : ~T2
-
 local {
 	const eabs : Exp
 	
@@ -189,16 +200,11 @@ local {
 	goal
 	~e2 == abs(~y, ~S, eabs)
 	~x != ~y
+	!isFreeVar(~y, ~e)
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- ~e2 : ~T2
-	================================================= T-subst-abs-2
-	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
-	exists ~S2
-		~T2 == arrow(~S, ~S2)
-		bind(~y, ~S, bind(~x, ~T, ~C)) |- eabs : ~S2
-		bind(~x, ~T, bind(~y, ~S, ~C)) |- eabs : ~S2
-		// bind(~y, ~S, ~C) |- subst(~x, ~e, eabs) : ~S2
-	// ~C |- subst(~x, ~e, ~e2) : ~T2
+	================================================= T-subst-abs
+	~C |- subst(~x, ~e, ~e2) : ~T2
 }
 
 // substitution lemma becomes an axiom after the proof

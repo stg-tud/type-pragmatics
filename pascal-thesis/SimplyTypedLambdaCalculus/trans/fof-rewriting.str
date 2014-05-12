@@ -96,7 +96,7 @@ rules
 	make-termapp : (v, args) -> TermApp(<make-var;?Var(<id>)> v, args)
 	make-var = string-as-chars([to-lower|id]); !Var(<id>)
 	make-meta = string-as-chars([to-upper|id]); !Meta(<id>)
-	make-eq : (t1{RelBool()}, t2) -> BiImpl(t1{RelBool()}, t2)
+	make-eq : (t1{RelBool()}, t2) -> Impl(t2,t1{RelBool()})
 	make-eq : (t1, t2) -> Eq(t1, t2)
 			
 	compose-formula-p :
@@ -194,6 +194,7 @@ rules
 		args := <map(function-pat-prop(|cons))> ts
 	function-pat-prop(|cons) = debug(!"function-pat-prop failed: "); fail
 	
+	function-exp-props(|cons) : FunctionExpUndefined() -> []
 	function-exp-props(|cons) : FunctionExpVar(v) -> [(True(),<make-var> v)]
 	where <elem(|v)> cons
 	function-exp-props(|cons) : FunctionExpVar(v) -> [(True(),<make-meta> v)]
