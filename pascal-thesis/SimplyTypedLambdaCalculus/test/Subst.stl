@@ -132,10 +132,13 @@ subst(x, e, var(y)) =
 	then e
 	else var(y)
 subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
-subst(x, e, abs(y, T, e1)) = //abs(y, T, subst(x, e, e1))
-	if x == y || isFreeVar(y, e)
-	then undefined
-	else abs(y, T, subst(x, e, e1))
+subst(x, e, abs(y, T, e1)) =
+	if x == y
+	then abs(y, T, e1)
+	else if isFreeVar(y, e)
+	     then abs(gensym2(e, e1), T, subst(x, e, subst(y, var(gensym2(e, e1)), e1)))
+	     else abs(y, T, subst(x, e, e1))
+
 
 
 // This is what we want prove by induction
@@ -188,6 +191,34 @@ local {
 	~C |- subst(~x, ~e, ~e2) : ~T2
 }
 
+goal
+~e2 == abs(~y, ~S, ~e1)
+~x == ~y
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-abs-1
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+local {
+	const eabs : Exp
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+
+	goal
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+
 local {
 	const eabs : Exp
 	
@@ -203,7 +234,7 @@ local {
 	!isFreeVar(~y, ~e)
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- ~e2 : ~T2
-	================================================= T-subst-abs
+	================================================= T-subst-abs-3
 	~C |- subst(~x, ~e, ~e2) : ~T2
 }
 

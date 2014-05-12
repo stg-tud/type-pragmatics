@@ -1,27 +1,27 @@
 
-fof('EQ-var', axiom, (![Var57,Var58] : (((var(Var57)=var(Var58)) => (Var57=Var58)) & ((Var57=Var58) => (var(Var57)=var(Var58)))))).
-fof('EQ-abs', axiom, (![Var59,Typ42,Exp63,Var60,Typ43,Exp64] : (((abs(Var59,Typ42,Exp63)=abs(Var60,Typ43,Exp64)) => ((Var59=Var60) & ((Typ42=Typ43) & (Exp63=Exp64)))) & (((Var59=Var60) & ((Typ42=Typ43) & (Exp63=Exp64))) => (abs(Var59,Typ42,Exp63)=abs(Var60,Typ43,Exp64)))))).
-fof('EQ-app', axiom, (![Exp65,Exp66,Exp67,Exp68] : (((app(Exp65,Exp66)=app(Exp67,Exp68)) => ((Exp65=Exp67) & (Exp66=Exp68))) & (((Exp65=Exp67) & (Exp66=Exp68)) => (app(Exp65,Exp66)=app(Exp67,Exp68)))))).
+fof('EQ-var', axiom, (![Var1102,Var1103] : (((var(Var1102)=var(Var1103)) => (Var1102=Var1103)) & ((Var1102=Var1103) => (var(Var1102)=var(Var1103)))))).
+fof('EQ-abs', axiom, (![Var1104,Typ812,Exp1218,Var1105,Typ813,Exp1219] : (((abs(Var1104,Typ812,Exp1218)=abs(Var1105,Typ813,Exp1219)) => ((Var1104=Var1105) & ((Typ812=Typ813) & (Exp1218=Exp1219)))) & (((Var1104=Var1105) & ((Typ812=Typ813) & (Exp1218=Exp1219))) => (abs(Var1104,Typ812,Exp1218)=abs(Var1105,Typ813,Exp1219)))))).
+fof('EQ-app', axiom, (![Exp1220,Exp1221,Exp1222,Exp1223] : (((app(Exp1220,Exp1221)=app(Exp1222,Exp1223)) => ((Exp1220=Exp1222) & (Exp1221=Exp1223))) & (((Exp1220=Exp1222) & (Exp1221=Exp1223)) => (app(Exp1220,Exp1221)=app(Exp1222,Exp1223)))))).
 fof('EQ-empty', axiom, (((empty=empty) => $true) & ($true => (empty=empty)))).
-fof('EQ-bind', axiom, (![Var61,Typ44,Ctx15,Var62,Typ45,Ctx16] : (((bind(Var61,Typ44,Ctx15)=bind(Var62,Typ45,Ctx16)) => ((Var61=Var62) & ((Typ44=Typ45) & (Ctx15=Ctx16)))) & (((Var61=Var62) & ((Typ44=Typ45) & (Ctx15=Ctx16))) => (bind(Var61,Typ44,Ctx15)=bind(Var62,Typ45,Ctx16)))))).
-fof('EQ-arrow', axiom, (![Typ46,Typ47,Typ48,Typ49] : (((arrow(Typ46,Typ47)=arrow(Typ48,Typ49)) => ((Typ46=Typ48) & (Typ47=Typ49))) & (((Typ46=Typ48) & (Typ47=Typ49)) => (arrow(Typ46,Typ47)=arrow(Typ48,Typ49)))))).
+fof('EQ-bind', axiom, (![Var1106,Typ814,Ctx290,Var1107,Typ815,Ctx291] : (((bind(Var1106,Typ814,Ctx290)=bind(Var1107,Typ815,Ctx291)) => ((Var1106=Var1107) & ((Typ814=Typ815) & (Ctx290=Ctx291)))) & (((Var1106=Var1107) & ((Typ814=Typ815) & (Ctx290=Ctx291))) => (bind(Var1106,Typ814,Ctx290)=bind(Var1107,Typ815,Ctx291)))))).
+fof('EQ-arrow', axiom, (![Typ816,Typ817,Typ818,Typ819] : (((arrow(Typ816,Typ817)=arrow(Typ818,Typ819)) => ((Typ816=Typ818) & (Typ817=Typ819))) & (((Typ816=Typ818) & (Typ817=Typ819)) => (arrow(Typ816,Typ817)=arrow(Typ818,Typ819)))))).
 fof('EQ-nothing', axiom, (((nothing=nothing) => $true) & ($true => (nothing=nothing)))).
-fof('EQ-some', axiom, (![Typ50,Typ51] : (((some(Typ50)=some(Typ51)) => (Typ50=Typ51)) & ((Typ50=Typ51) => (some(Typ50)=some(Typ51)))))).
-fof('DIFF-var-abs', axiom, (![Var63,Var64,Typ52,Exp69] : (var(Var63)!=abs(Var64,Typ52,Exp69)))).
-fof('DIFF-var-app', axiom, (![Var65,Exp70,Exp71] : (var(Var65)!=app(Exp70,Exp71)))).
-fof('DIFF-abs-app', axiom, (![Var66,Typ53,Exp72,Exp73,Exp74] : (abs(Var66,Typ53,Exp72)!=app(Exp73,Exp74)))).
-fof('DIFF-empty-bind', axiom, (![Var67,Typ54,Ctx17] : (empty!=bind(Var67,Typ54,Ctx17)))).
-fof('DIFF-nothing-some', axiom, (![Typ55] : (nothing!=some(Typ55)))).
-fof('lookup11', axiom, (![X,Var69,Ctx19,RESULT16] : ((((Var69=X) & (Ctx19=empty)) & (RESULT16=lookup(Var69,Ctx19))) => ($true => (RESULT16=nothing))))).
-fof('lookup9', axiom, (![C,Var68,Ctx18,X,Y,RESULT15,Ty] : ((((Var68=X) & (Ctx18=bind(Y,Ty,C))) & (RESULT15=lookup(Var68,Ctx18))) => (((X=Y) & $true) => (RESULT15=some(Ty)))))).
-fof('lookup10', axiom, (![Ty,Var68,Ctx18,Y,RESULT15,X,C] : ((((Var68=X) & (Ctx18=bind(Y,Ty,C))) & (RESULT15=lookup(Var68,Ctx18))) => (((~(X=Y)) & $true) => (RESULT15=lookup(X,C)))))).
+fof('EQ-some', axiom, (![Typ820,Typ821] : (((some(Typ820)=some(Typ821)) => (Typ820=Typ821)) & ((Typ820=Typ821) => (some(Typ820)=some(Typ821)))))).
+fof('DIFF-var-abs', axiom, (![Var1108,Var1109,Typ822,Exp1224] : (var(Var1108)!=abs(Var1109,Typ822,Exp1224)))).
+fof('DIFF-var-app', axiom, (![Var1110,Exp1225,Exp1226] : (var(Var1110)!=app(Exp1225,Exp1226)))).
+fof('DIFF-abs-app', axiom, (![Var1111,Typ823,Exp1227,Exp1228,Exp1229] : (abs(Var1111,Typ823,Exp1227)!=app(Exp1228,Exp1229)))).
+fof('DIFF-empty-bind', axiom, (![Var1112,Typ824,Ctx292] : (empty!=bind(Var1112,Typ824,Ctx292)))).
+fof('DIFF-nothing-some', axiom, (![Typ825] : (nothing!=some(Typ825)))).
+fof('lookup176', axiom, (![X,Var1114,Ctx294,RESULT291] : ((((Var1114=X) & (Ctx294=empty)) & (RESULT291=lookup(Var1114,Ctx294))) => ($true => (RESULT291=nothing))))).
+fof('lookup174', axiom, (![C,Var1113,Ctx293,X,Y,RESULT290,Ty] : ((((Var1113=X) & (Ctx293=bind(Y,Ty,C))) & (RESULT290=lookup(Var1113,Ctx293))) => (((X=Y) & $true) => (RESULT290=some(Ty)))))).
+fof('lookup175', axiom, (![Ty,Var1113,Ctx293,Y,RESULT290,X,C] : ((((Var1113=X) & (Ctx293=bind(Y,Ty,C))) & (RESULT290=lookup(Var1113,Ctx293))) => (((~(X=Y)) & $true) => (RESULT290=lookup(X,C)))))).
 fof('T-var', axiom, (![C,X,T] : ((lookup(X,C)=some(T)) => tcheck(C,var(X),T)))).
 fof('T-abs', axiom, (![C,X,E,S,T] : (tcheck(bind(X,S,C),E,T) => tcheck(C,abs(X,S,E),arrow(S,T))))).
 fof('T-app', axiom, (![S,C,E1,E2,T] : ((tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S)) => tcheck(C,app(E1,E2),T)))).
 fof('T-inv', axiom, (![E,T,C] : (tcheck(C,E,T) => ((?[X] : ((E=var(X)) & (lookup(X,C)=some(T)))) | ((?[X,E2,T1,T2] : ((E=abs(X,T1,E2)) & ((T=arrow(T1,T2)) & tcheck(bind(X,T1,C),E2,T2)))) | (?[E1,E2,S] : ((E=app(E1,E2)) & (tcheck(C,E1,arrow(S,T)) & tcheck(C,E2,S))))))))).
-fof('isFreeVar11', axiom, (![X,V,Var72,Exp77] : (((Var72=V) & (Exp77=var(X))) => ($true => ((X=V) => isFreeVar(Var72,Exp77)))))).
-fof('isFreeVar10', axiom, (![T,X,V,E,Var71,Exp76] : (((Var71=V) & (Exp76=abs(X,T,E))) => ($true => (((X!=V) & isFreeVar(V,E)) => isFreeVar(Var71,Exp76)))))).
-fof('isFreeVar9', axiom, (![E1,V,E2,Var70,Exp75] : (((Var70=V) & (Exp75=app(E1,E2))) => ($true => ((isFreeVar(V,E1) | isFreeVar(V,E2)) => isFreeVar(Var70,Exp75)))))).
+fof('isFreeVar176', axiom, (![X,V,Var1117,Exp1232] : (((Var1117=V) & (Exp1232=var(X))) => ($true => ((X=V) => isFreeVar(Var1117,Exp1232)))))).
+fof('isFreeVar175', axiom, (![T,X,V,E,Var1116,Exp1231] : (((Var1116=V) & (Exp1231=abs(X,T,E))) => ($true => (((X!=V) & isFreeVar(V,E)) => isFreeVar(Var1116,Exp1231)))))).
+fof('isFreeVar174', axiom, (![E1,V,E2,Var1115,Exp1230] : (((Var1115=V) & (Exp1230=app(E1,E2))) => ($true => ((isFreeVar(V,E1) | isFreeVar(V,E2)) => isFreeVar(Var1115,Exp1230)))))).
 fof('T-Context-Duplicate', axiom, (![Y,Ty,X,Tx,C,E,T] : (((X=Y) & tcheck(bind(X,Tx,bind(Y,Ty,C)),E,T)) => tcheck(bind(X,Tx,C),E,T)))).
 fof('T-Context-Swap', axiom, (![Y,Ty,X,Tx,C,E,T] : (((X!=Y) & tcheck(bind(X,Tx,bind(Y,Ty,C)),E,T)) => tcheck(bind(Y,Ty,bind(X,Tx,C)),E,T)))).
 fof('T-Weak', axiom, (![X,S,C,E,T] : (((~isFreeVar(X,E)) & tcheck(C,E,T)) => tcheck(bind(X,S,C),E,T)))).
@@ -29,8 +29,10 @@ fof('T-Strong', axiom, (![X,S,C,E,T] : (((~isFreeVar(X,E)) & tcheck(bind(X,S,C),
 fof('gensym1-is-fresh', axiom, (![V,E] : ((gensym1(E)=V) => (~isFreeVar(V,E))))).
 fof('gensym2-is-fresh', axiom, (![E1,V,E2] : ((gensym2(E1,E2)=V) => ((~isFreeVar(V,E1)) & (~isFreeVar(V,E2)))))).
 fof('gensym3-is-fresh', axiom, (![E1,E2,V,E3] : ((gensym3(E1,E2,E3)=V) => ((~isFreeVar(V,E1)) & ((~isFreeVar(V,E2)) & (~isFreeVar(V,E3))))))).
-fof('subst14', axiom, (![Var75,Exp82,Exp83,X,Y,RESULT19,E] : ((((Var75=X) & ((Exp82=E) & (Exp83=var(Y)))) & (RESULT19=subst(Var75,Exp82,Exp83))) => (((X=Y) & $true) => (RESULT19=E))))).
-fof('subst15', axiom, (![E,Var75,Exp82,Exp83,X,RESULT19,Y] : ((((Var75=X) & ((Exp82=E) & (Exp83=var(Y)))) & (RESULT19=subst(Var75,Exp82,Exp83))) => (((~(X=Y)) & $true) => (RESULT19=var(Y)))))).
-fof('subst13', axiom, (![Var74,Exp80,Exp81,RESULT18,E1,X,E,E2] : ((((Var74=X) & ((Exp80=E) & (Exp81=app(E1,E2)))) & (RESULT18=subst(Var74,Exp80,Exp81))) => ($true => (RESULT18=app(subst(X,E,E1),subst(X,E,E2))))))).
-fof('subst12', axiom, (![Var73,Exp78,Exp79,RESULT17,Y,T,X,E,E1] : ((((Var73=X) & ((Exp78=E) & (Exp79=abs(Y,T,E1)))) & (RESULT17=subst(Var73,Exp78,Exp79))) => (((~((X=Y) | isFreeVar(Y,E))) & $true) => (RESULT17=abs(Y,T,subst(X,E,E1))))))).
+fof('subst344', axiom, (![Var1120,Exp1237,Exp1238,X,Y,RESULT294,E] : ((((Var1120=X) & ((Exp1237=E) & (Exp1238=var(Y)))) & (RESULT294=subst(Var1120,Exp1237,Exp1238))) => (((X=Y) & $true) => (RESULT294=E))))).
+fof('subst345', axiom, (![E,Var1120,Exp1237,Exp1238,X,RESULT294,Y] : ((((Var1120=X) & ((Exp1237=E) & (Exp1238=var(Y)))) & (RESULT294=subst(Var1120,Exp1237,Exp1238))) => (((~(X=Y)) & $true) => (RESULT294=var(Y)))))).
+fof('subst343', axiom, (![Var1119,Exp1235,Exp1236,RESULT293,E1,X,E,E2] : ((((Var1119=X) & ((Exp1235=E) & (Exp1236=app(E1,E2)))) & (RESULT293=subst(Var1119,Exp1235,Exp1236))) => ($true => (RESULT293=app(subst(X,E,E1),subst(X,E,E2))))))).
+fof('subst340', axiom, (![E,Var1118,Exp1233,Exp1234,X,RESULT292,Y,T,E1] : ((((Var1118=X) & ((Exp1233=E) & (Exp1234=abs(Y,T,E1)))) & (RESULT292=subst(Var1118,Exp1233,Exp1234))) => (((X=Y) & $true) => (RESULT292=abs(Y,T,E1)))))).
+fof('subst341', axiom, (![Var1118,Exp1233,Exp1234,RESULT292,T,X,Y,E,E1] : ((((Var1118=X) & ((Exp1233=E) & (Exp1234=abs(Y,T,E1)))) & (RESULT292=subst(Var1118,Exp1233,Exp1234))) => (((~(X=Y)) & (isFreeVar(Y,E) & $true)) => (RESULT292=abs(gensym2(E,E1),T,subst(X,E,subst(Y,var(gensym2(E,E1)),E1)))))))).
+fof('subst342', axiom, (![Var1118,Exp1233,Exp1234,RESULT292,Y,T,X,E,E1] : ((((Var1118=X) & ((Exp1233=E) & (Exp1234=abs(Y,T,E1)))) & (RESULT292=subst(Var1118,Exp1233,Exp1234))) => (((~(X=Y)) & ((~isFreeVar(Y,E)) & $true)) => (RESULT292=abs(Y,T,subst(X,E,E1))))))).
 fof('T-subst-var-2', conjecture, (![Y,T,C,X,E,E2,T2] : (((E2=var(Y)) & ((X!=Y) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2)))) => tcheck(C,subst(X,E,E2),T2)))).

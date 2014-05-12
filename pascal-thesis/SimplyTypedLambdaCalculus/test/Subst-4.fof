@@ -35,8 +35,6 @@ fof('subst343', axiom, (![Var1119,Exp1235,Exp1236,RESULT293,E1,X,E,E2] : ((((Var
 fof('subst340', axiom, (![E,Var1118,Exp1233,Exp1234,X,RESULT292,Y,T,E1] : ((((Var1118=X) & ((Exp1233=E) & (Exp1234=abs(Y,T,E1)))) & (RESULT292=subst(Var1118,Exp1233,Exp1234))) => (((X=Y) & $true) => (RESULT292=abs(Y,T,E1)))))).
 fof('subst341', axiom, (![Var1118,Exp1233,Exp1234,RESULT292,T,X,Y,E,E1] : ((((Var1118=X) & ((Exp1233=E) & (Exp1234=abs(Y,T,E1)))) & (RESULT292=subst(Var1118,Exp1233,Exp1234))) => (((~(X=Y)) & (isFreeVar(Y,E) & $true)) => (RESULT292=abs(gensym2(E,E1),T,subst(X,E,subst(Y,var(gensym2(E,E1)),E1)))))))).
 fof('subst342', axiom, (![Var1118,Exp1233,Exp1234,RESULT292,Y,T,X,E,E1] : ((((Var1118=X) & ((Exp1233=E) & (Exp1234=abs(Y,T,E1)))) & (RESULT292=subst(Var1118,Exp1233,Exp1234))) => (((~(X=Y)) & ((~isFreeVar(Y,E)) & $true)) => (RESULT292=abs(Y,T,subst(X,E,E1))))))).
-fof('EQ-e1app', axiom, (((e1app=e1app) => $true) & ($true => (e1app=e1app)))).
-fof('EQ-e2app', axiom, (((e2app=e2app) => $true) & ($true => (e2app=e2app)))).
-fof('T-subst-IH-app1', axiom, (![T,C,X,E,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),e1app,T2)) => tcheck(C,subst(X,E,e1app),T2)))).
-fof('T-subst-IH-app2', axiom, (![T,C,X,E,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),e2app,T2)) => tcheck(C,subst(X,E,e2app),T2)))).
-fof('T-subst-app', conjecture, (![T,C,X,E,E2,T2] : (((E2=app(e1app,e2app)) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2))) => tcheck(C,subst(X,E,E2),T2)))).
+fof('EQ-eabs', axiom, (((eabs=eabs) => $true) & ($true => (eabs=eabs)))).
+fof('T-subst-IH-abs', axiom, (![T,C,X,E,T2] : ((tcheck(C,E,T) & tcheck(bind(X,T,C),eabs,T2)) => tcheck(C,subst(X,E,eabs),T2)))).
+fof('T-subst-abs-2', conjecture, (![S,Y,T,C,X,E,E2,T2] : (((E2=abs(Y,S,eabs)) & ((X!=Y) & (isFreeVar(Y,E) & (tcheck(C,E,T) & tcheck(bind(X,T,C),E2,T2))))) => tcheck(C,subst(X,E,E2),T2)))).
