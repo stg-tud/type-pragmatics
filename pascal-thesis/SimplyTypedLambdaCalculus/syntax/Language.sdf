@@ -60,9 +60,10 @@ exports
 		LAYOUT? -/- [\/].[\/]
 			
 	lexical syntax 
-		[a-zA-Z][a-zA-Z0-9]* -> MID
-		MID "." MID -> MID
-		MID "." ID -> QID
+		[a-zA-Z][a-zA-Z0-9]* -> MIDPart
+		MIDPart -> MID
+		MIDPart "." MID -> MID
+		MIDPart "." ID -> QID
 		
 	lexical restrictions
 		MID -/- [\.]

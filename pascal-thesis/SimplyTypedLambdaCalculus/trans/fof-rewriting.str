@@ -319,7 +319,7 @@ strategies
 	generate-fof-goals(|axioms, cons) : [Import(m) | rest] -> others
 		where
 			Module(_, imps, body) := <get-module-ref> m;
-			filtered-body := <filter(not(?Goals(_) + ?Local(_) + ?Functions(_)))> body;
+			filtered-body := <filter(not(?Goals(_) + ?Local(_)))> body;
 			new-rest := <conc> (imps, filtered-body, rest);
 			others := <generate-fof-goals(|axioms, cons)> new-rest
 
