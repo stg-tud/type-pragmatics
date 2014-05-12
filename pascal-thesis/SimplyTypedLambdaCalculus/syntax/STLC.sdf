@@ -76,11 +76,13 @@ exports
 		ID "(" {FunctionPattern ","}* ")" "=" FunctionExp -> FunctionEq {cons("FunctionEq")}
 		
 		RelationSig RelationEq+ -> RelationDef {cons("FunctionDef")}
-		ID ":" SortRef+ -> RelationSig{ast("FunctionSig(<1>, <2>, RelBool())")}
-		ID "<=" FunctionExp -> RelationEq {ast("FunctionEq(<1>, [], <2>)")}
+		ID ":" SortRef+ -> RelationSig {ast("FunctionSig(<1>, <2>, RelBool())")}
 		ID "(" {FunctionPattern ","}* ")" "<=" FunctionExp -> RelationEq {cons("FunctionEq")}
+		ID "(" {FunctionPattern ","}* ")" -> RelationEq {ast("FunctionEq(<1>, <2>, FunctionExpTrue())")}
 		
 		"undefined" -> FunctionExp {cons("FunctionExpUndefined")}
+		"true" -> FunctionExp {cons("FunctionExpTrue")}
+		"false" -> FunctionExp {cons("FunctionExpFalse")}
 		ID -> FunctionExp {cons("FunctionExpVar")}
 		"if" FunctionExp "then" FunctionExp "else" FunctionExp -> FunctionExp {cons("FunctionExpIf")}
 		"let" ID "=" FunctionExp "in" FunctionExp -> FunctionExp {cons("FunctionExpLet")}

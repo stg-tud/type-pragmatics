@@ -309,7 +309,7 @@ rules
           , uri__
           , uri__
           , NablNsSymbol()
-          , Unique()
+          , NonUnique()
           , Current()
           , []
           , []

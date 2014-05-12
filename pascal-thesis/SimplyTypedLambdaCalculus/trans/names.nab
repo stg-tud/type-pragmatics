@@ -36,7 +36,7 @@ binding rules
 		
 	FunctionPatVar(v):
 		refers to Symbol v
-		defines Symbol v
+		defines non-unique Symbol v
 	FunctionPatApp(f, args):
 		refers to Symbol f
 

@@ -19,13 +19,10 @@ rules
 	main = io-wrap(smt-trans)
 	smt-trans = generate-smt-goals
 		
-	generate-smt-goals : Module(_, imps, body) -> <conc; generate-smt-goals(|[tcheck-cons,reduce-cons]); prepend(|[tcheck-decl,reduce-decl])> (imps, body)
+	generate-smt-goals : Module(_, imps, body) -> <conc; generate-smt-goals(|[tcheck-cons]); prepend(|[tcheck-decl])> (imps, body)
 	where
 		tcheck-cons := ConstructorDecl("tcheck", ["Term","Term","Term"], "Bool");
-		tcheck-decl := DeclFun("tcheck", [Term(),Term(),Term()], Bool());
-		reduce-cons := ConstructorDecl("reduce", ["Term","Term"], "Bool");
-		reduce-decl := DeclFun("reduce", [Term(),Term()], Bool())
-
+		tcheck-decl := DeclFun("tcheck", [Term(),Term(),Term()], Bool())
 	
 	generate-smt-goals(|cons) : [] -> []
 	generate-smt-goals(|cons) : [Axioms(fs) | rest] -> <conc> (defines, asserts, others)

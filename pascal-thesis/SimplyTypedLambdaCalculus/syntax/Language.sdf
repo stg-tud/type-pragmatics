@@ -21,6 +21,8 @@ exports
 		Keyword -> ID {reject}
 		PrimitiveType -> ID {reject}
 		
+		"true" -> Keyword
+		"false" -> Keyword
 		"OR" -> Keyword
 		"exists" -> Keyword
 		"if" -> Keyword

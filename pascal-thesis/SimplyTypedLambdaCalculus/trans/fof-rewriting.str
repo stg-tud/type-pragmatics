@@ -208,6 +208,8 @@ rules
 	function-pat-prop(|cons) = debug(!"function-pat-prop failed: "); fail
 	
 	function-exp-props(|cons) : FunctionExpUndefined() -> []
+	function-exp-props(|cons) : FunctionExpTrue() -> [(True(), True())]
+	function-exp-props(|cons) : FunctionExpFalse() -> [(True(), False())]
 	function-exp-props(|cons) : FunctionExpVar(v) -> [(True(),<make-var> v)]
 	where <elem(|v)> cons
 	function-exp-props(|cons) : FunctionExpVar(v) -> [(True(),<make-meta> v)]
@@ -221,7 +223,7 @@ rules
 		result2 := <map(\(a,b) -> (And(Not(c-prop),a), b)\)> e-props
 	function-exp-props(|cons) : FunctionExpLet(x, e1, e2) -> [(eq-prop, e2-prop)]
 	where
-		var := <make-fresh; make-meta> x;
+		var := <make-meta> x;
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in bound expression
 		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in bound expression
 		eq-prop := Eq(var, e1-prop)
@@ -317,7 +319,7 @@ strategies
 	generate-fof-goals(|axioms, cons) : [Import(m) | rest] -> others
 		where
 			Module(_, imps, body) := <get-module-ref> m;
-			filtered-body := <filter(not(?Goals(_) + ?Local(_)))> body;
+			filtered-body := <filter(not(?Goals(_) + ?Local(_) + ?Functions(_)))> body;
 			new-rest := <conc> (imps, filtered-body, rest);
 			others := <generate-fof-goals(|axioms, cons)> new-rest
 

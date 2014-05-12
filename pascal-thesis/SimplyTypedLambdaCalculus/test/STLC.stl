@@ -7,55 +7,59 @@ import Subst
 // ******************************
 
 
+relation
+reduce : Exp Exp
+reduce(app(abs(x, S, e1), e2), subst(x, e2, e1)) <= true
+reduce(app(e1, e2), app(e1red, e2)) <= reduce(e1, e1red) 
+reduce(app(e1, e2), app(e1, e2red)) <= reduce(e2, e2red)
+
+
 // Prove type preservation by induction on recursive structure of reduction relation
 // Each derived rule represents one induction case.
 
 goal
-~e1 = app(abs(~x, ~S, ~e1body), ~e1arg)
-~e2 = subst(~x, ~e1arg, ~e1body)
-~C |- ~e1 : ~T
-~e1 -> ~e2
-================================ T-Preservation-beta
-~C |- ~e2 : ~T 
+~ein == app(abs(~x, ~S, ~e1), ~e2)
+~eout == subst(~x, ~e2, ~e1)
+~C |- ~ein : ~T
+======================================== T-Preservation-beta
+~C |- subst(~x, ~e2, ~e1) : ~T 
 
 local {
 	consts
-		e1fun : Exp
-		e1funred : Exp
+		e1 : Exp
+		e1red : Exp
 	
 	axiom	 
-	~C |- e1fun : ~T
-	e1fun -> e1funred
-	==================== T-Preservation-IH-app1
-	~C |- e1funred : ~T
+	~C |- e1 : ~T
+	reduce(e1, e1red)
+	======================= T-Preservation-IH-app1
+	~C |- e1red : ~T
 
 	goal
-	~e1 = app(e1fun, ~e1arg)
-	e1fun -> e1funred
-	~e2 = app(e1funred, ~e1arg)
-	~C |- ~e1 : ~T
-	~e1 -> ~e2
+	~ein == app(e1, ~e2)
+	~eout == app(e1red, ~e2)
+	reduce(e1, e1red)
+	~C |- ~ein : ~T
 	================================ T-Preservation-App1
-	~C |- ~e2 : ~T
+	~C |- ~eout : ~T
 }
 
 local {
 	consts
-		e1arg : Exp
-		e1argred : Exp
+		e2 : Exp
+		e2red : Exp
 	
 	axiom
-	~C |- e1arg : ~T
-	e1arg -> e1argred
-	==================== T-Preservation-IH-app2
-	~C |- e1argred : ~T
+	~C |- e2 : ~T
+	reduce(e2, e2red)
+	================= T-Preservation-IH-app2
+	~C |- e2red : ~T
 
 	goal	
-	~e1 = app(~e1fun, e1arg)
-	e1arg -> e1argred
-	~e2 = app(~e1fun, e1argred)
-	~C |- ~e1 : ~T
-	~e1 -> ~e2
+	~ein == app(~e1, e2)
+	~eout == app(~e1, e2red)
+	reduce(e2, e2red)
+	~C |- ~ein : ~T
 	================================ T-Preservation-App2
-	~C |- ~e2 : ~T
+	~C |- ~eout : ~T
 }
