@@ -16,6 +16,7 @@ bind(~x, ~T, ~C) |- ~e2 : ~T2
 ============================== T-subst-var-1
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
+
 goal
 ~e2 == var(~y)
 ~x != ~y
@@ -23,6 +24,7 @@ goal
 bind(~x, ~T, ~C) |- ~e2 : ~T2
 ============================== T-subst-var-2
 ~C |- subst(~x, ~e, ~e2) : ~T2
+
 
 local {
 	consts

@@ -9,3 +9,8 @@ editor/*.generated.esv
 lib/*.generated.str
 lib-refactoring/*.generated.str
 *.aterm
+*.hash
+*.info
+*.proof
+*.fof
+*.smt2

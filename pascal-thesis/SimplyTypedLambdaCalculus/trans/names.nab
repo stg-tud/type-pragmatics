@@ -3,7 +3,7 @@ module names
 imports
   include/STLC
   
-namespaces Module Sort Symbol Axiom Goal
+namespaces Module Sort Symbol Axiom Rule
 
 binding rules
 
@@ -11,7 +11,7 @@ binding rules
 		defines unique Module m
 			of module-ref mod
 		implicitly defines Sort "Bool"
-		scopes Sort, Symbol, Axiom, Goal
+		scopes Sort, Symbol, Axiom, Rule
 		
 	Import(m):
 		imports Sort, Symbol, Axiom from Module m
@@ -19,7 +19,10 @@ binding rules
 		// where m has module-ref mod
 
 	Local(_):
-		scopes Sort, Symbol, Axiom, Goal
+		scopes Sort, Symbol, Axiom, Rule
+
+	RuleName(_, r):
+		defines Rule r
 
 	SortDef(s):
 		defines Sort s
@@ -50,3 +53,5 @@ binding rules
 properties
 
   module-ref of Module : ModuleRef
+  verification-result of Rule : VerificationResult
+  

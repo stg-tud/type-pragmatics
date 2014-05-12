@@ -15,7 +15,7 @@ rules
     ; ![ NablNsSort()
        , NablNsSymbol()
        , NablNsAxiom()
-       , NablNsGoal()
+       , NablNsRule()
        ]
 
   nabl-get-name :
@@ -43,7 +43,7 @@ rules
              , [ NablNsSort()
                , NablNsSymbol()
                , NablNsAxiom()
-               , NablNsGoal()
+               , NablNsRule()
                ]
              , []
              )
@@ -145,7 +145,7 @@ rules
       | [ NablNsSort()
         , NablNsSymbol()
         , NablNsAxiom()
-        , NablNsGoal()
+        , NablNsRule()
         ]
       )
 
@@ -154,8 +154,40 @@ rules
     ; ![ NablNsSort()
        , NablNsSymbol()
        , NablNsAxiom()
-       , NablNsGoal()
+       , NablNsRule()
        ]
+
+  nabl-get-name :
+    RuleName(_, r) -> r
+
+  nabl-name-apply(s) =
+    RuleName(id, s)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, partition__, uniques__, uri__, states__) =
+    ?RuleName(_, r)
+    ; origin-track-forced(
+        RuleName(
+          id
+        , nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , partition__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsRule()
+          , Unique()
+          , Current()
+          , []
+          , []
+          )
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
 
   nabl-get-name :
     SortDef(s) -> s
@@ -490,18 +522,20 @@ signature
     NablNsSort   : Namespace
     NablNsSymbol : Namespace
     NablNsAxiom  : Namespace
-    NablNsGoal   : Namespace
+    NablNsRule   : Namespace
 
 
 signature
   constructors
-    NablProp_module-ref : Property
+    NablProp_module-ref          : Property
+    NablProp_verification-result : Property
 
 
 rules
 
   nabl-custom-properties(add-properties) =
-    ![NablProp_module-ref()] ; add-properties
+    ![NablProp_module-ref(), NablProp_verification-result()]
+    ; add-properties
 
   module-ref-is(|task*) =
     nabl-prop-calc(|task*, [])
@@ -550,3 +584,51 @@ rules
   create-property-task(|partition, kind):
     term -> <create-module-ref-task(|partition)> term
     where NablProp_module-ref() := kind
+
+  verification-result-is(|task*) =
+    nabl-prop-calc(|task*, [])
+
+  verification-result-task(|task*) =
+    get-or-create-property-task(|task*, NablProp_verification-result())
+
+  verification-result-is(|task*, dep*) =
+    nabl-prop-calc(|task*, dep*)
+
+  verification-result-list(|task*) =
+    nabl-prop-list(|task*, [])
+
+  verification-result-list(|task*, dep*) =
+    nabl-prop-list(|task*, dep*)
+
+  verification-result-lookup(|task*) =
+    nabl-prop-lookup(|NablProp_verification-result(), task*, [])
+
+  verification-result-lookup(|task*, dep*) =
+    nabl-prop-lookup(|NablProp_verification-result(), task*, dep*)
+
+  verification-result-match(|task*, expected) =
+    nabl-prop-match(
+    | NablProp_verification-result()
+    , task*
+    , Eq()
+    , expected
+    )
+
+  verification-result-match(|task*, relation, expected) =
+    nabl-prop-match(|NablProp_verification-result(), task*, relation, expected)
+
+  create-verification-result-task(|task*) =
+    fail
+
+  get-verification-result =
+    get-property(|NablProp_verification-result())
+
+  store-verification-result(|partition, prop) =
+    nabl-store-prop(
+    | partition
+    , Prop(NablProp_verification-result(), prop, [])
+    )
+
+  create-property-task(|partition, kind):
+    term -> <create-verification-result-task(|partition)> term
+    where NablProp_verification-result() := kind

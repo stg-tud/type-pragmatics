@@ -9,8 +9,8 @@ constructors
 
 axioms
 
-lookup(~x, ~C) == ~T
-========================== T-var
+lookup(~x, ~C) == someType(~T)
+============================== T-var
 ~C |- var(~x) : ~T
 
 bind(~x, ~S, ~C) |- ~e : ~T
@@ -29,7 +29,7 @@ bind(~x, ~S, ~C) |- ~e : ~T
 OR
 => exists ~x
      ~e == var(~x)
-     lookup(~x, ~C) == ~T
+     lookup(~x, ~C) == someType(~T)
 => exists ~x, ~e2, ~T1, ~T2
      ~e == abs(~x, ~T1, ~e2)
      ~T == arrow(~T1, ~T2)

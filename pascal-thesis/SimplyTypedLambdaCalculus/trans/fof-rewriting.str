@@ -276,7 +276,7 @@ strategies
 	to-prop = innermost(R)
 	fof-trans = generate-fof-goals
 	
-	generate-fof-goals : Module(_, imps, body) -> <conc; generate-fof-goals(|[], [])> (imps, body) 
+	generate-fof-goals : Module(_, imps, body) -> <conc; {| Imported: generate-fof-goals(|[], []) |}> (imps, body) 
 	
 	generate-fof-goals(|axioms, cons) : [] -> []
 	generate-fof-goals(|axioms, cons) : [Axioms(fs) | rest] -> others
@@ -318,10 +318,16 @@ strategies
 			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Import(m) | rest] -> others
 		where
+			mname := <strip-annos> m;
+			<not(Imported)> mname;
+			rules( Imported :+ mname -> mname);
 			Module(_, imps, body) := <get-module-ref> m;
 			filtered-body := <filter(not(?Goals(_) + ?Local(_)))> body;
 			new-rest := <conc> (imps, filtered-body, rest);
 			others := <generate-fof-goals(|axioms, cons)> new-rest
+	generate-fof-goals(|axioms, cons) : [Import(m) | rest] -> others
+		where
+			others := <generate-fof-goals(|axioms, cons)> rest
 
 	generate-fof-goals(|axioms, cons) = debug(!"generate-fof-goals failed: "); fail
 

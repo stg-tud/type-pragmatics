@@ -12,6 +12,7 @@ imports
   generate
   editor/STLC-Outliner
   names
+  verification
 
 rules // Analysis
 
