@@ -39,6 +39,7 @@ exports
 		"sorts" -> Keyword
 		"import" -> Keyword
 		"undefined" -> Keyword
+		"RESULT" -> Keyword
 		
 		"Nat" -> PrimitiveType
 		"String" -> PrimitiveType

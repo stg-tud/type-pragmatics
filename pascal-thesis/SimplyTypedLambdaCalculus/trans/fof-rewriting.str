@@ -98,6 +98,16 @@ rules
 	make-meta = string-as-chars([to-upper|id]); !Meta(<id>)
 	make-eq : (t1{RelBool()}, t2) -> Impl(t2,t1{RelBool()})
 	make-eq : (t1, t2) -> Eq(t1, t2)
+	
+	make-fresh : v -> w
+	where
+		i := <Fresh> v;
+		rules ( Fresh :+ v -> <inc> i);
+		w := <conc-strings> (v, <int-to-string> i)
+	make-fresh : v -> w
+	where
+		rules ( Fresh :+ v -> 0);
+		w := <make-fresh> v
 			
 	compose-formula-p :
 		(Formula(N1, P1), Formula(N2, P2)) -> Formula(N, P)
@@ -120,11 +130,12 @@ rules
 	//                           Pred("lookup", [Meta("X"), TermApp("bind", [Meta("Y"), Meta("T2"), Meta("CTX")]), Meta("T")]))))
 	// base-rules = ![<lookup-ctx-base>, <lookup-ctx-step>]
 
+	scoped-constructor-axiom = {|Fresh: constructor-axiom|}
 	constructor-axiom : ConstructorDecl(name, args, res) -> Formula(ax-name, Axiom(), <make-all> (vars, BiImpl(Eq(t1, t2), arg-eqs-and)))
 	where
 		ax-name := <conc-strings> ("EQ-", name);
-		args1 := <map(?SortRef(<id>); newname; make-meta)> args;
-		args2 := <map(?SortRef(<id>); newname; make-meta)> args;
+		args1 := <map(?SortRef(<id>); make-fresh; make-meta)> args;
+		args2 := <map(?SortRef(<id>); make-fresh; make-meta)> args;
 		vars := <conc> (args1, args2);
 		t1 := <make-termapp> (name, args1);
 		t2 := <make-termapp> (name, args2);
@@ -135,18 +146,19 @@ rules
 	constructor-diff-axioms(|cons) : [] -> []
 	constructor-diff-axioms(|cons) : [c|cs] -> <conc> (c-axioms, others)
 	where
-		c-axioms := <map(\cons-c -> <constructor-diff-axiom> (cons-c, c)\); filter(not(?None()))> cons;
+		c-axioms := <map(\cons-c -> <scoped-constructor-diff-axiom> (cons-c, c)\); filter(not(?None()))> cons;
 		new-cons := <conc> (cons, [c]);
 		others := <constructor-diff-axioms(|new-cons)> cs
 	
+	scoped-constructor-diff-axiom = {|Fresh: constructor-diff-axiom|}
 	constructor-diff-axiom :
 		(ConstructorDecl(old-name, old-args, old-res), ConstructorDecl(new-name, new-args, new-res)) ->
 		Formula(ax-name, Axiom(), <make-all> (vars, Neq(old-t, new-t)))
 	where
 		<equal> (old-res, new-res);
 		ax-name := <conc-strings> ("DIFF-",old-name,"-",new-name);
-		old-vars := <map(?SortRef(<id>); newname; make-meta)> old-args;
-		new-vars := <map(?SortRef(<id>); newname; make-meta)> new-args;
+		old-vars := <map(?SortRef(<id>); make-fresh; make-meta)> old-args;
+		new-vars := <map(?SortRef(<id>); make-fresh; make-meta)> new-args;
 		vars := <conc> (old-vars, new-vars);
 		old-t := <make-termapp> (old-name, old-vars);
 		new-t := <make-termapp> (new-name, new-vars)
@@ -158,24 +170,25 @@ rules
 	constructor-diff-axiom = debug(!"constructor-diff-axiom failed: "); fail
 		
 		
-	function-axioms(|cons) : FunctionDef(FunctionSig(_,arg-types,res-type), eqs) -> <mapconcat(function-eq-axioms(|arg-types, res-type, cons))> eqs
+	scoped-function-axioms(|cons) = {|Fresh: function-axioms(|cons)|}
+	function-axioms(|cons) : FunctionDef(FunctionSig(_,arg-types,res-type), eqs) -> <map(function-eq-axioms(|arg-vars, res-type, cons)); concat> eqs
+	where
+		arg-vars := <map(?SortRef(<id>); make-fresh; make-meta)> arg-types
 	
-	function-eq-axioms(|arg-types, res-type, cons) : FunctionEq(name, pats, exp) -> result
+	function-eq-axioms(|arg-vars, res-type, cons) : FunctionEq(name, pats, exp) -> result
 	where
 		<not(?RelBool())> res-type;
-		arg-vars := <map(?SortRef(<id>); newname; make-meta)> arg-types;
 		result-term := <make-termapp> (name, arg-vars);
-		result-var := Meta(<newname> "RESULT");
+		result-var := Meta("RESULT");
 		result-bind := Eq(result-var, result-term);
 		pat-binds :=  <map(function-pat-prop(|cons))> pats;
 		pat-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-binds);
 		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> pat-props;
 		exp-props := <function-exp-props(|cons)> exp;
 		result := <map(make-function-formula(|name, And(pat-prop, result-bind), result-var))> exp-props 
-	function-eq-axioms(|arg-types, res-type, cons) : FunctionEq(name, pats, exp) -> result
+	function-eq-axioms(|arg-vars, res-type, cons) : FunctionEq(name, pats, exp) -> result
 	where
 		<?RelBool()> res-type;
-		arg-vars := <map(?SortRef(<id>); newname; make-meta)> arg-types;
 		result-term := <make-termapp> (name, arg-vars);
 		pat-binds :=  <map(function-pat-prop(|cons))> pats;
 		pat-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-binds);
@@ -239,7 +252,7 @@ rules
 		(cond, p) -> 
 		Formula(fname, Axiom(), <make-all>(vars, body))
 	where
-		fname := <newname> name;
+		fname := <make-fresh> name;
 		body := Impl(pat-prop, Impl(cond, <make-eq> (result-var, p)));
 		vars := <collect-all(?Meta(_))> body
 	
@@ -278,21 +291,21 @@ strategies
 			others := <generate-fof-goals(|axioms, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Constructors(cs) | rest] -> others
 		where
-			cs-axioms := <map(constructor-axiom)> cs;
+			cs-axioms := <map(scoped-constructor-axiom)> cs;
 			cs-diff-axioms := <constructor-diff-axioms(|cons)> cs;
 			axioms2 := <conc> (axioms, cs-axioms, cs-diff-axioms); 
 			cons2 := <conc> (cons, cs);
 			others := <generate-fof-goals(|axioms2, cons2)> rest
 	generate-fof-goals(|axioms, cons) : [Consts(cs) | rest] -> others
 		where
-			cs-axioms := <map(constructor-axiom)> cs;
+			cs-axioms := <map(scoped-constructor-axiom)> cs;
 			axioms2 := <conc> (axioms, cs-axioms); 
 			cons2 := <conc> (cons, cs);
 			others := <generate-fof-goals(|axioms2, cons2)> rest
 	generate-fof-goals(|axioms, cons) : [Functions(fs) | rest] -> others
 		where
 			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
-			fs-axioms := <mapconcat(function-axioms(|cons-names))> fs;
+			fs-axioms := <mapconcat(scoped-function-axioms(|cons-names))> fs;
 			axioms2 := <conc> (axioms, fs-axioms); 
 			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Import(m) | rest] -> others
