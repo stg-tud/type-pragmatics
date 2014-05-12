@@ -1,0 +1,24 @@
+module stlc.SubstBarendregt
+
+import stlc.Syntax
+
+relation
+isFreeVar : Var Exp
+isFreeVar(v, var(x))       <= x == v
+isFreeVar(v, abs(x, T, e)) <= x != v && isFreeVar(v, e) 
+isFreeVar(v, app(e1, e2))  <= isFreeVar(v, e1) || isFreeVar(v, e2)
+
+
+function
+subst : Var Exp Exp -> Exp
+subst(x, e, var(y)) =
+	if x == y
+	then e
+	else var(y)
+subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
+subst(x, e, abs(y, T, e1)) =
+	if x == y
+	then undefined
+	else if isFreeVar(y, e)
+	     then undefined
+	     else abs(y, T, subst(x, e, e1))

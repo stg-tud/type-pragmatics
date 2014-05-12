@@ -1,0 +1,10 @@
+module stlc.Reduction
+
+import stlc.Syntax
+import stlc.Subst
+
+relation
+reduce : Exp Exp
+reduce(app(abs(x, S, e1), e2), subst(x, e2, e1)) <= true
+reduce(app(e1, e2), app(e1red, e2)) <= reduce(e1, e1red) 
+reduce(app(e1, e2), app(e1, e2red)) <= reduce(e2, e2red)
