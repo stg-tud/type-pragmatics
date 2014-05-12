@@ -132,7 +132,7 @@ subst(x, e, var(y)) =
 	then e
 	else var(y)
 subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
-subst(x, e, abs(y, T, e1)) = //abs(y, T, subst(x, e, e1))
+subst(x, e, abs(y, T, e1)) =
 	if x == y || isFreeVar(y, e)
 	then undefined
 	else abs(y, T, subst(x, e, e1))
