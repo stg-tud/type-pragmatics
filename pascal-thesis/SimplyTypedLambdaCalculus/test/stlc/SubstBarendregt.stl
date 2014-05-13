@@ -1,4 +1,4 @@
-module stlc.Subst
+module stlc.SubstBarendregt
 
 import stlc.Syntax
 
@@ -7,15 +7,6 @@ isFreeVar : Var Exp
 isFreeVar(v, var(x))       <= x == v
 isFreeVar(v, abs(x, T, e)) <= x != v && isFreeVar(v, e) 
 isFreeVar(v, app(e1, e2))  <= isFreeVar(v, e1) || isFreeVar(v, e2)
-
-
-functions
-gensym : Exp -> Var
-
-axiom
-gensym(~e) == ~v
-================== gensym-is-fresh
-!isFreeVar(~v, ~e)
 
 function
 subst : Var Exp Exp -> Exp
@@ -26,8 +17,7 @@ subst(x, e, var(y)) =
 subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
 subst(x, e, abs(y, T, e1)) =
 	if x == y
-	then abs(y, T, e1)
+	then undefined
 	else if isFreeVar(y, e)
-	     then let fresh = gensym(app(app(e, e1), var(x)))
-	          in abs(fresh, T, subst(x, e, subst(y, var(fresh), e1)))
+	     then undefined
 	     else abs(y, T, subst(x, e, e1))

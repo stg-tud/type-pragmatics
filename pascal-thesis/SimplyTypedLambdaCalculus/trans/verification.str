@@ -9,44 +9,51 @@ imports
   names
   fof-rewriting
   smt-rewriting
+  stlc
   lib/editor-common.generated
+  runtime/analysis/core
   lib/runtime/index/core
   lib/runtime/task/core
 
 signature constructors
-	VerificationSuccess : File * List(Lemmas) -> Result
-	VerificationFailure : File * String -> Result
+	VerificationSuccess : List(Lemmas) -> Result
+	VerificationFailure : String -> Result
 
 rules
-	constraint-warning :
-		RuleName(_, r) -> (r, msg)
-	where
-		VerificationSuccess(file, lemmas) := <get-verification-result> r;
-		<not-up-to-date> file;
-		msg := $[Verification result outdated, use verification menu to re-verify.]
+	CurrentFileFOF = CurrentFile; guarantee-extension(|"fof")
 	
 	constraint-warning :
-		Goals(rs) -> msgs
+		Module(_,_,body) -> <map(\(r,_) -> (r,msg)\)> filtered-results
 	where
-		need-update := <filter(?TypingRule(_,RuleName(_,<id>),_); not(get-verification-result))> rs;
-		msg := $[Verification result outdated, use verification menu to re-verify.];
-		msgs := <map(\r -> (r, msg)\)> need-update
-	
+		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body;
+		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
+		results := <map(get-verification-result-info <+ !())> outfiles;
+		filtered-results := <zip; filter(?(_,()))> (rulez, results);
+		msg := $[Verification result outdated or not started yet, use verification menu to re-verify.]
 	
 	constraint-note :
-		RuleName(_, r) -> (r, msg)
+		Module(_,_,body) -> <map(\(r,res) -> (r,<verification-success-msg> res)\)> filtered-results
 	where
-		VerificationSuccess(file, lemmas) := <get-verification-result> r;
-		<not(not-up-to-date)> file;
-		msg := $[Verification succeeded, used lemmas: [<separate-by(|", "); concat-strings> lemmas].]
+		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body;
+		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
+		results := <map(get-verification-result-info <+ !())> outfiles;
+		filtered-results := <zip; filter(?(_,VerificationSuccess(_)))> (rulez, results)
+	
+	verification-success-msg : 
+		VerificationSuccess(lemmas) -> 
+		$[Verification succeeded, used lemmas: [<separate-by(|", "); concat-strings> lemmas].]
 	
 	
 	constraint-error : 
-		RuleName(_, r) -> (r, msg)
+		Module(_,_,body) -> <map(\(r,res) -> (r,<verification-failure-msg> res)\)> filtered-results
 	where
-		VerificationFailure(file, errmsg) := <get-verification-result> r;
-		<not(not-up-to-date)> file;
-		msg := $[Verification failed: [errmsg].]
+		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body;
+		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
+		results := <map(get-verification-result-info <+ !())> outfiles;
+		filtered-results := <zip; filter(?(_,VerificationFailure(_)))> (rulez, results)
+
+	verification-failure-msg : 
+		VerificationFailure(errmsg) -> $[Verification failed: [errmsg].]
 
 rules
 	clean-proofs : (selected, position, ast, path, project-path) -> None()
@@ -54,37 +61,36 @@ rules
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
 	    filename := <guarantee-extension(|"fof")> path;
-	    goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
-	    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
-	    outfiles := <generate-files(|filename)> strings;
+	    rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
+	    outfiles := <generate-file-names(|filename)> rulez;
 	    <map(clean-proof)> outfiles
 	
 	clean-proof =
 		?file;
+		fof-file := <guarantee-extension(|"fof")> file;
 		hash-file := <guarantee-extension(|"hash")> file;
 		info-file := <guarantee-extension(|"info")> file;
 		proof-file := <guarantee-extension(|"proof")> file;
+		<try(remove-file)> fof-file;
 		<try(remove-file)> hash-file;
 		<try(remove-file)> info-file;
 		<try(remove-file)> proof-file
 	
-	
+
+rules
 	verify-vampire :
 		(selected, position, ast, path, project-path) -> None()
-	where finally(
+	where 
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
-		partition   := $[[project-path]];
-		try(task-start-collection(|partition));
-		
 	    filename := <guarantee-extension(|"fof")> path;
 	    rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
 	    goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
 	    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
 	    outfiles := <generate-files(|filename)> strings;
-	    <zip; map(\(r,f) -> <try(call-vampire(|partition, r))> f\)> (rulez, outfiles),
-    try(task-stop-collection(|partition)))
-	    
+	    <zip; map(\(r,f) -> <try(call-vampire)> f\)> (rulez, outfiles);
+    	<queue-analysis> path
+	
 
 	// call-and-handle = call < debug(!"Command succeeded: ") + debug(!"Command failed: ")
 
@@ -98,31 +104,42 @@ rules
     		 Stream(err) := <stderr-stream>;
 			 finally(
 				<call> (<vampire-command>, <conc>(<vampire-options>, [file]), ins, out, err);
-				<extract-vampire-info(|file, partition, rule)> proof-file,
+				<extract-vampire-info> proof-file,
 				<fclose> out)
-		else <extract-vampire-info(|file, partition, rule)> proof-file
+		else <extract-vampire-info> proof-file
 		end
 	
-	not-up-to-date =
+	not-up-to-date = 
 		?file;
+		proof-file := <guarantee-extension(|"proof")> file;
 		hash-file := <guarantee-extension(|"hash")> file;
 		new-hash := <compute-hash> file;
-		old-hash := <read-text-file <+ !""> hash-file;
-		<not(equal)> (new-hash, old-hash);
+		(  <not(file-exists)> proof-file 
+		<+ <not(file-exists)> hash-file
+		<+ old-hash := <read-text-file <+ !""> hash-file;
+		   <not(equal)> (new-hash, old-hash)
+		);
 		!(hash-file, new-hash)
-	
-	extract-vampire-info(|file, partition, rule) =
+		
+		
+	extract-vampire-info =
 		?proof-file;
 		proof := <read-text-file> proof-file;
-		lines := <get-lines; reverse; Tl; ?[last,butlast|_]; reverse> proof;
+		lines := <get-lines; reverse; ?[_,last,butlast|_]; reverse> proof;
 		lemma-lines := <filter(string-starts-with(|"  file("))> lines;
 		lemmas := <map(extract-tptp-lemma-name-from-line)> lemma-lines;
 		info-file := <guarantee-extension(|"info")> proof-file;
 		result := <is-substring(!"Success") <
-			        !VerificationSuccess(file, lemmas) + 
-			        !VerificationFailure(file, butlast)> last;
-		<write-file> (info-file, <write-to-string> result);
-		<store-verification-result(|partition, result)> rule
+			        !VerificationSuccess(lemmas) + 
+			        !VerificationFailure(butlast)> last;
+		<write-file> (info-file, <write-to-string> result)
+	
+	get-verification-result-info =
+		?file;
+		not(not-up-to-date);
+		info-file := <guarantee-extension(|"info")> file;
+		<read-text-file; read-from-string> info-file
+		
 	
 	extract-tptp-lemma-name-from-line =
 		?line;
@@ -130,6 +147,10 @@ rules
 		<split-before; Fst> (<id>, ")");
 		try(unquote(?'\''))
 
+	compute-hash =
+		?file;
+		<not(file-exists)> file;
+		!0
 	compute-hash =
 		?file;
 		(tmp,_) := <new-temp-file>;

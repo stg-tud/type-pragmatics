@@ -85,13 +85,13 @@ rules
     ; fail
 
   nabl-get-name :
-    Import(m) -> m
+    Import(m, _) -> m
 
   nabl-name-apply(s) =
-    Import(s)
+    Import(s, id)
 
   nabl-use-site(|lang__, partition__, uniques__, uris__, states__) =
-    ?Import(m)
+    ?Import(m, _)
     ; origin-track-forced(
         Import(
           nabl-use(
@@ -108,12 +108,13 @@ rules
               )
             ]
           )
+        , id
         )
       |
       )
 
   nabl-import-site(|lang__, partition__, uniques__, uris__, states__) =
-    ?Import(m)
+    ?Import(m, _)
     ; origin-track-forced(
         nabl-import(
         | lang__
@@ -527,15 +528,13 @@ signature
 
 signature
   constructors
-    NablProp_module-ref          : Property
-    NablProp_verification-result : Property
+    NablProp_module-ref : Property
 
 
 rules
 
   nabl-custom-properties(add-properties) =
-    ![NablProp_module-ref(), NablProp_verification-result()]
-    ; add-properties
+    ![NablProp_module-ref()] ; add-properties
 
   module-ref-is(|task*) =
     nabl-prop-calc(|task*, [])
@@ -584,51 +583,3 @@ rules
   create-property-task(|partition, kind):
     term -> <create-module-ref-task(|partition)> term
     where NablProp_module-ref() := kind
-
-  verification-result-is(|task*) =
-    nabl-prop-calc(|task*, [])
-
-  verification-result-task(|task*) =
-    get-or-create-property-task(|task*, NablProp_verification-result())
-
-  verification-result-is(|task*, dep*) =
-    nabl-prop-calc(|task*, dep*)
-
-  verification-result-list(|task*) =
-    nabl-prop-list(|task*, [])
-
-  verification-result-list(|task*, dep*) =
-    nabl-prop-list(|task*, dep*)
-
-  verification-result-lookup(|task*) =
-    nabl-prop-lookup(|NablProp_verification-result(), task*, [])
-
-  verification-result-lookup(|task*, dep*) =
-    nabl-prop-lookup(|NablProp_verification-result(), task*, dep*)
-
-  verification-result-match(|task*, expected) =
-    nabl-prop-match(
-    | NablProp_verification-result()
-    , task*
-    , Eq()
-    , expected
-    )
-
-  verification-result-match(|task*, relation, expected) =
-    nabl-prop-match(|NablProp_verification-result(), task*, relation, expected)
-
-  create-verification-result-task(|task*) =
-    fail
-
-  get-verification-result =
-    get-property(|NablProp_verification-result())
-
-  store-verification-result(|partition, prop) =
-    nabl-store-prop(
-    | partition
-    , Prop(NablProp_verification-result(), prop, [])
-    )
-
-  create-property-task(|partition, kind):
-    term -> <create-verification-result-task(|partition)> term
-    where NablProp_verification-result() := kind

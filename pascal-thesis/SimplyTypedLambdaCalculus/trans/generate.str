@@ -16,16 +16,21 @@ rules // Incremental code generation of project using compilation library.
       
   // See lib/compilation-library.generated.str for documentation
 
-  generate-files(|base) = generate-files(|base, 0)
-  
-  generate-files(|base, i) : [] -> []
-  generate-files(|base, i) : [output | rest] -> [outfile | <generate-files(|base, <inc> i)> rest]
+  generate-files(|base) =
+  	?files;
+  	names := <generate-file-names(|base)> files;
+  	<zip> (names, files);
+  	map(write-file);
+  	!names
+
+  generate-file-names(|base) = generate-file-names(|base, 0)
+  generate-file-names(|base, i) : [] -> []
+  generate-file-names(|base, i) : [output | rest] -> [outfile | <generate-file-names(|base, <inc> i)> rest]
   where
     <get-extension> base => ext;
     <remove-extension> base => basename;
     <conc-strings> (basename, "-", <int-to-string> i) => filename;
-    <add-extension> (filename, ext) => outfile;
-    <write-file> (outfile, output)
+    <add-extension> (filename, ext) => outfile
   
   write-file : (file, output) -> <id>
   where

@@ -1,12 +1,9 @@
 module stlc.Syntax
 
 sorts
-  Var Exp Typ Ctx OptTyp
+  Var Exp Typ
 
 constructors
   var : Var -> Exp
   abs : Var Typ Exp -> Exp
   app : Exp Exp -> Exp
-
-  empty : Ctx
-  bind : Var Typ Ctx -> Ctx

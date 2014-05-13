@@ -13,7 +13,7 @@ binding rules
 		implicitly defines Sort "Bool"
 		scopes Sort, Symbol, Axiom, Rule
 		
-	Import(m):
+	Import(m,_):
 		imports Sort, Symbol, Axiom from Module m
 		// refers to Module m
 		// where m has module-ref mod
@@ -53,5 +53,4 @@ binding rules
 properties
 
   module-ref of Module : ModuleRef
-  verification-result of Rule : VerificationResult
   

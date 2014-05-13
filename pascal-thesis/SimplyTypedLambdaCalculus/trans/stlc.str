@@ -16,7 +16,8 @@ imports
 
 rules // Analysis
 
-	editor-analyze = analysis-default-editor  
+	editor-analyze : input@(ast, path, project-path) -> result
+	where result := <{|CurrentFile: rules(CurrentFile := path); analysis-default-editor|}> input  
 
 	analysis-single-default-interface = 
 		analysis-single-default(id, id, id|<language>)

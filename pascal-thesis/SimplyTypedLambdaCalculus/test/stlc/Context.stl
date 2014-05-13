@@ -2,8 +2,11 @@ module stlc.Context
 
 import stlc.Syntax
 
-sorts OptTyp
+sorts Ctx OptTyp
 constructors
+  empty : Ctx
+  bind : Var Typ Ctx -> Ctx
+  
   noType : OptTyp
   someType : Typ -> OptTyp
 

@@ -43,6 +43,6 @@ menus
   menu: "Verification"
     
     action: "Verify with Vampire" = verify-vampire
-    action: "Clean proofs" = clean-proofs
+    action: "Clean" = clean-proofs
     
   

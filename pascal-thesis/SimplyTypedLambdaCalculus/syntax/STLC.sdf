@@ -52,7 +52,7 @@ exports
 		ReduceJudgment -> TypingRuleJudgment
 		NotJudgment -> TypingRuleJudgment
 		
-	sorts Module Rules DerivedRules Import Imports ModuleDec Qualified Definitions
+	sorts Module Rules DerivedRules Import ModuleDec Qualified Definitions
 	
 	lexical syntax
 		[a-zA-Z][a-zA-Z0-9]* -> SortLex
@@ -109,11 +109,18 @@ exports
 
 	
 	context-free syntax
-		"import" MID -> Import {cons("Import")}
+		"import" MID ImportAnnos? -> Import {cons("Import")}
+		"{"{ImportAnno ","}* "}" -> ImportAnnos {cons("ImportAnno")}
+		"names" -> ImportAnno {cons("ImportAnnoNames")}
+		"axioms" -> ImportAnno {cons("ImportAnnoAxioms")}
+		"functions" -> ImportAnno {cons("ImportAnnoFunctions")}
+		"goals" -> ImportAnno {cons("ImportAnnoGoals")}
+		"constructors" -> ImportAnno {cons("ImportAnnoConstructors")}
 		
 		"local" "{" ModuleDef* "}" -> ModuleDef {cons("Local")}
 
 		"sorts" SortDef* -> ModuleDef {cons("Sorts")}
+		"sort" SortDef -> ModuleDef {ast("Sorts([<1>])")}
 		
 		"constructors" ConstructorDecl* -> ModuleDef {cons("Constructors")}
 		"constructor" ConstructorDecl -> ModuleDef {ast("Constructors([<1>])")}

@@ -75,10 +75,10 @@ rules
 			defines := <map(formula-to-define)> formulas;
 			asserts := <map(formula-to-assert)> formulas;
 			others := <generate-smt-goals(|cons)> rest
-	generate-smt-goals(|cons) : [Import(m) | rest] -> others
+	generate-smt-goals(|cons) : [Import(m,annos) | rest] -> others
 		where
 			Module(_, imps, body) := <get-module-ref> m;
-			filtered-body := <filter(not(?Goals(_) + ?Local(_)))> body;
+			filtered-body := <filter-import(|annos)> body;
 			new-rest := <conc> (imps, filtered-body, rest);
 			others := <generate-smt-goals(|cons)> new-rest
 
