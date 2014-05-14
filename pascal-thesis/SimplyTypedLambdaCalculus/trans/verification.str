@@ -63,7 +63,8 @@ rules
 	    filename := <guarantee-extension(|"fof")> path;
 	    rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
 	    outfiles := <generate-file-names(|filename)> rulez;
-	    <map(clean-proof)> outfiles
+	    <map(clean-proof)> outfiles;
+    	<queue-analysis> path
 	
 	clean-proof =
 		?file;
