@@ -3,11 +3,11 @@ module stlc.Subst
 import stlc.Syntax
 import stlc.Context
 
-relation
-isFreeVar : Var Exp
-isFreeVar(v, var(x))       <= x == v
-isFreeVar(v, abs(x, T, e)) <= x != v && isFreeVar(v, e) 
-isFreeVar(v, app(e1, e2))  <= isFreeVar(v, e1) || isFreeVar(v, e2)
+function
+isFreeVar : Var Exp -> Bool
+isFreeVar(v, var(x))       = x == v
+isFreeVar(v, abs(x, T, e)) = x != v && isFreeVar(v, e) 
+isFreeVar(v, app(e1, e2))  = isFreeVar(v, e1) || isFreeVar(v, e2)
 
 axiom
 !isFreeVar(~x, ~e)

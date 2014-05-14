@@ -1,0 +1,66 @@
+module stlc.Progress
+
+import stlc.Syntax
+import stlc.Context
+import stlc.Subst {names}
+import stlc.SubstLemma
+import stlc.Reduction
+import stlc.Types
+
+
+// Prove type preservation by induction on recursive structure of reduction relation
+// Each derived rule represents one induction case.
+
+goal
+~ein == app(abs(~x, ~S, ~e1), ~e2)
+~eout == subst(~x, ~e2, ~e1)
+~C |- ~ein : ~T
+======================================== T-Preservation-beta
+~C |- subst(~x, ~e2, ~e1) : ~T 
+
+local {
+	consts
+		e1 : Exp
+		e1red : Exp
+	
+	axiom	 
+	~C |- e1 : ~T
+	reduce(e1, e1red)
+	======================= T-Preservation-IH-app1
+	~C |- e1red : ~T
+
+	goal
+	~ein == app(e1, ~e2)
+	~eout == app(e1red, ~e2)
+	reduce(e1, e1red)
+	~C |- ~ein : ~T
+	================================ T-Preservation-App1
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+		e2 : Exp
+		e2red : Exp
+	
+	axiom
+	~C |- e2 : ~T
+	reduce(e2, e2red)
+	================= T-Preservation-IH-app2
+	~C |- e2red : ~T
+
+	goal	
+	~ein == app(~e1, e2)
+	~eout == app(~e1, e2red)
+	reduce(e2, e2red)
+	~C |- ~ein : ~T
+	================================ T-Preservation-App2
+	~C |- ~eout : ~T
+}
+
+axiom
+empty |- ~ein : ~T
+!isValue(~ein)
+======================= T-Preservation
+exists ~eout
+	reduce(~ein, ~eout)

@@ -7,3 +7,9 @@ constructors
   var : Var -> Exp
   abs : Var Typ Exp -> Exp
   app : Exp Exp -> Exp
+
+function
+isValue : Exp -> Bool
+isValue(abs(x, S, e)) = true
+isValue(var(x)) = false
+isValue(app(e1, e2)) = false

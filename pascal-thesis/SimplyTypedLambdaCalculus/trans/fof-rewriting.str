@@ -97,6 +97,7 @@ rules
 	make-var = string-as-chars([to-lower|id]); !Var(<id>)
 	make-meta = string-as-chars([to-upper|id]); !Meta(<id>)
 	make-eq : (t1{RelBool()}, t2) -> Impl(t2,t1{RelBool()})
+	make-eq : (t1{SortRef("Bool")}, t2) -> BiImpl(t2,t1{SortRef("Bool")})
 	make-eq : (t1, t2) -> Eq(t1, t2)
 	
 	make-fresh : v -> w
@@ -177,7 +178,7 @@ rules
 	
 	function-eq-axioms(|arg-vars, res-type, cons) : FunctionEq(name, pats, exp) -> result
 	where
-		<not(?RelBool())> res-type;
+		<not(?RelBool() + ?SortRef("Bool"))> res-type;
 		result-term := <make-termapp> (name, arg-vars);
 		result-var := Meta("RESULT");
 		result-bind := Eq(result-var, result-term);
@@ -188,13 +189,13 @@ rules
 		result := <map(make-function-formula(|name, And(pat-prop, result-bind), result-var))> exp-props 
 	function-eq-axioms(|arg-vars, res-type, cons) : FunctionEq(name, pats, exp) -> result
 	where
-		<?RelBool()> res-type;
+		<?RelBool() + ?SortRef("Bool")> res-type;
 		result-term := <make-termapp> (name, arg-vars);
 		pat-binds :=  <map(function-pat-prop(|cons))> pats;
 		pat-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-binds);
 		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> pat-props;
 		exp-props := <function-exp-props(|cons)> exp;
-		result := <map(make-function-formula(|name, pat-prop, result-term{RelBool()}))> exp-props 
+		result := <map(make-function-formula(|name, pat-prop, result-term{res-type}))> exp-props 
 	function-eq-axioms(|arg-sorts) = debug(!"function-eq-axioms failed: "); fail
 	
 	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-var> v
