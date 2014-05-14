@@ -56,3 +56,9 @@ local {
 	================================ T-Preservation-App2
 	~C |- ~eout : ~T
 }
+
+axiom
+reduce(~ein, ~eout)
+~C |- ~ein : ~T
+=================== T-Preservation
+~C |- ~eout : ~T
