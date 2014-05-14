@@ -8,59 +8,68 @@ import stlc.Reduction
 import stlc.Types
 
 
-// Prove type preservation by induction on recursive structure of reduction relation
-// Each derived rule represents one induction case.
+// Prove by induction on typing relation. Cases: T-var, T-abs, T-app
 
 goal
-~ein == app(abs(~x, ~S, ~e1), ~e2)
-~eout == subst(~x, ~e2, ~e1)
-~C |- ~ein : ~T
-======================================== T-Preservation-beta
-~C |- subst(~x, ~e2, ~e1) : ~T 
+~ein == var(~x)
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-var
+exists ~eout
+	reduce(~ein, ~eout)
 
 local {
 	consts
 		e1 : Exp
-		e1red : Exp
 	
 	axiom	 
-	~C |- e1 : ~T
-	reduce(e1, e1red)
-	======================= T-Preservation-IH-app1
-	~C |- e1red : ~T
+	empty |- e1 : ~T
+	!isValue(e1)
+	========================== T-Progress-IH-abs
+	exists ~eout
+		reduce(e1, ~eout)
 
 	goal
-	~ein == app(e1, ~e2)
-	~eout == app(e1red, ~e2)
-	reduce(e1, e1red)
-	~C |- ~ein : ~T
-	================================ T-Preservation-App1
-	~C |- ~eout : ~T
+	~ein == abs(~x, ~S, e1)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-abs
+	exists ~eout
+		reduce(~ein, ~eout)
 }
+
 
 local {
 	consts
+		e1 : Exp
 		e2 : Exp
-		e2red : Exp
 	
-	axiom
-	~C |- e2 : ~T
-	reduce(e2, e2red)
-	================= T-Preservation-IH-app2
-	~C |- e2red : ~T
+	axiom	 
+	empty |- e1 : ~T
+	!isValue(e1)
+	========================= T-Progress-IH-app-1
+	exists ~eout
+		reduce(e1, ~eout)
 
-	goal	
-	~ein == app(~e1, e2)
-	~eout == app(~e1, e2red)
-	reduce(e2, e2red)
-	~C |- ~ein : ~T
-	================================ T-Preservation-App2
-	~C |- ~eout : ~T
+	axiom // not needed	 
+	empty |- e2 : ~T
+	!isValue(e2)
+	========================= T-Progress-IH-app-2
+	exists ~eout
+		reduce(e2, ~eout)
+
+	goal
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app
+	exists ~eout
+		reduce(~ein, ~eout)
 }
 
 axiom
 empty |- ~ein : ~T
 !isValue(~ein)
-======================= T-Preservation
+=========================== T-Progress
 exists ~eout
 	reduce(~ein, ~eout)
