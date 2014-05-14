@@ -1,4 +1,4 @@
-module stlc.SubstBarendregt
+module stlc.barendregt.Subst
 
 import stlc.Syntax
 import stlc.Context
