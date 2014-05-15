@@ -7,7 +7,6 @@ import stlc.SubstLemma
 import stlc.Reduction
 import stlc.Types
 
-
 // Prove by induction on typing relation. Cases: T-var, T-abs, T-app
 
 goal
@@ -16,18 +15,19 @@ empty |- ~ein : ~T
 !isValue(~ein)
 =========================== T-Progress-T-var
 exists ~eout
-	reduce(~ein, ~eout)
+	reduce(~ein) == someExp(~eout)
 
 local {
 	consts
 		e1 : Exp
 	
-	axiom	 
-	empty |- e1 : ~T
-	!isValue(e1)
-	========================== T-Progress-IH-abs
+	axiom
+	~ein == e1	 
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app
 	exists ~eout
-		reduce(e1, ~eout)
+		reduce(~ein) == someExp(~eout)
 
 	goal
 	~ein == abs(~x, ~S, e1)
@@ -35,7 +35,7 @@ local {
 	!isValue(~ein)
 	=========================== T-Progress-T-abs
 	exists ~eout
-		reduce(~ein, ~eout)
+		reduce(~ein) == someExp(~eout)
 }
 
 
@@ -45,26 +45,27 @@ local {
 		e2 : Exp
 	
 	axiom	 
-	empty |- e1 : ~T
-	!isValue(e1)
-	========================= T-Progress-IH-app-1
+	~ein == e1
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app-IH1
 	exists ~eout
-		reduce(e1, ~eout)
+		reduce(~ein) == someExp(~eout)
 
-	axiom // not needed	 
-	empty |- e2 : ~T
-	!isValue(e2)
-	========================= T-Progress-IH-app-2
+	axiom // not needed
+	~ein == e2	 
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app-IH2
 	exists ~eout
-		reduce(e2, ~eout)
+		reduce(~ein) == someExp(~eout)
 
 	goal
 	~ein == app(e1, e2)
 	empty |- ~ein : ~T
-	!isValue(~ein)
 	=========================== T-Progress-T-app
 	exists ~eout
-		reduce(~ein, ~eout)
+		reduce(~ein) == someExp(~eout)
 }
 
 axiom
@@ -72,4 +73,4 @@ empty |- ~ein : ~T
 !isValue(~ein)
 =========================== T-Progress
 exists ~eout
-	reduce(~ein, ~eout)
+	reduce(~ein) == someExp(~eout)

@@ -11,54 +11,60 @@ import stlc.Types
 // Each derived rule represents one induction case.
 
 goal
-~ein == app(abs(~x, ~S, ~e1), ~e2)
-~eout == subst(~x, ~e2, ~e1)
+~ein == var(~x)
+reduce(~ein) = someExp(~eout)
 ~C |- ~ein : ~T
-======================================== T-Preservation-beta
-~C |- subst(~x, ~e2, ~e1) : ~T 
+=================== T-Preservation-T-var
+~C |- ~eout : ~T
 
 local {
 	consts
 		e1 : Exp
-		e1red : Exp
 	
-	axiom	 
-	~C |- e1 : ~T
-	reduce(e1, e1red)
-	======================= T-Preservation-IH-app1
-	~C |- e1red : ~T
+	axiom
+	~ein == e1	 
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-abs-IH
+	~C |- ~eout : ~T
 
 	goal
-	~ein == app(e1, ~e2)
-	~eout == app(e1red, ~e2)
-	reduce(e1, e1red)
+	~ein == abs(~x, ~S, e1)
+	reduce(~ein) = someExp(~eout)
 	~C |- ~ein : ~T
-	================================ T-Preservation-App1
+	================================ T-Preservation-T-abs
 	~C |- ~eout : ~T
 }
 
 local {
 	consts
+		e1 : Exp
 		e2 : Exp
-		e2red : Exp
 	
 	axiom
-	~C |- e2 : ~T
-	reduce(e2, e2red)
-	================= T-Preservation-IH-app2
-	~C |- e2red : ~T
-
-	goal	
-	~ein == app(~e1, e2)
-	~eout == app(~e1, e2red)
-	reduce(e2, e2red)
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
 	~C |- ~ein : ~T
-	================================ T-Preservation-App2
+	================================ T-Preservation-T-app-IH1
+	~C |- ~eout : ~T
+
+	axiom
+	~ein == e2
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-IH2
+	~C |- ~eout : ~T
+
+	goal
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app
 	~C |- ~eout : ~T
 }
 
 axiom
-reduce(~ein, ~eout)
+reduce(~ein) = someExp(~eout)
 ~C |- ~ein : ~T
 =================== T-Preservation
 ~C |- ~eout : ~T
