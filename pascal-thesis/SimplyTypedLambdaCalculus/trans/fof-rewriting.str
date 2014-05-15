@@ -172,31 +172,37 @@ rules
 		
 		
 	scoped-function-axioms(|cons) = {|Fresh: function-axioms(|cons)|}
-	function-axioms(|cons) : FunctionDef(FunctionSig(_,arg-types,res-type), eqs) -> <map(function-eq-axioms(|arg-vars, res-type, cons)); concat> eqs
+	function-axioms(|cons) : FunctionDef(FunctionSig(_,arg-types,res-type), eqs) -> <function-eqs-axioms(|arg-vars, res-type, cons, False())> eqs
 	where
 		arg-vars := <map(?SortRef(<id>); make-fresh; make-meta)> arg-types
 	
-	function-eq-axioms(|arg-vars, res-type, cons) : FunctionEq(name, pats, exp) -> result
+	function-eqs-axioms(|arg-vars, res-type, cons, prepat-prop) : [] -> []
+	function-eqs-axioms(|arg-vars, res-type, cons, prepat-prop) : [f@FunctionEq(name, pats, exp) | fs] -> result
+	where
+		pat-props :=  <map(function-pat-prop(|cons));debug> pats;
+		pat-bind-props := <zip; map(\(a,b) -> Eq(a,b)\);debug> (arg-vars, pat-props);
+		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True());debug> pat-bind-props;
+		pat-notprepat-prop := And(pat-prop, Not(prepat-prop));
+		fs-props := <debug; function-eq-axioms(|arg-vars, res-type, cons, pat-notprepat-prop);debug> f;
+		rest-props := <function-eqs-axioms(|arg-vars, res-type, cons, Or(pat-prop, prepat-prop))> fs;
+		result := <debug; conc> (fs-props, rest-props)
+	function-eqs-axioms(|arg-vars, res-type, cons, prepat-prop) = where(<debug(!"function-eqs-axioms failed: ")> (arg-vars, res-type, cons, prepat-prop)); strip-annos; debug; fail
+	
+	function-eq-axioms(|arg-vars, res-type, cons, pat-prop) : FunctionEq(name, pats, exp) -> result
 	where
 		<not(?RelBool() + ?SortRef("Bool"))> res-type;
 		result-term := <make-termapp> (name, arg-vars);
 		result-var := Meta("RESULT");
 		result-bind := Eq(result-var, result-term);
-		pat-binds :=  <map(function-pat-prop(|cons))> pats;
-		pat-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-binds);
-		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> pat-props;
 		exp-props := <function-exp-props(|cons)> exp;
 		result := <map(make-function-formula(|name, And(pat-prop, result-bind), result-var))> exp-props 
-	function-eq-axioms(|arg-vars, res-type, cons) : FunctionEq(name, pats, exp) -> result
+	function-eq-axioms(|arg-vars, res-type, cons, pat-prop) : FunctionEq(name, pats, exp) -> result
 	where
 		<?RelBool() + ?SortRef("Bool")> res-type;
 		result-term := <make-termapp> (name, arg-vars);
-		pat-binds :=  <map(function-pat-prop(|cons))> pats;
-		pat-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-binds);
-		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> pat-props;
 		exp-props := <function-exp-props(|cons)> exp;
 		result := <map(make-function-formula(|name, pat-prop, result-term{res-type}))> exp-props 
-	function-eq-axioms(|arg-sorts) = debug(!"function-eq-axioms failed: "); fail
+	function-eq-axioms(|arg-vars, res-type, cons, pat-prop) = debug(!"function-eq-axioms failed: "); fail
 	
 	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-var> v
 	where <elem(|v)> cons
@@ -222,12 +228,13 @@ rules
 		e-props := <function-exp-props(|cons)> e;
 		result1 := <map(\(a,b) -> (And(c-prop,a), b)\)> t-props;
 		result2 := <map(\(a,b) -> (And(Not(c-prop),a), b)\)> e-props
-	function-exp-props(|cons) : FunctionExpLet(x, e1, e2) -> [(eq-prop, e2-prop)]
+	function-exp-props(|cons) : FunctionExpLet(x, e1, e2) -> res-props
 	where
 		var := <make-meta> x;
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in bound expression
-		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in bound expression
-		eq-prop := Eq(var, e1-prop)
+		eq-prop := Eq(var, e1-prop);
+		e2-props := <function-exp-props(|cons)> e2;
+		res-props := <map(\(c,p) -> (And(eq-prop, c), p)\)> e2-props
 	function-exp-props(|cons) : FunctionExpEq(e1, e2) -> [(True(), Eq(e1-prop, e2-prop))]
 	where
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
