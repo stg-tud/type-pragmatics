@@ -3,6 +3,7 @@ module stlc.Reduction
 import stlc.Syntax
 import stlc.Subst
 
+
 sorts
 	OptExp
 
@@ -15,7 +16,7 @@ isSomeExp : OptExp -> Bool
 isSomeExp(noExp) = false
 isSomeExp(someExp(e)) = true
 
-function
+partial function
 getSomeExp : OptExp -> Exp
 getSomeExp(someExp(e)) = e
 

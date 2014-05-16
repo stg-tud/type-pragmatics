@@ -132,8 +132,11 @@ exports
 		"functions" FunctionDef* -> ModuleDef {cons("Functions")}
 		"function" FunctionDef -> ModuleDef {ast("Functions([<1>])")}
 
-		"relations" RelationDef* -> ModuleDef {cons("Functions")}
-		"relation" RelationDef -> ModuleDef {ast("Functions([<1>])")}
+		"partial" "functions" FunctionDef* -> ModuleDef {cons("PartialFunctions")}
+		"partial" "function" FunctionDef -> ModuleDef {ast("PartialFunctions([<1>])")}
+
+		"relations" RelationDef* -> ModuleDef {cons("PartialFunctions")}
+		"relation" RelationDef -> ModuleDef {ast("PartialFunctions([<1>])")}
 
 		"axioms" TypingRule* -> ModuleDef {cons("Axioms")}
 		"axiom" TypingRule -> ModuleDef {ast("Axioms([<1>])")}

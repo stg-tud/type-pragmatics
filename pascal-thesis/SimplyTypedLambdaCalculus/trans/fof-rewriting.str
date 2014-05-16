@@ -218,16 +218,26 @@ rules
 
 	make-function-formula : 
 		(name, pat-prop, result-bind, result-var, (cond, p)) ->
+		// (_,
+		//  And(Eq(Meta("Exp0"),TermApp("var",[Meta("X")])),All([Meta("X"),Meta("S"),Meta("E")],Not(Eq(Meta("Exp0"),TermApp("abs",[Meta("X"),Meta("S"),Meta("E")]))))),
+		//  True,
+		//  TermApp("isValue",[Meta("Exp0")]){SortRef("Bool")},
+		//  (True,False))
 		Formula(fname, Axiom(), <close-prop> body)
 	where
+		debug;
 		fname := <make-fresh> name;
 		body := <make-impl>(pat-prop, <make-impl>(cond, <make-impl>(result-bind, <make-eq> (result-var, p))))
 	make-function-formula = debug(!"make-function-formula failed: "); fail
 	
 	scoped-function-inversion-axioms(|cons) = {|Fresh: function-inversion-axioms(|cons)|}
 	function-inversion-axioms(|cons) : FunctionDef(FunctionSig(name,arg-types,res-type), []) -> []
+	function-inversion-axioms(|cons) : FunctionDef(FunctionSig(name,arg-types,res-type), eqs) -> []
+	where
+		<?RelBool() + ?SortRef("Bool")> res-type
 	function-inversion-axioms(|cons) : FunctionDef(FunctionSig(name,arg-types,res-type), eqs) -> [axiom]
 	where
+		<not(?RelBool() + ?SortRef("Bool"))> res-type;
 		arg-vars := <map(?SortRef(<id>); make-fresh; make-meta)> arg-types;
 		result-var := Meta("RESULT");
 		result-prop := Eq(TermApp(name, arg-vars), result-var);
@@ -290,16 +300,18 @@ strategies
 			axioms2 := <conc> (axioms, cs-axioms); 
 			cons2 := <conc> (cons, cs);
 			others := <generate-fof-goals(|axioms2, cons2)> rest
+	generate-fof-goals(|axioms, cons) : [PartialFunctions(fs) | rest] -> others
+		where
+			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
+			fs-axioms := <mapconcat(scoped-function-axioms(|cons-names))> fs;
+			axioms2 := <conc> (axioms, fs-axioms);
+			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Functions(fs) | rest] -> others
 		where
 			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
-			debug;
 			fs-axioms := <mapconcat(scoped-function-axioms(|cons-names))> fs;
-			debug;
-			fs-inv-axioms := <mapconcat(scoped-function-inversion-axioms(|cons-names); debug)> fs;
-			debug;
+			fs-inv-axioms := <mapconcat(scoped-function-inversion-axioms(|cons-names))> fs;
 			axioms2 := <conc> (axioms, fs-axioms, fs-inv-axioms);
-			debug; 
 			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Import(m, annos) | rest] -> others
 		where
@@ -332,6 +344,8 @@ strategies
 	where <?Some(<elem(|ImportAnnoConstructors())>)> annos
 	filter-import(|annos) : [x@Consts(_)|xs] -> [x|<filter-import(|annos)>xs]
 	where <?Some(<elem(|ImportAnnoConstructors())>)> annos
+	filter-import(|annos) : [x@PartialFunctions(_)|xs] -> [x|<filter-import(|annos)>xs]
+	where <?Some(<elem(|ImportAnnoFunctions())>)> annos
 	filter-import(|annos) : [x@Functions(_)|xs] -> [x|<filter-import(|annos)>xs]
 	where <?Some(<elem(|ImportAnnoFunctions())>)> annos
 	filter-import(|annos) : [x|xs] -> <filter-import(|annos)>xs

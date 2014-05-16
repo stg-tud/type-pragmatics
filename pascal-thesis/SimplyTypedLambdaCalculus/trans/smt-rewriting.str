@@ -4,6 +4,7 @@ imports include/STLC
 imports libstratego-lib
 imports trans/fof-rewriting
 imports names
+imports props
 
 signature
 	constructors
@@ -67,6 +68,14 @@ rules
 			cs-asserts := <map(formula-to-assert)> cs-formulas;
 			cons2 := <conc> (cons, cs);
 			others := <generate-smt-goals(|cons2)> rest
+	generate-smt-goals(|cons) : [PartialFunctions(fs) | rest] -> <conc> (fs-decls, defines, asserts, others)
+		where
+			fs-decls := <map(function-to-function-decl)> fs;
+			cs-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
+			formulas := <mapconcat(scoped-function-axioms(|cs-names))> fs;
+			defines := <map(formula-to-define)> formulas;
+			asserts := <map(formula-to-assert)> formulas;
+			others := <generate-smt-goals(|cons)> rest
 	generate-smt-goals(|cons) : [Functions(fs) | rest] -> <conc> (fs-decls, defines, asserts, defines-inv, asserts-inv, others)
 		where
 			fs-decls := <map(function-to-function-decl)> fs;

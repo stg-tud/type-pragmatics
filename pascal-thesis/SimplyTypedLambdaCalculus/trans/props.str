@@ -52,6 +52,7 @@ rules
 	make-and : (False(), p2) -> False()
 	make-and : (p1, True()) -> p1
 	make-and : (p1, False()) -> False()
+	make-and : (p, p) -> p
 	make-and : (And(p11, p12), p2) -> And(p11, <make-and> (p12, p2))
 	make-and : (p1, p2) -> And(p1, p2)
 	
@@ -59,6 +60,7 @@ rules
 	make-or : (False(), p2) -> p2
 	make-or : (p1, True()) -> True()
 	make-or : (p1, False()) -> p1
+	make-or : (p, p) -> p
 	make-or : (Or(p11, p12), p2) -> Or(p11, <make-or> (p12, p2))
 	make-or : (p1, p2) -> Or(p1, p2)
 	
@@ -66,8 +68,11 @@ rules
 	make-impl : (False(), p2) -> True()
 	make-impl : (p1, True()) -> True()
 	make-impl : (p1, False()) -> <make-not> (p1)
+	make-impl : (p, p) -> True()
 	make-impl : (Impl(p11, p12), p2) -> Impl(<make-or> (<make-not> (p11), p12), p2)
 	make-impl : (p1, p2) -> Impl(p1, p2)
+	
+	make-biimpl : (p1, p2) -> <make-and> (<make-impl> (p1, p2), <make-impl> (p2, p1))
 	
 	make-not : True() -> False()
 	make-not : False() -> True()
@@ -83,7 +88,7 @@ rules
 	make-var = string-as-chars([to-lower|id]); !Var(<id>)
 	make-meta = string-as-chars([to-upper|id]); !Meta(<id>)
 	make-eq : (t1{RelBool()}, t2) -> <make-impl> (t2,t1{RelBool()})
-	make-eq : (t1{SortRef("Bool")}, t2) -> <make-impl> (t2,t1{SortRef("Bool")})
+	make-eq : (t1{SortRef("Bool")}, t2) -> <make-biimpl> (t2,t1{SortRef("Bool")})
 	make-eq : (t1, t2) -> Eq(t1, t2)
 	
 	make-fresh : v -> w
