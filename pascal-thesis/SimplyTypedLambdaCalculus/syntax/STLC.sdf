@@ -108,6 +108,8 @@ exports
 	>
 		FunctionExp "||" FunctionExp -> FunctionExp {cons("FunctionExpOr"), right}
 
+	context-free syntax
+		
 	
 	context-free syntax
 		"import" MID ImportAnnos? -> Import {cons("Import")}
@@ -120,6 +122,10 @@ exports
 		
 		"local" "{" ModuleDef* "}" -> ModuleDef {cons("Local")}
 
+		ID -> DataTypeConstructor {ast("DataTypeConstructor(<1>, [])")}
+		ID "(" {SortRef ","}* ")" -> DataTypeConstructor {cons("DataTypeConstructor")}
+		"data" ID "=" {DataTypeConstructor "|"}+ -> ModuleDef {cons("DataType")}
+		
 		"sorts" SortDef* -> ModuleDef {cons("Sorts")}
 		"sort" SortDef -> ModuleDef {ast("Sorts([<1>])")}
 		

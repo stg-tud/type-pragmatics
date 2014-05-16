@@ -21,15 +21,23 @@ binding rules
 	Local(_):
 		scopes Sort, Symbol, Axiom, Rule
 
+	Goals(_):
+		scopes Rule
+
 	RuleName(_, r):
 		defines Rule r
 
 	SortDef(s):
 		defines Sort s
+	DataType(s, _):
+		defines Sort s
+	
 	SortRef(s):
 		refers to Sort s
 	
 	ConstructorDecl(c, _, _):
+		defines Symbol c
+	DataTypeConstructor(c, _):
 		defines Symbol c
 
 	FunctionDef(FunctionSig(f, _, _),_):

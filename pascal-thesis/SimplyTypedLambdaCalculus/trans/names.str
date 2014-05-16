@@ -158,6 +158,13 @@ rules
        , NablNsRule()
        ]
 
+  nabl-scoping-site =
+    ?Goals(_)
+    ; nabl-scope(|[NablNsRule()])
+
+  nabl-get-scope =
+    ?Goals(_) ; ![NablNsRule()]
+
   nabl-get-name :
     RuleName(_, r) -> r
 
@@ -222,6 +229,38 @@ rules
     ; match(implicits__|[])
 
   nabl-get-name :
+    DataType(s, _) -> s
+
+  nabl-name-apply(s) =
+    DataType(s, id)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, partition__, uniques__, uri__, states__) =
+    ?DataType(s, _)
+    ; origin-track-forced(
+        DataType(
+          nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , partition__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsSort()
+          , Unique()
+          , Current()
+          , []
+          , []
+          )
+        , id
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
+
+  nabl-get-name :
     SortRef(s) -> s
 
   nabl-name-apply(s) =
@@ -274,6 +313,38 @@ rules
           , []
           )
         , id
+        , id
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
+
+  nabl-get-name :
+    DataTypeConstructor(c, _) -> c
+
+  nabl-name-apply(s) =
+    DataTypeConstructor(s, id)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, partition__, uniques__, uri__, states__) =
+    ?DataTypeConstructor(c, _)
+    ; origin-track-forced(
+        DataTypeConstructor(
+          nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , partition__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsSymbol()
+          , Unique()
+          , Current()
+          , []
+          , []
+          )
         , id
         )
       |

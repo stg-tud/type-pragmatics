@@ -79,7 +79,12 @@ rules
 	
 
 rules
-	verify-vampire :
+	verify-vampire = verify-vampire(|"30")
+	verify-vampire-60 = verify-vampire(|"60")
+	verify-vampire-120 = verify-vampire(|"120")
+	verify-vampire-600 = verify-vampire(|"600")
+	
+	verify-vampire(|time) :
 		input@(selected, position, ast, path, project-path) -> None()
 	where
 		index-setup(|<language>, project-path);
@@ -89,13 +94,13 @@ rules
 	    goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
 	    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
 	    outfiles := <generate-files(|filename)> strings;
-	    <zip; map(\(r,f) -> <try(call-vampire)> f\)> (rulez, outfiles);
+	    <zip; map(\(r,f) -> <try(call-vampire(|r,time))> f\)> (rulez, outfiles);
     	<queue-analysis> path
 	
 
 	// call-and-handle = call < debug(!"Command succeeded: ") + debug(!"Command failed: ")
 
-	call-vampire(|partition, rule) = 
+	call-vampire(|rule,time) = 
 		?file;
 		proof-file := <guarantee-extension(|"proof")> file;
 		if <not-up-to-date> file => (hash-file, new-hash)
@@ -104,11 +109,11 @@ rules
     		 Stream(out) := <fopen> (proof-file, "w");
     		 Stream(err) := <stderr-stream>;
 			 finally(
-				<call> (<vampire-command>, <conc>(<vampire-options>, [file]), ins, out, err),
+				<call> (<vampire-command>, <conc>(<vampire-options(|time)>, [file]), ins, out, err),
 				<fclose> out;
-				<extract-vampire-info> proof-file
+				<extract-vampire-info(|rule)> proof-file
 				)
-		else <extract-vampire-info> proof-file
+		else <extract-vampire-info(|rule)> proof-file
 		end
 	
 	not-up-to-date = 
@@ -124,12 +129,13 @@ rules
 		!(hash-file, new-hash)
 		
 		
-	extract-vampire-info =
+	extract-vampire-info(|r) =
 		?proof-file;
 		proof := <read-text-file> proof-file;
 		lines := <get-lines; reverse; ?[_,last,butlast|_]; reverse> proof;
 		lemma-lines := <filter(string-starts-with(|"  file("))> lines;
-		lemmas := <map(extract-tptp-lemma-name-from-line)> lemma-lines;
+		axioms := <map(extract-tptp-lemma-name-from-line)> lemma-lines;
+		lemmas := <diff> (axioms, [<strip-annos> r]);
 		info-file := <guarantee-extension(|"info")> proof-file;
 		result := <is-substring(!"Success") <
 			        !VerificationSuccess(lemmas) + 
@@ -161,7 +167,6 @@ rules
 
 	
 	vampire-command = !"/Users/seba/Library/bin/vampire"
-	vampire-options = vampire-options(|"30")
 	vampire-options(|time) =
 		!["-t", time, 
 	      "--mode", "casc",

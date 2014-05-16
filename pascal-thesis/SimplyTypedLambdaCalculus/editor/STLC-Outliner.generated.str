@@ -9,6 +9,8 @@ rules
   outline = simple-label-outline(to-outline-label)
   
   to-outline-label = ?Module(<id>, _, _)
+  to-outline-label = ?DataType(<id>, _)
+  to-outline-label = ?DataTypeConstructor(<id>, _)
   to-outline-label = ?ConstructorDecl(<id>, _, _)
   to-outline-label = ?FunctionSig(<id>, _, _)
   to-outline-label = ?FunctionPatApp(<id>, _)
