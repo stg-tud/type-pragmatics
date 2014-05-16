@@ -3,55 +3,29 @@ module fof-rewriting
 imports include/STLC
 imports libstratego-lib
 imports names
+imports props
 
-signature
-	sorts Prop FOF File
-	constructors
-		// Constructors that are commented are currently not used.
-		False : Prop
-    	True  : Prop
-    	// Atom  : String -> Prop
-    	Not   : Prop -> Prop
-    	And   : Prop * Prop -> Prop
-    	Or    : Prop * Prop -> Prop
-    	Impl  : List(Prop) * Prop -> Prop
-    	BiImpl  : Prop * Prop -> Prop
-    	Eq    : Prop * Prop -> Prop
-    	Neq : Prop * Prop -> Prop
-    	Var   : String -> Prop
-    	Pred  : String * List(Prop) -> Prop //TODO: Make this more typesafe
-    	TermApp  : String * List(Prop) -> Prop //TODO: Make this more typesafe 
-    	All   : List(Var) * Prop -> Prop
-    	Exists : List(Var) * Prop -> Prop
-    	
-    	Axiom : Type
-    	Conjecture : Type
-    	Formula : String * Type * Prop -> FOF
-    	Formula : String * Prop -> FOF
-    	
-    	FOFGoal : List(Formula) * Formula -> File
-    	RelBool : Sort
 
 rules
 	R : FunctionExpVar(v) -> Var(v)
 	R : FunctionExpMeta(Meta(v)) -> Meta(v)
 	R : FunctionExpNeq(t1, t2) -> Neq(t1, t2)
 	R : FunctionExpEq(t1, t2) -> Eq(t1, t2)
-	R : FunctionExpNot(t) -> Not(t)
+	R : FunctionExpNot(t) -> <make-not> (t)
 	R : FunctionExpApp(f, args) -> <make-termapp> (f, args)
 	
 	R : PremiseList(p) -> p
 	R : ConsequenceList(p) -> p
-	R : JudgementCons(j1, j2) -> And(j1, j2)
+	R : JudgementCons(j1, j2) -> <make-and> (j1, j2)
 	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
 	R : ReduceJudgment(e1, e2) -> Pred("reduce", [e1, e2])
 	R : FunctionExpJudgment(e) -> e
 	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)
 	R : ForallJudgment(vars, prop) -> All(vars, prop)
-	R : NotJudgment(j) -> Not(j)
+	R : NotJudgment(j) -> <make-not> (j)
 	R : OrJudgement(p) -> p
 	R : OrEnd(p) -> p
-	R : OrCons(p1, p2) -> Or(p1, p2)
+	R : OrCons(p1, p2) -> <make-or> (p1, p2)
 	
 	// R : Plus(e1, e2) -> TermApp("plus", [e1, e2])
 	// R : Rational(e1, e2) -> TermApp("rat", [e1, e2])
@@ -82,51 +56,14 @@ rules
 	R : TypingRule(PREMISES, RuleName(_, NAME), CONSEQUENCE) ->
 		Formula(NAME, <close-prop> body)
 	where
-		body := <try(\ Impl(True(), p) -> p \)> Impl(PREMISES, CONSEQUENCE)
+		body := <make-impl> (PREMISES, CONSEQUENCE)
 			
-	free-prop-vars : v@Meta(_) -> [v]
-	free-prop-vars : Exists(vars, p) -> <diff> (<free-prop-vars> p, vars)
-	free-prop-vars : All(vars, p) -> <diff> (<free-prop-vars> p, vars)
-	free-prop-vars : ExistsJudgment(vars, p) -> <diff> (<free-prop-vars> p, vars)
-	free-prop-vars : ForallJudgment(vars, p) -> <diff> (<free-prop-vars> p, vars)
-	free-prop-vars : c#(xs) -> <map(free-prop-vars); unions> xs
-	
-	close-prop = close-prop(|[])
-	close-prop(|leaveFree) = close-prop(make-all|leaveFree)
-	close-prop-existential = close-prop(make-exists|[])
-	close-prop-existential(|leaveFree) = close-prop(make-exists|leaveFree)
-	close-prop(closer|leaveFree) : prop -> <closer> (bind-vars, prop)
-	where
-		freevars := <free-prop-vars> prop;
-		bind-vars := <diff> (freevars, leaveFree)
-
-	make-exists : ([], body) -> body
-	make-exists : (vars, body) -> Exists(vars, body)
-	make-all : ([], body) -> body
-	make-all : (vars, body) -> All(vars, body)
-	make-termapp : (v, []) -> <make-var> v
-	make-termapp : (v, args) -> TermApp(<make-var;?Var(<id>)> v, args)
-	make-var = string-as-chars([to-lower|id]); !Var(<id>)
-	make-meta = string-as-chars([to-upper|id]); !Meta(<id>)
-	make-eq : (t1{RelBool()}, t2) -> Impl(t2,t1{RelBool()})
-	make-eq : (t1{SortRef("Bool")}, t2) -> Impl(t2,t1{SortRef("Bool")})
-	make-eq : (t1, t2) -> Eq(t1, t2)
-	
-	make-fresh : v -> w
-	where
-		i := <Fresh> v;
-		rules ( Fresh :+ v -> <inc> i);
-		w := <conc-strings> (v, <int-to-string> i)
-	make-fresh : v -> w
-	where
-		rules ( Fresh :+ v -> 0);
-		w := <make-fresh> v
 			
 	compose-formula-p :
 		(Formula(N1, P1), Formula(N2, P2)) -> Formula(N, P)
 	where
 		N := <conc-strings> (N1, " AND ", N2);
-		P := And(P1, P2)
+		P := <make-and> (P1, P2)
 	compose-formula-p = debug(!"compose-formula-p failed: "); fail
 
 	compose-formulas = reduce-list(compose-formula-p)
@@ -153,7 +90,7 @@ rules
 		t1 := <make-termapp> (name, args1);
 		t2 := <make-termapp> (name, args2);
 		arg-eqs := <zip; map(\(a1, a2) -> Eq(a1, a2)\)> (args1, args2);
-		arg-eqs-and := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> arg-eqs
+		arg-eqs-and := <reduce-list(\(p1, p2) -> <make-and> (p1, p2)\|True())> arg-eqs
 	constructor-axiom = debug(!"constructor-axioms failed: "); fail
 
 	constructor-diff-axioms(|cons) : [] -> []
@@ -196,10 +133,10 @@ rules
 	where
 		pat-props :=  <map(function-pat-prop(|cons))> pats;
 		pat-bind-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-props);
-		pat-prop := <reduce-list(\(p1, p2) -> And(p1, p2)\|True())> pat-bind-props;
-		pat-notprepat-prop := And(pat-prop, prepat-prop);
+		pat-prop := <reduce-list(\(p1, p2) -> <make-and> (p1, p2)\|True())> pat-bind-props;
+		pat-notprepat-prop := <make-and> (pat-prop, prepat-prop);
 		function-data := <function-eq-data(|arg-vars, res-type, cons, pat-notprepat-prop)> f;
-		rest-data := <function-eqs-datas(|arg-vars, res-type, cons, And(<close-prop(|arg-vars)> Not(pat-prop), prepat-prop))> fs;
+		rest-data := <function-eqs-datas(|arg-vars, res-type, cons, <make-and> (<close-prop(|arg-vars)> <make-not> (pat-prop), prepat-prop))> fs;
 		result := <conc> (function-data, rest-data)
 	function-eqs-datas(|arg-vars, res-type, cons, prepat-prop) = where(<strip-annos;debug(!"function-eqs-datas failed: ")> (arg-vars, res-type, cons, prepat-prop, <id>)); fail
 	
@@ -211,14 +148,12 @@ rules
 		result-bind := Eq(result-var, result-term);
 		exp-props := <function-exp-props(|cons)> exp;
 		result := <map(!(name, pat-prop, result-bind, result-var, <id>))> exp-props
-		// result := <map(make-function-formula(|name, And(pat-prop, result-bind), result-var))> exp-props 
 	function-eq-data(|arg-vars, res-type, cons, pat-prop) : FunctionEq(name, pats, exp) -> result
 	where
 		<?RelBool() + ?SortRef("Bool")> res-type;
 		result-term := <make-termapp> (name, arg-vars);
 		exp-props := <function-exp-props(|cons)> exp;
 		result := <map(!(name, pat-prop, True(), result-term{res-type}, <id>))> exp-props
-		// result := <map(make-function-formula(|name, pat-prop, result-term{res-type}))> exp-props 
 	function-eq-data(|arg-vars, res-type, cons, pat-prop) = debug(!"function-eq-axioms failed: "); fail
 	
 	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-var> v
@@ -243,15 +178,15 @@ rules
 		[(True(), c-prop)] := <function-exp-props(|cons)> c; // TODO support conditionals in condition
 		t-props := <function-exp-props(|cons)> t;
 		e-props := <function-exp-props(|cons)> e;
-		result1 := <map(\(a,b) -> (And(c-prop,a), b)\)> t-props;
-		result2 := <map(\(a,b) -> (And(Not(c-prop),a), b)\)> e-props
+		result1 := <map(\(a,b) -> (<make-and> (c-prop,a), b)\)> t-props;
+		result2 := <map(\(a,b) -> (<make-and> (<make-not> (c-prop),a), b)\)> e-props
 	function-exp-props(|cons) : FunctionExpLet(x, e1, e2) -> res-props
 	where
 		var := <make-meta> x;
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in bound expression
 		eq-prop := Eq(var, e1-prop);
 		e2-props := <function-exp-props(|cons)> e2;
-		res-props := <map(\(c,p) -> (And(eq-prop, c), p)\)> e2-props
+		res-props := <map(\(c,p) -> (<make-and> (eq-prop, c), p)\)> e2-props
 	function-exp-props(|cons) : FunctionExpEq(e1, e2) -> [(True(), Eq(e1-prop, e2-prop))]
 	where
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
@@ -262,17 +197,17 @@ rules
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
 		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
 		id
-	function-exp-props(|cons) : FunctionExpAnd(e1, e2) -> [(True(), And(e1-prop, e2-prop))]
+	function-exp-props(|cons) : FunctionExpAnd(e1, e2) -> [(True(), <make-and> (e1-prop, e2-prop))]
 	where
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
 		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
 		id
-	function-exp-props(|cons) : FunctionExpOr(e1, e2) -> [(True(), Or(e1-prop, e2-prop))]
+	function-exp-props(|cons) : FunctionExpOr(e1, e2) -> [(True(), <make-or> (e1-prop, e2-prop))]
 	where
 		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
 		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
 		id
-	function-exp-props(|cons) : FunctionExpNot(e) -> [(True(), Not(e-prop))]
+	function-exp-props(|cons) : FunctionExpNot(e) -> [(True(), <make-not> (e-prop))]
 	where
 		[(True(), e-prop)] := <function-exp-props(|cons)> e; // TODO support conditionals in operands
 		id
@@ -286,7 +221,7 @@ rules
 		Formula(fname, Axiom(), <close-prop> body)
 	where
 		fname := <make-fresh> name;
-		body := Impl(pat-prop, Impl(cond, Impl(result-bind, <make-eq> (result-var, p))))
+		body := <make-impl>(pat-prop, <make-impl>(cond, <make-impl>(result-bind, <make-eq> (result-var, p))))
 	make-function-formula = debug(!"make-function-formula failed: "); fail
 	
 	scoped-function-inversion-axioms(|cons) = {|Fresh: function-inversion-axioms(|cons)|}
@@ -298,8 +233,8 @@ rules
 		result-prop := Eq(TermApp(name, arg-vars), result-var);
 		datas := <function-eqs-datas(|arg-vars, res-type, cons, True())> eqs;
 		disjuncts := <map(make-function-inversion-disjunct; close-prop-existential(|[result-var|arg-vars]))> datas;
-		function-eq-prop := <reduce-list(\(a,b) -> Or(a,b)\)> disjuncts;
-		body := Impl(result-prop, function-eq-prop);
+		function-eq-prop := <reduce-list(\(a,b) -> <make-or> (a,b)\)> disjuncts;
+		body := <make-impl>(result-prop, function-eq-prop);
 		fname := <conc-strings> (name, "-", "INV");
 		axiom := Formula(fname, Axiom(), <close-prop> body)
 	function-inversion-axioms(|cons) = debug(!"function-inversion-axioms(|cons) failed: "); fail 
@@ -307,7 +242,7 @@ rules
 	make-function-inversion-disjunct : 
 		(name, pat-prop, result-bind, result-var, (cond, p)) -> body
 	where
-		body := And(pat-prop, And(cond, <make-eq> (result-var, p)))
+		body := <make-and> (pat-prop, <make-and> (cond, <make-eq> (result-var, p)))
 	
 	crossproduct : ([], ys) -> []
 	crossproduct : (xs, []) -> []
