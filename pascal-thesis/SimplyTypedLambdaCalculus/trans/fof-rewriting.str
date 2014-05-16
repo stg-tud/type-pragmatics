@@ -218,14 +218,8 @@ rules
 
 	make-function-formula : 
 		(name, pat-prop, result-bind, result-var, (cond, p)) ->
-		// (_,
-		//  And(Eq(Meta("Exp0"),TermApp("var",[Meta("X")])),All([Meta("X"),Meta("S"),Meta("E")],Not(Eq(Meta("Exp0"),TermApp("abs",[Meta("X"),Meta("S"),Meta("E")]))))),
-		//  True,
-		//  TermApp("isValue",[Meta("Exp0")]){SortRef("Bool")},
-		//  (True,False))
 		Formula(fname, Axiom(), <close-prop> body)
 	where
-		debug;
 		fname := <make-fresh> name;
 		body := <make-impl>(pat-prop, <make-impl>(cond, <make-impl>(result-bind, <make-eq> (result-var, p))))
 	make-function-formula = debug(!"make-function-formula failed: "); fail
