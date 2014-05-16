@@ -161,7 +161,7 @@ rules
 
 	
 	vampire-command = !"/Users/seba/Library/bin/vampire"
-	vampire-options = vampire-options(|"60")
+	vampire-options = vampire-options(|"30")
 	vampire-options(|time) =
 		!["-t", time, 
 	      "--mode", "casc",

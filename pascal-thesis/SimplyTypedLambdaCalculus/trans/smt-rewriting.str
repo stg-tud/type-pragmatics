@@ -51,7 +51,7 @@ rules
 	generate-smt-goals(|cons) : [Constructors(cs) | rest] -> <conc> (cs-decls, cs-defines, cs-asserts, cs-diff-defines, cs-diff-asserts, others)
 		where
 			cs-decls := <map(constructor-to-fun-decl)> cs;
-			cs-formulas := <map(constructor-axiom)> cs;
+			cs-formulas := <map(scoped-constructor-axiom)> cs;
 			cs-defines := <map(formula-to-define)> cs-formulas;
 			cs-asserts := <map(formula-to-assert)> cs-formulas;
 			cs-diff-formulas := <constructor-diff-axioms(|cons)> cs;
@@ -62,18 +62,21 @@ rules
 	generate-smt-goals(|cons) : [Consts(cs) | rest] -> <conc> (cs-decls, cs-defines, cs-asserts, others)
 		where
 			cs-decls := <map(constructor-to-fun-decl)> cs;
-			cs-formulas := <map(constructor-axiom)> cs;
+			cs-formulas := <map(scoped-constructor-axiom)> cs;
 			cs-defines := <map(formula-to-define)> cs-formulas;
 			cs-asserts := <map(formula-to-assert)> cs-formulas;
 			cons2 := <conc> (cons, cs);
 			others := <generate-smt-goals(|cons2)> rest
-	generate-smt-goals(|cons) : [Functions(fs) | rest] -> <conc> (fs-decls, defines, asserts, others)
+	generate-smt-goals(|cons) : [Functions(fs) | rest] -> <conc> (fs-decls, defines, asserts, defines-inv, asserts-inv, others)
 		where
 			fs-decls := <map(function-to-function-decl)> fs;
 			cs-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
-			formulas := <mapconcat(function-axioms(|cs-names))> fs;
+			formulas := <mapconcat(scoped-function-axioms(|cs-names))> fs;
+			inv-formulas := <mapconcat(scoped-function-inversion-axioms(|cs-names))> fs;
 			defines := <map(formula-to-define)> formulas;
 			asserts := <map(formula-to-assert)> formulas;
+			defines-inv := <map(formula-to-define)> inv-formulas;
+			asserts-inv := <map(formula-to-assert)> inv-formulas;
 			others := <generate-smt-goals(|cons)> rest
 	generate-smt-goals(|cons) : [Import(m,annos) | rest] -> others
 		where

@@ -1,0 +1,28 @@
+module stlc.env.Environment
+
+import stlc.Syntax
+
+sorts Env OptExp
+
+constructors
+  emptyEnv : Env
+  bindEnv : Var Exp Env -> Env
+
+  noExp : OptExp
+  someExp : Exp -> OptExp
+
+function
+lookupEnv : Var Env -> OptExp
+lookupEnv(x, emptyEnv) = noExp
+lookupEnv(x, bindEnv(y, e, C)) = 
+  if (x == y)
+  then someExp(e)
+  else lookupEnv(x, C)
+
+relation
+isSomeExp : OptExp
+isSomeExp(someExp(e)) <= true
+
+function
+getSomeExp : OptExp -> Exp
+getSomeExp(someExp(e)) = e

@@ -25,6 +25,7 @@ exports
 		"false" -> Keyword
 		"OR" -> Keyword
 		"exists" -> Keyword
+		"forall" -> Keyword
 		"if" -> Keyword
 		"then" -> Keyword
 		"else" -> Keyword

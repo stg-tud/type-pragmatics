@@ -1,0 +1,23 @@
+module stlc.env.Reduction
+
+import stlc.Syntax
+import stlc.Environment
+
+sort EnvExp
+constructor
+  ee : Env Exp -> EnvExp
+
+function
+eeExp : EnvExp -> Exp
+ee(env, e) = e
+
+function
+reduceEnv : Env Exp -> Exp
+reduceEnv(ee(env, var(x))) =
+	let mx = lookupEnv(x, env)  in
+		if isSomeExp(mx)
+		then ee(getSomeExp(mx), env)
+		else undefined
+reduceEnv(ee(env, app(abs(x, S, e1), e2))) = ee(bindEnv(x, e2, env), e1)
+reduceEnv(ee(env, app(e1, e2))) = ee(env, app(eeExp(reduceEnv(env, e1)), e2)) 
+
