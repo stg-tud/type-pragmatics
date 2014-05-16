@@ -30,6 +30,14 @@ reduce(app(e1, e2)) = let e1red = reduce(e1) in
 	then someExp(app(getSomeExp(e1red), e2))
 	else noExp
 
+axiom
+reduce(~e) == ~res
+========================== reduce-CODOM
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+
 // axiom
 // reduce(~e) == ~res
 // ========================== reduce-Inv
