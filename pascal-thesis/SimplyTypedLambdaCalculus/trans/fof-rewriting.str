@@ -120,101 +120,101 @@ rules
 	constructor-diff-axiom = debug(!"constructor-diff-axiom failed: "); fail
 		
 		
-	scoped-function-axioms(|cons) = {|Fresh: function-axioms(|cons)|}
-	function-axioms(|cons) : FunctionDef(FunctionSig(_,arg-types,res-type), eqs) -> result
+	scoped-function-axioms = {|Fresh: function-axioms|}
+	function-axioms : FunctionDef(FunctionSig(_,arg-types,res-type), eqs) -> result
 	where
 		arg-vars := <map(?SortRef(<id>); make-fresh; make-meta)> arg-types;
-		datas := <function-eqs-datas(|arg-vars, res-type, cons, True())> eqs;
+		datas := <function-eqs-datas(|arg-vars, res-type, [])> eqs;
 		result := <map(make-function-formula)> datas
 	function-axioms(|cons) = debug(!"function-axioms failed: "); fail
 	
-	function-eqs-datas(|arg-vars, res-type, cons, prepat-prop) : [] -> []
-	function-eqs-datas(|arg-vars, res-type, cons, prepat-prop) : [f@FunctionEq(name, pats, exp) | fs] -> result
+	function-eqs-datas(|arg-vars, res-type, prepats) : [] -> []
+	function-eqs-datas(|arg-vars, res-type, prepats) : [f@FunctionEq(name, pats, exp) | fs] -> result
 	where
-		pat-props :=  <map(function-pat-prop(|cons))> pats;
+		pat-props :=  <map(function-pat-prop)> pats;
 		pat-bind-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-props);
 		pat-prop := <reduce-list(\(p1, p2) -> <make-and> (p1, p2)\|True())> pat-bind-props;
-		pat-notprepat-prop := <make-and> (pat-prop, prepat-prop);
-		function-data := <function-eq-data(|arg-vars, res-type, cons, pat-notprepat-prop)> f;
-		rest-data := <function-eqs-datas(|arg-vars, res-type, cons, <make-and> (<close-prop(|arg-vars)> <make-not> (pat-prop), prepat-prop))> fs;
+		not-match-prepats-prop := <not-match-prepats-prop> (pats, prepats);
+		pat-notprepat-prop := <make-and> (pat-prop, not-match-prepats-prop);
+		function-data := <function-eq-data(|arg-vars, res-type, pat-notprepat-prop)> f;
+		rest-data := <function-eqs-datas(|arg-vars, res-type, [pats|prepats])> fs;
 		result := <conc> (function-data, rest-data)
-	function-eqs-datas(|arg-vars, res-type, cons, prepat-prop) = where(<strip-annos;debug(!"function-eqs-datas failed: ")> (arg-vars, res-type, cons, prepat-prop, <id>)); fail
+	function-eqs-datas(|arg-vars, res-type, prepats) =
+		strip-annos;debug(!"function-eqs-datas failed: ");
+		<debug(!"  arg-vars: ")> arg-vars;
+		<debug(!"  res-type: ")> res-type;
+		<debug(!"  prepats: ")> prepats;
+		fail
 	
-	function-eq-data(|arg-vars, res-type, cons, pat-prop) : FunctionEq(name, pats, exp) -> result
+	function-eq-data(|arg-vars, res-type, pat-prop) : FunctionEq(name, pats, exp) -> result
 	where
 		<not(?RelBool() + ?SortRef("Bool"))> res-type;
 		result-term := <make-termapp> (name, arg-vars);
 		result-var := Meta("RESULT");
 		result-bind := Eq(result-var, result-term);
-		exp-props := <function-exp-props(|cons)> exp;
+		exp-props := <function-exp-props> exp;
 		result := <map(!(name, pat-prop, result-bind, result-var, <id>))> exp-props
-	function-eq-data(|arg-vars, res-type, cons, pat-prop) : FunctionEq(name, pats, exp) -> result
+	function-eq-data(|arg-vars, res-type, pat-prop) : FunctionEq(name, pats, exp) -> result
 	where
 		<?RelBool() + ?SortRef("Bool")> res-type;
 		result-term := <make-termapp> (name, arg-vars);
-		exp-props := <function-exp-props(|cons)> exp;
+		exp-props := <function-exp-props> exp;
 		result := <map(!(name, pat-prop, True(), result-term{res-type}, <id>))> exp-props
-	function-eq-data(|arg-vars, res-type, cons, pat-prop) = debug(!"function-eq-axioms failed: "); fail
+	function-eq-data(|arg-vars, res-type, pat-prop) = debug(!"function-eq-axioms failed: "); fail
 	
-	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-var> v
-	where <elem(|v)> cons
-	function-pat-prop(|cons) : FunctionPatVar(v) -> <make-meta> v
-	where <not(elem(|v))> cons
-	
-	function-pat-prop(|cons) : FunctionPatApp(f, ts) -> <make-termapp> (f, args)
+	function-pat-prop : FunctionPatVar(v) -> <make-meta> v
+	function-pat-prop : FunctionPatApp(f, ts) -> <make-termapp> (f, args)
 	where
-		args := <map(function-pat-prop(|cons))> ts
-	function-pat-prop(|cons) = debug(!"function-pat-prop failed: "); fail
+		args := <map(function-pat-prop)> ts
+	function-pat-prop = debug(!"function-pat-prop failed: "); fail
 	
-	function-exp-props(|cons) : FunctionExpUndefined() -> []
-	function-exp-props(|cons) : FunctionExpTrue() -> [(True(), True())]
-	function-exp-props(|cons) : FunctionExpFalse() -> [(True(), False())]
-	function-exp-props(|cons) : FunctionExpVar(v) -> [(True(),<make-var> v)]
-	where <elem(|v)> cons
-	function-exp-props(|cons) : FunctionExpVar(v) -> [(True(),<make-meta> v)]
-	where <not(elem(|v))> cons
-	function-exp-props(|cons) : FunctionExpIf(c, t, e) -> <conc> (result1, result2)
+	function-exp-props : FunctionExpUndefined() -> []
+	function-exp-props : FunctionExpTrue() -> [(True(), True())]
+	function-exp-props : FunctionExpFalse() -> [(True(), False())]
+	function-exp-props : FunctionExpVar(v) -> [(True(),<make-meta> v)]
+	function-exp-props : FunctionExpIf(c, t, e) -> <conc> (result1, result2)
 	where
-		[(True(), c-prop)] := <function-exp-props(|cons)> c; // TODO support conditionals in condition
-		t-props := <function-exp-props(|cons)> t;
-		e-props := <function-exp-props(|cons)> e;
+		[(True(), c-prop)] := <function-exp-props> c; // TODO support conditionals in condition
+		t-props := <function-exp-props> t;
+		e-props := <function-exp-props> e;
 		result1 := <map(\(a,b) -> (<make-and> (c-prop,a), b)\)> t-props;
 		result2 := <map(\(a,b) -> (<make-and> (<make-not> (c-prop),a), b)\)> e-props
-	function-exp-props(|cons) : FunctionExpLet(x, e1, e2) -> res-props
+	function-exp-props : FunctionExpLet(x, e1, e2) -> res-props
 	where
 		var := <make-meta> x;
-		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in bound expression
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in bound expression
 		eq-prop := Eq(var, e1-prop);
-		e2-props := <function-exp-props(|cons)> e2;
+		e2-props := <function-exp-props> e2;
 		res-props := <map(\(c,p) -> (<make-and> (eq-prop, c), p)\)> e2-props
-	function-exp-props(|cons) : FunctionExpEq(e1, e2) -> [(True(), Eq(e1-prop, e2-prop))]
+	function-exp-props : FunctionExpEq(e1, e2) -> [(True(), Eq(e1-prop, e2-prop))]
 	where
-		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
-		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props> e2; // TODO support conditionals in operands
 		id
-	function-exp-props(|cons) : FunctionExpNeq(e1, e2) -> [(True(), Neq(e1-prop, e2-prop))]
+	function-exp-props : FunctionExpNeq(e1, e2) -> [(True(), Neq(e1-prop, e2-prop))]
 	where
-		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
-		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props> e2; // TODO support conditionals in operands
 		id
-	function-exp-props(|cons) : FunctionExpAnd(e1, e2) -> [(True(), <make-and> (e1-prop, e2-prop))]
+	function-exp-props : FunctionExpAnd(e1, e2) -> [(True(), <make-and> (e1-prop, e2-prop))]
 	where
-		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
-		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props> e2; // TODO support conditionals in operands
 		id
-	function-exp-props(|cons) : FunctionExpOr(e1, e2) -> [(True(), <make-or> (e1-prop, e2-prop))]
+	function-exp-props : FunctionExpOr(e1, e2) -> [(True(), <make-or> (e1-prop, e2-prop))]
 	where
-		[(True(), e1-prop)] := <function-exp-props(|cons)> e1; // TODO support conditionals in operands
-		[(True(), e2-prop)] := <function-exp-props(|cons)> e2; // TODO support conditionals in operands
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props> e2; // TODO support conditionals in operands
 		id
-	function-exp-props(|cons) : FunctionExpNot(e) -> [(True(), <make-not> (e-prop))]
+	function-exp-props : FunctionExpNot(e) -> [(True(), <make-not> (e-prop))]
 	where
-		[(True(), e-prop)] := <function-exp-props(|cons)> e; // TODO support conditionals in operands
+		[(True(), e-prop)] := <function-exp-props> e; // TODO support conditionals in operands
 		id
-	function-exp-props(|cons) : FunctionExpApp(f, es) -> [(True(), <make-termapp> (f, es-props))]
+	function-exp-props : FunctionExpApp(f, es) -> [(True(), <make-termapp> (f, es-props))]
 	where
-		es-props := <map(function-exp-props(|cons); ?[(True(), <id>)])> es // TODO support conditionals as function arguments
-	function-exp-props(|cons) = debug(!"function-exp-props(|name, pat-props) failed: "); fail
+		es-props := <map(function-exp-props; ?[(True(), <id>)])> es // TODO support conditionals as function arguments
+	function-exp-props = debug(!"function-exp-props(|name, pat-props) failed: "); fail
+
 
 	make-function-formula : 
 		(name, pat-prop, result-bind, result-var, (cond, p)) ->
@@ -223,25 +223,60 @@ rules
 		fname := <make-fresh> name;
 		body := <make-impl>(pat-prop, <make-impl>(cond, <make-impl>(result-bind, <make-eq> (result-var, p))))
 	make-function-formula = debug(!"make-function-formula failed: "); fail
+
+
+
+	not-match-prepats-prop : (pats, prepats) -> result
+	where
+		not-prepats := <map(not-match-prepats(|pats))> prepats;
+		result := <debug(!"not-prepats: "); reduce-list(make-and|True())> not-prepats
+
+	not-match-prepats(|pats) : pre-patterns -> result
+	where
+		not-match-args := <zip;map(not-match-prepat-arg)> (pats, pre-patterns);
+		result := <debug(!"not-match-args: "); reduce-list(make-or|False())> not-match-args
+
+	not-match-prepat-arg = strip-annos;debug(!"not-match-prepat-arg called: "); fail
+	not-match-prepat-arg : (pat1@FunctionPatApp(c1, xs), FunctionPatApp(c2, ys)) -> sub-prop
+	where
+		<strip-annos;equal> (c1,c2);
+		sub-props := <zip; map(\(x,y) -> <not-match-prepat-arg> (x,y)\); debug(!"sub-props: ")> (xs, ys);
+		sub-prop := <reduce-list(make-or|False())> sub-props // different if different for any sub-pat
+	not-match-prepat-arg : (pat1@FunctionPatApp(c1, xs), FunctionPatApp(c2, ys)) -> True()
+	where
+		<not(equal)> (c1, c2)
+	not-match-prepat-arg : (pat1@FunctionPatVar(t), pat2@FunctionPatApp(c, ys)) -> not-eq
+	where
+		var-prop := <function-pat-prop> pat1;
+		app-prop := <function-pat-prop> pat2;
+		app-vars := <collect-all(?Meta(<strip-annos>))> app-prop;
+		fresh-vars := <map(make-fresh; make-meta)> app-vars;
+		fresh-subst := <zip> (app-vars, fresh-vars);
+		fresh-app-prop := <bottomup(try(\v@Meta(_) -> <lookup> (<strip-annos> v, fresh-subst)\))> app-prop;
+		not-eq := <make-all> (fresh-vars, Neq(var-prop, fresh-app-prop))
+	not-match-prepat-arg : (pat1, FunctionPatVar(t)) -> False() 
+	not-match-prepat-arg = debug(!"not-match-prepat-arg failed: "); fail
 	
-	scoped-function-inversion-axioms(|cons) = {|Fresh: function-inversion-axioms(|cons)|}
-	function-inversion-axioms(|cons) : FunctionDef(FunctionSig(name,arg-types,res-type), []) -> []
-	function-inversion-axioms(|cons) : FunctionDef(FunctionSig(name,arg-types,res-type), eqs) -> []
+
+
+	scoped-function-inversion-axioms = {|Fresh: function-inversion-axioms|}
+	function-inversion-axioms : FunctionDef(FunctionSig(name,arg-types,res-type), []) -> []
+	function-inversion-axioms : FunctionDef(FunctionSig(name,arg-types,res-type), eqs) -> []
 	where
 		<?RelBool() + ?SortRef("Bool")> res-type
-	function-inversion-axioms(|cons) : FunctionDef(FunctionSig(name,arg-types,res-type), eqs) -> [axiom]
+	function-inversion-axioms : FunctionDef(FunctionSig(name,arg-types,res-type), eqs) -> [axiom]
 	where
 		<not(?RelBool() + ?SortRef("Bool"))> res-type;
 		arg-vars := <map(?SortRef(<id>); make-fresh; make-meta)> arg-types;
 		result-var := Meta("RESULT");
 		result-prop := Eq(TermApp(name, arg-vars), result-var);
-		datas := <function-eqs-datas(|arg-vars, res-type, cons, True())> eqs;
+		datas := <function-eqs-datas(|arg-vars, res-type, [])> eqs;
 		disjuncts := <map(make-function-inversion-disjunct; close-prop-existential(|[result-var|arg-vars]))> datas;
 		function-eq-prop := <reduce-list(\(a,b) -> <make-or> (a,b)\)> disjuncts;
 		body := <make-impl>(result-prop, function-eq-prop);
 		fname := <conc-strings> (name, "-", "INV");
 		axiom := Formula(fname, Axiom(), <close-prop> body)
-	function-inversion-axioms(|cons) = debug(!"function-inversion-axioms(|cons) failed: "); fail 
+	function-inversion-axioms = debug(!"function-inversion-axioms failed: "); fail 
 	
 	make-function-inversion-disjunct : 
 		(name, pat-prop, result-bind, result-var, (cond, p)) -> body
@@ -297,14 +332,16 @@ strategies
 	generate-fof-goals(|axioms, cons) : [PartialFunctions(fs) | rest] -> others
 		where
 			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
-			fs-axioms := <mapconcat(scoped-function-axioms(|cons-names))> fs;
+			resolved-fs := <resolve-vars(|cons-names)> fs;
+			fs-axioms := <mapconcat(scoped-function-axioms)> resolved-fs;
 			axioms2 := <conc> (axioms, fs-axioms);
 			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Functions(fs) | rest] -> others
 		where
 			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
-			fs-axioms := <mapconcat(scoped-function-axioms(|cons-names))> fs;
-			fs-inv-axioms := <mapconcat(scoped-function-inversion-axioms(|cons-names))> fs;
+			resolved-fs := <resolve-vars(|cons-names)> fs;
+			fs-axioms := <mapconcat(scoped-function-axioms)> resolved-fs;
+			fs-inv-axioms := <mapconcat(scoped-function-inversion-axioms)> resolved-fs;
 			axioms2 := <conc> (axioms, fs-axioms, fs-inv-axioms);
 			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Import(m, annos) | rest] -> others
@@ -324,6 +361,11 @@ strategies
 			others := <generate-fof-goals(|axioms, cons)> rest
 
 	generate-fof-goals(|axioms, cons) = debug(!"generate-fof-goals failed: "); fail
+
+	resolve-vars(|cons-names) =
+		bottomup(try(
+			\FunctionPatVar(v) -> FunctionPatApp(v, []) where <elem(|v)> cons-names\
+		<+	\FunctionExpVar(v) -> FunctionExpApp(v, []) where <elem(|v)> cons-names\))
 
 	filter-import(|annos) : xs -> <filter(not(?Goals(_) + ?Local(_)))> xs
 	where <?None()> annos

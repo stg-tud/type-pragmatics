@@ -72,7 +72,8 @@ rules
 		where
 			fs-decls := <map(function-to-function-decl)> fs;
 			cs-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
-			formulas := <mapconcat(scoped-function-axioms(|cs-names))> fs;
+			resolved-fs := <resolve-vars(|cs-names)> fs;
+			formulas := <mapconcat(scoped-function-axioms)> resolved-fs;
 			defines := <map(formula-to-define)> formulas;
 			asserts := <map(formula-to-assert)> formulas;
 			others := <generate-smt-goals(|cons)> rest
@@ -80,8 +81,9 @@ rules
 		where
 			fs-decls := <map(function-to-function-decl)> fs;
 			cs-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
-			formulas := <mapconcat(scoped-function-axioms(|cs-names))> fs;
-			inv-formulas := <mapconcat(scoped-function-inversion-axioms(|cs-names))> fs;
+			resolved-fs := <resolve-vars(|cs-names)> fs;
+			formulas := <mapconcat(scoped-function-axioms)> resolved-fs;
+			inv-formulas := <mapconcat(scoped-function-inversion-axioms)> resolved-fs;
 			defines := <map(formula-to-define)> formulas;
 			asserts := <map(formula-to-assert)> formulas;
 			defines-inv := <map(formula-to-define)> inv-formulas;

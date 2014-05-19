@@ -32,11 +32,11 @@ signature
 
 rules
 
-	free-prop-vars : v@Meta(_) -> [v]
-	free-prop-vars : Exists(vars, p) -> <diff> (<free-prop-vars> p, vars)
-	free-prop-vars : All(vars, p) -> <diff> (<free-prop-vars> p, vars)
-	free-prop-vars : ExistsJudgment(vars, p) -> <diff> (<free-prop-vars> p, vars)
-	free-prop-vars : ForallJudgment(vars, p) -> <diff> (<free-prop-vars> p, vars)
+	free-prop-vars : v@Meta(_) -> [<strip-annos> v]
+	free-prop-vars : Exists(vars, p) -> <diff> (<free-prop-vars> p, <strip-annos> vars)
+	free-prop-vars : All(vars, p) -> <diff> (<free-prop-vars> p, <strip-annos> vars)
+	free-prop-vars : ExistsJudgment(vars, p) -> <diff> (<free-prop-vars> p, <strip-annos> vars)
+	free-prop-vars : ForallJudgment(vars, p) -> <diff> (<free-prop-vars> p, <strip-annos> vars)
 	free-prop-vars : c#(xs) -> <map(free-prop-vars); unions> xs
 	
 	close-prop = close-prop(|[])
