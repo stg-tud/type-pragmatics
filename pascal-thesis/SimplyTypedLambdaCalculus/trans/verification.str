@@ -23,37 +23,57 @@ rules
 	CurrentFileFOF = CurrentFile; guarantee-extension(|"fof")
 	
 	constraint-warning :
-		Module(_,_,body) -> <map(\(r,_) -> (r,msg)\)> filtered-results
+		Module(m,_,body) -> <conc> (consistency-msgs, goal-msgs)
 	where
+		msg := $[Verification result outdated or not started yet, use verification menu to re-verify.];
+		consistency-msg := $[Consistency check outdated or not started yet, use verification menu to re-check.];
 		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body;
 		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
 		results := <map(get-verification-result-info <+ !())> outfiles;
 		filtered-results := <zip; filter(?(_,()))> (rulez, results);
-		msg := $[Verification result outdated or not started yet, use verification menu to re-verify.]
+		goal-msgs := <map(\(r,_) -> (r,msg)\)> filtered-results;
+		consistency-results := <CurrentFileFOF; consistency-filename; (![<get-verification-result-info>] <+ ![()])>;
+		consistency-msgs := <filter(\() -> (m, consistency-msg)\)> consistency-results
 	
 	constraint-note :
-		Module(_,_,body) -> <map(\(r,res) -> (r,<verification-success-msg> res)\)> filtered-results
+		Module(m,_,body) -> <conc> (consistency-msgs, goal-msgs)
 	where
 		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body;
 		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
 		results := <map(get-verification-result-info <+ !())> outfiles;
-		filtered-results := <zip; filter(?(_,VerificationSuccess(_)))> (rulez, results)
+		filtered-results := <zip; filter(?(_,VerificationSuccess(_)))> (rulez, results);
+		goal-msgs := <map(\(r,res) -> (r,<verification-success-msg> res)\)> filtered-results;
+		consistency-results := <CurrentFileFOF; consistency-filename; (![<get-verification-result-info>] <+ ![])>;
+		consistency-msgs := <filter(\r -> (m, <consistency-success-msg> r)\)> consistency-results
+	
 	
 	verification-success-msg : 
 		VerificationSuccess(lemmas) -> 
 		$[Verification succeeded, used lemmas: [<separate-by(|", "); concat-strings> lemmas].]
 	
+	consistency-success-msg : 
+		VerificationFailure(errmsg) -> 
+		$[Failed to show inconsistency: [errmsg].]
+	
 	
 	constraint-error : 
-		Module(_,_,body) -> <map(\(r,res) -> (r,<verification-failure-msg> res)\)> filtered-results
+		Module(m,_,body) -> <conc> (consistency-msgs, goal-msgs)
 	where
 		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body;
 		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
 		results := <map(get-verification-result-info <+ !())> outfiles;
-		filtered-results := <zip; filter(?(_,VerificationFailure(_)))> (rulez, results)
+		filtered-results := <zip; filter(?(_,VerificationFailure(_)))> (rulez, results);
+		goal-msgs := <map(\(r,res) -> (r,<verification-failure-msg> res)\)> filtered-results;
+		consistency-results := <CurrentFileFOF; consistency-filename; (![<get-verification-result-info>] <+ ![])>;
+		consistency-msgs := <filter(\r -> (m, <consistency-failure-msg> r)\)> consistency-results
 
 	verification-failure-msg : 
 		VerificationFailure(errmsg) -> $[Verification failed: [errmsg].]
+		
+	consistency-failure-msg : 
+		VerificationSuccess(lemmas) -> 
+		$[Found inconsistency using lemmas: [<separate-by(|", "); concat-strings> lemmas].]
+	
 
 rules
 	clean-proofs : (selected, position, ast, path, project-path) -> None()
@@ -64,6 +84,7 @@ rules
 	    rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
 	    outfiles := <generate-file-names(|filename)> rulez;
 	    <map(clean-proof)> outfiles;
+	    <consistency-filename; clean-proof> path;
     	<queue-analysis> path
 	
 	clean-proof =
@@ -76,7 +97,29 @@ rules
 		<try(remove-file)> hash-file;
 		<try(remove-file)> info-file;
 		<try(remove-file)> proof-file
+
+rules
+	check-consitency-vampire = check-consitency-vampire(|"5")
+	check-consitency-vampire-60 = check-consitency-vampire(|"60")
+	check-consitency-vampire-120 = check-consitency-vampire(|"120")
+	check-consitency-vampire-600 = check-consitency-vampire(|"600")
 	
+	check-consitency-vampire(|time) :
+		input@(selected, position, ast, path, project-path) -> None()
+	where
+		index-setup(|<language>, project-path);
+		task-setup(|project-path);
+	    filename := <consistency-filename> path;
+	    false-goal := Goals([TypingRule(RuleName("", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))]);
+	    ast-with-false := <Module(id, id, filter(not(?Local(_) + ?Goals(_))); append(|[false-goal]))> ast;
+	    
+	    [goal] := <fof-trans <+ error(!"fof-trans failed: ")> ast-with-false;
+	    string := <pp-formula <+ pp-debug(pp-formula)> goal;
+	    <write-file> (filename, string);
+	    <try(call-vampire(|"FALSE",time))> filename;
+    	<queue-analysis> path
+    	
+    consistency-filename = remove-extension; <conc-strings> (<id>, "-consistency.fof")	
 
 rules
 	verify-vampire = verify-vampire(|"30")
