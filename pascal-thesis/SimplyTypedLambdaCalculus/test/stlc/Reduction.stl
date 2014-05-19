@@ -3,7 +3,6 @@ module stlc.Reduction
 import stlc.Syntax
 import stlc.Subst
 
-
 sorts
 	OptExp
 

@@ -254,7 +254,7 @@ rules
 		app-vars := <collect-all(?Meta(<strip-annos>))> app-prop;
 		fresh-vars := <map(make-fresh; make-meta)> app-vars;
 		fresh-subst := <zip> (app-vars, fresh-vars);
-		fresh-app-prop := <bottomup(try(\v@Meta(_) -> <lookup> (<strip-annos> v, fresh-subst)\))> app-prop;
+		fresh-app-prop := <bottomup(try(\Meta(v) -> <lookup> (<strip-annos> v, fresh-subst)\))> app-prop;
 		not-eq := <make-all> (fresh-vars, Neq(var-prop, fresh-app-prop))
 	not-match-prepat-arg : (pat1, FunctionPatVar(t)) -> False() 
 	not-match-prepat-arg = debug(!"not-match-prepat-arg failed: "); fail
