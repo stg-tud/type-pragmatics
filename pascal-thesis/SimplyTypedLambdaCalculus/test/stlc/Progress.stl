@@ -64,7 +64,6 @@ local {
 	~ein == app(e1, e2)
 	empty |- ~ein : ~T
 	!isValue(~ein)
-	e1 != abs(~x, ~S, ~e11)
 	=========================== T-Progress-T-app
 	exists ~eout
 		reduce(~ein) == someExp(~eout)
