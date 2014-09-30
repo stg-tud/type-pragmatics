@@ -3,6 +3,7 @@ module stlc.SubstLemma
 import stlc.Syntax
 import stlc.Context
 import stlc.Types
+import stlc.Gensym
 import stlc.Subst
 
 goal

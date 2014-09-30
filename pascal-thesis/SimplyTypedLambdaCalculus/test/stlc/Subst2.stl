@@ -1,0 +1,87 @@
+module stlc.Subst2
+
+import stlc.Syntax
+import stlc.Context
+import stlc.Gensym
+
+sort
+  Subst
+  
+constructors
+  emptySubst : Subst
+  bindSubst : Var Exp Subst -> Subst
+
+function
+isFreeVarSubst : Var Subst -> Bool
+isFreeVarSubst(x, empty) = false
+isFreeVarSubst(x, bindSubst(y, e, s)) = x == y || isFreeVar(x, e) || isFreeVarSubst(x, s)
+
+function
+gensymSubst : Subst Exp -> Var
+
+axiom
+gensymSubst(~s, ~e) == ~v
+========================= gensymSubst-is-fresh
+!isFreeVarSubst(~v, ~s)
+!isFreeVar(~v, ~e)
+
+
+axiom
+!isFreeVar(~x, ~e)
+~C |- ~e : ~T
+=========================== T-Weak-FreeVar
+bind(~x, ~S, ~C) |- ~e : ~T
+
+
+
+function
+substVar : Subst Var -> Exp
+substVar(emptySubst, y) = var(y)
+substVar(bindSubst(x, e, s), y) =
+	if x == y
+	then e
+	else substVar(s, y)
+
+function
+substExp : Subst Exp -> Exp
+substExp(s, var(x)) = substVar(s, x)
+substExp(s, app(e1, e2)) = app(substExp(s, e1), substExp(s, e2))
+substExp(s, abs(x, T, e1)) =
+	let fresh = gensymSubst(s, e1)
+	in abs(fresh, T, substExp(bindSubst(x, var(fresh), s), e1))
+
+
+function
+subst : Var Exp Exp -> Exp
+subst(x, e, e1) = substExp(bindSubst(x, e, emptySubst), e1)
+
+function
+tcheckBindSubst : Ctx Var Exp -> Bool
+tcheckBindSubst(C, x, e) = 
+	let mT = lookup(x, C) in
+	if isSomeType(mT)
+	then tcheck(C, e, getSomeType(mT))
+	else false
+
+axiom
+tcheckBindSubst(~C, ~x, ~e)
+============================ tcheckBindSubst-INV
+exists ~mT
+	~mT == lookup(~X, ~C)
+	isSomeType(~mT)
+	tcheck(~C, ~e, getSomeType(~mT))
+
+function
+tcheckSubst : Ctx Subst -> Bool
+tcheckSubst(C, emptySubst) = true
+tcheckSubst(C, bindSubst(y, e, s)) = tcheckBindSubst(C, y, e) && tcheckSubst(C, s)
+
+axiom
+tcheckSubst(~C, ~s)
+=================== tcheckSubst-INV
+OR
+=> ~s == emptySubst
+=> exists ~y, ~e, ~s1
+	~s == bindSubst(~y, ~e, ~s1)
+	tcheckBindSubst(~C, ~y, ~e)
+	tcheckSubst(~C, ~s1)

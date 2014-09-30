@@ -11,6 +11,7 @@ binding rules
 		defines unique Module m
 			of module-ref mod
 		implicitly defines Sort "Bool"
+		implicitly defines Symbol "tcheck"
 		scopes Sort, Symbol, Axiom, Rule
 		
 	Import(m,_):
@@ -47,7 +48,7 @@ binding rules
 		
 	FunctionPatVar(v):
 		refers to Symbol v
-		defines non-unique Symbol v
+		defines unique Symbol v
 	FunctionPatApp(f, args):
 		refers to Symbol f
 

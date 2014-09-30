@@ -85,8 +85,8 @@ rules
 	make-all : (vars, body) -> All(vars, body)
 	make-termapp : (v, []) -> <make-var> v
 	make-termapp : (v, args) -> TermApp(<make-var;?Var(<id>)> v, args)
-	make-var = string-as-chars([to-lower|id]); !Var(<id>)
-	make-meta = string-as-chars([to-upper|id]); !Meta(<id>)
+	make-var = string-as-chars(!['v'|<id>]); !Var(<id>)
+	make-meta = string-as-chars(!['V'|<id>]); !Meta(<id>)
 	make-eq : (t1{RelBool()}, t2) -> <make-impl> (t2,t1{RelBool()})
 	make-eq : (t1{SortRef("Bool")}, t2) -> <make-biimpl> (t2,t1{SortRef("Bool")})
 	make-eq : (t1, t2) -> Eq(t1, t2)

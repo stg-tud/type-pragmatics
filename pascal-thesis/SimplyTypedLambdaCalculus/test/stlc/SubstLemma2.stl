@@ -1,0 +1,138 @@
+module stlc.SubstLemma2
+
+import stlc.Syntax
+import stlc.Context
+import stlc.Types
+import stlc.Gensym
+import stlc.Subst2
+
+
+// *** substVar *** //
+goal
+~s == emptySubst
+tcheckSubst(~C, ~s)
+~C |- var(~x) : ~T
+=========================== T-substVar-emptySubst
+~C |- substVar(~s, ~x) : ~T
+
+local {
+	consts
+		s : Subst
+
+	axiom
+	tcheckSubst(~C, s)
+	~C |- var(~x) : ~T
+	=========================== T-substVar-bindSubst-IH
+	~C |- substVar(s, ~x) : ~T
+
+	goal
+	~s == bindSubst(~y, ~e, s)
+	tcheckSubst(~C, ~s)
+	~C |- var(~x) : ~T
+	~x == ~y
+	=========================== T-substVar-bindSubst-1
+	~C |- substVar(~s, ~x) : ~T
+
+	goal
+	~s == bindSubst(~y, ~e, s)
+	tcheckSubst(~C, ~s)
+	~C |- var(~x) : ~T
+	~x != ~y
+	=========================== T-substVar-bindSubst-2
+	~C |- substVar(~s, ~x) : ~T
+}
+
+axiom
+tcheckSubst(~C, ~s)
+~C |- var(~x) : ~T
+=========================== T-substVar
+~C |- substVar(~s, ~x) : ~T
+
+
+
+
+
+// *** substExp *** //
+
+goal
+~e == var(~x)
+tcheckSubst(~C, ~s)
+~C |- ~e : ~T
+=========================== T-substVar-var
+~C |- substExp(~s, ~e) : ~T
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom
+	~e == e1
+	tcheckSubst(~C, ~s)
+	~C |- ~e : ~T
+	=========================== T-substVar-app-IH1
+	~C |- substExp(~s, ~e) : ~T
+	
+	axiom
+	~e == e2
+	tcheckSubst(~C, ~s)
+	~C |- ~e : ~T
+	=========================== T-substVar-app-IH2
+	~C |- substExp(~s, ~e) : ~T
+	
+	goal
+	~e == app(e1, e2)
+	tcheckSubst(~C, ~s)
+	~C |- ~e : ~T
+	=========================== T-substVar-app
+	~C |- substExp(~s, ~e) : ~T
+}
+
+local {
+	consts
+		e1 : Exp
+
+	axiom
+	~e == e1
+	tcheckSubst(~C, ~s)
+	~C |- ~e : ~T
+	=========================== T-substVar-abs-IH
+	~C |- substExp(~s, ~e) : ~T
+	
+	goal
+	~e == abs(~x, ~S, e1)
+	tcheckSubst(~C, ~s)
+	~C |- ~e : ~T
+	~fresh == gensymSubst(~s, e1)
+	~CIH == bind(~fresh, ~S, bind(~x, ~S, ~C))
+	~sIH == bindSubst(~x, var(~fresh), ~s)
+	tcheckSubst(~CIH, ~s)
+	~x != ~fresh
+	!isFreeVar(~x, substExp(~sIH, e1))
+	=========================== T-substVar-abs
+	~C |- substExp(~s, ~e) : ~T
+
+	// substExp(~s, ~e) == abs(~fresh, ~S, substExp(~sIH, e1))
+	// lookup(~x, ~CIH) == someType(~S)
+	// ~CIH |- var(~fresh) : ~S
+	// tcheckBindSubst(~CIH, ~x, var(~fresh))
+	// tcheckSubst(~CIH, ~sIH)
+	// exists ~T2
+	// 	~T == arrow(~S, ~T2)
+	// 	~CIH |- e1 : ~T2
+	// 	~CIH |- substExp(~sIH, e1) : ~T2		
+	// 	bind(~x, ~S, ~C) |- abs(~fresh, ~S, substExp(~sIH, e1)) : arrow(~S, ~T2)
+	// 	~C |- abs(~fresh, ~S, substExp(~sIH, e1)) : ~T
+	// ~C |- abs(~fresh, ~S, substExp(~sIH, e1)) : ~T
+		// ~CIH2 |- substExp(~sIH, e1) : ~T2
+		// bind(~fresh, ~S, ~C) |- substExp(~sIH, e1) : ~T2 // x not in ~sIH
+}
+
+// substitution lemma becomes an axiom after the proof
+axiom
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+

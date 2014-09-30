@@ -19,8 +19,8 @@ rules
 	R : PremiseList(p) -> p
 	R : ConsequenceList(p) -> p
 	R : JudgementCons(j1, j2) -> <make-and> (j1, j2)
-	R : TypingJudgment(CTX, E, T) -> Pred("tcheck", [CTX, E, T])
-	R : ReduceJudgment(e1, e2) -> Pred("reduce", [e1, e2])
+	R : TypingJudgment(CTX, E, T) -> Pred("vtcheck", [CTX, E, T])
+	R : ReduceJudgment(e1, e2) -> Pred("vreduce", [e1, e2])
 	R : FunctionExpJudgment(e) -> e
 	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)
 	R : ForallJudgment(vars, prop) -> All(vars, prop)
@@ -42,10 +42,11 @@ rules
 	// R : Meta(v) -> Var(v)
 	// R : MetaVariable(v) -> v
 	R : Var(v) -> Var(v2)
-		where v2 := <string-as-chars([to-lower|id])> v
-		    ; <not(equal)> (v, v2)
+		where
+			v2 := <string-as-chars(not(?['v'|_]); !['v'|<id>])> v;
+			<not(equal)> (v, v2)
 	R : Meta(v) -> Meta(v2)
-		where v2 := <string-as-chars([to-upper|id])> v
+		where v2 := <string-as-chars(not(?['V'|_]); !['V'|<id>])> v
 		    ; <not(equal)> (v, v2)
 	
 	// R : Fork(x) -> TermApp("fork", [x])

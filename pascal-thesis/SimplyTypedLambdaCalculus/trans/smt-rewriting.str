@@ -128,7 +128,7 @@ rules
 	pred-to-fun-decl :
 		Pred(name,args) -> DeclFun(fname, <map(!Term())> args, Bool())
 	where
-		fname := <string-as-chars([to-lower|id])> name
+		fname := <string-as-chars(!['v'|<id>])> name
 	pred-to-fun-decl = debug(!"pred-to-fun-decl failed: "); fail
 	
 	var-to-fun-decl : Var(v) -> <termapp-to-fun-decl> TermApp(v, [])

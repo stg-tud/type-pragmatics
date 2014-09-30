@@ -11,6 +11,16 @@ constructors
   someType : Typ -> OptTyp
 
 function
+isSomeType : OptTyp -> Bool
+isSomeType(noType) = false
+isSomeType(someType(e)) = true
+
+partial function
+getSomeType : OptTyp -> Exp
+getSomeType(someType(e)) = e
+
+
+function
 lookup : Var Ctx -> OptTyp
 lookup(x, empty) = noType
 lookup(x, bind(y, Ty, C)) = 
@@ -35,9 +45,9 @@ lookup(~x, ~C) == noType
 =========================== T-Weak
 bind(~x, ~S, ~C) |- ~e : ~T
 
-// !isFreeVar(~x, ~e)
-// bind(~x, ~S, ~C) |- ~e : ~T
-// =========================== T-Strong
-// ~C |- ~e : ~T
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong
+~C |- ~e : ~T
 
 
