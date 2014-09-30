@@ -1,0 +1,17 @@
+module runtime/analysis/save
+
+imports
+	
+	runtime/index/core
+	runtime/task/core
+	
+rules
+	
+	analysis-spoofax-save(|language):
+    (_, _, _, _, project-path) -> None()
+    with
+      index-setup(|language, project-path);
+      index-persist;
+      task-setup(|project-path);
+      task-persist
+

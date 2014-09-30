@@ -130,5 +130,10 @@ rules // helper rules: format to HTML for hover
 	property-to-html: (name, prop) -> $[<b>[name]</b>: [<property-to-html>prop]]
 	property-to-html: list -> $[<div>[<properties-to-html>list]</div>]
 		where is-list
-	property-to-html: prop -> prop
+	property-to-html: prop -> <escape-for-html> $[[prop]]
+
+	escape-for-html =
+		string-replace(|"&", "&amp;") ;
+		string-replace(|"<", "&lt;") ;
+		string-replace(|">", "&gt;")
 

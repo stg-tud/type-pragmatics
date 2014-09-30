@@ -1,9 +1,5 @@
 module runtime/index/core
 
-imports
-	
-	runtime/index/utils
-
 signature
 
   sorts
@@ -25,9 +21,9 @@ rules
    */
   index-setup(|language, project-path) =
     prim("LANG_index_setup_new", language, <index-setup-paths> project-path)
-    
   index-setup:
   	(language, project-path) -> <prim("LANG_index_setup_new", language, <index-setup-paths> project-path)>
+  index-setup-paths = try(is-list; Hd)
     
   /**
    * Unloads the currently loaded index.
@@ -49,30 +45,48 @@ rules
 		prim("LANG_index_recover")
 		
 	/**
-	 * Starts collection for given partition. Used in conjunction with index-stop-collection to 
+	 * Starts collection for a given source. Used in conjunction with index-stop-collection to 
 	 * retrieve a list of added and removed index entries in relation to the previous entries in
-	 * given partition.
+	 * given source.
 	 *
 	 * Example:
 	 *   index-start-collection(|"fullpath/file.ext")
-	 *   index-start-collection(|("fullpath/file.ext", "subfile"))
 	 *
 	 * @type x -> x
 	 */
-	index-start-collection(|partition) =
-		prim("LANG_index_start_collection", partition)
+	index-start-collection(|source) =
+		prim("LANG_index_start_collection", source)
+		
+  /**
+   * Collects given element, which will be added to the index when collection stops.
+   *
+   * @param value Value of the element.
+   * @param source The source to collect the element for.
+   * @type key -> key
+   */
+	index-collect(|value, source):
+		key -> <prim("LANG_index_collect", key, value)>
+		
+  /**
+   * Collects given element without value, which will be added to the index when collection stops.
+   *
+   * @param source The source to collect the element for.
+   * @type key -> key
+   */
+	index-collect(|source):
+		key -> <prim("LANG_index_collect_boolean", key)>
 		
 	/**
-	 * Stops collection for the partition on which index-start-collection was called. Returns 
-	 * a tuple with removed and added entries in relation to the previous entries in that partition.
+	 * Stops collection for given source. Returns a tuple with removed and added entries in relation to the previous 
+	 * entries in that source.
 	 *
 	 * Example:
-	 *   index-stop-collection => (removed, added)
+	 *   index-stop-collection(|"fullpath/file.ext") => (removed, added)
 	 *
-	 * @type x -> (List(elem), List(elem))
+	 * @type _ -> (List(elem), List(elem))
 	 */
-	index-stop-collection =
-		prim("LANG_index_stop_collection")
+	index-stop-collection(|source) =
+		prim("LANG_index_stop_collection", source)
 	
 	/**
 	 * Pushes a new index on the stack and sets that as the current index. Entries from the parent
@@ -116,40 +130,32 @@ rules
   /**
    * Adds given element to the index.
    *
-   * Example:
-   *   <index-add(|"fullpath/file.ext")> Def([Entity(), "Bar"])
-   *   <index-add(|("fullpath/file.ext", "subfile"))> Def([Entity(), "Bar"])
-   *
-   * @param partition The partition to add the element to.
-   * @type x -> ?x
+   * @param value Value of the element.
+   * @param source The source to add the element to.
+   * @type key -> key
    */
-  index-add(|partition) =
-    prim("LANG_index_add", <id>, partition)
-
-  /**
-   * Adds all given elements to the index.
-   *
-   * Example:
-   *   <index-add-all(|"fullpath/file.ext")> [Def([Entity(), "Bar"]), ...]
-   *   <index-add-all(|("fullpath/file.ext", "subfile"))> [Def([Entity(), "Bar"]), ...]
-   *
-   * @param partition The partition to add the elements to.
-   * @type List(x) -> ?List(x)
-   */
-  index-add-all(|partition) =
-    list-loop(with(index-add(|partition)))
+  index-add(|value, source):
+    key -> <prim("LANG_index_add", key, value, source)>
     
   /**
-   * Removes all elements from the index that are contained in given partition.
+   * Adds given element without value to the index.
+   *
+   * @param source The source to add the element to.
+   * @type key -> key
+   */
+  index-add(|source):
+    key -> <prim("LANG_index_add_boolean", key, source)>
+    
+  /**
+   * Removes all elements from the index that are contained in given source.
    *
    * Example:
-   *   <index-clear-partition> "fullpath/file.ext"
-   *   <index-clear-partition> ("fullpath/file.ext", "subfile")
+   *   <index-clear-source> "fullpath/file.ext"
    *
-   * @type x -> ?x
+   * @type source -> source
    */
-  index-clear-partition = 
-    prim("LANG_index_clear_partition", <id>)
+  index-clear-source:
+  	source -> <prim("LANG_index_clear_source", source)>
     
   /**
    * Removes all elements from the index.

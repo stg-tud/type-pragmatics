@@ -2,7 +2,12 @@ module runtime/analysis/interface
 
 rules
 
+  analysis-interface = fail
+  
 	analysis-pre-trans = fail
 	analysis-post-trans(|ctx) = fail
+	
 	analysis-disable-persist = fail
-
+	
+	analysis-builtin-partitions = fail
+	

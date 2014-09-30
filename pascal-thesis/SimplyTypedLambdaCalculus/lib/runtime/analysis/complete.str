@@ -14,6 +14,3 @@ rules
     	task-setup(|project-path);
     	index-setup(|language, project-path)
 
-	// Legacy
-	analysis-propose-completions(|language, project-path, path) = analysis-propose-completions(|language, project-path)
-

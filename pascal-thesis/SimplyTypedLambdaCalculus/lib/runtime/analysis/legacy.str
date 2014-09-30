@@ -1,0 +1,82 @@
+module runtime/analysis/legacy
+
+imports
+	
+	runtime/analysis/core
+	runtime/analysis/save
+	runtime/analysis/complete
+	runtime/analysis/resolve
+	runtime/editor/eclipse
+	runtime/editor/queue
+	runtime/index/core
+	runtime/task/core
+	runtime/nabl/collect
+	runtime/task/messages
+	runtime/task/core
+	
+rules // Interface
+	
+	analysis-single-default-interface = fail
+	analysis-multiple-default-interface = fail
+	
+	constraint-error = fail
+	constraint-warning = fail
+	constraint-note = fail
+	
+rules // Analysis
+	
+	analysis-default-editor = 
+		(where(is-tuple); analysis-single-default-interface) <+ 
+		queue-strategy(|"analysis-multiple-default-interface", "Analyzing files (legacy)")
+	analysis-default-cmd = 
+		analysis-multiple-default-interface
+	analysis-cmd = 
+		analysis-multiple-default-interface
+		
+	// Called by only by Spoofax.
+	analysis-single-default(pre-trans, post-trans, pp-message|language) = 
+		analysis-single-default(pre-trans, nabl-collect, post-trans, pp-message|language)
+	analysis-single-default(pre-trans, collector, post-trans, pp-message|language) = 
+		analysis-files-spoofax(fail, pre-trans, post-trans, pp-message|language, <project-path>)
+	
+	// Called by Spoofax and Sunshine, let analysis-top choose the correct strategy based on input.
+	analysis-multiple-default(parse-file, pre-trans, post-trans, pp-message|language, project-path) = 
+		analysis-top(parse-file, pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
+	analysis-multiple-default(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path) = 
+		analysis-top(parse-file, pre-trans, post-trans, pp-message|language, project-path)
+	
+rules // Other services
+	
+	analysis-save-default(|language) = analysis-spoofax-save(|language)
+	analysis-propose-completions(|language, project-path, path) = analysis-propose-completions(|language, project-path)
+	analysis-resolve(|language, project-path, path) = analysis-resolve(|language, project-path)
+
+rules // Messages
+	
+	analysis-get-legacy-messages(|source) = task-get-messages(|$[[source]_legacy])
+	
+	analysis-collect-legacy-messages:
+		result@FileResult(_, _, source, _, ast, _, _, _) -> result
+		with
+		  error-tuple*   := <collect-all(constraint-error); flatten-list> ast
+		; warning-tuple* := <collect-all(constraint-warning); flatten-list> ast
+		; note-tuple*    := <collect-all(constraint-note); flatten-list> ast
+		; if <Tl> error-tuple* <+ <Tl> warning-tuple* <+ <Tl> note-tuple* then
+			  legacy-source  := $[[source]_legacy]
+			; task-start-collection(|legacy-source)
+			; error*   := <filter(analysis-legacy-convert-error(|legacy-source))> error-tuple*
+			; warning* := <filter(analysis-legacy-convert-warning(|legacy-source))> warning-tuple*
+		  ; note*    := <filter(analysis-legacy-convert-note(|legacy-source))> note-tuple*
+			; task-stop-collection(|legacy-source)
+			; <task-evaluate-now> [error*, warning*, note*]
+		end
+
+	analysis-legacy-convert-error(|source):
+		(term, message) -> <task-create-error(|source, message); task-result-id> term
+		
+	analysis-legacy-convert-warning(|source):
+		(term, message) -> <task-create-warning(|source, message); task-result-id> term
+		
+	analysis-legacy-convert-note(|source):
+		(term, message) -> <task-create-note(|source, message); task-result-id> term
+

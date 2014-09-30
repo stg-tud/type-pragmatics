@@ -1,33 +1,4 @@
 module runtime/analysis/multiple
 
-imports
-
-  runtime/analysis/core
-  runtime/task/core
-  runtime/nabl/utils
-
-rules // Multi file analysis
-  
-  analyze-multiple(parse-file, complete-work-unit|language, project-path):
-    path* -> (result, parse-time, collect-time, perform-time)
-    with
-    	measure-time(
-      	file* := <map(analyze-parse-file(parse-file); where(complete-work-unit))> path*
-    	  , id, ?parse-time
-    	);
-    	measure-time(
-      	result* := <map(analyze-collect(|language, project-path); where(complete-work-unit))> file*
-      	, id, ?collect-time
-      );
-      measure-time(
-    		result  := <analyze-perform-all> result*
-    		, id, ?perform-time
-    	)
-
-  analyze-parse-file(parse-file):
-    path -> File(path, ast)
-    with
-      if not(ast := <file-exists; parse-file> path) then
-        ast := ()
-      end
+rules // Empty file to clear previous definitions
 
