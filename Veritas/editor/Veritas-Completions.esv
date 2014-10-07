@@ -1,6 +1,6 @@
-module STLC-Completions
+module Veritas-Completions
 
-imports STLC-Completions.generated
+imports Veritas-Completions.generated
 
 completions
                                                                    
@@ -9,9 +9,14 @@ completions
   // See the imported file for a brief introduction and examples.  
                                                                    
 
-                           
+completions
+                                             
+  // Syntax completion:                      
+                       
 
 completions
   // Semantic (identifier) completion:   
                                          
   completion proposer                  : editor-complete
+                                         
+  completion trigger                   : ":"

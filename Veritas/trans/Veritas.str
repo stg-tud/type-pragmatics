@@ -1,4 +1,4 @@
-module stlc
+module Veritas
 
 imports
   libstratego-lib
@@ -8,9 +8,9 @@ imports
   lib/runtime/analysis/-
   lib/runtime/editor/-
   
-  include/STLC
+  include/Veritas
   generate
-  editor/STLC-Outliner
+  editor/Veritas-Outliner
   names
   verification
 

@@ -1,6 +1,6 @@
-module STLC-Syntax
+module Veritas-Syntax
 
-imports STLC-Syntax.generated
+imports Veritas-Syntax.generated
 
 language
                                                                    

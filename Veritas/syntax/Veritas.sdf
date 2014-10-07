@@ -1,4 +1,4 @@
-module STLC
+module Veritas
 
 imports Language
 %% imports Par

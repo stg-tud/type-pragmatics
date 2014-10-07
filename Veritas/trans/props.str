@@ -1,6 +1,6 @@
 module props
 
-imports include/STLC
+imports include/Veritas
 
 signature
 	sorts Prop FOF File

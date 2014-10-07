@@ -2,8 +2,8 @@ bin
 .cache
 include/
 editor/java/trans
-editor/STLC-*.generated.esv
-syntax/STLC.generated.pp
+editor/Veritas-*.generated.esv
+syntax/Veritas.generated.pp
 .settings/org.eclipse.jdt.core.prefs
 editor/*.generated.esv
 lib/*.generated.str
@@ -14,3 +14,4 @@ lib-refactoring/*.generated.str
 *.proof
 *.fof
 *.smt2
+.DS_Store

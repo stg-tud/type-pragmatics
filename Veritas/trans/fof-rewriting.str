@@ -1,6 +1,6 @@
 module fof-rewriting
 
-imports include/STLC
+imports include/Veritas
 imports libstratego-lib
 imports names
 imports props

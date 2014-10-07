@@ -1,6 +1,6 @@
-module STLC-References
+module Veritas-References
 
-imports STLC-References.generated
+imports Veritas-References.generated
 
 references
                                                                                                    

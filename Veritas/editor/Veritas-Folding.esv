@@ -1,6 +1,6 @@
-module STLC-Folding
+module Veritas-Folding
 
-imports STLC-Folding.generated
+imports Veritas-Folding.generated
 
 folding
   

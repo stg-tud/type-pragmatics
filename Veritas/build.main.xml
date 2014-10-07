@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="STLC" default="all">
+<project name="Veritas" default="all">
     
     <!-- Key input modules -->
-    <property name="sdfmodule" value="STLC"/>
-    <property name="metasdfmodule" value="Stratego-STLC"/>
-    <property name="esvmodule" value="STLC"/>
-    <property name="strmodule" value="stlc"/>
+    <property name="sdfmodule" value="Veritas"/>
+    <property name="metasdfmodule" value="Stratego-Veritas"/>
+    <property name="esvmodule" value="Veritas"/>
+    <property name="strmodule" value="Veritas"/>
 
     <!-- Project directories -->
     <property name="trans" location="trans"/>

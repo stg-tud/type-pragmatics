@@ -12,9 +12,9 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 
-public class STLCParseControllerGenerated extends DynamicParseController 
+public class VeritasParseControllerGenerated extends DynamicParseController 
 { 
-  public static final String LANGUAGE = new String("STLC");
+  public static final String LANGUAGE = new String("Veritas");
 
   private static final String TABLE = "/include/" + LANGUAGE + ".tbl";
 
@@ -35,15 +35,15 @@ public class STLCParseControllerGenerated extends DynamicParseController
 
   protected static synchronized void setDescriptor(Descriptor descriptor)
   { 
-    STLCParseControllerGenerated.descriptor = descriptor;
+    VeritasParseControllerGenerated.descriptor = descriptor;
   }
 
   protected static void createDescriptor()
   { 
     try
     { 
-      InputStream descriptorStream = STLCParseControllerGenerated.class.getResourceAsStream(DESCRIPTOR);
-      InputStream table = STLCParseControllerGenerated.class.getResourceAsStream(TABLE);
+      InputStream descriptorStream = VeritasParseControllerGenerated.class.getResourceAsStream(DESCRIPTOR);
+      InputStream table = VeritasParseControllerGenerated.class.getResourceAsStream(TABLE);
       boolean filesystem = false;
       if(descriptorStream == null && new File("./" + DESCRIPTOR).exists())
       { 
@@ -60,7 +60,7 @@ public class STLCParseControllerGenerated extends DynamicParseController
       if(table == null)
         throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin: " + getPluginLocation() + ")");
       descriptor = DescriptorFactory.load(descriptorStream, table, filesystem ? Path.fromPortableString("./") : null);
-      descriptor.setAttachmentProvider(STLCParseControllerGenerated.class);
+      descriptor.setAttachmentProvider(VeritasParseControllerGenerated.class);
     }
     catch(BadDescriptorException exc)
     { 
@@ -78,7 +78,7 @@ public class STLCParseControllerGenerated extends DynamicParseController
 
   private static String getPluginLocation()
   { 
-    return STLCParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+    return VeritasParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
   }
 
   @Override public IParseController getWrapped()

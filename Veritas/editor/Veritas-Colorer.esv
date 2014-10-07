@@ -1,6 +1,6 @@
-module STLC-Colorer
+module Veritas-Colorer
 
-imports STLC-Colorer.generated
+imports Veritas-Colorer.generated
 
 colorer
                                                                       

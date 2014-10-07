@@ -1,6 +1,6 @@
-module STLC-Refactorings
+module Veritas-Refactorings
 
-imports STLC-Refactorings.generated
+imports Veritas-Refactorings.generated
 
 refactorings
 
@@ -16,7 +16,7 @@ refactorings
 
   
 
-  pretty-print : pp-stlc-string
+  pretty-print : pp-veritas-string
 
   
 

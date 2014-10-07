@@ -1,8 +1,8 @@
-module editor/STLC-Outliner.generated
+module editor/Veritas-Outliner.generated
 
 imports
   
-  include/STLC
+  include/Veritas
   lib/runtime/editor/outline-library
 
 rules

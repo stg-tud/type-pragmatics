@@ -5,20 +5,20 @@
          point="org.eclipse.imp.runtime.languageDescription">
       <language
             extensions="stl"
-            description="STLC"
-            language="STLC"
+            description="Veritas"
+            language="Veritas"
             derivedFrom="DynamicRoot"
-            validator="SimplyTypedLambdaCalculus.STLCValidator"
-            validatorClass="SimplyTypedLambdaCalculus.STLCValidator"
+            validator="Veritas.VeritasValidator"
+            validatorClass="Veritas.VeritasValidator"
       ></language>
    </extension>
    <extension
          id="SimplyTypedLambdaCalculus.parser"
-         name="STLC Parser"
+         name="Veritas Parser"
          point="org.eclipse.imp.runtime.parser">
       <parser
-            class="SimplyTypedLambdaCalculus.STLCParseController"
-            language="STLC">
+            class="SimplyTypedLambdaCalculus.VeritasParseController"
+            language="Veritas">
       </parser>
    </extension>    
 </plugin>

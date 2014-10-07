@@ -1,7 +1,7 @@
 module names
 
 imports
-  include/STLC
+  include/Veritas
   
 namespaces Module Sort Symbol Axiom Rule
 

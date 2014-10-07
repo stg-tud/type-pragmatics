@@ -4,12 +4,12 @@ imports
   libstratego-lib
   libstratego-gpp
   libstratego-aterm
-  include/STLC
+  include/Veritas
   generate
   names
   fof-rewriting
   smt-rewriting
-  stlc
+  veritas
   lib/editor-common.generated
   runtime/analysis/core
   lib/runtime/index/core

@@ -1,4 +1,4 @@
-package SimplyTypedLambdaCalculus.strategies;
+package Veritas.strategies;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;

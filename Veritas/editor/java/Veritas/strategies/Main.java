@@ -1,4 +1,4 @@
-package SimplyTypedLambdaCalculus.strategies;
+package Veritas.strategies;
 
 import org.strategoxt.lang.Context;
 
