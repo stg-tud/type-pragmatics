@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: STLC Plug-in
-Bundle-SymbolicName: SimplyTypedLambdaCalculus; singleton:=true
+Bundle-SymbolicName: Veritas;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: SimplyTypedLambdaCalculus.Activator
 Import-Package: org.osgi.framework;version="1.3.0"
