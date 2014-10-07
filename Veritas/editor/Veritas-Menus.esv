@@ -30,7 +30,16 @@ menus
       action: "Selection"            = debug-task-selection
     end
   
-  menu: "Generation"                   (openeditor) (realtime)
-    
-    action: "Generate Java"          = generate-java
+  menu: "Generation"
+    action: "Generate FOF"         = generate-fof (openeditor) (realtime)
+    action: "Generate SMT"         = generate-smt (openeditor) (realtime)
+
+  menu: "Verification"
+    action: "Verify with Vampire" = verify-vampire
+    action: "Clean" = clean-proofs
+
+  menu: "Check consistency"
+    action: "Check consistency with Vampire" = check-consitency-vampire
+    action: "Check consistency with Vampire (120 seconds)" = check-consitency-vampire-120
+
 
