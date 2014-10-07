@@ -639,6 +639,10 @@ rules
       |
       )
 
+  nabl-get-scope =
+    ?FunctionExpLet(v, e1, e2)
+    ; ![NablNsSymbol()]
+
   nabl-get-name :
     FunctionExpLet(v, e1, e2) -> v
 
@@ -659,8 +663,8 @@ rules
           , uri__
           , NablNsSymbol()
           , Unique()
-          , [DefScope(e2)]
-          , []
+          , Current()
+          , [NablNsSymbol()]
           , []
           )
         , id
@@ -671,9 +675,3 @@ rules
     ; match(child-uris__|c-uri1__)
     ; match(sibl-uris__|s-uri1__)
     ; match(implicits__|[])
-
-  nabl-external-def-site(|lang__, ctx__, uniques__, uri__, states__, implicits__) =
-    ?FunctionExpLet(v, e1, e2)
-    ; uri1__ := <nabl-uri> v
-    ; <nabl-def-alias(|ctx__, uri1__)> e2
-    ; fail
