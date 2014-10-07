@@ -53,7 +53,7 @@ rules
 	
 	consistency-success-msg : 
 		VerificationFailure(errmsg) -> 
-		$[Failed to show inconsistency: [errmsg].]
+		$[No inconsistency found: [errmsg].]
 	
 	
 	constraint-error : 
