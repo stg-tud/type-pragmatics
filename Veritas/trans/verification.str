@@ -209,7 +209,7 @@ rules
 		<read-text-file> tmp
 
 	
-	vampire-command = !"/Users/seba/Library/bin/vampire"
+	vampire-command = !"vampire"
 	vampire-options(|time) =
 		!["-t", time, 
 	      "--mode", "casc",
