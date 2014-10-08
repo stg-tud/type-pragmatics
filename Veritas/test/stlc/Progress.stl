@@ -25,13 +25,14 @@ local {
 	~ein == e1	 
 	empty |- ~ein : ~T
 	!isValue(~ein)
-	=========================== T-Progress-T-app
+	=========================== T-Progress-T-abs-IH
 	exists ~eout
 		reduce(~ein) == someExp(~eout)
 
 	goal
 	~ein == abs(~x, ~S, e1)
-	empty |- ~ein : ~T
+	~Tin == arrow(~T1, ~T2)
+	empty |- ~ein : ~Tin
 	!isValue(~ein)
 	=========================== T-Progress-T-abs
 	exists ~eout
