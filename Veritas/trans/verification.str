@@ -171,18 +171,20 @@ rules
 		);
 		!(hash-file, new-hash)
 		
-		
 	extract-vampire-info(|r) =
 		?proof-file;
 		proof := <read-text-file> proof-file;
-		lines := <get-lines; reverse; ?[_,last,butlast|_]; reverse> proof;
-		lemma-lines := <filter(string-starts-with(|"  file("))> lines;
+		lines1 := <get-lines; reverse; ?[_,last,butlast|_]; reverse> proof;
+		lines2 := lines1;
+		lemma-lines := <filter(string-starts-with(|"  file("))> lines1;
+		termination-lines := <filter(string-starts-with(|"% Termination reason:")); reverse; 
+			?[last-reason|_]> lines2; 
 		axioms := <map(extract-tptp-lemma-name-from-line)> lemma-lines;
 		lemmas := <diff> (axioms, [<strip-annos> r]);
 		info-file := <guarantee-extension(|"info")> proof-file;
-		result := <is-substring(!"Success") <
-			        !VerificationSuccess(lemmas) + 
-			        !VerificationFailure(butlast)> last;
+	 	result := <if (<is-substring(!"Success")> last; <is-substring(!"Refutation")> last-reason) 
+	 			then !VerificationSuccess(lemmas) 
+	 			else !VerificationFailure(butlast) end>;
 		<write-file> (info-file, <write-to-string> result)
 	
 	get-verification-result-info =
