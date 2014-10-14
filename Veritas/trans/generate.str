@@ -16,21 +16,22 @@ rules // Incremental code generation of project using compilation library.
       
   // See lib/compilation-library.generated.str for documentation
 
-  generate-files(|base) =
+  generate-files(|base, rulenames) =
   	?files;
-  	names := <generate-file-names(|base)> files;
+  	names := <generate-file-names(|base)> rulenames;
   	<zip> (names, files);
   	map(write-file);
   	!names
 
-  generate-file-names(|base) = generate-file-names(|base, 0)
-  generate-file-names(|base, i) : [] -> []
-  generate-file-names(|base, i) : [output | rest] -> [outfile | <generate-file-names(|base, <inc> i)> rest]
+  
+  generate-file-names(|base) : [] -> []
+  generate-file-names(|base) : [rule | rest] -> [outfile | <generate-file-names(|base)> rest]
   where
     <get-extension> base => ext;
     <remove-extension> base => basename;
-    <conc-strings> (basename, "-", <int-to-string> i) => filename;
+    <conc-strings> (basename, "-", rule) => filename;
     <add-extension> (filename, ext) => outfile
+  
   
   write-file : (file, output) -> <id>
   where
@@ -44,9 +45,10 @@ rules // Incremental code generation of project using compilation library.
 	index-setup(|<language>, project-path);
 	task-setup(|project-path);
     filename := <guarantee-extension(|"fof")> path;
+    rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
     goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
     strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
-    outfiles := <generate-files(|filename)> strings;
+    outfiles := <generate-files(|filename,rulez)> strings;
     result := <if <?[]> goals then !None() else !(<Hd> outfiles, <Hd> strings) end> ()
 
   pp-formula =

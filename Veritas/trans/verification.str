@@ -27,7 +27,7 @@ rules
 	where
 		msg := $[Verification result outdated or not started yet, use verification menu to re-verify.];
 		consistency-msg := $[Consistency check outdated or not started yet, use verification menu to re-check.];
-		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body;
+		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>));  concat> body;
 		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
 		results := <map(get-verification-result-info <+ !())> outfiles;
 		filtered-results := <zip; filter(?(_,()))> (rulez, results);
@@ -136,7 +136,7 @@ rules
 	    rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
 	    goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
 	    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
-	    outfiles := <generate-files(|filename)> strings;
+	    outfiles := <generate-files(|filename, rulez)> strings;
 	    <zip; map(\(r,f) -> <try(call-vampire(|r,time))> f\)> (rulez, outfiles);
     	<queue-analysis> path
 	
