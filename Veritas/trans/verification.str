@@ -174,8 +174,8 @@ rules
 	extract-vampire-info(|r) =
 		?proof-file;
 		proof := <read-text-file> proof-file;
-		lines1 := <get-lines; reverse; ?[_,last,butlast|_]; reverse> proof;
-		lines2 := lines1;
+		lines1 := <get-lines; reverse; ?[_,last,butlast|_]> proof;
+		lines2 := <reverse> lines1;
 		lemma-lines := <filter(string-starts-with(|"  file("))> lines1;
 		termination-lines := <filter(string-starts-with(|"% Termination reason:")); reverse; 
 			?[last-reason|_]> lines2; 
