@@ -1,9 +1,9 @@
-module stlc.Preservation
+module stlc.callbyname.Preservation
 
 import stlc.Syntax
 import stlc.Subst {names}
 import stlc.SubstLemma
-import stlc.Reduction
+import stlc.callbyname.Reduction
 import stlc.Types
 
 

@@ -1,10 +1,10 @@
-module stlc.Progress
+module stlc.callbyvalue.Progress
 
 import stlc.Syntax
 import stlc.Context
 import stlc.Subst {names}
 import stlc.SubstLemma
-import stlc.Reduction
+import stlc.callbyvalue.Reduction
 import stlc.Types
 
 // Prove by induction on typing relation. Cases: T-var, T-abs, T-app

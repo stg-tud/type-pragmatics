@@ -1,4 +1,4 @@
-module stlc.Reduction
+module stlc.callbyvalue.Reduction
 
 import stlc.Syntax
 import stlc.Subst
@@ -23,13 +23,18 @@ function
 reduce : Exp -> OptExp
 reduce(var(x)) = noExp
 reduce(abs(x, S, e)) = noExp
-reduce(app(abs(x, S, e1), e2)) = someExp(subst(x, e2, e1))
+reduce(app(abs(x, S, e1), e2)) = let e2red = reduce(e2) in
+	if isSomeExp(e2red)
+	then someExp(app(abs(x, S, e1), getSomeExp(e2red)))
+	else 
+		if isValue(e2red)
+		then someExp(subst(x, e2red, e1))
+		else noExp
 reduce(app(e1, e2)) = let e1red = reduce(e1) in
 	if isSomeExp(e1red)
 	then someExp(app(getSomeExp(e1red), e2))
 	else noExp
-
-
+	
 goal // could be derived from return type of `reduce`
 reduce(~e) == ~res
 ========================== reduce-CODOM
