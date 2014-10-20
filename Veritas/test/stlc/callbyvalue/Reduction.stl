@@ -27,8 +27,8 @@ reduce(app(abs(x, S, e1), e2)) = let e2red = reduce(e2) in
 	if isSomeExp(e2red)
 	then someExp(app(abs(x, S, e1), getSomeExp(e2red)))
 	else 
-		if isValue(e2red)
-		then someExp(subst(x, e2red, e1))
+		if isValue(e2)
+		then someExp(subst(x, e2, e1))
 		else noExp
 reduce(app(e1, e2)) = let e1red = reduce(e1) in
 	if isSomeExp(e1red)
@@ -50,6 +50,7 @@ OR
 => ~res == noExp
 => exists ~e2
 	~res == someExp(~e2)
+
 
 // axiom
 // reduce(~e) == ~res

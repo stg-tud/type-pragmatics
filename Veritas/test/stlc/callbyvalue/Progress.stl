@@ -53,7 +53,7 @@ local {
 	exists ~eout
 		reduce(~ein) == someExp(~eout)
 
-	axiom // not needed
+	axiom // NEEDED! (as expected)
 	~ein == e2	 
 	empty |- ~ein : ~T
 	!isValue(~ein)
