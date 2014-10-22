@@ -3,19 +3,13 @@ module stlc.barendregt.Subst
 import stlc.Syntax
 import stlc.Context
 
-relation
-isFreeVar : Var Exp
-isFreeVar(v, var(x))       <= x == v
-isFreeVar(v, abs(x, T, e)) <= x != v && isFreeVar(v, e) 
-isFreeVar(v, app(e1, e2))  <= isFreeVar(v, e1) || isFreeVar(v, e2)
-
 axiom
 !isFreeVar(~x, ~e)
 ~C |- ~e : ~T
 =========================== T-Weak-FreeVar
 bind(~x, ~S, ~C) |- ~e : ~T
 
-function
+partial function
 subst : Var Exp Exp -> Exp
 subst(x, e, var(y)) =
 	if x == y
