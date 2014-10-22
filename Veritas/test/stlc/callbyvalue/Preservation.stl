@@ -48,7 +48,7 @@ local {
 	================================ T-Preservation-T-app-IH1
 	~C |- ~eout : ~T
 
-	axiom // not needed
+	axiom // NEEDED (as expected!)
 	~ein == e2
 	reduce(~ein) = someExp(~eout)
 	~C |- ~ein : ~T
