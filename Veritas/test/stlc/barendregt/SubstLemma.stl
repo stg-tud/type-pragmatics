@@ -57,6 +57,7 @@ local {
 }
 
 // substitution lemma becomes an axiom after the proof
+// PROBLEM: the premises used in the T-abs case are not correctly propagated (unclear how!)
 axiom
 ~C |- ~e : ~T
 bind(~x, ~T, ~C) |- ~e2 : ~T2
