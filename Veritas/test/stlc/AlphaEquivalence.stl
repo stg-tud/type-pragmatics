@@ -1,0 +1,39 @@
+module stlc.AlphaEquivalence
+
+import stlc.Syntax
+import stlc.Subst
+import stlc.Types
+
+function
+alphaEquivalent : Exp Exp -> Bool
+
+
+axiom
+============================ alpha-equiv-refl
+alphaEquivalent(~e, ~e)
+
+
+axiom
+alphaEquivalent(~e1, ~e2)
+============================ alpha-equiv-sym
+alphaEquivalent(~e2, ~e1)
+
+
+axiom 
+alphaEquivalent(~e1, ~e2)
+alphaEquivalent(~e2, ~e3)
+============================ alpha-equiv-trans
+alphaEquivalent(~e1, ~e3)
+
+
+axiom
+====================================================================== alpha-equiv-subst-abs
+alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+axiom
+~C |- ~e : ~T
+alphaEquivalent(~e, ~e1)
+========================= alpha-equiv-typing
+~C |- ~e1 : ~T
+	
