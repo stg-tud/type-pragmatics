@@ -9,14 +9,3 @@ axiom
 gensym(~e) == ~v
 ================== gensym-is-fresh
 !isFreeVar(~v, ~e)
-
-
-goal
-~fresh == gensym(app(app(~e, ~e1), var(~x)))
-============================================= fresh-unequal-var
-~x != ~fresh
-
-axiom
-~fresh == gensym(app(app(~e, ~e1), var(~x)))
-============================================= fresh-unequal-var
-~x != ~fresh

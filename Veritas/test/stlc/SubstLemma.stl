@@ -48,41 +48,6 @@ bind(~x, ~T, ~C) |- ~e2 : ~T2
 ~C |- subst(~x, ~e, ~e2) : ~T2
 
 
-// local {
-// 	const eabs : Exp
-// 	
-// 	axiom
-// 	~C |- ~e : ~T
-// 	bind(~x, ~T, ~C) |- eabs : ~T2
-// 	============================== T-subst-IH-abs
-// 	~C |- subst(~x, ~e, eabs) : ~T2
-// 
-// 	goal
-// 	~e2 == abs(~y, ~S, eabs)
-// 	~x != ~y
-// 	isFreeVar(~y, ~e)
-// 	~C |- ~e : ~T
-// 	bind(~x, ~T, ~C) |- ~e2 : ~T2
-// 	~fresh == gensym(app(app(~e, eabs), var(~x)))
-// 	~C2 == bind(~x, ~T, ~C)
-// 	~C3 == bind(~fresh, ~S, ~C2)
-// 	================================================= T-subst-abs-2
-// 	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
-// 	exists ~S2
-// 		~T2 == arrow(~S,~S2)
-// 		bind(~y, ~S, ~C2) |- eabs : ~S2
-// 		bind(~fresh, ~S, bind(~y, ~S, ~C2)) |- eabs : ~S2
-// 		~fresh != ~y
-// 		~C3 |- var(~fresh) : ~S
-// 		bind(~y, ~S, ~C3) |- eabs : ~S2
-// 		bind(~fresh, ~S, bind(~x, ~T, ~C)) |- subst(~y, var(~fresh), eabs) : ~S2
-// 		~fresh != ~x
-// 		bind(~x, ~T, bind(~fresh, ~S, ~C)) |- subst(~y, var(~fresh), eabs) : ~S2
-// 		// bind(~fresh, ~S, ~C) |- subst(~x, ~e, subst(~y, var(~fresh), eabs)) : ~S2
-// 		// subst(~y, var(gensym2(~e, eabs)), eabs)
-// 	// ~C |- abs(~fresh, ~S, subst(~x, ~e, subst(~y, var(~fresh), eabs))) : ~T2
-// }
-
 local {
 	const eabs : Exp
 	
@@ -102,20 +67,57 @@ local {
 	~C |- subst(~x, ~e, ~e2) : ~T2
 }
 
-axiom
-~e2 == abs(~y, ~S, ~e1)
-~x != ~y
-!isFreeVar(~y, ~e)
-~C |- ~e : ~T
-bind(~x, ~T, ~C) |- ~e2 : ~T2
-================================================= T-subst-abs-2
-~C |- subst(~x, ~e, ~e2) : ~T2
-
 
 local {
 	const eabs : Exp
-		
+	
 	axiom
+	~e2 == abs(~y, ~S, ~e1)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+
+
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	//auxiliary lemma which is needed in this case, but can also be proven
+	goal
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-unequal-var
+	~x != ~fresh
+
+	axiom
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-unequal-var
+	~x != ~fresh
+		
+	axiom //not needed
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- eabs : ~T2
 	============================== T-subst-IH-abs
