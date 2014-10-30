@@ -114,12 +114,7 @@ bind(~x, ~T, ~C) |- ~e2 : ~T2
 
 local {
 	const eabs : Exp
-	
-	axiom
-	~fresh == gensym(app(app(~e, ~e1), var(~x)))
-	========================================== fresh-aux-1
-	~x != ~fresh
-	
+		
 	axiom
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- eabs : ~T2
