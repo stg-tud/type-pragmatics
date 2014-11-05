@@ -19,3 +19,21 @@ isFreeVar : Var Exp -> Bool
 isFreeVar(v, var(x))       = x == v
 isFreeVar(v, abs(x, T, e)) = x != v && isFreeVar(v, e) 
 isFreeVar(v, app(e1, e2))  = isFreeVar(v, e1) || isFreeVar(v, e2)
+
+// axiom
+// isFreeVar(~v, ~e)
+// ================= isFreeVar-inv
+// OR
+// => exists ~x
+//      ~e = var(~x)
+//      ~x = ~v
+// => exists ~x, ~T, ~e1
+//      ~e = abs(~x, ~T, ~e1)
+//      ~x != ~v
+//      isFreeVar(~v, ~e1)
+// => exists ~e1, ~e2
+//      ~e = app(~e1, ~e2)
+//      isFreeVar(~v, ~e1)
+// => exists ~e1, ~e2
+//      ~e = app(~e1, ~e2)
+//      isFreeVar(~v, ~e2)
