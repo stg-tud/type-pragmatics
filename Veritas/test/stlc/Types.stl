@@ -103,15 +103,10 @@ local {
 }
 
 axiom
+lookup(~x, ~C) == noType
 ~C |- ~e : ~T
-==================================================== T-Weak
-OR
- => exists ~x, ~S
- 		bind(~x, ~S, ~C) |- ~e : ~T
- => exists ~x, ~S, ~T1
- 		bind(~x, ~T1, bind(~x, ~S, ~C1)) |- ~e : ~T
-
-
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
 
 
 //Proof by structural induction
