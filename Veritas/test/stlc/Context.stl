@@ -40,14 +40,7 @@ bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
 =========================================== T-Context-Swap
 bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T
 
-lookup(~x, ~C) == noType
-~C |- ~e : ~T
-=========================== T-Weak
-bind(~x, ~S, ~C) |- ~e : ~T
 
-!isFreeVar(~x, ~e)
-bind(~x, ~S, ~C) |- ~e : ~T
-=========================== T-Strong
-~C |- ~e : ~T
+
 
 
