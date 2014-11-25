@@ -4,12 +4,6 @@ import stlc.Syntax
 import stlc.Context
 import stlc.Gensym
 
-axiom
-!isFreeVar(~x, ~e)
-~C |- ~e : ~T
-=========================== T-Weak-FreeVar
-bind(~x, ~S, ~C) |- ~e : ~T
-
 function
 subst : Var Exp Exp -> Exp
 subst(x, e, var(y)) =

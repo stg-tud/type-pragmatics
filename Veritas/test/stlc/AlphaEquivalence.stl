@@ -2,7 +2,6 @@ module stlc.AlphaEquivalence
 
 import stlc.Syntax
 import stlc.Subst
-import stlc.Types
 
 function
 alphaEquivalent : Exp Exp -> Bool

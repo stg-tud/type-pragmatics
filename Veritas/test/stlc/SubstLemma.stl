@@ -95,8 +95,8 @@ local {
 	alphaEquivalent(~e2, ~e3)
 	============================ alpha-equiv-trans
 	alphaEquivalent(~e1, ~e3)
-
-
+	
+	!isFreeVar(~y, ~e)
 	====================================================================== alpha-equiv-subst-abs
 	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
 
@@ -109,13 +109,24 @@ local {
 	//auxiliary lemma which is needed in this case, but can also be proven
 	goal
 	~fresh == gensym(app(app(~e, ~e1), var(~x)))
-	============================================= fresh-unequal-var
+	============================================= fresh-unequal-var-3
 	~x != ~fresh
-
+	
 	axiom
 	~fresh == gensym(app(app(~e, ~e1), var(~x)))
-	============================================= fresh-unequal-var
+	============================================= fresh-unequal-var-3
 	~x != ~fresh
+	
+	//another auxiliary lemma which is needed in this case, but can also be proven
+	goal
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-free-2
+	!isFreeVar(~fresh, ~e1)
+	
+	axiom
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-free-2
+	!isFreeVar(~fresh, ~e1)
 		
 	axiom //not needed
 	~C |- ~e : ~T
