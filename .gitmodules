@@ -1,0 +1,3 @@
+[submodule "typechecking"]
+	path = typechecking
+	url = https://github.com/pSub/master-thesis
