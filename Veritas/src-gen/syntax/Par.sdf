@@ -1,0 +1,14 @@
+module Par
+
+exports		
+	lexical syntax
+		"fork" -> Keyword
+		"join" -> Keyword
+		"par" -> Keyword
+	context-free syntax
+		"fork" Expr -> Expr {cons("Fork")}
+		"join" Expr -> Expr {cons("Join")}
+		"par" Expr -> Expr {cons("Par")}
+	context-free syntax
+		"Future" "[" Type "]" -> Type {cons("TyFuture")}
+

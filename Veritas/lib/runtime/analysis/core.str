@@ -69,9 +69,9 @@ rules // Core multi-file analysis that takes File/3 appls, analyzes those files,
     
   analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path) =
     where(analysis-analyze-builtin-partitions(collector|language, project-path))
-  ; analysis-files-no-builtins(pre-trans, collector, post-trans, pp-message|language, project-path)
+  ; analysis-files-no-builtins(pre-trans, collector, post-trans, pp-message, id, id|language, project-path)
     
-  analysis-files-no-builtins(pre-trans, collector, post-trans, pp-message|language, project-path):
+  analysis-files-no-builtins(pre-trans, collector, post-trans, pp-message, try-recover, should-setup|language, project-path):
     file* -> Result(
       post-trans-result*
     , affected-source*
@@ -87,6 +87,10 @@ rules // Core multi-file analysis that takes File/3 appls, analyzes those files,
         pre-trans-file* := <map(analysis-files-pre-trans(pre-trans); analysis-inc-progress(|total-progress))> file*
       , ?pre-trans-time
       )
+    ; try(should-setup; index-setup(|language, project-path))
+    ; try(try-recover; index-recover)
+    ; try(should-setup; task-setup(|project-path))
+    ; try(try-recover; task-recover)
     ; measure-time(
         collect-result* := <map(analysis-collect(collector|language, project-path); analysis-inc-progress(|total-progress))> pre-trans-file*
       , ?collect-time
@@ -135,18 +139,13 @@ rules // Core multi-file analysis that takes File/3 appls, analyzes those files,
 
 rules // Common
   
-  analysis-collect(collector|language, project-path) = analysis-collect(collector, id|language, project-path)
-  analysis-collect(collector, try-recover|language, project-path):
+  analysis-collect(collector|language, project-path):
     File(partition, initial-ast, transformed-ast, _) -> ( 
       FileResult(language, project-path, partition, initial-ast, analyzed-ast, [], [], [])
     , CollectDebugResult(<length> removed-entry*, <length> added-entry*, <length> removed-task*, <length> added-task*, <length> invalidated-task*)
     )
     with
-      index-setup(|language, project-path);
-      try(try-recover; index-recover);
       index-start-collection(|partition);
-      task-setup(|project-path);
-      try(try-recover; task-recover);
       task-start-collection(|partition);
 
       analyzed-ast := <collector(id|Language(language), partition, <new-hashtable>, [])> transformed-ast;

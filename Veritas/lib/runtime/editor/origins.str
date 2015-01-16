@@ -6,9 +6,9 @@ imports
 
 strategies
   
-  origin-term      = prim("SSL_EXT_origin_term", <id>)
-  origin-text      = prim("SSL_EXT_origin_text", <id>)
-  origin-offset    = prim("SSL_EXT_origin_offset", <id>)
+  origin-term      = prim("SSL_EXT_origin_term", <id>) <+ origin-sublist-term
+  origin-text      = origin-support-sublist(prim("SSL_EXT_origin_text", <id>))
+  origin-offset    = origin-support-sublist(prim("SSL_EXT_origin_offset", <id>))
   origin-location  = prim("SSL_EXT_origin_location", <id>)
   origin-line      = origin-location => (<id>, _, _, _)
   origin-column    = origin-location => (_, <id>, _, _)
@@ -26,17 +26,6 @@ strategies
     origin-file; 
     origin-language-description;
     Fst
-  
-  origin-surrounding-comments =
-    prim("SSL_EXT_origin_surrounding_comments", <origin-language>, <id>)
-    
-  origin-documentation-comment =
-    origin-surrounding-comments;
-    filter(string-as-chars(documentation-comment-chars));
-    concat-strings
-  
-  documentation-comment-chars:
-    ['*' | c*] -> <ltrim(' ' + '\t' + '\n' + '\r')> c*
 
   origin-track-forced(s) =
     ![<id>]; all(s); ?[<id>]
@@ -51,11 +40,58 @@ strategies
 	origin-debug-all = topdown(try(origin-debug))
 	origin-debug = where(debug(!$[[<(origin-offset; write-to-string) <+ !"NO ORIGIN">][" "]]))
 
-  /**
-   * Given an old AST and a new AST, pretty-prints the new AST while presevering 
-   * layout (e.g. whitespacing and comments) associated with the old AST.
-   *
-   * Example:
-   *   new-text := <preserve-layout(|<language>)> (old-ast, new-ast)
-   */
-  preserve-layout(|lang) = prim("SSL_EXT_preserve_layout", lang)	
+strategies
+	
+	origin-term-desugared = prim("SSL_EXT_origin_term_desugared", <id>)
+  origin-term-fuzzy = prim("SSL_EXT_origin_term_fuzzy", <id>)
+
+  origin-indent = origin-support-sublist(prim("SSL_EXT_origin_indentation", <id>))
+  origin-separation = origin-support-sublist(prim("SSL_EXT_origin_separation", <id>)) // only succeeds if list size >= 2 elems
+  origin-layout-prefix = origin-support-sublist(prim("SSL_EXT_origin_layout_prefix", <id>))
+  layout-prefix = origin-layout-prefix <+ !""
+  
+  origin-deletion-offset = 
+    origin-support-sublist(prim("SSL_EXT_origin_deletion_offset", <id>)); 
+    !(<Fst>, <Snd; inc>) //exclusive end
+  
+  origin-start-offset = origin-offset; Fst
+  origin-end-offset = origin-offset; Snd
+  origin-deletion-start-offset = origin-deletion-offset; Fst 
+  origin-deletion-end-offset = origin-deletion-offset; Snd
+  origin-layout-prefix-start-offset = origin-insert-before-offset
+
+  is-origin-term = <equal> (<origin-term>, <id>)
+  is-origin-term-desugared = <equal> (<origin-term-desugared>, <id>)
+  has-origin-term = where(origin-term)
+  has-origin-sublist-term = where(origin-sublist-term)
+  is-origin-sublist-term = <equal> (<origin-sublist-term>, <id>)
+
+  origin-sublist-term = prim("SSL_EXT_origin_sublist_term", <id>)
+
+  origin-support-sublist(s) =
+    (origin-sublist-term; s) <+ 
+    (?[h|[]]; <s> h) <+
+    s
+
+  origin-set-relation:
+    (origin-node, new-node) -> origin-tracked-node
+    where
+      origin-tracked-node := <!Some(<id>); all(!new-node); ?Some(<id>)> origin-node
+    
+strategies // comments
+
+  origin-documentation-comment =
+    origin-surrounding-comments;
+    filter(string-as-chars(documentation-comment-chars));
+    concat-strings
+  
+  documentation-comment-chars:
+    ['*' | c*] -> <ltrim(' ' + '\t' + '\n' + '\r')> c*
+    
+  origin-surrounding-comments = prim("SSL_EXT_origin_surrounding_comments", <origin-language>, <id>)
+  origin-comments-after       = origin-support-sublist(prim("SSL_EXT_origin_comments_after", <id>))
+  comments-after = origin-comments-after <+ !""
+  origin-insert-before-offset = origin-support-sublist(prim("SSL_EXT_origin_insert_before_offset", <id>))
+  origin-insert-at-end-offset = origin-support-sublist(prim("SSL_EXT_origin_insert_at_end_offset", <id>))
+  origin-text-with-layout     = origin-support-sublist(prim("SSL_EXT_origin_text_with_layout", <id>))
+

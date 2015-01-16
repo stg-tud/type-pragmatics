@@ -1,0 +1,155 @@
+module Veritas
+
+imports Language
+%% imports Par
+
+exports 
+	lexical syntax
+  		"===" "="* -> RuleSep
+  		[a-zA-Z0-9\-]+ -> Name
+  		
+  	lexical restrictions
+  		RuleSep -/- [\=]
+  		
+  	context-free syntax
+  		RuleSep Name -> RuleSepName {cons("RuleName"), layout("1.first.line == 2.last.line")}
+  		
+  	    %% Syntax for typing rules
+  		TypingRulePremises RuleSepName TypingRuleConsequences
+  			-> TypingRule {cons("TypingRule"), layout("1.first.col == 2.first.col && 2.first.col == 3.first.col && 1.last.line + num(1) == 2.first.line")}
+  		RuleSepName TypingRuleConsequences -> TypingRule {cons("TypingRule"), layout("1.first.col == 2.first.col")}
+  			
+  		TypingRuleJudgementList -> TypingRulePremises {cons("PremiseList")}
+  		
+  		TypingRuleJudgementList -> TypingRuleConsequences  {cons("ConsequenceList")}
+  		
+  		OffTypingRuleJudgment -> TypingRuleJudgementList
+  		OffTypingRuleJudgment TypingRuleJudgementList -> TypingRuleJudgementList {cons("JudgementCons"),
+  									   									   layout("1.first.col == 2.first.col && 2.first.line - 1.last.line == num(1)")}
+  																			   
+  		TypingRuleJudgment -> OffTypingRuleJudgment {layout("1.first.col < 1.left.col")}
+
+		OrTypingRuleJudgement -> OffTypingRuleJudgment
+		"OR" OrCaseList -> OrTypingRuleJudgement {cons("OrJudgement")}
+		
+		"=>" TypingRuleJudgementList -> OrCaseList {cons("OrEnd")}
+		"=>" TypingRuleJudgementList OrCaseList -> OrCaseList {cons("OrCons"), layout("1.first.col == 3.first.col")}
+  		
+	    %% Syntax for typing judgemnts 
+		FunctionExp "|-" FunctionExp ":" FunctionExp -> TypingJudgment {cons("TypingJudgment")}
+		
+		FunctionExp -> FunctionExpJudgment {cons("FunctionExpJudgment")}
+		
+		FunctionExp "->" FunctionExp -> ReduceJudgment {cons("ReduceJudgment")}
+		
+		"exists" {MetaVar ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ExistsJudgment"), layout("1.first.col < 3.first.col")}
+		"forall" {MetaVar ","}+ TypingRuleJudgementList -> ExistsJudgment {cons("ForallJudgment"), layout("1.first.col < 3.first.col")}
+		
+		"not" TypingRuleJudgment -> NotJudgment {cons("NotJudgment")}
+		
+		TypingJudgment -> TypingRuleJudgment
+		FunctionExpJudgment -> TypingRuleJudgment
+		ExistsJudgment -> TypingRuleJudgment
+		ReduceJudgment -> TypingRuleJudgment
+		NotJudgment -> TypingRuleJudgment
+		
+	sorts Module Rules DerivedRules Import ModuleDec Qualified Definitions
+	
+	lexical syntax
+		[a-zA-Z][a-zA-Z0-9]* -> SortLex
+	lexical restrictions
+		SortLex -/- [a-zA-Z0-9]
+		
+	
+	context-free syntax
+		SortLex -> SortDef {cons("SortDef")}
+		SortLex -> SortRef {cons("SortRef")}
+		
+		ID ":" SortRef+ "->" SortRef -> ConstructorDecl {cons("ConstructorDecl")}
+		ConstDecl -> ConstructorDecl
+		ID ":" SortRef -> ConstDecl {ast("ConstructorDecl(<1>, [], <2>)")}
+		
+	context-free syntax
+		FunctionSig FunctionEq* -> FunctionDef {cons("FunctionDef")}
+		ID ":" SortRef+ "->" SortRef -> FunctionSig{cons("FunctionSig")}
+		ID ":" SortRef -> FunctionSig{ast("FunctionSig(<1>, [], <2>)")}
+		ID "=" FunctionExp -> FunctionEq {ast("FunctionEq(<1>, [], <2>)")}
+		ID "(" {FunctionPattern ","}* ")" "=" FunctionExp -> FunctionEq {cons("FunctionEq")}
+		
+		RelationSig RelationEq+ -> RelationDef {cons("FunctionDef")}
+		ID ":" SortRef+ -> RelationSig {ast("FunctionSig(<1>, <2>, RelBool())")}
+		ID "(" {FunctionPattern ","}* ")" "<=" FunctionExp -> RelationEq {cons("FunctionEq")}
+		ID "(" {FunctionPattern ","}* ")" -> RelationEq {ast("FunctionEq(<1>, <2>, FunctionExpTrue())")}
+		
+		"undefined" -> FunctionExp {cons("FunctionExpUndefined")}
+		"true" -> FunctionExp {cons("FunctionExpTrue")}
+		"false" -> FunctionExp {cons("FunctionExpFalse")}
+		ID -> FunctionExp {cons("FunctionExpVar")}
+		"if" FunctionExp "then" FunctionExp "else" FunctionExp -> FunctionExp {cons("FunctionExpIf")}
+		"let" ID "=" FunctionExp "in" FunctionExp -> FunctionExp {cons("FunctionExpLet")}
+		ID "(" {FunctionExp ","}* ")" -> FunctionExp {cons("FunctionExpApp")}
+		"(" FunctionExp ")" -> FunctionExp {bracket}
+		MetaVar -> FunctionExp {cons("FunctionExpMeta")}
+		"~" ID -> MetaVar {cons("Meta")}
+		
+		ID -> FunctionPattern {cons("FunctionPatVar")}
+		ID "(" {FunctionPattern ","}* ")" -> FunctionPattern {cons("FunctionPatApp")}
+		
+	context-free priorities
+		"!" FunctionExp -> FunctionExp {cons("FunctionExpNot")}
+	>
+		{non-assoc:
+		FunctionExp "=" FunctionExp -> FunctionExp {cons("FunctionExpEq")}
+		FunctionExp "==" FunctionExp -> FunctionExp {cons("FunctionExpEq")}
+		FunctionExp "!=" FunctionExp -> FunctionExp {cons("FunctionExpNeq")}
+		}
+	>
+		FunctionExp "&&" FunctionExp -> FunctionExp {cons("FunctionExpAnd"), right}
+	>
+		FunctionExp "||" FunctionExp -> FunctionExp {cons("FunctionExpOr"), right}
+
+	context-free syntax
+		
+	
+	context-free syntax
+		"import" MID ImportAnnos? -> Import {cons("Import")}
+		"{"{ImportAnno ","}* "}" -> ImportAnnos {cons("ImportAnno")}
+		"names" -> ImportAnno {cons("ImportAnnoNames")}
+		"axioms" -> ImportAnno {cons("ImportAnnoAxioms")}
+		"functions" -> ImportAnno {cons("ImportAnnoFunctions")}
+		"goals" -> ImportAnno {cons("ImportAnnoGoals")}
+		"constructors" -> ImportAnno {cons("ImportAnnoConstructors")}
+		
+		"local" "{" ModuleDef* "}" -> ModuleDef {cons("Local")}
+
+		ID -> DataTypeConstructor {ast("DataTypeConstructor(<1>, [])")}
+		ID "(" {SortRef ","}* ")" -> DataTypeConstructor {cons("DataTypeConstructor")}
+		"data" ID "=" {DataTypeConstructor "|"}+ -> ModuleDef {cons("DataType")}
+		
+		"sorts" SortDef* -> ModuleDef {cons("Sorts")}
+		"sort" SortDef -> ModuleDef {ast("Sorts([<1>])")}
+		
+		"constructors" ConstructorDecl* -> ModuleDef {cons("Constructors")}
+		"constructor" ConstructorDecl -> ModuleDef {ast("Constructors([<1>])")}
+
+		"consts" ConstDecl* -> ModuleDef {cons("Consts")}
+		"const" ConstDecl -> ModuleDef {ast("Consts([<1>])")}
+
+		"functions" FunctionDef* -> ModuleDef {cons("Functions")}
+		"function" FunctionDef -> ModuleDef {ast("Functions([<1>])")}
+
+		"partial" "functions" FunctionDef* -> ModuleDef {cons("PartialFunctions")}
+		"partial" "function" FunctionDef -> ModuleDef {ast("PartialFunctions([<1>])")}
+
+		"relations" RelationDef* -> ModuleDef {cons("PartialFunctions")}
+		"relation" RelationDef -> ModuleDef {ast("PartialFunctions([<1>])")}
+
+		"axioms" TypingRule* -> ModuleDef {cons("Axioms")}
+		"axiom" TypingRule -> ModuleDef {ast("Axioms([<1>])")}
+		
+		"goals" TypingRule* -> ModuleDef {cons("Goals")}
+		"goal" TypingRule -> ModuleDef {ast("Goals([<1>])")}
+		
+		"module" MID Import* ModuleDef*-> Module {cons("Module")}
+								
+	context-free start-symbols Module

@@ -1,0 +1,7 @@
+module runtime/refactoring/interface
+
+rules
+
+  resugar                 = fail
+  parenthesize            = fail
+  override-reconstruction = fail

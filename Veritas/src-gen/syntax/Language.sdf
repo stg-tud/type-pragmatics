@@ -1,0 +1,114 @@
+module Language
+
+exports
+	sorts ID MID QID NAT STRING Keyword PrimitiveType
+	
+	lexical syntax
+ 		-> EOF
+ 		[\ \t\n\r] -> LAYOUT
+ 		
+ 		"//" CommentText CommentTerm -> LAYOUT
+ 		~[\n\r]* -> CommentText
+ 		[\r] -> CommentTerm
+ 		[\n] -> CommentTerm
+ 		[\r][\n] -> CommentTerm
+ 		EOF -> CommentTerm
+		
+		[a-zA-Z][a-zA-Z0-9]* -> ID
+		[0-9]+ -> NAT
+		"\""~[\"\\\n\r]*"\"" -> STRING
+				
+		Keyword -> ID {reject}
+		PrimitiveType -> ID {reject}
+		
+		"true" -> Keyword
+		"false" -> Keyword
+		"OR" -> Keyword
+		"exists" -> Keyword
+		"forall" -> Keyword
+		"if" -> Keyword
+		"then" -> Keyword
+		"else" -> Keyword
+		"module" -> Keyword
+		"goal" -> Keyword
+		"goals" -> Keyword
+		"axiom" -> Keyword
+		"axioms" -> Keyword
+		"const" -> Keyword
+		"consts" -> Keyword
+		"function" -> Keyword
+		"functions" -> Keyword
+		"local" -> Keyword
+		"sorts" -> Keyword
+		"import" -> Keyword
+		"undefined" -> Keyword
+		"RESULT" -> Keyword
+		
+		"Nat" -> PrimitiveType
+		"String" -> PrimitiveType
+		
+	lexical restrictions
+		ID -/- [a-zA-Z0-9]
+		%% Meta -/- [a-zA-Z0-9]
+		NAT -/- [0-9]
+		Keyword -/- [a-zA-Z0-9]
+		PrimitiveType -/- [a-zA-Z0-9]
+		CommentText -/- ~[\n\r]
+		EOF -/- ~[]
+		
+	context-free restrictions
+		LAYOUT? -/- [\ \t\n\r]
+		LAYOUT? -/- [\/].[\/]
+			
+	lexical syntax 
+		[a-zA-Z][a-zA-Z0-9]* -> MIDPart
+		MIDPart -> MID
+		MIDPart "." MID -> MID
+		MIDPart "." ID -> QID
+		
+	lexical restrictions
+		MID -/- [\.]
+		QID -/- [\.]
+		
+%% exports
+%% 	
+%% 	sorts Type TyDecl TyDecls TyDecls1
+%% 	
+%% 	context-free syntax
+%% 		"~" ID -> Meta {cons("Meta")}
+%% 		ID -> Type {cons("TyVar")}
+%% 		"Nat" -> Type {cons("TyNat")}
+%% 		"String" -> Type {cons("TyString")}
+%% 		Type "->" Type -> Type {cons("TyFunction")}
+%% 		Meta -> Type {cons("MetaVariable")}
+%% 		"(" Type ")" -> Type {bracket}
+%% 		
+%% 		ID ":" Type -> TyDecl {cons("TyDecl")}
+%% 		Meta ":" Type -> TypDecl {cons("TyDecl")}
+%% 		
+%% 		                -> TyDecls  {cons("TyDeclsNil")}
+%%     	TyDecl TyDecls1 -> TyDecls  {cons("TyDeclsCons")}
+%%                         -> TyDecls1 {cons("TyDeclsNil")}
+%% 		
+%% 		"," TyDecl TyDecls1 -> TyDecls1 {cons("TyDeclsCons")}
+%% 			
+%% exports 
+%% 
+%% 	sorts Expr
+%% 	
+%% 	context-free syntax
+%% 		ID -> Var {cons("Var")}
+%% 		Var -> Expr
+%% 		QID -> Expr {cons("QVar")}
+%% 		"(" Expr ")" -> Expr {bracket}
+%% 		NAT -> Expr {cons("Nat")}
+%% 		STRING -> Expr {cons("String")}
+%% 		Meta -> Expr {cons("MetaVariable")}
+%% 		
+%% 		Expr Expr -> Expr {cons("App"), left}
+%% 		ID "(" {Expr ","}+ ")" -> Expr {cons("FApp"), prefer}
+%% 		"\\" ID ":" Type "." Expr -> Expr {cons("Abs")}
+%% 		"\\" Meta ":" Type "." Expr -> Expr {cons("Abs")}
+%% 		"if" Expr "then" Expr "else" Expr -> Expr {cons("Cond")}
+%% 		Expr "+" Expr -> Expr {cons("Plus"), right}
+%% 		Expr "#" Expr -> Expr {cons("Rational"), non-assoc}
