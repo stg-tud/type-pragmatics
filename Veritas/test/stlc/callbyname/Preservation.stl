@@ -48,12 +48,12 @@ local {
 	================================ T-Preservation-T-app-IH1
 	~C |- ~eout : ~T
 
-	axiom // not needed
-	~ein == e2
-	reduce(~ein) = someExp(~eout)
-	~C |- ~ein : ~T
-	================================ T-Preservation-T-app-IH2
-	~C |- ~eout : ~T
+	// axiom // not needed
+	// ~ein == e2
+	// reduce(~ein) = someExp(~eout)
+	// ~C |- ~ein : ~T
+	// ================================ T-Preservation-T-app-IH2
+	// ~C |- ~eout : ~T
 
 	goal
 	~ein == app(e1, e2)

@@ -2,8 +2,6 @@ module stlc.callbyname.Progress
 
 import stlc.Syntax
 import stlc.Context
-import stlc.Subst {names}
-import stlc.SubstLemma
 import stlc.callbyname.Reduction
 import stlc.Types
 

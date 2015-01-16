@@ -6,6 +6,7 @@ import stlc.Types
 import stlc.Gensym
 import stlc.AlphaEquivalence
 import stlc.Subst
+import stlc.SubstLemmaAux
 
 goal
 ~e2 == var(~y)
@@ -50,6 +51,14 @@ bind(~x, ~T, ~C) |- ~e2 : ~T2
 
 local {
 	const eabs : Exp
+	
+	//Lemma must be used locally only here! Proof is in SubstLemmaAux.stl
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar
+	bind(~x, ~S, ~C) |- ~e : ~T
 	
 	axiom
 	~C |- ~e : ~T
