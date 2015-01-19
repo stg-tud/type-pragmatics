@@ -15,3 +15,5 @@ lib-refactoring/*.generated.str
 *.fof
 *.smt2
 .DS_Store
+target/
+src-gen/
