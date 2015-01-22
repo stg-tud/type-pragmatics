@@ -1,0 +1,19 @@
+module Par
+
+
+
+lexical syntax
+
+  Keyword = "fork" 
+  Keyword = "join" 
+  Keyword = "par" 
+
+context-free syntax
+
+  Expr.Fork = <fork <Expr>> 
+  Expr.Join = <join <Expr>> 
+  Expr.Par = <par <Expr>> 
+
+context-free syntax
+
+  Type.TyFuture = <Future [ <Type> ]> 

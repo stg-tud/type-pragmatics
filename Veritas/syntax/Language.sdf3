@@ -1,0 +1,73 @@
+module Language
+
+
+
+sorts
+
+  ID MID QID NAT STRING Keyword PrimitiveType
+
+lexical syntax
+
+  EOF =  
+  LAYOUT = [\ \t\n\r] 
+  LAYOUT = "//" CommentText CommentTerm 
+  CommentText = ~[\n\r]* 
+  CommentTerm = [\r] 
+  CommentTerm = [\n] 
+  CommentTerm = [\r] [\n] 
+  CommentTerm = EOF 
+  ID = [a-zA-Z] [a-zA-Z0-9]* 
+  NAT = [0-9]+ 
+  STRING = "\"" ~[\"\\\n\r]* "\"" 
+  ID = Keyword {reject}
+  ID = PrimitiveType {reject}
+  Keyword = "true" 
+  Keyword = "false" 
+  Keyword = "OR" 
+  Keyword = "exists" 
+  Keyword = "forall" 
+  Keyword = "if" 
+  Keyword = "then" 
+  Keyword = "else" 
+  Keyword = "module" 
+  Keyword = "goal" 
+  Keyword = "goals" 
+  Keyword = "axiom" 
+  Keyword = "axioms" 
+  Keyword = "const" 
+  Keyword = "consts" 
+  Keyword = "function" 
+  Keyword = "functions" 
+  Keyword = "local" 
+  Keyword = "sorts" 
+  Keyword = "import" 
+  Keyword = "undefined" 
+  Keyword = "RESULT" 
+  PrimitiveType = "Nat" 
+  PrimitiveType = "String" 
+
+lexical restrictions
+
+  ID -/- [a-zA-Z0-9]
+  NAT -/- [0-9]
+  Keyword -/- [a-zA-Z0-9]
+  PrimitiveType -/- [a-zA-Z0-9]
+  CommentText -/- ~[\n\r]
+  EOF -/- ~[]
+
+context-free restrictions
+
+  LAYOUT? -/- [\ \t\n\r]
+  LAYOUT? -/- [\/].[\/]
+
+lexical syntax
+
+  MIDPart = [a-zA-Z] [a-zA-Z0-9]* 
+  MID = MIDPart 
+  MID = MIDPart "." MID 
+  QID = MIDPart "." ID 
+
+lexical restrictions
+
+  MID -/- [\.]
+  QID -/- [\.]
