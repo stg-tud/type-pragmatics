@@ -1,10 +1,10 @@
 module runtime/types/collect
 
 imports 
-	
-	runtime/types/interface
-	runtime/properties/collect
-	runtime/properties/eq
+  
+  runtime/types/interface
+  runtime/properties/collect
+  runtime/properties/eq
   
 signature
 

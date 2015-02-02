@@ -1,7 +1,7 @@
 module runtime/editor/queue
 
 rules
-	
+  
   // Set markers and analyzed AST for a given file. Use when checking files from a queued strategy.
   // Current term: (ast-analyzed, errors, warnings, notes) tuple
   // fileOrAST: file to set the markers on or the root node of the file to set markers on 

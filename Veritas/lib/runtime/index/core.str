@@ -22,7 +22,7 @@ rules
   index-setup(|language, project-path) =
     prim("LANG_index_setup_new", language, <index-setup-paths> project-path)
   index-setup:
-  	(language, project-path) -> <prim("LANG_index_setup_new", language, <index-setup-paths> project-path)>
+    (language, project-path) -> <prim("LANG_index_setup_new", language, <index-setup-paths> project-path)>
   index-setup-paths = try(is-list; Hd)
     
   /**
@@ -41,22 +41,22 @@ rules
   /**
    * Tries to recover the index from an invalid state, for example after a crash.
    */
-	index-recover =
-		prim("LANG_index_recover")
-		
-	/**
-	 * Starts collection for a given source. Used in conjunction with index-stop-collection to 
-	 * retrieve a list of added and removed index entries in relation to the previous entries in
-	 * given source.
-	 *
-	 * Example:
-	 *   index-start-collection(|"fullpath/file.ext")
-	 *
-	 * @type x -> x
-	 */
-	index-start-collection(|source) =
-		prim("LANG_index_start_collection", source)
-		
+  index-recover =
+    prim("LANG_index_recover")
+    
+  /**
+   * Starts collection for a given source. Used in conjunction with index-stop-collection to 
+   * retrieve a list of added and removed index entries in relation to the previous entries in
+   * given source.
+   *
+   * Example:
+   *   index-start-collection(|"fullpath/file.ext")
+   *
+   * @type x -> x
+   */
+  index-start-collection(|source) =
+    prim("LANG_index_start_collection", source)
+    
   /**
    * Collects given element, which will be added to the index when collection stops.
    *
@@ -64,69 +64,69 @@ rules
    * @param source The source to collect the element for.
    * @type key -> key
    */
-	index-collect(|value, source):
-		key -> <prim("LANG_index_collect", key, value)>
-		
+  index-collect(|value, source):
+    key -> <prim("LANG_index_collect", key, value)>
+    
   /**
    * Collects given element without value, which will be added to the index when collection stops.
    *
    * @param source The source to collect the element for.
    * @type key -> key
    */
-	index-collect(|source):
-		key -> <prim("LANG_index_collect_boolean", key)>
-		
-	/**
-	 * Stops collection for given source. Returns a tuple with removed and added entries in relation to the previous 
-	 * entries in that source.
-	 *
-	 * Example:
-	 *   index-stop-collection(|"fullpath/file.ext") => (removed, added)
-	 *
-	 * @type _ -> (List(elem), List(elem))
-	 */
-	index-stop-collection(|source) =
-		prim("LANG_index_stop_collection", source)
-	
-	/**
-	 * Pushes a new index on the stack and sets that as the current index. Entries from the parent
-	 * index are still visible, but additions only apply to the current index. Clearing a partition
-	 * also hides all entries in that partition from the parent index.
-	 *
-	 * Example:
-	 *   index-push
-	 *
-	 * @type x -> x 
-	 */	
-	index-push = 
-		prim("LANG_index_push")
+  index-collect(|source):
+    key -> <prim("LANG_index_collect_boolean", key)>
+    
+  /**
+   * Stops collection for given source. Returns a tuple with removed and added entries in relation to the previous 
+   * entries in that source.
+   *
+   * Example:
+   *   index-stop-collection(|"fullpath/file.ext") => (removed, added)
+   *
+   * @type _ -> (List(elem), List(elem))
+   */
+  index-stop-collection(|source) =
+    prim("LANG_index_stop_collection", source)
+  
+  /**
+   * Pushes a new index on the stack and sets that as the current index. Entries from the parent
+   * index are still visible, but additions only apply to the current index. Clearing a partition
+   * also hides all entries in that partition from the parent index.
+   *
+   * Example:
+   *   index-push
+   *
+   * @type x -> x 
+   */ 
+  index-push = 
+    prim("LANG_index_push")
 
-	/**
-	 * Pops the current index from the stack and sets the parent index as the current index. All
-	 * modifications from the current index are discarded. The root index cannot be popped.
-	 *
-	 * Example:
-	 *   index-pop
-	 *
-	 * @type x -> x 
-	 */	
-	index-pop = 
-		prim("LANG_index_pop")
+  /**
+   * Pops the current index from the stack and sets the parent index as the current index. All
+   * modifications from the current index are discarded. The root index cannot be popped.
+   *
+   * Example:
+   *   index-pop
+   *
+   * @type x -> x 
+   */ 
+  index-pop = 
+    prim("LANG_index_pop")
 
-	/**
-	 * Pops the current index from the stack and sets the parent index as the current index. All
-	 * modifications from the current index are merged into the parent index; partitions that were
-	 * cleared in the current index are cleared in the parent, and entries added to the current
-	 * index are also added to the parrent. The root index cannot be merged.
-	 *
-	 * Example:
-	 *   index-merge
-	 *
-	 * @type x -> x 
-	 */	
-	index-merge = 
-		prim("LANG_index_merge")
-		
+  /**
+   * Pops the current index from the stack and sets the parent index as the current index. All
+   * modifications from the current index are merged into the parent index; partitions that were
+   * cleared in the current index are cleared in the parent, and entries added to the current
+   * index are also added to the parrent. The root index cannot be merged.
+   *
+   * Example:
+   *   index-merge
+   *
+   * @type x -> x 
+   */ 
+  index-merge = 
+    prim("LANG_index_merge")
+    
   /**
    * Adds given element to the index.
    *
@@ -155,7 +155,7 @@ rules
    * @type source -> source
    */
   index-clear-source:
-  	source -> <prim("LANG_index_clear_source", source)>
+    source -> <prim("LANG_index_clear_source", source)>
     
   /**
    * Removes all elements from the index.

@@ -1,8 +1,8 @@
 module runtime/editor/origins
 
 imports
-	
-	runtime/editor/eclipse
+  
+  runtime/editor/eclipse
 
 strategies
   
@@ -16,8 +16,8 @@ strategies
   origin-strip     = prim("SSL_EXT_origin_strip", <id>)
   origin-equal(|t) = prim("SSL_EXT_origin_equal", <id>, t)
 
-	origin-location-offset = prim("SSL_EXT_origin_location_offset", <id>)
-	origin-location-offset-set(|origin-location-offset) = prim("SSL_EXT_set_origin_location_offset", origin-location-offset)
+  origin-location-offset = prim("SSL_EXT_origin_location_offset", <id>)
+  origin-location-offset-set(|origin-location-offset) = prim("SSL_EXT_set_origin_location_offset", origin-location-offset)
 
   origin-language-description =
     prim("SSL_EXT_languagedescription", <id>)
@@ -37,12 +37,12 @@ strategies
       len-project-prefix := <project-path; string-length; inc>;
       rel-path := <string-as-chars(drop(|len-project-prefix))> full-path
 
-	origin-debug-all = topdown(try(origin-debug))
-	origin-debug = where(debug(!$[[<(origin-offset; write-to-string) <+ !"NO ORIGIN">][" "]]))
+  origin-debug-all = topdown(try(origin-debug))
+  origin-debug = where(debug(!$[[<(origin-offset; write-to-string) <+ !"NO ORIGIN">][" "]]))
 
 strategies
-	
-	origin-term-desugared = prim("SSL_EXT_origin_term_desugared", <id>)
+  
+  origin-term-desugared = prim("SSL_EXT_origin_term_desugared", <id>)
   origin-term-fuzzy = prim("SSL_EXT_origin_term_fuzzy", <id>)
 
   origin-indent = origin-support-sublist(prim("SSL_EXT_origin_indentation", <id>))

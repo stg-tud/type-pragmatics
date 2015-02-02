@@ -1,7 +1,7 @@
 module runtime/editor/eclipse
 
 rules
-	
+  
   project-path = prim("SSL_EXT_projectpath")
   
   plugin-path = prim("SSL_EXT_pluginpath")

@@ -1,7 +1,7 @@
 module runtime/editor/dynrule
 
 rules
-	
+  
   editor-init =
     // Ensure all dynamic rules are properly scoped
     try(dr-scope-all-end);

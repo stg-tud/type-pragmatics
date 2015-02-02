@@ -18,8 +18,8 @@ rules // Specific queries
   nabl-get-all-definitions:
     contains-uri* -> <mapconcat(nabl-get-unique-nonunique(!Def(<id>)))> uri*
     where
-    	uri* := <nabl-uris> contains-uri*
-    	
+      uri* := <nabl-uris> contains-uri*
+      
   /**
    * Gets all child definition entries in given URI that match given namespace.
    *
@@ -28,8 +28,8 @@ rules // Specific queries
   nabl-get-child-definitions(|namespace):
     contains-uri* -> def*
     where
-    	uri* := <nabl-uris> contains-uri*;
-    	def* := <mapconcat(!Def(<id>); nabl-get-all-childs(|namespace)); mapconcat(nabl-uri; nabl-get-unique-nonunique(!Def(<id>)))> uri*
+      uri* := <nabl-uris> contains-uri*;
+      def* := <mapconcat(!Def(<id>); nabl-get-all-childs(|namespace)); mapconcat(nabl-uri; nabl-get-unique-nonunique(!Def(<id>)))> uri*
 
   /**
    * Gets all Alias entries that match the given URI.
@@ -39,8 +39,8 @@ rules // Specific queries
   nabl-get-all-aliases:
     contains-uri* -> alias-uri*
     where
-    	uri*           := <nabl-uris> contains-uri*;
-    	nonunique-uri* := <filter(nabl-replace-uri-qualifier(|NonUnique()))> uri*;
+      uri*           := <nabl-uris> contains-uri*;
+      nonunique-uri* := <filter(nabl-replace-uri-qualifier(|NonUnique()))> uri*;
       alias-uri*     := <mapconcat(!Alias(<id>); index-get-all-values)> nonunique-uri*
       
   /**
@@ -51,7 +51,7 @@ rules // Specific queries
   nabl-get-all-inverse-aliasses:
     contains-uri* -> inverse-alias*
     where
-    	uri*           := <nabl-uris> contains-uri*;
+      uri*           := <nabl-uris> contains-uri*;
       inverse-alias* := <mapconcat(!InverseAlias(<id>); index-get-all-values)> uri*
 
 rules // Generic queries
@@ -74,14 +74,14 @@ rules // Generic queries
         entries  := <nabl-filter-entries(|namespace, prefix)> children
 
   nabl-get-unique-nonunique(create-key):
-  	uri -> [unique*, non-unique*]
-  	where
+    uri -> [unique*, non-unique*]
+    where
       if alias* := <nabl-get-all-aliases> uri then
-      	// HACK: handle Result terms on the resulting URI of an alias. this should be decomposed into a task?
-      	(alias-result*, alias-uri*) := <partition(?Result(_); insert-results-or-delay)> alias*;
-      	unique-uri*                 := <mapconcat(create-key; index-get-all-values)> alias-uri*;
-      	unique-result*              := <try(concat)> alias-result*;
-      	unique*                     := [unique-uri*, unique-result*]
+        // HACK: handle Result terms on the resulting URI of an alias. this should be decomposed into a task?
+        (alias-result*, alias-uri*) := <partition(?Result(_); insert-results-or-delay)> alias*;
+        unique-uri*                 := <mapconcat(create-key; index-get-all-values)> alias-uri*;
+        unique-result*              := <try(concat)> alias-result*;
+        unique*                     := [unique-uri*, unique-result*]
       else
         unique* := []
       end;

@@ -1,13 +1,13 @@
 module runtime/editor/annotations
 
 imports
-	
+  
 rules // TODO: does not belong to editor, move to a new 'utils' directory
-	
-	get-annotation(s) =
-		has-annos;
-		get-annos;
-		collect-one(s)
+  
+  get-annotation(s) =
+    has-annos;
+    get-annos;
+    collect-one(s)
 
   add-annotation(|a):
     t{a*} -> t{a, a*} where <not(is-list)> a
@@ -30,5 +30,5 @@ rules // TODO: does not belong to editor, move to a new 'utils' directory
     where
       a''* := <remove-all(s)> a*
 
-	preserve-annotations-attachments(s) = prim("SSL_preserve_annotations_attachments", s|)
+  preserve-annotations-attachments(s) = prim("SSL_preserve_annotations_attachments", s|)
 

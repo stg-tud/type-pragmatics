@@ -1,7 +1,7 @@
 module runtime/tmpl/pp
 
 imports
-	
+  
   libstratego-lib
   libstratego-gpp
 
@@ -40,9 +40,9 @@ rules
  add-sep(|sep):
     V(vs, boxes) -> V(vs, result)
     where
-    	if [h] := boxes
-    	then
-       	(c, [cs, inner-boxes]) := <explode-term> h;
+      if [h] := boxes
+      then
+        (c, [cs, inner-boxes]) := <explode-term> h;
         box-with-sep := <mkterm> (c, [cs, <conc> (inner-boxes, [S(sep)])]);
         result := [box-with-sep]
         else
@@ -51,26 +51,26 @@ rules
         end
         
  add-sep(|sep):
- 	H(options, boxes) -> H(options, result)
- 	where
-    	result := <conc> (boxes, [S(sep)])
-    	
+  H(options, boxes) -> H(options, result)
+  where
+      result := <conc> (boxes, [S(sep)])
+      
  add-sep(|sep):
- 	I(is, H(hs, boxes)) -> I(is, H(hs, result))
- 	where
-    	result := <conc> (boxes, [S(sep)])
-    	
+  I(is, H(hs, boxes)) -> I(is, H(hs, result))
+  where
+      result := <conc> (boxes, [S(sep)])
+      
  add-sep(|sep):
- 	HV(hs, boxes) -> HV(hs, result)
- 	where
-    	result := <conc> (boxes, [S(sep)])
-    	
+  HV(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])
+      
  add-sep(|sep):
- 	HZ(hs, boxes) -> HV(hs, result)
- 	where
-    	result := <conc> (boxes, [S(sep)])
+  HZ(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])
 
  add-sep(|sep):
- 	Z(hs, boxes) -> HV(hs, result)
- 	where
-    	result := <conc> (boxes, [S(sep)])      
+  Z(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])      

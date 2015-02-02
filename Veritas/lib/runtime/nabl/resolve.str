@@ -3,9 +3,9 @@ module runtime/nabl/resolve
 imports
   
   runtime/nabl/tasks
-	runtime/nabl/entries
-	runtime/task/core
-	runtime/task/insert
+  runtime/nabl/entries
+  runtime/task/core
+  runtime/task/insert
   runtime/task/utils
   
 rules // Reference resolution
@@ -21,16 +21,16 @@ rules // Reference resolution
     get-annos;
     nabl-has-reference
   
-	nabl-collect-all-resolved-defs:
-		ast -> def*
-		with
-			if ast' := <insert-results-or-delay> ast then
-				def* := <collect-all-annos(?Def(_), conc)> ast'
-			else
-				def* := []
-			end
+  nabl-collect-all-resolved-defs:
+    ast -> def*
+    with
+      if ast' := <insert-results-or-delay> ast then
+        def* := <collect-all-annos(?Def(_), conc)> ast'
+      else
+        def* := []
+      end
 
-	nabl-collect-one-resolved-def =
-		insert-results-or-delay;
-		collect-one-annos(?Def(_))
+  nabl-collect-one-resolved-def =
+    insert-results-or-delay;
+    collect-one-annos(?Def(_))
 

@@ -20,12 +20,12 @@ rules // Index entries to diff for incrementality
 
 rules
   
-	new-prop(|source, uri, kind, val):
-		x -> prop
-		with
-			prop := Prop(uri, kind);
-			<index-collect(|<origin-track-forced(!val)> x, source)> Prop(uri, kind)
-	      
+  new-prop(|source, uri, kind, val):
+    x -> prop
+    with
+      prop := Prop(uri, kind);
+      <index-collect(|<origin-track-forced(!val)> x, source)> Prop(uri, kind)
+        
 rules // index uri & value projections
   
   /** @internal */  

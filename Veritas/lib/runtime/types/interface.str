@@ -5,8 +5,8 @@ imports
   runtime/types/collect
   
 strategies // user-defined implementations
-	
-	create-type-task(|ctx) = fail
-	
-	create-type-task(|ctx, uri*) = fail
+  
+  create-type-task(|ctx) = fail
+  
+  create-type-task(|ctx, uri*) = fail
 

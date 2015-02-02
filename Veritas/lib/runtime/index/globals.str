@@ -2,8 +2,8 @@ module runtime/index/globals
 
 imports
 
-	runtime/index/core
-	runtime/index/query
+  runtime/index/core
+  runtime/index/query
   
 signature 
 
@@ -19,7 +19,7 @@ rules
    * @internal
    */
   index-globals-path:
-  	names -> <separate-by(|"/"); concat-strings> path
+    names -> <separate-by(|"/"); concat-strings> path
     with
       if is-list then
         path := <concat> [names, ["globals", ".internal"]]
@@ -114,21 +114,21 @@ rules
     with
       <index-globals-path; index-clear-source> name
 rules
-	
+  
   /**
    * Gets the 'fake' path where boolean globals are stored in the index.
    *
    * @internal
    */
   index-boolean-globals-path:
-  	names -> <separate-by(|"/"); concat-strings> path
+    names -> <separate-by(|"/"); concat-strings> path
     with
       if is-list then
         path := <concat> [names, ["boolean", "globals", ".internal"]]
       else
         path := [names, "boolean", "global", ".internal"]
       end
-	      
+        
   /**
    * Gets the URI where boolean globals are stored in the index for given name or names.
    *

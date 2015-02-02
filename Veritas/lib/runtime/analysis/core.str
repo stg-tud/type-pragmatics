@@ -48,19 +48,19 @@ rules // Interface
   analysis-spoofax = (is-list; queue-strategy(|"analysis-interface", "Analyzing files")) <+ analysis-interface
   analysis-cmd = analysis-interface
   
-	
+  
   analysis-top(parse-file, pre-trans, post-trans, pp-message|language, project-path) = 
     analysis-top(parse-file, pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
-	
-	analysis-top(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path):
-		input -> <analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path)>
-		where
-			<is-list; map(?File(_, _, _))> input
-	
-	analysis-top(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path):
-		input -> <analysis-files-spoofax(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path)>
-		where
-			<is-tuple <+ (is-list; map(is-string))> input
+  
+  analysis-top(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path):
+    input -> <analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path)>
+    where
+      <is-list; map(?File(_, _, _))> input
+  
+  analysis-top(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path):
+    input -> <analysis-files-spoofax(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path)>
+    where
+      <is-tuple <+ (is-list; map(is-string))> input
 
 rules // Core multi-file analysis that takes File/3 appls, analyzes those files, and returns a Result/4.
   
@@ -203,7 +203,7 @@ rules // Common
       invalidated-task-count := <add> (invalidated-task1-count, invalidated-task2-count)
       
 rules // Spoofax Eclipse interfacing
-	
+  
   analysis-files-spoofax(parse-file, pre-trans, post-trans, pp-message|language, project-path) = 
     analysis-files-spoofax(parse-file, pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
     

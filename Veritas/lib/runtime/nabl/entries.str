@@ -30,7 +30,7 @@ rules
     with
       definition := <origin-track-forced(!Def(uri))> x;
       <index-collect(|source)> definition;
-			<new-alias(|source, <nabl-nonunique-uri> uri, uri)> x
+      <new-alias(|source, <nabl-nonunique-uri> uri, uri)> x
       
   new-alias(|source, uri, alias-uri):
     _ -> alias
@@ -38,8 +38,8 @@ rules
       alias  := Alias(uri);
       ialias := InverseAlias(alias-uri);
       if <not(eq)> (uri, alias-uri) then
-      	<index-collect(|alias-uri, source)> alias;
-      	<index-collect(|uri, source)> ialias
+        <index-collect(|alias-uri, source)> alias;
+        <index-collect(|uri, source)> ialias
       end
 
   new-use(|partition, uri):

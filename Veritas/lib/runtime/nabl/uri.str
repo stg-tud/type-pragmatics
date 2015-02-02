@@ -48,27 +48,27 @@ rules // Construction
     URI(id, [ID(id, id, !qualifier)|id])
       
   nabl-nonunique-uri =
-		URI(id, [ID(id, id, !NonUnique())|id])
-		
-	nabl-uri-add-barriers(|namespace*):
-		URI(lang, [seg|s]) -> URI(lang, [<replace-annotation(?Barrier(_)|new-barrier)> seg|s])
-		where
-			existing-namespace* := <get-annotation(?Barrier(<id>)) <+ ![]> seg;
-			new-barrier         := Barrier([existing-namespace*, namespace*])
-			
-	nabl-uri-strip-barriers = 
-		URI(id, map(remove-annotations(?Barrier(_))))
-		
+    URI(id, [ID(id, id, !NonUnique())|id])
+    
+  nabl-uri-add-barriers(|namespace*):
+    URI(lang, [seg|s]) -> URI(lang, [<replace-annotation(?Barrier(_)|new-barrier)> seg|s])
+    where
+      existing-namespace* := <get-annotation(?Barrier(<id>)) <+ ![]> seg;
+      new-barrier         := Barrier([existing-namespace*, namespace*])
+      
+  nabl-uri-strip-barriers = 
+    URI(id, map(remove-annotations(?Barrier(_))))
+    
 rules // Stable URI extensions
   
   nabl-extend-uri(|table, partition, ns, n, u):
     uri -> <nabl-extend-uri(|ns, n, qualifier)> uri
     where 
-	    if where(<?NonUnique()> u) then
-	      qualifier := NonUnique()
-	    else
-	      qualifier := Unique(<stable-uri-part(|table, partition)> (partition, uri, ns, n))
-	    end
+      if where(<?NonUnique()> u) then
+        qualifier := NonUnique()
+      else
+        qualifier := Unique(<stable-uri-part(|table, partition)> (partition, uri, ns, n))
+      end
     
   nabl-extend-uri-anonymous(|table, partition):
     uri -> <nabl-extend-uri(|Anonymous(unique))> uri
@@ -116,7 +116,7 @@ rules // Projections
     uri -> <nabl-uri-path; Hd; nabl-segment-qualifier> uri
     
   nabl-uri-barriers:
-  	uri -> <nabl-uri-path; Hd; nabl-segment-barriers> uri
+    uri -> <nabl-uri-path; Hd; nabl-segment-barriers> uri
       
   nabl-segment-namespace:
     ID(namespace, _, _) -> namespace
@@ -125,18 +125,18 @@ rules // Projections
     ID(_, name, _) -> name
     
   nabl-segment-name:
-  	Subsequent(name) -> name
+    Subsequent(name) -> name
   
-	nabl-segment-name:
-  	Anonymous(name) -> name
-  	
-	nabl-segment-qualifier:
+  nabl-segment-name:
+    Anonymous(name) -> name
+    
+  nabl-segment-qualifier:
     ID(_, _, qualifier) -> qualifier
     
   nabl-segment-barriers:
-  	segment -> namespace*
-  	where
-  		Barrier(namespace*) := <get-annotation(?Barrier(_))> segment 
+    segment -> namespace*
+    where
+      Barrier(namespace*) := <get-annotation(?Barrier(_))> segment 
    
   nabl-closure(s) = 
       s 
@@ -196,20 +196,20 @@ rules // query scope URIs
   nabl-uri-all-lexical-parent-scopes =
     <conc> (<nabl-uri-lexical-parent-scopes>, <nabl-uri-external-lexical-parent-scopes>)
     
-	nabl-sub-uri(|namespace):
-		uri -> <nabl-uri-strip-barriers> uri
-		where
-			nabl-uri-namespace => namespace
-		
-	nabl-sub-uri(|namespace):
-		uri -> <nabl-uri-parent; nabl-sub-uri(|namespace); nabl-uri-strip-barriers> uri
-		where
-			not(nabl-uri-namespace => namespace)
+  nabl-sub-uri(|namespace):
+    uri -> <nabl-uri-strip-barriers> uri
+    where
+      nabl-uri-namespace => namespace
+    
+  nabl-sub-uri(|namespace):
+    uri -> <nabl-uri-parent; nabl-sub-uri(|namespace); nabl-uri-strip-barriers> uri
+    where
+      not(nabl-uri-namespace => namespace)
     
 rules // Conditions
   
   nabl-is-uri =
-  	?URI(_, _)
+    ?URI(_, _)
   
   nabl-is-unique =
     nabl-uri-qualifier;
@@ -220,7 +220,7 @@ rules // Conditions
     ?NonUnique()
     
   nabl-segment-is-id =
-  	?ID(_, _, _)
+    ?ID(_, _, _)
 
 rules // Equality
   
@@ -241,7 +241,7 @@ rules // Equality
     ?(Anonymous(_), Anonymous(_))
     
   nabl-uri-namespace-eq(|namespace) =
-  	nabl-uri-namespace; ?namespace
+    nabl-uri-namespace; ?namespace
     
 rules // Printing
   
@@ -263,13 +263,13 @@ rules /** @internal Projections */
 
   /** @internal */  
   nabl-uri =
-  	has-annos;
-  	get-annos;
-  	fetch-elem(nabl-uri)
+    has-annos;
+    get-annos;
+    fetch-elem(nabl-uri)
 
   /** @internal */  
   nabl-uris =
-  	has-annos;
-  	get-annos;
-  	filter(nabl-uri)
+    has-annos;
+    get-annos;
+    filter(nabl-uri)
 
