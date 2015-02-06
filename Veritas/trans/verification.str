@@ -99,12 +99,12 @@ rules
 		<try(remove-file)> proof-file
 
 rules
-	check-consitency-vampire = check-consitency-vampire(|"5")
-	check-consitency-vampire-60 = check-consitency-vampire(|"60")
-	check-consitency-vampire-120 = check-consitency-vampire(|"120")
-	check-consitency-vampire-600 = check-consitency-vampire(|"600")
+	check-consistency-vampire = check-consistency-vampire(|"5")
+	check-consistency-vampire-60 = check-consistency-vampire(|"60")
+	check-consistency-vampire-120 = check-consistency-vampire(|"120")
+	check-consistency-vampire-600 = check-consistency-vampire(|"600")
 	
-	check-consitency-vampire(|time) :
+	check-consistency-vampire(|time) :
 		input@(selected, position, ast, path, project-path) -> None()
 	where
 		index-setup(|<language>, project-path);
