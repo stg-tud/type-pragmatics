@@ -42,7 +42,7 @@ menus
     action: "Clean" = clean-proofs
 
   menu: "Check consistency"
-    action: "Check consistency with Vampire" = check-consitency-vampire
-    action: "Check consistency with Vampire (120 seconds)" = check-consitency-vampire-120
+    action: "Check consistency with Vampire" = check-consistency-vampire
+    action: "Check consistency with Vampire (120 seconds)" = check-consistency-vampire-120
 
 
