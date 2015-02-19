@@ -12,7 +12,8 @@ lexical syntax
   LAYOUT = [\ \t\n\r] 
   LAYOUT = "//" CommentText CommentTerm 
   CommentText = ~[\n\r]* 
-  CommentTerm = [\r] 
+  CommentTerm = CommentTermR 
+  CommentTermR = [\r] 
   CommentTerm = [\n] 
   CommentTerm = [\r] [\n] 
   CommentTerm = EOF 
@@ -54,6 +55,7 @@ lexical restrictions
   PrimitiveType -/- [a-zA-Z0-9]
   CommentText -/- ~[\n\r]
   EOF -/- ~[]
+  CommentTermR -/- [\n]
 
 context-free restrictions
 
