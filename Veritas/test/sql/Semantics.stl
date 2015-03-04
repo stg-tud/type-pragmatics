@@ -84,66 +84,66 @@ reduce(conf(TValue(t), ts)) = noConf
 reduce(conf(SelectAll(tn), ts)) = 
 	let ltn = lookup(tn, ts) in
 		if (isSomeType(ltn))
-		then someConf(TValue(tn),ts)
+		then someConf(conf(TValue(tn),ts))
 		else noConf
 reduce(conf(SelectFrom1(tt, tn), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSomeType(ltn))
-		then someConf(TValue(projection(tt, getSomeType(ltn))), ts)
+		then someConf(conf(TValue(projection(tt, getSomeType(ltn))), ts))
 		else noConf
 reduce(conf(SelectAllFromWhere1(tn, p), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSomeType(ltn))
-		then someConf(TValue(selection(getSomeType(ltn), p)), ts)
+		then someConf(conf(TValue(selection(getSomeType(ltn), p)), ts))
 		else noConf
 reduce(conf(SelectFromWhere1(tt, tn, p), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSomeType(ltn))
-		then someConf(TValue(projection(tt, selection(getSomeType(ltn), p))), ts)
+		then someConf(conf(SelectFrom1(tt, tn, selection(getSomeType(ltn), p)), ts))
 		else noConf
 reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
 	let tunion = union(t1, t2) in
 		if (isSomeTable(tunion))
-		then someConf(TValue(getSomeTable(tunion), ts))
+		then someConf(conf(TValue(getSomeTable(tunion), ts)))
 		else noConf
 reduce(conf(Union(TValue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
 		if (isSomeConf(sql2reduce))
-		then someConf(Union(TValue(t), getSQL(getSomeConf(sql2reduce))), ts)
+		then someConf(conf(Union(TValue(t), getSQL(getSomeConf(sql2reduce))), ts))
 		else noConf
 reduce(conf(Union(sql1, sql2), ts)) =
 	let sql1reduce = reduce(conf(sql1, ts)) in
 		if (isSomeConf(sql1reduce))
-		then someConf(Union(getSQL(getSomeConf(sql1reduce)), sql2), ts)
+		then someConf(conf(Union(getSQL(getSomeConf(sql1reduce)), sql2), ts))
 		else noConf
 reduce(conf(Intersection(TValue(t1), TValue(t2)), ts)) =
 	let tintersection = intersection(t1, t2) in
 		if (isSomeTable(tintersection))
-		then someConf(TValue(getSomeTable(tintersection), ts))
+		then someConf(conf(TValue(getSomeTable(tintersection), ts)))
 		else noConf
 reduce(conf(Intersection(TValue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
 		if (isSomeConf(sql2reduce))
-		then someConf(Intersection(TValue(t), getSQL(getSomeConf(sql2reduce))), ts)
+		then someConf(conf(Intersection(TValue(t), getSQL(getSomeConf(sql2reduce))), ts))
 		else noConf
 reduce(conf(Intersection(sql1, sql2), ts)) =
 	let sql1reduce = reduce(conf(sql1, ts)) in
 		if (isSomeConf(sql1reduce))
-		then someConf(Intersection(getSQL(getSomeConf(sql1reduce)), sql2), ts)
+		then someConf(conf(Intersection(getSQL(getSomeConf(sql1reduce)), sql2), ts))
 		else noConf
 reduce(conf(Difference(TValue(t1), TValue(t2)), ts)) =
 	let tdifference = difference(t1, t2) in
 		if (isSomeTable(tdifference))
-		then someConf(TValue(getSomeTable(tdifference), ts))
+		then someConf(conf(TValue(getSomeTable(tdifference), ts)))
 		else noConf
 reduce(conf(Difference(TValue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
 		if (isSomeConf(sql2reduce))
-		then someConf(Difference(TValue(t), getSQL(getSomeConf(sql2reduce))), ts)
+		then someConf(conf(Difference(TValue(t), getSQL(getSomeConf(sql2reduce))), ts))
 		else noConf
 reduce(conf(Difference(sql1, sql2), ts)) =
 	let sql1reduce = reduce(conf(sql1, ts)) in
 		if (isSomeConf(sql1reduce))
-		then someConf(Difference(getSQL(getSomeConf(sql1reduce)), sql2), ts)
+		then someConf(conf(Difference(getSQL(getSomeConf(sql1reduce)), sql2), ts))
 		else noConf
 	
