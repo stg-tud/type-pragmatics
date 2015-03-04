@@ -1,0 +1,41 @@
+module sql.TStore
+
+import sql.Tables
+
+sorts
+	TStore TName OptTType
+	
+constructors
+	empty : TStore
+	bind : TName TType TStore -> TStore
+	
+	noType : OptTType
+	someType : TType -> OptTType
+	
+function
+isSomeType : OptTType -> Bool
+isSomeType(noType) = false
+isSomeType(someType(e)) = true
+
+partial function
+getSomeType : OptTType -> TType
+getSomeType(someType(tt)) = tt
+
+function
+lookup : TName TStore -> OptTType
+lookup(n, empty) = noType
+lookup(n, bind(m, tt, TS)) = 
+	if (n == m)
+	then someType(tt)
+	else lookup(n, TS)
+	
+axioms
+~x == ~y
+bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-TStore-Duplicate
+bind(~x, ~Tx, ~C) |- ~e : ~T
+
+~x != ~y
+bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-TStore-Swap
+bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T

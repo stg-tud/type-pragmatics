@@ -1,0 +1,125 @@
+module sql.Tables
+
+sorts
+	FType RType AName CType TType
+	
+constructors
+	rtone : FType -> RType
+	rtmany : FType RType -> RType
+	ctype : AName FType -> CType
+	ttone : CType -> TType
+	ttmany : CType TType -> TType
+
+	
+function 
+correspondingRType : TType -> RType
+correspondingRType(ttone(ctype(a, f))) = rtone(f)
+correspondingRType(ttmany(ctype(a, f), tt)) = rtmany(f, correspondingRType(tt))	
+
+	
+sorts
+	FVar RVar RawTable Table
+
+constructors
+	rone : FVar -> RVar
+	rmany : FVar RVar -> RVar
+	tempty : RawTable
+	tmany : RVar RawTable -> RawTable
+	table : TType RawTable -> Table
+	
+function
+fieldType : FVar -> FType
+
+// well-typed table (functional notation)
+function
+welltypedrow : RVar RType -> Bool
+welltypedrow(rone(f), rtone(ft)) = fieldType(f) == ft
+welltypedrow(rmany(f, r), rtmany(ft, rt)) = 
+	rone(f, rtone(ft)) && welltypedrow(r, rt)
+	
+function
+welltypedtable : Table -> Bool
+welltypedtable(table(tt, tmany(r, tempty))) = 
+	welltypedrow(r, correspondingRType(tt))
+welltypedtable(table(tt, tmany(r, t))) =
+	welltypedtable(table(tt, tmany(r, tempty))) && welltypedtable(table(tt, tmany(t)))
+	
+//some auxiliary functions on raw tables (all not knowing anything about table types!)
+function 
+rowIn : RVar RawTable -> Bool
+rowIn(r1, tmany(r2, tempty)) = r1 == r2
+rowIn(r1, tmany(r2, rt)) = r1 == r2 || rowIn(r1, rt)
+	
+
+//definition: union removes duplicate rows
+//(but only between the two tables, not within a table!)
+//preserves row order of the two original raw tables
+function
+rawUnion : RawTable RawTable -> RawTable
+rawUnion(tempty, rt2) = rt2
+rawUnion(rt1, tempty) = rt1
+rawUnion(tmany(r1, tempty), rt2) = 
+	if (!rowIn(r1, rt2))
+	then tmany(r1, rt2)
+	else rt2
+rawUnion(tmany(r1, rt1), rt2) =
+	let urt1rt2 = rawUnion(rt1, rt2) in
+		if (!rowIn(r1, rt2))
+		then tmany(r1, urt1rt2)
+		else urt1rt2
+		
+//preserves order of rows in first argument
+function
+rawIntersection : RawTable RawTable -> RawTable
+rawIntersection(tempty, rt2) = tempty
+rawIntersection(rt1, tempty) = tempty
+rawIntersection(tmany(r1, tempty), rt2) = 
+	if (rowIn(r1, rt2))
+	then tmany(r1, tempty)
+	else tempty
+rawIntersection(tmany(r1, rt1), rt2) =
+	let urt1rt2 = rawIntersection(rt1, rt2) in
+		if (rowIn(r1, rt2))
+		then tmany(r1, urt1rt2)
+		else urt1rt2
+		
+
+function
+rawDifference : RawTable RawTable -> RawTable
+rawDifference(tempty, rt2) = tempty
+rawDifference(rt1, tempty) = rt1
+rawDifference(tmany(r1, tempty), rt2) =
+	if (!rowIn(r1, rt2))
+	then tmany(r1, tempty)
+	else tempty
+rawDifference(tmany(r1, rt1), rt2) =
+	let drt1rt2 = rawDifference(rt1, rt2) in
+		if (!rowIn(r1, rt2))
+		then tmany(r1, drt1rt2)
+		else drt1rt2
+		
+
+
+
+//typing rules for well-typed table
+
+// axioms
+// fieldType(~f) = ~FT
+// ======================= T-rone
+// rone(~f) : rtone(~FT)
+// 
+// rone(~f) : rtone(~FT) 
+// ~r : ~RT
+// ================================= T-rmany
+// rmany(~f, ~r) : rtmany(~FT, ~RT)
+// 
+// ~r : ~RT
+// correspondingRType(~T) = ~RT
+// ============================= T-tone
+// tone(~r) : ~T
+// 
+// tone(~r) : ~T
+// ~t : ~T
+// ==================== T-tmany
+// tmany(~r, ~t) : ~T
+
