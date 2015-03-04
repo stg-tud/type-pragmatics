@@ -20,6 +20,7 @@ constructors
 	SelectAll : TName -> SQLExp
 	SelectFrom1 : TType TName -> SQLExp
 	//SelectFrom2 : TType TName TName -> SQLExp
+	SelectAllFromWhere1 : TName SQLPred -> SQLExp
 	SelectFromWhere1 : TType TName SQLPred -> SQLExp
 	//SelectFromWhere2 : TType TName TName SQLPred -> SQLExp
 	Union : SQLExp SQLExp -> SQLExp
@@ -32,6 +33,7 @@ isValue(TValue(t)) = true
 isValue(SelectAll) = false
 isValue(SelectFrom1(tt, tn)) = false
 //isValue(SelectFrom2(tt, tn1, tn2)) = false
+isValue(SelectAllFromWhere1(tn, p)) = false
 isValue(SelectFromWhere1(tt, tn, p)) = false
 //isValue(SelectFromWhere2(tt, tn1, tn2, p)) = false
 isValue(Union(sql1, sql2)) = false

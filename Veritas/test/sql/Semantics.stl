@@ -52,7 +52,7 @@ function
 projection : TType Table -> OptTable
 
 function
-selection : TType Table SQLPred -> OptTable
+selection : Table SQLPred -> OptTable
 
 //definition: union removes duplicate rows
 //(but only between the two tables, not within a table!)
@@ -91,10 +91,15 @@ reduce(conf(SelectFrom1(tt, tn), ts)) =
 		if (isSomeType(ltn))
 		then someConf(TValue(projection(tt, getSomeType(ltn))), ts)
 		else noConf
+reduce(conf(SelectAllFromWhere1(tn, p), ts)) =
+	let ltn = lookup(tn, ts) in
+		if (isSomeType(ltn))
+		then someConf(TValue(selection(getSomeType(ltn), p)), ts)
+		else noConf
 reduce(conf(SelectFromWhere1(tt, tn, p), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSomeType(ltn))
-		then someConf(TValue(selection(tt, getSomeType(ltn), p)), ts)
+		then someConf(TValue(projection(tt, selection(getSomeType(ltn), p))), ts)
 		else noConf
 reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
 	let tunion = union(t1, t2) in
