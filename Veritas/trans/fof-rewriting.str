@@ -20,6 +20,7 @@ rules
 	R : ConsequenceList(p) -> p
 	R : JudgementCons(j1, j2) -> <make-and> (j1, j2)
 	R : TypingJudgment(CTX, E, T) -> Pred("vtcheck", [CTX, E, T])
+	R : TypingJudgmentSimple(E, T) -> Pred("vtchecksimple", [E, T])
 	R : ReduceJudgment(e1, e2) -> Pred("vreduce", [e1, e2])
 	R : FunctionExpJudgment(e) -> e
 	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)

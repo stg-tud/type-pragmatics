@@ -68,6 +68,9 @@ OrCaseList.OrCons =
 TypingJudgment.TypingJudgment = 
 <<FunctionExp> |- <FunctionExp> : <FunctionExp>> 
 
+TypingJudgment.TypingJudgmentSimple = 
+<<FunctionExp> : <FunctionExp>>
+
 FunctionExpJudgment.FunctionExpJudgment = 
 FunctionExp 
 
