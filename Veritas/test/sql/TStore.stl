@@ -3,30 +3,30 @@ module sql.TStore
 import sql.Tables
 
 sorts
-	TStore TName OptTType
+	TStore TName OptTable
 	
 constructors
 	empty : TStore
-	bind : TName TType TStore -> TStore
+	bind : TName Table TStore -> TStore
 	
-	noType : OptTType
-	someType : TType -> OptTType
+	noTable : OptTable
+	someTable : Table -> OptTable
 	
 function
-isSomeType : OptTType -> Bool
-isSomeType(noType) = false
-isSomeType(someType(e)) = true
+isSomeTable : OptTable -> Bool
+isSomeTable(noTable) = false
+isSomeTable(someTable(t)) = true
 
 partial function
-getSomeType : OptTType -> TType
-getSomeType(someType(tt)) = tt
+getSomeTable : OptTable -> Table
+getSomeType(someTable(tt)) = tt
 
 function
-lookup : TName TStore -> OptTType
-lookup(n, empty) = noType
-lookup(n, bind(m, tt, TS)) = 
+lookup : TName TStore -> OptTable
+lookup(n, empty) = noTable
+lookup(n, bind(m, t, TS)) = 
 	if (n == m)
-	then someType(tt)
+	then someTable(t)
 	else lookup(n, TS)
 	
 axioms
