@@ -30,7 +30,7 @@ constructors
 function
 isValue : SQLExp -> Bool
 isValue(TValue(t)) = true
-isValue(SelectAll) = false
+isValue(SelectAll(n)) = false
 isValue(SelectFrom1(tt, tn)) = false
 //isValue(SelectFrom2(tt, tn1, tn2)) = false
 isValue(SelectAllFromWhere1(tn, p)) = false
