@@ -44,7 +44,32 @@ welltypedtable(table(tt, tmany(r, tempty))) =
 welltypedtable(table(tt, tmany(r, t))) =
 	welltypedtable(table(tt, tmany(r, tempty))) && welltypedtable(table(tt, tmany(t)))
 	
+
+//typing rules for well-typed table
+
+// axioms
+// fieldType(~f) = ~FT
+// ======================= T-rone
+// rone(~f) : rtone(~FT)
+// 
+// rone(~f) : rtone(~FT) 
+// ~r : ~RT
+// ================================= T-rmany
+// rmany(~f, ~r) : rtmany(~FT, ~RT)
+// 
+// ~r : ~RT
+// correspondingRType(~T) = ~RT
+// ============================= T-tone
+// tone(~r) : ~T
+// 
+// tone(~r) : ~T
+// ~t : ~T
+// ==================== T-tmany
+// tmany(~r, ~t) : ~T
+	
 //some auxiliary functions on raw tables (all not knowing anything about table types!)
+//all functions assume that the tables with which they deal are well typed tables
+
 function 
 rowIn : RVar RawTable -> Bool
 rowIn(r1, tmany(r2, tempty)) = r1 == r2
@@ -97,29 +122,22 @@ rawDifference(tmany(r1, rt1), rt2) =
 		if (!rowIn(r1, rt2))
 		then tmany(r1, drt1rt2)
 		else drt1rt2
-		
+
+//projects a raw table to its first column
+//returns a raw table with exactly one column or tempty	
+function
+projectFirstRaw : RawTable -> RawTable
+
+//drops the first column of a raw table
+//returns a raw table with one column less than before or tempty
+function
+dropFirstColRaw : RawTable -> RawTable
+
+//attaches a raw table with one column to the front of another raw table
+//returns a raw table with one column more
+//assumes that both tables have the same row count!
+function
+attachColToFrontRaw : RawTable RawTable -> RawTable
 
 
-
-//typing rules for well-typed table
-
-// axioms
-// fieldType(~f) = ~FT
-// ======================= T-rone
-// rone(~f) : rtone(~FT)
-// 
-// rone(~f) : rtone(~FT) 
-// ~r : ~RT
-// ================================= T-rmany
-// rmany(~f, ~r) : rtmany(~FT, ~RT)
-// 
-// ~r : ~RT
-// correspondingRType(~T) = ~RT
-// ============================= T-tone
-// tone(~r) : ~T
-// 
-// tone(~r) : ~T
-// ~t : ~T
-// ==================== T-tmany
-// tmany(~r, ~t) : ~T
 
