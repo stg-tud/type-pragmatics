@@ -56,7 +56,7 @@ intersection(table(tt1, rt1), table(tt2, rt2)) =
 
 function
 difference : Table Table -> OptTable
-union(table(tt1, rt1), table(tt2, rt2)) =
+difference(table(tt1, rt1), table(tt2, rt2)) =
 	if (tt1 == tt2)
 	then someTable(table(tt1, rawDifference(rt1, rt2)))
 	else noTable
