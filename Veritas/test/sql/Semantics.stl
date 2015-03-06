@@ -34,6 +34,20 @@ getSomeConf(someConf(c)) = c
 // all these functions assume that the given tables are well-typed
 function
 projection : TType Table -> OptTable
+projection(ttone(ct1), table(ttone(ct2), rt)) =
+	if (ct1 == ct2)
+	then someTable(table(ttone(ct1), rt))
+	else noTable
+projection(ttone(ct1), table(ttmany(ct2, tt), rt)) =
+	if (ct1 == ct2)
+	then someTable(table(ttone(ct1), projectFirstRaw(rt)))
+	else projection(ttone(ct1), table(tt, dropFirstColRaw(rt)))
+projection(ttmany(ct1, tt1), table(ttone(ct2), rt)) =
+	noTable 
+projection(ttmany(ct1, tt1), table(ttmany(ct2, tt2), rt)) =
+	attachColToFrontRaw(projection(ttone(ct1), table(ttmany(ct2, tt2), rt)),
+	projection(tt1, table(ttmany(ct2, tt2), rt)))
+	
 
 function
 selection : Table SQLPred -> OptTable

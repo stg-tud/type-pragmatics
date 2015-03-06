@@ -3,7 +3,7 @@ module sql.TableAux
 import sql.Tables
 
 //some auxiliary functions on raw tables (all not knowing anything about table types!)
-//all functions assume that the tables with which they deal are well typed tables
+//the functions are intended to be used with well-typed tables!!
 
 function 
 rowIn : RVar RawTable -> Bool
@@ -14,18 +14,31 @@ rowIn(r1, tmany(r2, rt)) = r1 == r2 || rowIn(r1, rt)
 //returns a raw table with exactly one column or tempty	
 function
 projectFirstRaw : RawTable -> RawTable
+projectFirstRaw(tempty) = tempty
+//if table is welltyped, recursion would not be needed in the next case:
+projectFirstRaw(tmany(rone(f), rt)) = tmany(rone(f), projectFirstRaw(rt))
+projectFirstRaw(tmany(rmany(f, r), rt)) = tmany(rone(f), projectFirstRaw(rt))
 
 
 //drops the first column of a raw table
 //returns a raw table with one column less than before or tempty
 function
 dropFirstColRaw : RawTable -> RawTable
+dropFirstColRaw(tempty) = tempty
+//in the next case, all rows should have only one field, so we abbreviate:
+dropFirstColRaw(tmany(rone(f), rt)) = tempty
+dropFirstColRaw(tmany(rmany(f, r), rt)) = tmany(r, dropFirstColRaw(rt)) 
 
 //attaches a raw table with one column to the front of another raw table
 //returns a raw table with one column more
 //assumes that both tables have the same row count!
-function
+//has to be partial, not every case is covered!
+partial function
 attachColToFrontRaw : RawTable RawTable -> RawTable
+//second arg t should be tempty normally!
+attachColToFrontRaw(tempty, t) = tempty
+attachColToFrontRaw(tmany(rone(f), rt1), tmany(r, rt2)) = 
+	tmany(rmany(f, r), attachColToFrontRaw(rt1, rt2))
 
 
 
