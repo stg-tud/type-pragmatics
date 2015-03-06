@@ -3,6 +3,7 @@ module sql.Semantics
 import sql.Syntax
 import sql.TStore
 import sql.Tables
+import sql.TableAux
 
 sorts
 	SQLConf

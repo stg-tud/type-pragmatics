@@ -1,0 +1,77 @@
+module sql.TableAux
+
+import sql.Tables
+
+//some auxiliary functions on raw tables (all not knowing anything about table types!)
+//all functions assume that the tables with which they deal are well typed tables
+
+function 
+rowIn : RVar RawTable -> Bool
+rowIn(r1, tmany(r2, tempty)) = r1 == r2
+rowIn(r1, tmany(r2, rt)) = r1 == r2 || rowIn(r1, rt)
+
+//projects a raw table to its first column
+//returns a raw table with exactly one column or tempty	
+function
+projectFirstRaw : RawTable -> RawTable
+
+
+//drops the first column of a raw table
+//returns a raw table with one column less than before or tempty
+function
+dropFirstColRaw : RawTable -> RawTable
+
+//attaches a raw table with one column to the front of another raw table
+//returns a raw table with one column more
+//assumes that both tables have the same row count!
+function
+attachColToFrontRaw : RawTable RawTable -> RawTable
+
+
+
+//definition: union removes duplicate rows
+//(but only between the two tables, not within a table!)
+//preserves row order of the two original raw tables
+function
+rawUnion : RawTable RawTable -> RawTable
+rawUnion(tempty, rt2) = rt2
+rawUnion(rt1, tempty) = rt1
+rawUnion(tmany(r1, tempty), rt2) = 
+	if (!rowIn(r1, rt2))
+	then tmany(r1, rt2)
+	else rt2
+rawUnion(tmany(r1, rt1), rt2) =
+	let urt1rt2 = rawUnion(rt1, rt2) in
+		if (!rowIn(r1, rt2))
+		then tmany(r1, urt1rt2)
+		else urt1rt2
+		
+//preserves order of rows in first argument
+function
+rawIntersection : RawTable RawTable -> RawTable
+rawIntersection(tempty, rt2) = tempty
+rawIntersection(rt1, tempty) = tempty
+rawIntersection(tmany(r1, tempty), rt2) = 
+	if (rowIn(r1, rt2))
+	then tmany(r1, tempty)
+	else tempty
+rawIntersection(tmany(r1, rt1), rt2) =
+	let urt1rt2 = rawIntersection(rt1, rt2) in
+		if (rowIn(r1, rt2))
+		then tmany(r1, urt1rt2)
+		else urt1rt2
+		
+
+function
+rawDifference : RawTable RawTable -> RawTable
+rawDifference(tempty, rt2) = tempty
+rawDifference(rt1, tempty) = rt1
+rawDifference(tmany(r1, tempty), rt2) =
+	if (!rowIn(r1, rt2))
+	then tmany(r1, tempty)
+	else tempty
+rawDifference(tmany(r1, rt1), rt2) =
+	let drt1rt2 = rawDifference(rt1, rt2) in
+		if (!rowIn(r1, rt2))
+		then tmany(r1, drt1rt2)
+		else drt1rt2
