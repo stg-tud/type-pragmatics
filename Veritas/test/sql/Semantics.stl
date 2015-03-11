@@ -33,7 +33,7 @@ getSomeConf(someConf(c)) = c
 
 
 // all these functions assume that the given tables are well-typed
-function
+partial function
 projection : TType Table -> OptTable
 projection(ttone(ct1), table(ttone(ct2), rt)) =
 	if (ct1 == ct2)
@@ -49,9 +49,55 @@ projection(ttmany(ct1, tt1), table(ttmany(ct2, tt2), rt)) =
 	attachColToFrontRaw(projection(ttone(ct1), table(ttmany(ct2, tt2), rt)),
 	projection(tt1, table(ttmany(ct2, tt2), rt)))
 	
+// this function assumes that it is given a table with exactly one row!
+// also assumes that the given attribute name is part of the given table scheme
+// and of course assumes that given ttype fits to given raw table
+// also has to check field type again because currently we do not rule out double attribute names
+// in table schemas! 
+partial function 
+singleRowSelection : TType SQLPred RawTable -> Bool
+singleRowSelection(ttone(ctype(a1, ft)), VEquals(a2, fv), rone(f)) =
+	(a1 == a2 && fieldType(ft) == fv && f == fv)
+singleRowSelection(ttmany(ctype(a1, ft), ttr), VEquals(a2, fv), rmany(f, r)) =
+	(a1 == a2 && fieldType(ft) == fv && f == fv && singleRowSelection(ttr, VEquals(a2, fv), r))
+singleRowSelection(ttone(ctype(a1, ft)), VGreater(a2, fv), rone(f)) =
+	(a1 == a2 && fieldType(ft) == fv && ge(f,fv))
+singleRowSelection(ttmany(ctype(a1, ft), ttr), VGreater(a2, fv), rmany(f, r)) =
+	(a1 == a2 && fieldType(ft) == fv && ge(f,fv) && singleRowSelection(ttr, VGreater(a2, fv), r))
+singleRowSelection(ttone(ctype(a1, ft)), VSmaller(a2, fv), rone(f)) =
+	(a1 == a2 && fieldType(ft) == fv && le(f,fv))
+singleRowSelection(ttmany(ctype(a1, ft), ttr), VSmaller(a2, fv), rmany(f, r)) =
+	(a1 == a2 && fieldType(ft) == fv && le(f,fv) && singleRowSelection(ttr, VSmaller(a2, fv), r))
 
+// this function assumes that the predicate "works" for the given table
+function
+selectionAux : TType SQLPred RawTable -> RawTable
+selectionAux(tt, pred, tempty) = tempty
+selectionAux(tt, pred, tmany(r, tempty)) =
+	if (singleRowSelection(tt, pred, tmany(r, tempty)))
+	then tmany(r, tempty)
+	else tempty
+selectionAux(tt, pred, tmany(r, rt)) =
+	let rts = selectionAux(tt, pred, rt) in
+		if (singleRowSelection(tt, pred, tmany(r, tempty)))
+		then tmany(r, rts)
+		else rts
+
+//top-level function tests whether the predicate is applicable for the given table
 function
 selection : Table SQLPred -> OptTable
+selection(table(tt, rt), VEquals(a, fv)) =
+	if (checkValidity(a, fv, tt))
+	then someTable(table(tt, selectionAux(tt, VEquals(a, fv), rt)))
+	else noTable 
+selection(table(tt, rt), VGreater(a, fv)) =
+	if (checkValidity(a, fv, tt))
+	then someTable(table(tt, selectionAux(tt, VGreater(a, fv), rt)))
+	else noTable 
+selection(table(tt, rt), VSmaller(a, fv)) =
+	if (checkValidity(a, fv, tt))
+	then someTable(table(tt, selectionAux(tt, VSmaller(a, fv), rt)))
+	else noTable 
 
 //definition: union removes duplicate rows
 //(but only between the two tables, not within a table!)
