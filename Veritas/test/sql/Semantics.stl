@@ -31,6 +31,7 @@ partial function
 getSomeConf : OptConf -> SQLConf
 getSomeConf(someConf(c)) = c
 
+
 // all these functions assume that the given tables are well-typed
 function
 projection : TType Table -> OptTable
