@@ -37,6 +37,8 @@ function
 ge : FVar FVar -> Bool
 
 // well-typed table (functional notation)
+// does not yet check for whether the table type contains only unique attribute names!!
+// (but semantics should be possible to define in a sensible way without that requirement...)
 function
 welltypedrow : RVar RType -> Bool
 welltypedrow(rone(f), rtone(ft)) = fieldType(f) == ft
