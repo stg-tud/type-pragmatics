@@ -18,7 +18,7 @@ correspondingRType(ttmany(ctype(a, f), tt)) = rtmany(f, correspondingRType(tt))
 
 	
 sorts
-	FVar RVar RawTable Table
+	FVar RVar RawTable Table 
 
 constructors
 	rone : FVar -> RVar
@@ -29,6 +29,12 @@ constructors
 	
 function
 fieldType : FVar -> FType
+
+function
+le : FVar FVar -> Bool
+
+function
+ge : FVar FVar -> Bool
 
 // well-typed table (functional notation)
 function
