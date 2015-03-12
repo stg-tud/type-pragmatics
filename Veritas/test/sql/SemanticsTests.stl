@@ -1,0 +1,156 @@
+module sql.SemanticsTests
+
+import sql.Semantics
+import sql.Tables
+import sql.TableAux
+import sql.Syntax
+import sql.TStore
+
+local {
+	consts 
+		x1 : FVar
+		x2 : FVar
+		y1 : FVar
+		y2 : FVar
+		z1 : FVar
+		z2 : FVar
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~ts == bind(TN, ~t, empty)
+	~q == SelectAll(TN)
+	========================================================== test-selectall1
+	reduce(conf(~q, ~ts)) == someConf(conf(TValue(~t), ~ts))
+}
+
+local {
+	consts 
+		x1 : FVar
+		x2 : FVar
+		y1 : FVar
+		y2 : FVar
+		z1 : FVar
+		z2 : FVar
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== test-projection1
+	projection(ttone(ctype(A1, FT1)), ~t) == someTable(~tresult)
+}
+
+local {
+	consts 
+		x1 : FVar
+		x2 : FVar
+		y1 : FVar
+		y2 : FVar
+		z1 : FVar
+		z2 : FVar
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~tresult == table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty)))
+	=================================================================================== test-projection2
+	projection(ttone(ctype(A2, FT2)), ~t) == someTable(~tresult)
+}
+
+local {
+	consts 
+		x1 : FVar
+		x2 : FVar
+		y1 : FVar
+		y2 : FVar
+		z1 : FVar
+		z2 : FVar
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~ts == bind(TN, ~t, empty)
+	~q == SelectFrom1(ttone(ctype(A1, FT1)), TN)
+	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== test-selectfrom11
+	reduce(conf(~q, ~ts)) == someConf(conf(TValue(~tresult), ~ts))
+}
+
+
+// local {
+// 	consts 
+// 		x1 : FVar
+// 		x2 : FVar
+// 		y1 : FVar
+// 		y2 : FVar
+// 		z1 : FVar
+// 		z2 : FVar
+// 		
+// 	consts
+// 		TN : TName
+// 		A1 : AName
+// 		A2 : AName
+// 		A3 : AName
+// 		FT1 : FType
+// 		FT2 : FType
+// 		FT3 : FType
+// 
+// 	goal
+// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+// 	~t == table(~tt, ~rt)
+// 	~ts == bind(TN, ~t, empty)
+// 	~q == SelectFrom1(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), TN)
+// 	~tresult == table(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), 
+// 		tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty)))
+// 	=================================================================================== test-selectfrom1-2
+// 	reduce(conf(~q, ~ts)) == someConf(conf(TValue(~tresult), ~ts))
+// }
+
+

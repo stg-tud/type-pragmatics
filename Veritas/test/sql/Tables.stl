@@ -26,6 +26,10 @@ constructors
 	tempty : RawTable
 	tmany : RVar RawTable -> RawTable
 	table : TType RawTable -> Table
+
+function
+getRaw : Table -> RawTable
+getRaw(table(tt, rt)) = rt
 	
 function
 fieldType : FVar -> FType

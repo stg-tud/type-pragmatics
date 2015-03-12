@@ -35,19 +35,23 @@ getSomeConf(someConf(c)) = c
 // all these functions assume that the given tables are well-typed
 partial function
 projection : TType Table -> OptTable
-projection(ttone(ct1), table(ttone(ct2), rt)) =
-	if (ct1 == ct2)
-	then someTable(table(ttone(ct1), rt))
+projection(ttone(ctype(a1, ft1)), table(ttone(ctype(a2, ft2)), rt)) =
+	if ((a1 == a2) && (ft1 == ft2))
+	then someTable(table(ttone(ctype(a1, ft1)), rt))
 	else noTable
-projection(ttone(ct1), table(ttmany(ct2, tt), rt)) =
-	if (ct1 == ct2)
-	then someTable(table(ttone(ct1), projectFirstRaw(rt)))
-	else projection(ttone(ct1), table(tt, dropFirstColRaw(rt)))
+projection(ttone(ctype(a1, ft1)), table(ttmany(ctype(a2, ft2), tt), rt)) =
+	if ((a1 == a2) && (ft1 == ft2))
+	then someTable(table(ttone(ctype(a1, ft1)), projectFirstRaw(rt)))
+	else projection(ttone(ctype(a1, ft1)), table(tt, dropFirstColRaw(rt)))
 projection(ttmany(ct1, tt1), table(ttone(ct2), rt)) =
 	noTable 
 projection(ttmany(ct1, tt1), table(ttmany(ct2, tt2), rt)) =
-	attachColToFrontRaw(projection(ttone(ct1), table(ttmany(ct2, tt2), rt)),
-	projection(tt1, table(ttmany(ct2, tt2), rt)))
+	let prt1 = projection(ttone(ct1), table(ttmany(ct2, tt2), rt)) in
+		let prt2 = projection(tt1, table(ttmany(ct2, tt2), rt)) in
+			if (isSomeTable(prt1) && isSomeTable(prt2)) 
+			then someTable(table(ttmany(ct1, tt1), 
+				attachColToFrontRaw(getRaw(getSomeTable(prt1)), getRaw(getSomeTable(prt2)))))
+			else noTable
 	
 // this function assumes that it is given a table with exactly one row!
 // also assumes that the given attribute name is part of the given table scheme
@@ -129,12 +133,15 @@ reduce(conf(TValue(t), ts)) = noConf
 reduce(conf(SelectAll(tn), ts)) = 
 	let ltn = lookup(tn, ts) in
 		if (isSomeTable(ltn))
-		then someConf(conf(TValue(tn),ts))
+		then someConf(conf(TValue(getSomeTable(ltn)),ts))
 		else noConf
 reduce(conf(SelectFrom1(tt, tn), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSomeTable(ltn))
-		then someConf(conf(TValue(projection(tt, getSomeTable(ltn))), ts))
+		then (let prt = projection(tt, getSomeTable(ltn)) in
+			if (isSomeTable(prt))
+			then someConf(conf(TValue(getSomeTable(prt)), ts))
+			else noConf)
 		else noConf
 reduce(conf(SelectAllFromWhere1(tn, p), ts)) =
 	let ltn = lookup(tn, ts) in
