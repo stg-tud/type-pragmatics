@@ -19,7 +19,7 @@ isSomeTable(someTable(t)) = true
 
 partial function
 getSomeTable : OptTable -> Table
-getSomeType(someTable(tt)) = tt
+getSomeTable(someTable(tt)) = tt
 
 function
 lookup : TName TStore -> OptTable
