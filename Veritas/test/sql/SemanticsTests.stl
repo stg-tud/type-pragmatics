@@ -61,7 +61,60 @@ local {
 	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
 	=================================================================================== test-projection1
 	projection(ttone(ctype(A1, FT1)), ~t) == someTable(~tresult)
+
 }
+
+
+local {
+	consts 
+		x1 : FVar
+		x2 : FVar
+		y1 : FVar
+		y2 : FVar
+		z1 : FVar
+		z2 : FVar
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+		 
+		 
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== aux2
+	getSomeTable(projection(ttone(ctype(A1, FT1)), ~t)) == ~tresult
+	
+	axiom
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== aux2
+	getSomeTable(projection(ttone(ctype(A1, FT1)), ~t)) == ~tresult	
+	
+
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~ts == bind(TN, ~t, empty)
+	~q == SelectFrom1(ttone(ctype(A1, FT1)), TN)
+	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== test-selectfrom11
+	reduce(conf(~q, ~ts)) == someConf(conf(TValue(~tresult), ~ts))
+}
+
 
 local {
 	consts 
@@ -87,41 +140,67 @@ local {
 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
 	~t == table(~tt, ~rt)
 	~tresult == table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty)))
-	=================================================================================== test-projection2
+	=================================================================================== test-projection2-60
 	projection(ttone(ctype(A2, FT2)), ~t) == someTable(~tresult)
 }
 
-local {
-	consts 
-		x1 : FVar
-		x2 : FVar
-		y1 : FVar
-		y2 : FVar
-		z1 : FVar
-		z2 : FVar
-		
-	consts
-		TN : TName
-		A1 : AName
-		A2 : AName
-		A3 : AName
-		FT1 : FType
-		FT2 : FType
-		FT3 : FType
+// this test does not work yet :( (Vampire problem?)
+// local {
+// 	consts 
+// 		x1 : FVar
+// 		x2 : FVar
+// 		y1 : FVar
+// 		y2 : FVar
+// 		z1 : FVar
+// 		z2 : FVar
+// 		
+// 	consts
+// 		TN : TName
+// 		A1 : AName
+// 		A2 : AName
+// 		A3 : AName
+// 		FT1 : FType
+// 		FT2 : FType
+// 		FT3 : FType
+// 		
+// 	axiom
+// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+// 	~t == table(~tt, ~rt)
+// 	~tresult == table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty)))
+// 	=================================================================================== prt-aux1
+// 	projection(ttone(ctype(A2, FT2)), ~t) == someTable(~tresult)
+// 		
+// 	axiom
+// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+// 	~t == table(~tt, ~rt)
+// 	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
+// 	=================================================================================== prt-aux2
+// 	projection(ttone(ctype(A1, FT1)), ~t) == someTable(~tresult)
+// 	
+// 	axiom
+// 	~tresult1 == someTable(table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty))))
+// 	~tresult2 == someTable(table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty))))
+// 	~rtresult == tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty))
+// 	=================================================================================================== prt-aux3
+// 	attachColToFrontRaw(getRaw(getSomeTable(~tresult1)), getRaw(getSomeTable(~tresult2))) == ~rtresult
+// 
+// 	goal
+// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+// 	~t == table(~tt, ~rt)
+// 	~tresult == table(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), 
+//  		tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty)))
+// 	===================================================================================== test-projection3
+// 	projection(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), ~t) == someTable(~tresult)
+// }
 
-	goal
-	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-	~t == table(~tt, ~rt)
-	~ts == bind(TN, ~t, empty)
-	~q == SelectFrom1(ttone(ctype(A1, FT1)), TN)
-	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
-	=================================================================================== test-selectfrom11
-	reduce(conf(~q, ~ts)) == someConf(conf(TValue(~tresult), ~ts))
-}
 
-
+// this test also does not work yet, like the one above (Vampire problem?)
 // local {
 // 	consts 
 // 		x1 : FVar
@@ -152,5 +231,223 @@ local {
 // 	=================================================================================== test-selectfrom1-2
 // 	reduce(conf(~q, ~ts)) == someConf(conf(TValue(~tresult), ~ts))
 // }
+
+
+local {
+	consts 
+		x1 : FVar
+		x2 : FVar
+		y1 : FVar
+		y2 : FVar
+		z1 : FVar
+		z2 : FVar
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+		
+	axiom
+	
+	===================== ft-x1
+	fieldType(x1) = FT1
+	
+	// axiom
+	// 
+	// ===================== ft-x2
+	// fieldType(x2) = FT1
+	// 
+	// axiom
+	// 
+	// ===================== ft-y1
+	// fieldType(y1) = FT2
+	// 
+	// axiom
+	// 
+	// ===================== ft-y2
+	// fieldType(y2) = FT2
+	// 
+	// axiom
+	// 
+	// ===================== ft-z1
+	// fieldType(z1) = FT3
+	// 
+	// axiom
+	// 
+	// ===================== ft-z2
+	// fieldType(z2) = FT3
+	
+	axiom 
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	============================================================================= check-validity-aux
+	checkValidity(A1, x1, ~tt)
+	
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~r == rmany(x1, rmany(y2, rone(z2)))
+	=============================================================================== singleRow-aux1
+	singleRowSelection(~tt, VEquals(A1, x1), ~r)
+	
+	axiom
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~r == rmany(x1, rmany(y2, rone(z2)))
+	=============================================================================== singleRow-aux1
+	singleRowSelection(~tt, VEquals(A1, x1), ~r)
+	
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~r == rmany(x2, rmany(y1, rone(z1)))
+	=============================================================================== singleRow-aux2
+	!singleRowSelection(~tt, VEquals(A1, x1), ~r)
+	
+	axiom
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~r == rmany(x2, rmany(y1, rone(z1)))
+	=============================================================================== singleRow-aux2
+	!singleRowSelection(~tt, VEquals(A1, x1), ~r)
+	
+	goal 
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), tempty)
+	============================================================================= selectionAux-aux
+	selectionAux(~tt, VEquals(A1, x1), ~rt) == ~rtresult
+	
+	axiom 
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), tempty)
+	============================================================================= selectionAux-aux
+	selectionAux(~tt, VEquals(A1, x1), ~rt) == ~rtresult
+
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~tresult == table(~tt, tmany(rmany(x1, rmany(y2, rone(z2))), tempty))
+	=================================================================================== test-selection1
+	selection(~t, VEquals(A1, x1)) == someTable(~tresult)
+}
+
+
+local {
+	consts 
+		x1 : FVar
+		x2 : FVar
+		y1 : FVar
+		y2 : FVar
+		z1 : FVar
+		z2 : FVar
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+	
+	//needs 120 timeout!	
+	goal
+	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
+	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))))
+	===================================================== rawUnion-aux
+	rawUnion(~rt1, ~rt2) == ~rtresult
+	
+	axiom
+	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
+	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))))
+	===================================================== rawUnion-aux
+	rawUnion(~rt1, ~rt2) == ~rtresult
+	
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
+	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))))
+	~t1 == table(~tt, ~rt1)
+	~t2 == table(~tt, ~rt2)
+	~ts == bind(TN, ~t, empty)
+	~q == Union(TValue(~t1), TValue(~t2))
+	~t == table(~tt, ~rtresult)
+	============================================================================== test-union1
+	reduce(conf(~q, ~ts)) == someConf(conf(TValue(~t), ~ts))
+}
+
+
+local {
+	consts 
+		x1 : FVar
+		x2 : FVar
+		y1 : FVar
+		y2 : FVar
+		z1 : FVar
+		z2 : FVar
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+	
+	//needs 120 timeout!	
+	goal
+	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
+	===================================================== rawIntersection-aux
+	rawUnion(~rt1, ~rt2) == tempty
+	
+	axiom
+	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
+	===================================================== rawIntersection-aux
+	rawUnion(~rt1, ~rt2) == tempty
+	
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
+	~t1 == table(~tt, ~rt1)
+	~t2 == table(~tt, ~rt2)
+	~ts == bind(TN, ~t, empty)
+	~q == Intersection(TValue(~t1), TValue(~t2))
+	~t == table(~tt, tempty)
+	============================================================================== test-intersection1
+	reduce(conf(~q, ~ts)) == someConf(conf(TValue(~t), ~ts))
+}
 
 
