@@ -157,7 +157,7 @@ reduce(conf(SelectFromWhere1(tt, tn, p), ts)) =
 reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
 	let tunion = union(t1, t2) in
 		if (isSomeTable(tunion))
-		then someConf(conf(TValue(getSomeTable(tunion), ts)))
+		then someConf(conf(TValue(getSomeTable(tunion)), ts))
 		else noConf
 reduce(conf(Union(TValue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
@@ -172,7 +172,7 @@ reduce(conf(Union(sql1, sql2), ts)) =
 reduce(conf(Intersection(TValue(t1), TValue(t2)), ts)) =
 	let tintersection = intersection(t1, t2) in
 		if (isSomeTable(tintersection))
-		then someConf(conf(TValue(getSomeTable(tintersection), ts)))
+		then someConf(conf(TValue(getSomeTable(tintersection)), ts))
 		else noConf
 reduce(conf(Intersection(TValue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
@@ -187,7 +187,7 @@ reduce(conf(Intersection(sql1, sql2), ts)) =
 reduce(conf(Difference(TValue(t1), TValue(t2)), ts)) =
 	let tdifference = difference(t1, t2) in
 		if (isSomeTable(tdifference))
-		then someConf(conf(TValue(getSomeTable(tdifference), ts)))
+		then someConf(conf(TValue(getSomeTable(tdifference)), ts))
 		else noConf
 reduce(conf(Difference(TValue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
