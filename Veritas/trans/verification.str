@@ -206,7 +206,8 @@ rules
 		!0
 	compute-hash =
 		?file;
-		(tmp,_) := <new-temp-file>;
+		(tmp,fd) := <new-temp-file>;
+		<close> fd;
 		<call> (<hash-command>, <conc> (<hash-options(|tmp)>, [file]));
 		<read-text-file> tmp
 
