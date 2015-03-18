@@ -47,7 +47,7 @@ lookup(~tn, ~TS) == someTable(~t)
 welltypedtable(~t)
 getTT(~t) == ~TT1
 checkPValidity(~p, ~TT1)
-~TS |- SelectFrom1(~tt, ~tn) : ~TT
+typePartOf(~TT, ~TT1)
 =========================================== T-SelectFromWhere1
 ~TS |- SelectFromWhere1(~tt, ~tn, ~p) : ~TT
 

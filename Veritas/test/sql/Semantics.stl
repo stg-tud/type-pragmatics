@@ -126,25 +126,28 @@ reduce(conf(SelectAll(tn), ts)) =
 reduce(conf(SelectFrom1(tt, tn), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSomeTable(ltn))
-		then (let prt = projection(tt, getSomeTable(ltn)) in
-			if (isSomeTable(prt))
-			then someConf(conf(TValue(getSomeTable(prt)), ts))
+		then (let pt = projection(tt, getSomeTable(ltn)) in
+			if (isSomeTable(pt))
+			then someConf(conf(TValue(getSomeTable(pt)), ts))
 			else noConf)
 		else noConf
 reduce(conf(SelectAllFromWhere1(tn, p), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSomeTable(ltn))
-		then (let srt = selection(getSomeTable(ltn), p) in
-			if (isSomeTable(srt))
-			then someConf(conf(TValue(getSomeTable(srt)), ts))
+		then (let st = selection(getSomeTable(ltn), p) in
+			if (isSomeTable(st))
+			then someConf(conf(TValue(getSomeTable(st)), ts))
 			else noConf)
 		else noConf
 reduce(conf(SelectFromWhere1(tt, tn, p), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSomeTable(ltn))
-		then (let srt = selection(getSomeTable(ltn), p) in
-			if (isSomeTable(srt))
-			then someConf(conf(SelectFrom1(tt, tn, getSomeTable(srt)), ts))
+		then (let st = selection(getSomeTable(ltn), p) in
+			if (isSomeTable(st))
+			then (let pt = projection(tt, getSomeTable(st)) in
+				if(isSomeTable(pt))
+				then someConf(conf(TValue(getSomeTable(pt)), ts))
+				else noConf)
 			else noConf)
 		else noConf
 reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
