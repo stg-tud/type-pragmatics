@@ -34,7 +34,7 @@ welltypedtable(~t)
 getTT(~t) == ~TT1
 typePartOf(~TT, ~TT1)
 ==================================== T-SelectFrom1
-~TS |- SelectFrom1(~tt, ~tn) : ~TT
+~TS |- SelectFrom1(~TT, ~tn) : ~TT
 
 lookup(~tn, ~TS) == someTable(~t)
 welltypedtable(~t)
@@ -49,7 +49,7 @@ getTT(~t) == ~TT1
 checkPValidity(~p, ~TT1)
 typePartOf(~TT, ~TT1)
 =========================================== T-SelectFromWhere1
-~TS |- SelectFromWhere1(~tt, ~tn, ~p) : ~TT
+~TS |- SelectFromWhere1(~TT, ~tn, ~p) : ~TT
 
 ~TS |- ~sql1 : ~TT
 ~TS |- ~sql2 : ~TT
@@ -65,3 +65,50 @@ typePartOf(~TT, ~TT1)
 ~TS |- ~sql2 : ~TT
 ============================================ T-Difference
 ~TS |- Difference(~sql1, ~sql2) : ~TT
+
+
+
+~TS |- ~sql : ~TT
+==================================================== T-inv
+OR
+=> exists ~t
+		~sql == TValue(~t)
+		welltypedtable(~t)
+		getTT(~t) == ~TT
+=> exists ~t, ~tn
+		~sql == SelectAll(~tn)
+		lookup(~tn, ~TS) == someTable(~t)
+		welltypedtable(~t)
+		getTT(~t) == ~TT
+=> exists ~t, ~tn, ~TT1
+		~sql == SelectFrom1(~TT1, ~tn)
+		lookup(~tn, ~TS) == someTable(~t)
+		welltypedtable(~t)
+		getTT(~t) == ~TT1
+		typePartOf(~TT, ~TT1)				
+=> exists ~tn, ~t, ~p
+		~sql == SelectAllFromWhere1(~tn, ~p)
+		lookup(~tn, ~TS) == someTable(~t)
+		welltypedtable(~t)
+		getTT(~t) == ~TT
+		checkPValidity(~p, ~TT)		
+=> exists ~tn, ~t, ~p, ~TT1
+		~sql == SelectFromWhere1(~TT, ~tn, ~p)
+		lookup(~tn, ~TS) == someTable(~t)
+		welltypedtable(~t)
+		getTT(~t) == ~TT1
+		checkPValidity(~p, ~TT1)
+		typePartOf(~TT, ~TT1)
+=> exists ~sql1, ~sql2
+		~sql == Union(~sql1, ~sql2)
+		~TS |- ~sql1 : ~TT
+		~TS |- ~sql2 : ~TT
+=> exists ~sql1, ~sql2
+		~sql == Intersection(~sql1, ~sql2)
+		~TS |- ~sql1 : ~TT
+		~TS |- ~sql2 : ~TT
+=> exists ~sql1, ~sql2
+		~sql == Difference(~sql1, ~sql2)
+		~TS |- ~sql1 : ~TT
+		~TS |- ~sql2 : ~TT
+
