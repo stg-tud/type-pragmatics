@@ -425,7 +425,7 @@ local {
 	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
 		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
 	===================================================== rawIntersection-aux
-	rawUnion(~rt1, ~rt2) == tempty
+	rawIntersection(~rt1, ~rt2) == tempty
 	
 	axiom
 	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
@@ -433,7 +433,7 @@ local {
 	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
 		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
 	===================================================== rawIntersection-aux
-	rawUnion(~rt1, ~rt2) == tempty
+	rawIntersection(~rt1, ~rt2) == tempty
 	
 	goal
 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
