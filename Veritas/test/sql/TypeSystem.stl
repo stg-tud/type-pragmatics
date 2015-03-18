@@ -81,7 +81,7 @@ OR
 		welltypedtable(~t)
 		getTT(~t) == ~TT
 => exists ~t, ~tn, ~TT1
-		~sql == SelectFrom1(~TT1, ~tn)
+		~sql == SelectFrom1(~TT, ~tn)
 		lookup(~tn, ~TS) == someTable(~t)
 		welltypedtable(~t)
 		getTT(~t) == ~TT1
