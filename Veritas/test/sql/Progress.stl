@@ -1,10 +1,14 @@
 module sql.Progress
 
+import sql.Tables
+import sql.TStore
 import sql.Syntax
 import sql.Semantics
 import sql.TypeSystem
 
-//prove progress by structural induction on the sql command
+//prove progress by induction on the typing derivation of an sql command
+//for union/intersection/difference, you actually need induction on typing derivations!
+//(because of type equality...)
 
 goal
 ~sql == TValue(~t)
@@ -14,6 +18,146 @@ goal
 ==================================== SQL-Progress-T-Value
 exists ~cout
 	reduce(~cin) = someConf(~cout)
+	
+
+goal	
+~sql == SelectAll(~tn)
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TS |- ~sql : ~TT
+==================================== SQL-Progress-T-SelectAll
+exists ~cout
+	reduce(~cin) = someConf(~cout)
+	
+	
+
+	
+goal
+~sql == SelectFrom1(~tt, ~tn)
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TS |- ~sql : ~TT
+==================================== SQL-Progress-T-SelectFrom1
+exists ~cout
+	reduce(~cin) = someConf(~cout)
+	
+	
+goal
+~sql == SelectAllFromWhere1(~tn, ~p)
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TS |- ~sql : ~TT
+==================================== SQL-Progress-T-SelectAllFromWhere1
+exists ~cout
+	reduce(~cin) = someConf(~cout)
+	
+	
+goal
+~sql == SelectFromWhere1(~tt, ~tn, ~p)
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TS |- ~sql : ~TT
+======================================= SQL-Progress-T-SelectFromWhere1
+exists ~cout
+	reduce(~cin) = someConf(~cout)
+
+local {
+	consts sql1 : SQLExp
+		sql2 : SQLExp
+		TS : TStore
+		TT : TType
+		
+	axiom
+	~cin == conf(sql1, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Union-IH1
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+		
+	axiom
+	~cin == conf(sql2, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Union-IH2
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+	
+	goal
+	~sql == Union(sql1, sql2)
+	~cin == conf(~sql, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Union
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+}
+
+
+local {
+	consts sql1 : SQLExp
+		sql2 : SQLExp
+		TS : TStore
+		TT : TType
+		
+	axiom
+	~cin == conf(sql1, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Intersection-IH1
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+		
+	axiom
+	~cin == conf(sql2, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Intersection-IH2
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+	
+	goal
+	~sql == Intersection(sql1, sql2)
+	~cin == conf(~sql, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Intersection
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+}
+
+
+local {
+	consts sql1 : SQLExp
+		sql2 : SQLExp
+		TS : TStore
+		TT : TType
+		
+	axiom
+	~cin == conf(sql1, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Difference-IH1
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+		
+	axiom
+	~cin == conf(sql2, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Difference-IH2
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+	
+	goal
+	~sql == Difference(sql1, sql2)
+	~cin == conf(~sql, TS)
+	!isValue(~sql)
+	TS |- ~sql : TT
+	==================================== SQL-Progress-T-Difference
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+}
 
 
 //final progress theorem
