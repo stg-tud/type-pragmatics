@@ -29,7 +29,12 @@ goal
 exists ~cout
 	reduce(~cin) = someConf(~cout)
 	
-	
+axiom
+getTT(~t1) = ~TT1
+typePartOf(~TT, ~TT1)
+========================================== projection-aux
+exists ~t2
+	projection(~TT, ~t1) = someTable(~t2)	
 
 	
 goal
