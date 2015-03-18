@@ -10,15 +10,6 @@ rowIn : RVar RawTable -> Bool
 rowIn(r1, tempty) = false
 rowIn(r1, tmany(r2, rt)) = r1 == r2 || rowIn(r1, rt)
 
-//checks whether a given attribute name is part of the given scheme
-//and whether the type of the given field variable corresponds to the type of the given attribute
-function
-checkValidity : AName FVar TType -> Bool
-checkValidity(a1, fv, ttone(ctype(a2, ft))) =
-	(a1 == a2) && (fieldType(fv) == ft)
-checkValidity(a1, fv, ttmany(ctype(a2, ft), ttr)) =
-	((a1 == a2) && (fieldType(fv) == ft)) || checkValidity(a1, fv, ttr) 
-
 //projects a raw table to its first column
 //returns a raw table with exactly one column or tempty	
 function

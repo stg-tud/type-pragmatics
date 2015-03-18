@@ -30,6 +30,10 @@ constructors
 function
 getRaw : Table -> RawTable
 getRaw(table(tt, rt)) = rt
+
+function 
+getTT : Table -> TType
+getTT(table(tt, rt)) = tt
 	
 function
 fieldType : FVar -> FType
@@ -58,6 +62,15 @@ welltypedtable(table(tt, tmany(r, tempty))) =
 welltypedtable(table(tt, tmany(r, t))) =
 	welltypedrow(r, correspondingRType(tt)) && welltypedtable(table(tt, t))
 	
+//checks whether a given column type is part of a given table scheme
+function
+ctypeIn : AName FType TType -> Bool
+ctypeIn(a1, ft1, ttone(ctype(a2, ft2))) =
+	(a1 == a2) && (ft1 == ft2)
+ctypeIn(a1, ft1, ttmany(ctype(a2, ft2), ttr)) =
+	((a1 == a2) && (ft1 == ft2)) || ctypeIn(a1, ft1, ttr) 
+
+
 
 //typing rules for well-typed table
 

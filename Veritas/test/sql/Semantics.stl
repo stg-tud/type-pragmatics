@@ -73,6 +73,7 @@ singleRowSelection(ttmany(ctype(a1, ft), ttr), VSmaller(a2, fv), rmany(f, r)) =
 	(a1 == a2 && fieldType(fv) == ft && le(f,fv)) || singleRowSelection(ttr, VSmaller(a2, fv), r)
 
 // this function assumes that the predicate "works" for the given table
+// (thus avoids retesting validity at every row)
 function
 selectionAux : TType SQLPred RawTable -> RawTable
 selectionAux(tt, pred, tempty) = tempty
@@ -81,22 +82,14 @@ selectionAux(tt, pred, tmany(r, rt)) =
 		if (singleRowSelection(tt, pred, r))
 		then tmany(r, rts)
 		else rts
-
+		
 //top-level function tests whether the predicate is applicable for the given table
 function
 selection : Table SQLPred -> OptTable
-selection(table(tt, rt), VEquals(a, fv)) =
-	if (checkValidity(a, fv, tt))
-	then someTable(table(tt, selectionAux(tt, VEquals(a, fv), rt)))
-	else noTable 
-selection(table(tt, rt), VGreater(a, fv)) =
-	if (checkValidity(a, fv, tt))
-	then someTable(table(tt, selectionAux(tt, VGreater(a, fv), rt)))
-	else noTable 
-selection(table(tt, rt), VSmaller(a, fv)) =
-	if (checkValidity(a, fv, tt))
-	then someTable(table(tt, selectionAux(tt, VSmaller(a, fv), rt)))
-	else noTable 
+selection(table(tt, rt), pred) =
+	if (checkPValidity(pred, tt))
+	then someTable(table(tt, selectionAux(tt, pred, rt)))
+	else noTable
 
 //definition: union removes duplicate rows
 //(but only between the two tables, not within a table!)
