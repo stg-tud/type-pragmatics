@@ -1,0 +1,67 @@
+module sql.TypeSystem
+
+import sql.Tables
+import sql.TStore
+import sql.Syntax
+
+//design decision: include welltypedtable predicate in all premises
+//alternative: include this premise as a global premise later in the soundness theorem
+//(but this probably does not save any work?)
+
+//function checks whether first table type is "part of" second table type
+//i.e. all column types in first tt are included in second tt
+function
+typePartOf : TType TType -> Bool
+typePartOf(ttone(ctype(a, ft)), tt) = ctypeIn(a, ft, tt)
+typePartOf(ttmany(ctype(a, ft), ttrest), tt) = 
+	ctypeIn(a, ft, tt) && typePartOf(ttrest, tt)
+
+axioms
+//a table value with a well-typed table is typable
+welltypedtable(~t)
+getTT(~t) == ~TT
+================================ T-TValue
+~TS |- TValue(~t) : ~TT
+
+lookup(~tn, ~TS) == someTable(~t)
+welltypedtable(~t)
+getTT(~t) == ~TT
+================================= T-SelectAll
+~TS |- SelectAll(~tn) : ~TT
+
+lookup(~tn, ~TS) == someTable(~t)
+welltypedtable(~t)
+getTT(~t) == ~TT1
+typePartOf(~TT, ~TT1)
+==================================== T-SelectFrom1
+~TS |- SelectFrom1(~tt, ~tn) : ~TT
+
+lookup(~tn, ~TS) == someTable(~t)
+welltypedtable(~t)
+getTT(~t) == ~TT
+checkPValidity(~p, ~TT)
+========================================== T-SelectAllFromWhere1
+~TS |- SelectAllFromWhere1(~tn, ~p) : ~TT
+
+lookup(~tn, ~TS) == someTable(~t)
+welltypedtable(~t)
+getTT(~t) == ~TT1
+checkPValidity(~p, ~TT1)
+~TS |- SelectFrom1(~tt, ~tn) : ~TT
+=========================================== T-SelectFromWhere1
+~TS |- SelectFromWhere1(~tt, ~tn, ~p) : ~TT
+
+~TS |- ~sql1 : ~TT
+~TS |- ~sql2 : ~TT
+============================================ T-Union
+~TS |- Union(~sql1, ~sql2) : ~TT
+
+~TS |- ~sql1 : ~TT
+~TS |- ~sql2 : ~TT
+============================================ T-Intersection
+~TS |- Intersection(~sql1, ~sql2) : ~TT
+
+~TS |- ~sql1 : ~TT
+~TS |- ~sql2 : ~TT
+============================================ T-Difference
+~TS |- Difference(~sql1, ~sql2) : ~TT
