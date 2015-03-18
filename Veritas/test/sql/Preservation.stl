@@ -1,0 +1,15 @@
+module sql.Preservation
+
+import sql.Syntax
+import sql.Semantics
+import sql.TypeSystem
+
+//final preservation theorem
+//for now: restricted to the case where table store does not change!
+axiom
+~cin = conf(~sqli, ~TS)
+~cout = conf(~sqlo, ~TS)
+reduce(~cin) = someConf(~cout)
+~TS |- ~sqli : ~TT
+================================ SQL-Preservation
+~TS |- ~sqlo : ~TT
