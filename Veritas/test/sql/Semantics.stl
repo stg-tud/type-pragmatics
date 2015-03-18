@@ -43,11 +43,9 @@ projection(ttone(ctype(a1, ft1)), table(ttmany(ctype(a2, ft2), tt), rt)) =
 	if ((a1 == a2) && (ft1 == ft2))
 	then someTable(table(ttone(ctype(a1, ft1)), projectFirstRaw(rt)))
 	else projection(ttone(ctype(a1, ft1)), table(tt, dropFirstColRaw(rt)))
-projection(ttmany(ct1, tt1), table(ttone(ct2), rt)) =
-	noTable 
-projection(ttmany(ct1, tt1), table(ttmany(ct2, tt2), rt)) =
-	let prt1 = projection(ttone(ct1), table(ttmany(ct2, tt2), rt)) in
-		let prt2 = projection(tt1, table(ttmany(ct2, tt2), rt)) in
+projection(ttmany(ct1, tt1), table(tt, rt)) =
+	let prt1 = projection(ttone(ct1), table(tt, rt)) in
+		let prt2 = projection(tt1, table(tt, rt)) in
 			if (isSomeTable(prt1) && isSomeTable(prt2)) 
 			then someTable(table(ttmany(ct1, tt1), 
 				attachColToFrontRaw(getRaw(getSomeTable(prt1)), getRaw(getSomeTable(prt2)))))
