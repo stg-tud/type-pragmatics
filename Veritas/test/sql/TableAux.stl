@@ -379,6 +379,7 @@ local {
 // ========================================================== test-rawIntersection3
 // rawIntersection(~prt, ~drt) == ~rt
 
+// requires 120 timeout! (needs between 70-80 seconds to prove!)
 local {
 	
 	consts 
