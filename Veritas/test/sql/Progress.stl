@@ -31,16 +31,9 @@ goal
 exists ~cout
 	reduce(~cin) = someConf(~cout)
 	
-axiom
-getTT(~t1) = ~TT1
-typePartOf(~TT, ~TT1)
-========================================== projection-aux
-exists ~t2
-	projection(~TT, ~t1) = someTable(~t2)	
-
 	
 goal
-~sql == SelectFrom1(~tt, ~tn)
+~sql == SelectFrom1(~TT, ~tn)
 ~cin == conf(~sql, ~TS)
 !isValue(~sql)
 ~TS |- ~sql : ~TT
@@ -61,7 +54,7 @@ exists ~cout
 	
 	
 goal
-~sql == SelectFromWhere1(~tt, ~tn, ~p)
+~sql == SelectFromWhere1(~TT, ~tn, ~p)
 ~cin == conf(~sql, ~TS)
 !isValue(~sql)
 ~TS |- ~sql : ~TT
