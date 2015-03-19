@@ -39,10 +39,3 @@ isValue(SelectFromWhere1(tt, tn, p)) = false
 isValue(Union(sql1, sql2)) = false
 isValue(Intersection(sql1, sql2)) = false
 isValue(Difference(sql1, sql2)) = false
-
-//checks whether a given predicate is valid for a given table typwe
-function
-checkPValidity : SQLPred TType -> Bool
-checkPValidity(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
-checkPValidity(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
-checkPValidity(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)

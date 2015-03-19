@@ -1,5 +1,6 @@
 module sql.TypeSystem
 
+import sql.CommonChecks
 import sql.Tables
 import sql.TStore
 import sql.Syntax
@@ -8,13 +9,6 @@ import sql.Syntax
 //alternative: include this premise as a global premise later in the soundness theorem
 //(but this probably does not save any work?)
 
-//function checks whether first table type is "part of" second table type
-//i.e. all column types in first tt are included in second tt
-function
-typePartOf : TType TType -> Bool
-typePartOf(ttone(ctype(a, ft)), tt) = ctypeIn(a, ft, tt)
-typePartOf(ttmany(ctype(a, ft), ttrest), tt) = 
-	ctypeIn(a, ft, tt) && typePartOf(ttrest, tt)
 
 axioms
 //a table value with a well-typed table is typable

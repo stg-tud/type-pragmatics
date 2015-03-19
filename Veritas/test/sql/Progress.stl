@@ -3,6 +3,7 @@ module sql.Progress
 import sql.Tables
 import sql.TStore
 import sql.Syntax
+import sql.CommonChecks
 import sql.Semantics
 import sql.TypeSystem
 
@@ -20,6 +21,7 @@ exists ~cout
 	reduce(~cin) = someConf(~cout)
 	
 
+//only application of correct case of inversion lemma is necessary		
 goal	
 ~sql == SelectAll(~tn)
 ~cin == conf(~sql, ~TS)
@@ -47,6 +49,7 @@ exists ~cout
 	reduce(~cin) = someConf(~cout)
 	
 	
+//only application of correct case of inversion lemma is necessary	
 goal
 ~sql == SelectAllFromWhere1(~tn, ~p)
 ~cin == conf(~sql, ~TS)
