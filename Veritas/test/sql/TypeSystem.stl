@@ -68,47 +68,109 @@ typePartOf(~TT, ~TT1)
 
 
 
+// ~TS |- ~sql : ~TT
+// ==================================================== T-inv
+// OR
+// => exists ~t
+// 		~sql == TValue(~t)
+// 		welltypedtable(~t)
+// 		getTT(~t) == ~TT
+// => exists ~t, ~tn
+// 		~sql == SelectAll(~tn)
+// 		lookup(~tn, ~TS) == someTable(~t)
+// 		welltypedtable(~t)
+// 		getTT(~t) == ~TT
+// => exists ~t, ~tn, ~TT1
+// 		~sql == SelectFrom1(~TT, ~tn)
+// 		lookup(~tn, ~TS) == someTable(~t)
+// 		welltypedtable(~t)
+// 		getTT(~t) == ~TT1
+// 		typePartOf(~TT, ~TT1)				
+// => exists ~tn, ~t, ~p
+// 		~sql == SelectAllFromWhere1(~tn, ~p)
+// 		lookup(~tn, ~TS) == someTable(~t)
+// 		welltypedtable(~t)
+// 		getTT(~t) == ~TT
+// 		checkPValidity(~p, ~TT)		
+// => exists ~tn, ~t, ~p, ~TT1
+// 		~sql == SelectFromWhere1(~TT, ~tn, ~p)
+// 		lookup(~tn, ~TS) == someTable(~t)
+// 		welltypedtable(~t)
+// 		getTT(~t) == ~TT1
+// 		checkPValidity(~p, ~TT1)
+// 		typePartOf(~TT, ~TT1)
+// => exists ~sql1, ~sql2
+// 		~sql == Union(~sql1, ~sql2)
+// 		~TS |- ~sql1 : ~TT
+// 		~TS |- ~sql2 : ~TT
+// => exists ~sql1, ~sql2
+// 		~sql == Intersection(~sql1, ~sql2)
+// 		~TS |- ~sql1 : ~TT
+// 		~TS |- ~sql2 : ~TT
+// => exists ~sql1, ~sql2
+// 		~sql == Difference(~sql1, ~sql2)
+// 		~TS |- ~sql1 : ~TT
+// 		~TS |- ~sql2 : ~TT
+		
+//variant of inversion lemma in several different lemmas 
+//(seems to be helpful for progress proof)
+axioms
+~sql == TValue(~t)
 ~TS |- ~sql : ~TT
-==================================================== T-inv
-OR
-=> exists ~t
-		~sql == TValue(~t)
-		welltypedtable(~t)
-		getTT(~t) == ~TT
-=> exists ~t, ~tn
-		~sql == SelectAll(~tn)
-		lookup(~tn, ~TS) == someTable(~t)
-		welltypedtable(~t)
-		getTT(~t) == ~TT
-=> exists ~t, ~tn, ~TT1
-		~sql == SelectFrom1(~TT, ~tn)
-		lookup(~tn, ~TS) == someTable(~t)
-		welltypedtable(~t)
-		getTT(~t) == ~TT1
-		typePartOf(~TT, ~TT1)				
-=> exists ~tn, ~t, ~p
-		~sql == SelectAllFromWhere1(~tn, ~p)
-		lookup(~tn, ~TS) == someTable(~t)
-		welltypedtable(~t)
-		getTT(~t) == ~TT
-		checkPValidity(~p, ~TT)		
-=> exists ~tn, ~t, ~p, ~TT1
-		~sql == SelectFromWhere1(~TT, ~tn, ~p)
-		lookup(~tn, ~TS) == someTable(~t)
-		welltypedtable(~t)
-		getTT(~t) == ~TT1
-		checkPValidity(~p, ~TT1)
-		typePartOf(~TT, ~TT1)
-=> exists ~sql1, ~sql2
-		~sql == Union(~sql1, ~sql2)
-		~TS |- ~sql1 : ~TT
-		~TS |- ~sql2 : ~TT
-=> exists ~sql1, ~sql2
-		~sql == Intersection(~sql1, ~sql2)
-		~TS |- ~sql1 : ~TT
-		~TS |- ~sql2 : ~TT
-=> exists ~sql1, ~sql2
-		~sql == Difference(~sql1, ~sql2)
-		~TS |- ~sql1 : ~TT
-		~TS |- ~sql2 : ~TT
+==================================================== T-inv-TValue
+welltypedtable(~t)
+getTT(~t) == ~TT
 
+~sql == SelectAll(~tn)		
+~TS |- ~sql : ~TT
+==================================================== T-inv-SelectAll		
+exists ~t
+	lookup(~tn, ~TS) == someTable(~t)
+	welltypedtable(~t)
+	getTT(~t) == ~TT
+
+~sql == SelectFrom1(~TT, ~tn)
+~TS |- ~sql : ~TT
+==================================================== T-inv-SelectFrom1
+exists ~t, ~TT1
+	lookup(~tn, ~TS) == someTable(~t)
+	welltypedtable(~t)
+	getTT(~t) == ~TT1
+	typePartOf(~TT, ~TT1)	
+		
+~sql == SelectAllFromWhere1(~tn, ~p)
+~TS |- ~sql : ~TT
+==================================================== T-inv-SelectAllFromWhere1
+exists ~t
+	lookup(~tn, ~TS) == someTable(~t)
+	welltypedtable(~t)
+	getTT(~t) == ~TT
+	checkPValidity(~p, ~TT)
+		
+~sql == SelectFromWhere1(~TT, ~tn, ~p)
+~TS |- ~sql : ~TT
+==================================================== T-inv-SelectFromWhere1
+exists ~t, ~TT1
+	lookup(~tn, ~TS) == someTable(~t)
+	welltypedtable(~t)
+	getTT(~t) == ~TT1
+	checkPValidity(~p, ~TT1)
+	typePartOf(~TT, ~TT1)
+		
+~sql == Union(~sql1, ~sql2)
+~TS |- ~sql : ~TT
+==================================================== T-inv-Union		
+~TS |- ~sql1 : ~TT
+~TS |- ~sql2 : ~TT
+
+~sql == Intersection(~sql1, ~sql2)
+~TS |- ~sql : ~TT
+==================================================== T-inv-Intersection
+~TS |- ~sql1 : ~TT
+~TS |- ~sql2 : ~TT
+
+~sql == Difference(~sql1, ~sql2)
+~TS |- ~sql : ~TT
+==================================================== T-inv-Difference
+~TS |- ~sql1 : ~TT
+~TS |- ~sql2 : ~TT
