@@ -56,9 +56,9 @@ projectionAux(ttmany(ct1, tt1), table(tt, rt)) =
 // actually attempting it (analogous to all other top-level functions)
 function 
 projection : TType Table -> OptTable
-projection(tt, t) = 
-	if (typePartOf(tt, getTT(t)))
-	then someTable(projectionAux(tt, t))
+projection(tt, table(tt1, rt)) = 
+	if (typePartOf(tt, tt1))
+	then someTable(projectionAux(tt, table(tt1, rt)))
 	else noTable	
 
 // has to check field type again because currently we do not rule out double attribute names
