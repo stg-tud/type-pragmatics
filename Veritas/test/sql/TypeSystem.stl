@@ -25,8 +25,7 @@ getTT(~t) == ~TT
 
 lookup(~tn, ~TS) == someTable(~t)
 welltypedtable(~t)
-getTT(~t) == ~TT1
-typePartOf(~TT, ~TT1)
+typePartOf(~TT, getTT(~t))
 ==================================== T-SelectFrom1
 ~TS |- SelectFrom1(~TT, ~tn) : ~TT
 
@@ -126,11 +125,10 @@ exists ~t
 ~sql == SelectFrom1(~TT, ~tn)
 ~TS |- ~sql : ~TT
 ==================================================== T-inv-SelectFrom1
-exists ~t, ~TT1
+exists ~t
 	lookup(~tn, ~TS) == someTable(~t)
 	welltypedtable(~t)
-	getTT(~t) == ~TT1
-	typePartOf(~TT, ~TT1)	
+	typePartOf(~TT, getTT(~t))	
 		
 ~sql == SelectAllFromWhere1(~tn, ~p)
 ~TS |- ~sql : ~TT
