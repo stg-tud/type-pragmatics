@@ -52,15 +52,36 @@ goal
 exists ~cout
 	reduce(~cin) = someConf(~cout)
 	
-	
-goal
-~sql == SelectFromWhere1(~TT, ~tn, ~p)
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TS |- ~sql : ~TT
-======================================= SQL-Progress-T-SelectFromWhere1
-exists ~cout
-	reduce(~cin) = someConf(~cout)
+
+local {	
+// needed: selection does not change the type of the table??
+// (this would actually be a case from preservation...)	
+
+	axiom
+	lookup(~tn, ~TS) == someTable(table(~TT1, ~rt))
+	welltypedtable(table(~TT1, ~rt))
+	checkPValidity(~p, ~TT1)
+	typePartOf(~TT, ~TT1)
+	============================================================================================== aux1
+	exists ~srt
+		selection(getSomeTable(someTable(table(~TT1, ~rt))), ~p) == someTable(table(~TT1, ~srt))
+
+	axiom
+	typePartOf(~TT, ~TT1)
+	selection(getSomeTable(someTable(table(~TT1, ~rt))), ~p) == someTable(table(~TT1, ~srt))
+	=============================================================================================== SelectFromWhere-aux
+	exists ~prt
+		projection(~TT, getSomeTable(someTable(table(~TT1, ~srt)))) == someTable(table(~TT, ~prt))
+
+	goal
+	~sql == SelectFromWhere1(~TT, ~tn, ~p)
+	~cin == conf(~sql, ~TS)
+	!isValue(~sql)
+	~TS |- ~sql : ~TT
+	======================================= SQL-Progress-T-SelectFromWhere1
+	exists ~cout
+		reduce(~cin) = someConf(~cout)
+}
 
 local {
 	consts sql1 : SQLExp
