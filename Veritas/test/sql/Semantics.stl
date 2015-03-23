@@ -32,6 +32,22 @@ partial function
 getSomeConf : OptConf -> SQLConf
 getSomeConf(someConf(c)) = c
 
+sorts
+	OptBool
+
+constructors
+	noBool : OptBool
+	someBool : Bool -> OptBool
+
+function
+isSomeBool : OptBool -> Bool
+isSomeBool(noBool) = false
+isSomeBool(someBool(b)) = true
+
+partial function
+getSomeBool : OptBool -> Bool
+getSomeBool(someBool(b)) = b
+
 // function fails if attribute(s) to be projected on cannot be found (noTable)!
 // (even if the table is empty!)
 function
@@ -52,43 +68,50 @@ projection(ttmany(ct1, tt1), table(tt, rt)) =
 				attachColToFrontRaw(getRaw(getSomeTable(prt1)), getRaw(getSomeTable(prt2)))))
 			else noTable
 
-// has to check field type again because currently we do not rule out double attribute names
-// in table schemas! 
-// will only work as expected if the given attribute name is part of the given table scheme;
-// otherwise this function will always return false!
-partial function 
-singleRowSelection : TType SQLPred RVar -> Bool
-singleRowSelection(ttone(ctype(a1, ft)), VEquals(a2, fv), rone(f)) =
-	((a1 == a2) && (fieldType(fv) == ft) && (f == fv))
-singleRowSelection(ttmany(ctype(a1, ft), ttr), VEquals(a2, fv), rmany(f, r)) =
-	((a1 == a2) && (fieldType(fv) == ft) && (f == fv)) || singleRowSelection(ttr, VEquals(a2, fv), r)
-singleRowSelection(ttone(ctype(a1, ft)), VGreater(a2, fv), rone(f)) =
-	((a1 == a2) && (fieldType(fv) == ft) && ge(f,fv))
-singleRowSelection(ttmany(ctype(a1, ft), ttr), VGreater(a2, fv), rmany(f, r)) =
-	((a1 == a2) && (fieldType(fv) == ft) && ge(f,fv)) || singleRowSelection(ttr, VGreater(a2, fv), r)
-singleRowSelection(ttone(ctype(a1, ft)), VSmaller(a2, fv), rone(f)) =
-	((a1 == a2) && (fieldType(fv) == ft) && le(f,fv))
-singleRowSelection(ttmany(ctype(a1, ft), ttr), VSmaller(a2, fv), rmany(f, r)) =
-	((a1 == a2) && (fieldType(fv) == ft) && le(f,fv)) || singleRowSelection(ttr, VSmaller(a2, fv), r)
 
-// this function assumes that the predicate "works" for the given table
-// (thus avoids retesting validity at every row)
-function
-selectionAux : TType SQLPred RawTable -> RawTable
-selectionAux(tt, pred, tempty) = tempty
-selectionAux(tt, pred, tmany(r, rt)) =
-	let rts = selectionAux(tt, pred, rt) in
-		if (singleRowSelection(tt, pred, r))
-		then tmany(r, rts)
-		else rts
-		
-//top-level function tests whether the predicate is applicable for the given table
+// fails if attribute - field type pair is not in table!
+function 
+singleRowSelection : TType SQLPred RVar -> OptBool
+singleRowSelection(ttone(ctype(a1, ft)), VEquals(a2, fv), rone(f)) =
+	if ((a1 == a2) && (fieldType(fv)))
+	then someBool((f == fv))
+	else noBool
+singleRowSelection(ttmany(ctype(a1, ft), ttr), VEquals(a2, fv), rmany(f, r)) =
+	if ((a1 == a2) && (fieldType(fv) == ft) && (f == fv))
+	then someBool(true)
+	else singleRowSelection(ttr, VEquals(a2, fv), r)
+singleRowSelection(ttone(ctype(a1, ft)), VGreater(a2, fv), rone(f)) =
+	if ((a1 == a2) && (fieldType(fv)))
+	then someBool(ge(f,fv))
+	else noBool
+singleRowSelection(ttmany(ctype(a1, ft), ttr), VGreater(a2, fv), rmany(f, r)) =
+	if ((a1 == a2) && (fieldType(fv) == ft) && ge(f,fv))
+	then someBool(true)
+	else singleRowSelection(ttr, VEquals(a2, fv), r)
+singleRowSelection(ttone(ctype(a1, ft)), VSmaller(a2, fv), rone(f)) =
+	if ((a1 == a2) && (fieldType(fv)))
+	then someBool(le(f,fv))
+	else noBool
+singleRowSelection(ttmany(ctype(a1, ft), ttr), VSmaller(a2, fv), rmany(f, r)) =
+	if ((a1 == a2) && (fieldType(fv) == ft) && le(f,fv))
+	then someBool(true)
+	else singleRowSelection(ttr, VEquals(a2, fv), r)
+
+// top-level function for selection
 function
 selection : Table SQLPred -> OptTable
-selection(table(tt, rt), pred) =
+selection(table(tt, tempty), pred) = 
 	if (checkPValidity(pred, tt))
-	then someTable(table(tt, selectionAux(tt, pred, rt)))
+	then someTable(tempty)
 	else noTable
+selection(table(tt, tmany(r, rt)), pred) =
+	let rts = selection(table(tt, rt), pred) in
+		let rb = singleRowSelection(tt, pred, r) in 
+			if (isSomeBool(rb))
+			then if (getSomeBool(rb))
+				then someTable(tmany(r, rts))
+				else someTable(rts)
+			else noTable
 
 //definition: union removes duplicate rows
 //(but only between the two tables, not within a table!)
