@@ -59,17 +59,17 @@ projection(ttmany(ct1, tt1), table(tt, rt)) =
 partial function 
 singleRowSelection : TType SQLPred RVar -> Bool
 singleRowSelection(ttone(ctype(a1, ft)), VEquals(a2, fv), rone(f)) =
-	(a1 == a2 && fieldType(fv) == ft && f == fv)
+	((a1 == a2) && (fieldType(fv) == ft) && (f == fv))
 singleRowSelection(ttmany(ctype(a1, ft), ttr), VEquals(a2, fv), rmany(f, r)) =
-	(a1 == a2 && fieldType(fv) == ft && f == fv) || singleRowSelection(ttr, VEquals(a2, fv), r)
+	((a1 == a2) && (fieldType(fv) == ft) && (f == fv)) || singleRowSelection(ttr, VEquals(a2, fv), r)
 singleRowSelection(ttone(ctype(a1, ft)), VGreater(a2, fv), rone(f)) =
-	(a1 == a2 && fieldType(fv) == ft && ge(f,fv))
+	((a1 == a2) && (fieldType(fv) == ft) && ge(f,fv))
 singleRowSelection(ttmany(ctype(a1, ft), ttr), VGreater(a2, fv), rmany(f, r)) =
-	(a1 == a2 && fieldType(fv) == ft && ge(f,fv)) || singleRowSelection(ttr, VGreater(a2, fv), r)
+	((a1 == a2) && (fieldType(fv) == ft) && ge(f,fv)) || singleRowSelection(ttr, VGreater(a2, fv), r)
 singleRowSelection(ttone(ctype(a1, ft)), VSmaller(a2, fv), rone(f)) =
-	(a1 == a2 && fieldType(fv) == ft && le(f,fv))
+	((a1 == a2) && (fieldType(fv) == ft) && le(f,fv))
 singleRowSelection(ttmany(ctype(a1, ft), ttr), VSmaller(a2, fv), rmany(f, r)) =
-	(a1 == a2 && fieldType(fv) == ft && le(f,fv)) || singleRowSelection(ttr, VSmaller(a2, fv), r)
+	((a1 == a2) && (fieldType(fv) == ft) && le(f,fv)) || singleRowSelection(ttr, VSmaller(a2, fv), r)
 
 // this function assumes that the predicate "works" for the given table
 // (thus avoids retesting validity at every row)
