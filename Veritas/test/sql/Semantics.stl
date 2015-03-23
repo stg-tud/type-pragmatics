@@ -32,34 +32,25 @@ partial function
 getSomeConf : OptConf -> SQLConf
 getSomeConf(someConf(c)) = c
 
-
-// this function will only return a sensible table if the columns on which the 
-// projection shall take place all exist in the given table
-// assumes that the correct columns can be found!
+// function fails if attribute(s) to be projected on cannot be found (noTable)!
+// (even if the table is empty!)
 function
-projectionAux : TType Table -> Table
-//if there is only one column left, it has to be the correct one!
-projectionAux(ttone(ctype(a1, ft1)), table(ttone(ctype(a2, ft2)), rt)) =
-	table(ttone(ctype(a1, ft1)), rt)
-projectionAux(ttone(ctype(a1, ft1)), table(ttmany(ctype(a2, ft2), tt), rt)) =
-	if ((a1 == a2) && (ft1 == ft2))
-	then table(ttone(ctype(a1, ft1)), projectFirstRaw(rt))
-	else projectionAux(ttone(ctype(a1, ft1)), table(tt, dropFirstColRaw(rt)))
-//both recursive calls will yield a result!
-projectionAux(ttmany(ct1, tt1), table(tt, rt)) =
-	let prt1 = projectionAux(ttone(ct1), table(tt, rt)) in
-		let prt2 = projectionAux(tt1, table(tt, rt)) in
-			table(ttmany(ct1, tt1), 
-				attachColToFrontRaw(getRaw(getSomeTable(prt1)), getRaw(getSomeTable(prt2))))
-
-// top-level function that dynamically checks whether the projection is possible before
-// actually attempting it (analogous to all other top-level functions)
-function 
 projection : TType Table -> OptTable
-projection(tt, table(tt1, rt)) = 
-	if (typePartOf(tt, tt1))
-	then someTable(projectionAux(tt, table(tt1, rt)))
-	else noTable	
+projection(ttone(ctype(a1, ft1)), table(ttone(ctype(a2, ft2)), rt)) =
+	if ((a1 == a2) && (ft1 == ft2))
+	then someTable(table(ttone(ctype(a1, ft1)), rt))
+	else noTable
+projection(ttone(ctype(a1, ft1)), table(ttmany(ctype(a2, ft2), tt), rt)) =
+	if ((a1 == a2) && (ft1 == ft2))
+	then someTable(table(ttone(ctype(a1, ft1)), projectFirstRaw(rt)))
+	else projection(ttone(ctype(a1, ft1)), table(tt, dropFirstColRaw(rt)))
+projection(ttmany(ct1, tt1), table(tt, rt)) =
+	let prt1 = projection(ttone(ct1), table(tt, rt)) in
+		let prt2 = projection(tt1, table(tt, rt)) in
+			if (isSomeTable(prt1) && isSomeTable(prt2)) 
+			then someTable(table(ttmany(ct1, tt1), 
+				attachColToFrontRaw(getRaw(getSomeTable(prt1)), getRaw(getSomeTable(prt2)))))
+			else noTable
 
 // has to check field type again because currently we do not rule out double attribute names
 // in table schemas! 
