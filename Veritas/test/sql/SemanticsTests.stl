@@ -281,45 +281,45 @@ local {
 	// ===================== ft-z2
 	// fieldType(z2) = FT3
 		
-	goal
-	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-	~r == rmany(x1, rmany(y2, rone(z2)))
-	=============================================================================== singleRow-aux1
-	singleRowSelection(~tt, VEquals(A1, x1), ~r)
-	
-	axiom
-	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-	~r == rmany(x1, rmany(y2, rone(z2)))
-	=============================================================================== singleRow-aux1
-	singleRowSelection(~tt, VEquals(A1, x1), ~r)
-	
-	goal
-	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-	~r == rmany(x2, rmany(y1, rone(z1)))
-	=============================================================================== singleRow-aux2
-	!singleRowSelection(~tt, VEquals(A1, x1), ~r)
-	
-	axiom
-	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-	~r == rmany(x2, rmany(y1, rone(z1)))
-	=============================================================================== singleRow-aux2
-	!singleRowSelection(~tt, VEquals(A1, x1), ~r)
-	
-	goal 
-	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), tempty)
-	============================================================================= selectionAux-aux
-	selectionAux(~tt, VEquals(A1, x1), ~rt) == ~rtresult
-	
-	axiom 
-	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), tempty)
-	============================================================================= selectionAux-aux
-	selectionAux(~tt, VEquals(A1, x1), ~rt) == ~rtresult
+	// goal
+	// ~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	// ~r == rmany(x1, rmany(y2, rone(z2)))
+	// =============================================================================== singleRow-aux1
+	// singleRowSelection(~tt, VEquals(A1, x1), ~r)
+	// 
+	// axiom
+	// ~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	// ~r == rmany(x1, rmany(y2, rone(z2)))
+	// =============================================================================== singleRow-aux1
+	// singleRowSelection(~tt, VEquals(A1, x1), ~r)
+	// 
+	// goal
+	// ~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	// ~r == rmany(x2, rmany(y1, rone(z1)))
+	// =============================================================================== singleRow-aux2
+	// !singleRowSelection(~tt, VEquals(A1, x1), ~r)
+	// 
+	// axiom
+	// ~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	// ~r == rmany(x2, rmany(y1, rone(z1)))
+	// =============================================================================== singleRow-aux2
+	// !singleRowSelection(~tt, VEquals(A1, x1), ~r)
+	// 
+	// goal 
+	// ~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	// ~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+	// 	tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	// ~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), tempty)
+	// ============================================================================= selectionAux-aux
+	// selectionAux(~tt, VEquals(A1, x1), ~rt) == ~rtresult
+	// 
+	// axiom 
+	// ~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	// ~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+	// 	tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	// ~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), tempty)
+	// ============================================================================= selectionAux-aux
+	// selectionAux(~tt, VEquals(A1, x1), ~rt) == ~rtresult
 
 	goal
 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
