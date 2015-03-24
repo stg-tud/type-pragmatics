@@ -1,7 +1,6 @@
 module sql.Semantics
 
 import sql.Syntax
-import sql.CommonChecks
 import sql.TStore
 import sql.Tables
 import sql.TableAux
