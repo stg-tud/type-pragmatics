@@ -1,5 +1,6 @@
 module sql.TypeSystem
 
+import sql.BasicFunctions
 import sql.Tables
 import sql.TStore
 import sql.Syntax
@@ -23,24 +24,24 @@ welltypedtable(table(~TT, ~rt))
 ====================================== T-TValue
 ~TS |- TValue(table(~TT, ~rt)) : ~TT
 
-lookup(~tn, ~TS) == someTable(table(~TT, ~rt))
+lookup(~tn, ~TS) == some(table(~TT, ~rt))
 welltypedtable(table(~TT, ~rt))
 =============================================== T-SelectAll
 ~TS |- SelectAll(~tn) : ~TT
 
-lookup(~tn, ~TS) == someTable(table(~TT1, ~rt))
+lookup(~tn, ~TS) == some(table(~TT1, ~rt))
 welltypedtable(table(~TT1, ~rt))
 typePartOf(~TT, ~TT1)
 ================================================ T-SelectFrom1
 ~TS |- SelectFrom1(~TT, ~tn) : ~TT
 
-lookup(~tn, ~TS) == someTable(table(~TT, ~rt))
+lookup(~tn, ~TS) == some(table(~TT, ~rt))
 welltypedtable(table(~TT, ~rt))
 checkPValidity(~p, ~TT)
 ================================================ T-SelectAllFromWhere1
 ~TS |- SelectAllFromWhere1(~tn, ~p) : ~TT
 
-lookup(~tn, ~TS) == someTable(table(~TT1, ~rt))
+lookup(~tn, ~TS) == some(table(~TT1, ~rt))
 welltypedtable(table(~TT1, ~rt))
 checkPValidity(~p, ~TT1)
 typePartOf(~TT, ~TT1)
@@ -72,21 +73,21 @@ OR
 		welltypedtable(table(~TT, ~rt))
 => exists ~tn, ~rt
 		~sql == SelectAll(~tn)
-		lookup(~tn, ~TS) == someTable(table(~TT, ~rt))
+		lookup(~tn, ~TS) == some(table(~TT, ~rt))
 		welltypedtable(table(~TT, ~rt))
 => exists ~tn, ~TT1, ~rt
 		~sql == SelectFrom1(~TT, ~tn)
-		lookup(~tn, ~TS) == someTable(table(~TT1, ~rt))
+		lookup(~tn, ~TS) == some(table(~TT1, ~rt))
 		welltypedtable(table(~TT1, ~rt))
 		typePartOf(~TT, ~TT1)			
 => exists ~tn, ~p, ~rt
 		~sql == SelectAllFromWhere1(~tn, ~p)
-		lookup(~tn, ~TS) == someTable(table(~TT, ~rt))
+		lookup(~tn, ~TS) == some(table(~TT, ~rt))
 		welltypedtable(table(~TT, ~rt))
 		checkPValidity(~p, ~TT)	
 => exists ~tn, ~p, ~TT1, ~rt
 		~sql == SelectFromWhere1(~TT, ~tn, ~p)
-		lookup(~tn, ~TS) == someTable(table(~TT1, ~rt))
+		lookup(~tn, ~TS) == some(table(~TT1, ~rt))
 		welltypedtable(table(~TT1, ~rt))
 		checkPValidity(~p, ~TT1)
 		typePartOf(~TT, ~TT1)
@@ -115,14 +116,14 @@ welltypedtable(table(~TT, ~rt))
 ~TS |- ~sql : ~TT
 ==================================================== T-inv-SelectAll		
 exists ~rt
-	lookup(~tn, ~TS) == someTable(table(~TT, ~rt))
+	lookup(~tn, ~TS) == some(table(~TT, ~rt))
 	welltypedtable(table(~TT, ~rt))
 
 ~sql == SelectFrom1(~TT, ~tn)
 ~TS |- ~sql : ~TT
 ==================================================== T-inv-SelectFrom1
 exists ~rt, ~TT1
-	lookup(~tn, ~TS) == someTable(table(~TT1, ~rt))
+	lookup(~tn, ~TS) == some(table(~TT1, ~rt))
 	welltypedtable(table(~TT1, ~rt))
 	typePartOf(~TT, ~TT1)		
 		
@@ -130,7 +131,7 @@ exists ~rt, ~TT1
 ~TS |- ~sql : ~TT
 ==================================================== T-inv-SelectAllFromWhere1
 exists ~rt
-	lookup(~tn, ~TS) == someTable(table(~TT, ~rt))
+	lookup(~tn, ~TS) == some(table(~TT, ~rt))
 	welltypedtable(table(~TT, ~rt))
 	checkPValidity(~p, ~TT)	
 		
@@ -138,7 +139,7 @@ exists ~rt
 ~TS |- ~sql : ~TT
 ==================================================== T-inv-SelectFromWhere1
 exists ~rt, ~TT1
-	lookup(~tn, ~TS) == someTable(table(~TT1, ~rt))
+	lookup(~tn, ~TS) == some(table(~TT1, ~rt))
 	welltypedtable(table(~TT1, ~rt))
 	checkPValidity(~p, ~TT1)
 	typePartOf(~TT, ~TT1)

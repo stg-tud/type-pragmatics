@@ -1,32 +1,22 @@
 module sql.TStore
 
+import sql.BasicFunctions
 import sql.Tables
 
+
 sorts
-	TStore TName OptTable
+	TStore TName
 	
 constructors
 	empty : TStore
 	bind : TName Table TStore -> TStore
 	
-	noTable : OptTable
-	someTable : Table -> OptTable
-	
 function
-isSomeTable : OptTable -> Bool
-isSomeTable(noTable) = false
-isSomeTable(someTable(t)) = true
-
-partial function
-getSomeTable : OptTable -> Table
-getSomeTable(someTable(tt)) = tt
-
-function
-lookup : TName TStore -> OptTable
-lookup(n, empty) = noTable
+lookup : TName TStore -> Opt
+lookup(n, empty) = none
 lookup(n, bind(m, t, TS)) = 
 	if (n == m)
-	then someTable(t)
+	then some(t)
 	else lookup(n, TS)
 	
 axioms

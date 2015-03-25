@@ -1,9 +1,9 @@
 module sql.Progress
 
+import sql.BasicFunctions
 import sql.Tables
 import sql.TStore
 import sql.Syntax
-import sql.CommonChecks
 import sql.Semantics
 import sql.TypeSystem
 
@@ -18,7 +18,7 @@ goal
 ~TS |- ~sql : ~TT
 ==================================== SQL-Progress-T-Value
 exists ~cout
-	reduce(~cin) = someConf(~cout)
+	reduce(~cin) = some(~cout)
 	
 
 //only application of correct case of inversion lemma is necessary		
@@ -29,7 +29,7 @@ goal
 ~TS |- ~sql : ~TT
 ==================================== SQL-Progress-T-SelectAll
 exists ~cout
-	reduce(~cin) = someConf(~cout)
+	reduce(~cin) = some(~cout)
 	
 	
 goal
@@ -39,7 +39,7 @@ goal
 ~TS |- ~sql : ~TT
 ==================================== SQL-Progress-T-SelectFrom1
 exists ~cout
-	reduce(~cin) = someConf(~cout)
+	reduce(~cin) = some(~cout)
 	
 	
 //only application of correct case of inversion lemma is necessary	
@@ -50,28 +50,28 @@ goal
 ~TS |- ~sql : ~TT
 ==================================== SQL-Progress-T-SelectAllFromWhere1
 exists ~cout
-	reduce(~cin) = someConf(~cout)
+	reduce(~cin) = some(~cout)
 	
 
 local {	
 // needed: selection does not change the type of the table??
 // (this would actually be a case from preservation...)	
 
-	axiom
-	lookup(~tn, ~TS) == someTable(table(~TT1, ~rt))
-	welltypedtable(table(~TT1, ~rt))
-	checkPValidity(~p, ~TT1)
-	typePartOf(~TT, ~TT1)
-	============================================================================================== aux1
-	exists ~srt
-		selection(getSomeTable(someTable(table(~TT1, ~rt))), ~p) == someTable(table(~TT1, ~srt))
-
-	axiom
-	typePartOf(~TT, ~TT1)
-	selection(getSomeTable(someTable(table(~TT1, ~rt))), ~p) == someTable(table(~TT1, ~srt))
-	=============================================================================================== SelectFromWhere-aux
-	exists ~prt
-		projection(~TT, getSomeTable(someTable(table(~TT1, ~srt)))) == someTable(table(~TT, ~prt))
+// 	axiom
+// 	lookup(~tn, ~TS) == some(table(~TT1, ~rt))
+// 	welltypedtable(table(~TT1, ~rt))
+// 	checkPValidity(~p, ~TT1)
+// 	typePartOf(~TT, ~TT1)
+// 	============================================================================================== aux1
+// 	exists ~srt
+// 		selection(getSomeTable(someTable(table(~TT1, ~rt))), ~p) == someTable(table(~TT1, ~srt))
+// 
+// 	axiom
+// 	typePartOf(~TT, ~TT1)
+// 	selection(getSomeTable(someTable(table(~TT1, ~rt))), ~p) == someTable(table(~TT1, ~srt))
+// 	=============================================================================================== SelectFromWhere-aux
+// 	exists ~prt
+// 		projection(~TT, getSomeTable(someTable(table(~TT1, ~srt)))) == someTable(table(~TT, ~prt))
 
 	goal
 	~sql == SelectFromWhere1(~TT, ~tn, ~p)
@@ -80,7 +80,7 @@ local {
 	~TS |- ~sql : ~TT
 	======================================= SQL-Progress-T-SelectFromWhere1
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 }
 
 local {
@@ -95,7 +95,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Union-IH1
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 		
 	axiom
 	~cin == conf(sql2, TS)
@@ -103,7 +103,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Union-IH2
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 	
 	goal
 	~sql == Union(sql1, sql2)
@@ -112,7 +112,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Union
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 }
 
 
@@ -128,7 +128,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Intersection-IH1
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 		
 	axiom
 	~cin == conf(sql2, TS)
@@ -136,7 +136,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Intersection-IH2
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 	
 	goal
 	~sql == Intersection(sql1, sql2)
@@ -145,7 +145,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Intersection
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 }
 
 
@@ -161,7 +161,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Difference-IH1
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 		
 	axiom
 	~cin == conf(sql2, TS)
@@ -169,7 +169,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Difference-IH2
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 	
 	goal
 	~sql == Difference(sql1, sql2)
@@ -178,7 +178,7 @@ local {
 	TS |- ~sql : TT
 	==================================== SQL-Progress-T-Difference
 	exists ~cout
-		reduce(~cin) = someConf(~cout)
+		reduce(~cin) = some(~cout)
 }
 
 
@@ -196,4 +196,4 @@ axiom
 ~TS |- ~sql : ~TT
 ==================================== SQL-Progress
 exists ~cout
-	reduce(~cin) = someConf(~cout)
+	reduce(~cin) = some(~cout)

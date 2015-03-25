@@ -1,5 +1,6 @@
 module sql.Preservation
 
+import sql.BasicFunctions
 import sql.Syntax
 import sql.Semantics
 import sql.TypeSystem
@@ -9,7 +10,7 @@ import sql.TypeSystem
 axiom
 ~cin = conf(~sqli, ~TS)
 ~cout = conf(~sqlo, ~TS)
-reduce(~cin) = someConf(~cout)
+reduce(~cin) = some(~cout)
 ~TS |- ~sqli : ~TT
 ================================ SQL-Preservation
 ~TS |- ~sqlo : ~TT
