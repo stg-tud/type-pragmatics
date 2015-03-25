@@ -1,0 +1,22 @@
+module sql.BasicFunctions
+
+//this module contains basic utility function
+
+//option datatype (ignoring types!) check whether this is a good idea!
+
+sorts
+	A Opt
+	
+constructors
+	none : Opt
+	some : A -> Opt
+	
+function
+isSome : Opt -> Bool
+isSome(none) = false
+isSome(some(a)) = true
+
+partial function
+getSome : Opt -> A
+getSome(some(a)) = a
+
