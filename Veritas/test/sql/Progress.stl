@@ -16,7 +16,7 @@ goal
 ~cin == conf(~sql, ~TS)
 !isValue(~sql)
 ~TS |- ~sql : ~TT
-==================================== SQL-Progress-T-Value
+==================================== SQL-Progress-T-TValue
 exists ~cout
 	reduce(~cin) = some(~cout)
 	
