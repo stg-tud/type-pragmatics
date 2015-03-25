@@ -29,34 +29,38 @@ projection(ttone(ctype(a1, ft1)), table(ttmany(ctype(a2, ft2), tt), rt)) =
 	then table(ttone(ctype(a1, ft1)), projectFirstRaw(rt))
 	else projection(ttone(ctype(a1, ft1)), table(tt, dropFirstColRaw(rt)))
 projection(ttmany(ct1, tt1), table(tt, rt)) =
-	attachColToFrontRaw(getRaw(projection(ttone(ct1), table(tt, rt))), 
-		getRaw(projection(tt1, table(tt, rt))))
+	table(ttmany(ct1, tt1), 
+		attachColToFrontRaw(getRaw(projection(ttone(ct1), table(tt, rt))), 
+			getRaw(projection(tt1, table(tt, rt)))))
 
 
 // is undefined if attribute - field type pair is not in table!
 partial function 
 singleRowSelection : TType SQLPred RVar -> Bool
 singleRowSelection(ttone(ctype(a1, ft)), VEquals(a2, fv), rone(f)) =
-	if ((a1 == a2) && (fieldType(fv)))
+	if ((a1 == a2) && (fieldType(fv) == ft))
 	then (f == fv)
 	else undefined
 singleRowSelection(ttmany(ctype(a1, ft), ttr), VEquals(a2, fv), rmany(f, r)) =
-	((a1 == a2) && (fieldType(fv) == ft) && (f == fv)) ||
-	singleRowSelection(ttr, VEquals(a2, fv), r)
+	if ((a1 == a2) && (fieldType(fv) == ft))
+	then (f == fv)
+	else singleRowSelection(ttr, VEquals(a2, fv), r)
 singleRowSelection(ttone(ctype(a1, ft)), VGreater(a2, fv), rone(f)) =
-	if ((a1 == a2) && (fieldType(fv)))
+	if ((a1 == a2) && (fieldType(fv) == ft))
 	then ge(f,fv)
 	else undefined
 singleRowSelection(ttmany(ctype(a1, ft), ttr), VGreater(a2, fv), rmany(f, r)) =
-	((a1 == a2) && (fieldType(fv) == ft) && ge(f,fv)) ||
-	singleRowSelection(ttr, VEquals(a2, fv), r)
+	if ((a1 == a2) && (fieldType(fv) == ft))
+	then ge(f,fv)
+	else singleRowSelection(ttr, VGreater(a2, fv), r)
 singleRowSelection(ttone(ctype(a1, ft)), VSmaller(a2, fv), rone(f)) =
-	if ((a1 == a2) && (fieldType(fv)))
+	if ((a1 == a2) && (fieldType(fv) == ft))
 	then le(f,fv)
 	else undefined
 singleRowSelection(ttmany(ctype(a1, ft), ttr), VSmaller(a2, fv), rmany(f, r)) =
-	((a1 == a2) && (fieldType(fv) == ft) && le(f,fv)) ||
-	singleRowSelection(ttr, VEquals(a2, fv), r)
+	if ((a1 == a2) && (fieldType(fv) == ft))
+	then le(f,fv)
+	else singleRowSelection(ttr, VSmaller(a2, fv), r)
 
 // top-level function for selection
 partial function
