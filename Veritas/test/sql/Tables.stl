@@ -57,8 +57,6 @@ welltypedrow(rmany(f, r), rtmany(ft, rt)) =
 function
 welltypedtable : Table -> Bool
 welltypedtable(table(tt, tempty)) = true
-welltypedtable(table(tt, tmany(r, tempty))) = 
-	welltypedrow(r, correspondingRType(tt))
 welltypedtable(table(tt, tmany(r, t))) =
 	welltypedrow(r, correspondingRType(tt)) && welltypedtable(table(tt, t))
 	
