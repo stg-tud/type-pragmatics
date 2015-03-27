@@ -1,15 +1,316 @@
 module sql.Preservation
 
+import sql.BasicFunctions
 import sql.Syntax
 import sql.Semantics
 import sql.TypeSystem
+import sql.TStore
+import sql.Tables
+import sql.TableAux
+
+
+goal 
+~sqli == TValue(~t)
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
+~TS |- ~sqli : ~TT
+================================ SQL-Preservation-T-TValue
+~TS |- ~sqlo : ~TT
+
+goal 
+~sqli == SelectAll(~tn)
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
+~TS |- ~sqli : ~TT
+================================ SQL-Preservation-T-SelectAll
+~TS |- ~sqlo : ~TT
+
+local {
+	
+	// the proof below is plausible
+	goal
+	~tt1 == ttone(ctype(~a1, ~ft1))
+	~tt2 == ttone(ctype(~a2, ~ft2))
+	~tin == table(~tt2, ~rt2)
+	welltypedtable(~tin)
+	~tresult == projection(~tt1, ~tin)
+	typePartOf(~tt1, ~tt2)
+	~rt1 == ~rt2
+	================================================== projection-aux-one-one
+	~tresult == table(~tt1, ~rt1)
+	welltypedtable(~tresult)
+	
+	local {
+		// consts a1 : AName
+		// 	ft1 : FType
+		// 	a2 : AName
+		// 	ft2 : FType
+		consts ttr : TType
+			rt2 : RawTable
+		
+		axiom
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		~tin == table(~tt2, rt2)
+		welltypedtable(~tin)
+		~rptdrop == dropFirstColRaw(rt2)
+		======================================= dropFirstColRaw-aux
+		welltypedtable(table(ttr, ~rptdrop))
+		
+		//plausible proof, probably trivial - maybe not needed?
+		goal
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		typePartOf(~tt1, ~tt2)
+		OR
+			=> ~a1 != ~a2 
+			=> ~ft1 != ~ft2
+		========================================= typePartOf-aux
+		typePartOf(~tt1, ttr)
+		
+		axiom
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		typePartOf(~tt1, ~tt2)
+		OR
+			=> ~a1 != ~a2 
+			=> ~ft1 != ~ft2
+		========================================= typePartOf-aux
+		typePartOf(~tt1, ttr)
+		
+		axiom
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		~tin == table(ttr, dropFirstColRaw(rt2))
+		welltypedtable(~tin)
+		~tresult == projection(~tt1, ~tin)
+		typePartOf(~tt1, ttr)
+		============================================================================== projection-aux-one-many-IH
+		~tresult == table(~tt1, ~rt1)
+		welltypedtable(~tresult)
+		
+		axiom
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~a1 == ~a2
+		~ft1 == ~ft2
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		~tin == table(~tt2, rt2)
+		welltypedtable(~tin)
+		~rptfirst == projectFirstRaw(rt2)
+		======================================= projectFirstRaw-aux
+		welltypedtable(table(~tt1, ~rptfirst))
+		
+		//
+		goal
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		~a1 == ~a2
+		~ft1 == ~ft2
+		~tin == table(~tt2, rt2)
+		welltypedtable(~tin)
+		~tresult == projection(~tt1, ~tin)
+		typePartOf(~tt1, ~tt2)
+		================================================== projection-aux-one-many-1
+		~tresult == table(~tt1, projectFirstRaw(rt2))
+		welltypedtable(~tresult)
+		
+		axiom
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		~a1 == ~a2
+		~ft1 == ~ft2
+		~tin == table(~tt2, rt2)
+		welltypedtable(~tin)
+		~tresult == projection(~tt1, ~tin)
+		typePartOf(~tt1, ~tt2)
+		================================================== projection-aux-one-many-1
+		~tresult == table(~tt1, projectFirstRaw(rt2))
+		welltypedtable(~tresult)
+		
+		axiom
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		OR
+			=> ~a1 != ~a2 
+			=> ~ft1 != ~ft2
+		~tin == table(~tt2, rt2)
+		welltypedtable(~tin)
+		~tresult == projection(~tt1, ~tin)
+		typePartOf(~tt1, ~tt2)
+		================================================== projection-aux-one-many-2
+		~tresult == table(~tt1, ~rt1)
+		welltypedtable(~tresult)
+		
+		goal
+		~tt1 == ttone(ctype(~a1, ~ft1))
+		~tt2 == ttmany(ctype(~a2, ~ft2), ttr)
+		~tin == table(~tt2, rt2)
+		welltypedtable(~tin)
+		~tresult == projection(~tt1, ~tin)
+		typePartOf(~tt1, ~tt2)
+		================================================== projection-aux-one-many
+		~tresult == table(~tt1, ~rt1)
+		welltypedtable(~tresult)
+	}
+	
+	// goal
+	// ~tt1 == ttmany(~ct1, ~ttr1)
+	// ~tin == table(~tt2, ~rt2)
+	// welltypedtable(~tin)
+	// ~tresult == projection(~tt1, ~tin)
+	// typePartOf(~tt1, ~tt2)
+	// ================================================== projection-aux-many-many
+	// exists ~rt1
+	// 	~tresult == table(~tt1, ~rt1)
+	// 	welltypedtable(~tresult)
+	
+	//not sure yet whether this lemma is ok...
+	axiom
+	~tin == table(~tt2, ~rt2)
+	welltypedtable(~tin)
+	~tresult == projection(~tt1, ~tin)
+	typePartOf(~tt1, ~tt2)
+	================================================== projection-aux
+	~tresult == table(~tt1, ~rt1)
+	welltypedtable(~tresult)
+
+	//this proof seems fishy - why is welltypedtable0 axiom used??
+	goal 
+	~sqli == SelectFrom1(~TT, ~tn)
+	~cin == conf(~sqli, ~TS)
+	~cout == conf(~sqlo, ~TS)
+	reduce(~cin) = some(~cout)
+	~TS |- ~sqli : ~TT
+	================================ SQL-Preservation-T-SelectFrom1
+	~TS |- ~sqlo : ~TT
+
+}
+
+
+goal 
+~sqli == SelectAllFromWhere1(~tn, ~p)
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
+~TS |- ~sqli : ~TT
+================================ SQL-Preservation-T-SelectAllFromWhere1
+~TS |- ~sqlo : ~TT
+
+
+goal 
+~sqli == SelectFromWhere1(~TT, ~tn, ~p)
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
+~TS |- ~sqli : ~TT
+================================ SQL-Preservation-T-SelectFromWhere1
+~TS |- ~sqlo : ~TT
+
+local {
+	consts sql1 : SQLExp
+		sql2 : SQLExp
+		TS : TStore
+		TT : TType
+	
+	axiom 
+	~cin == conf(sql1, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Union-IH1
+	TS |- ~sqlo : TT
+	
+	axiom 
+	~cin == conf(sql2, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Union-IH2
+	TS |- ~sqlo : TT
+		
+	goal 
+	~sqli == Union(sql1, sql2)
+	~cin == conf(~sqli, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Union
+	TS |- ~sqlo : TT
+}
+
+local {
+	consts sql1 : SQLExp
+		sql2 : SQLExp
+		TS : TStore
+		TT : TType
+	
+	axiom 
+	~cin == conf(sql1, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Intersection-IH1
+	TS |- ~sqlo : TT
+	
+	axiom 
+	~cin == conf(sql2, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Intersection-IH2
+	TS |- ~sqlo : TT
+		
+	goal 
+	~sqli == Intersection(sql1, sql2)
+	~cin == conf(~sqli, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Intersection
+	TS |- ~sqlo : TT
+}
+
+
+local {
+	consts sql1 : SQLExp
+		sql2 : SQLExp
+		TS : TStore
+		TT : TType
+	
+	axiom 
+	~cin == conf(sql1, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Difference-IH1
+	TS |- ~sqlo : TT
+	
+	axiom 
+	~cin == conf(sql2, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Difference-IH2
+	TS |- ~sqlo : TT
+		
+	goal 
+	~sqli == Difference(sql1, sql2)
+	~cin == conf(~sqli, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TS |- ~sqli : TT
+	================================ SQL-Preservation-T-Difference
+	TS |- ~sqlo : TT
+}
 
 //final preservation theorem
 //for now: restricted to the case where table store does not change!
 axiom
-~cin = conf(~sqli, ~TS)
-~cout = conf(~sqlo, ~TS)
-reduce(~cin) = someConf(~cout)
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
 ~TS |- ~sqli : ~TT
 ================================ SQL-Preservation
 ~TS |- ~sqlo : ~TT

@@ -20,3 +20,13 @@ partial function
 getSome : Opt -> A
 getSome(some(a)) = a
 
+// Option variant for option boolean (3 answers: true, false, error)
+sorts
+	Opt3
+	
+constructors
+	error : Opt3
+	isTrue : Opt3
+	isFalse : Opt3
+	
+
