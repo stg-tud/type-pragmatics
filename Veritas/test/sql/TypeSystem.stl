@@ -5,35 +5,81 @@ import sql.Tables
 import sql.TStore
 import sql.Syntax
 
-//design decision: include welltypedtable predicate in all premises
-//alternative: include this premise as a global premise later in the soundness theorem
-//(but this probably does not save any work?)
-
-//function checks whether first table type is "part of" second table type
-//i.e. all column types in first tt are included in second tt
+sorts
+	TTContext
+	
+constructors
+	cempty : TTContext
+	cbind : TName TType TTContext -> TTContext
+	
 function
-typePartOf : TType TType -> Bool
-typePartOf(ttone(ctype(a, ft)), tt) = ctypeIn(a, ft, tt)
-typePartOf(ttmany(ctype(a, ft), ttrest), tt) = 
-	ctypeIn(a, ft, tt) && typePartOf(ttrest, tt)
+clookup : TName TTContext -> Opt
+clookup(tn, cempty) = none
+clookup(tn, cbind(tm, tt, TTC)) =
+	if (tn == tm)
+	then some(tt)
+	else lookup(tn, TTC) 
+	
+axioms
+~x == ~y
+cbind(~x, ~Tx, cbind(~y, ~Ty, ~C)) |- ~e : ~T
+================================================ T-TTContext-Duplicate
+cbind(~x, ~Tx, ~C) |- ~e : ~T
 
+~x != ~y
+cbind(~x, ~Tx, cbind(~y, ~Ty, ~C)) |- ~e : ~T
+================================================ T-TTContext-Swap
+cbind(~y, ~Ty, cbind(~x, ~Tx, ~C)) |- ~e : ~T
 
+	
+// return an optional FType
+function
+coltype : AName TType -> Opt
+coltype(an, ttone(ctype(a, ft))) = 
+	if (an == a)
+	then some(ft)
+	else none
+coltype(an, ttmany(ctype(a, ft), ttr)) =
+	if (an == a)
+	then some(ft)
+	else coltype(an, ttr)
+
+// return an optional TType
+function
+typePart : AList TType -> Opt
+typePart(aone(a1), tt) = 
+	let ft = coltype(a1, tt) in
+		if (isSome(ft))
+		then some(ttone(ctype(a1, getSome(ft))))
+		else none
+typePart(amany(a1, alr), tt) =
+	let ft = coltype(a1, tt) in
+		let tprest = typePart(alr, tt) in
+			if (isSome(ft) && isSome(tprest))
+			then some(ttmany(ctype(a1, getSome(ft)), getSome(tprest)))
+			else none
+	
+// function for typing a single table
+// TODO: HOW TO TYPE A TABLE WITH NO ROWS??
+// (for table with at least one row: take type of first row)
+function
+typetable : Table -> TType
+
+// We assume that the FIRST binding in the given TTContext represents the 
 axioms
 //a table value with a well-typed table is typable
-welltypedtable(table(~TT, ~rt))
+typetable(table(~al, ~rt)) == ~TT
 ====================================== T-TValue
-~TS |- TValue(table(~TT, ~rt)) : ~TT
+~TTC |- TValue(table(~al, ~rt)) : ~TT
 
-lookup(~tn, ~TS) == some(table(~TT, ~rt))
-welltypedtable(table(~TT, ~rt))
+clookup(~tn, ~TTC) == some(~TT)
 =============================================== T-SelectAll
-~TS |- SelectAll(~tn) : ~TT
+~TTC |- SelectAll(~tn) : ~TT
 
-lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-welltypedtable(table(~TT1, ~rt))
-typePartOf(~TT, ~TT1)
+clookup(~tn, ~TTC) == some(~TT1)
+typePart(~al, ~TT1) == ~TT
 ================================================ T-SelectFrom1
-~TS |- SelectFrom1(~TT, ~tn) : ~TT
+~TTC |- SelectFrom1(~al, ~tn) : ~TT
 
 // lookup(~tn, ~TS) == some(table(~TT, ~rt))
 // welltypedtable(table(~TT, ~rt))

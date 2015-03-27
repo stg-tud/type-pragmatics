@@ -11,169 +11,169 @@ import sql.TypeSystem
 //for union/intersection/difference, you actually need induction on typing derivations!
 //(because of type equality...)
 
-goal
-~sql == TValue(~t)
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TS |- ~sql : ~TT
-==================================== SQL-Progress-T-TValue
-exists ~cout
-	reduce(~cin) = some(~cout)
-	
-
-//only application of correct case of inversion lemma is necessary		
-goal	
-~sql == SelectAll(~tn)
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TS |- ~sql : ~TT
-==================================== SQL-Progress-T-SelectAll
-exists ~cout
-	reduce(~cin) = some(~cout)
-	
-//only application of correct case of inversion lemma is necessary			
-goal
-~sql == SelectFrom1(~TT, ~tn)
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TS |- ~sql : ~TT
-==================================== SQL-Progress-T-SelectFrom1
-exists ~cout
-	reduce(~cin) = some(~cout)
-	
-	
-//only application of correct case of inversion lemma is necessary	
 // goal
-// ~sql == SelectAllFromWhere1(~tn, ~p)
+// ~sql == TValue(~t)
 // ~cin == conf(~sql, ~TS)
 // !isValue(~sql)
 // ~TS |- ~sql : ~TT
-// ==================================== SQL-Progress-T-SelectAllFromWhere1
+// ==================================== SQL-Progress-T-TValue
 // exists ~cout
 // 	reduce(~cin) = some(~cout)
-	
-//only application of correct case of inversion lemma is necessary		
-// goal
-// ~sql == SelectFromWhere1(~TT, ~tn, ~p)
+// 	
+// 
+// //only application of correct case of inversion lemma is necessary		
+// goal	
+// ~sql == SelectAll(~tn)
 // ~cin == conf(~sql, ~TS)
 // !isValue(~sql)
 // ~TS |- ~sql : ~TT
-// ======================================= SQL-Progress-T-SelectFromWhere1
+// ==================================== SQL-Progress-T-SelectAll
 // exists ~cout
 // 	reduce(~cin) = some(~cout)
-
-
-// local {
-// 	consts sql1 : SQLExp
-// 		sql2 : SQLExp
-// 		TS : TStore
-// 		TT : TType
-// 		
-// 	axiom
-// 	~cin == conf(sql1, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Union-IH1
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
-// 		
-// 	axiom
-// 	~cin == conf(sql2, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Union-IH2
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
 // 	
-// 	goal
-// 	~sql == Union(sql1, sql2)
-// 	~cin == conf(~sql, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Union
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
-// }
-// 
-// 
-// local {
-// 	consts sql1 : SQLExp
-// 		sql2 : SQLExp
-// 		TS : TStore
-// 		TT : TType
-// 		
-// 	axiom
-// 	~cin == conf(sql1, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Intersection-IH1
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
-// 		
-// 	axiom
-// 	~cin == conf(sql2, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Intersection-IH2
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
+// //only application of correct case of inversion lemma is necessary			
+// goal
+// ~sql == SelectFrom1(~TT, ~tn)
+// ~cin == conf(~sql, ~TS)
+// !isValue(~sql)
+// ~TS |- ~sql : ~TT
+// ==================================== SQL-Progress-T-SelectFrom1
+// exists ~cout
+// 	reduce(~cin) = some(~cout)
 // 	
-// 	goal
-// 	~sql == Intersection(sql1, sql2)
-// 	~cin == conf(~sql, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Intersection
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
-// }
-// 
-// 
-// local {
-// 	consts sql1 : SQLExp
-// 		sql2 : SQLExp
-// 		TS : TStore
-// 		TT : TType
-// 		
-// 	axiom
-// 	~cin == conf(sql1, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Difference-IH1
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
-// 		
-// 	axiom
-// 	~cin == conf(sql2, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Difference-IH2
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
 // 	
-// 	goal
-// 	~sql == Difference(sql1, sql2)
-// 	~cin == conf(~sql, TS)
-// 	!isValue(~sql)
-// 	TS |- ~sql : TT
-// 	==================================== SQL-Progress-T-Difference
-// 	exists ~cout
-// 		reduce(~cin) = some(~cout)
-// }
-
-
-//final progress theorem
-//design decision: do not include a premise with "store only contains well-typed tables"
-// this is not necessary with the current type system design since the typing rules require 
-// that all tables that are ever looked up are well-typed
-//consequence: the table store can contain senseless tables as long as the given SQL
-// command does not look them up
-//alternative: introduce such a premise, and then maybe remove the well-typedness premises
-// from the typing rules (?)
-axiom 
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TS |- ~sql : ~TT
-==================================== SQL-Progress
-exists ~cout
-	reduce(~cin) = some(~cout)
+// //only application of correct case of inversion lemma is necessary	
+// // goal
+// // ~sql == SelectAllFromWhere1(~tn, ~p)
+// // ~cin == conf(~sql, ~TS)
+// // !isValue(~sql)
+// // ~TS |- ~sql : ~TT
+// // ==================================== SQL-Progress-T-SelectAllFromWhere1
+// // exists ~cout
+// // 	reduce(~cin) = some(~cout)
+// 	
+// //only application of correct case of inversion lemma is necessary		
+// // goal
+// // ~sql == SelectFromWhere1(~TT, ~tn, ~p)
+// // ~cin == conf(~sql, ~TS)
+// // !isValue(~sql)
+// // ~TS |- ~sql : ~TT
+// // ======================================= SQL-Progress-T-SelectFromWhere1
+// // exists ~cout
+// // 	reduce(~cin) = some(~cout)
+// 
+// 
+// // local {
+// // 	consts sql1 : SQLExp
+// // 		sql2 : SQLExp
+// // 		TS : TStore
+// // 		TT : TType
+// // 		
+// // 	axiom
+// // 	~cin == conf(sql1, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Union-IH1
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // 		
+// // 	axiom
+// // 	~cin == conf(sql2, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Union-IH2
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // 	
+// // 	goal
+// // 	~sql == Union(sql1, sql2)
+// // 	~cin == conf(~sql, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Union
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // }
+// // 
+// // 
+// // local {
+// // 	consts sql1 : SQLExp
+// // 		sql2 : SQLExp
+// // 		TS : TStore
+// // 		TT : TType
+// // 		
+// // 	axiom
+// // 	~cin == conf(sql1, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Intersection-IH1
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // 		
+// // 	axiom
+// // 	~cin == conf(sql2, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Intersection-IH2
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // 	
+// // 	goal
+// // 	~sql == Intersection(sql1, sql2)
+// // 	~cin == conf(~sql, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Intersection
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // }
+// // 
+// // 
+// // local {
+// // 	consts sql1 : SQLExp
+// // 		sql2 : SQLExp
+// // 		TS : TStore
+// // 		TT : TType
+// // 		
+// // 	axiom
+// // 	~cin == conf(sql1, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Difference-IH1
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // 		
+// // 	axiom
+// // 	~cin == conf(sql2, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Difference-IH2
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // 	
+// // 	goal
+// // 	~sql == Difference(sql1, sql2)
+// // 	~cin == conf(~sql, TS)
+// // 	!isValue(~sql)
+// // 	TS |- ~sql : TT
+// // 	==================================== SQL-Progress-T-Difference
+// // 	exists ~cout
+// // 		reduce(~cin) = some(~cout)
+// // }
+// 
+// 
+// //final progress theorem
+// //design decision: do not include a premise with "store only contains well-typed tables"
+// // this is not necessary with the current type system design since the typing rules require 
+// // that all tables that are ever looked up are well-typed
+// //consequence: the table store can contain senseless tables as long as the given SQL
+// // command does not look them up
+// //alternative: introduce such a premise, and then maybe remove the well-typedness premises
+// // from the typing rules (?)
+// axiom 
+// ~cin == conf(~sql, ~TS)
+// !isValue(~sql)
+// ~TS |- ~sql : ~TT
+// ==================================== SQL-Progress
+// exists ~cout
+// 	reduce(~cin) = some(~cout)

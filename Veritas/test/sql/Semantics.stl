@@ -17,20 +17,20 @@ getSQL : SQLConf -> SQLExp
 getSQL(conf(sql, ts)) = sql
 	
 function
-projection : TType Table -> Opt
-projection(ttone(ctype(a1, ft1)), table(ttone(ctype(a2, ft2)), rt)) =
-	if ((a1 == a2) && (ft1 == ft2))
-	then some(table(ttone(ctype(a1, ft1)), rt))
+projection : AList Table -> Opt
+projection(aone(a1), table(aone(a2), rt)) =
+	if (a1 == a2)
+	then some(table(aone(a1), rt))
 	else none
-projection(ttone(ctype(a1, ft1)), table(ttmany(ctype(a2, ft2), tt), rt)) =
-	if ((a1 == a2) && (ft1 == ft2))
-	then some(table(ttone(ctype(a1, ft1)), projectFirstRaw(rt)))
-	else projection(ttone(ctype(a1, ft1)), table(tt, dropFirstColRaw(rt)))
-projection(ttmany(ct1, tt1), table(tt, rt)) =
-	let prt1 = projection(ttone(ct1), table(tt, rt)) in
-		let prt2 = projection(tt1, table(tt, rt)) in
+projection(aone(a1), table(amany(a2, al), rt)) =
+	if (a1 == a2)
+	then some(table(aone(a1), projectFirstRaw(rt)))
+	else projection(aone(a1), table(al, dropFirstColRaw(rt)))
+projection(amany(a1, alr), table(al, rt)) =
+	let prt1 = projection(aone(a1), table(al, rt)) in
+		let prt2 = projection(alr, table(al, rt)) in
 			if (isSome(prt1) && isSome(prt2)) 
-			then some(table(ttmany(ct1, tt1), 
+			then some(table(amany(a1, alr), 
 				attachColToFrontRaw(getRaw(getSome(prt1)), getRaw(getSome(prt2)))))
 			else none
 
@@ -112,10 +112,10 @@ reduce(conf(SelectAll(tn), ts)) =
 		if (isSome(ltn))
 		then some(conf(TValue(getSome(ltn)),ts))
 		else none
-reduce(conf(SelectFrom1(tt, tn), ts)) =
+reduce(conf(SelectFrom1(al, tn), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSome(ltn))
-		then (let pt = projection(tt, getSome(ltn)) in
+		then (let pt = projection(al, getSome(ltn)) in
 			if (isSome(pt))
 			then some(conf(TValue(getSome(pt)), ts))
 			else none)
