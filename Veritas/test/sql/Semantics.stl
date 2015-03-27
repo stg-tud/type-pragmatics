@@ -36,72 +36,72 @@ projection(ttmany(ct1, tt1), table(tt, rt)) =
 
 
 // fails if attribute - field type pair is not in table!
-partial function 
-singleRowSelection : TType SQLPred RVar -> Opt3
-singleRowSelection(ttone(ctype(a1, ft)), VEquals(a2, fv), rone(f)) =
-	if ((a1 == a2) && (fieldType(fv) == ft))
-	then (if (f == fv) then isTrue else isFalse)
-	else error
-singleRowSelection(ttmany(ctype(a1, ft), ttr), VEquals(a2, fv), rmany(f, r)) =
-	if ((a1 == a2) && (fieldType(fv) == ft))
-	then (if (f == fv) then isTrue else isFalse)
-	else singleRowSelection(ttr, VEquals(a2, fv), r)
-singleRowSelection(ttone(ctype(a1, ft)), VGreater(a2, fv), rone(f)) =
-	if ((a1 == a2) && (fieldType(fv) == ft))
-	then (if (ge(f,fv)) then isTrue else isFalse)
-	else error
-singleRowSelection(ttmany(ctype(a1, ft), ttr), VGreater(a2, fv), rmany(f, r)) =
-	if ((a1 == a2) && (fieldType(fv) == ft))
-	then (if (ge(f,fv)) then isTrue else isFalse)
-	else singleRowSelection(ttr, VGreater(a2, fv), r)
-singleRowSelection(ttone(ctype(a1, ft)), VSmaller(a2, fv), rone(f)) =
-	if ((a1 == a2) && (fieldType(fv)))
-	then (if (le(f,fv)) then isTrue else isFalse)
-	else error
-singleRowSelection(ttmany(ctype(a1, ft), ttr), VSmaller(a2, fv), rmany(f, r)) =
-	if ((a1 == a2) && (fieldType(fv) == ft))
-	then (if (le(f,fv)) then isTrue else isFalse)
-	else singleRowSelection(ttr, VSmaller(a2, fv), r)
+// partial function 
+// singleRowSelection : TType SQLPred RVar -> Opt3
+// singleRowSelection(ttone(ctype(a1, ft)), VEquals(a2, fv), rone(f)) =
+// 	if ((a1 == a2) && (fieldType(fv) == ft))
+// 	then (if (f == fv) then isTrue else isFalse)
+// 	else error
+// singleRowSelection(ttmany(ctype(a1, ft), ttr), VEquals(a2, fv), rmany(f, r)) =
+// 	if ((a1 == a2) && (fieldType(fv) == ft))
+// 	then (if (f == fv) then isTrue else isFalse)
+// 	else singleRowSelection(ttr, VEquals(a2, fv), r)
+// singleRowSelection(ttone(ctype(a1, ft)), VGreater(a2, fv), rone(f)) =
+// 	if ((a1 == a2) && (fieldType(fv) == ft))
+// 	then (if (ge(f,fv)) then isTrue else isFalse)
+// 	else error
+// singleRowSelection(ttmany(ctype(a1, ft), ttr), VGreater(a2, fv), rmany(f, r)) =
+// 	if ((a1 == a2) && (fieldType(fv) == ft))
+// 	then (if (ge(f,fv)) then isTrue else isFalse)
+// 	else singleRowSelection(ttr, VGreater(a2, fv), r)
+// singleRowSelection(ttone(ctype(a1, ft)), VSmaller(a2, fv), rone(f)) =
+// 	if ((a1 == a2) && (fieldType(fv)))
+// 	then (if (le(f,fv)) then isTrue else isFalse)
+// 	else error
+// singleRowSelection(ttmany(ctype(a1, ft), ttr), VSmaller(a2, fv), rmany(f, r)) =
+// 	if ((a1 == a2) && (fieldType(fv) == ft))
+// 	then (if (le(f,fv)) then isTrue else isFalse)
+// 	else singleRowSelection(ttr, VSmaller(a2, fv), r)
 
 // top-level function for selection
-function
-selection : Table SQLPred -> Opt
-selection(table(tt, tempty), pred) = 
-	if (checkPValidity(pred, tt))
-	then some(table(tt, tempty))
-	else none
-selection(table(tt, tmany(r, rt)), pred) =
-	let rts = selection(table(tt, rt), pred) in
-		let rb = singleRowSelection(tt, pred, r) in 
-			if (rb == isTrue)
-			then some(table(tt, tmany(r, getRaw(rts))))
-			else if (rb == isFalse)
-				then some(rts)
-				else none
+// function
+// selection : Table SQLPred -> Opt
+// selection(table(tt, tempty), pred) = 
+// 	if (checkPValidity(pred, tt))
+// 	then some(table(tt, tempty))
+// 	else none
+// selection(table(tt, tmany(r, rt)), pred) =
+// 	let rts = selection(table(tt, rt), pred) in
+// 		let rb = singleRowSelection(tt, pred, r) in 
+// 			if (rb == isTrue)
+// 			then some(table(tt, tmany(r, getRaw(rts))))
+// 			else if (rb == isFalse)
+// 				then some(rts)
+// 				else none
 
 // definition: union removes duplicate rows
 // (but only between the two tables, not within a table!)
 // union only possible if schemas of tables are exactly equal (including column order!)
-function
-union : Table Table -> Opt
-union(table(tt1, rt1), table(tt2, rt2)) =
-	if (tt1 == tt2)
-	then some(table(tt1, rawUnion(rt1, rt2)))
-	else none
-
-function
-intersection : Table Table -> Opt
-intersection(table(tt1, rt1), table(tt2, rt2)) =
-	if (tt1 == tt2)
-	then some(table(tt1, rawIntersection(rt1, rt2)))
-	else none
-
-function
-difference : Table Table -> Opt
-difference(table(tt1, rt1), table(tt2, rt2)) =
-	if (tt1 == tt2)
-	then some(table(tt1, rawDifference(rt1, rt2)))
-	else none
+// function
+// union : Table Table -> Opt
+// union(table(tt1, rt1), table(tt2, rt2)) =
+// 	if (tt1 == tt2)
+// 	then some(table(tt1, rawUnion(rt1, rt2)))
+// 	else none
+// 
+// function
+// intersection : Table Table -> Opt
+// intersection(table(tt1, rt1), table(tt2, rt2)) =
+// 	if (tt1 == tt2)
+// 	then some(table(tt1, rawIntersection(rt1, rt2)))
+// 	else none
+// 
+// function
+// difference : Table Table -> Opt
+// difference(table(tt1, rt1), table(tt2, rt2)) =
+// 	if (tt1 == tt2)
+// 	then some(table(tt1, rawDifference(rt1, rt2)))
+// 	else none
 
 // reduce fails if referenced tables are not found
 function 
@@ -120,68 +120,68 @@ reduce(conf(SelectFrom1(tt, tn), ts)) =
 			then some(conf(TValue(getSome(pt)), ts))
 			else none)
 		else none
-reduce(conf(SelectAllFromWhere1(tn, p), ts)) =
-	let ltn = lookup(tn, ts) in
-		if (isSome(ltn))
-		then (let st = selection(getSome(ltn), p) in
-			if (isSome(st))
-			then some(conf(TValue(getSome(st)), ts))
-			else none)
-		else none
-reduce(conf(SelectFromWhere1(tt, tn, p), ts)) =
-	let ltn = lookup(tn, ts) in
-		if (isSome(ltn))
-		then (let st = selection(getSome(ltn), p) in
-			if (isSome(st))
-			then (let pt = projection(tt, getSome(st)) in
-				if(isSome(pt))
-				then some(conf(TValue(getSome(pt)), ts))
-				else none)
-			else none)
-		else none
-reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
-	let tunion = union(t1, t2) in
-		if (isSome(tunion))
-		then some(conf(TValue(getSome(tunion)), ts))
-		else none
-reduce(conf(Union(TValue(t), sql2), ts)) =
-	let sql2reduce = reduce(conf(sql2, ts)) in
-		if (isSome(sql2reduce))
-		then some(conf(Union(TValue(t), getSQL(getSome(sql2reduce))), ts))
-		else none
-reduce(conf(Union(sql1, sql2), ts)) =
-	let sql1reduce = reduce(conf(sql1, ts)) in
-		if (isSome(sql1reduce))
-		then some(conf(Union(getSQL(getSome(sql1reduce)), sql2), ts))
-		else none
-reduce(conf(Intersection(TValue(t1), TValue(t2)), ts)) =
-	let tintersection = intersection(t1, t2) in
-		if (isSome(tintersection))
-		then some(conf(TValue(getSome(tintersection)), ts))
-		else none
-reduce(conf(Intersection(TValue(t), sql2), ts)) =
-	let sql2reduce = reduce(conf(sql2, ts)) in
-		if (isSome(sql2reduce))
-		then some(conf(Intersection(TValue(t), getSQL(getSome(sql2reduce))), ts))
-		else none
-reduce(conf(Intersection(sql1, sql2), ts)) =
-	let sql1reduce = reduce(conf(sql1, ts)) in
-		if (isSome(sql1reduce))
-		then some(conf(Intersection(getSQL(getSome(sql1reduce)), sql2), ts))
-		else none
-reduce(conf(Difference(TValue(t1), TValue(t2)), ts)) =
-	let tdifference = difference(t1, t2) in
-		if (isSome(tdifference))
-		then some(conf(TValue(getSome(tdifference)), ts))
-		else none
-reduce(conf(Difference(TValue(t), sql2), ts)) =
-	let sql2reduce = reduce(conf(sql2, ts)) in
-		if (isSome(sql2reduce))
-		then some(conf(Difference(TValue(t), getSQL(getSome(sql2reduce))), ts))
-		else none
-reduce(conf(Difference(sql1, sql2), ts)) =
-	let sql1reduce = reduce(conf(sql1, ts)) in
-		if (isSome(sql1reduce))
-		then some(conf(Difference(getSQL(getSome(sql1reduce)), sql2), ts))
-		else none
+// reduce(conf(SelectAllFromWhere1(tn, p), ts)) =
+// 	let ltn = lookup(tn, ts) in
+// 		if (isSome(ltn))
+// 		then (let st = selection(getSome(ltn), p) in
+// 			if (isSome(st))
+// 			then some(conf(TValue(getSome(st)), ts))
+// 			else none)
+// 		else none
+// reduce(conf(SelectFromWhere1(tt, tn, p), ts)) =
+// 	let ltn = lookup(tn, ts) in
+// 		if (isSome(ltn))
+// 		then (let st = selection(getSome(ltn), p) in
+// 			if (isSome(st))
+// 			then (let pt = projection(tt, getSome(st)) in
+// 				if(isSome(pt))
+// 				then some(conf(TValue(getSome(pt)), ts))
+// 				else none)
+// 			else none)
+// 		else none
+// reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
+// 	let tunion = union(t1, t2) in
+// 		if (isSome(tunion))
+// 		then some(conf(TValue(getSome(tunion)), ts))
+// 		else none
+// reduce(conf(Union(TValue(t), sql2), ts)) =
+// 	let sql2reduce = reduce(conf(sql2, ts)) in
+// 		if (isSome(sql2reduce))
+// 		then some(conf(Union(TValue(t), getSQL(getSome(sql2reduce))), ts))
+// 		else none
+// reduce(conf(Union(sql1, sql2), ts)) =
+// 	let sql1reduce = reduce(conf(sql1, ts)) in
+// 		if (isSome(sql1reduce))
+// 		then some(conf(Union(getSQL(getSome(sql1reduce)), sql2), ts))
+// 		else none
+// reduce(conf(Intersection(TValue(t1), TValue(t2)), ts)) =
+// 	let tintersection = intersection(t1, t2) in
+// 		if (isSome(tintersection))
+// 		then some(conf(TValue(getSome(tintersection)), ts))
+// 		else none
+// reduce(conf(Intersection(TValue(t), sql2), ts)) =
+// 	let sql2reduce = reduce(conf(sql2, ts)) in
+// 		if (isSome(sql2reduce))
+// 		then some(conf(Intersection(TValue(t), getSQL(getSome(sql2reduce))), ts))
+// 		else none
+// reduce(conf(Intersection(sql1, sql2), ts)) =
+// 	let sql1reduce = reduce(conf(sql1, ts)) in
+// 		if (isSome(sql1reduce))
+// 		then some(conf(Intersection(getSQL(getSome(sql1reduce)), sql2), ts))
+// 		else none
+// reduce(conf(Difference(TValue(t1), TValue(t2)), ts)) =
+// 	let tdifference = difference(t1, t2) in
+// 		if (isSome(tdifference))
+// 		then some(conf(TValue(getSome(tdifference)), ts))
+// 		else none
+// reduce(conf(Difference(TValue(t), sql2), ts)) =
+// 	let sql2reduce = reduce(conf(sql2, ts)) in
+// 		if (isSome(sql2reduce))
+// 		then some(conf(Difference(TValue(t), getSQL(getSome(sql2reduce))), ts))
+// 		else none
+// reduce(conf(Difference(sql1, sql2), ts)) =
+// 	let sql1reduce = reduce(conf(sql1, ts)) in
+// 		if (isSome(sql1reduce))
+// 		then some(conf(Difference(getSQL(getSome(sql1reduce)), sql2), ts))
+// 		else none
 	

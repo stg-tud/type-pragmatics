@@ -6,13 +6,13 @@ import sql.TStore
 sorts
 	SQLPred SQLExp
 	
-constructors
-	VEquals : AName FVar -> SQLPred
-	//AEquals : AName AName -> SQLPred
-	VGreater : AName FVar -> SQLPred
-	//AGreater : AName AName -> SQLPred
-	VSmaller : AName FVar -> SQLPred
-	//ASmaller : AName AName -> SQLPred
+// constructors
+// 	VEquals : AName FVar -> SQLPred
+// 	//AEquals : AName AName -> SQLPred
+// 	VGreater : AName FVar -> SQLPred
+// 	//AGreater : AName AName -> SQLPred
+// 	VSmaller : AName FVar -> SQLPred
+// 	//ASmaller : AName AName -> SQLPred
 	
 	
 constructors
@@ -20,12 +20,12 @@ constructors
 	SelectAll : TName -> SQLExp
 	SelectFrom1 : TType TName -> SQLExp
 	//SelectFrom2 : TType TName TName -> SQLExp
-	SelectAllFromWhere1 : TName SQLPred -> SQLExp
-	SelectFromWhere1 : TType TName SQLPred -> SQLExp
+	//SelectAllFromWhere1 : TName SQLPred -> SQLExp
+	//SelectFromWhere1 : TType TName SQLPred -> SQLExp
 	//SelectFromWhere2 : TType TName TName SQLPred -> SQLExp
-	Union : SQLExp SQLExp -> SQLExp
-	Intersection : SQLExp SQLExp -> SQLExp
-	Difference : SQLExp SQLExp -> SQLExp
+	//Union : SQLExp SQLExp -> SQLExp
+	//Intersection : SQLExp SQLExp -> SQLExp
+	//Difference : SQLExp SQLExp -> SQLExp
 	
 function
 isValue : SQLExp -> Bool
@@ -33,17 +33,17 @@ isValue(TValue(t)) = true
 isValue(SelectAll(n)) = false
 isValue(SelectFrom1(tt, tn)) = false
 //isValue(SelectFrom2(tt, tn1, tn2)) = false
-isValue(SelectAllFromWhere1(tn, p)) = false
-isValue(SelectFromWhere1(tt, tn, p)) = false
+// isValue(SelectAllFromWhere1(tn, p)) = false
+// isValue(SelectFromWhere1(tt, tn, p)) = false
 //isValue(SelectFromWhere2(tt, tn1, tn2, p)) = false
-isValue(Union(sql1, sql2)) = false
-isValue(Intersection(sql1, sql2)) = false
-isValue(Difference(sql1, sql2)) = false
+// isValue(Union(sql1, sql2)) = false
+// isValue(Intersection(sql1, sql2)) = false
+// isValue(Difference(sql1, sql2)) = false
 
 
 //checks whether a given predicate is valid for a given table typwe
-function
-checkPValidity : SQLPred TType -> Bool
-checkPValidity(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
-checkPValidity(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
-checkPValidity(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+// function
+// checkPValidity : SQLPred TType -> Bool
+// checkPValidity(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+// checkPValidity(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+// checkPValidity(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)

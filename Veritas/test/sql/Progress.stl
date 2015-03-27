@@ -43,123 +43,123 @@ exists ~cout
 	
 	
 //only application of correct case of inversion lemma is necessary	
-goal
-~sql == SelectAllFromWhere1(~tn, ~p)
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TS |- ~sql : ~TT
-==================================== SQL-Progress-T-SelectAllFromWhere1
-exists ~cout
-	reduce(~cin) = some(~cout)
+// goal
+// ~sql == SelectAllFromWhere1(~tn, ~p)
+// ~cin == conf(~sql, ~TS)
+// !isValue(~sql)
+// ~TS |- ~sql : ~TT
+// ==================================== SQL-Progress-T-SelectAllFromWhere1
+// exists ~cout
+// 	reduce(~cin) = some(~cout)
 	
 //only application of correct case of inversion lemma is necessary		
-goal
-~sql == SelectFromWhere1(~TT, ~tn, ~p)
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TS |- ~sql : ~TT
-======================================= SQL-Progress-T-SelectFromWhere1
-exists ~cout
-	reduce(~cin) = some(~cout)
+// goal
+// ~sql == SelectFromWhere1(~TT, ~tn, ~p)
+// ~cin == conf(~sql, ~TS)
+// !isValue(~sql)
+// ~TS |- ~sql : ~TT
+// ======================================= SQL-Progress-T-SelectFromWhere1
+// exists ~cout
+// 	reduce(~cin) = some(~cout)
 
 
-local {
-	consts sql1 : SQLExp
-		sql2 : SQLExp
-		TS : TStore
-		TT : TType
-		
-	axiom
-	~cin == conf(sql1, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Union-IH1
-	exists ~cout
-		reduce(~cin) = some(~cout)
-		
-	axiom
-	~cin == conf(sql2, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Union-IH2
-	exists ~cout
-		reduce(~cin) = some(~cout)
-	
-	goal
-	~sql == Union(sql1, sql2)
-	~cin == conf(~sql, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Union
-	exists ~cout
-		reduce(~cin) = some(~cout)
-}
-
-
-local {
-	consts sql1 : SQLExp
-		sql2 : SQLExp
-		TS : TStore
-		TT : TType
-		
-	axiom
-	~cin == conf(sql1, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Intersection-IH1
-	exists ~cout
-		reduce(~cin) = some(~cout)
-		
-	axiom
-	~cin == conf(sql2, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Intersection-IH2
-	exists ~cout
-		reduce(~cin) = some(~cout)
-	
-	goal
-	~sql == Intersection(sql1, sql2)
-	~cin == conf(~sql, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Intersection
-	exists ~cout
-		reduce(~cin) = some(~cout)
-}
-
-
-local {
-	consts sql1 : SQLExp
-		sql2 : SQLExp
-		TS : TStore
-		TT : TType
-		
-	axiom
-	~cin == conf(sql1, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Difference-IH1
-	exists ~cout
-		reduce(~cin) = some(~cout)
-		
-	axiom
-	~cin == conf(sql2, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Difference-IH2
-	exists ~cout
-		reduce(~cin) = some(~cout)
-	
-	goal
-	~sql == Difference(sql1, sql2)
-	~cin == conf(~sql, TS)
-	!isValue(~sql)
-	TS |- ~sql : TT
-	==================================== SQL-Progress-T-Difference
-	exists ~cout
-		reduce(~cin) = some(~cout)
-}
+// local {
+// 	consts sql1 : SQLExp
+// 		sql2 : SQLExp
+// 		TS : TStore
+// 		TT : TType
+// 		
+// 	axiom
+// 	~cin == conf(sql1, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Union-IH1
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// 		
+// 	axiom
+// 	~cin == conf(sql2, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Union-IH2
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// 	
+// 	goal
+// 	~sql == Union(sql1, sql2)
+// 	~cin == conf(~sql, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Union
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// }
+// 
+// 
+// local {
+// 	consts sql1 : SQLExp
+// 		sql2 : SQLExp
+// 		TS : TStore
+// 		TT : TType
+// 		
+// 	axiom
+// 	~cin == conf(sql1, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Intersection-IH1
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// 		
+// 	axiom
+// 	~cin == conf(sql2, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Intersection-IH2
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// 	
+// 	goal
+// 	~sql == Intersection(sql1, sql2)
+// 	~cin == conf(~sql, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Intersection
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// }
+// 
+// 
+// local {
+// 	consts sql1 : SQLExp
+// 		sql2 : SQLExp
+// 		TS : TStore
+// 		TT : TType
+// 		
+// 	axiom
+// 	~cin == conf(sql1, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Difference-IH1
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// 		
+// 	axiom
+// 	~cin == conf(sql2, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Difference-IH2
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// 	
+// 	goal
+// 	~sql == Difference(sql1, sql2)
+// 	~cin == conf(~sql, TS)
+// 	!isValue(~sql)
+// 	TS |- ~sql : TT
+// 	==================================== SQL-Progress-T-Difference
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// }
 
 
 //final progress theorem

@@ -35,33 +35,33 @@ typePartOf(~TT, ~TT1)
 ================================================ T-SelectFrom1
 ~TS |- SelectFrom1(~TT, ~tn) : ~TT
 
-lookup(~tn, ~TS) == some(table(~TT, ~rt))
-welltypedtable(table(~TT, ~rt))
-checkPValidity(~p, ~TT)
-================================================ T-SelectAllFromWhere1
-~TS |- SelectAllFromWhere1(~tn, ~p) : ~TT
-
-lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-welltypedtable(table(~TT1, ~rt))
-checkPValidity(~p, ~TT1)
-typePartOf(~TT, ~TT1)
-================================================ T-SelectFromWhere1
-~TS |- SelectFromWhere1(~TT, ~tn, ~p) : ~TT
-
-~TS |- ~sql1 : ~TT
-~TS |- ~sql2 : ~TT
-============================================ T-Union
-~TS |- Union(~sql1, ~sql2) : ~TT
-
-~TS |- ~sql1 : ~TT
-~TS |- ~sql2 : ~TT
-============================================ T-Intersection
-~TS |- Intersection(~sql1, ~sql2) : ~TT
-
-~TS |- ~sql1 : ~TT
-~TS |- ~sql2 : ~TT
-============================================ T-Difference
-~TS |- Difference(~sql1, ~sql2) : ~TT
+// lookup(~tn, ~TS) == some(table(~TT, ~rt))
+// welltypedtable(table(~TT, ~rt))
+// checkPValidity(~p, ~TT)
+// ================================================ T-SelectAllFromWhere1
+// ~TS |- SelectAllFromWhere1(~tn, ~p) : ~TT
+// 
+// lookup(~tn, ~TS) == some(table(~TT1, ~rt))
+// welltypedtable(table(~TT1, ~rt))
+// checkPValidity(~p, ~TT1)
+// typePartOf(~TT, ~TT1)
+// ================================================ T-SelectFromWhere1
+// ~TS |- SelectFromWhere1(~TT, ~tn, ~p) : ~TT
+// 
+// ~TS |- ~sql1 : ~TT
+// ~TS |- ~sql2 : ~TT
+// ============================================ T-Union
+// ~TS |- Union(~sql1, ~sql2) : ~TT
+// 
+// ~TS |- ~sql1 : ~TT
+// ~TS |- ~sql2 : ~TT
+// ============================================ T-Intersection
+// ~TS |- Intersection(~sql1, ~sql2) : ~TT
+// 
+// ~TS |- ~sql1 : ~TT
+// ~TS |- ~sql2 : ~TT
+// ============================================ T-Difference
+// ~TS |- Difference(~sql1, ~sql2) : ~TT
 
 
 
@@ -80,29 +80,29 @@ OR
 		lookup(~tn, ~TS) == some(table(~TT1, ~rt))
 		welltypedtable(table(~TT1, ~rt))
 		typePartOf(~TT, ~TT1)			
-=> exists ~tn, ~p, ~rt
-		~sql == SelectAllFromWhere1(~tn, ~p)
-		lookup(~tn, ~TS) == some(table(~TT, ~rt))
-		welltypedtable(table(~TT, ~rt))
-		checkPValidity(~p, ~TT)	
-=> exists ~tn, ~p, ~TT1, ~rt
-		~sql == SelectFromWhere1(~TT, ~tn, ~p)
-		lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-		welltypedtable(table(~TT1, ~rt))
-		checkPValidity(~p, ~TT1)
-		typePartOf(~TT, ~TT1)
-=> exists ~sql1, ~sql2
-		~sql == Union(~sql1, ~sql2)
-		~TS |- ~sql1 : ~TT
-		~TS |- ~sql2 : ~TT
-=> exists ~sql1, ~sql2
-		~sql == Intersection(~sql1, ~sql2)
-		~TS |- ~sql1 : ~TT
-		~TS |- ~sql2 : ~TT
-=> exists ~sql1, ~sql2
-		~sql == Difference(~sql1, ~sql2)
-		~TS |- ~sql1 : ~TT
-		~TS |- ~sql2 : ~TT
+// => exists ~tn, ~p, ~rt
+// 		~sql == SelectAllFromWhere1(~tn, ~p)
+// 		lookup(~tn, ~TS) == some(table(~TT, ~rt))
+// 		welltypedtable(table(~TT, ~rt))
+// 		checkPValidity(~p, ~TT)	
+// => exists ~tn, ~p, ~TT1, ~rt
+// 		~sql == SelectFromWhere1(~TT, ~tn, ~p)
+// 		lookup(~tn, ~TS) == some(table(~TT1, ~rt))
+// 		welltypedtable(table(~TT1, ~rt))
+// 		checkPValidity(~p, ~TT1)
+// 		typePartOf(~TT, ~TT1)
+// => exists ~sql1, ~sql2
+// 		~sql == Union(~sql1, ~sql2)
+// 		~TS |- ~sql1 : ~TT
+// 		~TS |- ~sql2 : ~TT
+// => exists ~sql1, ~sql2
+// 		~sql == Intersection(~sql1, ~sql2)
+// 		~TS |- ~sql1 : ~TT
+// 		~TS |- ~sql2 : ~TT
+// => exists ~sql1, ~sql2
+// 		~sql == Difference(~sql1, ~sql2)
+// 		~TS |- ~sql1 : ~TT
+// 		~TS |- ~sql2 : ~TT
 		
 //variant of inversion lemma in several different lemmas 
 //(seems to be helpful for progress proof)
@@ -127,37 +127,37 @@ exists ~rt, ~TT1
 	welltypedtable(table(~TT1, ~rt))
 	typePartOf(~TT, ~TT1)		
 		
-~sql == SelectAllFromWhere1(~tn, ~p)
-~TS |- ~sql : ~TT
-==================================================== T-inv-SelectAllFromWhere1
-exists ~rt
-	lookup(~tn, ~TS) == some(table(~TT, ~rt))
-	welltypedtable(table(~TT, ~rt))
-	checkPValidity(~p, ~TT)	
-		
-~sql == SelectFromWhere1(~TT, ~tn, ~p)
-~TS |- ~sql : ~TT
-==================================================== T-inv-SelectFromWhere1
-exists ~rt, ~TT1
-	lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-	welltypedtable(table(~TT1, ~rt))
-	checkPValidity(~p, ~TT1)
-	typePartOf(~TT, ~TT1)
-		
-~sql == Union(~sql1, ~sql2)
-~TS |- ~sql : ~TT
-==================================================== T-inv-Union		
-~TS |- ~sql1 : ~TT
-~TS |- ~sql2 : ~TT
-
-~sql == Intersection(~sql1, ~sql2)
-~TS |- ~sql : ~TT
-==================================================== T-inv-Intersection
-~TS |- ~sql1 : ~TT
-~TS |- ~sql2 : ~TT
-
-~sql == Difference(~sql1, ~sql2)
-~TS |- ~sql : ~TT
-==================================================== T-inv-Difference
-~TS |- ~sql1 : ~TT
-~TS |- ~sql2 : ~TT
+// ~sql == SelectAllFromWhere1(~tn, ~p)
+// ~TS |- ~sql : ~TT
+// ==================================================== T-inv-SelectAllFromWhere1
+// exists ~rt
+// 	lookup(~tn, ~TS) == some(table(~TT, ~rt))
+// 	welltypedtable(table(~TT, ~rt))
+// 	checkPValidity(~p, ~TT)	
+// 		
+// ~sql == SelectFromWhere1(~TT, ~tn, ~p)
+// ~TS |- ~sql : ~TT
+// ==================================================== T-inv-SelectFromWhere1
+// exists ~rt, ~TT1
+// 	lookup(~tn, ~TS) == some(table(~TT1, ~rt))
+// 	welltypedtable(table(~TT1, ~rt))
+// 	checkPValidity(~p, ~TT1)
+// 	typePartOf(~TT, ~TT1)
+// 		
+// ~sql == Union(~sql1, ~sql2)
+// ~TS |- ~sql : ~TT
+// ==================================================== T-inv-Union		
+// ~TS |- ~sql1 : ~TT
+// ~TS |- ~sql2 : ~TT
+// 
+// ~sql == Intersection(~sql1, ~sql2)
+// ~TS |- ~sql : ~TT
+// ==================================================== T-inv-Intersection
+// ~TS |- ~sql1 : ~TT
+// ~TS |- ~sql2 : ~TT
+// 
+// ~sql == Difference(~sql1, ~sql2)
+// ~TS |- ~sql : ~TT
+// ==================================================== T-inv-Difference
+// ~TS |- ~sql1 : ~TT
+// ~TS |- ~sql2 : ~TT
