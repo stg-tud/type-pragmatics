@@ -32,9 +32,9 @@ StoreContextConsistent(~TS, ~TTC)
 ==================================== SQL-Progress-T-SelectAll
 exists ~cout
 	reduce(~cin) = some(~cout)
-		
+			
 goal
-~sql == SelectFrom1(~TT, ~tn) 
+~sql == SelectFrom1(~al, ~tn) 
 ~cin == conf(~sql, ~TS)
 !isValue(~sql)
 ~TTC |- ~sql : ~TT
