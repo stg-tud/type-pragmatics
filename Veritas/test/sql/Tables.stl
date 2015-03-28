@@ -77,8 +77,8 @@ welltypedrow(rmany(f, r), ftlmany(ft, rt)) =
 	
 function 
 correspondingAList : TType -> AList
-correspondingAList(ttone(ctype(a, f))) = aone(f)
-correspondingAList(ttmany(ctype(a, f), tt)) = amany(f, correspondingAList(tt))	
+correspondingAList(ttone(ctype(a, f))) = aone(a)
+correspondingAList(ttmany(ctype(a, f), tt)) = amany(a, correspondingAList(tt))	
 	
 function 
 correspondingFTList : TType -> FTList
