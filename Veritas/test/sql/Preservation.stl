@@ -10,23 +10,37 @@ import sql.TableAux
 import sql.SoundnessAuxDefs
 
 
-// goal 
-// ~sqli == TValue(~t)
-// ~cin == conf(~sqli, ~TS)
-// ~cout == conf(~sqlo, ~TS)
-// reduce(~cin) = some(~cout)
-// ~TS |- ~sqli : ~TT
-// ================================ SQL-Preservation-T-TValue
-// ~TS |- ~sqlo : ~TT
-// 
-// goal 
-// ~sqli == SelectAll(~tn)
-// ~cin == conf(~sqli, ~TS)
-// ~cout == conf(~sqlo, ~TS)
-// reduce(~cin) = some(~cout)
-// ~TS |- ~sqli : ~TT
-// ================================ SQL-Preservation-T-SelectAll
-// ~TS |- ~sqlo : ~TT
+goal 
+~sqli == TValue(~t)
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
+~TTC |- ~sqli : ~TT
+StoreContextConsistent(~TS, ~TTC)
+=================================== SQL-Preservation-T-Value
+~TTC |- ~sqlo : ~TT
+
+
+goal 
+~sqli == SelectAll(~tn)
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
+~TTC |- ~sqli : ~TT
+StoreContextConsistent(~TS, ~TTC)
+=================================== SQL-Preservation-T-SelectAll
+~TTC |- ~sqlo : ~TT
+
+goal 
+~sqli == SelectFrom1(~TT, ~tn)
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
+~TTC |- ~sqli : ~TT
+StoreContextConsistent(~TS, ~TTC)
+=================================== SQL-Preservation-T-SelectFrom1
+~TTC |- ~sqlo : ~TT
+
 // 
 // local {
 // 	
