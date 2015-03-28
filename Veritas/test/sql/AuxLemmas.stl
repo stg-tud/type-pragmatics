@@ -1,0 +1,19 @@
+module sql.AuxLemmas
+
+import sql.BasicFunctions
+import sql.TStore
+import sql.TypeSystem
+import sql.SoundnessAuxDefs
+
+
+goal
+isSome(clookup(~tn, ~TTC))
+StoreContextConsistent(~TS, ~TTC)
+=================================== lookup-aux
+isSome(lookup(~tn, ~TS))	
+
+axiom
+isSome(clookup(~tn, ~TTC))
+StoreContextConsistent(~TS, ~TTC)
+=================================== lookup-aux
+isSome(lookup(~tn, ~TS))	
