@@ -12,36 +12,36 @@ import sql.SoundnessAuxDefs
 //for union/intersection/difference, you actually need induction on typing derivations!
 //(because of type equality...)
 
-// goal
-// ~sql == TValue(~t)
-// ~cin == conf(~sql, ~TS)
-// !isValue(~sql)
-// ~TS |- ~sql : ~TT
-// ==================================== SQL-Progress-T-TValue
-// exists ~cout
-// 	reduce(~cin) = some(~cout)
-// 	
-// 
-// //only application of correct case of inversion lemma is necessary		
-// goal	
-// ~sql == SelectAll(~tn)
-// ~cin == conf(~sql, ~TS)
-// !isValue(~sql)
-// ~TS |- ~sql : ~TT
-// ==================================== SQL-Progress-T-SelectAll
-// exists ~cout
-// 	reduce(~cin) = some(~cout)
-// 	
-// //only application of correct case of inversion lemma is necessary			
-// goal
-// ~sql == SelectFrom1(~TT, ~tn)
-// ~cin == conf(~sql, ~TS)
-// !isValue(~sql)
-// ~TS |- ~sql : ~TT
-// ==================================== SQL-Progress-T-SelectFrom1
-// exists ~cout
-// 	reduce(~cin) = some(~cout)
-// 	
+goal
+~sql == TValue(~t)
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TTC |- ~sql : ~TT
+StoreContextConsistent(~TS, ~TTC)
+==================================== SQL-Progress-T-Value
+exists ~cout
+	reduce(~cin) = some(~cout)
+	
+goal	
+~sql == SelectAll(~tn) 
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TTC |- ~sql : ~TT
+StoreContextConsistent(~TS, ~TTC)
+==================================== SQL-Progress-T-SelectAll
+exists ~cout
+	reduce(~cin) = some(~cout)
+		
+goal
+~sql == SelectFrom1(~TT, ~tn) 
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TTC |- ~sql : ~TT
+StoreContextConsistent(~TS, ~TTC)
+==================================== SQL-Progress-T-SelectFrom1
+exists ~cout
+	reduce(~cin) = some(~cout)
+	
 // 	
 // //only application of correct case of inversion lemma is necessary	
 // // goal
