@@ -58,17 +58,10 @@ typePart(amany(a1, alr), tt) =
 			if (isSome(ft) && isSome(tprest))
 			then some(ttmany(ctype(a1, getSome(ft)), getSome(tprest)))
 			else none
-	
-// function for typing a single table
-// TODO: HOW TO TYPE A TABLE WITH NO ROWS??
-// (for table with at least one row: take type of first row)
-function
-typetable : Table -> TType
 
-// We assume that the FIRST binding in the given TTContext represents the 
+ 
 axioms
 //a table value with a well-typed table is typable
-typetable(table(~al, ~rt)) == ~TT
 welltypedtable(~TT, table(~al, ~rt))
 ====================================== T-TValue
 ~TTC |- TValue(table(~al, ~rt)) : ~TT
