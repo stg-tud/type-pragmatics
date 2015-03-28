@@ -110,7 +110,6 @@ typePart(~al, ~TT1) == ~TT
 OR
 => exists ~al, ~rt
 		~sql = TValue(table(~al, ~rt))
-		typetable(table(~al, ~rt)) == ~TT
 		welltypedtable(~TT, table(~al, ~rt))
 => exists ~tn, ~rt
 		~sql == SelectAll(~tn)
@@ -149,7 +148,6 @@ axioms
 ~sql == TValue(table(~al, ~rt))
 ~TTC |- ~sql : ~TT
 ==================================================== T-inv-TValue
-typetable(table(~al, ~rt)) == ~TT
 welltypedtable(~TT, table(~al, ~rt))
 
 ~sql == SelectAll(~tn)		
