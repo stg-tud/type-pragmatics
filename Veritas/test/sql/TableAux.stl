@@ -89,362 +89,362 @@ rawDifference(tmany(r1, rt1), rt2) =
 		else drt1rt2
 		
 //some tests of the raw table functions
+goal
+~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
+	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
+	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
+	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
+	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
+	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
+~r = rmany(~x1, rmany(~y2, rone(~z1)))
+========================================================== test-rowIn
+rowIn(~r, ~rt)
+
+local {
+	consts x1 : FVal
+		x2 : FVal
+	
+	goal 
+	~rt == tmany(rmany(x1, rone(x2)), tempty)
+	~r == rmany(x1, rone(x1))
+	========================================= test-notrowIn0
+	!rowIn(~r, ~rt)
+	
+}
+
+local {
+	
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+
+	goal
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~r == rmany(x1, rmany(y2, rone(z1)))
+	========================================================== test-notrowIn1
+	!rowIn(~r, ~rt)
+}
+
+
+local {
+	
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+
+	goal
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), 
+		tmany(rmany(x2, rmany(y2, rone(z1))), 
+		tmany(rmany(x1, rmany(y1, rone(z1))),
+		tmany(rmany(x2, rmany(y2, rone(z2))), tempty)))))
+	~r == rmany(x1, rmany(y2, rone(z1)))
+	========================================================== test-notrowIn2
+	!rowIn(~r, ~rt)
+}
+
+
+goal
+~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
+	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
+	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
+	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
+	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
+	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
+~prt = tmany(rone(~x1),
+	tmany(rone(~x2),
+	tmany(rone(~x2),
+	tmany(rone(~x1),
+	tmany(rone(~x1),
+	tmany(rone(~x2), tempty))))))
+========================================================== test-projectFirstRaw
+projectFirstRaw(~rt) == ~prt
+
+goal
+~prt = tmany(rone(~x1),
+	tmany(rone(~x2),
+	tmany(rone(~x2),
+	tmany(rone(~x1),
+	tmany(rone(~x1),
+	tmany(rone(~x2), tempty))))))
+==================================== test-projectFirstRaw1
+projectFirstRaw(~prt) == ~prt
+
+goal
+~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
+	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
+	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
+	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
+	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
+	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
+~drt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y2, rone(~z2)), tempty))))))
+========================================================== test-dropFirstColRaw
+dropFirstColRaw(~rt) == ~drt
+
+goal
+~prt = tmany(rone(~x1),
+	tmany(rone(~x2), tempty))
+~drt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)), tempty))
+~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
+	tmany(rmany(~x2, rmany(~y1, rone(~z1))), tempty))
+========================================================== test-attachColToFrontRaw1
+attachColToFrontRaw(~prt, ~drt) == ~rt
+
+goal
+~prt = tmany(rone(~x1),
+	tmany(rone(~x2),
+	tmany(rone(~x2), tempty)))
+~drt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)), tempty)))
+~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
+	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
+	tmany(rmany(~x2, rmany(~y2, rone(~z1))), tempty)))
+========================================================== test-attachColToFrontRaw3
+attachColToFrontRaw(~prt, ~drt) == ~rt
+
+goal
+~prt = tmany(rone(~x1),
+	tmany(rone(~x2),
+	tmany(rone(~x2),
+	tmany(rone(~x1), tempty))))
+~drt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
+	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
+	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
+	tmany(rmany(~x1, rmany(~y1, rone(~z1))), tempty))))
+========================================================== test-attachColToFrontRaw4
+attachColToFrontRaw(~prt, ~drt) == ~rt
+
+goal
+~prt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+~drt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+~rt = tmany(rmany(~y2, rone(~z2)), 
+	tmany(rmany(~y1, rone(~z1)), 
+	tmany(rmany(~y2, rone(~z1)), 
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+========================================================== test-rawUnion1
+rawUnion(~prt, ~drt) == ~rt
+
 // goal
-// ~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-// 	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
-// 	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
-// ~r = rmany(~x1, rmany(~y2, rone(~z1)))
-// ========================================================== test-rowIn
-// rowIn(~r, ~rt)
-// 
-// local {
-// 	consts x1 : FVar
-// 		x2 : FVar
-// 	
-// 	goal 
-// 	~rt == tmany(rmany(x1, rone(x2)), tempty)
-// 	~r == rmany(x1, rone(x1))
-// 	========================================= test-notrowIn0
-// 	!rowIn(~r, ~rt)
-// 	
-// }
-// 
-// local {
-// 	
-// 	consts 
-// 		x1 : FVar
-// 		x2 : FVar
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 
-// 	goal
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~r == rmany(x1, rmany(y2, rone(z1)))
-// 	========================================================== test-notrowIn1
-// 	!rowIn(~r, ~rt)
-// }
-// 
-// 
-// local {
-// 	
-// 	consts 
-// 		x1 : FVar
-// 		x2 : FVar
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 
-// 	goal
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), 
-// 		tmany(rmany(x2, rmany(y2, rone(z1))), 
-// 		tmany(rmany(x1, rmany(y1, rone(z1))),
-// 		tmany(rmany(x2, rmany(y2, rone(z2))), tempty)))))
-// 	~r == rmany(x1, rmany(y2, rone(z1)))
-// 	========================================================== test-notrowIn2
-// 	!rowIn(~r, ~rt)
-// }
-// 
-// 
-// goal
-// ~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-// 	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
-// 	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
-// ~prt = tmany(rone(~x1),
-// 	tmany(rone(~x2),
-// 	tmany(rone(~x2),
-// 	tmany(rone(~x1),
-// 	tmany(rone(~x1),
-// 	tmany(rone(~x2), tempty))))))
-// ========================================================== test-projectFirstRaw
-// projectFirstRaw(~rt) == ~prt
-// 
-// goal
-// ~prt = tmany(rone(~x1),
-// 	tmany(rone(~x2),
-// 	tmany(rone(~x2),
-// 	tmany(rone(~x1),
-// 	tmany(rone(~x1),
-// 	tmany(rone(~x2), tempty))))))
-// ==================================== test-projectFirstRaw1
-// projectFirstRaw(~prt) == ~prt
-// 
-// goal
-// ~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-// 	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
-// 	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
-// ~drt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
+// ~prt = tmany(rmany(~y2, rone(~z2)), tempty)
+// ~drt = tmany(rmany(~y1, rone(~z1)),
 // 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z2)), tempty))))))
-// ========================================================== test-dropFirstColRaw
-// dropFirstColRaw(~rt) == ~drt
-// 
-// goal
-// ~prt = tmany(rone(~x1),
-// 	tmany(rone(~x2), tempty))
-// ~drt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty))
-// ~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), tempty))
-// ========================================================== test-attachColToFrontRaw1
-// attachColToFrontRaw(~prt, ~drt) == ~rt
-// 
-// goal
-// ~prt = tmany(rone(~x1),
-// 	tmany(rone(~x2),
-// 	tmany(rone(~x2), tempty)))
-// ~drt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)), tempty)))
-// ~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), tempty)))
-// ========================================================== test-attachColToFrontRaw3
-// attachColToFrontRaw(~prt, ~drt) == ~rt
-// 
-// goal
-// ~prt = tmany(rone(~x1),
-// 	tmany(rone(~x2),
-// 	tmany(rone(~x2),
-// 	tmany(rone(~x1), tempty))))
-// ~drt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// ~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-// 	tmany(rmany(~x1, rmany(~y1, rone(~z1))), tempty))))
-// ========================================================== test-attachColToFrontRaw4
-// attachColToFrontRaw(~prt, ~drt) == ~rt
-// 
-// goal
-// ~prt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// ~drt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
+// 	tmany(rmany(~y1, rone(~z1)), tempty)))
 // ~rt = tmany(rmany(~y2, rone(~z2)), 
 // 	tmany(rmany(~y1, rone(~z1)), 
 // 	tmany(rmany(~y2, rone(~z1)), 
 // 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// ========================================================== test-rawUnion1
+// ~z1 != ~z2
+// ~y1 != ~y2
+// ~x1 != ~x2
+// ========================================================== test-rawUnion2
 // rawUnion(~prt, ~drt) == ~rt
-// 
-// // goal
-// // ~prt = tmany(rmany(~y2, rone(~z2)), tempty)
-// // ~drt = tmany(rmany(~y1, rone(~z1)),
-// // 	tmany(rmany(~y2, rone(~z1)),
-// // 	tmany(rmany(~y1, rone(~z1)), tempty)))
-// // ~rt = tmany(rmany(~y2, rone(~z2)), 
-// // 	tmany(rmany(~y1, rone(~z1)), 
-// // 	tmany(rmany(~y2, rone(~z1)), 
-// // 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// // ~z1 != ~z2
-// // ~y1 != ~y2
-// // ~x1 != ~x2
-// // ========================================================== test-rawUnion2
-// // rawUnion(~prt, ~drt) == ~rt
-// 
-// local {
-// 	consts 
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 	goal
-// 	~prt = tmany(rmany(y2, rone(z2)), tempty)
-// 	~drt = tmany(rmany(y1, rone(z1)),
-// 		tmany(rmany(y2, rone(z1)),
-// 		tmany(rmany(y1, rone(z1)), tempty)))
-// 	~rt = tmany(rmany(y2, rone(z2)), 
-// 		tmany(rmany(y1, rone(z1)), 
-// 		tmany(rmany(y2, rone(z1)), 
-// 		tmany(rmany(y1, rone(z1)), tempty))))
-// 	========================================================== test-rawUnion2
-// 	rawUnion(~prt, ~drt) == ~rt
-// }
-// 
-// // goal
-// // ~prt = tmany(rmany(~y2, rone(~z2)), 
-// // 	tmany(rmany(~y2, rone(~z1)), tempty))
-// // ~drt = tmany(rmany(~y1, rone(~z1)),
-// // 	tmany(rmany(~y2, rone(~z1)),
-// // 	tmany(rmany(~y1, rone(~z1)), tempty)))
-// // ~rt = tmany(rmany(~y2, rone(~z2)), 
-// // 	tmany(rmany(~y1, rone(~z1)), 
-// // 	tmany(rmany(~y2, rone(~z1)), 
-// // 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// // ~z1 != ~z2
-// // ~y1 != ~y2
-// // ~x1 != ~x2
-// // ========================================================== test-rawUnion3
-// // rawUnion(~prt, ~drt) == ~rt
-// 
-// local {
-// 	
-// 	consts 
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	goal
-// 	~prt = tmany(rmany(y2, rone(z2)), 
-// 		tmany(rmany(y2, rone(z1)), tempty))
-// 	~drt = tmany(rmany(y1, rone(z1)),
-// 		tmany(rmany(y2, rone(z1)),
-// 		tmany(rmany(y1, rone(z1)), tempty)))
-// 	~rt = tmany(rmany(y2, rone(z2)), 
-// 		tmany(rmany(y1, rone(z1)), 
-// 		tmany(rmany(y2, rone(z1)), 
-// 		tmany(rmany(y1, rone(z1)), tempty))))
-// 	========================================================== test-rawUnion3
-// 	rawUnion(~prt, ~drt) == ~rt
-// }
-// 
+
+local {
+	consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+	goal
+	~prt = tmany(rmany(y2, rone(z2)), tempty)
+	~drt = tmany(rmany(y1, rone(z1)),
+		tmany(rmany(y2, rone(z1)),
+		tmany(rmany(y1, rone(z1)), tempty)))
+	~rt = tmany(rmany(y2, rone(z2)), 
+		tmany(rmany(y1, rone(z1)), 
+		tmany(rmany(y2, rone(z1)), 
+		tmany(rmany(y1, rone(z1)), tempty))))
+	========================================================== test-rawUnion2
+	rawUnion(~prt, ~drt) == ~rt
+}
+
 // goal
-// ~prt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
+// ~prt = tmany(rmany(~y2, rone(~z2)), 
+// 	tmany(rmany(~y2, rone(~z1)), tempty))
+// ~drt = tmany(rmany(~y1, rone(~z1)),
 // 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// ~drt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
+// 	tmany(rmany(~y1, rone(~z1)), tempty)))
 // ~rt = tmany(rmany(~y2, rone(~z2)), 
 // 	tmany(rmany(~y1, rone(~z1)), 
 // 	tmany(rmany(~y2, rone(~z1)), 
 // 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// ========================================================== test-rawIntersection1
-// rawIntersection(~prt, ~drt) == ~rt
-// 
-// // goal
-// // ~prt = tmany(rmany(~y2, rone(~z2)), tempty)
-// // ~drt = tmany(rmany(~y1, rone(~z1)),
-// // 	tmany(rmany(~y2, rone(~z1)),
-// // 	tmany(rmany(~y1, rone(~z1)), tempty)))
-// // ~z1 != ~z2
-// // ~y1 != ~y2
-// // ~x1 != ~x2
-// // ========================================================== test-rawIntersection2
-// // rawIntersection(~prt, ~drt) == tempty
-// 
-// local {
-// 	
-// 	consts 
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	goal
-// 	~prt = tmany(rmany(y2, rone(z2)), tempty)
-// 	~drt = tmany(rmany(y1, rone(z1)),
-// 		tmany(rmany(y2, rone(z1)),
-// 		tmany(rmany(y1, rone(z1)), tempty)))
-// 	========================================================== test-rawIntersection2
-// 	rawIntersection(~prt, ~drt) == tempty
-// }
-// 
-// // goal
-// // ~prt = tmany(rmany(~y2, rone(~z2)), 
-// // 	tmany(rmany(~y2, rone(~z1)), tempty))
-// // ~drt = tmany(rmany(~y1, rone(~z1)),
-// // 	tmany(rmany(~y2, rone(~z1)),
-// // 	tmany(rmany(~y1, rone(~z1)), tempty)))
-// // ~rt = tmany(rmany(~y2, rone(~z1)), tempty)
-// // ~z1 != ~z2
-// // ~y1 != ~y2
-// // ~x1 != ~x2
-// // ========================================================== test-rawIntersection3
-// // rawIntersection(~prt, ~drt) == ~rt
-// 
-// // requires 120 timeout! (needs between 70-80 seconds to prove!)
-// local {
-// 	
-// 	consts 
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 
-// 	goal
-// 	~prt = tmany(rmany(y2, rone(z2)), 
-// 		tmany(rmany(y2, rone(z1)), tempty))
-// 	~drt = tmany(rmany(y1, rone(z1)),
-// 		tmany(rmany(y2, rone(z1)),
-// 		tmany(rmany(y1, rone(z1)), tempty)))
-// 	~rt = tmany(rmany(y2, rone(z1)), tempty)
-// 	========================================================== test-rawIntersection3
-// 	rawIntersection(~prt, ~drt) == ~rt
-// }
-// 
+// ~z1 != ~z2
+// ~y1 != ~y2
+// ~x1 != ~x2
+// ========================================================== test-rawUnion3
+// rawUnion(~prt, ~drt) == ~rt
+
+local {
+	
+	consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	goal
+	~prt = tmany(rmany(y2, rone(z2)), 
+		tmany(rmany(y2, rone(z1)), tempty))
+	~drt = tmany(rmany(y1, rone(z1)),
+		tmany(rmany(y2, rone(z1)),
+		tmany(rmany(y1, rone(z1)), tempty)))
+	~rt = tmany(rmany(y2, rone(z2)), 
+		tmany(rmany(y1, rone(z1)), 
+		tmany(rmany(y2, rone(z1)), 
+		tmany(rmany(y1, rone(z1)), tempty))))
+	========================================================== test-rawUnion3
+	rawUnion(~prt, ~drt) == ~rt
+}
+
+goal
+~prt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+~drt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+~rt = tmany(rmany(~y2, rone(~z2)), 
+	tmany(rmany(~y1, rone(~z1)), 
+	tmany(rmany(~y2, rone(~z1)), 
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+========================================================== test-rawIntersection1
+rawIntersection(~prt, ~drt) == ~rt
+
 // goal
-// ~prt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
+// ~prt = tmany(rmany(~y2, rone(~z2)), tempty)
+// ~drt = tmany(rmany(~y1, rone(~z1)),
 // 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// ~drt = tmany(rmany(~y2, rone(~z2)),
-// 	tmany(rmany(~y1, rone(~z1)),
+// 	tmany(rmany(~y1, rone(~z1)), tempty)))
+// ~z1 != ~z2
+// ~y1 != ~y2
+// ~x1 != ~x2
+// ========================================================== test-rawIntersection2
+// rawIntersection(~prt, ~drt) == tempty
+
+local {
+	
+	consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	goal
+	~prt = tmany(rmany(y2, rone(z2)), tempty)
+	~drt = tmany(rmany(y1, rone(z1)),
+		tmany(rmany(y2, rone(z1)),
+		tmany(rmany(y1, rone(z1)), tempty)))
+	========================================================== test-rawIntersection2
+	rawIntersection(~prt, ~drt) == tempty
+}
+
+// goal
+// ~prt = tmany(rmany(~y2, rone(~z2)), 
+// 	tmany(rmany(~y2, rone(~z1)), tempty))
+// ~drt = tmany(rmany(~y1, rone(~z1)),
 // 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
-// ========================================================== test-rawDifference1
-// rawDifference(~prt, ~drt) == tempty
-// 
-// local {
-// 	
-// 	consts 
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	goal
-// 	~prt = tmany(rmany(y2, rone(z2)), tempty)
-// 	~drt = tmany(rmany(y1, rone(z1)),
-// 		tmany(rmany(y2, rone(z1)),
-// 		tmany(rmany(y1, rone(z1)), tempty)))
-// 	========================================================== test-rawDifference2
-// 	rawDifference(~prt, ~drt) == ~prt
-// }
-// 
-// 
-// local {
-// 	
-// 	consts 
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 
-// 	goal
-// 	~prt = tmany(rmany(y2, rone(z2)), 
-// 		tmany(rmany(y2, rone(z1)), tempty))
-// 	~drt = tmany(rmany(y1, rone(z1)),
-// 		tmany(rmany(y2, rone(z1)),
-// 		tmany(rmany(y1, rone(z1)), tempty)))
-// 	~rt = tmany(rmany(y2, rone(z2)), tempty)
-// 	========================================================== test-rawDifference3
-// 	rawDifference(~prt, ~drt) == ~rt
-// }
-// 
+// 	tmany(rmany(~y1, rone(~z1)), tempty)))
+// ~rt = tmany(rmany(~y2, rone(~z1)), tempty)
+// ~z1 != ~z2
+// ~y1 != ~y2
+// ~x1 != ~x2
+// ========================================================== test-rawIntersection3
+// rawIntersection(~prt, ~drt) == ~rt
+
+// requires 120 timeout! (needs between 70-80 seconds to prove!)
+local {
+	
+	consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+
+	goal
+	~prt = tmany(rmany(y2, rone(z2)), 
+		tmany(rmany(y2, rone(z1)), tempty))
+	~drt = tmany(rmany(y1, rone(z1)),
+		tmany(rmany(y2, rone(z1)),
+		tmany(rmany(y1, rone(z1)), tempty)))
+	~rt = tmany(rmany(y2, rone(z1)), tempty)
+	========================================================== test-rawIntersection3
+	rawIntersection(~prt, ~drt) == ~rt
+}
+
+goal
+~prt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+~drt = tmany(rmany(~y2, rone(~z2)),
+	tmany(rmany(~y1, rone(~z1)),
+	tmany(rmany(~y2, rone(~z1)),
+	tmany(rmany(~y1, rone(~z1)), tempty))))
+========================================================== test-rawDifference1
+rawDifference(~prt, ~drt) == tempty
+
+local {
+	
+	consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	goal
+	~prt = tmany(rmany(y2, rone(z2)), tempty)
+	~drt = tmany(rmany(y1, rone(z1)),
+		tmany(rmany(y2, rone(z1)),
+		tmany(rmany(y1, rone(z1)), tempty)))
+	========================================================== test-rawDifference2
+	rawDifference(~prt, ~drt) == ~prt
+}
+
+
+local {
+	
+	consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+
+	goal
+	~prt = tmany(rmany(y2, rone(z2)), 
+		tmany(rmany(y2, rone(z1)), tempty))
+	~drt = tmany(rmany(y1, rone(z1)),
+		tmany(rmany(y2, rone(z1)),
+		tmany(rmany(y1, rone(z1)), tempty)))
+	~rt = tmany(rmany(y2, rone(z2)), tempty)
+	========================================================== test-rawDifference3
+	rawDifference(~prt, ~drt) == ~rt
+}
+

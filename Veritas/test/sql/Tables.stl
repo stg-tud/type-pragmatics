@@ -100,142 +100,126 @@ welltypedtable(tt, table(al, tmany(r, t))) =
 // 	((a1 == a2) && (ft1 == ft2)) || ctypeIn(a1, ft1, ttr) 
 
 
-
-//typing rules for well-typed table
-// OUTDATED
-
-// axioms
-// fieldType(~f) = ~FT
-// ======================= T-rone
-// rone(~f) : rtone(~FT)
-// 
-// rone(~f) : rtone(~FT) 
-// ~r : ~RT
-// ================================= T-rmany
-// rmany(~f, ~r) : rtmany(~FT, ~RT)
-// 
-// ~r : ~RT
-// correspondingRType(~T) = ~RT
-// ============================= T-tone
-// tone(~r) : ~T
-// 
-// tone(~r) : ~T
-// ~t : ~T
-// ==================== T-tmany
-// tmany(~r, ~t) : ~T
-	
-
 //a few tests for well-typedness
+goal
+fieldType(~x) == ~xt
+~tt == ttone(ctype(~a, ~xt))
+============================================================================ test1
+welltypedtable(~tt, table(aone(~a), tmany(rone(~x), tempty)))
+
+goal
+fieldType(~x) == ~xt
+fieldType(~y) == ~yt
+~tt == ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
+============================================================================ test21
+!welltypedtable(~tt, table(amany(~a, aone(~b)), tmany(rone(~x), tempty)))
+
+goal
+fieldType(~x) == ~xt
+fieldType(~y) == ~yt
+~tt == ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
+==================================================================================== test22
+welltypedtable(~tt, table(amany(~a, aone(~b)), tmany(rmany(~x, rone(~y)), tempty)))
+
+ 
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+~al == amany(~a, aone(~b))
+~tt == ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
+============================================================================ test23
+welltypedtable(~tt, table(~al, tmany(rmany(~x1, rone(~y1)), 
+	tmany(rmany(~x2, rone(~y2)), tempty))))
+	
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+~al == amany(~a, aone(~b))
+~tt == ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
+============================================================================ test24
+!welltypedtable(~tt, table(~al, tmany(rmany(~x1, rone(~y1)), 
+	tmany(rone(~x2), tempty))))
+
+
+goal
+fieldType(~x) == ~xt
+fieldType(~y) == ~yt
+fieldType(~z) == ~zt
+~al == amany(~a, amany(~b, aone(~c)))
+~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+=============================================================================== test3
+welltypedtable(~tt, table(~al, tmany(rmany(~x, rmany(~y, rone(~z))), tempty)))
+
+
+goal
+fieldType(~x) == ~xt
+fieldType(~y) == ~yt
+~xt != ~yt 
+fieldType(~z) == ~zt
+~al == amany(~a, amany(~b, aone(~c)))
+~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+================================================================================ test31
+!welltypedtable(~tt, table(~al, tmany(rmany(~x, rmany(~x, rone(~z))), tempty)))
+
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+fieldType(~z1) == ~zt
+fieldType(~z2) == ~zt
+~al == amany(~a, amany(~b, aone(~c)))
+~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+============================================================================ test32
+welltypedtable(~tt, table(~al, 
+	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
+	tmany(rmany(~x2, rmany(~y1, rone(~z1))), tempty))))
+	
+	
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+fieldType(~z1) == ~zt
+fieldType(~z2) == ~zt
+~al == amany(~a, amany(~b, aone(~c)))
+~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+============================================================================ test33
+!welltypedtable(~tt, table(~al, 
+	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
+	tmany(rmany(~x2, rone(~y1)), tempty))))
+	
 // goal
-// fieldType(~x) = ~xt
-// ~tt = ttone(ctype(~a, ~xt))
-// ============================================================================ test1
-// welltypedtable(table(~tt, tmany(rone(~x), tempty)))
-// 
-// goal
-// fieldType(~x) = ~xt
-// fieldType(~y) = ~yt
-// ~tt = ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
-// ============================================================================ test21
-// !welltypedtable(table(~tt, tmany(rone(~x), tempty)))
-// 
-// goal
-// fieldType(~x) = ~xt
-// fieldType(~y) = ~yt
-// ~tt = ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
-// ============================================================================ test22
-// welltypedtable(table(~tt, tmany(rmany(~x, rone(~y)), tempty)))
-// 
-// goal
-// fieldType(~x1) = ~xt
-// fieldType(~x2) = ~xt
-// fieldType(~y1) = ~yt
-// fieldType(~y2) = ~yt
-// ~tt = ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
-// ============================================================================ test23
-// welltypedtable(table(~tt, tmany(rmany(~x1, rone(~y1)), 
-// 	tmany(rmany(~x2, rone(~y2)), tempty))))
-// 	
-// goal
-// fieldType(~x1) = ~xt
-// fieldType(~x2) = ~xt
-// fieldType(~y1) = ~yt
-// fieldType(~y2) = ~yt
-// ~tt = ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
-// ============================================================================ test24
-// !welltypedtable(table(~tt, tmany(rmany(~x1, rone(~y1)), 
-// 	tmany(rone(~x2), tempty))))
-// 
-// 
-// goal
-// fieldType(~x) = ~xt
-// fieldType(~y) = ~yt
-// fieldType(~z) = ~zt
-// ~tt = ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
-// ============================================================================ test3
-// welltypedtable(table(~tt, tmany(rmany(~x, rmany(~y, rone(~z))), tempty)))
-// 
-// 
-// goal
-// fieldType(~x) = ~xt
-// fieldType(~y) = ~yt
-// ~xt != ~yt 
-// fieldType(~z) = ~zt
-// ~tt = ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
-// ============================================================================ test31
-// !welltypedtable(table(~tt, tmany(rmany(~x, rmany(~x, rone(~z))), tempty)))
-// 
-// goal
-// fieldType(~x1) = ~xt
-// fieldType(~x2) = ~xt
-// fieldType(~y1) = ~yt
-// fieldType(~y2) = ~yt
-// fieldType(~z1) = ~zt
-// fieldType(~z2) = ~zt
-// ~tt = ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
-// ============================================================================ test32
-// welltypedtable(table(~tt, 
-// 	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), tempty))))
-// 	
-// 	
-// goal
-// fieldType(~x1) = ~xt
-// fieldType(~x2) = ~xt
-// fieldType(~y1) = ~yt
-// fieldType(~y2) = ~yt
-// fieldType(~z1) = ~zt
-// fieldType(~z2) = ~zt
-// ~tt = ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
-// ============================================================================ test33
-// !welltypedtable(table(~tt, 
-// 	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rone(~y1)), tempty))))
-// 	
-// goal
-// fieldType(~x1) = ~xt
-// fieldType(~x2) = ~xt
-// fieldType(~y1) = ~yt
-// fieldType(~y2) = ~yt
-// fieldType(~z1) = ~zt
-// fieldType(~z2) = ~zt
-// ~tt = ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+// fieldType(~x1) == ~xt
+// fieldType(~x2) == ~xt
+// fieldType(~y1) == ~yt
+// fieldType(~y2) == ~yt
+// fieldType(~z1) == ~zt
+// fieldType(~z2) == ~zt
+// ~al == amany(~a, amany(~b, aone(~c)))
+// ~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
 // ============================================================================ test34
-// welltypedtable(table(~tt, 
+// welltypedtable(~tt, table(~al, 
 // 	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
 // 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
 // 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), tempty)))))
 // 	
 // goal
-// fieldType(~x1) = ~xt
-// fieldType(~x2) = ~xt
-// fieldType(~y1) = ~yt
-// fieldType(~y2) = ~yt
-// fieldType(~z1) = ~zt
-// fieldType(~z2) = ~zt
-// ~tt = ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+// fieldType(~x1) == ~xt
+// fieldType(~x2) == ~xt
+// fieldType(~y1) == ~yt
+// fieldType(~y2) == ~yt
+// fieldType(~z1) == ~zt
+// fieldType(~z2) == ~zt
+// ~al == amany(~a, amany(~b, aone(~c)))
+// ~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
 // ============================================================================ test35
-// welltypedtable(table(~tt, 
+// welltypedtable(~tt, table(~al, 
 // 	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
 // 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
 // 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
