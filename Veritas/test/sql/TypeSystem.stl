@@ -111,21 +111,19 @@ typePart(~al, ~TT1) == ~TT
 
 
 
-~TS |- ~sql : ~TT
+~TTC |- ~sql : ~TT
 ==================================================== T-inv
 OR
-=> exists ~rt
-		~sql = TValue(table(~TT, ~rt))
-		welltypedtable(table(~TT, ~rt))
+=> exists ~al, ~rt
+		~sql = TValue(table(~al, ~rt))
+		typetable(table(~al, ~rt)) == ~TT
 => exists ~tn, ~rt
 		~sql == SelectAll(~tn)
-		lookup(~tn, ~TS) == some(table(~TT, ~rt))
-		welltypedtable(table(~TT, ~rt))
-=> exists ~tn, ~TT1, ~rt
-		~sql == SelectFrom1(~TT, ~tn)
-		lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-		welltypedtable(table(~TT1, ~rt))
-		typePartOf(~TT, ~TT1)			
+		clookup(~tn, ~TTC) == some(~TT)
+=> exists ~tn, ~TT1, ~al, ~rt
+		~sql == SelectFrom1(~al, ~tn)
+		clookup(~tn, ~TTC) == some(~TT1)
+		typePart(~al, ~TT1) == ~TT	
 // => exists ~tn, ~p, ~rt
 // 		~sql == SelectAllFromWhere1(~tn, ~p)
 // 		lookup(~tn, ~TS) == some(table(~TT, ~rt))
@@ -153,25 +151,22 @@ OR
 //variant of inversion lemma in several different lemmas 
 //(seems to be helpful for progress proof)
 axioms
-~sql == TValue(table(~TT, ~rt))
-~TS |- ~sql : ~TT
+~sql == TValue(table(~al, ~rt))
+~TTC |- ~sql : ~TT
 ==================================================== T-inv-TValue
-welltypedtable(table(~TT, ~rt))
+typetable(table(~al, ~rt)) == ~TT
 
 ~sql == SelectAll(~tn)		
-~TS |- ~sql : ~TT
+~TTC |- ~sql : ~TT
 ==================================================== T-inv-SelectAll		
-exists ~rt
-	lookup(~tn, ~TS) == some(table(~TT, ~rt))
-	welltypedtable(table(~TT, ~rt))
+clookup(~tn, ~TTC) == some(~TT)
 
-~sql == SelectFrom1(~TT, ~tn)
-~TS |- ~sql : ~TT
+~sql == SelectFrom1(~al, ~tn)
+~TTC |- ~sql : ~TT
 ==================================================== T-inv-SelectFrom1
-exists ~rt, ~TT1
-	lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-	welltypedtable(table(~TT1, ~rt))
-	typePartOf(~TT, ~TT1)		
+exists ~TT1
+	clookup(~tn, ~TTC) == some(~TT1)
+	typePart(~al, ~TT1) == ~TT			
 		
 // ~sql == SelectAllFromWhere1(~tn, ~p)
 // ~TS |- ~sql : ~TT
