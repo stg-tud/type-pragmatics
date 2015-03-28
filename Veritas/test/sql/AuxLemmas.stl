@@ -4,16 +4,19 @@ import sql.BasicFunctions
 import sql.TStore
 import sql.TypeSystem
 import sql.SoundnessAuxDefs
+import sql.Tables
 
 
 goal
 isSome(clookup(~tn, ~TTC))
 StoreContextConsistent(~TS, ~TTC)
-=================================== lookup-aux
-isSome(lookup(~tn, ~TS))	
+============================================== lookup-aux
+exists ~al, ~rt
+	lookup(~tn, ~TS) == some(table(~al, ~rt))
 
 axiom
 isSome(clookup(~tn, ~TTC))
 StoreContextConsistent(~TS, ~TTC)
-=================================== lookup-aux
-isSome(lookup(~tn, ~TS))	
+============================================== lookup-aux
+exists ~al, ~rt
+	lookup(~tn, ~TS) == some(table(~al, ~rt))
