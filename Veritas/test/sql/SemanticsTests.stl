@@ -7,246 +7,227 @@ import sql.TableAux
 import sql.Syntax
 import sql.TStore
 
-// local {
-// 	consts 
-// 		x1 : FVar
-// 		x2 : FVar
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	consts
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
-// 		FT1 : FType
-// 		FT2 : FType
-// 		FT3 : FType
-// 
-// 	goal
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~ts == bind(TN, ~t, empty)
-// 	~q == SelectAll(TN)
-// 	========================================================== test-selectall1
-// 	reduce(conf(~q, ~ts)) == some(conf(TValue(~t), ~ts))
-// }
-// 
-// local {
-// 	consts 
-// 		x1 : FVar
-// 		x2 : FVar
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	consts
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
-// 		FT1 : FType
-// 		FT2 : FType
-// 		FT3 : FType
-// 
-// 	goal
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
-// 	=================================================================================== test-projection1
-// 	projection(ttone(ctype(A1, FT1)), ~t) == some(~tresult)
-// 
-// }
-// 
-// 
-// local {
-// 	consts 
-// 		x1 : FVar
-// 		x2 : FVar
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	consts
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
-// 		FT1 : FType
-// 		FT2 : FType
-// 		FT3 : FType	
-// 
-// 	goal
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~ts == bind(TN, ~t, empty)
-// 	~q == SelectFrom1(ttone(ctype(A1, FT1)), TN)
-// 	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
-// 	=================================================================================== test-selectfrom1
-// 	reduce(conf(~q, ~ts)) == some(conf(TValue(~tresult), ~ts))
-// }
-// 
-// 
-// local {
-// 	consts 
-// 		x1 : FVar
-// 		x2 : FVar
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	consts
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
-// 		FT1 : FType
-// 		FT2 : FType
-// 		FT3 : FType
-// 
-// 	goal
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~tresult == table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty)))
-// 	=================================================================================== test-projection2-60
-// 	projection(ttone(ctype(A2, FT2)), ~t) == some(~tresult)
-// }
-// 
-// local {
-// 	consts 
-// 		x1 : FVar
-// 		x2 : FVar
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	consts
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
-// 		FT1 : FType
-// 		FT2 : FType
-// 		FT3 : FType
-// 		
-// 	goal
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~tresult == table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty)))
-// 	=================================================================================== prt-aux1
-// 	getSome(projection(ttone(ctype(A2, FT2)), ~t)) == ~tresult
-// 
-// 	axiom
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~tresult == table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty)))
-// 	=================================================================================== prt-aux1
-// 	getSome(projection(ttone(ctype(A2, FT2)), ~t)) == ~tresult
-// 		
-// 	goal
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
-// 	=================================================================================== prt-aux2
-// 	getSome(projection(ttone(ctype(A1, FT1)), ~t)) == ~tresult
-// 	
-// 	axiom
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~tresult == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
-// 	=================================================================================== prt-aux2
-// 	getSome(projection(ttone(ctype(A1, FT1)), ~t)) == ~tresult
-// 	
-// 	goal
-// 	~tresult1 == table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty)))
-// 	~tresult2 == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
-// 	~rtresult == tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty))
-// 	=================================================================================================== prt-aux3
-// 	attachColToFrontRaw(getRaw(~tresult1), getRaw(~tresult2)) == ~rtresult
-// 	
-// 	axiom
-// 	~tresult1 == table(ttone(ctype(A2, FT2)), tmany(rone(y2), tmany(rone(y1), tempty)))
-// 	~tresult2 == table(ttone(ctype(A1, FT1)), tmany(rone(x1), tmany(rone(x2), tempty)))
-// 	~rtresult == tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty))
-// 	=================================================================================================== prt-aux3
-// 	attachColToFrontRaw(getRaw(~tresult1), getRaw(~tresult2)) == ~rtresult
-// 
-// 	// somehow does not work yet - TODO check why
-// 	goal
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~tresult == table(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), 
-//  		tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty)))
-// 	===================================================================================== test-projection3
-// 	getSome(projection(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), ~t)) == ~tresult
-// }
-// 
-// local {
-// 	consts 
-// 		x1 : FVar
-// 		x2 : FVar
-// 		y1 : FVar
-// 		y2 : FVar
-// 		z1 : FVar
-// 		z2 : FVar
-// 		
-// 	consts
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
-// 		FT1 : FType
-// 		FT2 : FType
-// 		FT3 : FType
-// 		
-// 	axiom
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~tresult == table(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), 
-//  		tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty)))
-// 	===================================================================================== test-projection3
-// 	projection(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), ~t) == ~tresult
-// 
-// 	// somehow does not work yet - TODO check why
-// 	goal
-// 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// 	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// 	~t == table(~tt, ~rt)
-// 	~ts == bind(TN, ~t, empty)
-// 	~q == SelectFrom1(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), TN)
-// 	~tresult == table(ttmany(ctype(A2, FT2), ttone(ctype(A1, FT1))), 
-// 		tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty)))
-// 	=================================================================================== test-selectfrom1-2
-// 	reduce(conf(~q, ~ts)) == some(conf(TValue(~tresult), ~ts))
-// }
-// 
+local {
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+
+	goal
+	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~ts == bind(TN, ~t, empty)
+	~q == SelectAll(TN)
+	========================================================== test-selectall1
+	reduce(conf(~q, ~ts)) == some(conf(TValue(~t), ~ts))
+}
+
+local {
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	consts
+		A1 : AName
+		A2 : AName
+		A3 : AName
+
+	goal
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == table(aone(A1), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== test-projection1
+	projection(aone(A1), ~t) == some(~tresult)
+}
+
+
+
+local {
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName	
+
+	goal
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~ts == bind(TN, ~t, empty)
+	~q == SelectFrom1(aone(A1), TN)
+	~tresult == table(aone(A1), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== test-selectfrom1
+	reduce(conf(~q, ~ts)) == some(conf(TValue(~tresult), ~ts))
+}
+
+
+local {
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	consts
+		A1 : AName
+		A2 : AName
+		A3 : AName
+
+	goal
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == table(aone(A2), tmany(rone(y2), tmany(rone(y1), tempty)))
+	=================================================================================== test-projection2
+	projection(aone(A2), ~t) == some(~tresult)
+}
+
+local {
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	goal
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == table(aone(A2), tmany(rone(y2), tmany(rone(y1), tempty)))
+	=================================================================================== prt-aux1
+	getSome(projection(aone(A2), ~t)) == ~tresult
+
+	axiom
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == table(aone(A2), tmany(rone(y2), tmany(rone(y1), tempty)))
+	=================================================================================== prt-aux1
+	getSome(projection(aone(A2), ~t)) == ~tresult
+		
+	goal
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == table(aone(A1), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== prt-aux2
+	getSome(projection(aone(A1), ~t)) == ~tresult
+	
+	axiom
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~tt, ~rt)
+	~tresult == table(aone(A1), tmany(rone(x1), tmany(rone(x2), tempty)))
+	=================================================================================== prt-aux2
+	getSome(projection(aone(A1), ~t)) == ~tresult
+	
+	goal
+	~tresult1 == table(aone(A2), tmany(rone(y2), tmany(rone(y1), tempty)))
+	~tresult2 == table(aone(A1), tmany(rone(x1), tmany(rone(x2), tempty)))
+	~rtresult == tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty))
+	=================================================================================================== prt-aux3
+	attachColToFrontRaw(getRaw(~tresult1), getRaw(~tresult2)) == ~rtresult
+	
+	axiom
+	~tresult1 == table(aone(A2), tmany(rone(y2), tmany(rone(y1), tempty)))
+	~tresult2 == table(aone(A1), tmany(rone(x1), tmany(rone(x2), tempty)))
+	~rtresult == tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty))
+	=================================================================================================== prt-aux3
+	attachColToFrontRaw(getRaw(~tresult1), getRaw(~tresult2)) == ~rtresult
+
+	goal
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == table(amany(A2, aone(A1)), 
+ 		tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty)))
+	===================================================================================== test-projection3
+	getSome(projection(amany(A2, aone(A1)), ~t)) == ~tresult
+}
+
+local {
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	axiom
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == table(amany(A2, aone(A1)), 
+ 		tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty)))
+	===================================================================================== test-projection3
+	getSome(projection(amany(A2, aone(A1)), ~t)) == ~tresult
+
+	goal
+	~al == amany(A1, amany(A2, aone(A3)))
+	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
+		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
+	~t == table(~al, ~rt)
+	~ts == bind(TN, ~t, empty)
+	~q == SelectFrom1(amany(A2, aone(A1)), TN)
+	~tresult == table(amany(A2, aone(A1)), 
+		tmany(rmany(y2, rone(x1)), tmany(rmany(y1, rone(x2)), tempty)))
+	=================================================================================== test-selectfrom1-2
+	reduce(conf(~q, ~ts)) == some(conf(TValue(~tresult), ~ts))
+}
+
 // 
 // // local {
 // // 	consts 
