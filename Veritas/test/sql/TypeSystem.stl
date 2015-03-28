@@ -69,6 +69,7 @@ typetable : Table -> TType
 axioms
 //a table value with a well-typed table is typable
 typetable(table(~al, ~rt)) == ~TT
+welltypedtable(~TT, table(~al, ~rt))
 ====================================== T-TValue
 ~TTC |- TValue(table(~al, ~rt)) : ~TT
 
@@ -117,6 +118,7 @@ OR
 => exists ~al, ~rt
 		~sql = TValue(table(~al, ~rt))
 		typetable(table(~al, ~rt)) == ~TT
+		welltypedtable(~TT, table(~al, ~rt))
 => exists ~tn, ~rt
 		~sql == SelectAll(~tn)
 		clookup(~tn, ~TTC) == some(~TT)
@@ -155,6 +157,7 @@ axioms
 ~TTC |- ~sql : ~TT
 ==================================================== T-inv-TValue
 typetable(table(~al, ~rt)) == ~TT
+welltypedtable(~TT, table(~al, ~rt))
 
 ~sql == SelectAll(~tn)		
 ~TTC |- ~sql : ~TT

@@ -1,0 +1,18 @@
+module sql.SoundnessAuxDefs
+
+import sql.BasicFunctions
+import sql.Tables
+import sql.TStore
+import sql.Syntax
+import sql.TypeSystem
+
+// determines whether a given TTContext is consistent with a given TStore
+// and whether the table in the store is well-typed with regard to the table type in the context
+// design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
+function
+StoreContextConsistent : TStore TTContext -> Bool
+StoreContextConsistent(empty, cempty) = true
+StoreContextConsistent(bind(tn1, t, tsr), cbind(tn2, tt, ttcr)) = 
+	((tn1 == tn2) && welltypedtable(tt, t))
+	&& StoreContextConsistent(tsr, ttcr)
+StoreContextConsistent(ts, ttc) = false 

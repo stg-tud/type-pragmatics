@@ -6,6 +6,7 @@ import sql.TStore
 import sql.Syntax
 import sql.Semantics
 import sql.TypeSystem
+import sql.SoundnessAuxDefs
 
 //prove progress by induction on the typing derivation of an sql command
 //for union/intersection/difference, you actually need induction on typing derivations!
@@ -162,18 +163,12 @@ import sql.TypeSystem
 // // }
 // 
 // 
-// //final progress theorem
-// //design decision: do not include a premise with "store only contains well-typed tables"
-// // this is not necessary with the current type system design since the typing rules require 
-// // that all tables that are ever looked up are well-typed
-// //consequence: the table store can contain senseless tables as long as the given SQL
-// // command does not look them up
-// //alternative: introduce such a premise, and then maybe remove the well-typedness premises
-// // from the typing rules (?)
-// axiom 
-// ~cin == conf(~sql, ~TS)
-// !isValue(~sql)
-// ~TS |- ~sql : ~TT
-// ==================================== SQL-Progress
-// exists ~cout
-// 	reduce(~cin) = some(~cout)
+//final progress theorem
+axiom 
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TTC |- ~sql : ~TT
+StoreContextConsistent(~TS, ~TTC)
+==================================== SQL-Progress
+exists ~cout
+	reduce(~cin) = some(~cout)

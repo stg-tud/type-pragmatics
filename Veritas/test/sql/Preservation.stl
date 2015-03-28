@@ -7,6 +7,7 @@ import sql.TypeSystem
 import sql.TStore
 import sql.Tables
 import sql.TableAux
+import sql.SoundnessAuxDefs
 
 
 // goal 
@@ -305,12 +306,13 @@ import sql.TableAux
 // // 	TS |- ~sqlo : TT
 // // }
 // 
-// //final preservation theorem
-// //for now: restricted to the case where table store does not change!
-// axiom
-// ~cin == conf(~sqli, ~TS)
-// ~cout == conf(~sqlo, ~TS)
-// reduce(~cin) = some(~cout)
-// ~TS |- ~sqli : ~TT
-// ================================ SQL-Preservation
-// ~TS |- ~sqlo : ~TT
+//final preservation theorem
+//for now: restricted to the case where table store (and context) does not change!
+axiom
+~cin == conf(~sqli, ~TS)
+~cout == conf(~sqlo, ~TS)
+reduce(~cin) = some(~cout)
+~TTC |- ~sqli : ~TT
+StoreContextConsistent(~TS, ~TTC)
+=================================== SQL-Preservation
+~TTC |- ~sqlo : ~TT
