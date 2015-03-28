@@ -71,7 +71,7 @@ clookup(~tn, ~TTC) == some(~TT)
 ~TTC |- SelectAll(~tn) : ~TT
 
 clookup(~tn, ~TTC) == some(~TT1)
-typePart(~al, ~TT1) == ~TT
+typePart(~al, ~TT1) == some(~TT)
 ================================================ T-SelectFrom1
 ~TTC |- SelectFrom1(~al, ~tn) : ~TT
 
@@ -117,7 +117,7 @@ OR
 => exists ~tn, ~TT1, ~al, ~rt
 		~sql == SelectFrom1(~al, ~tn)
 		clookup(~tn, ~TTC) == some(~TT1)
-		typePart(~al, ~TT1) == ~TT	
+		typePart(~al, ~TT1) == some(~TT)	
 // => exists ~tn, ~p, ~rt
 // 		~sql == SelectAllFromWhere1(~tn, ~p)
 // 		lookup(~tn, ~TS) == some(table(~TT, ~rt))
@@ -160,7 +160,7 @@ clookup(~tn, ~TTC) == some(~TT)
 ==================================================== T-inv-SelectFrom1
 exists ~TT1
 	clookup(~tn, ~TTC) == some(~TT1)
-	typePart(~al, ~TT1) == ~TT			
+	typePart(~al, ~TT1) == some(~TT)			
 		
 // ~sql == SelectAllFromWhere1(~tn, ~p)
 // ~TS |- ~sql : ~TT
