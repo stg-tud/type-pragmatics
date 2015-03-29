@@ -33,7 +33,8 @@ StoreContextConsistent(~TS, ~TTC)
 ==================================== SQL-Progress-T-SelectAll
 exists ~cout
 	reduce(~cin) = some(~cout)
-			
+
+// needs 60 second timeout!		
 goal
 ~sql == SelectFrom1(~al, ~tn) 
 ~cin == conf(~sql, ~TS)

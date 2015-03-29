@@ -9,19 +9,17 @@ import sql.Tables
 
 goal
 StoreContextConsistent(~TS, ~TTC)
-lookup(~tn, ~TS) == some(table(~al1, ~rt1))
-clookup(~tn, ~TTC) == some(~TT1)
-typePart(~al2, ~TT1) == some(~TT2)
-=================================================================== progress-projection
-exists ~rt2
-	projection(~al2, table(~al1, ~rt1)) == some(table(~TT2, ~rt2))
-
-
-axiom
-StoreContextConsistent(~TS, ~TTC)
-lookup(~tn, ~TS) == some(~t1)
 clookup(~tn, ~TTC) == some(~TT1)
 typePart(~al, ~TT1) == some(~TT2)
 =================================================================== progress-projection
 exists ~t2
-	projection(~al, ~t1) == some(~t2)
+	projection(~al, getSome(lookup(~tn, ~TS))) == some(~t2)
+
+
+axiom
+StoreContextConsistent(~TS, ~TTC)
+clookup(~tn, ~TTC) == some(~TT1)
+typePart(~al, ~TT1) == some(~TT2)
+=================================================================== progress-projection
+exists ~t2
+	projection(~al, getSome(lookup(~tn, ~TS))) == some(~t2)
