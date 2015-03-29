@@ -87,9 +87,17 @@ correspondingFTList(ttmany(ctype(a, f), tt)) = ftlmany(f, correspondingFTList(tt
 
 function
 welltypedtable : TType Table -> Bool
-welltypedtable(tt, table(al, tempty)) = (correspondingAList(tt) == al)
-welltypedtable(tt, table(al, tmany(r, t))) =
-	welltypedrow(r, correspondingFTList(tt)) && welltypedtable(tt, table(al, t))
+welltypedtable(tt, table(al, t)) = (correspondingAList(tt) == al) && welltypedRawtable(tt, t)
+
+function
+welltypedRawtable : TType RawTable -> Bool
+welltypedRawtable(tt, tempty) = true
+welltypedRawtable(tt, tmany(r, t)) = welltypedRow(tt, r) && welltypedRawtable(tt, t)
+
+function
+welltypedRow : TType Row -> Bool
+welltypedRow(ttone(ctype(name, type)), rone(v)) = (fieldType(v) == type)
+welltypedRow(ttmany(ctype(name, type), tt), rmany(v, r)) = (fieldType(v) == type) && welltypedRow(tt, r)
 	
 // //checks whether a given column type is part of a given table scheme
 // function
