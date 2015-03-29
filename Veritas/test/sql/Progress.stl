@@ -8,6 +8,7 @@ import sql.Semantics
 import sql.TypeSystem
 import sql.SoundnessAuxDefs
 import sql.AuxLemmas
+import sql.ProjectionAuxLemmas
 
 //prove progress by induction on the typing derivation of an sql command
 //for union/intersection/difference, you actually need induction on typing derivations!

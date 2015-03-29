@@ -71,9 +71,9 @@ ge : FVal FVal -> Bool
 function
 welltypedrow : Row FTList -> Bool
 welltypedrow(rone(f), ftlone(ft)) = (fieldType(f) == ft)
-welltypedrow(rone(f), ftlmany(ft, rt)) = false
 welltypedrow(rmany(f, r), ftlmany(ft, rt)) = 
 	(fieldType(f) == ft) && welltypedrow(r, rt)
+welltypedrow(r, ftl) = false
 	
 function 
 correspondingAList : TType -> AList
