@@ -16,3 +16,11 @@ StoreContextConsistent(bind(tn1, t, tsr), cbind(tn2, tt, ttcr)) =
 	((tn1 == tn2) && welltypedtable(tt, t))
 	&& StoreContextConsistent(tsr, ttcr)
 StoreContextConsistent(ts, ttc) = false 
+
+
+axiom
+StoreContextConsistent(~TS, ~TTC)
+lookup(~tn, ~TS) = some(~t)
+clookup(~tn, ~TTC) == some(~tt)
+================================= StoreContext-Lookup-WT
+welltypedtable(~tt, ~t)

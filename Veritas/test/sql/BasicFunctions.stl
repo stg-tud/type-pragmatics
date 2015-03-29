@@ -20,6 +20,13 @@ partial function
 getSome : Opt -> A
 getSome(some(a)) = a
 
+axiom
+isSome(~opt)
+================= isSome-INV
+exists ~a
+	~opt = some(~a)
+	getSome(~opt) = ~a
+
 // Option variant for option boolean (3 answers: true, false, error)
 sorts
 	Opt3
