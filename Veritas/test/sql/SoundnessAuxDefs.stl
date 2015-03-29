@@ -20,7 +20,7 @@ StoreContextConsistent(ts, ttc) = false
 
 axiom
 StoreContextConsistent(~TS, ~TTC)
-clookup(~tn, ~TTC) == some(~TT)
 lookup(~tn, ~TS) = some(~t)
+clookup(~tn, ~TTC) == some(~tt)
 ================================= StoreContext-Lookup-WT
 welltypedtable(~tt, ~t)
