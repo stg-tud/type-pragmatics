@@ -82,12 +82,12 @@ project(acons(a, alr), t) =
 // definition: union removes duplicate rows
 // (but only between the two tables, not within a table!)
 // union only possible if schemas of tables are exactly equal (including column order!)
-// function
-// union : Table Table -> Opt
-// union(table(tt1, rt1), table(tt2, rt2)) =
-// 	if (tt1 == tt2)
-// 	then some(table(tt1, rawUnion(rt1, rt2)))
-// 	else none
+function
+union : Table Table -> Opt
+union(table(al1, rt1), table(al2, rt2)) =
+	if (al1 == al2)
+	then some(table(al1, rawUnion(rt1, rt2)))
+	else none
 // 
 // function
 // intersection : Table Table -> Opt
@@ -139,21 +139,21 @@ reduce(conf(SelectFrom1(al, tn), ts)) =
 // 				else none)
 // 			else none)
 // 		else none
-// reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
-// 	let tunion = union(t1, t2) in
-// 		if (isSome(tunion))
-// 		then some(conf(TValue(getSome(tunion)), ts))
-// 		else none
-// reduce(conf(Union(TValue(t), sql2), ts)) =
-// 	let sql2reduce = reduce(conf(sql2, ts)) in
-// 		if (isSome(sql2reduce))
-// 		then some(conf(Union(TValue(t), getSQL(getSome(sql2reduce))), ts))
-// 		else none
-// reduce(conf(Union(sql1, sql2), ts)) =
-// 	let sql1reduce = reduce(conf(sql1, ts)) in
-// 		if (isSome(sql1reduce))
-// 		then some(conf(Union(getSQL(getSome(sql1reduce)), sql2), ts))
-// 		else none
+reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
+	let tunion = union(t1, t2) in
+		if (isSome(tunion))
+		then some(conf(TValue(getSome(tunion)), ts))
+		else none
+reduce(conf(Union(TValue(t), sql2), ts)) =
+	let sql2reduce = reduce(conf(sql2, ts)) in
+		if (isSome(sql2reduce))
+		then some(conf(Union(TValue(t), getSQL(getSome(sql2reduce))), ts))
+		else none
+reduce(conf(Union(sql1, sql2), ts)) =
+	let sql1reduce = reduce(conf(sql1, ts)) in
+		if (isSome(sql1reduce))
+		then some(conf(Union(getSQL(getSome(sql1reduce)), sql2), ts))
+		else none
 // reduce(conf(Intersection(TValue(t1), TValue(t2)), ts)) =
 // 	let tintersection = intersection(t1, t2) in
 // 		if (isSome(tintersection))

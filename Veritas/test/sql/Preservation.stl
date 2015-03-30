@@ -223,37 +223,43 @@ StoreContextConsistent(~TS, ~TTC)
 // // ================================ SQL-Preservation-T-SelectFromWhere1
 // // ~TS |- ~sqlo : ~TT
 // 
-// // local {
-// // 	consts sql1 : SQLExp
-// // 		sql2 : SQLExp
-// // 		TS : TStore
-// // 		TT : TType
-// // 	
-// // 	axiom 
-// // 	~cin == conf(sql1, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
-// // 	================================ SQL-Preservation-T-Union-IH1
-// // 	TS |- ~sqlo : TT
-// // 	
-// // 	axiom 
-// // 	~cin == conf(sql2, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
-// // 	================================ SQL-Preservation-T-Union-IH2
-// // 	TS |- ~sqlo : TT
-// // 		
-// // 	goal 
-// // 	~sqli == Union(sql1, sql2)
-// // 	~cin == conf(~sqli, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
-// // 	================================ SQL-Preservation-T-Union
-// // 	TS |- ~sqlo : TT
-// // }
+local {
+	consts sql1 : SQLExp
+		sql2 : SQLExp
+		TS : TStore
+		TTC : TTContext
+		TT : TType
+	
+	axiom 
+	~sqli == sql1
+	~cin == conf(~sqli, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TTC |- ~sqli : TT
+	StoreContextConsistent(~TS, ~TTC)
+	================================ SQL-Preservation-T-Union-IH1
+	TS |- ~sqlo : TT
+	
+	axiom 
+	~sqli == sql2
+	~cin == conf(~sqli, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TTC |- ~sqli : TT
+	StoreContextConsistent(~TS, ~TTC)
+	================================ SQL-Preservation-T-Union-IH2
+	TS |- ~sqlo : TT
+		
+	goal 
+	~sqli == Union(sql1, sql2)
+	~cin == conf(~sqli, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TTC |- ~sqli : TT
+	StoreContextConsistent(~TS, ~TTC)
+	================================ SQL-Preservation-T-Union
+	TS |- ~sqlo : TT
+}
 // // 
 // // local {
 // // 	consts sql1 : SQLExp

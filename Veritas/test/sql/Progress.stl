@@ -67,37 +67,45 @@ exists ~cout
 // // 	reduce(~cin) = some(~cout)
 // 
 // 
-// // local {
-// // 	consts sql1 : SQLExp
-// // 		sql2 : SQLExp
-// // 		TS : TStore
-// // 		TT : TType
-// // 		
-// // 	axiom
-// // 	~cin == conf(sql1, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
-// // 	==================================== SQL-Progress-T-Union-IH1
-// // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
-// // 		
-// // 	axiom
-// // 	~cin == conf(sql2, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
-// // 	==================================== SQL-Progress-T-Union-IH2
-// // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
-// // 	
-// // 	goal
-// // 	~sql == Union(sql1, sql2)
-// // 	~cin == conf(~sql, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
-// // 	==================================== SQL-Progress-T-Union
-// // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
-// // }
+
+// local {
+// 	consts sql1 : SQLExp
+// 		sql2 : SQLExp
+// 		TS : TStore
+// 		TTC : TTContext
+// 		TT : TType
+// 		
+// 	axiom
+// 	~sql == sql1
+// 	~cin == conf(~sql, TS)
+// 	!isValue(~sql)
+// 	TTC |- ~sql : TT
+// 	StoreContextConsistent(~TS, ~TTC)
+// 	==================================== SQL-Progress-T-Union-IH1
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// 		
+// 	axiom
+// 	~sql == sql2
+// 	~cin == conf(~sql, TS)
+// 	!isValue(~sql)
+// 	TTC |- ~sql : TT
+// 	StoreContextConsistent(~TS, ~TTC)
+// 	==================================== SQL-Progress-T-Union-IH2
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// 	
+// 	goal
+// 	~sql == Union(sql1, sql2)
+// 	~cin == conf(~sql, TS)
+// 	!isValue(~sql)
+// 	TTC |- ~sql : TT
+// 	StoreContextConsistent(~TS, ~TTC)
+// 	==================================== SQL-Progress-T-Union
+// 	exists ~cout
+// 		reduce(~cin) = some(~cout)
+// }
+
 // // 
 // // 
 // // local {

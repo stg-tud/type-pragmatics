@@ -79,10 +79,10 @@ projectType(~al, ~TT1) == some(~TT)
 // ================================================ T-SelectFromWhere1
 // ~TS |- SelectFromWhere1(~TT, ~tn, ~p) : ~TT
 // 
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
-// ============================================ T-Union
-// ~TS |- Union(~sql1, ~sql2) : ~TT
+~TTC |- ~sql1 : ~TT
+~TTC |- ~sql2 : ~TT
+============================================ T-Union
+~TTC |- Union(~sql1, ~sql2) : ~TT
 // 
 // ~TS |- ~sql1 : ~TT
 // ~TS |- ~sql2 : ~TT
@@ -120,10 +120,10 @@ OR
 // 		welltypedtable(table(~TT1, ~rt))
 // 		checkPValidity(~p, ~TT1)
 // 		typePartOf(~TT, ~TT1)
-// => exists ~sql1, ~sql2
-// 		~sql == Union(~sql1, ~sql2)
-// 		~TS |- ~sql1 : ~TT
-// 		~TS |- ~sql2 : ~TT
+=> exists ~sql1, ~sql2
+		~sql == Union(~sql1, ~sql2)
+		~TTC |- ~sql1 : ~TT
+		~TTC |- ~sql2 : ~TT
 // => exists ~sql1, ~sql2
 // 		~sql == Intersection(~sql1, ~sql2)
 // 		~TS |- ~sql1 : ~TT
@@ -194,11 +194,21 @@ exists ~TT1
 // 	checkPValidity(~p, ~TT1)
 // 	typePartOf(~TT, ~TT1)
 // 		
-// ~sql == Union(~sql1, ~sql2)
-// ~TS |- ~sql : ~TT
-// ==================================================== T-inv-Union		
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
+
+goal
+~sql == Union(~sql1, ~sql2)
+~TTC |- ~sql : ~TT
+==================================================== T-inv-Union		
+~TTC |- ~sql1 : ~TT
+~TTC |- ~sql2 : ~TT
+
+axiom
+~sql == Union(~sql1, ~sql2)
+~TTC |- ~sql : ~TT
+==================================================== T-inv-Union		
+~TTC |- ~sql1 : ~TT
+~TTC |- ~sql2 : ~TT
+
 // 
 // ~sql == Intersection(~sql1, ~sql2)
 // ~TS |- ~sql : ~TT
