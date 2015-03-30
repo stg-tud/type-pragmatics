@@ -8,16 +8,15 @@ import sql.Tables
 function 
 rowIn : Row RawTable -> Bool
 rowIn(r1, tempty) = false
-rowIn(r1, tmany(r2, rt)) = (r1 == r2) || rowIn(r1, rt)
+rowIn(r1, tcons(r2, rt)) = (r1 == r2) || rowIn(r1, rt)
 
 //projects a raw table to its first column
 //returns a raw table with exactly one column or tempty	
 function
 projectFirstRaw : RawTable -> RawTable
 projectFirstRaw(tempty) = tempty
-//if table is welltyped, recursion would not be needed in the next case:
-projectFirstRaw(tmany(rone(f), rt)) = tmany(rone(f), projectFirstRaw(rt))
-projectFirstRaw(tmany(rmany(f, r), rt)) = tmany(rone(f), projectFirstRaw(rt))
+projectFirstRaw(tcons(rempty, rt)) = tcons(rempty, projectFirstRaw(rt))
+projectFirstRaw(tcons(rcons(f, r), rt)) = tcons(rcons(f, rempty), projectFirstRaw(rt))
 
 
 //drops the first column of a raw table
@@ -25,9 +24,8 @@ projectFirstRaw(tmany(rmany(f, r), rt)) = tmany(rone(f), projectFirstRaw(rt))
 function
 dropFirstColRaw : RawTable -> RawTable
 dropFirstColRaw(tempty) = tempty
-//in the next case, all rows should have only one field, so we abbreviate:
-dropFirstColRaw(tmany(rone(f), rt)) = tempty
-dropFirstColRaw(tmany(rmany(f, r), rt)) = tmany(r, dropFirstColRaw(rt)) 
+dropFirstColRaw(tcons(rempty, rt)) = tcons(rempty, dropFirstColRaw(rt))
+dropFirstColRaw(tcons(rcons(f, r), rt)) = tcons(r, dropFirstColRaw(rt)) 
 
 //attaches a raw table with one column to the front of another raw table
 //returns a raw table with one column more
@@ -37,10 +35,8 @@ partial function
 attachColToFrontRaw : RawTable RawTable -> RawTable
 //second arg t should be tempty normally!
 attachColToFrontRaw(tempty, t) = tempty
-attachColToFrontRaw(tmany(rone(f), rt1), tmany(r, rt2)) = 
-	tmany(rmany(f, r), attachColToFrontRaw(rt1, rt2))
-
-
+attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) = 
+	tcons(rcons(f, r), attachColToFrontRaw(rt1, rt2))
 
 //definition: union removes duplicate rows
 //(but only between the two tables, not within a table!)
@@ -49,14 +45,14 @@ function
 rawUnion : RawTable RawTable -> RawTable
 rawUnion(tempty, rt2) = rt2
 rawUnion(rt1, tempty) = rt1
-rawUnion(tmany(r1, tempty), rt2) = 
+rawUnion(tcons(r1, tempty), rt2) = 
 	if (!rowIn(r1, rt2))
-	then tmany(r1, rt2)
+	then tcons(r1, rt2)
 	else rt2
-rawUnion(tmany(r1, rt1), rt2) =
+rawUnion(tcons(r1, rt1), rt2) =
 	let urt1rt2 = rawUnion(rt1, rt2) in
 		if (!rowIn(r1, rt2))
-		then tmany(r1, urt1rt2)
+		then tcons(r1, urt1rt2)
 		else urt1rt2
 		
 //preserves order of rows in first argument
@@ -64,49 +60,50 @@ function
 rawIntersection : RawTable RawTable -> RawTable
 rawIntersection(tempty, rt2) = tempty
 rawIntersection(rt1, tempty) = tempty
-rawIntersection(tmany(r1, tempty), rt2) = 
+rawIntersection(tcons(r1, tempty), rt2) = 
 	if (rowIn(r1, rt2))
-	then tmany(r1, tempty)
+	then tcons(r1, tempty)
 	else tempty
-rawIntersection(tmany(r1, rt1), rt2) =
+rawIntersection(tcons(r1, rt1), rt2) =
 	let urt1rt2 = rawIntersection(rt1, rt2) in
 		if (rowIn(r1, rt2))
-		then tmany(r1, urt1rt2)
+		then tcons(r1, urt1rt2)
 		else urt1rt2
 		
 function
 rawDifference : RawTable RawTable -> RawTable
 rawDifference(tempty, rt2) = tempty
 rawDifference(rt1, tempty) = rt1
-rawDifference(tmany(r1, tempty), rt2) =
+rawDifference(tcons(r1, tempty), rt2) =
 	if (!rowIn(r1, rt2))
-	then tmany(r1, tempty)
+	then tcons(r1, tempty)
 	else tempty
-rawDifference(tmany(r1, rt1), rt2) =
+rawDifference(tcons(r1, rt1), rt2) =
 	let drt1rt2 = rawDifference(rt1, rt2) in
 		if (!rowIn(r1, rt2))
-		then tmany(r1, drt1rt2)
+		then tcons(r1, drt1rt2)
 		else drt1rt2
 		
 //some tests of the raw table functions
 goal
-~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
-	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
-	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
-~r = rmany(~x1, rmany(~y2, rone(~z1)))
+~rt = tcons(rcons(~x1, rcons(~y2, rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), 
+	tcons(rcons(~x1, rcons(~y1, rcons(~z1, rempty))),
+	tcons(rcons(~x1, rcons(~y2, rcons(~z1, rempty))),
+	tcons(rcons(~x2, rcons(~y2, rcons(~z2, rempty))), tempty))))))
+~r = rcons(~x1, rcons(~y2, rcons(~z1, rempty)))
 ========================================================== test-rowIn
 rowIn(~r, ~rt)
 
 local {
-	constructors x1 : FVal
+	constructors
+		x1 : FVal
 		x2 : FVal
 	
 	goal 
-	~rt == tmany(rmany(x1, rone(x2)), tempty)
-	~r == rmany(x1, rone(x1))
+	~rt == tcons(rcons(x1, rcons(x2, rempty)), tempty)
+	~r == rcons(x1, rcons(x1, rempty))
 	========================================= test-notrowIn0
 	!rowIn(~r, ~rt)
 	
@@ -123,9 +120,9 @@ local {
 		z2 : FVal
 
 	goal
-	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-	~r == rmany(x1, rmany(y2, rone(z1)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~r == rcons(x1, rcons(y2, rcons(z1, rempty)))
 	========================================================== test-notrowIn1
 	!rowIn(~r, ~rt)
 }
@@ -142,123 +139,123 @@ local {
 		z2 : FVal
 
 	goal
-	~rt == tmany(rmany(x1, rmany(y2, rone(z2))), 
-		tmany(rmany(x2, rmany(y1, rone(z1))), 
-		tmany(rmany(x2, rmany(y2, rone(z1))), 
-		tmany(rmany(x1, rmany(y1, rone(z1))),
-		tmany(rmany(x2, rmany(y2, rone(z2))), tempty)))))
-	~r == rmany(x1, rmany(y2, rone(z1)))
+	~rt == tcons(rcons(x1, rcons(y2,  rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
+		tcons(rcons(x2, rcons(y2, rcons(z1, rempty))), 
+		tcons(rcons(x1, rcons(y1, rcons(z1, rempty))),
+		tcons(rcons(x2, rcons(y2, rcons(z2, rempty))), tempty)))))
+	~r == rcons(x1, rcons(y2, rcons(z1, rempty)))
 	========================================================== test-notrowIn2
 	!rowIn(~r, ~rt)
 }
 
 
 goal
-~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
-	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
-	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
-~prt = tmany(rone(~x1),
-	tmany(rone(~x2),
-	tmany(rone(~x2),
-	tmany(rone(~x1),
-	tmany(rone(~x1),
-	tmany(rone(~x2), tempty))))))
+~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), 
+	tcons(rcons(~x1, rcons(~y1, rcons(~z1, rempty))),
+	tcons(rcons(~x1, rcons(~y2, rcons(~z1, rempty))),
+	tcons(rcons(~x2, rcons(~y2, rcons(~z2, rempty))), tempty))))))
+~prt = tcons( rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x1, rempty),
+	tcons(rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty), tempty))))))
 ========================================================== test-projectFirstRaw
 projectFirstRaw(~rt) == ~prt
 
 goal
-~prt = tmany(rone(~x1),
-	tmany(rone(~x2),
-	tmany(rone(~x2),
-	tmany(rone(~x1),
-	tmany(rone(~x1),
-	tmany(rone(~x2), tempty))))))
+~prt = tcons( rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x1, rempty),
+	tcons(rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty), tempty))))))
 ==================================== test-projectFirstRaw1
 projectFirstRaw(~prt) == ~prt
 
 goal
-~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
-	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
-	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))
-~drt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y2, rone(~z2)), tempty))))))
+~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), 
+	tcons(rcons(~x1, rcons(~y1, rcons(~z1, rempty))),
+	tcons(rcons(~x1, rcons(~y2, rcons(~z1, rempty))),
+	tcons(rcons(~x2, rcons(~y2, rcons(~z2, rempty))), tempty))))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z2, rempty)), tempty))))))
 ========================================================== test-dropFirstColRaw
 dropFirstColRaw(~rt) == ~drt
 
 goal
-~prt = tmany(rone(~x1),
-	tmany(rone(~x2), tempty))
-~drt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)), tempty))
-~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-	tmany(rmany(~x2, rmany(~y1, rone(~z1))), tempty))
+~prt = tcons( rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty), tempty))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))
+~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), tempty))
 ========================================================== test-attachColToFrontRaw1
 attachColToFrontRaw(~prt, ~drt) == ~rt
 
 goal
-~prt = tmany(rone(~x1),
-	tmany(rone(~x2),
-	tmany(rone(~x2), tempty)))
-~drt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)), tempty)))
-~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-	tmany(rmany(~x2, rmany(~y2, rone(~z1))), tempty)))
+~prt = tcons( rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x2, rempty), tempty)))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)), tempty)))
+~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), tempty)))
 ========================================================== test-attachColToFrontRaw3
 attachColToFrontRaw(~prt, ~drt) == ~rt
 
 goal
-~prt = tmany(rone(~x1),
-	tmany(rone(~x2),
-	tmany(rone(~x2),
-	tmany(rone(~x1), tempty))))
-~drt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y1, rone(~z1)), tempty))))
-~rt = tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-	tmany(rmany(~x1, rmany(~y1, rone(~z1))), tempty))))
+~prt = tcons( rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x1, rempty), tempty))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), 
+	tcons(rcons(~x1, rcons(~y1, rcons(~z1, rempty))), tempty))))
 ========================================================== test-attachColToFrontRaw4
 attachColToFrontRaw(~prt, ~drt) == ~rt
 
 goal
-~prt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y1, rone(~z1)), tempty))))
-~drt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y1, rone(~z1)), tempty))))
-~rt = tmany(rmany(~y2, rone(~z2)), 
-	tmany(rmany(~y1, rone(~z1)), 
-	tmany(rmany(~y2, rone(~z1)), 
-	tmany(rmany(~y1, rone(~z1)), tempty))))
+~prt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~rt = tcons(rcons(~y2,   rcons(~z2, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), 
+	tcons(rcons(~y2, rcons(~z1, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
 ========================================================== test-rawUnion1
 rawUnion(~prt, ~drt) == ~rt
 
 // goal
-// ~prt = tmany(rmany(~y2, rone(~z2)), tempty)
-// ~drt = tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty)))
-// ~rt = tmany(rmany(~y2, rone(~z2)), 
-// 	tmany(rmany(~y1, rone(~z1)), 
-// 	tmany(rmany(~y2, rone(~z1)), 
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
+// ~prt = tcons(rcons(~y2, rone(~z2)), tempty)
+// ~drt = tcons(rcons(~y1, rone(~z1)),
+// 	tcons(rcons(~y2, rone(~z1)),
+// 	tcons(rcons(~y1, rone(~z1)), tempty)))
+// ~rt = tcons(rcons(~y2, rone(~z2)), 
+// 	tcons(rcons(~y1, rone(~z1)), 
+// 	tcons(rcons(~y2, rone(~z1)), 
+// 	tcons(rcons(~y1, rone(~z1)), tempty))))
 // ~z1 != ~z2
 // ~y1 != ~y2
 // ~x1 != ~x2
@@ -272,28 +269,28 @@ local {
 		z1 : FVal
 		z2 : FVal
 	goal
-	~prt = tmany(rmany(y2, rone(z2)), tempty)
-	~drt = tmany(rmany(y1, rone(z1)),
-		tmany(rmany(y2, rone(z1)),
-		tmany(rmany(y1, rone(z1)), tempty)))
-	~rt = tmany(rmany(y2, rone(z2)), 
-		tmany(rmany(y1, rone(z1)), 
-		tmany(rmany(y2, rone(z1)), 
-		tmany(rmany(y1, rone(z1)), tempty))))
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	~rt = tcons(rcons(y2,   rcons(z2, rempty)), 
+		tcons(rcons(y1, rcons(z1, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), 
+		tcons(rcons(y1, rcons(z1, rempty)), tempty))))
 	========================================================== test-rawUnion2
 	rawUnion(~prt, ~drt) == ~rt
 }
 
 // goal
-// ~prt = tmany(rmany(~y2, rone(~z2)), 
-// 	tmany(rmany(~y2, rone(~z1)), tempty))
-// ~drt = tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty)))
-// ~rt = tmany(rmany(~y2, rone(~z2)), 
-// 	tmany(rmany(~y1, rone(~z1)), 
-// 	tmany(rmany(~y2, rone(~z1)), 
-// 	tmany(rmany(~y1, rone(~z1)), tempty))))
+// ~prt = tcons(rcons(~y2, rone(~z2)), 
+// 	tcons(rcons(~y2, rone(~z1)), tempty))
+// ~drt = tcons(rcons(~y1, rone(~z1)),
+// 	tcons(rcons(~y2, rone(~z1)),
+// 	tcons(rcons(~y1, rone(~z1)), tempty)))
+// ~rt = tcons(rcons(~y2, rone(~z2)), 
+// 	tcons(rcons(~y1, rone(~z1)), 
+// 	tcons(rcons(~y2, rone(~z1)), 
+// 	tcons(rcons(~y1, rone(~z1)), tempty))))
 // ~z1 != ~z2
 // ~y1 != ~y2
 // ~x1 != ~x2
@@ -309,40 +306,40 @@ local {
 		z2 : FVal
 		
 	goal
-	~prt = tmany(rmany(y2, rone(z2)), 
-		tmany(rmany(y2, rone(z1)), tempty))
-	~drt = tmany(rmany(y1, rone(z1)),
-		tmany(rmany(y2, rone(z1)),
-		tmany(rmany(y1, rone(z1)), tempty)))
-	~rt = tmany(rmany(y2, rone(z2)), 
-		tmany(rmany(y1, rone(z1)), 
-		tmany(rmany(y2, rone(z1)), 
-		tmany(rmany(y1, rone(z1)), tempty))))
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), tempty))
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	~rt = tcons(rcons(y2,   rcons(z2, rempty)), 
+		tcons(rcons(y1, rcons(z1, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), 
+		tcons(rcons(y1, rcons(z1, rempty)), tempty))))
 	========================================================== test-rawUnion3
 	rawUnion(~prt, ~drt) == ~rt
 }
 
 goal
-~prt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y1, rone(~z1)), tempty))))
-~drt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y1, rone(~z1)), tempty))))
-~rt = tmany(rmany(~y2, rone(~z2)), 
-	tmany(rmany(~y1, rone(~z1)), 
-	tmany(rmany(~y2, rone(~z1)), 
-	tmany(rmany(~y1, rone(~z1)), tempty))))
+~prt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~rt = tcons(rcons(~y2,   rcons(~z2, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), 
+	tcons(rcons(~y2, rcons(~z1, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
 ========================================================== test-rawIntersection1
 rawIntersection(~prt, ~drt) == ~rt
 
 // goal
-// ~prt = tmany(rmany(~y2, rone(~z2)), tempty)
-// ~drt = tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty)))
+// ~prt = tcons(rcons(~y2, rone(~z2)), tempty)
+// ~drt = tcons(rcons(~y1, rone(~z1)),
+// 	tcons(rcons(~y2, rone(~z1)),
+// 	tcons(rcons(~y1, rone(~z1)), tempty)))
 // ~z1 != ~z2
 // ~y1 != ~y2
 // ~x1 != ~x2
@@ -358,21 +355,21 @@ local {
 		z2 : FVal
 		
 	goal
-	~prt = tmany(rmany(y2, rone(z2)), tempty)
-	~drt = tmany(rmany(y1, rone(z1)),
-		tmany(rmany(y2, rone(z1)),
-		tmany(rmany(y1, rone(z1)), tempty)))
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
 	========================================================== test-rawIntersection2
 	rawIntersection(~prt, ~drt) == tempty
 }
 
 // goal
-// ~prt = tmany(rmany(~y2, rone(~z2)), 
-// 	tmany(rmany(~y2, rone(~z1)), tempty))
-// ~drt = tmany(rmany(~y1, rone(~z1)),
-// 	tmany(rmany(~y2, rone(~z1)),
-// 	tmany(rmany(~y1, rone(~z1)), tempty)))
-// ~rt = tmany(rmany(~y2, rone(~z1)), tempty)
+// ~prt = tcons(rcons(~y2, rone(~z2)), 
+// 	tcons(rcons(~y2, rone(~z1)), tempty))
+// ~drt = tcons(rcons(~y1, rone(~z1)),
+// 	tcons(rcons(~y2, rone(~z1)),
+// 	tcons(rcons(~y1, rone(~z1)), tempty)))
+// ~rt = tcons(rcons(~y2, rone(~z1)), tempty)
 // ~z1 != ~z2
 // ~y1 != ~y2
 // ~x1 != ~x2
@@ -389,25 +386,25 @@ local {
 		z2 : FVal
 
 	goal
-	~prt = tmany(rmany(y2, rone(z2)), 
-		tmany(rmany(y2, rone(z1)), tempty))
-	~drt = tmany(rmany(y1, rone(z1)),
-		tmany(rmany(y2, rone(z1)),
-		tmany(rmany(y1, rone(z1)), tempty)))
-	~rt = tmany(rmany(y2, rone(z1)), tempty)
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), tempty))
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	~rt = tcons(rcons(y2,   rcons(z1, rempty)), tempty)
 	========================================================== test-rawIntersection3
 	rawIntersection(~prt, ~drt) == ~rt
 }
 
 goal
-~prt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y1, rone(~z1)), tempty))))
-~drt = tmany(rmany(~y2, rone(~z2)),
-	tmany(rmany(~y1, rone(~z1)),
-	tmany(rmany(~y2, rone(~z1)),
-	tmany(rmany(~y1, rone(~z1)), tempty))))
+~prt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
 ========================================================== test-rawDifference1
 rawDifference(~prt, ~drt) == tempty
 
@@ -420,10 +417,10 @@ local {
 		z2 : FVal
 		
 	goal
-	~prt = tmany(rmany(y2, rone(z2)), tempty)
-	~drt = tmany(rmany(y1, rone(z1)),
-		tmany(rmany(y2, rone(z1)),
-		tmany(rmany(y1, rone(z1)), tempty)))
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
 	========================================================== test-rawDifference2
 	rawDifference(~prt, ~drt) == ~prt
 }
@@ -438,12 +435,12 @@ local {
 		z2 : FVal
 
 	goal
-	~prt = tmany(rmany(y2, rone(z2)), 
-		tmany(rmany(y2, rone(z1)), tempty))
-	~drt = tmany(rmany(y1, rone(z1)),
-		tmany(rmany(y2, rone(z1)),
-		tmany(rmany(y1, rone(z1)), tempty)))
-	~rt = tmany(rmany(y2, rone(z2)), tempty)
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), tempty))
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	~rt = tcons(rcons(y2,   rcons(z2, rempty)), tempty)
 	========================================================== test-rawDifference3
 	rawDifference(~prt, ~drt) == ~rt
 }

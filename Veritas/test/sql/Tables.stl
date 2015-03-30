@@ -16,16 +16,14 @@ module sql.Tables
 // --> So "empty table" is not ambiguous, is always a table with 0 entries/rows (and at least one column)
 
 sorts
-	FType FTList AName AList CType TType
+	FType AName AList CType TType
 	
 constructors
-	ftlone : FType -> FTList
-	ftlmany : FType FTList -> FTList
-	aone : AName -> AList
-	amany : AName AList -> AList
 	ctype : AName FType -> CType
-	ttone : CType -> TType
-	ttmany : CType TType -> TType
+	aempty : AList
+	acons : AName AList -> AList
+	ttempty : TType
+	ttcons : CType TType -> TType
 
 //explanation:
 // FVal: Value for a field (underspecified)
@@ -37,10 +35,10 @@ sorts
 	FVal Row RawTable Table 
 
 constructors
-	rone : FVal -> Row
-	rmany : FVal Row -> Row
+	rempty : Row
+	rcons : FVal Row -> Row
 	tempty : RawTable
-	tmany : Row RawTable -> RawTable
+	tcons : Row RawTable -> RawTable
 	table : AList RawTable -> Table
 
 function
@@ -71,14 +69,9 @@ ge : FVal FVal -> Bool
 	
 function 
 correspondingAList : TType -> AList
-correspondingAList(ttone(ctype(a, f))) = aone(a)
-correspondingAList(ttmany(ctype(a, f), tt)) = amany(a, correspondingAList(tt))	
+correspondingAList(ttempty) = aempty
+correspondingAList(ttcons(ctype(a, f), tt)) = acons(a, correspondingAList(tt))	
 	
-function 
-correspondingFTList : TType -> FTList
-correspondingFTList(ttone(ctype(a, f))) = ftlone(f)
-correspondingFTList(ttmany(ctype(a, f), tt)) = ftlmany(f, correspondingFTList(tt))	
-
 function
 welltypedtable : TType Table -> Bool
 welltypedtable(tt, table(al, t)) = (correspondingAList(tt) == al) && welltypedRawtable(tt, t)
@@ -86,13 +79,12 @@ welltypedtable(tt, table(al, t)) = (correspondingAList(tt) == al) && welltypedRa
 function
 welltypedRawtable : TType RawTable -> Bool
 welltypedRawtable(tt, tempty) = true
-welltypedRawtable(tt, tmany(r, t)) = welltypedRow(tt, r) && welltypedRawtable(tt, t)
+welltypedRawtable(tt, tcons(r, t)) = welltypedRow(tt, r) && welltypedRawtable(tt, t)
 
 function
 welltypedRow : TType Row -> Bool
-welltypedRow(ttone(ctype(name, type)), rone(v)) = (fieldType(v) == type)
-welltypedRow(ttmany(ctype(name, type), tt), rmany(v, r)) = 
-	(fieldType(v) == type) && welltypedRow(tt, r)
+welltypedRow(ttempty, rempty) = true
+welltypedRow(ttcons(ctype(name, type), tt), rcons(v, r)) = (fieldType(v) == type) && welltypedRow(tt, r)
 welltypedRow(tt, r) = false
 	
 // //checks whether a given column type is part of a given table scheme
@@ -100,30 +92,30 @@ welltypedRow(tt, r) = false
 // ctypeIn : AName FType TType -> Bool
 // ctypeIn(a1, ft1, ttone(ctype(a2, ft2))) =
 // 	(a1 == a2) && (ft1 == ft2)
-// ctypeIn(a1, ft1, ttmany(ctype(a2, ft2), ttr)) =
+// ctypeIn(a1, ft1, ttcons(ctype(a2, ft2), ttr)) =
 // 	((a1 == a2) && (ft1 == ft2)) || ctypeIn(a1, ft1, ttr) 
 
 
 //a few tests for well-typedness
 goal
 fieldType(~x) == ~xt
-~tt == ttone(ctype(~a, ~xt))
+~tt == ttempty
 ============================================================================ test1
-welltypedtable(~tt, table(aone(~a), tmany(rone(~x), tempty)))
+welltypedtable(~tt, table(aempty, tcons(rempty, tempty)))
 
 goal
 fieldType(~x) == ~xt
 fieldType(~y) == ~yt
-~tt == ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttempty))
 ============================================================================ test21
-!welltypedtable(~tt, table(amany(~a, aone(~b)), tmany(rone(~x), tempty)))
+!welltypedtable(~tt, table(acons(~a, acons(~b, aempty)), tcons(rcons(~x, rempty), tempty)))
 
 goal
 fieldType(~x) == ~xt
 fieldType(~y) == ~yt
-~tt == ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttempty))
 ==================================================================================== test22
-welltypedtable(~tt, table(amany(~a, aone(~b)), tmany(rmany(~x, rone(~y)), tempty)))
+welltypedtable(~tt, table(acons(~a, acons(~b, aempty)), tcons(rcons(~x, rcons(~y, rempty)), tempty)))
 
  
 goal
@@ -131,32 +123,32 @@ fieldType(~x1) == ~xt
 fieldType(~x2) == ~xt
 fieldType(~y1) == ~yt
 fieldType(~y2) == ~yt
-~al == amany(~a, aone(~b))
-~tt == ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
+~al == acons(~a, acons(~b, aempty))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttempty))
 ============================================================================ test23
-welltypedtable(~tt, table(~al, tmany(rmany(~x1, rone(~y1)), 
-	tmany(rmany(~x2, rone(~y2)), tempty))))
+welltypedtable(~tt, table(~al, tcons(rcons(~x1, rcons(~y1, rempty)), 
+	tcons(rcons(~x2, rcons(~y2, rempty)), tempty))))
 	
 goal
 fieldType(~x1) == ~xt
 fieldType(~x2) == ~xt
 fieldType(~y1) == ~yt
 fieldType(~y2) == ~yt
-~al == amany(~a, aone(~b))
-~tt == ttmany(ctype(~a, ~xt), ttone(ctype(~b, ~yt)))
+~al == acons(~a, acons(~b, aempty))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttempty))
 ============================================================================ test24
-!welltypedtable(~tt, table(~al, tmany(rmany(~x1, rone(~y1)), 
-	tmany(rone(~x2), tempty))))
+!welltypedtable(~tt, table(~al, tcons(rcons(~x1, rcons(~y1, rempty)), 
+	tcons(rcons(~x2, rempty), tempty))))
 
 
 goal
 fieldType(~x) == ~xt
 fieldType(~y) == ~yt
 fieldType(~z) == ~zt
-~al == amany(~a, amany(~b, aone(~c)))
-~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
 =============================================================================== test3
-welltypedtable(~tt, table(~al, tmany(rmany(~x, rmany(~y, rone(~z))), tempty)))
+welltypedtable(~tt, table(~al, tcons(rcons(~x, rcons(~y, rcons(~z, rempty))), tempty)))
 
 
 goal
@@ -164,10 +156,10 @@ fieldType(~x) == ~xt
 fieldType(~y) == ~yt
 ~xt != ~yt 
 fieldType(~z) == ~zt
-~al == amany(~a, amany(~b, aone(~c)))
-~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
 ================================================================================ test31
-!welltypedtable(~tt, table(~al, tmany(rmany(~x, rmany(~x, rone(~z))), tempty)))
+!welltypedtable(~tt, table(~al, tcons(rcons(~x, rcons(~x, rcons(~z, rempty))), tempty)))
 
 goal
 fieldType(~x1) == ~xt
@@ -176,12 +168,12 @@ fieldType(~y1) == ~yt
 fieldType(~y2) == ~yt
 fieldType(~z1) == ~zt
 fieldType(~z2) == ~zt
-~al == amany(~a, amany(~b, aone(~c)))
-~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
 ============================================================================ test32
 welltypedtable(~tt, table(~al, 
-	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-	tmany(rmany(~x2, rmany(~y1, rone(~z1))), tempty))))
+	tcons(rcons(~x1, rcons(~y2, rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), tempty))))
 	
 	
 goal
@@ -191,12 +183,12 @@ fieldType(~y1) == ~yt
 fieldType(~y2) == ~yt
 fieldType(~z1) == ~zt
 fieldType(~z2) == ~zt
-~al == amany(~a, amany(~b, aone(~c)))
-~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
 ============================================================================ test33
 !welltypedtable(~tt, table(~al, 
-	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-	tmany(rmany(~x2, rone(~y1)), tempty))))
+	tcons(rcons(~x1, rcons(~y2, rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rempty)), tempty))))
 	
 // goal
 // fieldType(~x1) == ~xt
@@ -205,13 +197,13 @@ fieldType(~z2) == ~zt
 // fieldType(~y2) == ~yt
 // fieldType(~z1) == ~zt
 // fieldType(~z2) == ~zt
-// ~al == amany(~a, amany(~b, aone(~c)))
-// ~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+// ~al == acons(~a, acons(~b, aone(~c)))
+// ~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
 // ============================================================================ test34
 // welltypedtable(~tt, table(~al, 
-// 	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), tempty)))))
+// 	tcons(rcons(~x1, rcons(~y2, rone(~z2))), 
+// 	tcons(rcons(~x2, rcons(~y1, rone(~z1))), 
+// 	tcons(rcons(~x2, rcons(~y2, rone(~z1))), tempty)))))
 // 	
 // goal
 // fieldType(~x1) == ~xt
@@ -220,13 +212,13 @@ fieldType(~z2) == ~zt
 // fieldType(~y2) == ~yt
 // fieldType(~z1) == ~zt
 // fieldType(~z2) == ~zt
-// ~al == amany(~a, amany(~b, aone(~c)))
-// ~tt == ttmany(ctype(~a, ~xt), ttmany(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
+// ~al == acons(~a, acons(~b, aone(~c)))
+// ~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttone(ctype(~c, ~zt))))
 // ============================================================================ test35
 // welltypedtable(~tt, table(~al, 
-// 	tmany(rmany(~x1, rmany(~y2, rone(~z2))), 
-// 	tmany(rmany(~x2, rmany(~y1, rone(~z1))), 
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z1))), 
-// 	tmany(rmany(~x1, rmany(~y1, rone(~z1))),
-// 	tmany(rmany(~x1, rmany(~y2, rone(~z1))),
-// 	tmany(rmany(~x2, rmany(~y2, rone(~z2))), tempty))))))))
+// 	tcons(rcons(~x1, rcons(~y2, rone(~z2))), 
+// 	tcons(rcons(~x2, rcons(~y1, rone(~z1))), 
+// 	tcons(rcons(~x2, rcons(~y2, rone(~z1))), 
+// 	tcons(rcons(~x1, rcons(~y1, rone(~z1))),
+// 	tcons(rcons(~x1, rcons(~y2, rone(~z1))),
+// 	tcons(rcons(~x2, rcons(~y2, rone(~z2))), tempty))))))))

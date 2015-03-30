@@ -31,6 +31,12 @@ StoreContextConsistent(~TS, ~TTC)
 =================================== SQL-Preservation-T-SelectAll
 ~TTC |- ~sqlo : ~TT
 
+axiom
+welltypedtable(~TT, ~t)
+project(~al, ~t) = some(~pt)
+projectType(~al, ~TT) == some(~PT)
+=============================== Projection-TypeProjection
+~TTC |- TValue(~pt) : ~PT
 goal 
 ~sqli == SelectFrom1(~TT, ~tn)
 ~cin == conf(~sqli, ~TS)

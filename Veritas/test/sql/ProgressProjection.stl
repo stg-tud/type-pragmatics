@@ -11,17 +11,17 @@ goal
 StoreContextConsistent(~TS, ~TTC)
 clookup(~tn, ~TTC) == some(~TT1)
 lookup(~tn, ~TS) == some(~t)
-typePart(~al, ~TT1) == some(~TT2)
+projectType(~al, ~TT1) == some(~TT2)
 =================================================================== progress-projection
 exists ~t2
-	projection(~al, ~t) == some(~t2)
+	project(~al, ~t) == some(~t2)
 
 
 axiom
 StoreContextConsistent(~TS, ~TTC)
 clookup(~tn, ~TTC) == some(~TT1)
 lookup(~tn, ~TS) == some(~t)
-typePart(~al, ~TT1) == some(~TT2)
+projectType(~al, ~TT1) == some(~TT2)
 =================================================================== progress-projection
 exists ~t2
-	projection(~al, ~t) == some(~t2)
+	project(~al, ~t) == some(~t2)
