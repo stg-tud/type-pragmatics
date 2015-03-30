@@ -2,18 +2,11 @@ module sql.Tables
 
 // explanation:
 // FType: type of a single field (underspecified)
-// FTList: list of FType
 // AName: name of attribute (underspecified)
 // AList: list of attribute names
 // CType: type of a single column (pair AName, FType)
 // TType: type of a table (table schema) - list of CType
 
-// Modeling assumptions (captured with the structure of the constructors!):
-// 1) All tables have at least one column! (wanted to rule out "null" tables for now)
-// 2) Tables can have 0 or more rows 
-// 3) There are no "null" values for fields 
-// --> Together, this means it is not (syntactically) possible to construct a table with > 0 rows, but 0 columns!
-// --> So "empty table" is not ambiguous, is always a table with 0 entries/rows (and at least one column)
 
 sorts
 	FType AName AList CType TType
@@ -87,14 +80,6 @@ welltypedRow(ttempty, rempty) = true
 welltypedRow(ttcons(ctype(name, type), tt), rcons(v, r)) = (fieldType(v) == type) && welltypedRow(tt, r)
 welltypedRow(tt, r) = false
 	
-// //checks whether a given column type is part of a given table scheme
-// function
-// ctypeIn : AName FType TType -> Bool
-// ctypeIn(a1, ft1, ttone(ctype(a2, ft2))) =
-// 	(a1 == a2) && (ft1 == ft2)
-// ctypeIn(a1, ft1, ttcons(ctype(a2, ft2), ttr)) =
-// 	((a1 == a2) && (ft1 == ft2)) || ctypeIn(a1, ft1, ttr) 
-
 
 //a few tests for well-typedness
 goal
