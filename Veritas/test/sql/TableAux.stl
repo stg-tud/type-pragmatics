@@ -101,7 +101,7 @@ goal
 rowIn(~r, ~rt)
 
 local {
-	consts x1 : FVal
+	constructors x1 : FVal
 		x2 : FVal
 	
 	goal 
@@ -114,7 +114,7 @@ local {
 
 local {
 	
-	consts 
+	constructors 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -133,7 +133,7 @@ local {
 
 local {
 	
-	consts 
+	constructors 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -266,7 +266,7 @@ rawUnion(~prt, ~drt) == ~rt
 // rawUnion(~prt, ~drt) == ~rt
 
 local {
-	consts 
+	constructors 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -302,7 +302,7 @@ local {
 
 local {
 	
-	consts 
+	constructors 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -351,7 +351,7 @@ rawIntersection(~prt, ~drt) == ~rt
 
 local {
 	
-	consts 
+	constructors 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -382,7 +382,7 @@ local {
 // requires 120 timeout! (needs between 70-80 seconds to prove!)
 local {
 	
-	consts 
+	constructors 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -413,7 +413,7 @@ rawDifference(~prt, ~drt) == tempty
 
 local {
 	
-	consts 
+	constructors 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -431,7 +431,7 @@ local {
 
 local {
 	
-	consts 
+	constructors 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
