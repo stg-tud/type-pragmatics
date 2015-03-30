@@ -31,6 +31,10 @@ cbind(~x, ~Tx, cbind(~y, ~Ty, ~C)) |- ~e : ~T
 ================================================ T-TTContext-Swap
 cbind(~y, ~Ty, cbind(~x, ~Tx, ~C)) |- ~e : ~T
 
+function
+dropFirstColType : TType -> TType
+dropFirstColType(ttempty) = ttempty
+dropFirstColtType(ttcons(ct, tt)) = tt
 	
 function
 findColType : AName TType -> Opt // Opt[FType]

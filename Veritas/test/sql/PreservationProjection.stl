@@ -9,14 +9,14 @@ import sql.Tables
 import sql.TableAux
 import sql.SoundnessAuxDefs
 
-// proof of ProjectEmptyCol-TTEmpty
+// proof of ProjectEmptyCol-RTEmpty
 local {
 	// by structural induction ~rt
 	
 	goal
 	~rt = tempty
-	================================================ ProjectEmptyCol-TTEmpty-1
-	welltypedRawtable(ttempty, projectEmptyCol(~rt))
+	================================================ ProjectEmptyCol-RTEmpty-1
+	welltypedRawtable(rtempty, projectEmptyCol(~rt))
 	
 	local {
 		consts
@@ -25,39 +25,87 @@ local {
 		
 		axiom
 		~rt = rest
-		================================================ ProjectEmptyCol-TTEmpty-2-IH
-		welltypedRawtable(ttempty, projectEmptyCol(~rt))
+		================================================ ProjectEmptyCol-RTEmpty-2-IH
+		welltypedRawtable(rtempty, projectEmptyCol(~rt))
 		
 		goal
 		~rt = tcons(r, rest)
-		================================================ ProjectEmptyCol-TTEmpty-2
-		welltypedRawtable(ttempty, projectEmptyCol(~rt))
+		================================================ ProjectEmptyCol-RTEmpty-2
+		welltypedRawtable(rtempty, projectEmptyCol(~rt))
 	}
-} // qed ProjectEmptyCol-TTEmpty
+} // qed ProjectEmptyCol-RTEmpty
 
 axiom
 true
-================================================ ProjectEmptyCol-TTEmpty
-welltypedRawtable(ttempty, projectEmptyCol(~rt))
-
+================================================ ProjectEmptyCol-RTEmpty
+welltypedRawtable(rtempty, projectEmptyCol(~rt))
 
 
 // proof of FindCol-Preservation
 local {
-	// by structural induction on ~al, ~rt, and ~TT
+	// by induction on recursive structure of findCol
 	
-	goal
-	~al = aempty
-	~rt = tempty
-	~TT = ttempty
-	~t = table(~al, ~rt)
-	welltypedtable(~TT, ~t)
-	findCol(~a, ~t) = some(~col)
-	findColType(~a, ~TT) = some(~colType)
-	============================================================== FindCol-Preservation-1
-	welltypedRawtable(ttcons(ctype(~ax, ~colType), ttempty), ~col)
-	
-	
+	local {
+		consts
+			rt : RawTable
+		
+		goal
+		~al = aempty
+		~rt = rt
+		~t = table(~al, ~rt)
+		welltypedtable(~TT, ~t)
+		findCol(~a, ~t) = some(~col)
+		findColType(~a, ~TT) = some(~colType)
+		============================================================== FindCol-Preservation-1
+		welltypedRawtable(rtcons(~colType, rtempty), ~col)
+	}
+
+	local {
+		consts
+			a : AName
+			al : AList
+			rt : RawTable
+		
+		axiom
+		findCol(~a, table(al, dropFirstColRaw(rt))) = some(~col)
+		welltypedtable(~TT, table(al, dropFirstColRaw(rt)))
+		findColType(~a, ~TT) = some(~colType)
+		============================================================== FindCol-Preservation-2-IH
+		welltypedRawtable(rtcons(~colType, rtempty), ~col)
+		
+		axiom
+		welltypedRawtable(rtcons(~colType, ~RT), ~rt)
+		============================================================================== ProjectFirstRaw-Preservation
+		welltypedRawtable(rtcons(~colType, rtempty), projectFirstRaw(~rt))
+		
+		
+		goal
+		welltypedtable(~TT, table(acons(a, al), rt))
+		findCol(~a, table(acons(a, al), rt)) = some(~col)
+		findColType(~a, ~TT) = some(~colType)
+		============================================================== FindCol-Preservation-2
+		welltypedRawtable(rtcons(~colType, rtempty), ~col)
+		// OR
+		// =>	~a = a
+		// 	welltypedRawtable(rtcons(~colType, rtempty), ~col)
+		// 	// ~col = projectFirstRaw(rt)
+		// 	// welltypedRawtable(rawType(~TT), rt)
+		// 	// exists ~RTrest
+		// 	// 	rawType(~TT) = rtcons(~colType, ~RTrest)
+		// 	// 	welltypedRawtable(rtcons(~colType, ~TTrest), rt)
+		// 		// welltypedRawtable(ttcons(ctype(~ay, ~colType), ~TTrest), rt)
+		// 		// welltypedRawtable(ttcons(ctype(~ax, ~colType), ttempty), ~col)
+		// =>	~a != a
+		// 	exists ~TTrest, ~fa, ~ft
+		// 		~TT = ttcons(ctype(~fa, ~ft), ~TTrest)
+		// 		findCol(~a, table(al, dropFirstColRaw(rt))) = some(~col)
+		// 		findColType(~a, ~TTrest) = some(~colType)
+		// 		rawType(~TT) = rtcons(~ft, rawType(~TTrest))
+		// 		welltypedRawtable(rawType(~TTrest), dropFirstColRaw(rt))
+		// 		welltypedtable(~TTrest, table(al, dropFirstColRaw(rt)))
+		// 		// welltypedtable(~TTrest, table(al, dropFirstColRaw(rt)))
+		// 	// welltypedRawtable(rtcons(~colType, rtempty), ~col)
+	}
 }
 
 axiom
@@ -65,16 +113,20 @@ axiom
 welltypedtable(~TT, ~t)
 findCol(~a, ~t) = some(~col)
 findColType(~a, ~TT) = some(~colType)
-============================================================== FindCol-Preservation
-welltypedRawtable(ttcons(ctype(~ax, ~colType), ttempty), ~col)
+================================================== FindCol-Preservation
+welltypedRawtable(rtcons(~colType, rtempty), ~col)
+
+axiom // TODO prove
+welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+===================================================== DropFirstCol-Preservation
+welltypedRawtable(~RT, dropFirstColRaw(~rt))
 
 
 axiom // TODO prove
-welltypedRawtable(~TT, ~rt)
-~ct = ctype(~ax, ~colType)
-welltypedRawtable(ttcons(~ct, ttempty), ~col)
-=================================================================== AttachCol-Preserves-Typing
-welltypedRawtable(ttcons(~ct, ~tt), attachColToFrontRaw(~col, ~rt))
+welltypedRawtable(~RT, ~rt)
+welltypedRawtable(rtcons(~colType, rtempty), ~col)
+======================================================================== AttachCol-Preserves-Typing
+welltypedRawtable(rtcons(~colType, ~RT), attachColToFrontRaw(~col, ~rt))
 
 
 // proof of Project-Preservation
@@ -114,8 +166,8 @@ local {
 		// 	projectType(alrest, ~TT) == some(~PTrest)
 		// 	findCol(a, ~t) = some(~col)
 		// 	project(alrest, ~t) = some(~ptrest)
-		// 	welltypedRawtable(~PTrest, ~ptrest)
-		// 	welltypedRawtable(ttcons(ctype(~ax, ~colType), ttempty), ~col)
+		// 	welltypedRawtable(rawType(~PTrest), ~ptrest)
+		// 	welltypedRawtable(rtcons(~colType, rtempty), ~col)
 		// 	welltypedRawtable(~PT, ~pt)
 		// 	correspondingAList(~PTrest) == alrest
 		// 	correspondingAList(~PT) == acons(a, alrest)
