@@ -32,7 +32,7 @@ StoreContextConsistent(~TS, ~TTC)
 ~TTC |- ~sqlo : ~TT
 
 goal 
-~sqli == SelectFrom1(~TT, ~tn)
+~sqli == SelectFrom1(~al, ~tn)
 ~cin == conf(~sqli, ~TS)
 ~cout == conf(~sqlo, ~TS)
 reduce(~cin) = some(~cout)

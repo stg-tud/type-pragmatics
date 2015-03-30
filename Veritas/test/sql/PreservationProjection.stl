@@ -9,11 +9,24 @@ import sql.Tables
 import sql.TableAux
 import sql.SoundnessAuxDefs
 
+// proof of Project-Preservation
+local {
+	// by structural induction on ~al
+
+	goal
+	~al = aempty
+	welltypedtable(~TT, ~t)
+	project(~al, ~t) == some(~pt)
+	projectType(~al, ~TT) == some(~PT)
+	===================================== Project-Preservation-aempty
+	~TTC |- TValue(table(~al, ~pt)) : ~PT
+	
+}
 
 
 axiom
 welltypedtable(~TT, ~t)
 project(~al, ~t) = some(~pt)
 projectType(~al, ~TT) == some(~PT)
-=============================== Projection-TypeProjection
-~TTC |- TValue(~pt) : ~PT
+===================================== Project-Preservation
+~TTC |- TValue(table(~al, ~pt)) : ~PT
