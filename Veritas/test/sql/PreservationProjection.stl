@@ -1,0 +1,19 @@
+module sql.PreservationProjection
+
+import sql.BasicFunctions
+import sql.Syntax
+import sql.Semantics
+import sql.TypeSystem
+import sql.TStore
+import sql.Tables
+import sql.TableAux
+import sql.SoundnessAuxDefs
+
+
+
+axiom
+welltypedtable(~TT, ~t)
+project(~al, ~t) = some(~pt)
+projectType(~al, ~TT) == some(~PT)
+=============================== Projection-TypeProjection
+~TTC |- TValue(~pt) : ~PT

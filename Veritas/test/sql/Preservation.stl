@@ -8,7 +8,7 @@ import sql.TStore
 import sql.Tables
 import sql.TableAux
 import sql.SoundnessAuxDefs
-
+import sql.PreservationProjection
 
 goal 
 ~sqli == TValue(~t)
@@ -31,12 +31,6 @@ StoreContextConsistent(~TS, ~TTC)
 =================================== SQL-Preservation-T-SelectAll
 ~TTC |- ~sqlo : ~TT
 
-axiom
-welltypedtable(~TT, ~t)
-project(~al, ~t) = some(~pt)
-projectType(~al, ~TT) == some(~PT)
-=============================== Projection-TypeProjection
-~TTC |- TValue(~pt) : ~PT
 goal 
 ~sqli == SelectFrom1(~TT, ~tn)
 ~cin == conf(~sqli, ~TS)
