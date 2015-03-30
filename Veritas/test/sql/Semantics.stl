@@ -23,10 +23,15 @@ findCol(a, table(acons(a2, al), rt)) =
 		if (a == a2)
 		then some(projectFirstRaw(rt))
 		else findCol(a, table(al, dropFirstColRaw(rt)))
+
+function
+projectEmptyCol : RawTable -> RawTable
+projectEmptyCol(tempty) = tempty
+projectEmptyCol(tcons(r, t)) = tcons(rempty, projectEmptyCol(t))
 	
 function
 project : AList Table -> Opt // Opt[RawTable]
-project(aempty, t) = some(tempty)
+project(aempty, table(al, rt)) = some(projectEmptyCol(rt))
 project(acons(a, alr), t) =
 	let col = findCol(a, t) in
 		let rest = project(alr, t) in
