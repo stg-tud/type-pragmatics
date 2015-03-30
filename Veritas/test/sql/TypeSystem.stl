@@ -144,23 +144,47 @@ OR
 		
 //variant of inversion lemma in several different lemmas 
 //(seems to be helpful for progress proof)
-axioms
+goal
 ~sql == TValue(table(~al, ~rt))
 ~TTC |- ~sql : ~TT
 ==================================================== T-inv-TValue
 welltypedtable(~TT, table(~al, ~rt))
 
+axiom
+~sql == TValue(table(~al, ~rt))
+~TTC |- ~sql : ~TT
+==================================================== T-inv-TValue
+welltypedtable(~TT, table(~al, ~rt))
+
+
+goal
 ~sql == SelectAll(~tn)		
 ~TTC |- ~sql : ~TT
 ==================================================== T-inv-SelectAll		
 clookup(~tn, ~TTC) == some(~TT)
 
+axiom
+~sql == SelectAll(~tn)		
+~TTC |- ~sql : ~TT
+==================================================== T-inv-SelectAll		
+clookup(~tn, ~TTC) == some(~TT)
+
+
+goal
 ~sql == SelectFrom1(~al, ~tn)
 ~TTC |- ~sql : ~TT
 ==================================================== T-inv-SelectFrom1
 exists ~TT1
 	clookup(~tn, ~TTC) == some(~TT1)
-	typePart(~al, ~TT1) == some(~TT)			
+	typePart(~al, ~TT1) == some(~TT)	
+	
+axiom
+~sql == SelectFrom1(~al, ~tn)
+~TTC |- ~sql : ~TT
+==================================================== T-inv-SelectFrom1
+exists ~TT1
+	clookup(~tn, ~TTC) == some(~TT1)
+	typePart(~al, ~TT1) == some(~TT)		
 		
 // ~sql == SelectAllFromWhere1(~tn, ~p)
 // ~TS |- ~sql : ~TT
