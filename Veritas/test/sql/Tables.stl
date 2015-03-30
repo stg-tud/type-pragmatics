@@ -68,12 +68,6 @@ ge : FVal FVal -> Bool
 // check whether a table corresponds to a given type (functional notation)
 // does not yet check for whether the table type contains only unique attribute names!!
 // (but semantics should be possible to define in a sensible way without that requirement...)
-function
-welltypedrow : Row FTList -> Bool
-welltypedrow(rone(f), ftlone(ft)) = (fieldType(f) == ft)
-welltypedrow(rone(f), ftlmany(ft, rt)) = false
-welltypedrow(rmany(f, r), ftlmany(ft, rt)) = 
-	(fieldType(f) == ft) && welltypedrow(r, rt)
 	
 function 
 correspondingAList : TType -> AList
@@ -97,7 +91,9 @@ welltypedRawtable(tt, tmany(r, t)) = welltypedRow(tt, r) && welltypedRawtable(tt
 function
 welltypedRow : TType Row -> Bool
 welltypedRow(ttone(ctype(name, type)), rone(v)) = (fieldType(v) == type)
-welltypedRow(ttmany(ctype(name, type), tt), rmany(v, r)) = (fieldType(v) == type) && welltypedRow(tt, r)
+welltypedRow(ttmany(ctype(name, type), tt), rmany(v, r)) = 
+	(fieldType(v) == type) && welltypedRow(tt, r)
+welltypedRow(tt, r) = false
 	
 // //checks whether a given column type is part of a given table scheme
 // function

@@ -8,15 +8,15 @@ import sql.Tables
 
 
 goal
-isSome(clookup(~tn, ~TTC))
+clookup(~tn, ~TTC) == some(~TT)
 StoreContextConsistent(~TS, ~TTC)
 ============================================== lookup-aux
-exists ~al, ~rt
-	lookup(~tn, ~TS) == some(table(~al, ~rt))
+exists ~t
+	lookup(~tn, ~TS) == some(~t)
 
 axiom
-isSome(clookup(~tn, ~TTC))
+clookup(~tn, ~TTC) == some(~TT)
 StoreContextConsistent(~TS, ~TTC)
 ============================================== lookup-aux
-exists ~al, ~rt
-	lookup(~tn, ~TS) == some(table(~al, ~rt))
+exists ~t
+	lookup(~tn, ~TS) == some(~t)

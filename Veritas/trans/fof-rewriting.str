@@ -330,8 +330,7 @@ strategies
 	generate-fof-goals(|axioms, cons) : [Consts(cs) | rest] -> others
 		where
 			cs-axioms := <map(scoped-constructor-axiom)> cs;
-			cs-diff-axioms := <constructor-diff-axioms(|cons)> cs;
-			axioms2 := <conc> (axioms, cs-axioms, cs-diff-axioms); 
+			axioms2 := <conc> (axioms, cs-axioms); 
 			cons2 := <conc> (cons, cs);
 			others := <generate-fof-goals(|axioms2, cons2)> rest
 	generate-fof-goals(|axioms, cons) : [PartialFunctions(fs) | rest] -> others
