@@ -8,7 +8,7 @@ import sql.Syntax
 import sql.TStore
 
 local {
-	consts 
+	constructors 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -16,7 +16,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	consts
+	constructors
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -37,7 +37,7 @@ local {
 }
 
 local {
-	consts 
+	constructors 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -45,7 +45,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	consts
+	constructors
 		A1 : AName
 		A2 : AName
 		A3 : AName
@@ -63,7 +63,7 @@ local {
 
 
 local {
-	consts 
+	constructors 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -71,7 +71,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	consts
+	constructors
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -91,7 +91,7 @@ local {
 
 
 local {
-	consts 
+	constructors 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -99,7 +99,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	consts
+	constructors
 		A1 : AName
 		A2 : AName
 		A3 : AName
@@ -115,7 +115,7 @@ local {
 }
 
 local {
-	consts 
+	constructors
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -123,7 +123,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	consts
+	constructors
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -191,7 +191,7 @@ local {
 }
 
 local {
-	consts 
+	constructors 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -199,7 +199,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	consts
+	constructors
 		TN : TName
 		A1 : AName
 		A2 : AName
