@@ -17,6 +17,77 @@ StoreContextConsistent(bind(tn1, t, tsr), cbind(tn2, tt, ttcr)) =
 	&& StoreContextConsistent(tsr, ttcr)
 StoreContextConsistent(ts, ttc) = false 
 
+// proof of StoreContext-Lookup-WT
+local {
+	goal
+	~TS = empty
+	~TTC = cempty
+	StoreContextConsistent(~TS, ~TTC)
+	lookup(~tn, ~TS) = some(~t)
+	clookup(~tn, ~TTC) == some(~tt)
+	================================= StoreContext-Lookup-WT-1
+	welltypedtable(~tt, ~t)
+
+	local {
+		consts
+			ctn : TName
+			ctt : TType
+			cttc : TTContext
+		
+		goal
+		~TS = empty
+		~TTC = cbind(ctn, ctt, cttc)
+		StoreContextConsistent(~TS, ~TTC)
+		lookup(~tn, ~TS) = some(~t)
+		clookup(~tn, ~TTC) == some(~tt)
+		================================= StoreContext-Lookup-WT-2
+		welltypedtable(~tt, ~t)
+	}
+
+	local {
+		consts
+			ctn : TName
+			ct : Table
+			cts : TStore
+		
+		goal
+		~TS = bind(ctn, ct, cts)
+		~TTC = cempty
+		StoreContextConsistent(~TS, ~TTC)
+		lookup(~tn, ~TS) = some(~t)
+		clookup(~tn, ~TTC) == some(~tt)
+		================================= StoreContext-Lookup-WT-3
+		welltypedtable(~tt, ~t)
+	}
+	
+	local {
+		consts
+			ctn1 : TName
+			ct : Table
+			cts : TStore
+			ctn2 : TName
+			ctt : TType
+			cttc : TTContext
+		
+		axiom
+		~TS = cts
+		~TTC = cttc
+		StoreContextConsistent(~TS, ~TTC)
+		lookup(~tn, ~TS) = some(~t)
+		clookup(~tn, ~TTC) == some(~tt)
+		================================= StoreContext-Lookup-WT-4-IH
+		welltypedtable(~tt, ~t)
+		
+		goal
+		~TS = bind(ctn1, ct, cts)
+		~TTC = cbind(ctn2, ctt, cttc)
+		StoreContextConsistent(~TS, ~TTC)
+		lookup(~tn, ~TS) = some(~t)
+		clookup(~tn, ~TTC) == some(~tt)
+		================================= StoreContext-Lookup-WT-4
+		welltypedtable(~tt, ~t)
+	}
+} // qed StoreContext-Lookup-WT
 
 axiom
 StoreContextConsistent(~TS, ~TTC)
