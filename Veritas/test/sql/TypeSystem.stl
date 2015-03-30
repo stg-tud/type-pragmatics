@@ -18,7 +18,7 @@ clookup(tn, cempty) = none
 clookup(tn, cbind(tm, tt, TTC)) =
 	if (tn == tm)
 	then some(tt)
-	else lookup(tn, TTC) 
+	else clookup(tn, TTC) 
 	
 axioms
 ~x == ~y
