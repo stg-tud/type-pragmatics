@@ -19,6 +19,8 @@ StoreContextConsistent(ts, ttc) = false
 
 // proof of StoreContext-Lookup-WT
 local {
+	// by structural induction on ~TS and ~TTC
+	
 	goal
 	~TS = empty
 	~TTC = cempty
