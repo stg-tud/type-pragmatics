@@ -9,7 +9,7 @@ module sql.Tables
 
 
 sorts
-	FType AName AList CType TType
+	FType AName AList CType TType RawType
 	
 constructors
 	ctype : AName FType -> CType
@@ -17,6 +17,8 @@ constructors
 	acons : AName AList -> AList
 	ttempty : TType
 	ttcons : CType TType -> TType
+	rtempty : RawType
+	rtcons : FType RawType -> RawType
 
 //explanation:
 // FVal: Value for a field (underspecified)
@@ -61,24 +63,31 @@ ge : FVal FVal -> Bool
 // (but semantics should be possible to define in a sensible way without that requirement...)
 	
 function 
-correspondingAList : TType -> AList
-correspondingAList(ttempty) = aempty
-correspondingAList(ttcons(ctype(a, f), tt)) = acons(a, correspondingAList(tt))	
+matchingAList : TType AList -> Bool
+matchingAList(ttempty, aempty) = true
+matchingAList(ttcons(ctype(a1, f), tt), acons(a2, al)) = 
+	(a1 == a2) && matchingAList(tt, al)
+matchingAList(tt, al) = false	
 	
 function
 welltypedtable : TType Table -> Bool
-welltypedtable(tt, table(al, t)) = (correspondingAList(tt) == al) && welltypedRawtable(tt, t)
+welltypedtable(tt, table(al, t)) = matchingAList(tt, al) && welltypedRawtable(rawType(tt), t)
 
 function
-welltypedRawtable : TType RawTable -> Bool
-welltypedRawtable(tt, tempty) = true
-welltypedRawtable(tt, tcons(r, t)) = welltypedRow(tt, r) && welltypedRawtable(tt, t)
+rawType : TType -> RawType
+rawType(ttempty) = rtempty
+rawType(ttcons(ctype(a, ft), tt)) = rtcons(ft, rawType(tt))
 
 function
-welltypedRow : TType Row -> Bool
-welltypedRow(ttempty, rempty) = true
-welltypedRow(ttcons(ctype(name, type), tt), rcons(v, r)) = (fieldType(v) == type) && welltypedRow(tt, r)
-welltypedRow(tt, r) = false
+welltypedRawtable : RawType RawTable -> Bool
+welltypedRawtable(rt, tempty) = true
+welltypedRawtable(rt, tcons(r, t)) = welltypedRow(rt, r) && welltypedRawtable(rt, t)
+
+function
+welltypedRow : RawType Row -> Bool
+welltypedRow(rtempty, rempty) = true
+welltypedRow(rtcons(ft, rt), rcons(v, r)) = (fieldType(v) == ft) && welltypedRow(rt, r)
+welltypedRow(rt, r) = false
 	
 
 //a few tests for well-typedness
