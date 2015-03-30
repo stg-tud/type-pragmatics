@@ -331,8 +331,7 @@ strategies
 		where
 			cs-axioms := <map(scoped-constructor-axiom)> cs;
 			axioms2 := <conc> (axioms, cs-axioms); 
-			cons2 := <conc> (cons, cs);
-			others := <generate-fof-goals(|axioms2, cons2)> rest
+			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [PartialFunctions(fs) | rest] -> others
 		where
 			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
