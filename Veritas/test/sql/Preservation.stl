@@ -31,15 +31,15 @@ StoreContextConsistent(~TS, ~TTC)
 =================================== SQL-Preservation-T-SelectAll
 ~TTC |- ~sqlo : ~TT
 
-goal 
-~sqli == SelectFrom1(~al, ~tn)
-~cin == conf(~sqli, ~TS)
-~cout == conf(~sqlo, ~TS)
-reduce(~cin) = some(~cout)
-~TTC |- ~sqli : ~TT
-StoreContextConsistent(~TS, ~TTC)
-=================================== SQL-Preservation-T-SelectFrom1
-~TTC |- ~sqlo : ~TT
+// goal 
+// ~sqli == SelectFrom1(~al, ~tn)
+// ~cin == conf(~sqli, ~TS)
+// ~cout == conf(~sqlo, ~TS)
+// reduce(~cin) = some(~cout)
+// ~TTC |- ~sqli : ~TT
+// StoreContextConsistent(~TS, ~TTC)
+// =================================== SQL-Preservation-T-SelectFrom1
+// ~TTC |- ~sqlo : ~TT
 
 // 
 // local {
