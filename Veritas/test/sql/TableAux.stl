@@ -34,7 +34,7 @@ dropFirstColRaw(tcons(rcons(f, r), rt)) = tcons(r, dropFirstColRaw(rt))
 partial function
 attachColToFrontRaw : RawTable RawTable -> RawTable
 //second arg t should be tempty normally!
-attachColToFrontRaw(tempty, t) = tempty
+attachColToFrontRaw(tempty, tempty) = tempty
 attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) = 
 	tcons(rcons(f, r), attachColToFrontRaw(rt1, rt2))
 
