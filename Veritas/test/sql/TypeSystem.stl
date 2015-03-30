@@ -34,29 +34,26 @@ cbind(~y, ~Ty, cbind(~x, ~Tx, ~C)) |- ~e : ~T
 	
 // return an optional FType
 function
-coltype : AName TType -> Opt
-coltype(an, ttone(ctype(a, ft))) = 
+findColType : AName TType -> Opt // Opt[FType]
+findColType(an, ttempty) = none
+findColType(an, ttcons(ctype(a, ft), ttr)) =
 	if (an == a)
 	then some(ft)
-	else none
-coltype(an, ttmany(ctype(a, ft), ttr)) =
-	if (an == a)
-	then some(ft)
-	else coltype(an, ttr)
+	else findColType(an, ttr)
 
 // return an optional TType
 function
-typePart : AList TType -> Opt
-typePart(aone(a1), tt) = 
-	let ft = coltype(a1, tt) in
-		if (isSome(ft))
-		then some(ttone(ctype(a1, getSome(ft))))
-		else none
-typePart(amany(a1, alr), tt) =
-	let ft = coltype(a1, tt) in
-		let tprest = typePart(alr, tt) in
+projectType : AList TType -> Opt // Opt[TType]
+projectType(aempty, tt) = some(ttempty)
+	// let ft = findColType(a1, tt) in
+	// 	if (isSome(ft))
+	// 	then some(ttone(ctype(a1, getSome(ft))))
+	// 	else none
+projectType(acons(a, alr), tt) =
+	let ft = findColType(a, tt) in
+		let tprest = projectType(alr, tt) in
 			if (isSome(ft) && isSome(tprest))
-			then some(ttmany(ctype(a1, getSome(ft)), getSome(tprest)))
+			then some(ttcons(ctype(a, getSome(ft)), getSome(tprest)))
 			else none
 
  
@@ -71,7 +68,7 @@ clookup(~tn, ~TTC) == some(~TT)
 ~TTC |- SelectAll(~tn) : ~TT
 
 clookup(~tn, ~TTC) == some(~TT1)
-typePart(~al, ~TT1) == some(~TT)
+projectType(~al, ~TT1) == some(~TT)
 ================================================ T-SelectFrom1
 ~TTC |- SelectFrom1(~al, ~tn) : ~TT
 
@@ -117,7 +114,7 @@ OR
 => exists ~tn, ~TT1, ~al, ~rt
 		~sql == SelectFrom1(~al, ~tn)
 		clookup(~tn, ~TTC) == some(~TT1)
-		typePart(~al, ~TT1) == some(~TT)	
+		projectType(~al, ~TT1) == some(~TT)	
 // => exists ~tn, ~p, ~rt
 // 		~sql == SelectAllFromWhere1(~tn, ~p)
 // 		lookup(~tn, ~TS) == some(table(~TT, ~rt))
@@ -176,7 +173,7 @@ goal
 ==================================================== T-inv-SelectFrom1
 exists ~TT1
 	clookup(~tn, ~TTC) == some(~TT1)
-	typePart(~al, ~TT1) == some(~TT)	
+	projectType(~al, ~TT1) == some(~TT)	
 	
 axiom
 ~sql == SelectFrom1(~al, ~tn)
@@ -184,7 +181,7 @@ axiom
 ==================================================== T-inv-SelectFrom1
 exists ~TT1
 	clookup(~tn, ~TTC) == some(~TT1)
-	typePart(~al, ~TT1) == some(~TT)		
+	projectType(~al, ~TT1) == some(~TT)		
 		
 // ~sql == SelectAllFromWhere1(~tn, ~p)
 // ~TS |- ~sql : ~TT
