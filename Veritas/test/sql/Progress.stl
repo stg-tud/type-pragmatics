@@ -34,15 +34,15 @@ exists ~cout
 	reduce(~cin) = some(~cout)
 
 // needs 60 second timeout!		
-// goal
-// ~sql == SelectFrom1(~al, ~tn) 
-// ~cin == conf(~sql, ~TS)
-// !isValue(~sql)
-// ~TTC |- ~sql : ~TT
-// StoreContextConsistent(~TS, ~TTC)
-// ==================================== SQL-Progress-T-SelectFrom1
-// exists ~cout
-// 	reduce(~cin) = some(~cout)
+goal
+~sql == SelectFrom1(~al, ~tn) 
+~cin == conf(~sql, ~TS)
+!isValue(~sql)
+~TTC |- ~sql : ~TT
+StoreContextConsistent(~TS, ~TTC)
+==================================== SQL-Progress-T-SelectFrom1
+exists ~cout
+	reduce(~cin) = some(~cout)
 	
 // 	
 // //only application of correct case of inversion lemma is necessary	
@@ -95,13 +95,11 @@ local {
 		reduce(~cin) = some(~cout)
 		
 	goal
-	~sql == Union(~sql1, ~sql2)
-	~sql1 == TValue(~t1)
-	~sql2 == TValue(~t2)
-	~cin == conf(~sql, ~TS)
+	~sql == Union(TValue(~t1), TValue(~t2))
+	~cin == conf(~sql, TS)
 	!isValue(~sql)
-	~TTC |- ~sql : ~TT
-	StoreContextConsistent(~TS, ~TTC)
+	TTC |- ~sql : TT
+	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union-1
 	exists ~cout
 		reduce(~cin) = some(~cout)
@@ -110,40 +108,62 @@ local {
 	~sql == Union(TValue(~t1), TValue(~t2))
 	~cin == conf(~sql, ~TS)
 	!isValue(~sql)
-	~TTC |- ~sql : ~TT
-	StoreContextConsistent(~TS, ~TTC)
+	TTC |- ~sql : TT
+	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union-1
 	exists ~cout
 		reduce(~cin) = some(~cout)
-		
-	axiom
-	~sql == Union(TValue(~t1), ~sql2)
-	forall ~t2 ~sql2 != TValue(~t2)
-	~cin == conf(~sql, ~TS)
+	
+	goal
+	~sql == Union(TValue(~t1), sql2)
+	forall ~t2 sql2 != TValue(~t2)
+	~cin == conf(~sql, TS)
 	!isValue(~sql)
-	~TTC |- ~sql : ~TT
-	StoreContextConsistent(~TS, ~TTC)
+	TTC |- ~sql : TT
+	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union-2
 	exists ~cout
 		reduce(~cin) = some(~cout)
 		
 	axiom
-	~sql == Union(~sql1, ~sql2)
-	forall ~t1 ~sql1 != TValue(~t1)
-	~cin == conf(~sql, ~TS)
+	~sql == Union(TValue(~t1), sql2)
+	forall ~t2 sql2 != TValue(~t2)
+	~cin == conf(~sql, TS)
 	!isValue(~sql)
-	~TTC |- ~sql :  ~TT
-	StoreContextConsistent(~TS, ~TTC)
+	TTC |- ~sql : TT
+	StoreContextConsistent(TS, TTC)
+	==================================== SQL-Progress-T-Union-2
+	exists ~cout
+		reduce(~cin) = some(~cout)
+		
+	goal
+	~sql == Union(sql1, sql2)
+	forall ~t1 sql1 != TValue(~t1)
+	~cin == conf(~sql, TS)
+	!isValue(~sql)
+	TTC |- ~sql :  TT
+	StoreContextConsistent(TS, TTC)
+	==================================== SQL-Progress-T-Union-3
+	exists ~cout
+		reduce(~cin) = some(~cout)
+		
+	axiom
+	~sql == Union(sql1, sql2)
+	forall ~t1 sql1 != TValue(~t1)
+	~cin == conf(~sql, TS)
+	!isValue(~sql)
+	TTC |- ~sql :  TT
+	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union-3
 	exists ~cout
 		reduce(~cin) = some(~cout)
 		
 	goal
-	~sql == Union(~sql1, ~sql2)
-	~cin == conf(~sql, ~TS)
+	~sql == Union(sql1, sql2)
+	~cin == conf(~sql, TS)
 	!isValue(~sql)
-	~TTC |- ~sql : ~TT
-	StoreContextConsistent(~TS, ~TTC)
+	TTC |- ~sql : TT
+	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union
 	exists ~cout
 		reduce(~cin) = some(~cout)
