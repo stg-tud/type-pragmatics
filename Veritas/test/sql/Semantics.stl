@@ -117,7 +117,7 @@ reduce(conf(SelectFrom1(al, tn), ts)) =
 		if (isSome(ltn))
 		then (let pt = project(al, getSome(ltn)) in
 			if (isSome(pt))
-			then some(conf(TValue(getSome(pt)), ts))
+			then some(conf(TValue(table(al, getSome(pt))), ts))
 			else none)
 		else none
 // reduce(conf(SelectAllFromWhere1(tn, p), ts)) =
