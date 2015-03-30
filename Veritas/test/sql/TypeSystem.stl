@@ -32,7 +32,6 @@ cbind(~x, ~Tx, cbind(~y, ~Ty, ~C)) |- ~e : ~T
 cbind(~y, ~Ty, cbind(~x, ~Tx, ~C)) |- ~e : ~T
 
 	
-// return an optional FType
 function
 findColType : AName TType -> Opt // Opt[FType]
 findColType(an, ttempty) = none
@@ -41,14 +40,9 @@ findColType(an, ttcons(ctype(a, ft), ttr)) =
 	then some(ft)
 	else findColType(an, ttr)
 
-// return an optional TType
 function
 projectType : AList TType -> Opt // Opt[TType]
 projectType(aempty, tt) = some(ttempty)
-	// let ft = findColType(a1, tt) in
-	// 	if (isSome(ft))
-	// 	then some(ttone(ctype(a1, getSome(ft))))
-	// 	else none
 projectType(acons(a, alr), tt) =
 	let ft = findColType(a, tt) in
 		let tprest = projectType(alr, tt) in
