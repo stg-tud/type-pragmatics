@@ -9,6 +9,23 @@ import sql.Tables
 import sql.TableAux
 import sql.SoundnessAuxDefs
 
+
+axiom // TODO prove
+welltypedtable(~TT, ~t)
+findCol(~a, ~t) = some(~col)
+findColType(~a, ~TT) = some(~colType)
+============================================================== FindCol-Preservation
+welltypedRawtable(ttcons(ctype(~ax, ~colType), ttempty), ~col)
+
+axiom // TODO prove
+welltypedRawtable(~TT, ~rt)
+~ct = ctype(~ax, ~colType)
+welltypedRawtable(ttcons(~ct, ttempty), ~col)
+=================================================================== AttachCol-Preserves-Typing
+welltypedRawtable(ttcons(~ct, ~tt), attachColToFrontRaw(~col, ~rt))
+
+
+
 // proof of Project-Preservation
 local {
 	// by structural induction on ~al
@@ -21,6 +38,40 @@ local {
 	===================================== Project-Preservation-aempty
 	~TTC |- TValue(table(~al, ~pt)) : ~PT
 	
+	local {
+		consts
+			a : AName
+			alrest : AList
+		
+		axiom
+		~al = alrest
+		welltypedtable(~TT, ~t)
+		project(~al, ~t) == some(~pt)
+		projectType(~al, ~TT) == some(~PT)
+		===================================== Project-Preservation-acons-IH
+		~TTC |- TValue(table(~al, ~pt)) : ~PT
+		
+		goal
+		~al = acons(a, alrest)
+		welltypedtable(~TT, ~t)
+		project(~al, ~t) == some(~pt)
+		projectType(~al, ~TT) == some(~PT)
+		===================================== Project-Preservation-acons
+		~TTC |- TValue(table(~al, ~pt)) : ~PT
+		// exists ~col, ~colType, ~ptrest, ~PTrest
+		// 	findColType(a, ~TT) = some(~colType)
+		// 	projectType(alrest, ~TT) == some(~PTrest)
+		// 	findCol(a, ~t) = some(~col)
+		// 	project(alrest, ~t) = some(~ptrest)
+		// 	welltypedRawtable(~PTrest, ~ptrest)
+		// 	welltypedRawtable(ttcons(ctype(~ax, ~colType), ttempty), ~col)
+		// 	welltypedRawtable(~PT, ~pt)
+		// 	correspondingAList(~PTrest) == alrest
+		// 	correspondingAList(~PT) == acons(a, alrest)
+			// ~TTC |- TValue(table(alrest, ~ptrest)) : ~PTrest
+			// ~PT = ttcons(ctype(a, ~colType), ~PTrest)
+			// ~pt = attachColToFrontRaw(~col, ~ptrest)
+	}
 }
 
 
