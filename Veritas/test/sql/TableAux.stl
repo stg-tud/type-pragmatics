@@ -1,5 +1,6 @@
 module sql.TableAux
 
+import sql.BasicFunctions
 import sql.Tables
 
 //some auxiliary functions on raw tables (all not knowing anything about table types!)
@@ -30,13 +31,15 @@ dropFirstColRaw(tcons(rcons(f, r), rt)) = tcons(r, dropFirstColRaw(rt))
 //attaches a raw table with one column to the front of another raw table
 //returns a raw table with one column more
 //assumes that both tables have the same row count!
-//has to be partial, not every case is covered!
-partial function
-attachColToFrontRaw : RawTable RawTable -> RawTable
-//second arg t should be tempty normally!
-attachColToFrontRaw(tempty, tempty) = tempty
-attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) = 
-	tcons(rcons(f, r), attachColToFrontRaw(rt1, rt2))
+function
+attachColToFrontRaw : RawTable RawTable -> Opt // Opt[RawTable]
+attachColToFrontRaw(tempty, tempty) = some(tempty)
+attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) =
+	let rest = attachColToFrontRaw(rt1, rt2) in
+		if (isSome(rest)) 
+		then some(tcons(rcons(f, r), getSome(rest)))
+		else none
+attachColToFrontRaw(rt1, rt2) = none
 
 //definition: union removes duplicate rows
 //(but only between the two tables, not within a table!)

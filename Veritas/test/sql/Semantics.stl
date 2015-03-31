@@ -36,7 +36,7 @@ project(acons(a, alr), t) =
 	let col = findCol(a, t) in
 		let rest = project(alr, t) in
 			if (isSome(col) && isSome(rest))
-			then some(attachColToFrontRaw(getSome(col), getSome(rest)))
+			then attachColToFrontRaw(getSome(col), getSome(rest))
 			else none
 
 

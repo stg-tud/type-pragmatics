@@ -22,10 +22,17 @@ getSome(some(a)) = a
 
 axiom
 isSome(~opt)
-================= isSome-INV
+================= isSome-INV-1
 exists ~a
 	~opt = some(~a)
 	getSome(~opt) = ~a
+
+axiom
+~opt = some(~a)
+getSome(~opt) = ~b
+================= isSome-INV-2
+~a = ~b
+
 
 // Option variant for option boolean (3 answers: true, false, error)
 sorts
