@@ -230,25 +230,95 @@ local {
 		TTC : TTContext
 		TT : TType
 	
-	axiom 
-	~sqli == sql1
+	goal
+	~sqli == Union(TValue(~t1), TValue(~t2))
 	~cin == conf(~sqli, TS)
 	~cout == conf(~sqlo, TS)
 	reduce(~cin) = some(~cout)
 	TTC |- ~sqli : TT
 	StoreContextConsistent(~TS, ~TTC)
-	================================ SQL-Preservation-T-Union-IH1
-	TS |- ~sqlo : TT
+	========================================== SQL-Preservation-T-Union-1
+	TS |- ~sqlo : TT	
+		
+	axiom 
+	~sqli == Union(TValue(~t1), TValue(~t2))
+	~cin == conf(~sqli, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TTC |- ~sqli : TT
+	StoreContextConsistent(~TS, ~TTC)
+	========================================== SQL-Preservation-T-Union-1
+	TS |- ~sqlo : TT	
+	
+	local {
+		
+		axiom 
+		~sqli == sql2
+		~cin == conf(~sqli, TS)
+		~cout == conf(~sqlo, TS)
+		reduce(~cin) = some(~cout)
+		TTC |- ~sqli : TT
+		StoreContextConsistent(~TS, ~TTC)
+		================================ SQL-Preservation-T-Union-IH2
+		TS |- ~sqlo : TT
+		
+		goal 
+		~sqli == Union(TValue(~t1), sql2)
+		forall ~t2 sql2 != TValue(~t2)
+		~cin == conf(~sqli, TS)
+		~cout == conf(~sqlo, TS)
+		reduce(~cin) = some(~cout)
+		TTC |- ~sqli : TT
+		StoreContextConsistent(~TS, ~TTC)
+		========================================== SQL-Preservation-T-Union-2
+		TS |- ~sqlo : TT	
+	}
 	
 	axiom 
-	~sqli == sql2
+	~sqli == Union(TValue(~t1), sql2)
+	forall ~t2 sql2 != TValue(~t2)
 	~cin == conf(~sqli, TS)
 	~cout == conf(~sqlo, TS)
 	reduce(~cin) = some(~cout)
 	TTC |- ~sqli : TT
 	StoreContextConsistent(~TS, ~TTC)
-	================================ SQL-Preservation-T-Union-IH2
-	TS |- ~sqlo : TT
+	========================================== SQL-Preservation-T-Union-2
+	TS |- ~sqlo : TT	
+	
+	local {
+		
+		axiom 
+		~sqli == sql1
+		~cin == conf(~sqli, TS)
+		~cout == conf(~sqlo, TS)
+		reduce(~cin) = some(~cout)
+		TTC |- ~sqli : TT
+		StoreContextConsistent(~TS, ~TTC)
+		================================ SQL-Preservation-T-Union-IH1
+		TS |- ~sqlo : TT
+		
+		goal 
+		~sqli == Union(sql1, sql2)
+		forall ~t1 sql1 != TValue(~t1)
+		~cin == conf(~sqli, TS)
+		~cout == conf(~sqlo, TS)
+		reduce(~cin) = some(~cout)
+		TTC |- ~sqli : TT
+		StoreContextConsistent(~TS, ~TTC)
+		========================================== SQL-Preservation-T-Union-3
+		TS |- ~sqlo : TT	
+	}
+	
+	axiom 
+	~sqli == Union(sql1, sql2)
+	forall ~t1 sql1 != TValue(~t1)
+	~cin == conf(~sqli, TS)
+	~cout == conf(~sqlo, TS)
+	reduce(~cin) = some(~cout)
+	TTC |- ~sqli : TT
+	StoreContextConsistent(~TS, ~TTC)
+	========================================== SQL-Preservation-T-Union-3
+	TS |- ~sqlo : TT	
 		
 	goal 
 	~sqli == Union(sql1, sql2)
