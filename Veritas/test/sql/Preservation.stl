@@ -230,15 +230,24 @@ local {
 		TTC : TTContext
 		TT : TType
 	
-	goal
-	~sqli == Union(TValue(~t1), TValue(~t2))
-	~cin == conf(~sqli, TS)
-	~cout == conf(~sqlo, TS)
-	reduce(~cin) = some(~cout)
-	TTC |- ~sqli : TT
-	StoreContextConsistent(~TS, ~TTC)
-	========================================== SQL-Preservation-T-Union-1
-	TS |- ~sqlo : TT	
+	local {
+	
+		axiom
+		~TTC |- TValue(~t1) : ~TT
+		~TTC |- TValue(~t2) : ~TT
+		================================================ Union-type-aux
+		~TTC |- TValue(getSome(union(~t1, ~t2))) : ~TT
+		
+		goal
+		~sqli == Union(TValue(~t1), TValue(~t2))
+		~cin == conf(~sqli, TS)
+		~cout == conf(~sqlo, TS)
+		reduce(~cin) = some(~cout)
+		TTC |- ~sqli : TT
+		StoreContextConsistent(~TS, ~TTC)
+		========================================== SQL-Preservation-T-Union-1
+		TS |- ~sqlo : TT
+	}	
 		
 	axiom 
 	~sqli == Union(TValue(~t1), TValue(~t2))
@@ -251,6 +260,18 @@ local {
 	TS |- ~sqlo : TT	
 	
 	local {
+
+		axiom
+		~sqli == Union(TValue(~t1), sql2)
+		forall ~t2 sql2 != TValue(~t2)
+		~cin == conf(~sqli, TS)
+		~cout == conf(~sqlo, TS)
+		reduce(~cin) = some(~cout)
+		TTC |- ~sqli : TT
+		StoreContextConsistent(~TS, ~TTC)
+		====================================== sql2-Progress
+		exists ~cout
+			reduce(sql2, TS) == some(~cout)
 		
 		axiom 
 		~sqli == sql2
