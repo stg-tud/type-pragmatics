@@ -76,6 +76,30 @@ local {
 		
 	local {	
 		
+		local {
+			const tt : TType
+			
+			goal
+			~TT == ttempty
+			matchingAList(~TT, ~al1)
+			matchingAList(~TT, ~al2)
+			=========================== matchingAList-eq-ttempty
+			~al1 == ~al2
+		
+			axiom
+			matchingAList(tt, ~al1)
+			matchingAList(tt, ~al2)
+			=========================== matchingAList-eq-ttcons-IH
+			~al1 == ~al2
+		
+			goal
+			~TT = ttcons(ctype(~a1, ~f), tt)
+			matchingAList(~TT, ~al1)
+			matchingAList(~TT, ~al2)
+			=========================== matchingAList-eq-ttcons
+			~al1 == ~al2
+		}
+		
 		axiom
 		matchingAList(~TT, ~al1)
 		matchingAList(~TT, ~al2)
@@ -102,11 +126,6 @@ local {
 	==================================== SQL-Progress-T-Union-1
 	exists ~cout
 		reduce(~cin) = some(~cout)
-
-	axiom
-	forall ~t ~sql != TValue(~t)
-	================================ isnoValue-aux
-	!isValue(~sql)
 			
 	local {
 		
