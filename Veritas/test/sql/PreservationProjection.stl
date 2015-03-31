@@ -40,6 +40,59 @@ true
 ================================================ ProjectEmptyCol-RTEmpty
 welltypedRawtable(rtempty, projectEmptyCol(~rt))
 
+// proof of DropFirstCol-Preservation
+local {
+	// by structural induction on ~rt
+	
+	goal
+	~rt = tempty
+	welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+	===================================================== DropFirstCol-Preservation-1
+	welltypedRawtable(~RT, dropFirstColRaw(~rt))
+	
+	local {
+		consts
+			r : Row
+			rt : RawTable
+		
+		axiom
+		welltypedRawtable(rtcons(~ft, ~RT), rt)
+		===================================================== DropFirstCol-Preservation-2-IH
+		welltypedRawtable(~RT, dropFirstColRaw(rt))
+		
+		goal
+		// ~rt = tcons(r, rt)
+		welltypedRawtable(rtcons(~ft, ~RT), tcons(r, rt))
+		===================================================== DropFirstCol-Preservation-2
+		welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+		// OR
+		// =>	r = rempty
+		// 	welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+		// =>	welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+			// exists ~f, ~r
+				// r = rcons(~f, ~r)
+				// dropFirstColRaw(tcons(rcons(~f, ~r), rt)) = tcons(~r, dropFirstColRaw(rt))
+				// welltypedRow(~RT, ~r)
+				// welltypedRawtable(rtcons(~ft, ~RT), rt)
+				// welltypedRawtable(~RT, dropFirstColRaw(rt))
+				// welltypedRawtable(~RT, tcons(~r, dropFirstColRaw(rt)))
+				// welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+		// welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+	}
+} // qed DropFirstCol-Preservation
+
+axiom 
+welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+===================================================== DropFirstCol-Preservation
+welltypedRawtable(~RT, dropFirstColRaw(~rt))
+
+
+axiom // TODO prove
+welltypedRawtable(~RT, ~rt)
+welltypedRawtable(rtcons(~colType, rtempty), ~col)
+======================================================================== AttachCol-Preserves-Typing
+welltypedRawtable(rtcons(~colType, ~RT), attachColToFrontRaw(~col, ~rt))
+
 
 // proof of FindCol-Preservation
 local {
@@ -115,18 +168,6 @@ findCol(~a, ~t) = some(~col)
 findColType(~a, ~TT) = some(~colType)
 ================================================== FindCol-Preservation
 welltypedRawtable(rtcons(~colType, rtempty), ~col)
-
-axiom // TODO prove
-welltypedRawtable(rtcons(~ft, ~RT), ~rt)
-===================================================== DropFirstCol-Preservation
-welltypedRawtable(~RT, dropFirstColRaw(~rt))
-
-
-axiom // TODO prove
-welltypedRawtable(~RT, ~rt)
-welltypedRawtable(rtcons(~colType, rtempty), ~col)
-======================================================================== AttachCol-Preserves-Typing
-welltypedRawtable(rtcons(~colType, ~RT), attachColToFrontRaw(~col, ~rt))
 
 
 // proof of Project-Preservation
