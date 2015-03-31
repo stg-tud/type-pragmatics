@@ -40,6 +40,12 @@ isValue(Union(sql1, sql2)) = false
 // isValue(Intersection(sql1, sql2)) = false
 // isValue(Difference(sql1, sql2)) = false
 
+axiom
+isValue(~sql)
+=============== isValue-INV
+exists ~t
+	~sql == TValue(~t)
+
 
 //checks whether a given predicate is valid for a given table typwe
 // function
