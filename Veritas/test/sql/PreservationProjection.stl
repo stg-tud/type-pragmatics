@@ -267,10 +267,10 @@ local {
 axiom
 // ~t = table(~al, ~rt)
 welltypedtable(~TT, ~t)
-findCol(~a, ~t) = some(~col)
-findColType(~a, ~TT) = some(~colType)
+isSome(findCol(~a, ~t))
+isSome(findColType(~a, ~TT))
 ================================================== FindCol-Preservation
-welltypedRawtable(rtcons(~colType, rtempty), ~col)
+welltypedRawtable(rtcons(getSome(findColType(~a, ~TT)), rtempty), getSome(findCol(~a, ~t)))
 
 
 // proof of Project-Preservation
@@ -293,23 +293,27 @@ local {
 		axiom
 		~al = alrest
 		welltypedtable(~TT, ~t)
-		project(~al, ~t) == some(~pt)
-		projectType(~al, ~TT) == some(~PT)
+		isSome(project(~al, ~t))
+		isSome(projectType(~al, ~TT))
 		===================================== Project-Preservation-acons-IH
-		~TTC |- TValue(table(~al, ~pt)) : ~PT
+		~TTC |- TValue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
 		
 		goal
 		~al = acons(a, alrest)
 		welltypedtable(~TT, ~t)
-		project(~al, ~t) == some(~pt)
-		projectType(~al, ~TT) == some(~PT)
+		isSome(project(~al, ~t))
+		isSome(projectType(~al, ~TT))
 		===================================== Project-Preservation-acons
-		~TTC |- TValue(table(~al, ~pt)) : ~PT
+		~TTC |- TValue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
+		// project(~al, ~t) = attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t)))
+		// isSome(attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t))))
+		// welltypedRawtable(rawType(getSome(projectType(alrest, ~TT))), getSome(project(alrest, ~t)))
+		// welltypedRawtable(rtcons(getSome(findColType(a, ~TT)), rtempty), getSome(findCol(a, ~t)))
+		// welltypedRawtable(rtcons(getSome(findColType(a, ~TT)), rawType(getSome(projectType(alrest, ~TT)))), getSome(attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t)))))
 		// exists ~col, ~colType, ~ptrest, ~PTrest
 		// 	findColType(a, ~TT) = some(~colType)
 		// 	projectType(alrest, ~TT) == some(~PTrest)
-		// 	findCol(a, ~t) = some(~col)
-		// 	project(alrest, ~t) = some(~ptrest)
+		// 	project(~al, ~t) = attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t)))
 		// 	welltypedRawtable(rawType(~PTrest), ~ptrest)
 		// 	welltypedRawtable(rtcons(~colType, rtempty), ~col)
 		// 	welltypedRawtable(~PT, ~pt)
@@ -318,6 +322,7 @@ local {
 			// ~TTC |- TValue(table(alrest, ~ptrest)) : ~PTrest
 			// ~PT = ttcons(ctype(a, ~colType), ~PTrest)
 			// ~pt = attachColToFrontRaw(~col, ~ptrest)
+		// ~TTC |- TValue(table(~al, ~pt)) : ~PT
 	}
 } // qed Project-Preservation
 
