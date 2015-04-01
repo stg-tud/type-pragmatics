@@ -61,7 +61,7 @@ local {
 		welltypedRawtable(~RT, dropFirstColRaw(rt))
 		
 		goal
-		// ~rt = tcons(r, rt) // XXX including this equation -> no proof found
+		// ~FOO = tcons(r, rt) // XXX including this equation -> no proof found
 		welltypedRawtable(rtcons(~ft, ~RT), tcons(r, rt))
 		===================================================== DropFirstCol-Preservation-2
 		welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
