@@ -7,7 +7,7 @@ import sql.SoundnessAuxDefs
 import sql.Tables
 
 
-goal
+goal //TODO
 clookup(~tn, ~TTC) == some(~TT)
 StoreContextConsistent(~TS, ~TTC)
 ============================================== lookup-aux

@@ -7,7 +7,7 @@ import sql.Semantics
 import sql.TStore
 import sql.Tables
 
-goal
+goal //TODO
 StoreContextConsistent(~TS, ~TTC)
 clookup(~tn, ~TTC) == some(~TT1)
 lookup(~tn, ~TS) == some(~t)

@@ -95,6 +95,8 @@ exists ~f, ~rthead, ~rtrest
 	~rt = tcons(~rthead, ~rtrest)
 	isSome(attachColToFrontRaw(~col, ~rtrest))
 	attachColToFrontRaw(tcons(~r, ~col), ~rt) = some(tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(~col, ~rtrest))))
+//qed DropFirstCol-Preservation
+
 axiom
 isSome(attachColToFrontRaw(tcons(~r, ~col), ~rt))
 ================================================================= AttachColToFrontRaw-Aux 
@@ -112,6 +114,8 @@ welltypedRawtable(rtcons(~colType, rtempty), tcons(~r, ~col))
 welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(~col, ~rtrest)))
 ================================================================================================================ AttachCol-WelltypedRawtable-Aux
 welltypedRawtable(rtcons(~colType, ~RT), tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(~col, ~rtrest))))
+//qed AttachCol-WelltypedRawtable-Aux
+
 axiom
 ~r = rcons(~f, rempty)
 ~rt = tcons(~rthead, ~rtrest)
@@ -262,7 +266,7 @@ local {
 		// 		// welltypedtable(~TTrest, table(al, dropFirstColRaw(rt)))
 		// 	// welltypedRawtable(rtcons(~colType, rtempty), ~col)
 	}
-}
+} //qed FindCol-Preservation
 
 axiom
 // ~t = table(~al, ~rt)
