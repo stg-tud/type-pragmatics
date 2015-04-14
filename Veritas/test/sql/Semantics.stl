@@ -10,11 +10,11 @@ sorts
 	SQLConf
 
 constructors
-	conf : SQLExp TStore -> SQLConf
+	conf : Query TStore -> SQLConf
 	
 function
-getSQL : SQLConf -> SQLExp
-getSQL(conf(sql, ts)) = sql
+getQuery : SQLConf -> Query
+getQuery(conf(q, ts)) = q
 
 function
 findCol : AName Table -> Opt // Opt[RawTable]
@@ -24,6 +24,8 @@ findCol(a, table(acons(a2, al), rt)) =
 		then some(projectFirstRaw(rt))
 		else findCol(a, table(al, dropFirstColRaw(rt)))
 
+// for projection base case: projecting on an empty attribute list must yield a 
+// table with as many empty rows as the rowcount of the given table
 function
 projectEmptyCol : RawTable -> RawTable
 projectEmptyCol(tempty) = tempty
@@ -111,18 +113,18 @@ union(table(al1, rt1), table(al2, rt2)) =
 // reduce fails if referenced tables are not found
 function 
 reduce : SQLConf -> Opt
-reduce(conf(TValue(t), ts)) = none
-reduce(conf(SelectAll(tn), ts)) = 
+reduce(conf(Tvalue(t), ts)) = none
+reduce(conf(Selectallfrom(Ref(tn)), ts)) = 
 	let ltn = lookup(tn, ts) in
 		if (isSome(ltn))
-		then some(conf(TValue(getSome(ltn)),ts))
+		then some(conf(Tvalue(getSome(ltn)),ts))
 		else none
-reduce(conf(SelectFrom1(al, tn), ts)) =
+reduce(conf(Selectsomefrom(al, Ref(tn)), ts)) =
 	let ltn = lookup(tn, ts) in
 		if (isSome(ltn))
 		then (let pt = project(al, getSome(ltn)) in
 			if (isSome(pt))
-			then some(conf(TValue(table(al, getSome(pt))), ts))
+			then some(conf(Tvalue(table(al, getSome(pt))), ts))
 			else none)
 		else none
 // reduce(conf(SelectAllFromWhere1(tn, p), ts)) =
@@ -144,20 +146,20 @@ reduce(conf(SelectFrom1(al, tn), ts)) =
 // 				else none)
 // 			else none)
 // 		else none
-reduce(conf(Union(TValue(t1), TValue(t2)), ts)) =
+reduce(conf(Union(Tvalue(t1), Tvalue(t2)), ts)) =
 	let tunion = union(t1, t2) in
 		if (isSome(tunion))
-		then some(conf(TValue(getSome(tunion)), ts))
+		then some(conf(Tvalue(getSome(tunion)), ts))
 		else none
-reduce(conf(Union(TValue(t), sql2), ts)) =
-	let sql2reduce = reduce(conf(sql2, ts)) in
-		if (isSome(sql2reduce))
-		then some(conf(Union(TValue(t), getSQL(getSome(sql2reduce))), ts))
+reduce(conf(Union(Tvalue(t), q2), ts)) =
+	let q2reduce = reduce(conf(q2, ts)) in
+		if (isSome(q2reduce))
+		then some(conf(Union(Tvalue(t), getQuery(getSome(q2reduce))), ts))
 		else none
-reduce(conf(Union(sql1, sql2), ts)) =
-	let sql1reduce = reduce(conf(sql1, ts)) in
-		if (isSome(sql1reduce))
-		then some(conf(Union(getSQL(getSome(sql1reduce)), sql2), ts))
+reduce(conf(Union(q1, q2), ts)) =
+	let q1reduce = reduce(conf(q1, ts)) in
+		if (isSome(q1reduce))
+		then some(conf(Union(getQuery(getSome(q1reduce)), q2), ts))
 		else none
 // reduce(conf(Intersection(TValue(t1), TValue(t2)), ts)) =
 // 	let tintersection = intersection(t1, t2) in
