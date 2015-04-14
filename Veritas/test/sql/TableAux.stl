@@ -196,27 +196,27 @@ goal
 dropFirstColRaw(~rt) == ~drt
 
 goal
-~prt = tcons( rcons(~x1, rempty),
+~prt = tcons(rcons(~x1, rempty),
 	tcons(rcons(~x2, rempty), tempty))
 ~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
 	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))
 ~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
 	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), tempty))
 ========================================================== test-attachColToFrontRaw1
-attachColToFrontRaw(~prt, ~drt) == ~rt
+attachColToFrontRaw(~prt, ~drt) == some(~rt)
 
-goal
-~prt = tcons( rcons(~x1, rempty),
-	tcons(rcons(~x2, rempty),
-	tcons(rcons(~x2, rempty), tempty)))
-~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
-	tcons(rcons(~y1, rcons(~z1, rempty)),
-	tcons(rcons(~y2, rcons(~z1, rempty)), tempty)))
-~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
-	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
-	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), tempty)))
-========================================================== test-attachColToFrontRaw3
-attachColToFrontRaw(~prt, ~drt) == ~rt
+// goal
+// ~prt = tcons( rcons(~x1, rempty),
+// 	tcons(rcons(~x2, rempty),
+// 	tcons(rcons(~x2, rempty), tempty)))
+// ~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+// 	tcons(rcons(~y1, rcons(~z1, rempty)),
+// 	tcons(rcons(~y2, rcons(~z1, rempty)), tempty)))
+// ~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+// 	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+// 	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), tempty)))
+// ========================================================== test-attachColToFrontRaw3
+// attachColToFrontRaw(~prt, ~drt) == some(~rt)
 
 // local {
 // 	constructors 

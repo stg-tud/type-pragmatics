@@ -28,9 +28,9 @@ local {
 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
 	~t == table(~al, ~rt)
 	~ts == bind(TN, ~t, empty)
-	~q == SelectAll(TN)
+	~q == selectallfrom(ref(TN))
 	========================================================== test-selectall1
-	reduce(conf(~q, ~ts)) == some(conf(TValue(~t), ~ts))
+	reduce(conf(~q, ~ts)) == some(conf(tvalue(~t), ~ts))
 }
 
 local {
@@ -80,10 +80,10 @@ local {
 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
 	~t == table(~al, ~rt)
 	~ts == bind(TN, ~t, empty)
-	~q == SelectFrom1(acons(A1, aempty), TN)
+	~q == selectsomefrom(acons(A1, aempty), ref(TN))
 	~tresult == table(acons(A1, aempty), tcons(rcons(x1, rempty), tcons(rcons(x2, rempty), tempty)))
 	================================================================================================== test-selectfrom1
-	reduce(conf(~q, ~ts)) == some(conf(TValue(~tresult), ~ts))
+	reduce(conf(~q, ~ts)) == some(conf(tvalue(~tresult), ~ts))
 }
 
 
@@ -240,11 +240,11 @@ local {
 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
 	~t == table(~al, ~rt)
 	~ts == bind(TN, ~t, empty)
-	~q == SelectFrom1(acons(A2, acons(A1, aempty)), TN)
+	~q == selectsomefrom(acons(A2, acons(A1, aempty)), ref(TN))
 	~tresult == table(acons(A2, acons(A1, aempty)), 
 		tcons(rcons(y2, rcons(x1, rempty)), tcons(rcons(y1, rcons(x2, rempty)), tempty)))
 	======================================================================================= test-selectfrom1-2
-	reduce(conf(~q, ~ts)) == some(conf(TValue(~tresult), ~ts))
+	reduce(conf(~q, ~ts)) == some(conf(tvalue(~tresult), ~ts))
 }
 
 // 
@@ -341,67 +341,66 @@ local {
 // // }
 // // 
 // // 
-// // local {
-// // 	consts 
-// // 		x1 : FVar
-// // 		x2 : FVar
-// // 		y1 : FVar
-// // 		y2 : FVar
-// // 		z1 : FVar
-// // 		z2 : FVar
-// // 		
-// // 	consts
-// // 		TN : TName
-// // 		A1 : AName
-// // 		A2 : AName
-// // 		A3 : AName
-// // 		FT1 : FType
-// // 		FT2 : FType
-// // 		FT3 : FType
-// // 	
-// // 	//needs 120 timeout!	
-// // 	goal
-// // 	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// // 	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
-// // 	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z1))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))))
-// // 	===================================================== rawUnion-aux
-// // 	rawUnion(~rt1, ~rt2) == ~rtresult
-// // 	
-// // 	axiom
-// // 	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// // 	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
-// // 	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z1))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))))
-// // 	===================================================== rawUnion-aux
-// // 	rawUnion(~rt1, ~rt2) == ~rtresult
-// // 	
-// // 	goal
-// // 	~tt == ttmany(ctype(A1, FT1), ttmany(ctype(A2, FT2), ttone(ctype(A3, FT3))))
-// // 	~rt1 == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z1))), tempty))
-// // 	~rt2 == tmany(rmany(x2, rmany(y1, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))
-// // 	~rtresult == tmany(rmany(x1, rmany(y2, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z1))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), 
-// // 		tmany(rmany(x2, rmany(y1, rone(z2))), tempty))))
-// // 	~t1 == table(~tt, ~rt1)
-// // 	~t2 == table(~tt, ~rt2)
-// // 	~ts == bind(TN, ~t, empty)
-// // 	~q == Union(TValue(~t1), TValue(~t2))
-// // 	~t == table(~tt, ~rtresult)
-// // 	============================================================================== test-union1
-// // 	reduce(conf(~q, ~ts)) == some(conf(TValue(~t), ~ts))
-// // }
+local {
+	consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	consts
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		FT1 : FType
+		FT2 : FType
+		FT3 : FType
+		
+	goal
+	~rt1 == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~rt2 == tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))
+	~rtresult == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))))
+	============================================================== rawUnion-aux
+	rawUnion(~rt1, ~rt2) == ~rtresult
+	
+	axiom
+	~rt1 == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~rt2 == tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))
+	~rtresult == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))))
+	===================================================== rawUnion-aux
+	rawUnion(~rt1, ~rt2) == ~rtresult
+	
+	goal
+	~tt == ttcons(ctype(A1, FT1), ttcons(ctype(A2, FT2), ttcons(ctype(A3, FT3), ttempty)))
+	~rt1 == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~rt2 == tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))
+	~rtresult == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))))
+	~t1 == table(~tt, ~rt1)
+	~t2 == table(~tt, ~rt2)
+	~ts == bind(TN, ~t, empty)
+	~q == union(tvalue(~t1), tvalue(~t2))
+	~t == table(~tt, ~rtresult)
+	============================================================================== test-union1
+	reduce(conf(~q, ~ts)) == some(conf(tvalue(~t), ~ts))
+}
 // // 
 // // 
 // // local {
