@@ -40,6 +40,166 @@ true
 ================================================ ProjectEmptyCol-RTEmpty
 welltypedRawtable(rtempty, projectEmptyCol(~rt))
 
+// proof of DropFirstCol-Preservation
+local {
+	// by structural induction on ~rt
+	
+	goal
+	~rt = tempty
+	welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+	===================================================== DropFirstCol-Preservation-1
+	welltypedRawtable(~RT, dropFirstColRaw(~rt))
+	
+	local {
+		consts
+			r : Row
+			rt : RawTable
+		
+		axiom
+		welltypedRawtable(rtcons(~ft, ~RT), rt)
+		===================================================== DropFirstCol-Preservation-2-IH
+		welltypedRawtable(~RT, dropFirstColRaw(rt))
+		
+		goal
+		// ~FOO = tcons(r, rt) // XXX including this equation -> no proof found
+		welltypedRawtable(rtcons(~ft, ~RT), tcons(r, rt))
+		===================================================== DropFirstCol-Preservation-2
+		welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+		// OR
+		// =>	r = rempty
+		// 	welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+		// =>	welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+			// exists ~f, ~r
+				// r = rcons(~f, ~r)
+				// dropFirstColRaw(tcons(rcons(~f, ~r), rt)) = tcons(~r, dropFirstColRaw(rt))
+				// welltypedRow(~RT, ~r)
+				// welltypedRawtable(rtcons(~ft, ~RT), rt)
+				// welltypedRawtable(~RT, dropFirstColRaw(rt))
+				// welltypedRawtable(~RT, tcons(~r, dropFirstColRaw(rt)))
+				// welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+		// welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+	}
+} // qed DropFirstCol-Preservation
+
+axiom 
+welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+===================================================== DropFirstCol-Preservation
+welltypedRawtable(~RT, dropFirstColRaw(~rt))
+
+
+goal
+isSome(attachColToFrontRaw(tcons(~r, ~col), ~rt))
+================================================================= AttachColToFrontRaw-Aux 
+exists ~f, ~rthead, ~rtrest
+	~r = rcons(~f, rempty)
+	~rt = tcons(~rthead, ~rtrest)
+	isSome(attachColToFrontRaw(~col, ~rtrest))
+	attachColToFrontRaw(tcons(~r, ~col), ~rt) = some(tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(~col, ~rtrest))))
+//qed DropFirstCol-Preservation
+
+axiom
+isSome(attachColToFrontRaw(tcons(~r, ~col), ~rt))
+================================================================= AttachColToFrontRaw-Aux 
+exists ~f, ~rthead, ~rtrest
+	~r = rcons(~f, rempty)
+	~rt = tcons(~rthead, ~rtrest)
+	isSome(attachColToFrontRaw(~col, ~rtrest))
+	attachColToFrontRaw(tcons(~r, ~col), ~rt) = some(tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(~col, ~rtrest))))
+
+goal
+~r = rcons(~f, rempty)
+~rt = tcons(~rthead, ~rtrest)
+welltypedRawtable(~RT, ~rt)
+welltypedRawtable(rtcons(~colType, rtempty), tcons(~r, ~col))
+welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(~col, ~rtrest)))
+================================================================================================================ AttachCol-WelltypedRawtable-Aux
+welltypedRawtable(rtcons(~colType, ~RT), tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(~col, ~rtrest))))
+//qed AttachCol-WelltypedRawtable-Aux
+
+axiom
+~r = rcons(~f, rempty)
+~rt = tcons(~rthead, ~rtrest)
+welltypedRawtable(~RT, ~rt)
+welltypedRawtable(rtcons(~colType, rtempty), tcons(~r, ~col))
+welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(~col, ~rtrest)))
+================================================================================================================ AttachCol-WelltypedRawtable-Aux
+welltypedRawtable(rtcons(~colType, ~RT), tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(~col, ~rtrest))))
+
+
+// proof of AttachCol-Preserves-Typing
+local {
+	// by structural induction on ~col
+	
+	goal
+	~col = tempty
+	welltypedRawtable(~RT, ~rt)
+	welltypedRawtable(rtcons(~colType, rtempty), ~col)
+	isSome(attachColToFrontRaw(~col, ~rt))
+	======================================================================== AttachCol-Preserves-Typing-1
+	welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(~col, ~rt)))
+	
+	local {
+		consts
+			r : Row
+			col : RawTable
+		
+		axiom
+		welltypedRawtable(~RT, ~rt)
+		welltypedRawtable(rtcons(~colType, rtempty), col)
+		isSome(attachColToFrontRaw(col, ~rt))
+		======================================================================== AttachCol-Preserves-Typing-2-IH
+		welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(col, ~rt)))
+		
+		goal
+		welltypedRawtable(~RT, ~rt)
+		welltypedRawtable(rtcons(~colType, rtempty), tcons(r, col))
+		isSome(attachColToFrontRaw(tcons(r, col), ~rt))
+		======================================================================== AttachCol-Preserves-Typing-2
+		welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(tcons(r, col), ~rt)))
+		// exists ~f, ~rthead, ~rtrest
+		// 	r = rcons(~f, rempty)
+		// 	~rt = tcons(~rthead, ~rtrest)
+		// 	isSome(attachColToFrontRaw(col, ~rtrest))
+		// 	attachColToFrontRaw(tcons(r, col), ~rt) = some(tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(col, ~rtrest))))
+		// 	welltypedRawtable(~RT, ~rtrest)
+		// 	welltypedRawtable(rtcons(~colType, rtempty), col)
+		// 	welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(col, ~rtrest))) // by IH
+		// 	welltypedRow(rtcons(~colType, ~RT), rcons(~f, ~rthead))
+		// 	welltypedRawtable(rtcons(~colType, ~RT), tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(col, ~rtrest))))
+			// welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(tcons(r, col), ~rt)))
+			// getSome(attachColToFrontRaw(tcons(r, col), ~rt)) = tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(col, ~rtrest)))
+			// welltypedRow(~RT, ~rthead)
+			// fieldType(~f) = ~colType
+			// welltypedRawtable(rtcons(~colType, ~RT), tcons(rcons(~f, ~rthead), getSome(attachColToFrontRaw(col, ~rtrest))))
+			// welltypedRawtable(rtcons(~colType, ~RT), ~composed)
+			// r = rcons(~f, rempty)
+			// ~composed = tcons(rcons(~f, ~rthead), getSome(~composedrest))
+			// welltypedRow(~RT, ~rthead)
+			// fieldType(~f) = ~colType
+		// 	attachColToFrontRaw(tcons(rcons(~f, rempty), col), tcons(~rthead, ~rtrest)) = some(tcons(rcons(~f, ~rthead), ~composedrest))
+		// 	attachColToFrontRaw(col, ~rtrest) = some(~composedrest)
+			// welltypedRawtable(rtcons(~colType, ~RT), ~composedrest)
+			// welltypedRawtable(rtcons(~colType, ~RT), ~composed)
+			// r = rcons(~f, rempty)
+			// ~rt = tcons(~rthead, ~rtrest)
+			// some(~composed) = some(tcons(rcons(~f, ~rthead), ~composedrest))
+			// welltypedRow(rtcons(~colType, ~RT), rcons(~f, ~rthead))
+		// 	attachColToFrontRaw(col, ~rtrest) = ~composedrest
+		// 	isSome(~composedrest)
+		// 	some(~composed) = some(tcons(rcons(~f, ~rthead), getSome(~composedrest)))
+			
+			// attachColToFrontRaw(tcons(r, col), tcons(~rthead, ~rtrest)) = some(tcons(rcons(f, r), getSome(rest)))
+		// welltypedRawtable(rtcons(~colType, ~RT), ~composed)
+	}
+} // qed AttachCol-Preserves-Typing
+
+axiom
+welltypedRawtable(~RT, ~rt)
+welltypedRawtable(rtcons(~colType, rtempty), ~col)
+isSome(attachColToFrontRaw(~col, ~rt))
+======================================================================== AttachCol-Preserves-Typing
+welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(~col, ~rt)))
+
 
 // proof of FindCol-Preservation
 local {
@@ -106,27 +266,15 @@ local {
 		// 		// welltypedtable(~TTrest, table(al, dropFirstColRaw(rt)))
 		// 	// welltypedRawtable(rtcons(~colType, rtempty), ~col)
 	}
-}
+} //qed FindCol-Preservation
 
 axiom
 // ~t = table(~al, ~rt)
 welltypedtable(~TT, ~t)
-findCol(~a, ~t) = some(~col)
-findColType(~a, ~TT) = some(~colType)
+isSome(findCol(~a, ~t))
+isSome(findColType(~a, ~TT))
 ================================================== FindCol-Preservation
-welltypedRawtable(rtcons(~colType, rtempty), ~col)
-
-axiom // TODO prove
-welltypedRawtable(rtcons(~ft, ~RT), ~rt)
-===================================================== DropFirstCol-Preservation
-welltypedRawtable(~RT, dropFirstColRaw(~rt))
-
-
-axiom // TODO prove
-welltypedRawtable(~RT, ~rt)
-welltypedRawtable(rtcons(~colType, rtempty), ~col)
-======================================================================== AttachCol-Preserves-Typing
-welltypedRawtable(rtcons(~colType, ~RT), attachColToFrontRaw(~col, ~rt))
+welltypedRawtable(rtcons(getSome(findColType(~a, ~TT)), rtempty), getSome(findCol(~a, ~t)))
 
 
 // proof of Project-Preservation
@@ -149,23 +297,27 @@ local {
 		axiom
 		~al = alrest
 		welltypedtable(~TT, ~t)
-		project(~al, ~t) == some(~pt)
-		projectType(~al, ~TT) == some(~PT)
+		isSome(project(~al, ~t))
+		isSome(projectType(~al, ~TT))
 		===================================== Project-Preservation-acons-IH
-		~TTC |- TValue(table(~al, ~pt)) : ~PT
+		~TTC |- TValue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
 		
 		goal
 		~al = acons(a, alrest)
 		welltypedtable(~TT, ~t)
-		project(~al, ~t) == some(~pt)
-		projectType(~al, ~TT) == some(~PT)
+		isSome(project(~al, ~t))
+		isSome(projectType(~al, ~TT))
 		===================================== Project-Preservation-acons
-		~TTC |- TValue(table(~al, ~pt)) : ~PT
+		~TTC |- TValue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
+		// project(~al, ~t) = attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t)))
+		// isSome(attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t))))
+		// welltypedRawtable(rawType(getSome(projectType(alrest, ~TT))), getSome(project(alrest, ~t)))
+		// welltypedRawtable(rtcons(getSome(findColType(a, ~TT)), rtempty), getSome(findCol(a, ~t)))
+		// welltypedRawtable(rtcons(getSome(findColType(a, ~TT)), rawType(getSome(projectType(alrest, ~TT)))), getSome(attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t)))))
 		// exists ~col, ~colType, ~ptrest, ~PTrest
 		// 	findColType(a, ~TT) = some(~colType)
 		// 	projectType(alrest, ~TT) == some(~PTrest)
-		// 	findCol(a, ~t) = some(~col)
-		// 	project(alrest, ~t) = some(~ptrest)
+		// 	project(~al, ~t) = attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t)))
 		// 	welltypedRawtable(rawType(~PTrest), ~ptrest)
 		// 	welltypedRawtable(rtcons(~colType, rtempty), ~col)
 		// 	welltypedRawtable(~PT, ~pt)
@@ -174,6 +326,7 @@ local {
 			// ~TTC |- TValue(table(alrest, ~ptrest)) : ~PTrest
 			// ~PT = ttcons(ctype(a, ~colType), ~PTrest)
 			// ~pt = attachColToFrontRaw(~col, ~ptrest)
+		// ~TTC |- TValue(table(~al, ~pt)) : ~PT
 	}
 } // qed Project-Preservation
 
