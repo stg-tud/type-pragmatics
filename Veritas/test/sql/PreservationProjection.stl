@@ -287,7 +287,7 @@ local {
 	project(~al, ~t) == some(~pt)
 	projectType(~al, ~TT) == some(~PT)
 	===================================== Project-Preservation-aempty
-	~TTC |- TValue(table(~al, ~pt)) : ~PT
+	~TTC |- Tvalue(table(~al, ~pt)) : ~PT
 	
 	local {
 		consts
@@ -300,7 +300,7 @@ local {
 		isSome(project(~al, ~t))
 		isSome(projectType(~al, ~TT))
 		===================================== Project-Preservation-acons-IH
-		~TTC |- TValue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
+		~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
 		
 		goal
 		~al = acons(a, alrest)
@@ -308,7 +308,7 @@ local {
 		isSome(project(~al, ~t))
 		isSome(projectType(~al, ~TT))
 		===================================== Project-Preservation-acons
-		~TTC |- TValue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
+		~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
 		// project(~al, ~t) = attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t)))
 		// isSome(attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t))))
 		// welltypedRawtable(rawType(getSome(projectType(alrest, ~TT))), getSome(project(alrest, ~t)))
@@ -336,4 +336,4 @@ welltypedtable(~TT, ~t)
 project(~al, ~t) = some(~pt)
 projectType(~al, ~TT) == some(~PT)
 ===================================== Project-Preservation
-~TTC |- TValue(table(~al, ~pt)) : ~PT
+~TTC |- Tvalue(table(~al, ~pt)) : ~PT

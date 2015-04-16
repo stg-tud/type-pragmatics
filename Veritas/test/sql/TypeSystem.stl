@@ -142,7 +142,7 @@ OR
 goal
 ~q == Tvalue(table(~al, ~rt))
 ~TTC |- ~q : ~TT
-==================================================== T-inv-tvalue
+==================================================== T-inv-Tvalue
 welltypedtable(~TT, table(~al, ~rt))
 
 axiom

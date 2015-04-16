@@ -19,7 +19,7 @@ goal
 !isValue(~q)
 ~TTC |- ~q : ~TT
 StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-tvalue
+==================================== SQL-Progress-T-Tvalue
 exists ~cout
 	reduce(~cin) = some(~cout)
 	
@@ -29,7 +29,7 @@ goal
 !isValue(~q)
 ~TTC |- ~q : ~TT
 StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-selectallfrom
+==================================== SQL-Progress-T-Selectallfrom
 exists ~cout
 	reduce(~cin) = some(~cout)
 
@@ -40,7 +40,7 @@ goal
 !isValue(~q)
 ~TTC |- ~q : ~TT
 StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-selectsomefrom
+==================================== SQL-Progress-T-Selectsomefrom
 exists ~cout
 	reduce(~cin) = some(~cout)
 	
@@ -112,7 +112,7 @@ local {
 		!isValue(~q)
 		TTC |- ~q : TT
 		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-union-1
+		==================================== SQL-Progress-T-Union-1
 		exists ~cout
 			reduce(~cin) = some(~cout)
 	}
@@ -123,7 +123,7 @@ local {
 	!isValue(~q)
 	TTC |- ~q : TT
 	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-union-1
+	==================================== SQL-Progress-T-Union-1
 	exists ~cout
 		reduce(~cin) = some(~cout)
 			
@@ -134,7 +134,7 @@ local {
 		!isValue(q2)
 		TTC |- q2 : TT
 		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-union-IH2
+		==================================== SQL-Progress-T-Union-IH2
 		exists ~cout
 			reduce(~cin) = some(~cout)
 	
@@ -145,7 +145,7 @@ local {
 		!isValue(~q)
 		TTC |- ~q : TT
 		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-union-2
+		==================================== SQL-Progress-T-Union-2
 		exists ~cout
 			reduce(~cin) = some(~cout)
 	}	
@@ -157,7 +157,7 @@ local {
 	!isValue(~q)
 	TTC |- ~q : TT
 	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-union-2
+	==================================== SQL-Progress-T-Union-2
 	exists ~cout
 		reduce(~cin) = some(~cout)
 	
@@ -168,7 +168,7 @@ local {
 		!isValue(q1)
 		TTC |- q1 : TT
 		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-union-IH1
+		==================================== SQL-Progress-T-Union-IH1
 		exists ~cout
 			reduce(~cin) = some(~cout)
 			
@@ -179,7 +179,7 @@ local {
 		!isValue(~q)
 		TTC |- ~q :  TT
 		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-union-3
+		==================================== SQL-Progress-T-Union-3
 		exists ~cout
 			reduce(~cin) = some(~cout)
 	}
@@ -191,7 +191,7 @@ local {
 	!isValue(~q)
 	TTC |- ~q :  TT
 	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-union-3
+	==================================== SQL-Progress-T-Union-3
 	exists ~cout
 		reduce(~cin) = some(~cout)
 		
@@ -201,7 +201,7 @@ local {
 	!isValue(~q)
 	TTC |- ~q : TT
 	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-union
+	==================================== SQL-Progress-T-Union
 	exists ~cout
 		reduce(~cin) = some(~cout)
 }
