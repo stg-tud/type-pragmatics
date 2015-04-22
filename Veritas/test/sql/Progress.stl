@@ -5,9 +5,12 @@ import sql.Tables
 import sql.TStore
 import sql.Syntax
 import sql.Semantics
-import sql.TypeSystem
+import sql.TypeSystem {names}
+import sql.TypeSystemInv
 import sql.SoundnessAuxDefs
 import sql.AuxLemmas
+import sql.ProgressProjection
+
 
 //prove progress by induction on the typing derivation of an sql command
 //for union/intersection/difference, you actually need induction on typing derivations!
@@ -33,7 +36,6 @@ StoreContextConsistent(~TS, ~TTC)
 exists ~cout
 	reduce(~cin) = some(~cout)
 
-// needs 60 second timeout!		
 goal
 ~q == Selectsomefrom(~al, Ref(~tn)) 
 ~cin == conf(~q, ~TS)
