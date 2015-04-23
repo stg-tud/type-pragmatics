@@ -29,7 +29,6 @@ local {
 
 	goal
 	~ein == abs(~x, ~S, e1)
-	~Tin == arrow(~T1, ~T2)
 	empty |- ~ein : ~Tin
 	!isValue(~ein)
 	=========================== T-Progress-T-abs
