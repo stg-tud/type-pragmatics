@@ -58,17 +58,17 @@ projectType(acons(a, alr), tt) =
 axioms
 //a table value with a well-typed table is typable
 welltypedtable(~TT, table(~al, ~rt))
-====================================== T-TValue
-~TTC |- TValue(table(~al, ~rt)) : ~TT
+====================================== T-Tvalue
+~TTC |- Tvalue(table(~al, ~rt)) : ~TT
 
 clookup(~tn, ~TTC) == some(~TT)
-=============================================== T-SelectAll
-~TTC |- SelectAll(~tn) : ~TT
+=============================================== T-Selectallfrom
+~TTC |- Selectallfrom(Ref(~tn)) : ~TT
 
 clookup(~tn, ~TTC) == some(~TT1)
 projectType(~al, ~TT1) == some(~TT)
-================================================ T-SelectFrom1
-~TTC |- SelectFrom1(~al, ~tn) : ~TT
+================================================ T-Selectsomefrom
+~TTC |- Selectsomefrom(~al, Ref(~tn)) : ~TT
 
 // lookup(~tn, ~TS) == some(table(~TT, ~rt))
 // welltypedtable(table(~TT, ~rt))
@@ -83,10 +83,10 @@ projectType(~al, ~TT1) == some(~TT)
 // ================================================ T-SelectFromWhere1
 // ~TS |- SelectFromWhere1(~TT, ~tn, ~p) : ~TT
 // 
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
-// ============================================ T-Union
-// ~TS |- Union(~sql1, ~sql2) : ~TT
+~TTC |- ~q1 : ~TT
+~TTC |- ~q2 : ~TT
+============================================ T-Union
+~TTC |- Union(~q1, ~q2) : ~TT
 // 
 // ~TS |- ~sql1 : ~TT
 // ~TS |- ~sql2 : ~TT
@@ -100,118 +100,3 @@ projectType(~al, ~TT1) == some(~TT)
 
 
 
-~TTC |- ~sql : ~TT
-==================================================== T-inv
-OR
-=> exists ~al, ~rt
-		~sql = TValue(table(~al, ~rt))
-		welltypedtable(~TT, table(~al, ~rt))
-=> exists ~tn, ~rt
-		~sql == SelectAll(~tn)
-		clookup(~tn, ~TTC) == some(~TT)
-=> exists ~tn, ~TT1, ~al, ~rt
-		~sql == SelectFrom1(~al, ~tn)
-		clookup(~tn, ~TTC) == some(~TT1)
-		projectType(~al, ~TT1) == some(~TT)	
-// => exists ~tn, ~p, ~rt
-// 		~sql == SelectAllFromWhere1(~tn, ~p)
-// 		lookup(~tn, ~TS) == some(table(~TT, ~rt))
-// 		welltypedtable(table(~TT, ~rt))
-// 		checkPValidity(~p, ~TT)	
-// => exists ~tn, ~p, ~TT1, ~rt
-// 		~sql == SelectFromWhere1(~TT, ~tn, ~p)
-// 		lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-// 		welltypedtable(table(~TT1, ~rt))
-// 		checkPValidity(~p, ~TT1)
-// 		typePartOf(~TT, ~TT1)
-// => exists ~sql1, ~sql2
-// 		~sql == Union(~sql1, ~sql2)
-// 		~TS |- ~sql1 : ~TT
-// 		~TS |- ~sql2 : ~TT
-// => exists ~sql1, ~sql2
-// 		~sql == Intersection(~sql1, ~sql2)
-// 		~TS |- ~sql1 : ~TT
-// 		~TS |- ~sql2 : ~TT
-// => exists ~sql1, ~sql2
-// 		~sql == Difference(~sql1, ~sql2)
-// 		~TS |- ~sql1 : ~TT
-// 		~TS |- ~sql2 : ~TT
-		
-//variant of inversion lemma in several different lemmas 
-//(seems to be helpful for progress proof)
-goal
-~sql == TValue(table(~al, ~rt))
-~TTC |- ~sql : ~TT
-==================================================== T-inv-TValue
-welltypedtable(~TT, table(~al, ~rt))
-
-axiom
-~sql == TValue(table(~al, ~rt))
-~TTC |- ~sql : ~TT
-==================================================== T-inv-TValue
-welltypedtable(~TT, table(~al, ~rt))
-
-
-goal
-~sql == SelectAll(~tn)		
-~TTC |- ~sql : ~TT
-==================================================== T-inv-SelectAll		
-clookup(~tn, ~TTC) == some(~TT)
-
-axiom
-~sql == SelectAll(~tn)		
-~TTC |- ~sql : ~TT
-==================================================== T-inv-SelectAll		
-clookup(~tn, ~TTC) == some(~TT)
-
-
-goal
-~sql == SelectFrom1(~al, ~tn)
-~TTC |- ~sql : ~TT
-==================================================== T-inv-SelectFrom1
-exists ~TT1
-	clookup(~tn, ~TTC) == some(~TT1)
-	projectType(~al, ~TT1) == some(~TT)	
-	
-axiom
-~sql == SelectFrom1(~al, ~tn)
-~TTC |- ~sql : ~TT
-==================================================== T-inv-SelectFrom1
-exists ~TT1
-	clookup(~tn, ~TTC) == some(~TT1)
-	projectType(~al, ~TT1) == some(~TT)		
-		
-// ~sql == SelectAllFromWhere1(~tn, ~p)
-// ~TS |- ~sql : ~TT
-// ==================================================== T-inv-SelectAllFromWhere1
-// exists ~rt
-// 	lookup(~tn, ~TS) == some(table(~TT, ~rt))
-// 	welltypedtable(table(~TT, ~rt))
-// 	checkPValidity(~p, ~TT)	
-// 		
-// ~sql == SelectFromWhere1(~TT, ~tn, ~p)
-// ~TS |- ~sql : ~TT
-// ==================================================== T-inv-SelectFromWhere1
-// exists ~rt, ~TT1
-// 	lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-// 	welltypedtable(table(~TT1, ~rt))
-// 	checkPValidity(~p, ~TT1)
-// 	typePartOf(~TT, ~TT1)
-// 		
-// ~sql == Union(~sql1, ~sql2)
-// ~TS |- ~sql : ~TT
-// ==================================================== T-inv-Union		
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
-// 
-// ~sql == Intersection(~sql1, ~sql2)
-// ~TS |- ~sql : ~TT
-// ==================================================== T-inv-Intersection
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
-// 
-// ~sql == Difference(~sql1, ~sql2)
-// ~TS |- ~sql : ~TT
-// ==================================================== T-inv-Difference
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT

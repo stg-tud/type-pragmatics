@@ -5,43 +5,44 @@ import sql.Tables
 import sql.TStore
 import sql.Syntax
 import sql.Semantics
-import sql.TypeSystem
+import sql.TypeSystem {names}
+import sql.TypeSystemInv
 import sql.SoundnessAuxDefs
 import sql.AuxLemmas
 import sql.ProgressProjection
+
 
 //prove progress by induction on the typing derivation of an sql command
 //for union/intersection/difference, you actually need induction on typing derivations!
 //(because of type equality...)
 
 goal
-~sql == TValue(~t)
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TTC |- ~sql : ~TT
+~q == Tvalue(~t)
+~cin == conf(~q, ~TS)
+!isValue(~q)
+~TTC |- ~q : ~TT
 StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-Value
+==================================== SQL-Progress-T-Tvalue
 exists ~cout
 	reduce(~cin) = some(~cout)
 	
 goal	
-~sql == SelectAll(~tn) 
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TTC |- ~sql : ~TT
+~q == Selectallfrom(Ref(~tn)) 
+~cin == conf(~q, ~TS)
+!isValue(~q)
+~TTC |- ~q : ~TT
 StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-SelectAll
+==================================== SQL-Progress-T-Selectallfrom
 exists ~cout
 	reduce(~cin) = some(~cout)
 
-// needs 60 second timeout!		
 goal
-~sql == SelectFrom1(~al, ~tn) 
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TTC |- ~sql : ~TT
+~q == Selectsomefrom(~al, Ref(~tn)) 
+~cin == conf(~q, ~TS)
+!isValue(~q)
+~TTC |- ~q : ~TT
 StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-SelectFrom1
+==================================== SQL-Progress-T-Selectsomefrom
 exists ~cout
 	reduce(~cin) = some(~cout)
 	
@@ -67,37 +68,146 @@ exists ~cout
 // // 	reduce(~cin) = some(~cout)
 // 
 // 
-// // local {
-// // 	consts sql1 : SQLExp
-// // 		sql2 : SQLExp
-// // 		TS : TStore
-// // 		TT : TType
-// // 		
-// // 	axiom
-// // 	~cin == conf(sql1, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
-// // 	==================================== SQL-Progress-T-Union-IH1
-// // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
-// // 		
-// // 	axiom
-// // 	~cin == conf(sql2, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
-// // 	==================================== SQL-Progress-T-Union-IH2
-// // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
-// // 	
-// // 	goal
-// // 	~sql == Union(sql1, sql2)
-// // 	~cin == conf(~sql, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
-// // 	==================================== SQL-Progress-T-Union
-// // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
-// // }
+
+local {
+	consts q1 : Query
+		q2 : Query
+		TS : TStore
+		TTC : TTContext
+		TT : TType
+		
+	local {	
+		
+		local {
+			const tt : TType
+			
+			goal
+			~TT == ttempty
+			matchingAList(~TT, ~al1)
+			matchingAList(~TT, ~al2)
+			=========================== matchingAList-eq-ttempty
+			~al1 == ~al2
+		
+			axiom
+			matchingAList(tt, ~al1)
+			matchingAList(tt, ~al2)
+			=========================== matchingAList-eq-ttcons-IH
+			~al1 == ~al2
+		
+			goal
+			~TT = ttcons(ctype(~a1, ~f), tt)
+			matchingAList(~TT, ~al1)
+			matchingAList(~TT, ~al2)
+			=========================== matchingAList-eq-ttcons
+			~al1 == ~al2
+		}
+		
+		axiom
+		matchingAList(~TT, ~al1)
+		matchingAList(~TT, ~al2)
+		=========================== matchingAList-eq
+		~al1 == ~al2
+	
+		goal
+		~q == Union(Tvalue(~t1), Tvalue(~t2))
+		~cin == conf(~q, TS)
+		!isValue(~q)
+		TTC |- ~q : TT
+		StoreContextConsistent(TS, TTC)
+		==================================== SQL-Progress-T-Union-1
+		exists ~cout
+			reduce(~cin) = some(~cout)
+	}
+		
+	axiom
+	~q == Union(Tvalue(~t1), Tvalue(~t2))
+	~cin == conf(~q, TS)
+	!isValue(~q)
+	TTC |- ~q : TT
+	StoreContextConsistent(TS, TTC)
+	==================================== SQL-Progress-T-Union-1
+	exists ~cout
+		reduce(~cin) = some(~cout)
+			
+	local {
+		
+		axiom
+		~cin == conf(q2, TS)
+		!isValue(q2)
+		TTC |- q2 : TT
+		StoreContextConsistent(TS, TTC)
+		==================================== SQL-Progress-T-Union-IH2
+		exists ~cout
+			reduce(~cin) = some(~cout)
+	
+		goal
+		~q == Union(Tvalue(~t1), q2)
+		forall ~t2 q2 != Tvalue(~t2)
+		~cin == conf(~q, TS)
+		!isValue(~q)
+		TTC |- ~q : TT
+		StoreContextConsistent(TS, TTC)
+		==================================== SQL-Progress-T-Union-2
+		exists ~cout
+			reduce(~cin) = some(~cout)
+	}	
+	
+	axiom
+	~q == Union(Tvalue(~t1), q2)
+	forall ~t2 q2 != Tvalue(~t2)
+	~cin == conf(~q, TS)
+	!isValue(~q)
+	TTC |- ~q : TT
+	StoreContextConsistent(TS, TTC)
+	==================================== SQL-Progress-T-Union-2
+	exists ~cout
+		reduce(~cin) = some(~cout)
+	
+	local {
+		
+		axiom
+		~cin == conf(q1, TS)
+		!isValue(q1)
+		TTC |- q1 : TT
+		StoreContextConsistent(TS, TTC)
+		==================================== SQL-Progress-T-Union-IH1
+		exists ~cout
+			reduce(~cin) = some(~cout)
+			
+		goal
+		~q == Union(q1, q2)
+		forall ~t1 q1 != Tvalue(~t1)
+		~cin == conf(~q, TS)
+		!isValue(~q)
+		TTC |- ~q :  TT
+		StoreContextConsistent(TS, TTC)
+		==================================== SQL-Progress-T-Union-3
+		exists ~cout
+			reduce(~cin) = some(~cout)
+	}
+		
+	axiom
+	~q == Union(q1, q2)
+	forall ~t1 q1 != Tvalue(~t1)
+	~cin == conf(~q, TS)
+	!isValue(~q)
+	TTC |- ~q :  TT
+	StoreContextConsistent(TS, TTC)
+	==================================== SQL-Progress-T-Union-3
+	exists ~cout
+		reduce(~cin) = some(~cout)
+		
+	goal
+	~q == Union(q1, q2)
+	~cin == conf(~q, TS)
+	!isValue(~q)
+	TTC |- ~q : TT
+	StoreContextConsistent(TS, TTC)
+	==================================== SQL-Progress-T-Union
+	exists ~cout
+		reduce(~cin) = some(~cout)
+}
+
 // // 
 // // 
 // // local {
@@ -168,9 +278,9 @@ exists ~cout
 // 
 //final progress theorem
 axiom 
-~cin == conf(~sql, ~TS)
-!isValue(~sql)
-~TTC |- ~sql : ~TT
+~cin == conf(~q, ~TS)
+!isValue(~q)
+~TTC |- ~q : ~TT
 StoreContextConsistent(~TS, ~TTC)
 ==================================== SQL-Progress
 exists ~cout
