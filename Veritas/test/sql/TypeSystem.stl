@@ -83,10 +83,10 @@ projectType(~al, ~TT1) == some(~TT)
 // ================================================ T-SelectFromWhere1
 // ~TS |- SelectFromWhere1(~TT, ~tn, ~p) : ~TT
 // 
-~TTC |- ~q1 : ~TT
-~TTC |- ~q2 : ~TT
-============================================ T-Union
-~TTC |- Union(~q1, ~q2) : ~TT
+// ~TTC |- ~q1 : ~TT
+// ~TTC |- ~q2 : ~TT
+// ============================================ T-Union
+// ~TTC |- Union(~q1, ~q2) : ~TT
 // 
 // ~TS |- ~sql1 : ~TT
 // ~TS |- ~sql2 : ~TT

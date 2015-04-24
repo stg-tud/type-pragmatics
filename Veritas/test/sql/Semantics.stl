@@ -146,21 +146,21 @@ reduce(conf(Selectsomefrom(al, Ref(tn)), ts)) =
 // 				else none)
 // 			else none)
 // 		else none
-reduce(conf(Union(Tvalue(t1), Tvalue(t2)), ts)) =
-	let tunion = union(t1, t2) in
-		if (isSome(tunion))
-		then some(conf(Tvalue(getSome(tunion)), ts))
-		else none
-reduce(conf(Union(Tvalue(t), q2), ts)) =
-	let q2reduce = reduce(conf(q2, ts)) in
-		if (isSome(q2reduce))
-		then some(conf(Union(Tvalue(t), getQuery(getSome(q2reduce))), ts))
-		else none
-reduce(conf(Union(q1, q2), ts)) =
-	let q1reduce = reduce(conf(q1, ts)) in
-		if (isSome(q1reduce))
-		then some(conf(Union(getQuery(getSome(q1reduce)), q2), ts))
-		else none
+// reduce(conf(Union(Tvalue(t1), Tvalue(t2)), ts)) =
+// 	let tunion = union(t1, t2) in
+// 		if (isSome(tunion))
+// 		then some(conf(Tvalue(getSome(tunion)), ts))
+// 		else none
+// reduce(conf(Union(Tvalue(t), q2), ts)) =
+// 	let q2reduce = reduce(conf(q2, ts)) in
+// 		if (isSome(q2reduce))
+// 		then some(conf(Union(Tvalue(t), getQuery(getSome(q2reduce))), ts))
+// 		else none
+// reduce(conf(Union(q1, q2), ts)) =
+// 	let q1reduce = reduce(conf(q1, ts)) in
+// 		if (isSome(q1reduce))
+// 		then some(conf(Union(getQuery(getSome(q1reduce)), q2), ts))
+// 		else none
 // reduce(conf(Intersection(TValue(t1), TValue(t2)), ts)) =
 // 	let tintersection = intersection(t1, t2) in
 // 		if (isSome(tintersection))
