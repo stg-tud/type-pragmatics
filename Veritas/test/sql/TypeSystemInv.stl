@@ -45,47 +45,47 @@ OR
 		
 //variant of inversion lemma in several different lemmas 
 //(seems to be helpful for progress proof)
-// goal
-// ~q == Tvalue(table(~al, ~rt))
-// ~TTC |- ~q : ~TT
-// ==================================================== T-inv-Tvalue
-// welltypedtable(~TT, table(~al, ~rt))
-// 
-// axiom
-// ~q == Tvalue(table(~al, ~rt))
-// ~TTC |- ~q : ~TT
-// ==================================================== T-inv-Tvalue
-// welltypedtable(~TT, table(~al, ~rt))
-// 
-// 
-// goal
-// ~q == Selectallfrom(Ref(~tn))		
-// ~TTC |- ~q : ~TT
-// ==================================================== T-inv-Selectallfrom		
-// clookup(~tn, ~TTC) == some(~TT)
-// 
-// axiom
-// ~q == Selectallfrom(Ref(~tn))		
-// ~TTC |- ~q : ~TT
-// ==================================================== T-inv-Selectallfrom	
-// clookup(~tn, ~TTC) == some(~TT)
-// 
-// 
-// goal
-// ~q == Selectsomefrom(~al, Ref(~tn))
-// ~TTC |- ~q : ~TT
-// ==================================================== T-inv-Selectsomefrom
-// exists ~TT1
-// 	clookup(~tn, ~TTC) == some(~TT1)
-// 	projectType(~al, ~TT1) == some(~TT)	
-// 	
-// axiom
-// ~q == Selectsomefrom(~al, Ref(~tn))
-// ~TTC |- ~q : ~TT
-// ==================================================== T-inv-Selectsomefrom
-// exists ~TT1
-// 	clookup(~tn, ~TTC) == some(~TT1)
-// 	projectType(~al, ~TT1) == some(~TT)	
+goal
+~q == Tvalue(table(~al, ~rt))
+~TTC |- ~q : ~TT
+==================================================== T-inv-Tvalue
+welltypedtable(~TT, table(~al, ~rt))
+
+axiom
+~q == Tvalue(table(~al, ~rt))
+~TTC |- ~q : ~TT
+==================================================== T-inv-Tvalue
+welltypedtable(~TT, table(~al, ~rt))
+
+
+goal
+~q == Selectallfrom(Ref(~tn))		
+~TTC |- ~q : ~TT
+==================================================== T-inv-Selectallfrom		
+clookup(~tn, ~TTC) == some(~TT)
+
+axiom
+~q == Selectallfrom(Ref(~tn))		
+~TTC |- ~q : ~TT
+==================================================== T-inv-Selectallfrom	
+clookup(~tn, ~TTC) == some(~TT)
+
+
+goal
+~q == Selectsomefrom(~al, Ref(~tn))
+~TTC |- ~q : ~TT
+==================================================== T-inv-Selectsomefrom
+exists ~TT1
+	clookup(~tn, ~TTC) == some(~TT1)
+	projectType(~al, ~TT1) == some(~TT)	
+	
+axiom
+~q == Selectsomefrom(~al, Ref(~tn))
+~TTC |- ~q : ~TT
+==================================================== T-inv-Selectsomefrom
+exists ~TT1
+	clookup(~tn, ~TTC) == some(~TT1)
+	projectType(~al, ~TT1) == some(~TT)	
 		
 // ~sql == SelectAllFromWhere1(~tn, ~p)
 // ~TS |- ~sql : ~TT

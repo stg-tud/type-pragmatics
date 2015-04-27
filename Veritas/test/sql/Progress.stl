@@ -36,6 +36,7 @@ StoreContextConsistent(~TS, ~TTC)
 exists ~cout
 	reduce(~cin) = some(~cout)
 
+//needs 60 sec timeout
 goal
 ~q == Selectsomefrom(~al, Ref(~tn)) 
 ~cin == conf(~q, ~TS)
