@@ -3,7 +3,9 @@ module sql.PreservationProjection
 import sql.BasicFunctions
 import sql.Syntax
 import sql.Semantics
+import sql.TContext
 import sql.TypeSystem
+import sql.TypeSystemInv
 import sql.TStore
 import sql.Tables
 import sql.TableAux
@@ -307,7 +309,7 @@ local {
 		welltypedtable(~TT, ~t)
 		isSome(project(~al, ~t))
 		isSome(projectType(~al, ~TT))
-		===================================== Project-Preservation-acons
+		======================================================================================= Project-Preservation-acons
 		~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
 		// project(~al, ~t) = attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t)))
 		// isSome(attachColToFrontRaw(getSome(findCol(a, ~t)), getSome(project(alrest, ~t))))

@@ -2,9 +2,11 @@ module sql.AuxLemmas
 
 import sql.BasicFunctions
 import sql.TStore
+import sql.TContext
 import sql.TypeSystem
 import sql.SoundnessAuxDefs
 import sql.Tables
+
 
 
 goal //TODO

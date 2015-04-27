@@ -4,6 +4,7 @@ import sql.BasicFunctions
 import sql.Syntax
 import sql.TypeSystem
 import sql.Tables
+import sql.TContext
 
 axiom
 ~TTC |- ~q : ~TT

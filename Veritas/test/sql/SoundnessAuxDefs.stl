@@ -4,6 +4,7 @@ import sql.BasicFunctions
 import sql.Tables
 import sql.TStore
 import sql.Syntax
+import sql.TContext
 import sql.TypeSystem
 
 // determines whether a given TTContext is consistent with a given TStore

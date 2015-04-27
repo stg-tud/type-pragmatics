@@ -3,6 +3,7 @@ module sql.Preservation
 import sql.BasicFunctions
 import sql.Syntax
 import sql.Semantics
+import sql.TContext
 import sql.TypeSystem
 import sql.TypeSystemInv
 import sql.TStore

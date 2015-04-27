@@ -4,32 +4,7 @@ import sql.BasicFunctions
 import sql.Tables
 import sql.TStore
 import sql.Syntax
-
-sorts
-	TTContext
-	
-constructors
-	cempty : TTContext
-	cbind : TName TType TTContext -> TTContext
-	
-function
-clookup : TName TTContext -> Opt
-clookup(tn, cempty) = none
-clookup(tn, cbind(tm, tt, TTC)) =
-	if (tn == tm)
-	then some(tt)
-	else clookup(tn, TTC) 
-	
-axioms
-~x == ~y
-cbind(~x, ~Tx, cbind(~y, ~Ty, ~C)) |- ~e : ~T
-================================================ T-TTContext-Duplicate
-cbind(~x, ~Tx, ~C) |- ~e : ~T
-
-~x != ~y
-cbind(~x, ~Tx, cbind(~y, ~Ty, ~C)) |- ~e : ~T
-================================================ T-TTContext-Swap
-cbind(~y, ~Ty, cbind(~x, ~Tx, ~C)) |- ~e : ~T
+import sql.TContext
 
 function
 dropFirstColType : TType -> TType
