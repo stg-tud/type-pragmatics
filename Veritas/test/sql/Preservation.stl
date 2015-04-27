@@ -3,6 +3,7 @@ module sql.Preservation
 import sql.BasicFunctions
 import sql.Syntax
 import sql.Semantics
+import sql.TContext
 import sql.TypeSystem
 import sql.TypeSystemInv
 import sql.TStore
@@ -32,6 +33,10 @@ StoreContextConsistent(~TS, ~TTC)
 =================================== SQL-Preservation-T-Selectallfrom
 ~TTC |- ~qo : ~TT
 
+// Verification succeeded, used lemmas: StoreContext-Lookup-WT, EQ-Tvalue, isSome-INV-1, T-inv-Selectallfrom, 
+//  T-Tvalue, getRaw0, getAL0, getAL-INV, isValue0, EQ-conf, reduce1, reduce2, DIFF-none-some, getSome0, 
+//  isValue-INV.
+
 goal 
 ~qi == Selectsomefrom(~al, Ref(~tn))
 ~cin == conf(~qi, ~TS)
@@ -41,6 +46,10 @@ reduce(~cin) = some(~cout)
 StoreContextConsistent(~TS, ~TTC)
 =================================== SQL-Preservation-T-Selectsomefrom
 ~TTC |- ~qo : ~TT
+
+// Verification succeeded, used lemmas: EQ-conf, reduce3, isSome1, Project-Preservation, T-inv-Selectallfrom, 
+//  StoreContext-Lookup-WT, isSome-INV-2, T-Selectallfrom, T-inv-Selectsomefrom, reduce4, reduce5, DIFF-none-
+//  some, isSome-INV-1.
 
 
 // 

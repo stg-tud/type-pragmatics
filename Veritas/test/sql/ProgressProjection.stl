@@ -6,6 +6,7 @@ import sql.TypeSystem
 import sql.Semantics
 import sql.TStore
 import sql.Tables
+import sql.TContext
 
 goal //TODO
 StoreContextConsistent(~TS, ~TTC)

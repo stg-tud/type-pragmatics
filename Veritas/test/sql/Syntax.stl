@@ -25,7 +25,7 @@ constructors
 	//SelectAllFromWhere1 : TName SQLPred -> SQLExp
 	//SelectFromWhere1 : TType TName SQLPred -> SQLExp
 	//SelectFromWhere2 : TType TName TName SQLPred -> SQLExp
-	// Union : Query Query -> Query
+	//Union : Query Query -> Query
 	//Intersection : SQLExp SQLExp -> SQLExp
 	//Difference : SQLExp SQLExp -> SQLExp
 	
@@ -38,7 +38,7 @@ isValue(Selectsomefrom(al, tn)) = false
 // isValue(SelectAllFromWhere1(tn, p)) = false
 // isValue(SelectFromWhere1(tt, tn, p)) = false
 //isValue(SelectFromWhere2(tt, tn1, tn2, p)) = false
-// isValue(Union(q1, q2)) = false
+//isValue(Union(q1, q2)) = false
 // isValue(Intersection(sql1, sql2)) = false
 // isValue(Difference(sql1, sql2)) = false
 

@@ -5,12 +5,12 @@ import sql.Tables
 import sql.TStore
 import sql.Syntax
 import sql.Semantics
-import sql.TypeSystem
+import sql.TContext
+//import sql.TypeSystem // is not required in progress proof
 import sql.TypeSystemInv
 import sql.SoundnessAuxDefs
 import sql.AuxLemmas
 import sql.ProgressProjection
-
 
 //prove progress by induction on the typing derivation of an sql command
 //for union/intersection/difference, you actually need induction on typing derivations!
@@ -36,6 +36,7 @@ StoreContextConsistent(~TS, ~TTC)
 exists ~cout
 	reduce(~cin) = some(~cout)
 
+//needs 60 sec timeout
 goal
 ~q == Selectsomefrom(~al, Ref(~tn)) 
 ~cin == conf(~q, ~TS)
@@ -45,6 +46,9 @@ StoreContextConsistent(~TS, ~TTC)
 ==================================== SQL-Progress-T-Selectsomefrom
 exists ~cout
 	reduce(~cin) = some(~cout)
+	
+// Verification succeeded, used lemmas: progress-projection, isSome1, lookup-aux, isSome-INV-2, T-inv-
+//  Selectsomefrom, reduce3, reduce4, reduce5.
 	
 // 	
 // //only application of correct case of inversion lemma is necessary	
