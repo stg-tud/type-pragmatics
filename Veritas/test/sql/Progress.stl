@@ -47,6 +47,9 @@ StoreContextConsistent(~TS, ~TTC)
 exists ~cout
 	reduce(~cin) = some(~cout)
 	
+// Verification succeeded, used lemmas: progress-projection, isSome1, lookup-aux, isSome-INV-2, T-inv-
+//  Selectsomefrom, reduce3, reduce4, reduce5.
+	
 // 	
 // //only application of correct case of inversion lemma is necessary	
 // // goal
