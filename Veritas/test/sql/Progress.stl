@@ -5,7 +5,7 @@ import sql.Tables
 import sql.TStore
 import sql.Syntax
 import sql.Semantics
-import sql.TypeSystem {names}
+import sql.TypeSystem
 import sql.TypeSystemInv
 import sql.SoundnessAuxDefs
 import sql.AuxLemmas
