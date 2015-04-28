@@ -7,13 +7,33 @@ import sql.SoundnessAuxDefs
 import sql.Tables
 
 
-
-goal //TODO
-clookup(~tn, ~TTC) == some(~TT)
-StoreContextConsistent(~TS, ~TTC)
-============================================== lookup-aux
+//proof by simple induction over the structure of the table type context
+goal //trivial, premise wrong
+clookup(~tn, cempty) == some(~TT)
+StoreContextConsistent(~TS, cempty)
+============================================== lookup-aux-cempty
 exists ~t
 	lookup(~tn, ~TS) == some(~t)
+	
+local {
+	const TTR : TTContext
+	
+	axiom 
+	clookup(~tn, TTR) == some(~TT)
+	StoreContextConsistent(~TS, TTR)
+	============================================== lookup-aux-cbind-IH
+	exists ~t
+		lookup(~tn, ~TS) == some(~t)
+	
+	goal
+	clookup(~tn, cbind(~tm, ~tt, TTR)) == some(~TT)
+	StoreContextConsistent(~TS, cbind(~tm, ~tt, TTR))
+	==================================================== lookup-aux-cbind
+	exists ~t
+		lookup(~tn, ~TS) == some(~t)
+	
+} //qed lookup-aux
+
 
 axiom
 clookup(~tn, ~TTC) == some(~TT)
