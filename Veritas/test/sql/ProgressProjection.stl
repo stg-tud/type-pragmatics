@@ -1,5 +1,6 @@
 module sql.ProgressProjection
 
+import sql.TableAux
 import sql.BasicFunctions
 import sql.SoundnessAuxDefs
 import sql.TypeSystem
@@ -8,14 +9,150 @@ import sql.TStore
 import sql.Tables
 import sql.TContext
 
-goal //TODO
+// induction over structure of attribute list
+
+goal
 StoreContextConsistent(~TS, ~TTC)
 clookup(~tn, ~TTC) == some(~TT1)
 lookup(~tn, ~TS) == some(~t)
-projectType(~al, ~TT1) == some(~TT2)
-=================================================================== progress-projection
+projectType(aempty, ~TT1) == some(~TT2)
+====================================== progress-projection-aempty
 exists ~t2
-	project(~al, ~t) == some(~t2)
+	project(aempty, ~t) == some(~t2)
+
+// case distinction for progress-findCol-attachColToFrontRaw	
+axiom //TODO prove!
+welltypedtable(~TT1, ~t)
+projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+findCol(~a, ~t) == some(~crt)
+project(~ar, ~t) == some(~rt)
+================================================= progress-attachColToFrontRaw
+exists ~rt2
+	attachColToFrontRaw(~crt, ~rt) == some(~rt2) 
+	
+	
+//proof of progress-findCol by induction on findCol-cases
+//trivial, premises cannot both be true
+goal
+welltypedtable(~TT1, table(aempty, ~rt))
+projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+=============================================== progress-findCol-aempty
+exists ~c
+	findCol(~a, table(aempty, ~rt)) == some(~c)
+			
+local {
+	consts a1 : AName
+	 al : AList
+	 rt : RawTable
+	
+	goal 
+	welltypedtable(~TT1, table(acons(a1, al), rt))
+	=================================================== welltypedtable-type
+	exists ~ft, ~TTR
+		~TT1 == ttcons(ctype(a1, ~ft), ~TTR)
+	
+	axiom 
+	welltypedtable(~TT1, table(acons(a1, al), rt))
+	=================================================== welltypedtable-type
+	exists ~ft, ~TTR
+		~TT1 == ttcons(ctype(a1, ~ft), ~TTR)
+	
+	
+	// goal
+	// welltypedtable(ttcons(ctype(a1, ~ft), ~TTR), table(acons(a1, al), rt))
+	// ========================================================================== welltyped-subtable
+	// exists ~rt2
+	// 	welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+	// 	
+	axiom // TODO prove
+	welltypedtable(ttcons(ctype(a1, ~ft), ~TTR), table(acons(a1, al), rt))
+	========================================================================== welltyped-subtable
+	exists ~rt2
+		welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+	
+	// proof with this hypothesis works (see below) but I am unsure whether this should work
+	// reason: projection can swap columns, so it should not be possible to deduct the second premise
+	// of IH from the second premise of the goal
+	axiom
+	welltypedtable(~TT1, table(al, dropFirstColRaw(rt)))
+	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	============================================================ progress-findCol-acons-IH
+	exists ~c
+		findCol(~a, table(al, dropFirstColRaw(rt))) == some(~c)
+	
+	
+	//IH variant with "fixed type" (works as well and yields really short proof) 
+	// - but is this a valid IH? I think not.
+	// axiom
+	// welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+	// projectType(acons(~a, ~ar), ttcons(ctype(a1, ~ft), ~TTR)) == some(~TT2)
+	// ======================================================================== progress-findCol-acons-IH
+	// exists ~c
+	// 	findCol(~a, table(al, dropFirstColRaw(rt))) == some(~c)
+		
+	goal
+	welltypedtable(~TT1, table(acons(a1, al), rt))
+	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	==================================================== progress-findCol-acons
+	exists ~c
+		findCol(~a, table(acons(a1, al), rt)) == some(~c)
+	
+	// 	
+	// Verification succeeded, used lemmas: progress-findCol-acons-IH, projectType1, welltyped-subtable, findCol2, 
+ // projectType0, isSome1, EQ-ttcons, welltypedtable-type, findColType2, projectType2, DIFF-none-some, 
+ // matchingAList1, matchingAList2, DIFF-aempty-acons, welltypedtable0, findCol1.
+	
+} //qed progress-findCol
+		
+axiom
+welltypedtable(~TT1, ~t)	
+projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+=============================================== progress-findCol
+exists ~c
+	findCol(~a, ~t) == some(~c)
+	
+goal
+welltypedtable(~TT1, ~t)
+projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+project(~ar, ~t) == some(~rt)
+===================================================== progress-findCol-attachColToFrontRaw
+exists ~crt, ~rt2
+ 	findCol(~a, ~t) == some(~crt)
+ 	attachColToFrontRaw(~crt, ~rt) == some(~rt2)
+ 	
+//qed case distinction for progress-findCol-attachColToFrontRaw
+	
+local {
+	const ar : AList
+	
+	// pulled axiom inside local block, made meta-variable ~ar a constant
+	axiom
+	welltypedtable(~TT1, ~t)
+	projectType(acons(~a, ar), ~TT1) == some(~TT2)
+	project(ar, ~t) == some(~rt)
+	===================================================== progress-findCol-attachColToFrontRaw
+	exists ~crt, ~rt2
+		findCol(~a, ~t) == some(~crt)
+ 		attachColToFrontRaw(~crt, ~rt) == some(~rt2) 
+		
+	axiom
+	StoreContextConsistent(~TS, ~TTC)
+	clookup(~tn, ~TTC) == some(~TT1)
+	lookup(~tn, ~TS) == some(~t)
+	projectType(ar, ~TT1) == some(~TT2)
+	====================================== progress-projection-acons-IH
+	exists ~rt
+		project(ar, ~t) == some(~rt)
+		
+	goal
+	StoreContextConsistent(~TS, ~TTC)
+	clookup(~tn, ~TTC) == some(~TT1)
+	lookup(~tn, ~TS) == some(~t)
+	projectType(acons(~a, ar), ~TT1) == some(~TT2)
+	=============================================== progress-projection-acons
+	exists ~t2
+		project(acons(~a, ar), ~t) == some(~t2)
+} //qed progress-projection
 
 
 axiom
@@ -23,6 +160,6 @@ StoreContextConsistent(~TS, ~TTC)
 clookup(~tn, ~TTC) == some(~TT1)
 lookup(~tn, ~TS) == some(~t)
 projectType(~al, ~TT1) == some(~TT2)
-=================================================================== progress-projection
+====================================== progress-projection
 exists ~t2
 	project(~al, ~t) == some(~t2)
