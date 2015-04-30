@@ -67,8 +67,7 @@ local {
 	axiom // TODO prove
 	welltypedtable(ttcons(ctype(a1, ~ft), ~TTR), table(acons(a1, al), rt))
 	========================================================================== welltyped-subtable
-	exists ~rt2
-		welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+	welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
 	
 	// proof with this hypothesis works (see below) but I am unsure whether this should work
 	// reason: projection can swap columns, so it should not be possible to deduct the second premise
