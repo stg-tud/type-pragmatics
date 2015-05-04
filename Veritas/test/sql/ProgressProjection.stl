@@ -9,7 +9,7 @@ import sql.TStore
 import sql.Tables
 import sql.TContext
 
-// induction over structure of attribute list
+// proof of progress-projection by induction over structure of attribute list
 
 goal
 StoreContextConsistent(~TS, ~TTC)
@@ -21,7 +21,60 @@ exists ~t2
 	project(aempty, ~t) == some(~t2)
 
 // case distinction for progress-findCol-attachColToFrontRaw	
-axiom //TODO prove!
+
+//proof of progress-attachColToFrontRaw by induction on row-length of given column
+
+local {
+	axiom //TODO prove
+	welltypedtable(~TT1, ~t)
+	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	findCol(~a, ~t) == some(tempty)
+	================================= findCol-tempty-project-tempty
+	project(~ar, ~t) == some(tempty)
+
+	goal
+	welltypedtable(~TT1, ~t)
+	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	findCol(~a, ~t) == some(tempty)
+	project(~ar, ~t) == some(~rt2)	
+	================================================= progress-attachColToFrontRaw-tempty
+	exists ~rt3
+		attachColToFrontRaw(tempty, ~rt2) == some(~rt3)
+}
+	
+local {
+	const rt1 : RawTable
+	
+	axiom //TODO prove
+	welltypedtable(~TT1, ~t)
+	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	findCol(~a, ~t) == some(tcons(~r1, ~rt1))
+	=================================================== findCol-tcons-project-tcons
+	exists ~f, ~r2, ~rt2
+		~r1 == rcons(~f, rempty)
+		project(~ar, ~t) == some(tcons(~r2, ~rt2))
+	
+	axiom 
+	welltypedtable(~TT1, ~t)
+	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	findCol(~a, ~t) == some(rt1)
+	project(~ar, ~t) == some(~rt2)
+	================================================= progress-attachColToFrontRaw-tcons-IH
+	exists ~rt3
+		attachColToFrontRaw(rt1, ~rt2) == some(~rt3)
+		
+	goal
+	welltypedtable(~TT1, ~t)
+	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	findCol(~a, ~t) == some(tcons(~r1, rt1))
+	project(~ar, ~t) == some(~rt2)
+	================================================= progress-attachColToFrontRaw-tcons
+	exists ~rt3
+		attachColToFrontRaw(tcons(~r1, rt1), ~rt2) == some(~rt3)
+	
+}
+
+axiom 
 welltypedtable(~TT1, ~t)
 projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
 findCol(~a, ~t) == some(~crt)
