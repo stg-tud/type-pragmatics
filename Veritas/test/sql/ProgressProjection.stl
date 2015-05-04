@@ -84,7 +84,7 @@ exists ~rt2
 	attachColToFrontRaw(~crt, ~rt) == some(~rt2) 
 	
 	
-//proof of progress-findCol by induction on findCol-cases
+//proof of progress-findCol by induction on the recursive structure of findCol
 //trivial, premises cannot both be true
 goal
 welltypedtable(~TT1, table(aempty, ~rt))
@@ -94,21 +94,22 @@ exists ~c
 	findCol(~a, table(aempty, ~rt)) == some(~c)
 			
 local {
-	consts a1 : AName
-	 al : AList
-	 rt : RawTable
+	//findCol has two arguments, ~a and ~t, which we fix in the induction case to a and t
+	consts 
+	 a : AName
+	 t : Table
 	
 	goal 
-	welltypedtable(~TT1, table(acons(a1, al), rt))
+	welltypedtable(~TT1, table(acons(~a, ~al), ~rt))
 	=================================================== welltypedtable-type
 	exists ~ft, ~TTR
-		~TT1 == ttcons(ctype(a1, ~ft), ~TTR)
+		~TT1 == ttcons(ctype(~a, ~ft), ~TTR)
 	
 	axiom 
-	welltypedtable(~TT1, table(acons(a1, al), rt))
+	welltypedtable(~TT1, table(acons(~a, ~al), ~rt))
 	=================================================== welltypedtable-type
 	exists ~ft, ~TTR
-		~TT1 == ttcons(ctype(a1, ~ft), ~TTR)
+		~TT1 == ttcons(ctype(~a, ~ft), ~TTR)
 	
 	
 	local {
@@ -118,43 +119,45 @@ local {
 		welltypedRawtable(~RT, dropFirstColRaw(~rt))
 	
 		goal
-		welltypedtable(ttcons(ctype(a1, ~ft), ~TTR), table(acons(a1, al), rt))
+		welltypedtable(ttcons(ctype(~a, ~ft), ~TTR), table(acons(~a, ~al), ~rt))
 		========================================================================== welltyped-subtable
 		exists ~rt2
-			welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+			welltypedtable(~TTR, table(~al, dropFirstColRaw(~rt)))
 	}
 	
 	axiom
-	welltypedtable(ttcons(ctype(a1, ~ft), ~TTR), table(acons(a1, al), rt))
+	welltypedtable(ttcons(ctype(~a, ~ft), ~TTR), table(acons(~a, ~al), ~rt))
 	========================================================================== welltyped-subtable
-	welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+	welltypedtable(~TTR, table(~al, dropFirstColRaw(~rt)))
 	
-	// proof with this hypothesis works (see below) but I am unsure whether this should work
-	// reason: projection can swap columns, so it should not be possible to deduct the second premise
-	// of IH from the second premise of the goal
+
+	// for the proof to succeed, you would need a lemma like this I think
+	// however, projectType-aux should not hold in general!!
+	// axiom
+	// t == table(acons(~a2, ~al), ~rt)
+	// projectType(acons(a, ~ar), ~TT1) == some(~TT2)
+	// ~tih == table(~al, dropFirstColRaw(~rt))
+	// welltypedtable(~TTR, ~tih)
+	// ================================================= projectType-aux
+	// projectType(acons(a, ~ar), ~TTR) == some(~TTR2)
+	
+
 	axiom
-	welltypedtable(~TT1, table(al, dropFirstColRaw(rt)))
-	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	t == table(acons(~a2, ~al), ~rt)
+	~tih == table(~al, dropFirstColRaw(~rt))
+	welltypedtable(~TTR, ~tih)
+	projectType(acons(a, ~ar), ~TTR) == some(~TTR2)
 	============================================================ progress-findCol-acons-IH
 	exists ~c
-		findCol(~a, table(al, dropFirstColRaw(rt))) == some(~c)
-	
-	
-	//IH variant with "fixed type" (works as well and yields really short proof) 
-	// - but is this a valid IH? I think not.
-	// axiom
-	// welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
-	// projectType(acons(~a, ~ar), ttcons(ctype(a1, ~ft), ~TTR)) == some(~TT2)
-	// ======================================================================== progress-findCol-acons-IH
-	// exists ~c
-	// 	findCol(~a, table(al, dropFirstColRaw(rt))) == some(~c)
+		findCol(a, ~tih) == some(~c)
 		
 	goal
-	welltypedtable(~TT1, table(acons(a1, al), rt))
-	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	t == table(acons(~a2, ~al), ~rt)
+	welltypedtable(~TT1, t)
+	projectType(acons(a, ~ar), ~TT1) == some(~TT2)
 	==================================================== progress-findCol-acons
 	exists ~c
-		findCol(~a, table(acons(a1, al), rt)) == some(~c)
+		findCol(a, t) == some(~c)
 	
 	// 	
 	// Verification succeeded, used lemmas: progress-findCol-acons-IH, projectType1, welltyped-subtable, findCol2, 
