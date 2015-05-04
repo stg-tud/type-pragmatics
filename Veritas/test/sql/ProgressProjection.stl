@@ -58,13 +58,20 @@ local {
 		~TT1 == ttcons(ctype(a1, ~ft), ~TTR)
 	
 	
-	// goal
-	// welltypedtable(ttcons(ctype(a1, ~ft), ~TTR), table(acons(a1, al), rt))
-	// ========================================================================== welltyped-subtable
-	// exists ~rt2
-	// 	welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
-	// 	
-	axiom // TODO prove
+	local {
+		axiom //Proof in PreservationProjection.stl  
+		welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+		===================================================== DropFirstCol-Preservation
+		welltypedRawtable(~RT, dropFirstColRaw(~rt))
+	
+		goal
+		welltypedtable(ttcons(ctype(a1, ~ft), ~TTR), table(acons(a1, al), rt))
+		========================================================================== welltyped-subtable
+		exists ~rt2
+			welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+	}
+	
+	axiom
 	welltypedtable(ttcons(ctype(a1, ~ft), ~TTR), table(acons(a1, al), rt))
 	========================================================================== welltyped-subtable
 	welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
