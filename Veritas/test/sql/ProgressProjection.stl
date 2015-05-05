@@ -94,11 +94,8 @@ exists ~c
 	findCol(~a, table(aempty, ~rt)) == some(~c)
 			
 local {
-	//findCol has two arguments, ~a and ~t, which we fix in the induction case to a and t
-	consts 
-	 a : AName
-	 t : Table
-	
+
+	//auxiliary lemmas for induction step case
 	goal 
 	welltypedtable(~TT1, table(acons(~a, ~al), ~rt))
 	=================================================== welltypedtable-type
@@ -141,23 +138,25 @@ local {
 	// ================================================= projectType-aux
 	// projectType(acons(a, ~ar), ~TTR) == some(~TTR2)
 	
+	consts 
+	 a : AName
+	 a2 : AName
+	 al : AList
+	 rt : RawTable
 
 	axiom
-	t == table(acons(~a2, ~al), ~rt)
-	~tih == table(~al, dropFirstColRaw(~rt))
-	welltypedtable(~TTR, ~tih)
-	projectType(acons(a, ~ar), ~TTR) == some(~TTR2)
+	welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+	findColType(a, ~TTR) == some(~TTR2)
 	============================================================ progress-findCol-acons-IH
 	exists ~c
-		findCol(a, ~tih) == some(~c)
+		findCol(a, table(al, dropFirstColRaw(rt))) == some(~c)
 		
 	goal
-	t == table(acons(~a2, ~al), ~rt)
-	welltypedtable(~TT1, t)
-	projectType(acons(a, ~ar), ~TT1) == some(~TT2)
+	welltypedtable(~TT1, table(acons(a2, al), rt))
+	findColType(a, ~TT1) == some(~TT2)
 	==================================================== progress-findCol-acons
 	exists ~c
-		findCol(a, t) == some(~c)
+		findCol(a, table(acons(a2, al), rt)) == some(~c)
 	
 	// 	
 	// Verification succeeded, used lemmas: progress-findCol-acons-IH, projectType1, welltyped-subtable, findCol2, 
@@ -168,7 +167,7 @@ local {
 		
 axiom
 welltypedtable(~TT1, ~t)	
-projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+findColType(~a, ~TT1) == some(~TT2)
 =============================================== progress-findCol
 exists ~c
 	findCol(~a, ~t) == some(~c)
