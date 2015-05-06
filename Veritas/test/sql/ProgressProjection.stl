@@ -24,51 +24,39 @@ exists ~t2
 
 //proof of progress-attachColToFrontRaw by induction on row-length of given column
 
-local {
-	
-	
+local {	
+
 	
 	local {
-		// proof of findCol-emptyTable-contradiction by induction
-		// on the recursive structure of findCol
-		consts 
-	 	a : AName
-	 	a2 : AName
-	 	al : AList
-	 	rt : RawTable
+		//proof of findCol-emptyTable by induction
+		//on the recursive structure of findCol
 		
-		goal
-		rt != tempty
-		============================================== findCol-emptyTable-contradiction-1
-		findCol(a, table(aempty, rt)) != some(tempty)
+		consts 
+	 		a : AName
+	 		a2 : AName
+	 		al : AList
+	 		rt : RawTable
+	 		
+	 	goal
+		findCol(a, table(aempty, rt)) == some(tempty)
+		============================================== findCol-emptyTable-1
+		rt == tempty
 		
 		axiom
-		rt != tempty
-		=========================================================== findCol-emptyTable-contradiction-2-IH
-		findCol(a, table(al, dropFirstColRaw(rt))) != some(tempty)
+		findCol(a, table(al, dropFirstColRaw(rt))) == some(tempty)
+		=========================================================== findCol-emptyTable-IH
+		rt == tempty
 		
 		goal
-		rt != tempty
-		===================================================== findCol-emptyTable-contradiction-2
-		findCol(a, table(acons(a2, al), rt)) != some(tempty)	
+		findCol(a, table(acons(a2, al), rt)) == some(tempty)
+		==================================================== findCol-emptyTable-2
+		rt == tempty
 	}
 	
 	axiom
-	~rt != tempty
-	============================================== findCol-emptyTable-contradiction
-	findCol(~a, table(~al, ~rt)) != some(tempty)
-		
-	// goal
-	// welltypedtable(~TT1, table(~al, ~rt))
-	// findCol(~a, table(~al, ~rt)) == some(tempty)
-	// ============================================== findCol-emptyTable
-	// ~rt == tempty
-	// 
-	// axiom
-	// welltypedtable(~TT1, table(~al, ~rt))
-	// findCol(~a, table(~al, ~rt)) == some(tempty)
-	// ============================================== findCol-emptyTable
-	// ~rt == tempty
+	findCol(~a, table(~al, ~rt)) == some(tempty)
+	============================================== findCol-emptyTable
+	~rt == tempty
 	
 	local {
 		// proof of project-emptyTable by induction on length of argument list (aempty/acons)
