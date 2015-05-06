@@ -25,16 +25,80 @@ exists ~t2
 //proof of progress-attachColToFrontRaw by induction on row-length of given column
 
 local {
-	axiom //TODO prove
-	welltypedtable(~TT1, ~t)
-	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
-	findCol(~a, ~t) == some(tempty)
-	================================= findCol-tempty-project-tempty
-	project(~ar, ~t) == some(tempty)
-
+	
+	
+	
+	local {
+		// proof of findCol-emptyTable-contradiction by induction
+		// on the recursive structure of findCol
+		consts 
+	 	a : AName
+	 	a2 : AName
+	 	al : AList
+	 	rt : RawTable
+		
+		goal
+		rt != tempty
+		============================================== findCol-emptyTable-contradiction-1
+		findCol(a, table(aempty, rt)) != some(tempty)
+		
+		axiom
+		rt != tempty
+		=========================================================== findCol-emptyTable-contradiction-2-IH
+		findCol(a, table(al, dropFirstColRaw(rt))) != some(tempty)
+		
+		goal
+		rt != tempty
+		===================================================== findCol-emptyTable-contradiction-2
+		findCol(a, table(acons(a2, al), rt)) != some(tempty)	
+	}
+	
+	axiom
+	~rt != tempty
+	============================================== findCol-emptyTable-contradiction
+	findCol(~a, table(~al, ~rt)) != some(tempty)
+		
+	// goal
+	// welltypedtable(~TT1, table(~al, ~rt))
+	// findCol(~a, table(~al, ~rt)) == some(tempty)
+	// ============================================== findCol-emptyTable
+	// ~rt == tempty
+	// 
+	// axiom
+	// welltypedtable(~TT1, table(~al, ~rt))
+	// findCol(~a, table(~al, ~rt)) == some(tempty)
+	// ============================================== findCol-emptyTable
+	// ~rt == tempty
+	
+	local {
+		// proof of project-emptyTable by induction on length of argument list (aempty/acons)
+		const alr : AList
+		
+		goal
+		project(aempty, table(~al, tempty)) == some(~rt2)	
+		=============================================== project-emptyTable-aempty
+		~rt2 == tempty
+		
+		axiom
+		project(alr, table(~al, tempty)) == some(~rt2)	
+		=============================================== project-emptyTable-acons-IH
+		~rt2 == tempty
+		
+		goal
+		project(acons(~a, alr), table(~al, tempty)) == some(~rt2)	
+		========================================================= project-emptyTable-acons
+		~rt2 == tempty
+	
+	}
+	
+	axiom
+	project(~ar, table(~al, tempty)) == some(~rt2)	
+	============================================== project-emptyTable
+	~rt2 == tempty
+	
+	
 	goal
 	welltypedtable(~TT1, ~t)
-	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
 	findCol(~a, ~t) == some(tempty)
 	project(~ar, ~t) == some(~rt2)	
 	================================================= progress-attachColToFrontRaw-tempty
@@ -45,9 +109,17 @@ local {
 local {
 	const rt1 : RawTable
 	
+	// goal //TODO prove
+	// welltypedtable(~TT1, ~t)
+	// projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	// findCol(~a, ~t) == some(tcons(~r1, ~rt1))
+	// =================================================== findCol-tcons-project-tcons
+	// exists ~f, ~r2, ~rt2
+	// 	~r1 == rcons(~f, rempty)
+	// 	project(~ar, ~t) == some(tcons(~r2, ~rt2))
+	
 	axiom //TODO prove
 	welltypedtable(~TT1, ~t)
-	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
 	findCol(~a, ~t) == some(tcons(~r1, ~rt1))
 	=================================================== findCol-tcons-project-tcons
 	exists ~f, ~r2, ~rt2
@@ -56,7 +128,6 @@ local {
 	
 	axiom 
 	welltypedtable(~TT1, ~t)
-	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
 	findCol(~a, ~t) == some(rt1)
 	project(~ar, ~t) == some(~rt2)
 	================================================= progress-attachColToFrontRaw-tcons-IH
@@ -65,7 +136,6 @@ local {
 		
 	goal
 	welltypedtable(~TT1, ~t)
-	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
 	findCol(~a, ~t) == some(tcons(~r1, rt1))
 	project(~ar, ~t) == some(~rt2)
 	================================================= progress-attachColToFrontRaw-tcons
@@ -76,7 +146,6 @@ local {
 
 axiom 
 welltypedtable(~TT1, ~t)
-projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
 findCol(~a, ~t) == some(~crt)
 project(~ar, ~t) == some(~rt)
 ================================================= progress-attachColToFrontRaw
@@ -85,15 +154,16 @@ exists ~rt2
 	
 	
 //proof of progress-findCol by induction on the recursive structure of findCol
-//trivial, premises cannot both be true
-goal
-welltypedtable(~TT1, table(aempty, ~rt))
-projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
-=============================================== progress-findCol-aempty
-exists ~c
-	findCol(~a, table(aempty, ~rt)) == some(~c)
-			
+		
 local {
+	
+	//trivial base case, premises cannot both be true
+	goal
+	welltypedtable(~TT1, table(aempty, ~rt))
+	projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
+	=============================================== progress-findCol-1
+	exists ~c
+		findCol(~a, table(aempty, ~rt)) == some(~c)
 
 	//auxiliary lemmas for induction step case
 	goal 
@@ -127,16 +197,6 @@ local {
 	========================================================================== welltyped-subtable
 	welltypedtable(~TTR, table(~al, dropFirstColRaw(~rt)))
 	
-
-	// for the proof to succeed, you would need a lemma like this I think
-	// however, projectType-aux should not hold in general!!
-	// axiom
-	// t == table(acons(~a2, ~al), ~rt)
-	// projectType(acons(a, ~ar), ~TT1) == some(~TT2)
-	// ~tih == table(~al, dropFirstColRaw(~rt))
-	// welltypedtable(~TTR, ~tih)
-	// ================================================= projectType-aux
-	// projectType(acons(a, ~ar), ~TTR) == some(~TTR2)
 	
 	consts 
 	 a : AName
@@ -147,22 +207,17 @@ local {
 	axiom
 	welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
 	findColType(a, ~TTR) == some(~TTR2)
-	============================================================ progress-findCol-acons-IH
+	============================================================ progress-findCol-2-IH
 	exists ~c
 		findCol(a, table(al, dropFirstColRaw(rt))) == some(~c)
 		
 	goal
 	welltypedtable(~TT1, table(acons(a2, al), rt))
 	findColType(a, ~TT1) == some(~TT2)
-	==================================================== progress-findCol-acons
+	==================================================== progress-2-acons
 	exists ~c
 		findCol(a, table(acons(a2, al), rt)) == some(~c)
-	
-	// 	
-	// Verification succeeded, used lemmas: progress-findCol-acons-IH, projectType1, welltyped-subtable, findCol2, 
- // projectType0, isSome1, EQ-ttcons, welltypedtable-type, findColType2, projectType2, DIFF-none-some, 
- // matchingAList1, matchingAList2, DIFF-aempty-acons, welltypedtable0, findCol1.
-	
+
 } //qed progress-findCol
 		
 axiom
@@ -172,6 +227,9 @@ findColType(~a, ~TT1) == some(~TT2)
 exists ~c
 	findCol(~a, ~t) == some(~c)
 	
+//pull progress-attachColToFrontRow and progress-findCol together 
+//- Vampire seems to need that additional step
+//using findColType instead of projectType also doesn't work for the intermediate step	
 goal
 welltypedtable(~TT1, ~t)
 projectType(acons(~a, ~ar), ~TT1) == some(~TT2)
