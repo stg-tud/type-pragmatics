@@ -116,23 +116,13 @@ local {
 	~C |- ~e1 : ~T
 	
 	//auxiliary lemma which is needed in this case, but can also be proven
-	goal
+	lemma
 	~fresh == gensym(app(app(~e, ~e1), var(~x)))
 	============================================= fresh-unequal-var-3
 	~x != ~fresh
-	
-	axiom
-	~fresh == gensym(app(app(~e, ~e1), var(~x)))
-	============================================= fresh-unequal-var-3
-	~x != ~fresh
-	
+
 	//another auxiliary lemma which is needed in this case, but can also be proven
-	goal
-	~fresh == gensym(app(app(~e, ~e1), var(~x)))
-	============================================= fresh-free-2
-	!isFreeVar(~fresh, ~e1)
-	
-	axiom
+	lemma
 	~fresh == gensym(app(app(~e, ~e1), var(~x)))
 	============================================= fresh-free-2
 	!isFreeVar(~fresh, ~e1)
