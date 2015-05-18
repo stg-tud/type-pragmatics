@@ -313,6 +313,15 @@ strategies
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
 			goal := FOFGoal(axioms, conjecture);
 			others := <generate-fof-goals(|axioms, cons)> rest
+	generate-fof-goals(|axioms, cons) : [Lemmas(fs) | rest] -> [goal | others]
+		where
+			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
+			axioms2 := <conc> (axioms, newAxioms); 
+			formula := <to-prop; compose-formulas> fs;
+			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
+			//important: take previous(!) axiom set for generating fof goal from lemma!
+			goal := FOFGoal(axioms, conjecture);
+			others := <generate-fof-goals(|axioms2, cons)> rest
 	generate-fof-goals(|axioms, cons) : [Local(xs) | rest] -> <conc> (goals,  others)
 		where
 			goals := <generate-fof-goals(|axioms, cons)> xs;

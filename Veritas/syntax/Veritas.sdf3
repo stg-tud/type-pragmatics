@@ -368,6 +368,18 @@ ModuleDef =
 <TypingRule>
 
 > {ast("Goals([<1>])")}
+
+ModuleDef.Lemmas = 
+<lemmas 
+<TypingRule*>
+
+>
+ 
+ModuleDef = 
+<lemma 
+<TypingRule>
+
+> {ast("Lemmas([<1>])")}
   
 Module.Module = 
 <module <MID>
