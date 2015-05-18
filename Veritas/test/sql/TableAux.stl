@@ -31,9 +31,11 @@ dropFirstColRaw(tcons(rcons(f, r), rt)) = tcons(r, dropFirstColRaw(rt))
 //attaches a raw table with one column to the front of another raw table
 //returns a raw table with one column more
 //assumes that both tables have the same row count!
+//include empty brackets after tempty such that the parser does not report an error
+//is treated exactly like tempty for fof-generation
 function
 attachColToFrontRaw : RawTable RawTable -> Opt // Opt[RawTable]
-attachColToFrontRaw(tempty, tempty) = some(tempty)
+attachColToFrontRaw(tempty(), tempty()) = some(tempty)
 attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) =
 	let rest = attachColToFrontRaw(rt1, rt2) in
 		if (isSome(rest)) 
