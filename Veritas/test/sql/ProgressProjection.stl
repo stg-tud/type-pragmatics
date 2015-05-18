@@ -152,40 +152,75 @@ local {
 		
 		
 	// non-trivial base case, confirming that the first two cases are the only ones that can happen
-	// axiom // TODO prove
-	// welltypedtable(~TT1, ~t)
-	// findCol(~a, ~t) == some(~rt1)
-	// project(~ar, ~t) == some(~rt2)
-	// ~rt1 == tempty
-	// ================================= project-find-Col-equal-length-tempty
-	// ~rt2 == tempty
-	// 
-	// axiom // TODO prove
-	// welltypedtable(~TT1, ~t)
-	// findCol(~a, ~t) == some(~rt1)
-	// project(~ar, ~t) == some(~rt2)
-	// ~rt1 == tcons(~r1, ~rt1)
-	// ================================= project-find-Col-equal-length-tcons
-	// exists ~f, ~rt, ~r3, ~rt3
-	// 	~r1 == rcons(~f, rempty)
-	// 	~rt2 == rcons(~r3, ~rt3) 
-	// 
-	// goal
-	// OR
-	// => ~rt1 != tempty
-	// => ~rt2 != tempty
-	// OR 
-	// => forall ~f ~rt 
-	// 	~rt1 != tcons(rcons(~f, rempty), ~rt)
-	// => forall ~r, ~rt3 
-	// 	~rt2 != tcons(~r, ~rt3)
-	// welltypedtable(~TT1, ~t)
-	// findCol(~a, ~t) == some(~rt1)
-	// project(~ar, ~t) == some(~rt2)
-	// =================================================================================== progress-attachColToFrontRaw-3
-	// exists ~rt3
-	// 	attachColToFrontRaw(~rt1, ~rt2) == some(~rt3)	
-	// 	
+	axiom // TODO prove
+	welltypedtable(~TT1, ~t)
+	findCol(~a, ~t) == some(~rt1)
+	project(~ar, ~t) == some(~rt2)
+	~rt1 == tempty
+	================================= project-find-Col-equal-length-tempty-1
+	~rt2 == tempty
+	
+	axiom // TODO prove
+	welltypedtable(~TT1, ~t)
+	findCol(~a, ~t) == some(~rt1)
+	project(~ar, ~t) == some(~rt2)
+	~rt2 == tempty
+	================================= project-find-Col-equal-length-tempty-2
+	~rt1 == tempty
+	
+	axiom // TODO prove
+	welltypedtable(~TT1, ~t)
+	findCol(~a, ~t) == some(~rt1)
+	project(~ar, ~t) == some(~rt2)
+	~rt1 == tcons(rcons(~f, rempty), ~rt1)
+	========================================= project-find-Col-equal-length-tcons-1
+	exists ~r3, ~rt3
+		~rt2 == rcons(~r3, ~rt3) 
+		
+	axiom // TODO prove
+	welltypedtable(~TT1, ~t)
+	findCol(~a, ~t) == some(~rt1)
+	project(~ar, ~t) == some(~rt2)
+	~rt2 == rcons(~r3, ~rt3) 
+	============================================ project-find-Col-equal-length-tcons-2
+	exists ~f, ~rt1
+		~rt1 == tcons(rcons(~f, rempty), ~rt1)
+		
+	axiom
+	OR
+	=> ~rt1 != tempty
+	=> ~rt2 != tempty
+	welltypedtable(~TT1, ~t)
+	findCol(~a, ~t) == some(~rt1)
+	project(~ar, ~t) == some(~rt2)
+	======================================== progress-attachColToFrontRaw-aux-1
+	false
+	
+	axiom
+	OR 
+	=> forall ~r, ~rt ~rt1 != tcons(rcons(~f, rempty), ~rt)
+	=> forall ~r, ~rt3 ~rt2 != tcons(~r, ~rt3)
+	welltypedtable(~TT1, ~t)
+	findCol(~a, ~t) == some(~rt1)
+	project(~ar, ~t) == some(~rt2)
+	======================================================= progress-attachColToFrontRaw-aux-2
+	false
+	
+	
+	goal
+	OR
+	=> ~rt1 != tempty
+	=> ~rt2 != tempty
+	OR 
+	=> forall ~r, ~rt ~rt1 != tcons(rcons(~f, rempty), ~rt)
+	=> forall ~r, ~rt3 ~rt2 != tcons(~r, ~rt3)
+	welltypedtable(~TT1, ~t)
+	findCol(~a, ~t) == some(~rt1)
+	project(~ar, ~t) == some(~rt2)
+	=================================================================================== progress-attachColToFrontRaw-3
+	exists ~rt3 
+		attachColToFrontRaw(~rt1, ~rt2) == some(~rt3)	
+		
 }
 	
 // local {
