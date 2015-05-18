@@ -58,11 +58,11 @@ OrTypingRuleJudgement.OrJudgement =
 <OrCaseList>>
  
 OrCaseList.OrEnd = 
-	<=\> <TypingRuleJudgementList>
+<=\> <TypingRuleJudgementList>
 >
  
 OrCaseList.OrCons = 
-	<=\> <TypingRuleJudgementList> <OrCaseList>
+<=\> <TypingRuleJudgementList> <OrCaseList>
 > {layout("1.first.col == 3.first.col")}
 
 TypingJudgment.TypingJudgment = 
