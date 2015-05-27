@@ -233,18 +233,18 @@ rules
 	not-match-prepats-prop : (pats, prepats) -> result
 	where
 		not-prepats := <map(not-match-prepats(|pats))> prepats;
-		result := <debug(!"not-prepats: "); reduce-list(make-and|True())> not-prepats
+		result := <reduce-list(make-and|True())> not-prepats
 
 	not-match-prepats(|pats) : pre-patterns -> result
 	where
 		not-match-args := <zip;map(not-match-prepat-arg)> (pats, pre-patterns);
-		result := <debug(!"not-match-args: "); reduce-list(make-or|False())> not-match-args
+		result := <reduce-list(make-or|False())> not-match-args
 
-	not-match-prepat-arg = strip-annos;debug(!"not-match-prepat-arg called: "); fail
+	not-match-prepat-arg = strip-annos; fail
 	not-match-prepat-arg : (pat1@FunctionPatApp(c1, xs), FunctionPatApp(c2, ys)) -> sub-prop
 	where
 		<strip-annos;equal> (c1,c2);
-		sub-props := <zip; map(\(x,y) -> <not-match-prepat-arg> (x,y)\); debug(!"sub-props: ")> (xs, ys);
+		sub-props := <zip; map(\(x,y) -> <not-match-prepat-arg> (x,y)\)> (xs, ys);
 		sub-prop := <reduce-list(make-or|False())> sub-props // different if different for any sub-pat
 	not-match-prepat-arg : (pat1@FunctionPatApp(c1, xs), FunctionPatApp(c2, ys)) -> True()
 	where
