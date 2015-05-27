@@ -46,6 +46,8 @@ lexical syntax
   Keyword = "import" 
   Keyword = "undefined" 
   Keyword = "RESULT" 
+  Keyword = "include"
+  Keyword = "hide"
   PrimitiveType = "Nat" 
   PrimitiveType = "String" 
 

@@ -299,64 +299,70 @@ strategies
 	to-prop = innermost(R)
 	fof-trans = generate-fof-goals
 	
-	generate-fof-goals : Module(_, imps, body) -> <conc; {| Imported: generate-fof-goals(|[], []) |}> (imps, body) 
+	generate-fof-goals : Module(_, imps, body) -> <conc; {| Imported: generate-fof-goals(|[], [], []) |}> (imps, body) 
 	
-	generate-fof-goals(|axioms, cons) : [] -> []
-	generate-fof-goals(|axioms, cons) : [Axioms(fs) | rest] -> others
+	generate-fof-goals(|axioms, usedaxioms, cons) : [] -> []
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Axioms(fs) | rest] -> others
 		where
 			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
-			axioms2 := <conc> (axioms, newAxioms); 
-			others := <generate-fof-goals(|axioms2, cons)> rest
-	generate-fof-goals(|axioms, cons) : [Goals(fs) | rest] -> [goal | others]
+			axioms2 := <conc> (axioms, newAxioms);
+			usedaxioms2 := <conc> (usedaxioms, newAxioms); 
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Goals(fs) | rest] -> [goal | others]
 		where
 			formula := <to-prop; compose-formulas> fs;
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
-			goal := FOFGoal(axioms, conjecture);
-			others := <generate-fof-goals(|axioms, cons)> rest
-	generate-fof-goals(|axioms, cons) : [Lemmas(fs) | rest] -> [goal | others]
+			goal := FOFGoal(usedaxioms, conjecture);
+			others := <generate-fof-goals(|axioms, usedaxioms, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Lemmas(fs) | rest] -> [goal | others]
 		where
 			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
 			axioms2 := <conc> (axioms, newAxioms); 
+			usedaxioms2 := <conc> (usedaxioms, newAxioms); 
 			formula := <to-prop; compose-formulas> fs;
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
 			//important: take previous(!) axiom set for generating fof goal from lemma!
-			goal := FOFGoal(axioms, conjecture);
-			others := <generate-fof-goals(|axioms2, cons)> rest
-	generate-fof-goals(|axioms, cons) : [Local(xs) | rest] -> <conc> (goals,  others)
+			goal := FOFGoal(usedaxioms, conjecture);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Local(xs) | rest] -> <conc> (goals,  others)
 		where
-			goals := <generate-fof-goals(|axioms, cons)> xs;
-			others := <generate-fof-goals(|axioms, cons)> rest
-	generate-fof-goals(|axioms, cons) : [Sorts(xs) | rest] -> others
+			goals := <generate-fof-goals(|axioms, usedaxioms, cons)> xs;
+			others := <generate-fof-goals(|axioms, usedaxioms, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Sorts(xs) | rest] -> others
 		where
-			others := <generate-fof-goals(|axioms, cons)> rest
-	generate-fof-goals(|axioms, cons) : [Constructors(cs) | rest] -> others
+			others := <generate-fof-goals(|axioms, usedaxioms, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Constructors(cs) | rest] -> others
 		where
 			cs-axioms := <map(scoped-constructor-axiom)> cs;
 			cs-diff-axioms := <constructor-diff-axioms(|cons)> cs;
 			axioms2 := <conc> (axioms, cs-axioms, cs-diff-axioms); 
+			usedaxioms2 := <conc> (usedaxioms, cs-axioms, cs-diff-axioms); 
 			cons2 := <conc> (cons, cs);
-			others := <generate-fof-goals(|axioms2, cons2)> rest
-	generate-fof-goals(|axioms, cons) : [Consts(cs) | rest] -> others
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons2)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Consts(cs) | rest] -> others
 		where
 			cs-axioms := <map(scoped-constructor-axiom)> cs;
 			axioms2 := <conc> (axioms, cs-axioms); 
-			others := <generate-fof-goals(|axioms2, cons)> rest
-	generate-fof-goals(|axioms, cons) : [PartialFunctions(fs) | rest] -> others
+			usedaxioms2 := <conc> (usedaxioms, cs-axioms); 
+			others := <generate-fof-goals(|axioms2, usedaxioms2,cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [PartialFunctions(fs) | rest] -> others
 		where
 			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
 			resolved-fs := <resolve-vars(|cons-names)> fs;
 			fs-axioms := <mapconcat(scoped-function-axioms)> resolved-fs;
 			axioms2 := <conc> (axioms, fs-axioms);
-			others := <generate-fof-goals(|axioms2, cons)> rest
-	generate-fof-goals(|axioms, cons) : [Functions(fs) | rest] -> others
+			usedaxioms2 := <conc> (usedaxioms, fs-axioms);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Functions(fs) | rest] -> others
 		where
 			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
 			resolved-fs := <resolve-vars(|cons-names)> fs;
 			fs-axioms := <mapconcat(scoped-function-axioms)> resolved-fs;
 			fs-inv-axioms := <mapconcat(scoped-function-inversion-axioms)> resolved-fs;
 			axioms2 := <conc> (axioms, fs-axioms, fs-inv-axioms);
-			others := <generate-fof-goals(|axioms2, cons)> rest
-	generate-fof-goals(|axioms, cons) : [Import(m, annos) | rest] -> others
+			usedaxioms2 := <conc> (usedaxioms, fs-axioms, fs-inv-axioms);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Import(m, annos) | rest] -> others
 		where
 			mname := <strip-annos> m;
 			<not(Imported)> mname;
@@ -365,14 +371,27 @@ strategies
 			filtered-body := <filter-import(|annos)> body;
 			new-rest := <conc> (imps, filtered-body, rest);
 			// <debug(!"import: ")> mname;
-			others := <generate-fof-goals(|axioms, cons)> new-rest
-	generate-fof-goals(|axioms, cons) : [Import(m, annos) | rest] -> others
+			others := <generate-fof-goals(|axioms, usedaxioms, cons)> new-rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Import(m, annos) | rest] -> others
 		where
 			mname := <strip-annos> m;
 			// <debug(!"skip import: ")> mname;
-			others := <generate-fof-goals(|axioms, cons)> rest
+			others := <generate-fof-goals(|axioms, usedaxioms, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Include(names) | rest] -> others
+		where
+			<debug(!"include - axioms: ")> axioms;
+			included := <filter(\Formula(name,a,b) -> Formula(name,a,b) where(<strip-annos; elem> (name, names))\)> axioms;
+			<debug(!"include - included: ")> included;
+			usedaxioms2 := <conc> (usedaxioms, included);
+			others := <generate-fof-goals(|axioms, usedaxioms2, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [Hide(names) | rest] -> others
+		where
+			<debug(!"hide - axioms: ")> axioms;
+			usedaxioms2 := <filter(\Formula(name,a,b) -> Formula(name,a,b) where(not(<strip-annos; elem> (name, names)))\)> usedaxioms;
+			<debug(!"hide - used-axioms: ")> usedaxioms2;
+			others := <generate-fof-goals(|axioms, usedaxioms2, cons)> rest
 
-	generate-fof-goals(|axioms, cons) = debug(!"generate-fof-goals failed: "); fail
+	generate-fof-goals(|axioms, usedaxioms, cons) = debug(!"generate-fof-goals failed: "); fail
 
 	resolve-vars(|cons-names) =
 		bottomup(try(

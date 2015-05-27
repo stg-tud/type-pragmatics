@@ -380,6 +380,12 @@ ModuleDef =
 <TypingRule>
 
 > {ast("Lemmas([<1>])")}
+
+ModuleDef.Include = 
+<include {<{Name ","}*>}>
+
+ModuleDef.Hide = 
+<hide {<{Name ","}*>}>
   
 Module.Module = 
 <module <MID>
