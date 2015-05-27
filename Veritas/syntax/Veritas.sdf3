@@ -386,6 +386,9 @@ ModuleDef.Include =
 
 ModuleDef.Hide = 
 <hide {<{Name ","}*>}>
+
+ModuleDef.HideAll =
+<hide-all>
   
 Module.Module = 
 <module <MID>

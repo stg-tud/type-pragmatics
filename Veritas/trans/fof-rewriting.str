@@ -386,6 +386,10 @@ strategies
 		where
 			usedaxioms2 := <filter(\Formula(name,a,b) -> Formula(name,a,b) where(not(<strip-annos; elem> (name, names)))\)> usedaxioms;
 			others := <generate-fof-goals(|axioms, usedaxioms2, cons)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons) : [HideAll | rest] -> others
+		where
+			others := <generate-fof-goals(|axioms, [], cons)> rest
+	
 
 	generate-fof-goals(|axioms, usedaxioms, cons) = debug(!"generate-fof-goals failed: "); fail
 

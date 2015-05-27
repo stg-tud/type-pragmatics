@@ -48,6 +48,7 @@ lexical syntax
   Keyword = "RESULT" 
   Keyword = "include"
   Keyword = "hide"
+  Keyword = "hide-all"
   PrimitiveType = "Nat" 
   PrimitiveType = "String" 
 
