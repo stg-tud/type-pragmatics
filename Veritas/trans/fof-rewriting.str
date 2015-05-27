@@ -379,16 +379,12 @@ strategies
 			others := <generate-fof-goals(|axioms, usedaxioms, cons)> rest
 	generate-fof-goals(|axioms, usedaxioms, cons) : [Include(names) | rest] -> others
 		where
-			<debug(!"include - axioms: ")> axioms;
 			included := <filter(\Formula(name,a,b) -> Formula(name,a,b) where(<strip-annos; elem> (name, names))\)> axioms;
-			<debug(!"include - included: ")> included;
 			usedaxioms2 := <conc> (usedaxioms, included);
 			others := <generate-fof-goals(|axioms, usedaxioms2, cons)> rest
 	generate-fof-goals(|axioms, usedaxioms, cons) : [Hide(names) | rest] -> others
 		where
-			<debug(!"hide - axioms: ")> axioms;
 			usedaxioms2 := <filter(\Formula(name,a,b) -> Formula(name,a,b) where(not(<strip-annos; elem> (name, names)))\)> usedaxioms;
-			<debug(!"hide - used-axioms: ")> usedaxioms2;
 			others := <generate-fof-goals(|axioms, usedaxioms2, cons)> rest
 
 	generate-fof-goals(|axioms, usedaxioms, cons) = debug(!"generate-fof-goals failed: "); fail
