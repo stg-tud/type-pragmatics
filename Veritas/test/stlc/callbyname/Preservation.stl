@@ -11,29 +11,30 @@ import stlc.Types
 // Each derived rule represents one induction case.
 
 goal
-~ein == var(~x)
-reduce(~ein) = someExp(~eout)
-~C |- ~ein : ~T
-=================== T-Preservation-T-var
+reduce(var(~x)) = someExp(~eout)
+~C |- var(~x) : ~T
+=============================== T-Preservation-T-var
 ~C |- ~eout : ~T
+
+//Verification succeeded, used lemmas: reduce0, DIFF-noExp-someExp.
 
 local {
 	consts
 		e1 : Exp
 	
-	axiom
-	~ein == e1	 
-	reduce(~ein) = someExp(~eout)
-	~C |- ~ein : ~T
+	axiom 
+	reduce(e1) = someExp(~eout)
+	~C |- e1 : ~T
 	================================ T-Preservation-T-abs-IH
 	~C |- ~eout : ~T
 
 	goal
-	~ein == abs(~x, ~S, e1)
-	reduce(~ein) = someExp(~eout)
-	~C |- ~ein : ~T
+	reduce(abs(~x, ~S, e1)) = someExp(~eout)
+	~C |- abs(~x, ~S, e1) : ~T
 	================================ T-Preservation-T-abs
 	~C |- ~eout : ~T
+	
+	//Verification succeeded, used lemmas: reduce1, DIFF-noExp-someExp.
 }
 
 local {
@@ -42,25 +43,26 @@ local {
 		e2 : Exp
 	
 	axiom
-	~ein == e1
-	reduce(~ein) = someExp(~eout)
-	~C |- ~ein : ~T
+	reduce(e1) = someExp(~eout)
+	~C |- e1 : ~T
 	================================ T-Preservation-T-app-IH1
 	~C |- ~eout : ~T
 
 	// axiom // not needed
-	// ~ein == e2
-	// reduce(~ein) = someExp(~eout)
-	// ~C |- ~ein : ~T
+	// reduce(e2) = someExp(~eout)
+	// ~C |- e2 : ~T
 	// ================================ T-Preservation-T-app-IH2
 	// ~C |- ~eout : ~T
 
 	goal
-	~ein == app(e1, e2)
-	reduce(~ein) = someExp(~eout)
-	~C |- ~ein : ~T
+	reduce(app(e1, e2)) = someExp(~eout)
+	~C |- app(e1, e2) : ~T
 	================================ T-Preservation-T-app
 	~C |- ~eout : ~T
+	
+	// Verification succeeded, used lemmas: T-subst, reduce2, EQ-arrow, reduce-INV, EQ-abs, isValue2, isValue0, 
+    // DIFF-var-abs, T-Preservation-T-app-IH1, T-app, reduce1, reduce3, reduce4, DIFF-noExp-someExp, reduce-
+    // CODOM, isSomeExp0, getSomeExp0, EQ-app, T-inv, DIFF-var-app, DIFF-abs-app.
 }
 
 axiom

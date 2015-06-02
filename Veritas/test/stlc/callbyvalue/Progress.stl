@@ -8,32 +8,33 @@ import stlc.Types
 // Prove by induction on typing relation. Cases: T-var, T-abs, T-app
 
 goal
-~ein == var(~x)
-empty |- ~ein : ~T
-!isValue(~ein)
+empty |- var(~x) : ~T
+!isValue(var(~x))
 =========================== T-Progress-T-var
 exists ~eout
-	reduce(~ein) == someExp(~eout)
+	reduce(var(~x)) == someExp(~eout)
+	
+//Verification succeeded, used lemmas: T-inv, DIFF-var-app, lookup0, DIFF-noType-someType, DIFF-var-abs.
 
 local {
 	consts
 		e1 : Exp
 	
-	axiom
-	~ein == e1	 
-	empty |- ~ein : ~T
-	!isValue(~ein)
+	axiom 
+	empty |- e1 : ~T
+	!isValue(e1)
 	=========================== T-Progress-T-abs-IH
 	exists ~eout
-		reduce(~ein) == someExp(~eout)
+		reduce(e1) == someExp(~eout)
 
 	goal
-	~ein == abs(~x, ~S, e1)
-	empty |- ~ein : ~Tin
-	!isValue(~ein)
+	empty |- abs(~x, ~S, e1) : ~Tin
+	!isValue(abs(~x, ~S, e1))
 	=========================== T-Progress-T-abs
 	exists ~eout
-		reduce(~ein) == someExp(~eout)
+		reduce(abs(~x, ~S, e1)) == someExp(~eout)
+		
+	//Verification succeeded, used lemmas: isValue0.
 }
 
 
@@ -43,28 +44,31 @@ local {
 		e2 : Exp
 	
 	axiom	 
-	~ein == e1
-	empty |- ~ein : ~T
-	!isValue(~ein)
+	empty |- e1 : ~T
+	!isValue(e1)
 	=========================== T-Progress-T-app-IH1
 	exists ~eout
-		reduce(~ein) == someExp(~eout)
+		reduce(e1) == someExp(~eout)
 
 	axiom // NEEDED! (as expected)
-	~ein == e2	 
-	empty |- ~ein : ~T
-	!isValue(~ein)
+	empty |- e2 : ~T
+	!isValue(e2)
 	=========================== T-Progress-T-app-IH2
 	exists ~eout
-		reduce(~ein) == someExp(~eout)
+		reduce(e2) == someExp(~eout)
 
 	goal
-	~ein == app(e1, e2)
-	empty |- ~ein : ~T
-	!isValue(~ein)
+	empty |- app(e1, e2) : ~T
+	!isValue(app(e1, e2))
 	=========================== T-Progress-T-app
 	exists ~eout
-		reduce(~ein) == someExp(~eout)
+		reduce(app(e1, e2)) == someExp(~eout)
+		
+	// Verification succeeded, used lemmas: reduce3, isValue1, T-Progress-T-app-IH2, reduce2, EQ-abs, DIFF-var-
+    // abs, T-Weak, isSomeExp0, EQ-arrow, isSomeExp1, isValue2, reduce5, reduce1, lookup0, DIFF-noType-
+    // someType, reduce-CODOM, EQ-app, T-inv, DIFF-var-app, DIFF-abs-app, T-Progress-T-app-IH1, DIFF-noExp-
+    // someExp. -> 22
+		
 }
 
 axiom

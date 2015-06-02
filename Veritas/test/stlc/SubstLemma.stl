@@ -9,44 +9,41 @@ import stlc.Subst
 import stlc.SubstLemmaAux
 
 goal
-~e2 == var(~y)
 ~C |- ~e : ~T
-bind(~x, ~T, ~C) |- ~e2 : ~T2
+bind(~x, ~T, ~C) |- var(~y) : ~T2
 ============================== T-subst-var
-~C |- subst(~x, ~e, ~e2) : ~T2
+~C |- subst(~x, ~e, var(~y)) : ~T2
 
 
 local {
 	consts
-		e1app : Exp
-		e2app : Exp
+		e1 : Exp
+		e2 : Exp
 	
 	axioms
 	~C |- ~e : ~T
-	bind(~x, ~T, ~C) |- e1app : ~T2
+	bind(~x, ~T, ~C) |- e1 : ~T2
 	============================== T-subst-IH-app1
-	~C |- subst(~x, ~e, e1app) : ~T2
+	~C |- subst(~x, ~e, e1) : ~T2
 	
 	~C |- ~e : ~T
-	bind(~x, ~T, ~C) |- e2app : ~T2
+	bind(~x, ~T, ~C) |- e2 : ~T2
 	============================== T-subst-IH-app2
-	~C |- subst(~x, ~e, e2app) : ~T2
+	~C |- subst(~x, ~e, e2) : ~T2
 	
 	goal
-	~e2 == app(e1app, e2app)
 	~C |- ~e : ~T
-	bind(~x, ~T, ~C) |- ~e2 : ~T2
-	============================== T-subst-app
-	~C |- subst(~x, ~e, ~e2) : ~T2
+	bind(~x, ~T, ~C) |- app(e1, e2) : ~T2
+	====================================== T-subst-app
+	~C |- subst(~x, ~e, app(e1, e2)) : ~T2
 }
 
 goal
-~e2 == abs(~y, ~S, ~e1)
 ~x == ~y
 ~C |- ~e : ~T
-bind(~x, ~T, ~C) |- ~e2 : ~T2
-============================== T-subst-abs-1
-~C |- subst(~x, ~e, ~e2) : ~T2
+bind(~x, ~T, ~C) |- abs(~y, ~S, ~e1) : ~T2
+=========================================== T-subst-abs-1
+~C |- subst(~x, ~e, abs(~y, ~S, ~e1)) : ~T2
 
 
 local {
@@ -67,13 +64,12 @@ local {
 	~C |- subst(~x, ~e, eabs) : ~T2
 
 	goal
-	~e2 == abs(~y, ~S, eabs)
 	~x != ~y
 	!isFreeVar(~y, ~e)
 	~C |- ~e : ~T
-	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
 	================================================= T-subst-abs-2
-	~C |- subst(~x, ~e, ~e2) : ~T2
+	~C |- subst(~x, ~e, abs(~y, ~S, eabs)) : ~T2
 }
 
 
@@ -81,13 +77,12 @@ local {
 	const eabs : Exp
 	
 	axiom
-	~e2 == abs(~y, ~S, ~e1)
 	~x != ~y
 	!isFreeVar(~y, ~e)
 	~C |- ~e : ~T
-	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	bind(~x, ~T, ~C) |- abs(~y, ~S, ~e1) : ~T2
 	================================================= T-subst-abs-2
-	~C |- subst(~x, ~e, ~e2) : ~T2
+	~C |- subst(~x, ~e, abs(~y, ~S, ~e1)) : ~T2
 	
 	//necessary axioms on alpha equivalence
 	axioms
@@ -134,13 +129,12 @@ local {
 	~C |- subst(~x, ~e, eabs) : ~T2
 
 	goal
-	~e2 == abs(~y, ~S, eabs)
 	~x != ~y
 	isFreeVar(~y, ~e)
 	~C |- ~e : ~T
-	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
 	================================================= T-subst-abs-3
-	~C |- subst(~x, ~e, ~e2) : ~T2
+	~C |- subst(~x, ~e, abs(~y, ~S, eabs)) : ~T2
 }
 
 // substitution lemma becomes an axiom after the proof

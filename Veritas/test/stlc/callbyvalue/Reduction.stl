@@ -35,6 +35,7 @@ reduce(app(e1, e2)) = let e1red = reduce(e1) in
 	then someExp(app(getSomeExp(e1red), e2))
 	else noExp
 	
+//needs 120 sec timeout!
 lemma // could be derived from return type of `reduce`
 reduce(~e) == ~res
 ========================== reduce-CODOM

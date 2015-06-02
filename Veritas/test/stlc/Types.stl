@@ -48,11 +48,10 @@ OR
 //proof for Weakening without using T-Weak-FreeVar
 
 goal
-~e == var(~y)
 lookup(~x, ~C) == noType
-~C |- ~e : ~T
-=========================== T-Weak-var
-bind(~x, ~S, ~C) |- ~e : ~T
+~C |- var(~y) : ~T
+================================ T-Weak-var
+bind(~x, ~S, ~C) |- var(~y) : ~T
 
 local {
 	const eabs : Exp
@@ -65,11 +64,10 @@ local {
 	
 	goal
 	~x != ~y
-	~e == abs(~y, ~S1, eabs)
 	lookup(~x, ~C) == noType
-	~C |- ~e : ~T
-	============================= T-Weak-abs-1
-	bind(~x, ~S, ~C) |- ~e : ~T
+	~C |- abs(~y, ~S1, eabs) : ~T
+	=========================================== T-Weak-abs-1
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
 }
 
 local {
@@ -77,11 +75,10 @@ local {
 	
 	axiom
 	~x != ~y
-	~e == abs(~y, ~S1, ~e1)
 	lookup(~x, ~C) == noType
-	~C |- ~e : ~T
-	============================= T-Weak-abs-1
-	bind(~x, ~S, ~C) |- ~e : ~T
+	~C |- abs(~y, ~S1, ~e1) : ~T
+	======================================== T-Weak-abs-1
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, ~e1) : ~T
 	
 	
 	//necessary axioms on alpha equivalence
@@ -119,11 +116,10 @@ local {
 
 	goal
 	~x == ~y
-	~e == abs(~y, ~S1, eabs)
 	lookup(~x, ~C) == noType
-	~C |- ~e : ~T
-	============================ T-Weak-abs-2
-	bind(~x, ~S, ~C) |- ~e : ~T
+	~C |- abs(~y, ~S1, eabs) : ~T
+	=========================================== T-Weak-abs-2
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
 }
 
 local {
@@ -146,9 +142,9 @@ local {
 	goal
 	~e == app(e1app, e2app)
 	lookup(~x, ~C) == noType
-	~C |- ~e : ~T
-	=========================== T-Weak-app
-	bind(~x, ~S, ~C) |- ~e : ~T
+	~C |- app(e1app, e2app) : ~T
+	========================================== T-Weak-app
+	bind(~x, ~S, ~C) |- app(e1app, e2app) : ~T
 }
 
 
@@ -163,11 +159,10 @@ bind(~x, ~S, ~C) |- ~e : ~T
 //Proof by structural induction, Strenghthening
 
 goal
-~e == var(~y)
-!isFreeVar(~x, ~e)
-bind(~x, ~S, ~C) |- ~e : ~T
-=========================== T-Strong-var
-~C |- ~e : ~T
+!isFreeVar(~x, var(~y))
+bind(~x, ~S, ~C) |- var(~y) : ~T
+================================= T-Strong-var
+~C |- var(~y) : ~T
 
 local {
 	const eabs : Exp
@@ -179,11 +174,10 @@ local {
 	~C |- eabs : ~T
 
 	goal
-	~e == abs(~y, ~S1, eabs)
-	!isFreeVar(~x, ~e)
-	bind(~x, ~S, ~C) |- ~e : ~T
-	=========================== T-Strong-abs
-	~C |- ~e : ~T
+	!isFreeVar(~x, abs(~y, ~S1, eabs))
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+	=========================================== T-Strong-abs
+	~C |- abs(~y, ~S1, eabs) : ~T
 }
 
 local {
@@ -203,11 +197,10 @@ local {
 	~C |- e2app : ~T
 	
 	goal
-	~e == app(e1app, e2app)
-	!isFreeVar(~x, ~e)
-	bind(~x, ~S, ~C) |- ~e : ~T
-	=========================== T-Strong-app
-	~C |- ~e : ~T
+	!isFreeVar(~x, app(e1app, e2app))
+	bind(~x, ~S, ~C) |- app(e1app, e2app) : ~T
+	=========================================== T-Strong-app
+	~C |- app(e1app, e2app) : ~T
 }
 
 axiom
