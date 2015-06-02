@@ -386,7 +386,7 @@ strategies
 		where
 			usedaxioms2 := <filter(\Formula(name,a,b) -> Formula(name,a,b) where(not(<strip-annos; elem> (name, names)))\)> usedaxioms;
 			others := <generate-fof-goals(|axioms, usedaxioms2, cons)> rest
-	generate-fof-goals(|axioms, usedaxioms, cons) : [HideAll | rest] -> others
+	generate-fof-goals(|axioms, usedaxioms, cons) : [HideAll() | rest] -> others
 		where
 			others := <generate-fof-goals(|axioms, [], cons)> rest
 	
@@ -398,7 +398,7 @@ strategies
 			\FunctionPatVar(v) -> FunctionPatApp(v, []) where <elem(|v)> cons-names\
 		<+	\FunctionExpVar(v) -> FunctionExpApp(v, []) where <elem(|v)> cons-names\))
 
-	filter-import(|annos) : xs -> <filter(not(?Goals(_) + ?Local(_)))> xs
+	filter-import(|annos) : xs -> <filter(not(?Goals(_) + ?Lemmas(_) + ?Local(_)))> xs
 	where <?None()> annos
 	filter-import(|annos) : [] -> []
 	filter-import(|annos) : [x@Axioms(_)|xs] -> [x|<filter-import(|annos)>xs]
