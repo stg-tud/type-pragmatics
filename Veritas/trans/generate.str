@@ -17,8 +17,8 @@ rules // Incremental code generation of project using compilation library.
   // See lib/compilation-library.generated.str for documentation
 
   generate-files(|base, rulenames) =
-  	?files;
-  	names := <generate-file-names(|base)> rulenames;
+  	?files; 
+  	names := <generate-file-names(|base)> rulenames; 
   	<zip> (names, files);
   	map(write-file);
   	!names

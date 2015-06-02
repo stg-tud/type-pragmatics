@@ -141,9 +141,9 @@ rules
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
 	    filename := <guarantee-extension(|"fof")> path;
-	    rulezgoals := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
+	    rulezgoals := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; debug(!"rulezgoals:");
     	rulezlem := <collect-all(?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
-    	rulez := <conc> (rulezgoals, rulezlem);
+    	rulez := <conc> (rulezgoals, rulezlem); 
 	    goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
 	    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
 	    outfiles := <generate-files(|filename, rulez)> strings;
