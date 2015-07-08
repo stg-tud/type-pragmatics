@@ -36,7 +36,8 @@ lexical syntax
   Keyword = "axiom" 
   Keyword = "axioms"
   Keyword = "lemma"
-  Keyword = "lemmas" 
+  Keyword = "lemmas"
+  Keyword = "verify-with" 
   Keyword = "const" 
   Keyword = "consts" 
   Keyword = "function" 
@@ -49,6 +50,7 @@ lexical syntax
   Keyword = "include"
   Keyword = "hide"
   Keyword = "hide-all"
+  Keyword = "strategy"
   PrimitiveType = "Nat" 
   PrimitiveType = "String" 
 
