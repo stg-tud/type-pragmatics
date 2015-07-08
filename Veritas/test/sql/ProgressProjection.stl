@@ -364,7 +364,7 @@ local {
 	projectType(acons(~a, ar), ~TT1) == some(~TT2)
 	=============================================== progress-projection-acons
 	exists ~t2
-		project(acons(~a, ar), ~t) == some(~t2)
+		project(acons(~a, ar), ~t) == some(~rt)
 } //qed progress-projection
 
 
@@ -375,4 +375,4 @@ lookup(~tn, ~TS) == some(~t)
 projectType(~al, ~TT1) == some(~TT2)
 ====================================== progress-projection
 exists ~t2
-	project(~al, ~t) == some(~t2)
+	project(~al, ~t) == some(~rt)
