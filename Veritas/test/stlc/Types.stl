@@ -47,41 +47,16 @@ OR
 
 //proof for Weakening without using T-Weak-FreeVar
 
-goal
-lookup(~x, ~C) == noType
-~C |- var(~y) : ~T
-================================ T-Weak-var
-bind(~x, ~S, ~C) |- var(~y) : ~T
-
-local {
-	const eabs : Exp
-
-	axiom
-	lookup(~x, ~C) == noType
-	~C |- eabs : ~T
-	============================== T-Weak-abs-IH
-	bind(~x, ~S, ~C) |- eabs : ~T
+strategy alpha-equiv-abs-1-gen {
 	
-	goal
-	~x != ~y
-	lookup(~x, ~C) == noType
-	~C |- abs(~y, ~S1, eabs) : ~T
-	=========================================== T-Weak-abs-1
-	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
-}
-
-local {
-	const eabs : Exp
-	
+	//generalized variant of abs-1 case	
 	axiom
 	~x != ~y
 	lookup(~x, ~C) == noType
 	~C |- abs(~y, ~S1, ~e1) : ~T
-	======================================== T-Weak-abs-1
+	=========================================== T-Weak-abs-1-gen
 	bind(~x, ~S, ~C) |- abs(~y, ~S1, ~e1) : ~T
-	
-	
-	//necessary axioms on alpha equivalence
+		
 	axioms
 	============================ alpha-equiv-refl
 	alphaEquivalent(~e, ~e)
@@ -106,19 +81,43 @@ local {
 	alphaEquivalent(~e, ~e1)
 	========================= alpha-equiv-typing
 	~C |- ~e1 : ~T
+}
 
-	//NOT needed!
+goal
+lookup(~x, ~C) == noType
+~C |- var(~y) : ~T
+================================ T-Weak-var
+bind(~x, ~S, ~C) |- var(~y) : ~T
+
+
+local {
+	const eabs : Exp
+	
 	axiom
 	lookup(~x, ~C) == noType
 	~C |- eabs : ~T
 	============================== T-Weak-abs-IH
 	bind(~x, ~S, ~C) |- eabs : ~T
-
-	goal
+	
+	//Proof case by case split on ~x == ~y
+	lemma
+	~x != ~y
+	lookup(~x, ~C) == noType
+	~C |- abs(~y, ~S1, eabs) : ~T
+	=========================================== T-Weak-abs-1
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+	
+	lemma verify-with alpha-equiv-abs-1-gen
 	~x == ~y
 	lookup(~x, ~C) == noType
 	~C |- abs(~y, ~S1, eabs) : ~T
 	=========================================== T-Weak-abs-2
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+
+	goal
+	lookup(~x, ~C) == noType
+	~C |- abs(~y, ~S1, eabs) : ~T
+	=========================================== T-Weak-abs
 	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
 }
 
@@ -140,7 +139,6 @@ local {
 	
 	
 	goal
-	~e == app(e1app, e2app)
 	lookup(~x, ~C) == noType
 	~C |- app(e1app, e2app) : ~T
 	========================================== T-Weak-app

@@ -11,39 +11,15 @@ import stlc.Types
 
 //Proof by structural induction 
 
-goal
-!isFreeVar(~x, var(~y))
-~C |- var(~y) : ~T
-================================ T-Weak-FreeVar-var
-bind(~x, ~S, ~C) |- var(~y) : ~T
-
-local {
-	const eabs : Exp
-
-	axiom
-	!isFreeVar(~x, eabs)
-	~C |- eabs : ~T
-	============================== T-Weak-FreeVar-abs-IH
-	bind(~x, ~S, ~C) |- eabs : ~T
+strategy T-Weak-FreeVar-abs-2-alpha-equiv {
 	
-	goal
-	~x != ~y
-	!isFreeVar(~x, abs(~y, ~S1, eabs))
-	~C |- abs(~y, ~S1, eabs) : ~T
-	============================= T-Weak-FreeVar-abs-1
-	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
-}
-
-local {
-	const eabs : Exp
-	
+	//generalized version of abs-1 case
 	axiom
 	~x != ~y
 	!isFreeVar(~x, abs(~y, ~S1, ~e1))
 	~C |- abs(~y, ~S1, ~e1) : ~T
 	============================= T-Weak-FreeVar-abs-1
 	bind(~x, ~S, ~C) |- abs(~y, ~S1, ~e1) : ~T
-	
 	
 	//necessary axioms on alpha equivalence
 	axioms
@@ -75,19 +51,53 @@ local {
 	alphaEquivalent(~e, ~e1)
 	========================= alpha-equiv-FreeVar
 	!isFreeVar(~x, ~e1)
+}
 
-	//NOT needed!
+goal
+!isFreeVar(~x, var(~y))
+~C |- var(~y) : ~T
+================================ T-Weak-FreeVar-var
+bind(~x, ~S, ~C) |- var(~y) : ~T
+
+local {
+	const eabs : Exp
+
 	axiom
 	!isFreeVar(~x, eabs)
 	~C |- eabs : ~T
 	============================== T-Weak-FreeVar-abs-IH
 	bind(~x, ~S, ~C) |- eabs : ~T
+	
 
-	goal
+}
+
+local {
+	const eabs : Exp
+
+	axiom
+	!isFreeVar(~x, eabs)
+	~C |- eabs : ~T
+	============================== T-Weak-FreeVar-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+	
+	lemma
+	~x != ~y
+	!isFreeVar(~x, abs(~y, ~S1, eabs))
+	~C |- abs(~y, ~S1, eabs) : ~T
+	============================================ T-Weak-FreeVar-abs-1
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+
+	lemma verify-with T-Weak-FreeVar-abs-2-alpha-equiv
 	~x == ~y
 	!isFreeVar(~x, abs(~y, ~S1, eabs))
 	~C |- abs(~y, ~S1, eabs) : ~T
 	======================================== T-Weak-FreeVar-abs-2
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+	
+	goal
+	!isFreeVar(~x, abs(~y, ~S1, eabs))
+	~C |- abs(~y, ~S1, eabs) : ~T
+	======================================== T-Weak-FreeVar-abs
 	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
 }
 
@@ -115,4 +125,10 @@ local {
 	bind(~x, ~S, ~C) |- app(e1app, e2app) : ~T
 }
 
+axiom
+!isFreeVar(~x, ~e)
+~C |- ~e : ~T
+=========================== T-Weak-FreeVar
+bind(~x, ~S, ~C) |- ~e : ~T
+	
 
