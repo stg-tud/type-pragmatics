@@ -369,11 +369,17 @@ ModuleDef =
 
 > {ast("Goals([<1>])")}
 
-ModuleDef.GoalWithStrategy = 
+ModuleDef.GoalsWithStrategy = 
+<goals verify-with <Name>
+<TypingRule*>
+
+>
+
+ModuleDef = 
 <goal verify-with <Name>
 <TypingRule>
 
->
+> {ast("GoalsWithStrategy(<1>,[<2>])")}
 
 ModuleDef.Lemmas = 
 <lemmas 
@@ -387,11 +393,17 @@ ModuleDef =
 
 > {ast("Lemmas([<1>])")}
 
-ModuleDef.LemmaWithStrategy = 
+ModuleDef.LemmasWithStrategy = 
+<lemmas verify-with <Name>
+<TypingRule*>
+
+> 
+
+ModuleDef = 
 <lemma verify-with <Name>
 <TypingRule>
 
->
+> {ast("LemmasWithStrategy(<1>,[<2>])")}
 
 ModuleDef.Include = 
 <include {<{Name ","}*>}>

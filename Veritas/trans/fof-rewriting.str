@@ -317,6 +317,14 @@ strategies
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
 			goal := FOFGoal(usedaxioms, conjecture);
 			others := <generate-fof-goals(|axioms, usedaxioms, cons, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, strats) : [GoalsWithStrategy(n, fs) | rest] -> [goal | others]
+		where
+			formula := <to-prop; compose-formulas> fs;
+			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
+			//use axioms from named strategy!
+			strataxioms := <hashtable-get(|n) <+ <debug(!"Strategy could not be found")> n> strats;
+			goal := FOFGoal(strataxioms, conjecture);
+			others := <generate-fof-goals(|axioms, usedaxioms, cons, strats)> rest
 	generate-fof-goals(|axioms, usedaxioms, cons, strats) : [Lemmas(fs) | rest] -> [goal | others]
 		where
 			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
@@ -326,6 +334,17 @@ strategies
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
 			//important: take previous(!) axiom set for generating fof goal from lemma!
 			goal := FOFGoal(usedaxioms, conjecture);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, strats) : [LemmasWithStrategy(n, fs) | rest] -> [goal | others]
+		where
+			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
+			axioms2 := <conc> (axioms, newAxioms); 
+			usedaxioms2 := <conc> (usedaxioms, newAxioms); 
+			formula := <to-prop; compose-formulas> fs;
+			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
+			//use axioms from named strategy!
+			strataxioms := <hashtable-get(|n) <+ <debug(!"Strategy could not be found: ")> n> strats;
+			goal := FOFGoal(strataxioms, conjecture);
 			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, strats)> rest
 	generate-fof-goals(|axioms, usedaxioms, cons, strats) : [Local(xs) | rest] -> <conc> (goals,  others)
 		where
@@ -398,17 +417,13 @@ strategies
 			// treat strategy blocks similar to local blocks
 			// 1) add some arbitrary "default goal" at the end of the strategy
 			mdefsg := <conc> (mdefs, [Goals([TypingRule(RuleName("=======", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))])]);
-			//<debug(!"mdefsg: ")> mdefsg; 
 			// 2) take apart the "real" goals and the axioms for the strategy, which are the axioms from the very last (dummy) goal
 			allgoals := <generate-fof-goals(|axioms, usedaxioms, cons, strats)> mdefsg;
-			//<debug(!"allgoals: ")> allgoals; 
 			(goals, last) := <split-init-last> allgoals;
-			//<debug(!"goals: ")> goals;  
-			//<debug(!"last: ")> last;
 			<?FOFGoal(strataxioms, dummy) <+ !name; debug(!"Generating strategy axioms failed: ")> last;
-			//<debug(!"strataxioms: ")> strataxioms; 
 			// 3) add axioms generated from strategy block to strats hashtable!
 			others := <generate-fof-goals(|axioms, usedaxioms, cons, <hashtable-put(|name, strataxioms)> strats)> rest
+
 
 	generate-fof-goals(|axioms, usedaxioms, cons, strats) = debug(!"generate-fof-goals failed: "); fail
 
