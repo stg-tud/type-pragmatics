@@ -19,4 +19,4 @@ rules
   to-outline-label = ?ForallJudgment(_, <id>)
   to-outline-label = ?GoalsWithStrategy(<id>, _)
   to-outline-label = ?LemmasWithStrategy(<id>, _)
-  to-outline-label = ?Strategy(<id>, _)
+  to-outline-label = ?Strategy(<id>, _, _)

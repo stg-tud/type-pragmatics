@@ -3,7 +3,6 @@ module stlc.Types
 import stlc.Syntax
 import stlc.Context
 import stlc.Subst
-import stlc.AlphaEquivalence
 
 constructors
 	arrow : Typ Typ -> Typ
@@ -49,6 +48,8 @@ OR
 
 strategy alpha-equiv-abs-1-gen {
 	
+	import stlc.AlphaEquivalence
+	
 	//generalized variant of abs-1 case	
 	axiom
 	~x != ~y
@@ -56,31 +57,6 @@ strategy alpha-equiv-abs-1-gen {
 	~C |- abs(~y, ~S1, ~e1) : ~T
 	=========================================== T-Weak-abs-1-gen
 	bind(~x, ~S, ~C) |- abs(~y, ~S1, ~e1) : ~T
-		
-	axioms
-	============================ alpha-equiv-refl
-	alphaEquivalent(~e, ~e)
-
-
-	alphaEquivalent(~e1, ~e2)
-	============================ alpha-equiv-sym
-	alphaEquivalent(~e2, ~e1)
-
- 
-	alphaEquivalent(~e1, ~e2)
-	alphaEquivalent(~e2, ~e3)
-	============================ alpha-equiv-trans
-	alphaEquivalent(~e1, ~e3)
-
- 	!isFreeVar(~y, ~e)
-	====================================================================== alpha-equiv-subst-abs
-	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
-
-
-	~C |- ~e : ~T
-	alphaEquivalent(~e, ~e1)
-	========================= alpha-equiv-typing
-	~C |- ~e1 : ~T
 }
 
 goal

@@ -124,7 +124,7 @@ rules
 	    filename := <consistency-filename> path;
 	    false-goal := Goals([TypingRule(RuleName("", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))]);
 	    //TODO: consistency check for strategies/local blocks??
-	    ast-with-false := <Module(id, id, filter(not(?Local(_) + ?Goals(_) + ?Lemmas(_) + ?Strategy(_,_) + 
+	    ast-with-false := <Module(id, id, filter(not(?Local(_) + ?Goals(_) + ?Lemmas(_) + ?Strategy(_,_,_) + 
 	    	?GoalsWithStrategy(_,_) + ?LemmasWithStrategy(_,_))); append(|[false-goal]))> ast;
 	    
 	    [goal] := <fof-trans <+ error(!"fof-trans failed: ")> ast-with-false;

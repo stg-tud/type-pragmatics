@@ -416,6 +416,9 @@ ModuleDef.HideAll =
 
 ModuleDef.Strategy = 
 <strategy <Name> { 
+	
+	<Import*>
+	
   	<ModuleDef*> 
 }>
   

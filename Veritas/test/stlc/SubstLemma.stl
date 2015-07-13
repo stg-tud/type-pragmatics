@@ -4,11 +4,12 @@ import stlc.Syntax
 import stlc.Context
 import stlc.Types
 import stlc.Gensym
-import stlc.AlphaEquivalence
 import stlc.Subst
 import stlc.SubstLemmaAux
 
 strategy subst-abs-3-alpha-equiv {
+	
+	import stlc.AlphaEquivalence
 	
 	// generalized axiom for abs-2 case
 	axiom
@@ -18,32 +19,6 @@ strategy subst-abs-3-alpha-equiv {
 	bind(~x, ~T, ~C) |- abs(~y, ~S, ~e1) : ~T2
 	================================================= T-subst-abs-2-gen
 	~C |- subst(~x, ~e, abs(~y, ~S, ~e1)) : ~T2
-	
-	//necessary axioms on alpha equivalence
-	axioms
-	============================ alpha-equiv-refl
-	alphaEquivalent(~e, ~e)
-
-
-	alphaEquivalent(~e1, ~e2)
-	============================ alpha-equiv-sym
-	alphaEquivalent(~e2, ~e1)
-
- 
-	alphaEquivalent(~e1, ~e2)
-	alphaEquivalent(~e2, ~e3)
-	============================ alpha-equiv-trans
-	alphaEquivalent(~e1, ~e3)
-	
-	!isFreeVar(~y, ~e)
-	====================================================================== alpha-equiv-subst-abs
-	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
-
-
-	~C |- ~e : ~T
-	alphaEquivalent(~e, ~e1)
-	========================= alpha-equiv-typing
-	~C |- ~e1 : ~T
 	
 	//auxiliary lemma which is needed in this case, but can also be proven
 	lemma

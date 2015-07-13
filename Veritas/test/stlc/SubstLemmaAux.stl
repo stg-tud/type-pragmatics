@@ -3,7 +3,6 @@ module stlc.SubstLemmaAux
 import stlc.Syntax
 import stlc.Context
 import stlc.Subst
-import stlc.AlphaEquivalence
 import stlc.Types
 
 
@@ -13,44 +12,15 @@ import stlc.Types
 
 strategy T-Weak-FreeVar-abs-2-alpha-equiv {
 	
+	import stlc.AlphaEquivalence
+	
 	//generalized version of abs-1 case
 	axiom
 	~x != ~y
 	!isFreeVar(~x, abs(~y, ~S1, ~e1))
 	~C |- abs(~y, ~S1, ~e1) : ~T
-	============================= T-Weak-FreeVar-abs-1
+	============================= T-Weak-FreeVar-abs-1-gen
 	bind(~x, ~S, ~C) |- abs(~y, ~S1, ~e1) : ~T
-	
-	//necessary axioms on alpha equivalence
-	axioms
-	============================ alpha-equiv-refl
-	alphaEquivalent(~e, ~e)
-
-
-	alphaEquivalent(~e1, ~e2)
-	============================ alpha-equiv-sym
-	alphaEquivalent(~e2, ~e1)
-
- 
-	alphaEquivalent(~e1, ~e2)
-	alphaEquivalent(~e2, ~e3)
-	============================ alpha-equiv-trans
-	alphaEquivalent(~e1, ~e3)
-
-	!isFreeVar(~y, ~e)
-	====================================================================== alpha-equiv-subst-abs
-	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
-
-
-	~C |- ~e : ~T
-	alphaEquivalent(~e, ~e1)
-	========================= alpha-equiv-typing
-	~C |- ~e1 : ~T
-	
-	!isFreeVar(~x, ~e)
-	alphaEquivalent(~e, ~e1)
-	========================= alpha-equiv-FreeVar
-	!isFreeVar(~x, ~e1)
 }
 
 goal
