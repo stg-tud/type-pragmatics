@@ -417,7 +417,6 @@ strategies
 			// treat strategy blocks similar to local blocks
 			// 1) add some arbitrary "default goal" at the end of the strategy definitions
 			mdefsg := <conc> (imps, mdefs, [Goals([TypingRule(RuleName("=======", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))])]);
-			<debug(!"mdefsg: ")> mdefsg; 
 			// 2) take apart the "real" goals and the axioms for the strategy, which are the axioms from the very last (dummy) goal
 			allgoals := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> mdefsg;
 			(goals, last) := <split-init-last> allgoals;
