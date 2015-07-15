@@ -389,7 +389,7 @@ strategies
 		where
 			mname := <strip-annos> m;
 			<elem> (mname, limps);
-			<debug(!"skip import: ")> mname;
+			//<debug(!"skip import: ")> mname;
 			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> rest
 	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Import(m, annos) | rest] -> others
 		where
@@ -398,7 +398,7 @@ strategies
 			Module(_, imps, body) := <get-module-ref> m;
 			filtered-body := <filter-import(|annos)> body;
 			new-rest := <conc> (imps, filtered-body, rest);
-			<debug(!"import: ")> mname;
+			//<debug(!"import: ")> mname;
 			others := <generate-fof-goals(|axioms, usedaxioms, cons, newlimps, strats)> new-rest
 	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Include(names) | rest] -> others
 		where
