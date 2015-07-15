@@ -46,7 +46,9 @@ rules // Incremental code generation of project using compilation library.
 	task-setup(|project-path);
     filename := <guarantee-extension(|"fof")> path;
 	rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
-	      <+ ?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
+		  <+ ?GoalsWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?LemmasWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
     goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
     strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
     outfiles := <generate-files(|filename,rulez)> strings;

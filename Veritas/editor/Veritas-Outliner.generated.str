@@ -17,3 +17,6 @@ rules
   to-outline-label = ?FunctionEq(<id>, _, _)
   to-outline-label = ?ExistsJudgment(_, <id>)
   to-outline-label = ?ForallJudgment(_, <id>)
+  to-outline-label = ?GoalsWithStrategy(<id>, _)
+  to-outline-label = ?LemmasWithStrategy(<id>, _)
+  to-outline-label = ?Strategy(<id>, _, _)

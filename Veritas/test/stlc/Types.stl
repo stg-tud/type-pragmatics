@@ -3,7 +3,6 @@ module stlc.Types
 import stlc.Syntax
 import stlc.Context
 import stlc.Subst
-import stlc.AlphaEquivalence
 
 constructors
 	arrow : Typ Typ -> Typ
@@ -47,78 +46,54 @@ OR
 
 //proof for Weakening without using T-Weak-FreeVar
 
+strategy alpha-equiv-abs-1-gen {
+	
+	import stlc.AlphaEquivalence
+	
+	//generalized variant of abs-1 case	
+	axiom
+	~x != ~y
+	lookup(~x, ~C) == noType
+	~C |- abs(~y, ~S1, ~e1) : ~T
+	=========================================== T-Weak-abs-1-gen
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, ~e1) : ~T
+}
+
 goal
 lookup(~x, ~C) == noType
 ~C |- var(~y) : ~T
 ================================ T-Weak-var
 bind(~x, ~S, ~C) |- var(~y) : ~T
 
+
 local {
 	const eabs : Exp
-
+	
 	axiom
 	lookup(~x, ~C) == noType
 	~C |- eabs : ~T
 	============================== T-Weak-abs-IH
 	bind(~x, ~S, ~C) |- eabs : ~T
 	
-	goal
+	//Proof case by case split on ~x == ~y
+	lemma
 	~x != ~y
 	lookup(~x, ~C) == noType
 	~C |- abs(~y, ~S1, eabs) : ~T
 	=========================================== T-Weak-abs-1
 	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
-}
-
-local {
-	const eabs : Exp
 	
-	axiom
-	~x != ~y
-	lookup(~x, ~C) == noType
-	~C |- abs(~y, ~S1, ~e1) : ~T
-	======================================== T-Weak-abs-1
-	bind(~x, ~S, ~C) |- abs(~y, ~S1, ~e1) : ~T
-	
-	
-	//necessary axioms on alpha equivalence
-	axioms
-	============================ alpha-equiv-refl
-	alphaEquivalent(~e, ~e)
-
-
-	alphaEquivalent(~e1, ~e2)
-	============================ alpha-equiv-sym
-	alphaEquivalent(~e2, ~e1)
-
- 
-	alphaEquivalent(~e1, ~e2)
-	alphaEquivalent(~e2, ~e3)
-	============================ alpha-equiv-trans
-	alphaEquivalent(~e1, ~e3)
-
- 	!isFreeVar(~y, ~e)
-	====================================================================== alpha-equiv-subst-abs
-	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
-
-
-	~C |- ~e : ~T
-	alphaEquivalent(~e, ~e1)
-	========================= alpha-equiv-typing
-	~C |- ~e1 : ~T
-
-	//NOT needed!
-	axiom
-	lookup(~x, ~C) == noType
-	~C |- eabs : ~T
-	============================== T-Weak-abs-IH
-	bind(~x, ~S, ~C) |- eabs : ~T
-
-	goal
+	lemma verify-with alpha-equiv-abs-1-gen
 	~x == ~y
 	lookup(~x, ~C) == noType
 	~C |- abs(~y, ~S1, eabs) : ~T
 	=========================================== T-Weak-abs-2
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+
+	goal
+	lookup(~x, ~C) == noType
+	~C |- abs(~y, ~S1, eabs) : ~T
+	=========================================== T-Weak-abs
 	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
 }
 
@@ -140,7 +115,6 @@ local {
 	
 	
 	goal
-	~e == app(e1app, e2app)
 	lookup(~x, ~C) == noType
 	~C |- app(e1app, e2app) : ~T
 	========================================== T-Weak-app

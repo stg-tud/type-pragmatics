@@ -4,9 +4,36 @@ import stlc.Syntax
 import stlc.Context
 import stlc.Types
 import stlc.Gensym
-import stlc.AlphaEquivalence
 import stlc.Subst
 import stlc.SubstLemmaAux
+
+strategy subst-abs-3-alpha-equiv {
+	
+	import stlc.AlphaEquivalence
+	
+	// generalized axiom for abs-2 case
+	axiom
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- abs(~y, ~S, ~e1) : ~T2
+	================================================= T-subst-abs-2-gen
+	~C |- subst(~x, ~e, abs(~y, ~S, ~e1)) : ~T2
+	
+	//auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-unequal-var-3
+	~x != ~fresh
+
+	//another auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-free-2
+	!isFreeVar(~fresh, ~e1)
+	
+}
+
 
 goal
 ~C |- ~e : ~T
@@ -38,102 +65,43 @@ local {
 	~C |- subst(~x, ~e, app(e1, e2)) : ~T2
 }
 
-goal
-~x == ~y
-~C |- ~e : ~T
-bind(~x, ~T, ~C) |- abs(~y, ~S, ~e1) : ~T2
-=========================================== T-subst-abs-1
-~C |- subst(~x, ~e, abs(~y, ~S, ~e1)) : ~T2
-
-
 local {
 	const eabs : Exp
-	
-	//Lemma must be used locally only here! Proof is in SubstLemmaAux.stl
-	
-	axiom
-	!isFreeVar(~x, ~e)
-	~C |- ~e : ~T
-	=========================== T-Weak-FreeVar
-	bind(~x, ~S, ~C) |- ~e : ~T
 	
 	axiom
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- eabs : ~T2
 	============================== T-subst-IH-abs
 	~C |- subst(~x, ~e, eabs) : ~T2
+	
+	// prove abs-case by case split!
+	lemma
+	~x == ~y
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- abs(~y, ~S, ~e1) : ~T2
+	=========================================== T-subst-abs-1
+	~C |- subst(~x, ~e, abs(~y, ~S, ~e1)) : ~T2
 
-	goal
+	lemma
 	~x != ~y
 	!isFreeVar(~y, ~e)
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
 	================================================= T-subst-abs-2
 	~C |- subst(~x, ~e, abs(~y, ~S, eabs)) : ~T2
-}
-
-
-local {
-	const eabs : Exp
 	
-	axiom
-	~x != ~y
-	!isFreeVar(~y, ~e)
-	~C |- ~e : ~T
-	bind(~x, ~T, ~C) |- abs(~y, ~S, ~e1) : ~T2
-	================================================= T-subst-abs-2
-	~C |- subst(~x, ~e, abs(~y, ~S, ~e1)) : ~T2
-	
-	//necessary axioms on alpha equivalence
-	axioms
-	============================ alpha-equiv-refl
-	alphaEquivalent(~e, ~e)
-
-
-	alphaEquivalent(~e1, ~e2)
-	============================ alpha-equiv-sym
-	alphaEquivalent(~e2, ~e1)
-
- 
-	alphaEquivalent(~e1, ~e2)
-	alphaEquivalent(~e2, ~e3)
-	============================ alpha-equiv-trans
-	alphaEquivalent(~e1, ~e3)
-	
-	!isFreeVar(~y, ~e)
-	====================================================================== alpha-equiv-subst-abs
-	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
-
-
-	~C |- ~e : ~T
-	alphaEquivalent(~e, ~e1)
-	========================= alpha-equiv-typing
-	~C |- ~e1 : ~T
-	
-	//auxiliary lemma which is needed in this case, but can also be proven
-	lemma
-	~fresh == gensym(app(app(~e, ~e1), var(~x)))
-	============================================= fresh-unequal-var-3
-	~x != ~fresh
-
-	//another auxiliary lemma which is needed in this case, but can also be proven
-	lemma
-	~fresh == gensym(app(app(~e, ~e1), var(~x)))
-	============================================= fresh-free-2
-	!isFreeVar(~fresh, ~e1)
-		
-	axiom //not needed
-	~C |- ~e : ~T
-	bind(~x, ~T, ~C) |- eabs : ~T2
-	============================== T-subst-IH-abs
-	~C |- subst(~x, ~e, eabs) : ~T2
-
-	goal
+	lemma verify-with subst-abs-3-alpha-equiv
 	~x != ~y
 	isFreeVar(~y, ~e)
 	~C |- ~e : ~T
 	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
 	================================================= T-subst-abs-3
+	~C |- subst(~x, ~e, abs(~y, ~S, eabs)) : ~T2
+	
+	goal
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
+	================================================= T-subst-abs
 	~C |- subst(~x, ~e, abs(~y, ~S, eabs)) : ~T2
 }
 
