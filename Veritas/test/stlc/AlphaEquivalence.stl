@@ -31,3 +31,8 @@ alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
 alphaEquivalent(~e, ~e1)
 ========================= alpha-equiv-typing
 ~C |- ~e1 : ~T
+
+!isFreeVar(~x, ~e)
+alphaEquivalent(~e, ~e1)
+========================= alpha-equiv-FreeVar
+!isFreeVar(~x, ~e1)
