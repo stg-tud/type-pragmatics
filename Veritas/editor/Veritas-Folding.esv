@@ -8,4 +8,5 @@ folding
   //
   // See the imported file for a brief introduction and examples.
   ModuleDef.Local
+  ModuleDef.Strategy
   
