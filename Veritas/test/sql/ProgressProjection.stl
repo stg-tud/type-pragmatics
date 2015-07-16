@@ -9,17 +9,6 @@ import sql.TStore
 import sql.Tables
 import sql.TContext
 
-// proof of progress-projection by induction over structure of attribute list
-
-goal
-StoreContextConsistent(~TS, ~TTC)
-clookup(~tn, ~TTC) == some(~TT1)
-lookup(~tn, ~TS) == some(~t)
-projectType(aempty, ~TT1) == some(~TT2)
-====================================== progress-projection-aempty
-exists ~t2
-	project(aempty, ~t) == some(~t2)
-
 // case distinction for progress-findCol-attachColToFrontRaw	
 
 //proof of progress-attachColToFrontRaw by induction on 
@@ -321,6 +310,8 @@ findColType(~a, ~TT1) == some(~TT2)
 exists ~c
 	findCol(~a, ~t) == some(~c)
 	
+
+	
 //pull progress-attachColToFrontRow and progress-findCol together 
 //- Vampire seems to need that additional step
 //using findColType instead of projectType also doesn't work for the intermediate step	
@@ -331,44 +322,78 @@ project(~ar, ~t) == some(~rt)
 ===================================================== progress-findCol-attachColToFrontRaw
 exists ~crt, ~rt2
  	findCol(~a, ~t) == some(~crt)
- 	attachColToFrontRaw(~crt, ~rt) == some(~rt2)
- 	
+ 	attachColToFrontRaw(~crt, ~rt) == some(~rt2) 
+ 
 //qed case distinction for progress-findCol-attachColToFrontRaw
 	
-local {
+strategy induction-progress-projection {
 	const ar : AList
 	
-	// pulled axiom inside local block, made meta-variable ~ar a constant
-	axiom
-	welltypedtable(~TT1, ~t)
-	projectType(acons(~a, ar), ~TT1) == some(~TT2)
-	project(ar, ~t) == some(~rt)
-	===================================================== progress-findCol-attachColToFrontRaw
-	exists ~crt, ~rt2
-		findCol(~a, ~t) == some(~crt)
- 		attachColToFrontRaw(~crt, ~rt) == some(~rt2) 
-		
-	axiom
-	StoreContextConsistent(~TS, ~TTC)
-	clookup(~tn, ~TTC) == some(~TT1)
-	lookup(~tn, ~TS) == some(~t)
-	projectType(ar, ~TT1) == some(~TT2)
-	====================================== progress-projection-acons-IH
-	exists ~rt
-		project(ar, ~t) == some(~rt)
-		
+	// proof of progress-projection by induction over structure of attribute list
 	goal
 	StoreContextConsistent(~TS, ~TTC)
 	clookup(~tn, ~TTC) == some(~TT1)
 	lookup(~tn, ~TS) == some(~t)
-	projectType(acons(~a, ar), ~TT1) == some(~TT2)
-	=============================================== progress-projection-acons
+	projectType(aempty, ~TT1) == some(~TT2)
+	====================================== progress-projection-aempty
 	exists ~t2
-		project(acons(~a, ar), ~t) == some(~rt)
+		project(aempty, ~t) == some(~t2)
+
+	local {
+		// pulled axiom inside local block, made meta-variable ~ar a constant
+		axiom
+		welltypedtable(~TT1, ~t)
+		projectType(acons(~a, ar), ~TT1) == some(~TT2)
+		project(ar, ~t) == some(~rt)
+		===================================================== progress-findCol-attachColToFrontRaw
+		exists ~crt, ~rt2
+			findCol(~a, ~t) == some(~crt)
+ 			attachColToFrontRaw(~crt, ~rt) == some(~rt2) 
+		
+		hide-all
+		
+		axiom
+		StoreContextConsistent(~TS, ~TTC)
+		clookup(~tn, ~TTC) == some(~TT1)
+		lookup(~tn, ~TS) == some(~t)
+		projectType(ar, ~TT1) == some(~TT2)
+		====================================== progress-projection-acons-IH
+		exists ~rt
+			project(ar, ~t) == some(~rt)	
+			
+		include {progress-findCol-attachColToFrontRaw, 
+		isSome-INV-2, isSome1, 
+		progress-findCol, projectType2, DIFF-none-some, isSome-INV-1, 
+		StoreContext-Lookup-WT, project1}
+		
+		goal
+		StoreContextConsistent(~TS, ~TTC)
+		clookup(~tn, ~TTC) == some(~TT1)
+		lookup(~tn, ~TS) == some(~t)
+		projectType(acons(~a, ar), ~TT1) == some(~TT2)
+		=============================================== progress-projection-acons
+		exists ~t2
+			project(acons(~a, ar), ~t) == some(~rt)
+	}
+		
+	// Verification succeeded, used lemmas: progress-findCol-attachColToFrontRaw, isSome-INV-2, progress-
+ // projection-acons-IH, isSome1, progress-findCol, projectType2, DIFF-none-some, isSome-INV-1, StoreContext-
+ // Lookup-WT, project1.	
+ 	
+ 	hide-all
+ 	axiom
+	StoreContextConsistent(~TS, ~TTC)
+	clookup(~tn, ~TTC) == some(~TT1)
+	lookup(~tn, ~TS) == some(~t)
+	projectType(~al, ~TT1) == some(~TT2)
+	====================================== progress-projection-ind
+	exists ~t2
+		project(~al, ~t) == some(~rt)
+ 
 } //qed progress-projection
 
 
-axiom
+lemma verify-with induction-progress-projection
 StoreContextConsistent(~TS, ~TTC)
 clookup(~tn, ~TTC) == some(~TT1)
 lookup(~tn, ~TS) == some(~t)
