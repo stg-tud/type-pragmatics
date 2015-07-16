@@ -402,12 +402,17 @@ strategies
 			others := <generate-fof-goals(|axioms, usedaxioms, cons, newlimps, strats)> new-rest
 	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Include(names) | rest] -> others
 		where
-			included := <filter(\Formula(name,a,b) -> Formula(name,a,b) where(<strip-annos; elem> (name, names))\)> axioms;
+			included := <filter(\Formula(name,a,b) -> Formula(name,a,b) 
+				where(<strip-annos; elem> (name, names))\)> axioms;
+			includednames := <map(\Formula(name,a,b) -> name\)> included;
+			missing := <filter(\name -> name where not(<strip-annos; elem> (name, includednames))\)> names;
+			<?[] <+ debug(!"Axioms not found: ")> missing; 
 			usedaxioms2 := <conc> (usedaxioms, included);
 			others := <generate-fof-goals(|axioms, usedaxioms2, cons, limps, strats)> rest
 	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Hide(names) | rest] -> others
 		where
-			usedaxioms2 := <filter(\Formula(name,a,b) -> Formula(name,a,b) where(not(<strip-annos; elem> (name, names)))\)> usedaxioms;
+			usedaxioms2 := <filter(\Formula(name,a,b) -> Formula(name,a,b) 
+				where(not(<strip-annos; elem> (name, names)))\)> usedaxioms;
 			others := <generate-fof-goals(|axioms, usedaxioms2, cons, limps, strats)> rest
 	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [HideAll() | rest] -> others
 		where
