@@ -1,3 +1,4 @@
+
 module Veritas-Menus
 
 menus
@@ -30,7 +31,8 @@ menus
       action: "Selection"            = debug-task-selection
     end
   
-  menu: "Generation"
+  menu: "FOF"
+    action: "Open FOF"			   = open-fof (openeditor) (realtime)
     action: "Generate FOF"         = generate-fof (openeditor) (realtime)
     action: "Generate SMT"         = generate-smt (openeditor) (realtime)
 

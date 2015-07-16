@@ -54,6 +54,25 @@ rules // Incremental code generation of project using compilation library.
     outfiles := <generate-files(|filename,rulez)> strings;
     result := <if <?[]> goals then !None() else !(<Hd> outfiles, <Hd> strings) end> ()
 
+  open-fof :
+  	   (selected, position, ast, path, project-path) -> result
+  with
+  	rule := <find-at-position(?TypingRule(_,_,_)|position)> ast;
+  	rulename := <?TypingRule(_,RuleName(_,<id>),_)> rule;
+  	[filename] := <generate-file-names(|<guarantee-extension(|"fof")> path)> [rulename];
+  	text := <read-text-file <+ !""> filename;
+	result := (filename, text)
+
+  find-at-position(s|pos) :
+  	term -> <s> term
+  where <?[]> pos
+        
+  find-at-position(s|pos) :
+  	term@c#(xs) -> <find-at-position(s|ps) <+ (<s> term)> x
+  where <?[p|ps]> pos;
+        <index(|<addi> (p, 1))> xs => x
+  
+
   pp-formula =
     ast2abox(|[<parse-pptable-file> "trans/fof-rewriting.pp"]);
     box2text-string(|100)
