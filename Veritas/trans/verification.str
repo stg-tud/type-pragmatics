@@ -15,9 +15,10 @@ imports
   lib/runtime/index/core
   lib/runtime/task/core
 
-signature constructors
-	VerificationSuccess : List(Lemmas) -> Result
-	VerificationFailure : String -> Result
+signature 
+	constructors
+		VerificationSuccess : String * List(Lemmas) -> Result
+		VerificationFailure : String -> Result
 
 rules
 	CurrentFileFOF = CurrentFile; guarantee-extension(|"fof")
@@ -27,10 +28,10 @@ rules
 	where
 		msg := $[Verification result outdated or not started yet, use verification menu to re-verify.];
 		consistency-msg := $[Consistency check outdated or not started yet, use verification menu to re-check.];
-		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
-		  <+ ?GoalsWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?LemmasWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body; 
+		rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
+		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?LemmasWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body; 
 		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
 		results := <map(get-verification-result-info <+ !())> outfiles;
 		filtered-results := <zip; filter(?(_,()))> (rulez, results);
@@ -41,21 +42,21 @@ rules
 	constraint-note :
 		Module(m,_,body) -> <conc> (consistency-msgs, goal-msgs)
 	where
-		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
-		  <+ ?GoalsWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?LemmasWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body; 
+		rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
+		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?LemmasWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body; 
 		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
 		results := <map(get-verification-result-info <+ !())> outfiles;
-		filtered-results := <zip; filter(?(_,VerificationSuccess(_)))> (rulez, results);
+		filtered-results := <zip; filter(?(_,VerificationSuccess(_,_)))> (rulez, results);
 		goal-msgs := <map(\(r,res) -> (r,<verification-success-msg> res)\)> filtered-results;
 		consistency-results := <CurrentFileFOF; consistency-filename; (![<get-verification-result-info>] <+ ![])>;
 		consistency-msgs := <filter(\r -> (m, <consistency-success-msg> r)\)> consistency-results
 	
 	
 	verification-success-msg : 
-		VerificationSuccess(lemmas) -> 
-		$[Verification succeeded, used lemmas: [<separate-by(|", "); concat-strings> lemmas].]
+		VerificationSuccess(time, lemmas) -> 
+		$[Verification succeeded in [time] s, used lemmas: [<separate-by(|", "); concat-strings> lemmas].]
 	
 	consistency-success-msg : 
 		VerificationFailure(errmsg) -> 
@@ -65,10 +66,10 @@ rules
 	constraint-error : 
 		Module(m,_,body) -> <conc> (consistency-msgs, goal-msgs)
 	where
-		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
-		  <+ ?GoalsWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?LemmasWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body; 
+		rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
+		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?LemmasWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> body; 
 		outfiles := <generate-file-names(|<CurrentFileFOF>)> rulez;
 		results := <map(get-verification-result-info <+ !())> outfiles;
 		filtered-results := <zip; filter(?(_,VerificationFailure(_)))> (rulez, results);
@@ -80,7 +81,7 @@ rules
 		VerificationFailure(errmsg) -> $[Verification failed: [errmsg].]
 		
 	consistency-failure-msg : 
-		VerificationSuccess(lemmas) -> 
+		VerificationSuccess(time, lemmas) -> 
 		$[Found inconsistency using lemmas: [<separate-by(|", "); concat-strings> lemmas].]
 	
 
@@ -90,10 +91,10 @@ rules
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
 	    filename := <guarantee-extension(|"fof")> path;
-		rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
-		  <+ ?GoalsWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?LemmasWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
+		rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
+		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?LemmasWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
 	    outfiles := <generate-file-names(|filename)> rulez;
 	    <map(clean-proof)> outfiles;
 	    <consistency-filename; clean-proof> path;
@@ -122,10 +123,10 @@ rules
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
 	    filename := <consistency-filename> path;
-	    false-goal := Goals([TypingRule(RuleName("", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))]);
+	    false-goal := Goals(None(),[TypingRule(RuleName("", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))]);
 	    //TODO: consistency check for strategies/local blocks??
-	    ast-with-false := <Module(id, id, filter(not(?Local(_) + ?Goals(_) + ?Lemmas(_) + ?Strategy(_,_,_) + 
-	    	?GoalsWithStrategy(_,_) + ?LemmasWithStrategy(_,_))); append(|[false-goal]))> ast;
+	    ast-with-false := <Module(id, id, filter(not(?Local(_) + ?Goals(_,_) + ?Lemmas(_,_) + ?Strategy(_,_,_) + 
+	    	?GoalsWithStrategy(_,_,_) + ?LemmasWithStrategy(_,_,_))); append(|[false-goal]))> ast;
 	    
 	    [goal] := <fof-trans <+ error(!"fof-trans failed: ")> ast-with-false;
 	    string := <pp-formula <+ pp-debug(pp-formula)> goal;
@@ -136,10 +137,36 @@ rules
     consistency-filename = remove-extension; <conc-strings> (<id>, "-consistency.fof")	
 
 rules
-	verify-vampire = verify-vampire(|"30")
+	verify-vampire = verify-vampire-auto
+	verify-vampire-30 = verify-vampire(|"30")
 	verify-vampire-60 = verify-vampire(|"60")
 	verify-vampire-120 = verify-vampire(|"120")
 	verify-vampire-600 = verify-vampire(|"600")
+	
+	default-timeout = !"30"
+	
+	verify-vampire-auto : 
+		input@(selected, position, ast, path, project-path) -> None()
+	where
+		index-setup(|<language>, project-path);
+		task-setup(|project-path);
+	    filename := <guarantee-extension(|"fof")> path;
+	    rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
+		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?LemmasWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast;
+	    goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
+	    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
+	    outfiles := <generate-files(|filename, rulez)> strings;
+	    //collect potential timeouts
+	    //TODO: support lists of goals (does not work currently)
+	    rawtimes := <collect-all(?Goals(<id>,_) 
+		  <+ ?GoalsWithStrategy(_,<id>,_)
+	      <+ ?Lemmas(<id>,_)
+	      <+ ?LemmasWithStrategy(_,<id>,_), conc)> ast;
+	    times := <map(\rt -> <?Some(n) < !n + default-timeout> rt\)> rawtimes;
+	    <zip; map(\((r,t),f) -> <try(call-vampire(|r, t))> f\)> (<zip> (rulez, times), outfiles);
+    	<queue-analysis> path
 	
 	verify-vampire(|time) :
 		input@(selected, position, ast, path, project-path) -> None()
@@ -147,10 +174,10 @@ rules
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
 	    filename := <guarantee-extension(|"fof")> path;
-	    rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
-		  <+ ?GoalsWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?LemmasWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
+	    rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
+		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?LemmasWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
 	    goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
 	    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
 	    outfiles := <generate-files(|filename, rulez)> strings;
@@ -199,8 +226,9 @@ rules
 		axioms := <map(extract-tptp-lemma-name-from-line)> lemma-lines;
 		lemmas := <diff> (axioms, [<strip-annos> r]);
 		info-file := <guarantee-extension(|"info")> proof-file;
+		t := <split-at-space; reverse; ?[_,time|_]; !time> last;
 	 	result := <if (<is-substring(!"Success")> last; <is-substring(!"Refutation")> last-reason) 
-	 			then !VerificationSuccess(lemmas) 
+	 			then !VerificationSuccess(t, lemmas) 
 	 			else !VerificationFailure(butlast) end>;
 		<write-file> (info-file, <write-to-string> result)
 	

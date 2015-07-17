@@ -37,7 +37,8 @@ menus
     action: "Generate SMT"         = generate-smt (openeditor) (realtime)
 
   menu: "Verification"
-    action: "Verify with Vampire" = verify-vampire
+    action: "Verify with Vampire (auto)" = verify-vampire
+    action: "Verify with Vampire (30)" = verify-vampire-30
     action: "Verify with Vampire (60)" = verify-vampire-60
     action: "Verify with Vampire (120)" = verify-vampire-120
     action: "Verify with Vampire (600)" = verify-vampire-600

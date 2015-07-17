@@ -7,6 +7,7 @@ lexical syntax
 
   RuleSep = "===" "="* 
   Name = [a-zA-Z0-9\-]+ 
+  TM = [0-9]+
 
 lexical restrictions
 
@@ -358,52 +359,52 @@ ModuleDef =
 > {ast("Axioms([<1>])")}
 
 ModuleDef.Goals = 
-<goals 
+<goals <TM?>
 <TypingRule*>
 
 > 
 
 ModuleDef = 
-<goal 
+<goal <TM?>
 <TypingRule>
 
-> {ast("Goals([<1>])")}
+> {ast("Goals(<1>,[<2>])")}
 
 ModuleDef.GoalsWithStrategy = 
-<goals verify-with <Name>
+<goals verify-with <Name> <TM?>
 <TypingRule*>
 
 >
 
 ModuleDef = 
-<goal verify-with <Name>
+<goal verify-with <Name> <TM?>
 <TypingRule>
 
-> {ast("GoalsWithStrategy(<1>,[<2>])")}
+> {ast("GoalsWithStrategy(<1>,<2>,[<3>])")}
 
 ModuleDef.Lemmas = 
-<lemmas 
+<lemmas <TM?>
 <TypingRule*>
 
 >
  
 ModuleDef = 
-<lemma 
+<lemma <TM?>
 <TypingRule>
 
-> {ast("Lemmas([<1>])")}
+> {ast("Lemmas(<1>,[<2>])")}
 
 ModuleDef.LemmasWithStrategy = 
-<lemmas verify-with <Name>
+<lemmas verify-with <Name> <TM?>
 <TypingRule*>
 
 > 
 
 ModuleDef = 
-<lemma verify-with <Name>
+<lemma verify-with <Name> <TM?>
 <TypingRule>
 
-> {ast("LemmasWithStrategy(<1>,[<2>])")}
+> {ast("LemmasWithStrategy(<1>,<2>,[<3>])")}
 
 ModuleDef.Include = 
 <include {<{Name ","}*>}>

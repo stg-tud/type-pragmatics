@@ -250,11 +250,11 @@ rules
        ]
 
   nabl-scoping-site =
-    ?Goals(_)
+    ?Goals(_, _)
     ; nabl-scope(|[NablNsRule()])
 
   nabl-get-scope =
-    ?Goals(_) ; ![NablNsRule()]
+    ?Goals(_, _) ; ![NablNsRule()]
 
   nabl-get-name :
     RuleName(_, r) -> r

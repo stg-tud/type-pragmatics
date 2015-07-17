@@ -34,7 +34,7 @@ rules
 			defines := <map(formula-to-define)> formulas;
 			asserts := <map(formula-to-assert)> formulas;
 			others := <generate-smt-goals(|cons)> rest
-	generate-smt-goals(|cons) : [Goals(fs) | rest] -> <conc> ([<push>, define, assert, <check-sat>, <pop>], others)
+	generate-smt-goals(|cons) : [Goals(_,fs) | rest] -> <conc> ([<push>, define, assert, <check-sat>, <pop>], others)
 		where
 			// consts := <collect-all(?Var(_))> fs;
 			// const-decls := <mapconcat(const-to-function-decl(|cons))> consts;

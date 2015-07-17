@@ -22,7 +22,7 @@ binding rules
 	Local(_):
 		scopes Sort, Symbol, Axiom, Rule
 
-	Goals(_):
+	Goals(_,_):
 		scopes Rule
 
 	RuleName(_, r):
