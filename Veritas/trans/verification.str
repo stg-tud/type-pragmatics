@@ -120,14 +120,13 @@ rules
 	check-consistency-vampire(|time) :
 		input@(selected, position, ast, path, project-path) -> None()
 	where
-		index-setup(|<language>, project-path);
+		index-setup(|<language>, project-path); 
 		task-setup(|project-path);
 	    filename := <consistency-filename> path;
 	    false-goal := Goals(None(),[TypingRule(RuleName("", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))]);
 	    //TODO: consistency check for strategies/local blocks??
 	    ast-with-false := <Module(id, id, filter(not(?Local(_) + ?Goals(_,_) + ?Lemmas(_,_) + ?Strategy(_,_,_) + 
 	    	?GoalsWithStrategy(_,_,_) + ?LemmasWithStrategy(_,_,_))); append(|[false-goal]))> ast;
-	    
 	    [goal] := <fof-trans <+ error(!"fof-trans failed: ")> ast-with-false;
 	    string := <pp-formula <+ pp-debug(pp-formula)> goal;
 	    <write-file> (filename, string);
@@ -164,7 +163,7 @@ rules
 		  <+ ?GoalsWithStrategy(_,<id>,_)
 	      <+ ?Lemmas(<id>,_)
 	      <+ ?LemmasWithStrategy(_,<id>,_), conc)> ast;
-	    times := <map(\rt -> <\Some(n) -> n\ <+ default-timeout> rt\)> rawtimes;
+	    times := <map(\Some(n) -> n\ <+ default-timeout)> rawtimes;
 	    <zip; map(\((r,t),f) -> <try(call-vampire(|r, t))> f\)> (<zip> (rulez, times), outfiles);
     	<queue-analysis> path
 	
