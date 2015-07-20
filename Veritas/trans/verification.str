@@ -164,7 +164,7 @@ rules
 		  <+ ?GoalsWithStrategy(_,<id>,_)
 	      <+ ?Lemmas(<id>,_)
 	      <+ ?LemmasWithStrategy(_,<id>,_), conc)> ast;
-	    times := <map(\rt -> <?Some(n) < !n + default-timeout> rt\)> rawtimes;
+	    times := <map(\rt -> <\Some(n) -> n\ <+ default-timeout> rt\)> rawtimes;
 	    <zip; map(\((r,t),f) -> <try(call-vampire(|r, t))> f\)> (<zip> (rulez, times), outfiles);
     	<queue-analysis> path
 	
