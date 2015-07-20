@@ -216,7 +216,7 @@ local {
 	==================================================== test-attachColToFrontRaw0
 	attachColToFrontRaw(~prt, ~drt) == some(~rt)
 
-	goal 60
+	goal 100
 	~prt = tcons(rcons(x1, rempty), tcons(rcons(x1, rempty), tempty))
 	~drt = tcons(rcons(x2, rempty), tcons(rcons(x2, rempty), tempty))
 	~rt = tcons(rcons(x1, rcons(x2, rempty)), tcons(rcons(x1, rcons(x2, rempty)), tempty))
