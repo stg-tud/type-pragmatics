@@ -158,7 +158,7 @@ isSome(attachColToFrontRaw(~col, ~rt))
 welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(~col, ~rt)))
 
 
-// proof of ProjectFirstRaw-Preservation
+// proof of ProjectFirstRaw-Preservation (auxiliary lemma needed in proof of FindCol Preservation)
 strategy induction-projectfirstraw-pres {
 	// by structural induction on ~rt
 	
@@ -172,6 +172,7 @@ strategy induction-projectfirstraw-pres {
 		consts
 			r : Row
 			rt : RawTable
+		
 		hide-all
 		
 		axiom
@@ -186,7 +187,6 @@ strategy induction-projectfirstraw-pres {
 		welltypedRow1, welltypedRow2, projectFirstRaw0, projectFirstRaw1, projectFirstRaw2,
 		projectFirstRaw-INV}
 		
-		//TODO!!
 		goal
 		welltypedRawtable(rtcons(~colType, ~RT), tcons(r, rt))
 		============================================================================ ProjectFirstRaw-Preservation-2
@@ -261,7 +261,7 @@ isSome(findColType(~a, ~TT))
 ================================================== FindCol-Preservation
 welltypedRawtable(rtcons(getSome(findColType(~a, ~TT)), rtempty), getSome(findCol(~a, ~t)))
 
-
+// proof of project-preservation
 strategy struc-induction-project-preservation {
 	// proof of Project-Preservation by structural induction on ~al
 
