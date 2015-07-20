@@ -91,6 +91,7 @@ strategy induction-StoreContext-Lookup-WT {
 		welltypedtable(~tt, ~t)
 	}
 	
+	hide-all
 	axiom
 	StoreContextConsistent(~TS, ~TTC)
 	lookup(~tn, ~TS) = some(~t)

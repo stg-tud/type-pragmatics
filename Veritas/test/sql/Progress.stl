@@ -15,35 +15,36 @@ import sql.ProgressProjection
 //for union/intersection/difference, you actually need induction on typing derivations!
 //(because of type equality...)
 
-goal
-~q == Tvalue(~t)
-~cin == conf(~q, ~TS)
-!isValue(~q)
-~TTC |- ~q : ~TT
-StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-Tvalue
-exists ~cout
-	reduce(~cin) = some(~cout)
+strategy induction-Progress {
+	goal
+	~q == Tvalue(~t)
+	~cin == conf(~q, ~TS)
+	!isValue(~q)
+	~TTC |- ~q : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	==================================== SQL-Progress-T-Tvalue
+	exists ~cout
+		reduce(~cin) = some(~cout)
 	
-goal	
-~q == Selectallfrom(Ref(~tn)) 
-~cin == conf(~q, ~TS)
-!isValue(~q)
-~TTC |- ~q : ~TT
-StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-Selectallfrom
-exists ~cout
-	reduce(~cin) = some(~cout)
+	goal	
+	~q == Selectallfrom(Ref(~tn)) 
+	~cin == conf(~q, ~TS)
+	!isValue(~q)
+	~TTC |- ~q : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	==================================== SQL-Progress-T-Selectallfrom
+	exists ~cout
+		reduce(~cin) = some(~cout)
 	
-goal
-~q == Selectsomefrom(~al, Ref(~tn)) 
-~cin == conf(~q, ~TS)
-!isValue(~q)
-~TTC |- ~q : ~TT
-StoreContextConsistent(~TS, ~TTC)
-==================================== SQL-Progress-T-Selectsomefrom
-exists ~cout
-	reduce(~cin) = some(~cout)
+	goal
+	~q == Selectsomefrom(~al, Ref(~tn)) 
+	~cin == conf(~q, ~TS)
+	!isValue(~q)
+	~TTC |- ~q : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	==================================== SQL-Progress-T-Selectsomefrom
+	exists ~cout
+		reduce(~cin) = some(~cout)
 	
 // Verification succeeded, used lemmas: progress-projection, isSome1, lookup-aux, isSome-INV-2, T-inv-
 //  Selectsomefrom, reduce3, reduce4, reduce5.
@@ -278,8 +279,20 @@ exists ~cout
 // // }
 // 
 // 
+	hide-all
+	axiom
+	~cin == conf(~q, ~TS)
+	!isValue(~q)
+	~TTC |- ~q : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	==================================== SQL-Progress-ind
+	exists ~cout
+		reduce(~cin) = some(~cout)
+
+}
+
 //final progress theorem
-axiom 
+goal verify-with induction-Progress 
 ~cin == conf(~q, ~TS)
 !isValue(~q)
 ~TTC |- ~q : ~TT
