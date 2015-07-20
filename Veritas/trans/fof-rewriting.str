@@ -312,13 +312,13 @@ strategies
 			axioms2 := <conc> (axioms, newAxioms);
 			usedaxioms2 := <conc> (usedaxioms, newAxioms); 
 			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, limps, strats)> rest
-	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Goals(t, fs) | rest] -> [goal | others]
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Goals(_, fs) | rest] -> [goal | others]
 		where
 			formula := <to-prop; compose-formulas> fs;
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
 			goal := FOFGoal(usedaxioms, conjecture);
 			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> rest
-	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [GoalsWithStrategy(n, t, fs) | rest] -> [goal | others]
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [GoalsWithStrategy(n, _, fs) | rest] -> [goal | others]
 		where
 			formula := <to-prop; compose-formulas> fs;
 			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
@@ -326,7 +326,7 @@ strategies
 			strataxioms := <hashtable-get(|n) <+ <debug(!"Strategy could not be found")> n> strats;
 			goal := FOFGoal(strataxioms, conjecture);
 			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> rest
-	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Lemmas(t, fs) | rest] -> [goal | others]
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Lemmas(_, fs) | rest] -> [goal | others]
 		where
 			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
 			axioms2 := <conc> (axioms, newAxioms); 
@@ -336,7 +336,7 @@ strategies
 			//important: take previous(!) axiom set for generating fof goal from lemma!
 			goal := FOFGoal(usedaxioms, conjecture);
 			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, limps, strats)> rest
-	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [LemmasWithStrategy(n, t, fs) | rest] -> [goal | others]
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [LemmasWithStrategy(n, _, fs) | rest] -> [goal | others]
 		where
 			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
 			axioms2 := <conc> (axioms, newAxioms); 
@@ -437,23 +437,25 @@ strategies
 			\FunctionPatVar(v) -> FunctionPatApp(v, []) where <elem(|v)> cons-names\
 		<+	\FunctionExpVar(v) -> FunctionExpApp(v, []) where <elem(|v)> cons-names\))
 
-	filter-import(|annos) : xs -> <filter(not(?Goals(_,_) + ?Local(_))); innermost(\Lemmas(t,b) -> Axioms(b)\)> xs
-	where <?None()> annos
+	filter-import(|annos) : xs -> <filter(not(?Goals(_,_) + ?GoalsWithStrategy(_,_,_) + ?Local(_) + ?Strategy(_,_,_))); 
+		innermost(\Lemmas(_,b) -> Axioms(b)\);
+		innermost(\LemmasWithStrategy(_,_,b) -> Axioms(b)\)> xs
+		where <?None()> annos
 	filter-import(|annos) : [] -> []
 	filter-import(|annos) : [x@Axioms(_)|xs] -> [x|<filter-import(|annos)>xs]
-	where <?Some(<elem(|ImportAnnoAxioms())>)> annos
+		where <?Some(<elem(|ImportAnnoAxioms())>)> annos
 	filter-import(|annos) : [x@Goals(_,_)|xs] -> [x|<filter-import(|annos)>xs]
-	where <?Some(<elem(|ImportAnnoGoals())>)> annos
+		where <?Some(<elem(|ImportAnnoGoals())>)> annos
 	filter-import(|annos) : [x@Local(_)|xs] -> [x|<filter-import(|annos)>xs]
-	where <?Some(<elem(|ImportAnnoGoals())>)> annos
+		where <?Some(<elem(|ImportAnnoGoals())>)> annos
 	filter-import(|annos) : [x@Constructors(_)|xs] -> [x|<filter-import(|annos)>xs]
-	where <?Some(<elem(|ImportAnnoConstructors())>)> annos
+		where <?Some(<elem(|ImportAnnoConstructors())>)> annos
 	filter-import(|annos) : [x@Consts(_)|xs] -> [x|<filter-import(|annos)>xs]
-	where <?Some(<elem(|ImportAnnoConstructors())>)> annos
+		where <?Some(<elem(|ImportAnnoConstructors())>)> annos
 	filter-import(|annos) : [x@PartialFunctions(_)|xs] -> [x|<filter-import(|annos)>xs]
-	where <?Some(<elem(|ImportAnnoFunctions())>)> annos
+		where <?Some(<elem(|ImportAnnoFunctions())>)> annos
 	filter-import(|annos) : [x@Functions(_)|xs] -> [x|<filter-import(|annos)>xs]
-	where <?Some(<elem(|ImportAnnoFunctions())>)> annos
+		where <?Some(<elem(|ImportAnnoFunctions())>)> annos
 	filter-import(|annos) : [x|xs] -> <filter-import(|annos)>xs
 	
 	
