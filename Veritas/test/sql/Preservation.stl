@@ -37,7 +37,7 @@ StoreContextConsistent(~TS, ~TTC)
 //  T-Tvalue, getRaw0, getAL0, getAL-INV, isValue0, EQ-conf, reduce1, reduce2, DIFF-none-some, getSome0, 
 //  isValue-INV.
 
-goal 
+goal 40
 ~qi == Selectsomefrom(~al, Ref(~tn))
 ~cin == conf(~qi, ~TS)
 ~cout == conf(~qo, ~TS)
