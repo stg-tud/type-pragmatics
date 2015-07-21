@@ -9,6 +9,42 @@ import sql.TStore
 import sql.Tables
 import sql.TContext
 
+strategy proof-table-minus-first-Row-findCol {
+
+		hide-all
+		
+		include { EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
+			isSome-INV-1, isSome-INV-2, 
+			EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
+			DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
+			EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
+			welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
+			rawType0, rawType1, rawType-INV,
+			
+			welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
+				rawType0, rawType1, rawType-INV,
+				welltypedRawtable0, welltypedRawtable1, welltypedRow0,
+				welltypedRow1, welltypedRow2,
+				
+			findCol0, findCol1, findCol2, findCol-INV,
+			projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV,
+			dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV,
+			project0 
+		}
+
+		
+
+		// TODO remove this lemma here as soon as proof works!
+		// real lemma is used in proof below
+		lemma 120 //TODO prove
+		welltypedtable(~TT1, ~t)
+		findCol(~a, ~t) == some(tcons(rcons(~f, rempty), ~rt1))
+		====================================================== table-minus-first-Row-findCol-TODO
+		exists ~al, ~r, ~trest
+			~t == table(~al, tcons(~r, ~trest))
+			findCol(~a, table(~al, ~trest)) == some(~rt1)	
+}
+
 
 //proof of progress-attachColToFrontRaw by induction on 
 // the recursive structure of attachColToFrontRaw
@@ -67,7 +103,7 @@ strategy induction-progress-attachColToFrontRaw {
 		welltypedtable(~TT1, table(~al, ~trest))
 			
 
-		lemma 1 //TODO prove
+		lemma verify-with proof-table-minus-first-Row-findCol
 		welltypedtable(~TT1, ~t)
 		findCol(~a, ~t) == some(tcons(rcons(~f, rempty), ~rt1))
 		====================================================== table-minus-first-Row-findCol
