@@ -13,14 +13,20 @@ strategy proof-table-minus-first-Row-findCol {
 
 		hide-all
 		
+		
+		// including welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
+		// 	rawType0, rawType1, rawType-INV,
+		// 	makes the proofs below all work, even though none of them uses these axioms...
+		
 		include { EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
 			isSome-INV-1, isSome-INV-2, 
 			EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
 			DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
 			EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
+			
 			welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
 			rawType0, rawType1, rawType-INV,
-				
+			
 			findCol0, findCol1, findCol2, findCol-INV,
 			dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV
 		}
@@ -122,16 +128,73 @@ strategy proof-table-minus-first-Row-findCol {
 		findCol(~a, table(acons(~a2, ~al), tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt1))
 		=============================================================================================== one-col-table-minus-first-Row-findCol
 		findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)	
+}
 
-		// TODO remove this lemma here as soon as proof works!
-		// real lemma is used in proof below
-		lemma //TODO prove
-		//welltypedtable(~TT1, ~t)
-		findCol(~a, ~t) == some(tcons(rcons(~f, rempty), ~rt1))
-		====================================================== table-minus-first-Row-findCol-TODO
-		exists ~a2, ~al, ~r, ~trest
-			~t == table(acons(~a2, ~al), tcons(~r, ~trest))
-			findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)	
+strategy proof-table-minus-first-Row-project {
+	
+	hide-all
+	
+	include {EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
+			isSome-INV-1, isSome-INV-2, 
+			EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
+			DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
+			EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
+			
+			project0, project1, project2, project-INV,
+			projectEmptyCol0, projectEmptyCol1, projectEmptyCol-INV
+	}
+
+	
+	strategy proof-project-table-one-row {
+		//case distinction on length of attribute list for projection
+		
+		// trivial base case, empty list
+		// is not used by Vampire for full proof, why??
+		lemma
+		welltypedtable(~TT1, ~t)
+		project(aempty, ~t) == some(tcons(~r1, ~rt2))
+		======================================================= project-table-one-row-aempty
+		exists ~ar2, ~r, ~trest
+			~t == table(~ar2, tcons(~r, ~trest))
+				
+		lemma 1
+		welltypedtable(~TT1, ~t) 
+		findCol(~a, ~t) == some(~rt)
+		============================= findCol-one-row
+		exists ~al, ~r, ~trest
+			~t == table(~al, tcons(~r, ~trest))
+				
+		lemma
+		welltypedtable(~TT1, ~t)
+		project(acons(~a, ~al), ~t) == some(tcons(~r1, ~rt2))
+		======================================================= project-table-one-row-acons
+		exists ~ar2, ~r, ~trest
+			~t == table(~ar2, tcons(~r, ~trest))
+	}
+	
+	lemma verify-with proof-project-table-one-row
+	welltypedtable(~TT1, ~t)
+	project(~ar, ~t) == some(tcons(~r1, ~rt2))
+	======================================================= project-table-one-row
+	exists ~ar2, ~r, ~trest
+		~t == table(~ar2, tcons(~r, ~trest))
+			
+	lemma 
+	project(~ar, table(~ar2, tcons(~r, ~trest))) == some(tcons(~r1, ~rt2))
+	=============================================================================================== one-col-table-minus-first-Row-project
+	project(~ar, table(~ar2, ~trest)) == some(~rt2)
+	
+	
+	
+	//TODO remove lemma if proof works!
+	lemma 
+	welltypedtable(~TT1, ~t)
+	project(~ar, ~t) == some(tcons(~r1, ~rt2))
+	====================================================== table-minus-first-Row-project-TODO
+	exists ~ar2, ~r, ~trest
+		~t == table(~ar2, tcons(~r, ~trest))
+		project(~ar, table(~ar2, ~trest)) == some(~rt2)
+	
 }
 
 
@@ -199,13 +262,13 @@ strategy induction-progress-attachColToFrontRaw {
 			~t == table(acons(~a2, ~al), tcons(~r, ~trest))
 			findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)
 			
-		lemma 1 //TODO prove
+		lemma verify-with proof-table-minus-first-Row-project //TODO prove
 		welltypedtable(~TT1, ~t)
 		project(~ar, ~t) == some(tcons(~r1, ~rt2))
 		====================================================== table-minus-first-Row-project
-		exists ~a2, ~al, ~r, ~trest
-			~t == table(acons(~a2, ~al), tcons(~r, ~trest))
-			project(~ar, table(acons(~a2, ~al), ~trest)) == some(~rt2)
+		exists ~ar2, ~r, ~trest
+			~t == table(~ar2, tcons(~r, ~trest))
+			project(~ar, table(~ar2, ~trest)) == some(~rt2)
 			
 		
 		goal
