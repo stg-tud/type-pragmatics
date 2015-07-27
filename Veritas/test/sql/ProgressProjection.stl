@@ -9,7 +9,7 @@ import sql.TStore
 import sql.Tables
 import sql.TContext
 
-strategy proof-table-minus-first-Row-findCol {
+strategy proof-table-minus-first-row-findCol {
 
 		hide-all
 		
@@ -91,7 +91,7 @@ strategy proof-table-minus-first-Row-findCol {
 		exists ~a2, ~al, ~r, ~trest
 			~t == table(acons(~a2, ~al), tcons(~r, ~trest))
 		
-		strategy induction-one-col-table-minus-first-Row-findCol {
+		strategy induction-one-col-table-minus-first-row-findCol {
 			//induction on length of ~al (rest list!)
 			
 			include {projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV}
@@ -99,7 +99,7 @@ strategy proof-table-minus-first-Row-findCol {
 			//base case, trivial
 			goal 
 			findCol(~a, table(acons(~a2, aempty), tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt1))
-			=============================================================================================== one-col-table-minus-first-Row-findCol-aempty
+			=============================================================================================== one-col-table-minus-first-row-findCol-aempty
 			findCol(~a, table(acons(~a2, aempty), ~trest)) == some(~rt1)
 			
 			local {
@@ -108,29 +108,29 @@ strategy proof-table-minus-first-Row-findCol {
 					
 				axiom
 				findCol(~a, table(acons(~a2, al), tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt1))
-				=============================================================================================== one-col-table-minus-first-Row-findCol-acons-IH
+				=============================================================================================== one-col-table-minus-first-row-findCol-acons-IH
 				findCol(~a, table(acons(~a2, al), ~trest)) == some(~rt1)
 				
 				goal
 				findCol(~a, table(acons(~a2, acons(a3, al)), tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt1))
-				========================================================================================================= one-col-table-minus-first-Row-findCol-acons
+				========================================================================================================= one-col-table-minus-first-row-findCol-acons
 				findCol(~a, table(acons(~a2, acons(a3, al)), ~trest)) == some(~rt1)	
 					
 			}	
 			
 			axiom
 			findCol(~a, table(acons(~a2, ~al), tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt1))
-			=============================================================================================== one-col-table-minus-first-Row-findCol-ind
+			=============================================================================================== one-col-table-minus-first-row-findCol-ind
 			findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)	
 		}
 		
-		lemma verify-with induction-one-col-table-minus-first-Row-findCol
+		lemma verify-with induction-one-col-table-minus-first-row-findCol
 		findCol(~a, table(acons(~a2, ~al), tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt1))
-		=============================================================================================== one-col-table-minus-first-Row-findCol
+		=============================================================================================== one-col-table-minus-first-row-findCol
 		findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)	
 }
 
-strategy proof-table-minus-first-Row-project {
+strategy proof-table-minus-first-row-project {
 	
 	hide-all
 	
@@ -148,24 +148,67 @@ strategy proof-table-minus-first-Row-project {
 	strategy proof-project-table-one-row {
 		//case distinction on length of attribute list for projection
 		
+		include {
+			findCol0, findCol1, findCol2, findCol-INV,
+			projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV,
+			attachColToFrontRaw0, attachColToFrontRaw1, attachColToFrontRaw2, attachColToFrontRaw3, attachColToFrontRaw-INV,
+			dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV
+		}
+		
 		// trivial base case, empty list
-		// is not used by Vampire for full proof, why??
 		lemma
-		welltypedtable(~TT1, ~t)
 		project(aempty, ~t) == some(tcons(~r1, ~rt2))
 		======================================================= project-table-one-row-aempty
 		exists ~ar2, ~r, ~trest
 			~t == table(~ar2, tcons(~r, ~trest))
+		
+		strategy induction-findCol-one-row {
+			// induction on recursive structure of findCol
+			
+			// trivial, premise wrong!
+			goal
+			findCol(~a, table(aempty, ~rt)) == some(tcons(rcons(~f, rempty), ~rt1))
+			========================================================= findCol-one-row-1
+			exists ~r, ~trest
+				~rt == tcons(~r, ~trest)
 				
-		lemma 1
-		welltypedtable(~TT1, ~t) 
-		findCol(~a, ~t) == some(~rt)
-		============================= findCol-one-row
-		exists ~al, ~r, ~trest
-			~t == table(~al, tcons(~r, ~trest))
+			local {
+				consts
+				a : AName
+				a2 : AName
+				al : AList
+				rt : RawTable	
+				
+				axiom
+				findCol(a, table(al, dropFirstColRaw(rt))) == some(tcons(rcons(~f, rempty), ~rt1))
+				==================================================================================== findCol-one-row-2-IH
+				exists ~r, ~trest
+					rt == tcons(~r, ~trest)
+			
+				goal 
+				findCol(a, table(acons(a2, al), rt)) == some(tcons(rcons(~f, rempty), ~rt1))
+				========================================================= findCol-one-row-2
+				exists ~r, ~trest
+					rt == tcons(~r, ~trest)
+			}
+			
+			hide-all
+			axiom 
+			findCol(~a, table(~al, ~rt)) == some(tcons(rcons(~f, rempty), ~rt1))
+			==================================================================== findCol-one-row-ind
+			exists ~r, ~trest
+				~rt == tcons(~r, ~trest)
+			
+		}
+			
+		lemma verify-with induction-findCol-one-row 
+		findCol(~a, table(~al, ~rt)) == some(tcons(rcons(~f, rempty), ~rt1))
+		==================================================================== findCol-one-row
+		exists ~r, ~trest
+				~rt == tcons(~r, ~trest)
+		
 				
 		lemma
-		welltypedtable(~TT1, ~t)
 		project(acons(~a, ~al), ~t) == some(tcons(~r1, ~rt2))
 		======================================================= project-table-one-row-acons
 		exists ~ar2, ~r, ~trest
@@ -173,7 +216,6 @@ strategy proof-table-minus-first-Row-project {
 	}
 	
 	lemma verify-with proof-project-table-one-row
-	welltypedtable(~TT1, ~t)
 	project(~ar, ~t) == some(tcons(~r1, ~rt2))
 	======================================================= project-table-one-row
 	exists ~ar2, ~r, ~trest
@@ -181,7 +223,7 @@ strategy proof-table-minus-first-Row-project {
 			
 	lemma 
 	project(~ar, table(~ar2, tcons(~r, ~trest))) == some(tcons(~r1, ~rt2))
-	=============================================================================================== one-col-table-minus-first-Row-project
+	=============================================================================================== one-row-table-minus-first-row-project
 	project(~ar, table(~ar2, ~trest)) == some(~rt2)
 	
 	
@@ -190,7 +232,7 @@ strategy proof-table-minus-first-Row-project {
 	lemma 
 	welltypedtable(~TT1, ~t)
 	project(~ar, ~t) == some(tcons(~r1, ~rt2))
-	====================================================== table-minus-first-Row-project-TODO
+	====================================================== table-minus-first-row-project-TODO
 	exists ~ar2, ~r, ~trest
 		~t == table(~ar2, tcons(~r, ~trest))
 		project(~ar, table(~ar2, ~trest)) == some(~rt2)
@@ -251,21 +293,21 @@ strategy induction-progress-attachColToFrontRaw {
 		
 		lemma verify-with welltyped-table-defs 
 		welltypedtable(~TT1, table(acons(~a, ~al), tcons(~r, ~trest)))
-		====================================================== table-minus-first-Row-welltyped
+		====================================================== table-minus-first-row-welltyped
 		welltypedtable(~TT1, table(acons(~a, ~al), ~trest))
 			
 
-		lemma verify-with proof-table-minus-first-Row-findCol
+		lemma verify-with proof-table-minus-first-row-findCol
 		findCol(~a, ~t) == some(tcons(rcons(~f, rempty), ~rt1))
-		====================================================== table-minus-first-Row-findCol
+		====================================================== table-minus-first-row-findCol
 		exists ~a2, ~al, ~r, ~trest
 			~t == table(acons(~a2, ~al), tcons(~r, ~trest))
 			findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)
 			
-		lemma verify-with proof-table-minus-first-Row-project //TODO prove
+		lemma verify-with proof-table-minus-first-row-project //TODO prove
 		welltypedtable(~TT1, ~t)
 		project(~ar, ~t) == some(tcons(~r1, ~rt2))
-		====================================================== table-minus-first-Row-project
+		====================================================== table-minus-first-row-project
 		exists ~ar2, ~r, ~trest
 			~t == table(~ar2, tcons(~r, ~trest))
 			project(~ar, table(~ar2, ~trest)) == some(~rt2)
