@@ -263,14 +263,69 @@ strategy proof-table-minus-first-row-project {
 			// =============================================================================================== one-col-table-minus-first-row-findCol2
 			// findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)	
 			
-			lemma verify-with proof-table-minus-first-row-findCol
-			findCol(~a, ~t) == some(tcons(rcons(~f, rempty), ~rt1))
-			====================================================== table-minus-first-row-findCol
-			exists ~a2, ~al, ~r, ~trest
-				~t == table(acons(~a2, ~al), tcons(~r, ~trest))
-				findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)
+			// lemma 1
+			// project(acons(~a, ~al), ~t) == some(~rt)
+			// ==================================================================================== aux0
+			// exists ~col, ~rest
+			// 	some(~col) == findCol(~a, ~t)
+			// 	some(~rest) == project(~al, ~t)
+			// 	attachColToFrontRaw(~col, ~rest) == some(~rt)
+			// 	
+			// lemma 1
+			// some(~col) == findCol(~a, ~t)
+			// some(~rest) == project(~al, ~t)
+			// attachColToFrontRaw(~col, ~rest) == some(~rt)
+			// =============================================== aux-INV
+			// project(acons(~a, ~al), ~t) == some(~rt)
+			// 
+			// 
+			// lemma verify-with proof-table-minus-first-row-findCol
+			// findCol(~a, ~t) == some(tcons(rcons(~f, rempty), ~rt1))
+			// ====================================================== table-minus-first-row-findCol
+			// exists ~a2, ~al, ~r, ~trest
+			// 	~t == table(acons(~a2, ~al), tcons(~r, ~trest))
+			// 	findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)
+
+			// lemma 1
+			// findCol(~a, table(~ar2, tcons(~r, ~trest))) == some(~col)
+			// project(~al, table(~ar2, tcons(~r, ~trest))) == some(~rest)
+			// attachColToFrontRaw(~col, ~rest) == some(tcons(~r2, ~rt2))
+			// ============================================================================== aux3
+			// exists ~f, ~rt, ~r1, ~rt1, ~rt3
+			// 	~col == tcons(rcons(~f, rempty), ~rt)
+			// 	~rest == tcons(~r1, ~rt1)
+			// 	attachColToFrontRaw(~rt, ~rt1) == some(~rt3)
+				
 			
-			goal 120
+			
+	// 		lemma 1
+	// 		project(acons(a, al), table(~ar2, tcons(~r, ~trest))) == some(tcons(~r1, ~rt2))
+	// 		================================================================================= step1
+	// 		exists ~col, ~rest
+	// 			some(~col) == findCol(~a, table(~ar2, tcons(~r, ~trest)))
+	// 			some(~rest) == project(~al, table(~ar2, tcons(~r, ~trest)))
+	// 			attachColToFrontRaw(~col, ~rest) == some(~tcons(~r1, ~rt2))
+	// 			
+	// 		lemma 1
+	// 		findCol(~a, table(~ar2, tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt))
+	// 		==================================================================================== step2
+	// 		findCol(~a, table(~ar2, ~trest)) == some(~rt)
+	// 
+	// 
+	// 		lemma 1
+	// 		attachColToFrontRaw(tcons(rcons(~f, rempty), ~rt), tcons(~r1, ~rt1)) == some(tcons(~r2, ~rt2))
+	// 		============================================================================================== step3
+	// 		attachColToFrontRaw(~rt, ~rt1) == some(~rt2)
+	// 		
+	// 		lemma 1
+	// 		findCol(~a, table(~ar2, ~trest)) == some(~rt)
+	// 		project(~al, table(~ar2, ~trest)) == some(~rest)
+	// 		attachColToFrontRaw(~rt, ~rest) == some(~rt2)
+	// 		=========================================================== step4
+	// 		project(acons(~a, ~al), table(~ar2, ~trest)) == some(~rt2)
+				
+			
+			goal 
 			project(acons(a, al), table(~ar2, tcons(~r, ~trest))) == some(tcons(~r1, ~rt2))
 			======================================================================== one-row-table-minus-first-row-project-acons
 			project(acons(a, al), table(~ar2, ~trest)) == some(~rt2)			
@@ -288,7 +343,6 @@ strategy proof-table-minus-first-row-project {
 	project(~ar, table(~ar2, tcons(~r, ~trest))) == some(tcons(~r1, ~rt2))
 	======================================================================== one-row-table-minus-first-row-project
 	project(~ar, table(~ar2, ~trest)) == some(~rt2)
-	
 	
 	
 	//TODO remove lemma if proof works!
@@ -591,265 +645,3 @@ projectType(~al, ~TT1) == some(~TT2)
 exists ~t2
 	project(~al, ~t) == some(~rt)
 	
-	
-// OLD!!	
-
-// case distinction for progress-findCol-attachColToFrontRaw	
-
-//proof of progress-attachColToFrontRaw by induction on 
-// the recursive structure of attachColToFrontRaw
-
-	// local {
-	// 	//proof of findCol-emptyTable by induction
-	// 	//on the recursive structure of findCol
-	// 	
-	// 	consts 
-	//  		a : AName
-	//  		a2 : AName
-	//  		al : AList
-	//  		rt : RawTable
-	//  		
-	//  	goal
-	// 	findCol(a, table(aempty, rt)) == some(tempty)
-	// 	============================================== findCol-emptyTable-1
-	// 	rt == tempty
-	// 	
-	// 	axiom
-	// 	findCol(a, table(al, dropFirstColRaw(rt))) == some(tempty)
-	// 	=========================================================== findCol-emptyTable-IH
-	// 	rt == tempty
-	// 	
-	// 	goal
-	// 	findCol(a, table(acons(a2, al), rt)) == some(tempty)
-	// 	==================================================== findCol-emptyTable-2
-	// 	rt == tempty
-	// 	
-	// axiom
-	// findCol(~a, table(~al, ~rt)) == some(tempty)
-	// ============================================== findCol-emptyTable
-	// ~rt == tempty
-	// }
-	// 
-	// 	local {
-	// 	// proof of project-emptyTable by induction on length of argument list (aempty/acons)
-	// 	const alr : AList
-	// 	
-	// 	goal
-	// 	project(aempty, table(~al, tempty)) == some(~rt2)	
-	// 	=============================================== project-emptyTable-aempty
-	// 	~rt2 == tempty
-	// 	
-	// 	axiom
-	// 	project(alr, table(~al, tempty)) == some(~rt2)	
-	// 	=============================================== project-emptyTable-acons-IH
-	// 	~rt2 == tempty
-	// 	
-	// 	goal
-	// 	project(acons(~a, alr), table(~al, tempty)) == some(~rt2)	
-	// 	========================================================= project-emptyTable-acons
-	// 	~rt2 == tempty
-	// 	
-	// axiom
-	// project(~ar, table(~al, tempty)) == some(~rt2)	
-	// ============================================== project-emptyTable
-	// ~rt2 == tempty
-	// 
-	// }
-
-// local {	
-// 
-// 	// trivial base case
-// 	goal
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(tempty)
-// 	project(~ar, ~t) == some(tempty)	
-// 	================================================= progress-attachColToFrontRaw-1
-// 	exists ~rt3
-// 		attachColToFrontRaw(tempty, tempty) == some(~rt3)
-// 		
-// 		
-// 	// induction step 
-// 	consts
-// 		f : FVal
-// 		rt1 : RawTable
-// 		r : Row
-// 		rt2 : RawTable
-// 		
-// 		
-// 	// axiom //TODO prove
-// 	// findCol(~a, table(~al, ~rt)) == some(tcons(~r1, ~rt1))
-// 	// ========================================================= findCol-nonemptyTable
-// 	// exists ~r2, ~rt2
-// 	// 	~rt == tcons(~r2, ~rt2)
-// 		
-// 	// axiom //TODO prove
-// 	// welltypedtable(~TT1, tcons(~r, ~rt))
-// 	// ====================================== welltyped-minus-first-Row
-// 	// welltypedtable(~TT1, ~rt)
-// 	// 
-// 	// axiom //TODO prove
-// 	// findCol(~a, tcons(~r, ~rt)) == some(tcons(~r1, ~rt1))
-// 	// ===================================================== findCol-minus-first-Row
-// 	// findCol(~a, ~rt) == some(~rt1)
-// 	// 
-// 	// axiom //TODO prove
-// 	// project(~ar, tcons(~r, ~rt)) == some(tcons(~r1, ~rt1))
-// 	// ======================================================= project-minus-first-Row
-// 	// project(~ar, ~rt) == some(~rt1)
-// 	
-// 	axiom //TODO prove
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(tcons(rcons(f, rempty), rt1))
-// 	project(~ar, ~t) == some(tcons(~r1, rt2))
-// 	====================================================== table-minus-first-Row
-// 	exists ~al, ~r, ~rt
-// 		~t == table(~al, tcons(~r, ~rt))
-// 		welltypedtable(~TT1, ~rt)
-// 		findCol(~a, ~rt) == some(rt1)
-// 		project(~ar, ~rt) == some(rt2)
-// 	
-// 	axiom 
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(rt1)
-// 	project(~ar, ~t) == some(rt2)
-// 	================================================= progress-attachColToFrontRaw-2-IH
-// 	exists ~rt3
-// 		attachColToFrontRaw(rt1, rt2) == some(~rt3)
-// 		
-// 	goal
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(tcons(rcons(f, rempty), rt1))
-// 	project(~ar, ~t) == some(tcons(r, rt2))
-// 	=================================================================================== progress-attachColToFrontRaw-2
-// 	exists ~rt3
-// 		attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) == some(~rt3)
-// 		
-// 		
-// 	// non-trivial base case, confirming that the first two cases are the only ones that can happen
-// 	axiom // TODO prove
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(~rt1)
-// 	project(~ar, ~t) == some(~rt2)
-// 	~rt1 == tempty
-// 	================================= project-find-Col-equal-length-tempty-1
-// 	~rt2 == tempty
-// 	
-// 	axiom // TODO prove
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(~rt1)
-// 	project(~ar, ~t) == some(~rt2)
-// 	~rt2 == tempty
-// 	================================= project-find-Col-equal-length-tempty-2
-// 	~rt1 == tempty
-// 	
-// 	axiom // TODO prove
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(~rt1)
-// 	project(~ar, ~t) == some(~rt2)
-// 	~rt1 == tcons(rcons(~f, rempty), ~rt1)
-// 	========================================= project-find-Col-equal-length-tcons-1
-// 	exists ~r3, ~rt3
-// 		~rt2 == rcons(~r3, ~rt3) 
-// 		
-// 	axiom // TODO prove
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(~rt1)
-// 	project(~ar, ~t) == some(~rt2)
-// 	~rt2 == rcons(~r3, ~rt3) 
-// 	============================================ project-find-Col-equal-length-tcons-2
-// 	exists ~f, ~rt1
-// 		~rt1 == tcons(rcons(~f, rempty), ~rt1)
-// 		
-// 	axiom
-// 	OR
-// 	=> ~rt1 != tempty
-// 	=> ~rt2 != tempty
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(~rt1)
-// 	project(~ar, ~t) == some(~rt2)
-// 	======================================== progress-attachColToFrontRaw-aux-1
-// 	false
-// 	
-// 	axiom
-// 	OR 
-// 	=> forall ~r, ~rt ~rt1 != tcons(rcons(~f, rempty), ~rt)
-// 	=> forall ~r, ~rt3 ~rt2 != tcons(~r, ~rt3)
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(~rt1)
-// 	project(~ar, ~t) == some(~rt2)
-// 	======================================================= progress-attachColToFrontRaw-aux-2
-// 	false
-// 	
-// 	
-// 	goal
-// 	OR
-// 	=> ~rt1 != tempty
-// 	=> ~rt2 != tempty
-// 	OR 
-// 	=> forall ~r, ~rt ~rt1 != tcons(rcons(~f, rempty), ~rt)
-// 	=> forall ~r, ~rt3 ~rt2 != tcons(~r, ~rt3)
-// 	welltypedtable(~TT1, ~t)
-// 	findCol(~a, ~t) == some(~rt1)
-// 	project(~ar, ~t) == some(~rt2)
-// 	=================================================================================== progress-attachColToFrontRaw-3
-// 	exists ~rt3 
-// 		attachColToFrontRaw(~rt1, ~rt2) == some(~rt3)	
-// 		
-// }
-	
-// local {
-// 	const rt1 : RawTable
-// 	
-// 	// welltypedtable premise is necessary here, because findCol can indeed yield the empty column
-// 	// as result for a table with a non-empty attribute list, but with only one empty column as content
-// 	// (but such a table would not be well-typed!)
-// 	
-// 		
-// 	axiom //TODO prove
-// 	project(~ar, table(~al, tcons(~r, ~rt))) == some(~rt1)	
-// 	======================================================== project-nonemptyTable
-// 	exists ~r2, ~rt2
-// 		~rt1 == tcons(~r2, ~rt2)
-// }
-
-
-	// axiom //TODO prove
-	// findCol(~a, table(~al, ~rt)) == some(tcons(~r1, ~rt1))
-	// ========================================================= findCol-nonemptyTable
-	// exists ~r2, ~rt2
-	// 	~rt == tcons(~r2, ~rt2)
-		
-	// axiom //TODO prove
-	// welltypedtable(~TT1, tcons(~r, ~rt))
-	// ====================================== welltyped-minus-first-Row
-	// welltypedtable(~TT1, ~rt)
-	// 
-	// axiom //TODO prove
-	// findCol(~a, tcons(~r, ~rt)) == some(tcons(~r1, ~rt1))
-	// ===================================================== findCol-minus-first-Row
-	// findCol(~a, ~rt) == some(~rt1)
-	// 
-	// axiom //TODO prove
-	// project(~ar, tcons(~r, ~rt)) == some(tcons(~r1, ~rt1))
-	// ======================================================= project-minus-first-Row
-	// project(~ar, ~rt) == some(~rt1)
-
-	// hide-all
-	// 
-	// //include axioms from definition
-	// include {EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
-	// 	isSome-INV-1, isSome-INV-2, 
-	// 	EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
-	// 	DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
-	// 	EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
-	// 	welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
-	// 	rawType0, rawType1, rawType-INV,
-	// 	welltypedRawtable0, welltypedRawtable1, welltypedRow0,
-	// 	welltypedRow1, welltypedRow2,
-	// 	findCol0, findCol1, findCol2, findCol-INV,
-	// 	dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV,
-	// 	projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV,
-	// 	project0, project1, project2, project-INV,
-	// 	attachColToFrontRaw0, attachColToFrontRaw1, attachColToFrontRaw2, attachColToFrontRaw3, attachColToFrontRaw-INV
-	// }	
-
