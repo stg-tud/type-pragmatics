@@ -298,34 +298,45 @@ strategy proof-table-minus-first-row-project {
 				
 			
 			
-	// 		lemma 1
-	// 		project(acons(a, al), table(~ar2, tcons(~r, ~trest))) == some(tcons(~r1, ~rt2))
-	// 		================================================================================= step1
-	// 		exists ~col, ~rest
-	// 			some(~col) == findCol(~a, table(~ar2, tcons(~r, ~trest)))
-	// 			some(~rest) == project(~al, table(~ar2, tcons(~r, ~trest)))
-	// 			attachColToFrontRaw(~col, ~rest) == some(~tcons(~r1, ~rt2))
-	// 			
-	// 		lemma 1
-	// 		findCol(~a, table(~ar2, tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt))
-	// 		==================================================================================== step2
-	// 		findCol(~a, table(~ar2, ~trest)) == some(~rt)
-	// 
-	// 
-	// 		lemma 1
-	// 		attachColToFrontRaw(tcons(rcons(~f, rempty), ~rt), tcons(~r1, ~rt1)) == some(tcons(~r2, ~rt2))
-	// 		============================================================================================== step3
-	// 		attachColToFrontRaw(~rt, ~rt1) == some(~rt2)
-	// 		
-	// 		lemma 1
-	// 		findCol(~a, table(~ar2, ~trest)) == some(~rt)
-	// 		project(~al, table(~ar2, ~trest)) == some(~rest)
-	// 		attachColToFrontRaw(~rt, ~rest) == some(~rt2)
-	// 		=========================================================== step4
-	// 		project(acons(~a, ~al), table(~ar2, ~trest)) == some(~rt2)
+			lemma 1
+			project(acons(a, al), table(~ar2, tcons(~r, ~trest))) == some(tcons(~r1, ~rt2))
+			================================================================================= step1
+			exists ~col, ~rest
+				some(~col) == findCol(~a, table(~ar2, tcons(~r, ~trest)))
+				some(~rest) == project(~al, table(~ar2, tcons(~r, ~trest)))
+				attachColToFrontRaw(~col, ~rest) == some(tcons(~r1, ~rt2))
+				
+			lemma 1
+			attachColToFrontRaw(~col, ~rest) == some(tcons(~r1, ~rt2))
+			some(~col) == findCol(~a, table(~ar2, tcons(~r, ~trest)))
+			some(~rest) == project(~al, table(~ar2, tcons(~r, ~trest)))
+			========================================================================= intermediate-step1
+			exists ~f, ~rt, ~r3, ~rt3
+				~col == tcons(rcons(~f, rempty), ~rt)
+				~rest == tcons(~r3, ~rt3)
+				
+			lemma 1
+			findCol(~a, table(~ar2, tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt))
+			==================================================================================== step2
+			findCol(~a, table(~ar2, ~trest)) == some(~rt)
+			
+			// then apply IH
+	
+	
+			lemma 1
+			attachColToFrontRaw(tcons(rcons(~f, rempty), ~rt), tcons(~r1, ~rt1)) == some(tcons(~r2, ~rt2))
+			============================================================================================== step3
+			attachColToFrontRaw(~rt, ~rt1) == some(~rt2)
+			
+			lemma 1
+			findCol(~a, table(~ar2, ~trest)) == some(~rt)
+			project(~al, table(~ar2, ~trest)) == some(~rest)
+			attachColToFrontRaw(~rt, ~rest) == some(~rt2)
+			=========================================================== step4
+			project(acons(~a, ~al), table(~ar2, ~trest)) == some(~rt2)
 				
 			
-			goal 
+			goal 120
 			project(acons(a, al), table(~ar2, tcons(~r, ~trest))) == some(tcons(~r1, ~rt2))
 			======================================================================== one-row-table-minus-first-row-project-acons
 			project(acons(a, al), table(~ar2, ~trest)) == some(~rt2)			
