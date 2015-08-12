@@ -12,7 +12,6 @@ lib-refactoring/*.generated.str
 *.hash
 *.info
 *.proof
-*.fof
 *.smt2
 .DS_Store
 target/
