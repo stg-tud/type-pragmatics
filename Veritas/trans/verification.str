@@ -231,7 +231,10 @@ rules
 		info-file := <guarantee-extension(|"info")> proof-file;
 		t := <split-at-space; reverse; ?[_,time|_]; !time> last;
 	 	result := <if (<is-substring(!"Success")> last; <is-substring(!"Refutation")> last-reason) 
-	 			then !VerificationSuccess(t, lemmas) 
+	 			then (if <elem> (<strip-annos> r, axioms) //IMPORTANT: Test whether conjecture was used by the proof!!!
+	 				then !VerificationSuccess(t, lemmas) 
+	 				else !VerificationFailure("Proof did not use conjecture, axiom set probably inconsistent!!")
+	 				end)
 	 			else !VerificationFailure(butlast) end>;
 		<write-file> (info-file, <write-to-string> result)
 	
