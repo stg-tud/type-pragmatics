@@ -12,10 +12,7 @@ You need:
 
 1. Java 7 or higher
 2. Eclipse Luna ("Eclipse IDE for Java Developers")
-3. First-Order Theorem Prover Vampire, Version 3.0 (Note: The binaries are currently not available on the official webpage - here is one link to an archive from CASC that contains the Vampire binaries we currently use: http://www.cs.miami.edu/~tptp/CASC/24/Systems.tgz (entire archive ca. 3.2 GB!))
-
-(Note: To run a first test with the Vampire run "vampire" on a console - should show "User error: Unsupported mode")
-
+3. First-Order Theorem Prover Vampire, at least Version 3.0
 
 Installation steps:
 
