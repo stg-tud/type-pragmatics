@@ -1,3 +1,5 @@
 wiki
 .DS_Store
 Veritas/utils
+Veritas/test/sql/tptp-sql
+Veritas/test/stlc/tptp-stlc
