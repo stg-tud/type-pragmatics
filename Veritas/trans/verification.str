@@ -142,7 +142,6 @@ rules
 	verify-vampire-30 = verify-vampire(|"30")
 	verify-vampire-60 = verify-vampire(|"60")
 	verify-vampire-120 = verify-vampire(|"120")
-	verify-vampire-600 = verify-vampire(|"600")
 	
 	default-timeout = !"30"
 	
