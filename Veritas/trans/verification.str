@@ -21,7 +21,7 @@ signature
 		VerificationFailure : String -> Result
 
 rules
-	CurrentFileFOF = CurrentFile; guarantee-extension(|"fof")
+	CurrentFileFOF = CurrentFile; guarantee-extension(|"fof"); gen-proofpath
 	
 	constraint-warning :
 		Module(m,_,body) -> <conc> (consistency-msgs, goal-msgs)
@@ -90,14 +90,15 @@ rules
 	where
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
-	    filename := <guarantee-extension(|"fof")> path;
+		proofpath := <gen-proofpath> path; 
+	    filename := <guarantee-extension(|"fof")> proofpath;
 		rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
 		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
 	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
 	      <+ ?LemmasWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
 	    outfiles := <generate-file-names(|filename)> rulez;
 	    <map(clean-proof)> outfiles;
-	    <consistency-filename; clean-proof> path;
+	    <consistency-filename; clean-proof> proofpath;
     	<queue-analysis> path
 	
 	clean-proof =
@@ -122,7 +123,8 @@ rules
 	where
 		index-setup(|<language>, project-path); 
 		task-setup(|project-path);
-	    filename := <consistency-filename> path;
+		proofpath := <gen-proofpath> path; 
+	    filename := <consistency-filename> proofpath;
 	    false-goal := Goals(None(),[TypingRule(RuleName("", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))]);
 	    //TODO: consistency check for strategies/local blocks??
 	    ast-with-false := <Module(id, id, filter(not(?Local(_) + ?Goals(_,_) + ?Lemmas(_,_) + ?Strategy(_,_,_) + 
@@ -149,7 +151,8 @@ rules
 	where
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
-	    filename := <guarantee-extension(|"fof")> path;
+		proofpath := <gen-proofpath> path; 
+	    filename := <guarantee-extension(|"fof")> proofpath;
 	    rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
 		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
 	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
@@ -172,7 +175,8 @@ rules
 	where
 		index-setup(|<language>, project-path);
 		task-setup(|project-path);
-	    filename := <guarantee-extension(|"fof")> path;
+		proofpath := <gen-proofpath> path; 
+	    filename := <guarantee-extension(|"fof")> proofpath;
 	    rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
 		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
 	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)

@@ -39,12 +39,25 @@ rules // Incremental code generation of project using compilation library.
     <fputs> (output, stream);
     <fclose> stream
     
+  //path for putting proofs within a project
+  aux-file-path = !"/proofs/"
+  
+  gen-proofpath = 
+  	?path;
+  	dir := <dirname> path;
+  	base := <base-filename> path;
+  	proofpath := <concat-strings> [dir, <aux-file-path>];
+  	//ensure that directory exists!
+  	try(<mkdir> proofpath);
+  	<concat-strings> [proofpath, base]
+    
   generate-fof :
   	   (selected, position, ast, path, project-path) -> result
   with
 	index-setup(|<language>, project-path);
 	task-setup(|project-path);
-    filename := <guarantee-extension(|"fof")> path;
+	proofpath := <gen-proofpath> path; 
+    filename := <guarantee-extension(|"fof")> proofpath;
 	rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
 		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
 	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
@@ -59,7 +72,8 @@ rules // Incremental code generation of project using compilation library.
   with
   	rule := <find-at-position(?TypingRule(_,_,_)|position)> ast;
   	rulename := <?TypingRule(_,RuleName(_,<id>),_)> rule;
-  	[filename] := <generate-file-names(|<guarantee-extension(|"fof")> path)> [rulename];
+  	proofpath := <gen-proofpath> path; 
+  	[filename] := <generate-file-names(|<guarantee-extension(|"fof")> proofpath)> [rulename];
   	text := <read-text-file <+ !""> filename;
 	result := (filename, text)
 
@@ -84,7 +98,8 @@ rules // Incremental code generation of project using compilation library.
   with
    	index-setup(|<language>, project-path);
 	task-setup(|project-path);
-	filename := <guarantee-extension(|"smt2")> path;
+	proofpath := <gen-proofpath> path; 
+	filename := <guarantee-extension(|"smt2")> proofpath;
     formula := <smt-trans> ast;
     result := <pp-smt> formula
     
