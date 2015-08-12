@@ -1,0 +1,3 @@
+
+fof('SQL-Preservation-ind', axiom, (![Vcin,Vcout,Vqi,VTS,VTTC,Vqo,VTT] : (((Vcin=vconf(Vqi,VTS)) & ((Vcout=vconf(Vqo,VTS)) & ((vreduce(Vcin)=vsome(Vcout)) & (vtcheck(VTTC,Vqi,VTT) & vStoreContextConsistent(VTS,VTTC))))) => vtcheck(VTTC,Vqo,VTT)))).
+fof('SQL-Preservation', conjecture, (![Vcin,Vcout,Vqi,VTS,VTTC,Vqo,VTT] : (((Vcin=vconf(Vqi,VTS)) & ((Vcout=vconf(Vqo,VTS)) & ((vreduce(Vcin)=vsome(Vcout)) & (vtcheck(VTTC,Vqi,VTT) & vStoreContextConsistent(VTS,VTTC))))) => vtcheck(VTTC,Vqo,VTT)))).
