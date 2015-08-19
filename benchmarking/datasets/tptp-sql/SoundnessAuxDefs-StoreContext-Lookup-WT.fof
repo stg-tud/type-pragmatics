@@ -1,0 +1,3 @@
+
+fof('StoreContext-Lookup-WT-ind', axiom, (![VTS,Vtn,VTTC,Vtt,Vt] : ((vStoreContextConsistent(VTS,VTTC) & ((vlookup(Vtn,VTS)=vsome(Vt)) & (vclookup(Vtn,VTTC)=vsome(Vtt)))) => vwelltypedtable(Vtt,Vt)))).
+fof('StoreContext-Lookup-WT', conjecture, (![VTS,Vtn,VTTC,Vtt,Vt] : ((vStoreContextConsistent(VTS,VTTC) & ((vlookup(Vtn,VTS)=vsome(Vt)) & (vclookup(Vtn,VTTC)=vsome(Vtt)))) => vwelltypedtable(Vtt,Vt)))).
