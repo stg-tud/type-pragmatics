@@ -2,7 +2,7 @@ package veritas.benchmarking.vampire
 
 import java.io.File
 
-import veritas.benchmarking.{Disproved, Inconclusive, Proved}
+import veritas.benchmarking.{ProverConfig, Disproved, Inconclusive, Proved}
 
 case class VampireConfig(version: String, mode: String = "casc") extends ProverConfig {
   def isValid = proverCommand != null

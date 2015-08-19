@@ -4,7 +4,9 @@ import java.io.File
 
 import veritas.benchmarking.Main.Config
 
-class Runner {
+case class Runner(config: Config) {
+
+  val summary = new Summary(config)
 
   def listAllFiles(f: File): Array[File] =
     if (f.isFile)
@@ -14,18 +16,12 @@ class Runner {
     else
       Array()
 
-  def run(config: Config): Unit = {
-    var files = config.files.flatMap(listAllFiles(_))
+  lazy val allFiles = config.files.flatMap(listAllFiles(_))
 
-    for (file <- files) {
-
+  def run(): Unit = {
+    for (file <- allFiles) {
       val (output, proctime) = exec(config.proverConfig.makeCall(file, config.timeout))
       val result = config.proverConfig.analyzeOutput(output)
-      val status = result match {
-        case Disproved(_) => "disproved"
-        case Inconclusive(_) => "inconclusive"
-        case Proved(_) => "proved"
-      }
       val tooltime = config.proverConfig.tryExtractTimeSeconds(output)
       val time = tooltime match {
         case None => proctime
@@ -36,7 +32,8 @@ class Runner {
           t
       }
 
-      println(s"Prover ${config.proverConfig.name} finished $file in ${time.formatted("%.3f")} seconds: $status")
+      summary += file -> FileSummary(result, time)
+//      println(s"Prover ${config.proverConfig.name} finished $file in ${time.formatted("%.3f")} seconds: ${result.status}")
     }
   }
 

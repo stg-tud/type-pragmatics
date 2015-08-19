@@ -4,10 +4,18 @@ import java.io.File
 
 import veritas.benchmarking.vampire.VampireConfig
 
-sealed trait ProverResult
-case class Proved(proof: String) extends ProverResult
-case class Disproved(disproof: String) extends ProverResult
-case class Inconclusive(hint: String) extends ProverResult
+sealed trait ProverResult {
+  def status: String
+}
+case class Proved(proof: String) extends ProverResult {
+  def status = "proved"
+}
+case class Disproved(disproof: String) extends ProverResult {
+  def status = "disproved"
+}
+case class Inconclusive(hint: String) extends ProverResult {
+  def status = "inconclusive"
+}
 
 trait ProverConfig {
   def isValid: Boolean

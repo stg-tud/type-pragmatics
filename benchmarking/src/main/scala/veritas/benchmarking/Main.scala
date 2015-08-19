@@ -42,6 +42,11 @@ object Main extends App {
 
   optionParser.parse(args, Config()) match {
     case None => sys.exit(1)
-    case Some(config) => new Runner().run(config)
+    case Some(config) =>
+      val runner = new Runner(config)
+      runner.run()
+      val summary = runner.summary
+      print(summary.reportForEachFile)
+      print(summary.reportSummary)
   }
 }
