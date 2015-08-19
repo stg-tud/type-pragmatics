@@ -64,7 +64,7 @@ case class VampireConfig(version: String, timeout: Int, mode: String = "casc") e
   }
 
   override def analyzeOutput(output: String) = {
-    if (output.contains("Termination reason: Refutation")) {
+    if (output.contains("Termination reason: Refutation\n")) {
       // proved
       val start = output.indexOf("start Proof")
       val startline = output.indexOf('\n', start)
