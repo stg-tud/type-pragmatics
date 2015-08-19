@@ -19,7 +19,7 @@ class Runner {
 
     for (file <- files) {
 
-      val (output, proctime) = exec(config.proverConfig.makeCall(file))
+      val (output, proctime) = exec(config.proverConfig.makeCall(file, config.timeout))
       val result = config.proverConfig.analyzeOutput(output)
       val status = result match {
         case Disproved(_) => "disproved"

@@ -12,7 +12,6 @@ trait ProverConfig {
 
   val name: String
   val proverCommand: File
-  val timeout: Int
 
   def findBinaryInPath(command: String): File = {
     for (p <- System.getenv("PATH").split(File.pathSeparator);
@@ -21,7 +20,7 @@ trait ProverConfig {
     null
   }
 
-  def makeCall(file: File): Seq[String]
+  def makeCall(file: File, timeout: Int): Seq[String]
 
   def analyzeOutput(output: String): ProverResult
   def tryExtractTimeSeconds(output: String): Option[Double]
@@ -30,9 +29,8 @@ trait ProverConfig {
 object ProverConfig {
   private var _configs: Map[String, ProverConfig] = Map()
 
-  for (version <- Seq("3.0", "4.0");
-       timeout <- Seq(10, 30, 60, 300)) {
-    val c = VampireConfig(version, timeout)
+  for (version <- Seq("3.0", "4.0")) {
+    val c = VampireConfig(version)
     _configs += c.name -> c
   }
 
@@ -41,13 +39,14 @@ object ProverConfig {
   def configs = _configs
 }
 
-case class VampireConfig(version: String, timeout: Int, mode: String = "casc") extends ProverConfig {
+
+case class VampireConfig(version: String, mode: String = "casc") extends ProverConfig {
   def isValid = proverCommand != null
 
-  override val name = if (version == null) s"vampire-t$timeout" else s"vampire-$version-t$timeout"
-  override val proverCommand = findBinaryInPath(if (version == null) s"vampire" else s"vampire-$version")
+  override val name = if (version == null) s"vampire" else s"vampire-$version"
+  override val proverCommand = findBinaryInPath(name)
 
-  def makeCall(file: File) = {
+  def makeCall(file: File, timeout: Int) = {
     var call = Seq(proverCommand.getAbsolutePath)
 
     if (timeout > 0)

@@ -9,15 +9,22 @@ object Main extends App {
   case class Config(
     files: Seq[File] = Seq(),
     repetitions: Int = 1,
+    timeout: Int = 0,
     proverConfig: ProverConfig = ProverConfig.configs.head._2
   )
 
   val optionParser = new OptionParser[Config]("veritas-benchmarking") {
     head("veritas-benchmarking")
 
-    opt[Int]("repeat") action { (n, config) =>
-      config.copy(repetitions = n)
-    } text("number of repetitions per proof")
+//    opt[Int]("repeat") action { (n, config) =>
+//      config.copy(repetitions = n)
+//    } text("number of repetitions per proof")
+
+    opt[Int]('t', "timeout") validate { t =>
+      if (t > 0) success else failure(s"requires positive timeout")
+    } action { (t, config) =>
+      config.copy(timeout = t)
+    }
 
     opt[String]('c', "config") validate { c =>
       if (ProverConfig.configs.isDefinedAt(c)) success
