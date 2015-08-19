@@ -30,6 +30,6 @@ case class Summary(config: Config) {
     val sumProvedTimes = proved map (_._2.timeSeconds) reduce(_+_)
     val avgProvedTimeSeconds = sumProvedTimes / numProved
 
-    s"Attempted $numFiles, proved $numProved, average proved time $avgProvedTimeSeconds seconds\n"
+    s"Attempted $numFiles, proved $numProved, average proved time ${avgProvedTimeSeconds.formatted("%.3f")} seconds\n"
   }
 }
