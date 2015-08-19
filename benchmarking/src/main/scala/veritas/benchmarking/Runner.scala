@@ -19,7 +19,7 @@ class Runner {
 
     for (file <- files) {
 
-      val (output, time) = exec(config.proverConfig.makeCall(file))
+      val (output, proctime) = exec(config.proverConfig.makeCall(file))
       val result = config.proverConfig.analyzeOutput(output)
       val status = result match {
         case Disproved(_) => "disproved"
@@ -27,12 +27,13 @@ class Runner {
         case Proved(_) => "proved"
       }
       val tooltime = config.proverConfig.tryExtractTimeSeconds(output)
-      tooltime match {
-        case None =>
+      val time = tooltime match {
+        case None => proctime
         case Some(t) =>
-          val diff = Math.abs(time - t)
-          if (diff > 0.001)
-            println(s"WARNING: measured time $time differs from tool time $t by ${diff.formatted("%.3f")}.")
+          val diff = Math.abs(proctime - t)
+          if (diff > 0.1)
+            println(s"WARNING: measured time ${proctime.formatted("%.3f")} differs from tool time $t by ${diff.formatted("%.3f")}.")
+          t
       }
 
       println(s"Prover ${config.proverConfig.name} finished $file in ${time.formatted("%.3f")} seconds: $status")
@@ -42,10 +43,13 @@ class Runner {
 
   def exec(call: Seq[String]): (String, Double) = {
     import scala.sys.process._
+    val buffer = new StringBuffer
+    
     val start = System.nanoTime()
-    val output = call.!!
+    val code   = call.run(BasicIO(false, buffer, None)).exitValue()
     val end = System.nanoTime()
-    (output, (end - start).toDouble / 1000000000)
+
+    (buffer.toString, (end - start).toDouble / 1000000000)
   }
 
 }
