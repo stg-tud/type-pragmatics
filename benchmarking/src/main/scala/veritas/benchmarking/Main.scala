@@ -38,7 +38,7 @@ object Main extends App {
       config.copy(timeout = t)
     }
 
-    opt[String]('c', "config") validate { c =>
+    opt[String]('c', "config") unbounded() validate { c =>
       if (ProverConfig.configs.isDefinedAt(c)) success
       else failure(s"Unknown prover configuration $c. Known configurations: ${ProverConfig.configs.keys.mkString}")
     } action { (c, config) =>
