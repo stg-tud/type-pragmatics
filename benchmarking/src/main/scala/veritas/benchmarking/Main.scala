@@ -10,7 +10,8 @@ object Main extends App {
     files: Seq[File] = Seq(),
     repetitions: Int = 1,
     timeout: Int = 0,
-    proverConfig: ProverConfig = ProverConfig.configs.head._2
+    proverConfig: ProverConfig = ProverConfig.configs.head._2,
+    logExec: Boolean = true
   )
 
   val optionParser = new OptionParser[Config]("veritas-benchmarking") {
@@ -32,6 +33,10 @@ object Main extends App {
     } action { (c, config) =>
       config.copy(proverConfig = ProverConfig.configs(c))
     } text(s"prover configuration, one of ${ProverConfig.configs.keys.mkString(", ")}")
+
+    opt[Boolean]("log-exec") action { (log, config) =>
+      config.copy(logExec =  log)
+    } text(s"log calls to external prover")
 
     arg[File]("<proof goal file>...") validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
