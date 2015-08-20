@@ -1,6 +1,6 @@
 package veritas.benchmarking
 
-import java.io.File
+import java.io.{PrintWriter, PrintStream, File}
 
 import scopt.OptionParser
 
@@ -10,9 +10,19 @@ object Main extends App {
     files: Seq[File] = Seq(),
     repetitions: Int = 1,
     timeout: Int = 0,
-    proverConfig: ProverConfig = ProverConfig.configs.head._2,
-    logExec: Boolean = true
-  )
+    proverConfigs: Seq[ProverConfig] = Seq(),
+    logExec: Boolean = false,
+    logPerFile: Boolean = false,
+    logSummary: Boolean = false,
+    logCSV: File = null
+  ) {
+    def ensureDefaultOptions: Config = {
+      if (!logExec && !logPerFile && !logSummary && logCSV == null)
+        copy(logPerFile = true, logSummary = true)
+      else
+        this
+    }
+  }
 
   val optionParser = new OptionParser[Config]("veritas-benchmarking") {
     head("veritas-benchmarking")
@@ -31,12 +41,21 @@ object Main extends App {
       if (ProverConfig.configs.isDefinedAt(c)) success
       else failure(s"Unknown prover configuration $c. Known configurations: ${ProverConfig.configs.keys.mkString}")
     } action { (c, config) =>
-      config.copy(proverConfig = ProverConfig.configs(c))
+      config.copy(proverConfigs = config.proverConfigs :+ ProverConfig.configs(c))
     } text(s"prover configuration, one of ${ProverConfig.configs.keys.mkString(", ")}")
 
-    opt[Boolean]("log-exec") action { (log, config) =>
-      config.copy(logExec =  log)
+    opt[Unit]("logexec") action { (_, config) =>
+      config.copy(logExec = true)
     } text(s"log calls to external prover")
+    opt[Unit]("logperfile") action { (_, config) =>
+      config.copy(logPerFile = true)
+    } text(s"log prover result per file")
+    opt[Unit]("logsummary") action { (_, config) =>
+      config.copy(logSummary = true)
+    } text(s"log summary of prover results")
+    opt[File]("logcsv") action { (f, config) =>
+      config.copy(logCSV = f)
+    } text(s"log prover results to CSV file")
 
     arg[File]("<proof goal file>...") validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
@@ -47,11 +66,15 @@ object Main extends App {
 
   optionParser.parse(args, Config()) match {
     case None => sys.exit(1)
-    case Some(config) =>
+    case Some(iconfig) =>
+      val config = iconfig.ensureDefaultOptions
       val runner = new Runner(config)
       runner.run()
       val summary = runner.summary
-      print(summary.reportForEachFile)
-      print(summary.reportSummary)
+
+      if (config.logSummary)
+        print(summary.makeSummary)
+      if (config.logCSV != null)
+        new PrintWriter(config.logCSV) { write(summary.makeCSV); close }
   }
 }
