@@ -273,7 +273,7 @@ rules
 		<not(?RelBool() + ?SortRef("Bool"))> res-type;
 		arg-vars := <map(?SortRef(<id>); make-fresh; make-meta)> arg-types;
 		result-var := Meta("RESULT");
-		result-prop := Eq(TermApp(name, arg-vars), result-var);
+		result-prop := Eq(<make-termapp> (name, arg-vars), result-var);
 		datas := <function-eqs-datas(|arg-vars, res-type, [])> eqs;
 		disjuncts := <map(make-function-inversion-disjunct; close-prop-existential(|[result-var|arg-vars]))> datas;
 		function-eq-prop := <reduce-list(\(a,b) -> <make-or> (a,b)\)> disjuncts;
