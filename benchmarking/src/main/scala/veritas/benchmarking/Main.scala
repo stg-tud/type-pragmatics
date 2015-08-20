@@ -14,10 +14,11 @@ object Main extends App {
     logExec: Boolean = false,
     logPerFile: Boolean = false,
     logSummary: Boolean = false,
-    logCSV: File = null
+    logCSV: File = null,
+    logXLS: File = null
   ) {
     def ensureDefaultOptions: Config = {
-      if (!logExec && !logPerFile && !logSummary && logCSV == null)
+      if (!logExec && !logPerFile && !logSummary && logCSV == null && logXLS == null)
         copy(logPerFile = true, logSummary = true)
       else
         this
@@ -56,8 +57,11 @@ object Main extends App {
     opt[File]("logcsv") action { (f, config) =>
       config.copy(logCSV = f)
     } text(s"log prover results to CSV file")
+    opt[File]("logxls") action { (f, config) =>
+      config.copy(logXLS = f)
+    } text(s"log prover results to XLS file")
 
-    arg[File]("<proof goal file>...") validate { file =>
+    arg[File]("<proof goal file>...") unbounded() validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
     } action { (file, config) =>
       config.copy(files = config.files :+ file.getAbsoluteFile)
@@ -76,5 +80,7 @@ object Main extends App {
         print(summary.makeSummary)
       if (config.logCSV != null)
         new PrintWriter(config.logCSV) { write(summary.makeCSV); close }
+      if (config.logXLS != null)
+        summary.makeXLS.safeToFile(config.logXLS.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
   }
 }

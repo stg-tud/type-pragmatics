@@ -1,6 +1,7 @@
 package veritas.benchmarking
 
 import java.io.File
+import info.folone.scala.poi.Workbook
 import veritas.benchmarking.Main.Config
 
 import scala.collection.immutable.ListMap
@@ -71,4 +72,44 @@ case class Summary(config: Config) {
   }
 
 
+  def makeXLS: Workbook = {
+    import info.folone.scala.poi._
+
+    val grouped = fileSummaries.groupBy(_._2.proverConfig)
+
+    var sheets = Set[Sheet]()
+    for (group <- grouped) {
+      val proverConfig = group._1
+      val files = group._2
+
+      val header = Row(0) { Set(
+        StringCell(0, "Prover"),
+        StringCell(1, "Timeout"),
+        StringCell(2, "File"),
+        StringCell(3, "Time-ms"),
+        StringCell(4, "Status"),
+        StringCell(5, "Details")
+      )}
+
+      var rows = Set(header)
+      var rowNum = 1
+      for ((file, res) <- fileSummaries) {
+        val cells = Set[Cell](
+          StringCell(0, res.proverConfig.name),
+          NumericCell(1, config.timeout),
+          StringCell(2, file.getAbsolutePath),
+          NumericCell(3, res.timeSeconds * 1000.0),
+          StringCell(4, res.proverResult.status),
+          StringCell(5, res.proverResult.details.substring(0, Math.min(res.proverResult.details.length, 32767)))
+        )
+        rows += Row(rowNum) { cells }
+        rowNum += 1
+      }
+
+      val sheet = Sheet(proverConfig.name) { rows }
+      sheets += sheet
+    }
+
+    Workbook(sheets)
+  }
 }
