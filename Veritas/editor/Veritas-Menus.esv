@@ -46,5 +46,6 @@ menus
   menu: "Check consistency"
     action: "Check consistency with Vampire" = check-consistency-vampire
     action: "Check consistency with Vampire (120 seconds)" = check-consistency-vampire-120
+    action: "Check consistency with Vampire (300 seconds)" = check-consistency-vampire-300
 
 

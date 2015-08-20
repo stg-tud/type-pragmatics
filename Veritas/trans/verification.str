@@ -116,7 +116,7 @@ rules
 	check-consistency-vampire = check-consistency-vampire(|"5")
 	check-consistency-vampire-60 = check-consistency-vampire(|"60")
 	check-consistency-vampire-120 = check-consistency-vampire(|"120")
-	check-consistency-vampire-600 = check-consistency-vampire(|"600")
+	check-consistency-vampire-300 = check-consistency-vampire(|"300")
 	
 	check-consistency-vampire(|time) :
 		input@(selected, position, ast, path, project-path) -> None()
@@ -132,7 +132,7 @@ rules
 	    [goal] := <fof-trans <+ error(!"fof-trans failed: ")> ast-with-false;
 	    string := <pp-formula <+ pp-debug(pp-formula)> goal;
 	    <write-file> (filename, string);
-	    <try(call-vampire(|"FALSE",time))> filename;
+	    <try(call-vampire-sat(|"FALSE",time))> filename;
     	<queue-analysis> path
     	
     consistency-filename = remove-extension; <conc-strings> (<id>, "-consistency.fof")	
@@ -204,6 +204,22 @@ rules
 				)
 		else <extract-vampire-info(|rule)> proof-file
 		end
+		
+	call-vampire-sat(|rule,time) = 
+		?file;
+		proof-file := <guarantee-extension(|"proof")> file;
+		if <not-up-to-date> file => (hash-file, new-hash)
+		then <write-file> (hash-file, new-hash);
+			 Stream(ins) := <stdin-stream>;
+    		 Stream(out) := <fopen> (proof-file, "w");
+    		 Stream(err) := <stderr-stream>;
+			 finally(
+				<call> (<vampire-command>, <conc>(<vampire-sat-options(|time)>, [file]), ins, out, err),
+				<fclose> out;
+				<extract-vampire-sat-info(|rule)> proof-file
+				)
+		else <extract-vampire-sat-info(|rule)> proof-file
+		end
 	
 	not-up-to-date = 
 		?file;
@@ -236,6 +252,25 @@ rules
 	 				end)
 	 			else !VerificationFailure(butlast) end>;
 		<write-file> (info-file, <write-to-string> result)
+		
+		
+	extract-vampire-sat-info(|r) =
+		?proof-file;
+		proof := <read-text-file> proof-file;
+		lines1 := <get-lines; reverse; ?[_,last,butlast|_]> proof;
+		lines2 := <reverse> lines1;
+		lemma-lines := <filter(string-starts-with(|"  file("))> lines1;
+		termination-lines := <filter(string-starts-with(|"% Termination reason:")); reverse; 
+			?[last-reason|_]> lines2; 
+		axioms := <map(extract-tptp-lemma-name-from-line)> lemma-lines;
+		lemmas := <diff> (axioms, [<strip-annos> r]);
+		info-file := <guarantee-extension(|"info")> proof-file;
+		t := <split-at-space; reverse; ?[_,time|_]; !time> last;
+		//check whether conclusion used not necessary!!
+	 	result := <if (<is-substring(!"Success")> last; <is-substring(!"Refutation")> last-reason) 
+	 			then !VerificationSuccess(t, lemmas) 
+	 			else !VerificationFailure(butlast) end>;
+		<write-file> (info-file, <write-to-string> result)
 	
 	get-verification-result-info =
 		?file;
@@ -262,10 +297,18 @@ rules
 		<read-text-file> tmp
 
 	
+	
+	
 	vampire-command = !"vampire"
 	vampire-options(|time) =
 		!["-t", time, 
 	      "--mode", "casc",
+	      "--proof", "tptp",
+	      "--output_axiom_names", "on"]
+	      
+	vampire-sat-options(|time) =
+		!["-t", time, 
+	      "--mode", "casc_sat",
 	      "--proof", "tptp",
 	      "--output_axiom_names", "on"]
 
