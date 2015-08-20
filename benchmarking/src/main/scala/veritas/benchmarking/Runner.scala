@@ -44,11 +44,14 @@ case class Runner(config: Config) {
     val buffer = new StringBuffer
 
     if (logExec)
-      println("Calling " + call.mkString(" "))
+      print("Calling " + call.mkString(" ") + " ...")
     
     val start = System.nanoTime()
     val code   = call.run(BasicIO(false, buffer, None)).exitValue()
     val end = System.nanoTime()
+
+    if (logExec)
+      println(" done")
 
     (buffer.toString, (end - start).toDouble / 1000000000)
   }
