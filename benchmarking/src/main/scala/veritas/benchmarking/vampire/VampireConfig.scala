@@ -30,7 +30,7 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
     if (output.contains("Termination reason: Refutation\n")) {
       // proved
       val start = output.indexOf("start Proof")
-      val startline = output.indexOf('\n', start)
+      val startline = output.indexOf('\n', start) + 1
       val end = output.indexOf("end Proof")
       val endline = output.lastIndexOf('\n', end)
       val proof = output.substring(startline, endline)

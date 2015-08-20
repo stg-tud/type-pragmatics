@@ -6,15 +6,19 @@ import veritas.benchmarking.vampire.VampireConfig
 
 sealed trait ProverResult {
   def status: String
+  def details: String
 }
 case class Proved(proof: String) extends ProverResult {
   def status = "proved"
+  def details = proof
 }
 case class Disproved(disproof: String) extends ProverResult {
   def status = "disproved"
+  def details = disproof
 }
 case class Inconclusive(hint: String) extends ProverResult {
   def status = "inconclusive"
+  def details = hint
 }
 
 trait ProverConfig {
