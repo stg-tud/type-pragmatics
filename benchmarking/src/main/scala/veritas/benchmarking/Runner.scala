@@ -9,7 +9,7 @@ case class Runner(config: Config) {
   val summary = new Summary(config)
 
   def listAllFiles(f: File): Array[File] =
-    if (f.isFile)
+    if (f.isFile && f.getName.endsWith(".fof"))
       Array(f)
     else if (f.isDirectory)
       f.listFiles().flatMap(listAllFiles(_))

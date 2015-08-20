@@ -100,7 +100,7 @@ case class Summary(config: Config) {
           StringCell(2, file.getAbsolutePath),
           NumericCell(3, res.timeSeconds * 1000.0),
           StringCell(4, res.proverResult.status),
-          StringCell(5, res.proverResult.details.substring(0, Math.min(res.proverResult.details.length, 32767)))
+          StringCell(5, res.proverResult.details.replace("\n","\t").substring(0, Math.min(res.proverResult.details.length, 32767)))
         )
         rows += Row(rowNum) { cells }
         rowNum += 1
