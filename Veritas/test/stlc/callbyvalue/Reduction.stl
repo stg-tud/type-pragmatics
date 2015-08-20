@@ -45,7 +45,7 @@ strategy reduce-defs-only {
 	}
 }
 	
-lemma 80 // could be derived from return type of `reduce`
+lemma // could be derived from return type of `reduce`
 reduce(~e) == ~res
 ========================== reduce-CODOM
 OR
