@@ -50,12 +50,12 @@ case class Summary(config: Config) {
       else b ++= sep
     }
     
-    b ++= s"Prover$sep Timeout$sep File$sep Time-seconds$sep Status$sep Details\n"
+    b ++= s"Prover$sep Timeout$sep File$sep Time-milliseconds$sep Status$sep Details\n"
     for ((file, res) <- fileSummaries) {
       cell(res.proverConfig.name)
       cell(config.timeout.toString)
       cell(file.getAbsolutePath)
-      cell(res.timeSeconds.toString)
+      cell((res.timeSeconds * 1000).toString)
       cell(res.proverResult.status)
       cell(res.proverResult.details, true)
     }
