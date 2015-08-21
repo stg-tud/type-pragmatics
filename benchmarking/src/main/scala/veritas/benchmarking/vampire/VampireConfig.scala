@@ -2,7 +2,7 @@ package veritas.benchmarking.vampire
 
 import java.io.File
 
-import veritas.benchmarking.{ProverConfig, Disproved, Inconclusive, Proved}
+import veritas.benchmarking._
 
 case class VampireConfig(version: String, mode: String = "casc") extends ProverConfig {
   def isValid = proverCommand != null
@@ -26,7 +26,22 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
     call
   }
 
-  override def analyzeOutput(output: String) = {
+  def makeSatCall(file: File, timeout: Int) = {
+    var call = Seq(proverCommand.getAbsolutePath)
+
+    if (timeout > 0)
+      call = call ++ Seq("-t", timeout.toString)
+
+    call = call ++ Seq("--saturation_algorithm", "fmb")
+
+    call = call ++ Seq("--proof", "tptp")
+    call = call ++ Seq("--output_axiom_names", "on")
+
+    call = call :+ file.getAbsolutePath
+    call
+  }
+
+  override def analyzeOutput(output: String, file: File, timeout: Int) = {
     if (output.contains("Termination reason: Refutation\n")) {
       // proved
       val start = output.indexOf("start Proof")
@@ -37,7 +52,19 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
       Proved(proof)
     }
     else if (output.contains("Termination reason: Satisfiable")) {
-      Disproved("no counter example specified")
+      val call = makeSatCall(file, timeout)
+      val (satout, _) = Runner.exec(call, false)
+
+      val start = satout.indexOf("Satisfiable!\n")
+      val startline = start + "Satisfiable!\n".length
+      val end = satout.indexOf("-------")
+
+      if (start >= 0 && end >= 0) {
+        val model = satout.substring(startline, end).trim
+        Disproved(model)
+      }
+      else
+        Disproved("no counter example found")
     }
     else {
       val start = output.indexOf("Termination reason: ") + "Termination reason: ".length

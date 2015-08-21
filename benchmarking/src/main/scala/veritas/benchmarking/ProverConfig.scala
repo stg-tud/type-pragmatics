@@ -36,7 +36,7 @@ trait ProverConfig {
 
   def makeCall(file: File, timeout: Int): Seq[String]
 
-  def analyzeOutput(output: String): ProverResult
+  def analyzeOutput(output: String, file: File, timeout: Int): ProverResult
   def tryExtractTimeSeconds(output: String): Option[Double]
 }
 
