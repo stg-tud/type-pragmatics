@@ -1,6 +1,7 @@
 
 fof('zero-is-nat', axiom, nat(z)).
 fof('succ-is-nat', axiom, (![X] : nat(X) => nat(succ(X)))).
+fof('succ-is-nat', axiom, (![X] : nat(succ(X)) => nat(X))).
 
 fof('succ-data', axiom, (![X,Y] : succ(X) = succ(Y) => X = Y)).
 fof('succ-data', axiom, (![X,Y] : succ(X) != succ(Y) => X != Y)).
@@ -8,4 +9,8 @@ fof('succ-data', axiom, (![X,Y] : succ(X) != succ(Y) => X != Y)).
 fof('plus-zero', axiom, (![X] : plus(z, X) = X)).
 fof('plus-succ', axiom, (![X,Y] : plus(succ(X), Y) = succ(plus(X, Y)))).
 
-fof('plus-neutral', conjecture, (![X] : (nat(X) => plus(X,z) = X))).
+% induction hypothesis is required:
+% fof('plus-neutral-IH', axiom, (![X] : (nat(a) => plus(a,z) = a))).
+
+fof('plus-neutral', conjecture, (![X] : (nat(a) => plus(succ(a),z) = succ(a)))).
+
