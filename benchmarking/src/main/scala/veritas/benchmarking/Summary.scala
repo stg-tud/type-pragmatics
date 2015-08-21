@@ -9,10 +9,15 @@ import scala.collection.immutable.ListMap
 case class FileSummary(proverConfig: ProverConfig, proverResult: ProverResult, timeSeconds: Double)
 
 case class Summary(config: Config) {
-  private var fileSummaries: ListMap[File, FileSummary] = ListMap()
+  private var fileSummaries: ListMap[ProverConfig, ListMap[File, FileSummary]] = ListMap()
 
   def +=(fileResult: (File, FileSummary)): Unit = {
-    fileSummaries += fileResult
+    val proverConfig = fileResult._2.proverConfig
+    fileSummaries.get(proverConfig) match {
+      case None => fileSummaries += proverConfig -> ListMap(fileResult)
+      case Some(results) => fileSummaries += proverConfig -> (results + fileResult)
+    }
+
     if (config.logPerFile) {
       val file = fileResult._1
       val res = fileResult._2
@@ -24,12 +29,8 @@ case class Summary(config: Config) {
   }
 
   def makeSummary: String = {
-    val grouped = fileSummaries.groupBy(_._2.proverConfig)
-
     val b = StringBuilder.newBuilder
-    for (group <- grouped) {
-      val proverConfig = group._1
-      val files = group._2
+    for ((proverConfig, files) <- fileSummaries) {
       val numFiles = files.size
       val proved = files filter (_._2.proverResult match {case Proved(_) => true; case _ => false})
       val numProved = proved.size
@@ -52,7 +53,8 @@ case class Summary(config: Config) {
     }
     
     b ++= s"Prover$sep Timeout$sep File$sep Time-milliseconds$sep Status$sep Details\n"
-    for ((file, res) <- fileSummaries) {
+    for ((proverConfig, files) <- fileSummaries;
+         (file, res) <- files) {
       cell(res.proverConfig.name)
       cell(config.timeout.toString)
       cell(file.getAbsolutePath)
@@ -75,12 +77,10 @@ case class Summary(config: Config) {
   def makeXLS: Workbook = {
     import info.folone.scala.poi._
 
-    val grouped = fileSummaries.groupBy(_._2.proverConfig)
+    println(s"file summaries: ${fileSummaries.size}")
 
     var sheets = Set[Sheet]()
-    for (group <- grouped) {
-      val proverConfig = group._1
-      val files = group._2
+    for ((proverConfig, files) <- fileSummaries) {
 
       val header = Row(0) { Set(
         StringCell(0, "Prover"),
@@ -93,7 +93,7 @@ case class Summary(config: Config) {
 
       var rows = Set(header)
       var rowNum = 1
-      for ((file, res) <- fileSummaries) {
+      for ((file, res) <- files) {
         val cells = Set[Cell](
           StringCell(0, res.proverConfig.name),
           NumericCell(1, config.timeout),
@@ -107,6 +107,7 @@ case class Summary(config: Config) {
       }
 
       val sheet = Sheet(proverConfig.name) { rows }
+      println(s"new sheet ${proverConfig.name}")
       sheets += sheet
     }
 
