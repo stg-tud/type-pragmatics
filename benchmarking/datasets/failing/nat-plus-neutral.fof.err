@@ -1,0 +1,1674 @@
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK5(X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0] : (~nat(sK5(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f32,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK3(X1,X1)) = succ(sK4(X1,X1))) )),
+  inference(equality_resolution,[],[f31])).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK3(X1,X0)) = succ(sK4(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK3(X1,X0)) = succ(sK4(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK3,sK4])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK1(X1,X0)) != succ(sK2(X1,X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0,X1] : (succ(sK1(X1,X0)) != succ(sK2(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1,sK2])],[f20])).
+fof(f20,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f28,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK5(X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0] : (~nat(sK5(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f32,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK3(X1,X1)) = succ(sK4(X1,X1))) )),
+  inference(equality_resolution,[],[f31])).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK3(X1,X0)) = succ(sK4(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK3(X1,X0)) = succ(sK4(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK3,sK4])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK1(X1,X0)) != succ(sK2(X1,X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0,X1] : (succ(sK1(X1,X0)) != succ(sK2(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1,sK2])],[f20])).
+fof(f20,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f28,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f40,plain,(
+  ( ! [X0,X1] : (sQ6_eqProxy(succ(plus(X0,X1)),plus(succ(X0),X1))) )),
+  inference(equality_proxy_replacement,[],[f33,f35])).
+fof(f35,plain,(
+  ! [X1,X0] : (sQ6_eqProxy(X0,X1) <=> X0 = X1)),
+  introduced(equality_proxy_definition,[new_symbols(naming,[sQ6_eqProxy])])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f39,plain,(
+  ( ! [X0] : (sQ6_eqProxy(plus(z,X0),X0)) )),
+  inference(equality_proxy_replacement,[],[f32,f35])).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f38,plain,(
+  ( ! [X0,X1] : (sQ6_eqProxy(X0,X1) | ~sQ6_eqProxy(succ(sK4(X1,X0)),succ(sK5(X1,X0)))) )),
+  inference(equality_proxy_replacement,[],[f31,f35,f35])).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f37,plain,(
+  ( ! [X1] : (sQ6_eqProxy(succ(sK2(X1,X1)),succ(sK3(X1,X1)))) )),
+  inference(equality_proxy_replacement,[],[f34,f35])).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f36,plain,(
+  ~sQ6_eqProxy(plus(sK0,z),sK0)),
+  inference(equality_proxy_replacement,[],[f27,f35])).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f41,plain,(
+  ( ! [X0] : (sQ6_eqProxy(X0,X0)) )),
+  inference(equality_proxy_axiom,[],[f35])).
+fof(f40,plain,(
+  ( ! [X0,X1] : (sQ6_eqProxy(succ(plus(X0,X1)),plus(succ(X0),X1))) )),
+  inference(equality_proxy_replacement,[],[f33,f35])).
+fof(f35,plain,(
+  ! [X1,X0] : (sQ6_eqProxy(X0,X1) <=> X0 = X1)),
+  introduced(equality_proxy_definition,[new_symbols(naming,[sQ6_eqProxy])])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f39,plain,(
+  ( ! [X0] : (sQ6_eqProxy(plus(z,X0),X0)) )),
+  inference(equality_proxy_replacement,[],[f32,f35])).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f38,plain,(
+  ( ! [X0,X1] : (sQ6_eqProxy(X0,X1) | ~sQ6_eqProxy(succ(sK4(X1,X0)),succ(sK5(X1,X0)))) )),
+  inference(equality_proxy_replacement,[],[f31,f35,f35])).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f37,plain,(
+  ( ! [X1] : (sQ6_eqProxy(succ(sK2(X1,X1)),succ(sK3(X1,X1)))) )),
+  inference(equality_proxy_replacement,[],[f34,f35])).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f36,plain,(
+  ~sQ6_eqProxy(plus(sK0,z),sK0)),
+  inference(equality_proxy_replacement,[],[f27,f35])).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f41,plain,(
+  ( ! [X0] : (sQ6_eqProxy(X0,X0)) )),
+  inference(equality_proxy_axiom,[],[f35])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f32,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK4(X1,X0)) != succ(sK5(X1,X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0,X1] : (succ(sK4(X1,X0)) != succ(sK5(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK4,sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK2(X1,X1)) = succ(sK3(X1,X1))) )),
+  inference(equality_resolution,[],[f30])).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK2(X1,X0)) = succ(sK3(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK2(X1,X0)) = succ(sK3(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK2,sK3])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK1(X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0] : (~nat(sK1(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1])],[f20])).
+fof(f20,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f28,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK5(X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0] : (~nat(sK5(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f32,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK3(X1,X1)) = succ(sK4(X1,X1))) )),
+  inference(equality_resolution,[],[f31])).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK3(X1,X0)) = succ(sK4(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK3(X1,X0)) = succ(sK4(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK3,sK4])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK1(X1,X0)) != succ(sK2(X1,X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0,X1] : (succ(sK1(X1,X0)) != succ(sK2(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1,sK2])],[f20])).
+fof(f20,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f28,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
+fof(f33,plain,(
+  ( ! [X0] : (nat(succ(X0)) | ~nat(sK5(X0))) )),
+  inference(cnf_transformation,[],[f25])).
+fof(f25,plain,(
+  ! [X0] : (~nat(sK5(X0)) | nat(succ(X0)))),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK5])],[f24])).
+fof(f24,plain,(
+  ! [X0] : (? [X1] : ~nat(X1) | nat(succ(X0)))),
+  inference(rectify,[],[f18])).
+fof(f18,plain,(
+  ! [X1] : (? [X0] : ~nat(X0) | nat(succ(X1)))),
+  inference(ennf_transformation,[],[f14])).
+fof(f14,plain,(
+  ! [X1] : (! [X0] : nat(X0) => nat(succ(X1)))),
+  inference(closure,[],[f13])).
+fof(f13,plain,(
+  ( ! [X1] : (! [X0] : nat(X0) => nat(succ(X1))) )),
+  inference(rectify,[],[f2])).
+fof(f2,axiom,(
+  ( ! [X0] : (! [X0] : nat(X0) => nat(succ(X0))) )),
+  file('nat-plus-neutral.fof','succ-is-nat')).
+fof(f32,plain,(
+  nat(z)),
+  inference(cnf_transformation,[],[f1])).
+fof(f1,axiom,(
+  nat(z)),
+  file('nat-plus-neutral.fof','zero-is-nat')).
+fof(f34,plain,(
+  ( ! [X1] : (succ(sK3(X1,X1)) = succ(sK4(X1,X1))) )),
+  inference(equality_resolution,[],[f31])).
+fof(f31,plain,(
+  ( ! [X0,X1] : (X0 != X1 | succ(sK3(X1,X0)) = succ(sK4(X1,X0))) )),
+  inference(cnf_transformation,[],[f23])).
+fof(f23,plain,(
+  ! [X0,X1] : (succ(sK3(X1,X0)) = succ(sK4(X1,X0)) | X0 != X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK3,sK4])],[f22])).
+fof(f22,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) = succ(X3) | X0 != X1)),
+  inference(rectify,[],[f17])).
+fof(f17,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) = succ(X1) | X2 != X3)),
+  inference(ennf_transformation,[],[f12])).
+fof(f12,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3)),
+  inference(closure,[],[f11])).
+fof(f11,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) != succ(X1) => X2 != X3) )),
+  inference(rectify,[],[f4])).
+fof(f4,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) != succ(X1) => X0 != X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f30,plain,(
+  ( ! [X0,X1] : (X0 = X1 | succ(sK1(X1,X0)) != succ(sK2(X1,X0))) )),
+  inference(cnf_transformation,[],[f21])).
+fof(f21,plain,(
+  ! [X0,X1] : (succ(sK1(X1,X0)) != succ(sK2(X1,X0)) | X0 = X1)),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK1,sK2])],[f20])).
+fof(f20,plain,(
+  ! [X0,X1] : (? [X2,X3] : succ(X2) != succ(X3) | X0 = X1)),
+  inference(rectify,[],[f16])).
+fof(f16,plain,(
+  ! [X3,X2] : (? [X0,X1] : succ(X0) != succ(X1) | X2 = X3)),
+  inference(ennf_transformation,[],[f10])).
+fof(f10,plain,(
+  ! [X3,X2] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3)),
+  inference(closure,[],[f9])).
+fof(f9,plain,(
+  ( ! [X2,X3] : (! [X0,X1] : succ(X0) = succ(X1) => X2 = X3) )),
+  inference(rectify,[],[f3])).
+fof(f3,axiom,(
+  ( ! [X0,X1] : (! [X0,X1] : succ(X0) = succ(X1) => X0 = X1) )),
+  file('nat-plus-neutral.fof','succ-data')).
+fof(f29,plain,(
+  ( ! [X0] : (plus(z,X0) = X0) )),
+  inference(cnf_transformation,[],[f5])).
+fof(f5,axiom,(
+  ! [X0] : plus(z,X0) = X0),
+  file('nat-plus-neutral.fof','plus-zero')).
+fof(f28,plain,(
+  ( ! [X0,X1] : (succ(plus(X0,X1)) = plus(succ(X0),X1)) )),
+  inference(cnf_transformation,[],[f6])).
+fof(f6,axiom,(
+  ! [X0,X1] : succ(plus(X0,X1)) = plus(succ(X0),X1)),
+  file('nat-plus-neutral.fof','plus-succ')).
+fof(f26,plain,(
+  nat(sK0)),
+  inference(cnf_transformation,[],[f19])).
+fof(f19,plain,(
+  nat(sK0) & plus(sK0,z) != sK0),
+  inference(skolemisation,[status(esa),new_symbols(skolem,[sK0])],[f15])).
+fof(f15,plain,(
+  ? [X0] : (nat(X0) & plus(X0,z) != X0)),
+  inference(ennf_transformation,[],[f8])).
+fof(f8,negated_conjecture,(
+  ~! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  inference(negated_conjecture,[],[f7])).
+fof(f7,conjecture,(
+  ! [X0] : (nat(X0) => plus(X0,z) = X0)),
+  file('nat-plus-neutral.fof','plus-neutral')).
+fof(f27,plain,(
+  plus(sK0,z) != sK0),
+  inference(cnf_transformation,[],[f19])).
