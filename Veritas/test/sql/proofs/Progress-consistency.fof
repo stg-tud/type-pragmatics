@@ -157,5 +157,5 @@ fof('StoreContext-Lookup-WT', axiom, (![VTS,Vtn,VTTC,Vtt,Vt] : ((vStoreContextCo
 fof('lookup-aux', axiom, (![VTT,VTTC,Vtn,VTS] : (((vclookup(Vtn,VTTC)=vsome(VTT)) & vStoreContextConsistent(VTS,VTTC)) => (?[Vt] : (vlookup(Vtn,VTS)=vsome(Vt)))))).
 fof('progress-attachColToFrontRaw', axiom, (![VTT1,Va,Var,Vt,Vcrt,Vrt] : ((vwelltypedtable(VTT1,Vt) & ((vfindCol(Va,Vt)=vsome(Vcrt)) & (vproject(Var,Vt)=vsome(Vrt)))) => (?[Vrt2] : (vattachColToFrontRaw(Vcrt,Vrt)=vsome(Vrt2)))))).
 fof('progress-findCol', axiom, (![VTT1,VTT2,Va,Vt] : ((vwelltypedtable(VTT1,Vt) & (vfindColType(Va,VTT1)=vsome(VTT2))) => (?[Vc] : (vfindCol(Va,Vt)=vsome(Vc)))))).
-fof('progress-projection', axiom, (![VTTC,Vtn,VTS,VTT1,VTT2,Val,Vt,Vrt] : ((vStoreContextConsistent(VTS,VTTC) & ((vclookup(Vtn,VTTC)=vsome(VTT1)) & ((vlookup(Vtn,VTS)=vsome(Vt)) & (vprojectType(Val,VTT1)=vsome(VTT2))))) => (?[Vt2] : (vproject(Val,Vt)=vsome(Vrt)))))).
+fof('progress-projection', axiom, (![VTTC,Vtn,VTS,VTT1,VTT2,Val,Vt] : ((vStoreContextConsistent(VTS,VTTC) & ((vclookup(Vtn,VTTC)=vsome(VTT1)) & ((vlookup(Vtn,VTS)=vsome(Vt)) & (vprojectType(Val,VTT1)=vsome(VTT2))))) => (?[Vrt] : (vproject(Val,Vt)=vsome(Vrt)))))).
 fof('FALSE', conjecture, $false).

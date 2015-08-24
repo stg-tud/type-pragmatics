@@ -641,7 +641,7 @@ strategy induction-progress-projection {
 	lookup(~tn, ~TS) == some(~t)
 	projectType(~al, ~TT1) == some(~TT2)
 	====================================== progress-projection-ind
-	exists ~t2
+	exists ~rt
 		project(~al, ~t) == some(~rt)
  
 } //qed progress-projection
@@ -653,6 +653,6 @@ clookup(~tn, ~TTC) == some(~TT1)
 lookup(~tn, ~TS) == some(~t)
 projectType(~al, ~TT1) == some(~TT2)
 ====================================== progress-projection
-exists ~t2
+exists ~rt
 	project(~al, ~t) == some(~rt)
 	
