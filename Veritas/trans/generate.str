@@ -10,6 +10,7 @@ imports
   lib/editor-common.generated
   lib/runtime/index/core
   lib/runtime/task/core
+  lib/runtime/analysis/core
 
 
 rules // Incremental code generation of project using compilation library.
@@ -66,6 +67,21 @@ rules // Incremental code generation of project using compilation library.
     strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
     outfiles := <generate-files(|filename,rulez)> strings;
     result := <if <?[]> goals then !None() else !(<Hd> outfiles, <Hd> strings) end> ()
+	
+  gen-fof-for-folder : 
+		(selected, position, ast, path, project-path) -> None()
+	where
+		dir := <dirname> path;
+		filelist := <readdir> dir;
+		filteredlist := <filter(\s -> <has-extension(|"stl")> s\)> filelist;
+		paths := <map(\s -> <concat-strings> [dir, "/", s]\)> filteredlist;
+		res := <analysis-top(parse-file, id, id, id|"Veritas", project-path)> paths;
+		<?Result(frlist,_,_,_)> res;
+		astlist := <map(?(_,_,_,_,<id>,_,_,_))> frlist;
+		pastlist := <zip> (paths, astlist);
+		<map(\(p, ast) -> <generate-fof> (selected, position, ast, p, project-path)\)> pastlist
+	
+  
 
   open-fof :
   	   (selected, position, ast, path, project-path) -> result
