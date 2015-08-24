@@ -22,9 +22,8 @@ case class Runner(config: Config) {
     for (proverConfig <- config.proverConfigs) {
       for (file <- allFiles) {
         val call = proverConfig.makeCall(file, config.timeout)
-        val (output, proctime) = Runner.exec(call, config.logExec)
-        val result = proverConfig.analyzeOutput(output, file, config.timeout)
-        val tooltime = proverConfig.tryExtractTimeSeconds(output)
+        val (result, proctime) = Runner.exec(call, config.logExec, proverConfig.newResultProcessor(file, config.timeout))
+        val tooltime = result.timeSeconds
         val time = tooltime match {
           case None => proctime
           case Some(t) =>
@@ -41,20 +40,20 @@ case class Runner(config: Config) {
 }
 
 object Runner {
-  def exec(call: Seq[String], logExec: Boolean): (String, Double) = {
+  def exec(call: Seq[String], logExec: Boolean, resultProcessor: ResultProcessor): (ProverResult, Double) = {
     import scala.sys.process._
-    val buffer = new StringBuffer
 
     if (logExec)
       print("Calling " + call.mkString(" ") + " ...")
 
     val start = System.nanoTime()
-    val code   = call.run(BasicIO(false, buffer, None)).exitValue()
+    val code = call!(resultProcessor)
+//    val code   = call.run(BasicIO(false, buffer, None)).exitValue()
     val end = System.nanoTime()
 
     if (logExec)
       println(" done")
 
-    (buffer.toString, (end - start).toDouble / 1000000000)
+    (resultProcessor.result, (end - start).toDouble / 1000000000)
   }
 }

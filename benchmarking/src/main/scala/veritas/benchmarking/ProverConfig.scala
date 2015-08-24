@@ -4,22 +4,18 @@ import java.io.File
 
 import veritas.benchmarking.vampire.VampireConfig
 
-sealed trait ProverResult {
-  def status: String
-  def details: String
-}
-case class Proved(proof: String) extends ProverResult {
-  def status = "proved"
-  def details = proof
-}
-case class Disproved(disproof: String) extends ProverResult {
-  def status = "disproved"
-  def details = disproof
-}
-case class Inconclusive(hint: String) extends ProverResult {
-  def status = "inconclusive"
-  def details = hint
-}
+import scala.sys.process.ProcessLogger
+
+sealed trait ProverStatus
+case object Proved extends ProverStatus
+case object Disproved extends ProverStatus
+case class Inconclusive(terminationReason: String) extends ProverStatus
+
+class ProverResult(
+  val status: ProverStatus,
+  val timeSeconds: Option[Double],
+  val details: Any
+)
 
 trait ProverConfig {
   def isValid: Boolean
@@ -35,9 +31,11 @@ trait ProverConfig {
   }
 
   def makeCall(file: File, timeout: Int): Seq[String]
+  def newResultProcessor(file: File, timeout: Int): ResultProcessor
+}
 
-  def analyzeOutput(output: String, file: File, timeout: Int): ProverResult
-  def tryExtractTimeSeconds(output: String): Option[Double]
+trait ResultProcessor extends ProcessLogger {
+  def result: ProverResult
 }
 
 object ProverConfig {
