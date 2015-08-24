@@ -1,7 +1,6 @@
 package veritas.benchmarking
 
 import java.io.File
-import info.folone.scala.poi.Workbook
 import veritas.benchmarking.Main.Config
 
 import scala.collection.immutable.ListMap
@@ -32,7 +31,7 @@ case class Summary(config: Config) {
     val b = StringBuilder.newBuilder
     for ((proverConfig, files) <- fileSummaries) {
       val numFiles = files.size
-      val proved = files filter (_._2.proverResult match {case Proved(_) => true; case _ => false})
+      val proved = files filter (_._2.proverResult.status == Proved)
       val numProved = proved.size
       val sumProvedTimes = if (proved.isEmpty) 0 else proved map (_._2.timeSeconds) reduce(_+_)
       val avgProvedTimeSeconds = if (numProved == 0) -1 else sumProvedTimes / numProved
@@ -59,8 +58,8 @@ case class Summary(config: Config) {
       cell(config.timeout.toString)
       cell(file.getAbsolutePath)
       cell((res.timeSeconds * 1000).toString)
-      cell(res.proverResult.status)
-      cell(res.proverResult.details, true)
+      cell(res.proverResult.status.toString)
+      cell(res.proverResult.details.toString, true)
     }
 
     b.toString
@@ -73,7 +72,7 @@ case class Summary(config: Config) {
       quote + s.trim.replace("\"", "\\\"").replace("\n", "\t\t") + quote
   }
 
-
+  import info.folone.scala.poi.Workbook
   def makeXLS: Workbook = {
     import info.folone.scala.poi._
 
@@ -94,13 +93,14 @@ case class Summary(config: Config) {
       var rows = Set(header)
       var rowNum = 1
       for ((file, res) <- files) {
+        val  detailsString = res.proverResult.details.toString
         val cells = Set[Cell](
           StringCell(0, res.proverConfig.name),
           NumericCell(1, config.timeout),
           StringCell(2, file.getAbsolutePath),
           NumericCell(3, res.timeSeconds * 1000.0),
-          StringCell(4, res.proverResult.status),
-          StringCell(5, res.proverResult.details.replace("\n","\t").substring(0, Math.min(res.proverResult.details.length, 32767)))
+          StringCell(4, res.proverResult.status.toString),
+          StringCell(5, detailsString.replace("\n","\t").substring(0, Math.min(detailsString.length, 32767)))
         )
         rows += Row(rowNum) { cells }
         rowNum += 1
