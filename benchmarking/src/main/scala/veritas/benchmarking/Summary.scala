@@ -34,8 +34,8 @@ case class Summary(config: Config) {
       val numFiles = files.size
       val proved = files filter (_._2.proverResult match {case Proved(_) => true; case _ => false})
       val numProved = proved.size
-      val sumProvedTimes = proved map (_._2.timeSeconds) reduce(_+_)
-      val avgProvedTimeSeconds = sumProvedTimes / numProved
+      val sumProvedTimes = if (proved.isEmpty) 0 else proved map (_._2.timeSeconds) reduce(_+_)
+      val avgProvedTimeSeconds = if (numProved == 0) -1 else sumProvedTimes / numProved
 
       b ++= s"Prover ${proverConfig.name} attempted $numFiles, proved $numProved, average proved time ${avgProvedTimeSeconds.formatted("%.3f")} seconds\n"
     }
