@@ -185,6 +185,12 @@ rules
 	    outfiles := <generate-files(|filename, rulez)> strings;
 	    <zip; map(\(r,f) -> <try(call-vampire(|r,time))> f\)> (rulez, outfiles);
     	<queue-analysis> path
+    	
+    verify-vampire-folder :
+    	input@(selected, position, ast, path, project-path) -> None()
+    where
+    	pastlist := <get-analyzed-files-folder(|path, project-path)>;
+    	<map(\(p, anast) -> <verify-vampire> (selected, position, anast, p, project-path)\)> pastlist
 	
 
 	// call-and-handle = call < debug(!"Command succeeded: ") + debug(!"Command failed: ")
