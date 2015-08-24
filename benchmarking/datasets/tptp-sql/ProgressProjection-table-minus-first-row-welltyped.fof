@@ -5,7 +5,7 @@ fof('matchingAList2', axiom, (![Vtt,Val,VTType0,VAList0] : (((VTType0=Vtt) & ((V
 fof('welltypedtable0', axiom, (![VTType0,VTable0,Val,Vtt,Vt] : (((VTType0=Vtt) & (VTable0=vtable(Val,Vt))) => (((vmatchingAList(Vtt,Val) & vwelltypedRawtable(vrawType(Vtt),Vt)) => vwelltypedtable(VTType0,VTable0)) & (vwelltypedtable(VTType0,VTable0) => (vmatchingAList(Vtt,Val) & vwelltypedRawtable(vrawType(Vtt),Vt))))))).
 fof('rawType0', axiom, (![VTType0,RESULT] : ((VTType0=vttempty) => ((RESULT=vrawType(VTType0)) => (RESULT=vrtempty))))).
 fof('rawType1', axiom, (![Va,VTType0,RESULT,Vft,Vtt] : ((VTType0=vttcons(vctype(Va,Vft),Vtt)) => ((RESULT=vrawType(VTType0)) => (RESULT=vrtcons(Vft,vrawType(Vtt))))))).
-fof('rawType-INV', axiom, (![VTType0,RESULT] : ((rawType(VTType0)=RESULT) => (((VTType0=vttempty) & (RESULT=vrtempty)) | (?[Va,Vft,Vtt] : ((VTType0=vttcons(vctype(Va,Vft),Vtt)) & (RESULT=vrtcons(Vft,vrawType(Vtt))))))))).
+fof('rawType-INV', axiom, (![VTType0,RESULT] : ((vrawType(VTType0)=RESULT) => (((VTType0=vttempty) & (RESULT=vrtempty)) | (?[Va,Vft,Vtt] : ((VTType0=vttcons(vctype(Va,Vft),Vtt)) & (RESULT=vrtcons(Vft,vrawType(Vtt))))))))).
 fof('welltypedRawtable0', axiom, (![Vrt,VRawType0,VRawTable0] : (((VRawType0=Vrt) & (VRawTable0=vtempty)) => vwelltypedRawtable(VRawType0,VRawTable0)))).
 fof('welltypedRawtable1', axiom, (![VRawType0,VRawTable0,Vr,Vrt,Vt] : (((VRawType0=Vrt) & (VRawTable0=vtcons(Vr,Vt))) => (((vwelltypedRow(Vrt,Vr) & vwelltypedRawtable(Vrt,Vt)) => vwelltypedRawtable(VRawType0,VRawTable0)) & (vwelltypedRawtable(VRawType0,VRawTable0) => (vwelltypedRow(Vrt,Vr) & vwelltypedRawtable(Vrt,Vt))))))).
 fof('welltypedRow0', axiom, (![VRawType0,VRow0] : (((VRawType0=vrtempty) & (VRow0=vrempty)) => vwelltypedRow(VRawType0,VRow0)))).

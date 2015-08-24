@@ -1,0 +1,3 @@
+
+fof('one-row-table-minus-first-row-project-ind', axiom, (![Vr,Vr1,Var,Var2,Vtrest,Vrt2] : ((vproject(Var,vtable(Var2,vtcons(Vr,Vtrest)))=vsome(vtcons(Vr1,Vrt2))) => (vproject(Var,vtable(Var2,Vtrest))=vsome(Vrt2))))).
+fof('one-row-table-minus-first-row-project', conjecture, (![Vr,Vr1,Var,Var2,Vtrest,Vrt2] : ((vproject(Var,vtable(Var2,vtcons(Vr,Vtrest)))=vsome(vtcons(Vr1,Vrt2))) => (vproject(Var,vtable(Var2,Vtrest))=vsome(Vrt2))))).

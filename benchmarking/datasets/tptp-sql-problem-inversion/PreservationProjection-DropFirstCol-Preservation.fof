@@ -1,0 +1,3 @@
+
+fof('DropFirstCol-Preservation-ind', axiom, (![Vft,VRT,Vrt] : (vwelltypedRawtable(vrtcons(Vft,VRT),Vrt) => vwelltypedRawtable(VRT,vdropFirstColRaw(Vrt))))).
+fof('DropFirstCol-Preservation', conjecture, (![Vft,VRT,Vrt] : (vwelltypedRawtable(vrtcons(Vft,VRT),Vrt) => vwelltypedRawtable(VRT,vdropFirstColRaw(Vrt))))).

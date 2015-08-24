@@ -1,0 +1,3 @@
+
+fof('FindCol-Preservation-ind', axiom, (![VTT,Va,Vt] : ((vwelltypedtable(VTT,Vt) & (visSome(vfindCol(Va,Vt)) & visSome(vfindColType(Va,VTT)))) => vwelltypedRawtable(vrtcons(vgetSome(vfindColType(Va,VTT)),vrtempty),vgetSome(vfindCol(Va,Vt)))))).
+fof('FindCol-Preservation', conjecture, (![VTT,Va,Vt] : ((vwelltypedtable(VTT,Vt) & (visSome(vfindCol(Va,Vt)) & visSome(vfindColType(Va,VTT)))) => vwelltypedRawtable(vrtcons(vgetSome(vfindColType(Va,VTT)),vrtempty),vgetSome(vfindCol(Va,Vt)))))).
