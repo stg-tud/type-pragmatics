@@ -46,8 +46,9 @@ menus
     action: "Clean" = clean-proofs
 
   menu: "Check consistency"
-    action: "Check consistency with Vampire" = check-consistency-vampire
-    action: "Check consistency with Vampire (120 seconds)" = check-consistency-vampire-120
-    action: "Check consistency with Vampire (300 seconds)" = check-consistency-vampire-300
-
+    action: "Check consistency single file with Vampire" = check-consistency-vampire
+    action: "Check consistency single file with Vampire (120 seconds)" = check-consistency-vampire-120
+    action: "Check consistency single file with Vampire (300 seconds)" = check-consistency-vampire-300
+	action: "Check consistency of entire folder (5 seconds)" = check-consistency-folder-5
+	action: "Check consistency of entire folder (300 seconds)" = check-consistency-folder-300
 

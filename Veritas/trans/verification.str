@@ -135,6 +135,15 @@ rules
 	    <try(call-vampire-sat(|"FALSE",time))> filename;
     	<queue-analysis> path
     	
+    check-consistency-folder-5 = check-consistency-folder(|"5")
+    check-consistency-folder-300 = check-consistency-folder(|"300")
+    
+    check-consistency-folder(|time) :
+    	input@(selected, position, ast, path, project-path) -> None()
+    where
+    	pastlist := <get-analyzed-files-folder(|path, project-path)>;
+    	<map(\(p, anast) -> <check-consistency-vampire(|time)> (selected, position, anast, p, project-path)\)> pastlist
+    	
     consistency-filename = remove-extension; <conc-strings> (<id>, "-consistency.fof")	
 
 rules
