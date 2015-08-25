@@ -130,5 +130,5 @@ case object MergeDuplicates extends VampireTraceAnalisis {
     VampireTrace(newclauses, trace.config)
   }
 
-  def merge(c1: VampireClause, c2: VampireClause) = VampireClause(c1.term, Math.min(c1.age, c2.age), c1.weight, c1.saNew + c2.saNew, c1.saActive + c2.saActive, c1.saPassive + c2.saPassive)
+  def merge(c1: VampireClause, c2: VampireClause) = VampireClause(c1.term, Math.min(c1.age, c2.age), Math.min(c1.weight, c2.weight), c1.saNew + c2.saNew, c1.saActive + c2.saActive, c1.saPassive + c2.saPassive)
 }
