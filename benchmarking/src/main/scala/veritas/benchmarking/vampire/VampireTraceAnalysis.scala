@@ -32,6 +32,12 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       analysisSeq += FilterWeight(w)
       config
     } text("Remove clauses whose weight is larger than the given weight")
+
+    p.opt[Unit]("vampire-merge-duplicates") action { (_,config) =>
+      analysisSeq += MergeDuplicates
+      config
+    } text("Merge clauses that have the same term")
+
   }
 }
 
@@ -86,7 +92,7 @@ case class FilterForSymbol(s: String) extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
     var deleted = 0
     val filteredClauses = trace.clauses.filter(c => if (c == null || c.term.contains(s)) true else {deleted += 1; false})
-    println(s"  Filtered out $deleted clauses not containing symbol $s")
+    b ++= s"  Filtered out $deleted clauses not containing symbol $s\n"
     VampireTrace(filteredClauses, trace.config)
   }
 }
@@ -95,7 +101,34 @@ case class FilterWeight(w: Int) extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
     var deleted = 0
     val filteredClauses = trace.clauses.filter(c => if (c == null || c.weight <= w) true else {deleted += 1; false})
-    println(s"  Filtered out $deleted clauses with weight larger than $w")
+    b ++= s"  Filtered out $deleted clauses with weight larger than $w\n"
     VampireTrace(filteredClauses, trace.config)
   }
+}
+
+case object MergeDuplicates extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    var map = Map[String, VampireClause]()
+    var oldsize = 0
+    trace.clauses.map(c =>
+      if (c == null) {
+        // nothing
+      }
+      else {
+        oldsize += 1
+        map.get(c.term) match {
+          case None => map += c.term -> c
+          case Some(c2) => map += c.term -> merge(c, c2)
+        }
+      }
+    )
+
+    val newsize = map.size
+    b ++= s"  Removed ${oldsize - newsize} duplicate clauses\n"
+
+    val newclauses = map.values.toArray
+    VampireTrace(newclauses, trace.config)
+  }
+
+  def merge(c1: VampireClause, c2: VampireClause) = VampireClause(c1.term, Math.min(c1.age, c2.age), c1.weight, c1.saNew + c2.saNew, c1.saActive + c2.saActive, c1.saPassive + c2.saPassive)
 }
