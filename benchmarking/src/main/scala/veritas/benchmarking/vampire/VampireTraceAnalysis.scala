@@ -124,7 +124,7 @@ case object MergeDuplicates extends VampireTraceAnalisis {
     )
 
     val newsize = map.size
-    b ++= s"  Removed ${oldsize - newsize} duplicate clauses\n"
+    b ++= s"  Merged ${oldsize - newsize} duplicate clauses\n"
 
     val newclauses = map.values.toArray
     VampireTrace(newclauses, trace.config)
