@@ -154,23 +154,23 @@ case class VampireConfig(version: String, mode: String = "casc", traceAnalyses: 
 
       // parse clauses
       else if (s.startsWith("[SA] new: ")) {
-        val (id, term) = parseClause(s, "[SA] new: ")
-        addClause(NEW, id, term)
+        val (id, term, age, weight) = parseClause(s, "[SA] new: ")
+        addClause(NEW, id, term, age, weight)
       }
       else if (s.startsWith("[SA] active: ")) {
-        val (id, term) = parseClause(s, "[SA] active: ")
-        addClause(ACTIVE, id, term)
+        val (id, term, age, weight) = parseClause(s, "[SA] active: ")
+        addClause(ACTIVE, id, term, age, weight)
       }
       else if (s.startsWith("[SA] passive: ")) {
-        val (id, term) = parseClause(s, "[SA] passive: ")
-        addClause(PASSIVE, id, term)
+        val (id, term, age, weight) = parseClause(s, "[SA] passive: ")
+        addClause(PASSIVE, id, term, age, weight)
       }
     } catch {
       case e: Exception => println(s"Error ${e.getMessage} in $s")
         throw e
     }
 
-    def parseClause(s: String, prefix: String): (Int, String) = {
+    def parseClause(s: String, prefix: String): (Int, String, Int, Int) = {
       var idend = s.indexOf('.')
       if (idend < 0)
         idend = s.length
@@ -187,16 +187,38 @@ case class VampireConfig(version: String, mode: String = "casc", traceAnalyses: 
 
       val termend = Math.min(parenStart, Math.min(braceStart, squareStart)) - 1
       val term = termprefix.substring(0, termend)
-      (id, term)
+
+      val (age, weight) =
+        if (parenStart == Int.MaxValue)
+          (-1, -1)
+        else {
+          val restTerm = termprefix.substring(parenStart + 1)
+          val sep = restTerm.indexOf(':')
+          val end1 = restTerm.indexOf(":", sep+1)
+          val end2 = restTerm.indexOf(")", sep+1)
+          val end =
+            if (end1 >= 0)
+              end1
+            else if (end2 >= 0)
+              end2
+            else
+              restTerm.length
+
+          val age = restTerm.substring(0, sep).toInt
+          val weight = restTerm.substring(sep + 1, end).toInt
+          (age, weight)
+        }
+
+      (id, term, age, weight)
     }
 
     val NEW = 0
     val ACTIVE = 1
     val PASSIVE = 2
-    def addClause(kind: Int, id: Int, term: String): Unit = {
+    def addClause(kind: Int, id: Int, term: String, age: Int, weight: Int): Unit = {
       var clause = clauses(id)
       if (clause == null) {
-        clause = VampireClause(term, 0, 0, 0)
+        clause = VampireClause(term, age, weight, 0, 0, 0)
         clauses(id) = clause
       }
 

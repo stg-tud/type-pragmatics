@@ -3,8 +3,8 @@ package veritas.benchmarking.vampire
 import veritas.benchmarking.ResultDetails
 
 
-case class VampireClause(term: String, var saNew: Int, var saActive: Int, var saPassive: Int) {
-  override def toString = s"$term (new=$saNew, active=$saActive, passive=$saPassive)"
+case class VampireClause(term: String, age: Int, weight: Int, var saNew: Int, var saActive: Int, var saPassive: Int) {
+  override def toString = s"$term (weight=$weight, new=$saNew, active=$saActive, passive=$saPassive, age=$age)"
 }
 
 case class VampireTrace(clauses: Array[VampireClause], config: VampireConfig) extends ResultDetails {

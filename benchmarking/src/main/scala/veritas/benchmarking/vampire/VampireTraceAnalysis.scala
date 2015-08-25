@@ -22,6 +22,16 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       analysisSeq += TopActiveClauses(k)
       config
     } text("Lists the top active clauses of inconclusive prove attempts")
+
+    p.opt[String]("vampire-filter-symbol") action { (s,config) =>
+      analysisSeq += FilterForSymbol(s)
+      config
+    } text("Remove clauses not featuring the given symbol")
+
+    p.opt[Int]("vampire-filter-weight") action { (w,config) =>
+      analysisSeq += FilterWeight(w)
+      config
+    } text("Remove clauses whose weight is larger than the given weight")
   }
 }
 
@@ -56,7 +66,7 @@ case class TopNewClauses(k: Int) extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
     val newClauses = trace.clauses.sortBy(c => if (c == null) -1 else c.saNew)
     b ++= s"  Top $k new clauses:\n"
-    for (i <- 1 to Math.min(10, newClauses.length))
+    for (i <- 1 to Math.min(k, newClauses.length))
       b ++= f"    ${i}:\t ${newClauses(newClauses.length - i)}\n"
     trace
   }
@@ -69,5 +79,23 @@ case class TopActiveClauses(k: Int) extends VampireTraceAnalisis {
     for (i <- 1 to Math.min(k, newClauses.length))
       b ++= f"    ${i}:\t ${newClauses(newClauses.length - i)}\n"
     trace
+  }
+}
+
+case class FilterForSymbol(s: String) extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    var deleted = 0
+    val filteredClauses = trace.clauses.filter(c => if (c == null || c.term.contains(s)) true else {deleted += 1; false})
+    println(s"  Filtered out $deleted clauses not containing symbol $s")
+    VampireTrace(filteredClauses, trace.config)
+  }
+}
+
+case class FilterWeight(w: Int) extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    var deleted = 0
+    val filteredClauses = trace.clauses.filter(c => if (c == null || c.weight <= w) true else {deleted += 1; false})
+    println(s"  Filtered out $deleted clauses with weight larger than $w")
+    VampireTrace(filteredClauses, trace.config)
   }
 }
