@@ -6,7 +6,7 @@ import java.util.regex.Pattern
 import veritas.benchmarking._
 import veritas.benchmarking.util.GrowingArray
 
-case class VampireConfig(version: String, mode: String = "casc") extends ProverConfig {
+case class VampireConfig(version: String, mode: String = "casc", traceAnalyses: collection.mutable.Seq[VampireTraceAnalisis] = VampireTraceAnalisisOptions.analysisSeq) extends ProverConfig {
   def isValid = proverCommand != null
 
   override val name = if (version == null) s"vampire" else s"vampire-$version"
@@ -212,65 +212,12 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses.finalizedArray))
+        new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses.finalizedArray, VampireConfig.this))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails(proof))
         case Disproved => new ProverResult(Disproved, time, model)
-        case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireTrace(clauses.finalizedArray))
+        case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireTrace(clauses.finalizedArray, VampireConfig.this))
       }
   }
 }
 
-case class VampireClause(term: String, var saNew: Int, var saActive: Int, var saPassive: Int) {
-  override def toString = s"$term (new=$saNew, active=$saActive, passive=$saPassive)"
-}
-
-case class VampireTrace(clauses: Array[VampireClause]) extends ResultDetails {
-  override def toString = {
-    val b = StringBuilder.newBuilder
-    for (i <- 0 until clauses.length) {
-      b ++= s"$i:\t"
-      val c = clauses(i)
-      if (c == null)
-        b ++= "null"
-      else
-        b ++= s"new=${c.saNew}, active=${c.saActive}, passive=${c.saPassive}: ${c.term}"
-      b += '\n'
-    }
-    b.toString
-  }
-
-  override def toHumanString = {
-    val b = StringBuilder.newBuilder
-
-    var numClauses = 0
-    var numActive = 0
-    var numPassive = 0
-    var numActivePassive = 0
-    for (i <- 0 until clauses.length) {
-      val c = clauses(i)
-      if (c != null) {
-        numClauses += 1
-        if (c.saActive > 0 && c.saPassive > 0)
-          numActivePassive += 1
-        else if (c.saActive > 0)
-          numActive += 1
-        else if (c.saPassive > 0)
-          numPassive += 1
-      }
-    }
-    b ++= s"  Constructed $numClauses new clauses (active=$numActive, active&passive=$numActivePassive, passive=$numPassive)\n"
-
-    val newClauses = clauses.sortBy(c => if (c == null) -1 else c.saNew)
-    b ++= s"  Top 10 new clauses:\n"
-    for (i <- 1 to Math.min(10, newClauses.length))
-      b ++= f"    ${i}%02d: ${newClauses(newClauses.length - i)}\n"
-
-    val activeClauses = clauses.sortBy(c => if (c == null) -1 else c.saActive)
-    b ++= s"  Top 10 active clauses:\n"
-    for (i <- 1 to Math.min(10, activeClauses.length))
-      b ++= f"    ${i}%02d: ${activeClauses(activeClauses.length - i)}\n"
-
-    b.toString
-  }
-}

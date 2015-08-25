@@ -2,7 +2,8 @@ package veritas.benchmarking
 
 import java.io.File
 
-import veritas.benchmarking.vampire.VampireConfig
+import scopt.OptionParser
+import veritas.benchmarking.vampire.{VampireTraceAnalisisOptions, VampireTraceAnalisis, VampireConfig}
 
 import scala.sys.process.ProcessLogger
 
@@ -54,17 +55,24 @@ trait ResultProcessor extends ProcessLogger {
   def result: ProverResult
 }
 
+trait ContributedOptions {
+  def contributeOptions(p: OptionParser[Main.Config]): Unit
+}
+
 object ProverConfig {
   private var _configs: Map[String, ProverConfig] = Map()
+  private var _contributedOptions = Seq[ContributedOptions]()
 
   for (version <- Seq("3.0", "4.0")) {
     val c = VampireConfig(version)
     _configs += c.name -> c
   }
+  _contributedOptions = _contributedOptions :+ VampireTraceAnalisisOptions
 
   _configs filter (kv => if (kv._2.isValid) true else {println(s"** Removing invalid configuration ${kv._1}"); false})
 
   def configs = _configs
+  def contributedOptions = _contributedOptions
 }
 
 

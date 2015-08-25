@@ -41,6 +41,9 @@ object Main extends App {
       config.copy(timeout = t)
     }
 
+    val a = this
+
+
     opt[String]('c', "config") unbounded() validate { c =>
       if (ProverConfig.configs.isDefinedAt(c)) success
       else failure(s"Unknown prover configuration $c. Known configurations: ${ProverConfig.configs.keys.mkString}")
@@ -78,6 +81,9 @@ object Main extends App {
     } action { (file, config) =>
       config.copy(files = config.files :+ file.getAbsoluteFile)
     } text("files containing proof goals")
+
+    for (opts <- ProverConfig.contributedOptions)
+      opts.contributeOptions(this)
   }
 
   optionParser.parse(args, Config()) match {

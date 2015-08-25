@@ -25,7 +25,7 @@ case class Summary(config: Config) {
     if (config.logPerFile || logDetail)
       println(s"Prover ${res.proverConfig.name} finished $file in ${res.timeSeconds.formatted("%.3f")} seconds: ${res.proverResult.status}")
     if (logDetail)
-      println(res.proverResult.details.toHumanString)
+      print(res.proverResult.details.toHumanString)
   }
 
   def +=(file: File, fileResult: FileSummary): Unit = {
