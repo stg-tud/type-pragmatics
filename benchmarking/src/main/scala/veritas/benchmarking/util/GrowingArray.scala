@@ -26,5 +26,13 @@ class GrowingArray[T : ClassTag](initialSize: Int) {
     ar(ix) = t
   }
 
-  def finalizedArray = ar
+  def finalizedArray =
+    if (ar.length - maxindex < 100)
+      ar
+    else {
+      val smaller = new Array[T](maxindex + 1)
+      scala.compat.Platform.arraycopy(ar, 0, smaller, 0, maxindex+1)
+      ar = smaller
+      ar
+    }
 }
