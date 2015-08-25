@@ -11,10 +11,26 @@ case object Proved extends ProverStatus
 case object Disproved extends ProverStatus
 case class Inconclusive(terminationReason: String) extends ProverStatus
 
+trait ResultDetails {
+  /**
+   * @return all details as string
+   */
+  def toString: String
+
+  /**
+   * @return human-readable summary of details as string
+   */
+  def toHumanString: String
+}
+case class StringDetails(details: String) extends ResultDetails {
+  override def toString = details
+  override def toHumanString = details
+}
+
 class ProverResult(
   val status: ProverStatus,
   val timeSeconds: Option[Double],
-  val details: Any
+  val details: ResultDetails
 )
 
 trait ProverConfig {

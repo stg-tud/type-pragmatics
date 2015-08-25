@@ -24,6 +24,8 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
     call = call ++ Seq("--proof", "tptp")
     call = call ++ Seq("--output_axiom_names", "on")
     call = call ++ Seq("--show_new", "on")
+    call = call ++ Seq("--show_active", "on")
+    call = call ++ Seq("--show_passive", "on")
 
     call = call :+ file.getAbsolutePath
     call
@@ -56,14 +58,14 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
     }
   }
 
-  def tryFindModel(file: File, timeout: Int): String = {
+  def tryFindModel(file: File, timeout: Int): ResultDetails = {
     val call = makeSatCall(file, timeout)
     val buf = new StringBuffer
     val (satout, _) = Runner.exec(call, timeout, false, new ResultProcessor {
       var modelBuilder: StringBuilder = null
       var model: String = null
 
-      override def result = new ProverResult(null, None, model)
+      override def result = new ProverResult(null, None, StringDetails(model))
 
       override def out(s: => String) =
         if (s.endsWith("Satisfiable!")) {
@@ -81,7 +83,7 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
       override def err(s: => String) = {} // ignore
     })
 
-    satout.details.asInstanceOf[String]
+    satout.details
   }
 
 
@@ -100,7 +102,7 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
 
     var proofBuilder: StringBuilder = null
     var proof: String = null
-    var model = "no counter example found"
+    var model: ResultDetails = StringDetails("no counter example found")
     var terminationReason = null
 
     override def out(s: => String) = try {
@@ -152,35 +154,40 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
 
       // parse clauses
       else if (s.startsWith("[SA] new: ")) {
-        var idend = s.indexOf('.')
-        if (idend < 0)
-          idend = s.length
-        val id = s.substring("[SA] new: ".length, idend).toInt
-
-        val termprefix = s.substring(idend + 1)
-
-        val termendParenMatcher = parenDigits.matcher(termprefix)
-        val termendBraceMatcher = braceDigits.matcher(termprefix)
-        val term =
-          if (termendParenMatcher.find()) {
-            val termend = termendParenMatcher.start() - 1
-            termprefix.substring(0, termend)
-          }
-          else if (termendBraceMatcher.find()) {
-            val termend = termendBraceMatcher.start() - 1
-            termprefix.substring(0, termend)
-          }
-          else {
-            var termend = s.indexOf('[') - 1
-            if (termend < 0)
-              termend = s.length
-            termprefix.substring(0, termend)
-          }
-
+        val (id, term) = parseClause(s, "[SA] new: ")
         addClause(NEW, id, term)
+      }
+      else if (s.startsWith("[SA] active: ")) {
+        val (id, term) = parseClause(s, "[SA] active: ")
+        addClause(ACTIVE, id, term)
+      }
+      else if (s.startsWith("[SA] passive: ")) {
+        val (id, term) = parseClause(s, "[SA] passive: ")
+        addClause(PASSIVE, id, term)
       }
     } catch {
       case e: Exception => println(s"Error ${e.getMessage} in $s")
+        throw e
+    }
+
+    def parseClause(s: String, prefix: String): (Int, String) = {
+      var idend = s.indexOf('.')
+      if (idend < 0)
+        idend = s.length
+      val id = s.substring(prefix.length, idend).toInt
+
+      val termprefix = s.substring(idend + 1)
+
+      val termendParenMatcher = parenDigits.matcher(termprefix)
+      val parenStart = if (termendParenMatcher.find()) termendParenMatcher.start() else Int.MaxValue
+      val termendBraceMatcher = braceDigits.matcher(termprefix)
+      val braceStart = if (termendBraceMatcher.find()) termendBraceMatcher.start() else Int.MaxValue
+      var squareStart = s.indexOf('[')
+      if (squareStart <= 0)  squareStart = s.length + 1
+
+      val termend = Math.min(parenStart, Math.min(braceStart, squareStart)) - 1
+      val term = termprefix.substring(0, termend)
+      (id, term)
     }
 
     val NEW = 0
@@ -188,8 +195,10 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
     val PASSIVE = 2
     def addClause(kind: Int, id: Int, term: String): Unit = {
       var clause = clauses(id)
-      if (clause == null)
+      if (clause == null) {
         clause = VampireClause(term, 0, 0, 0)
+        clauses(id) = clause
+      }
 
       kind match {
         case NEW => clause.saNew += 1
@@ -205,12 +214,63 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
       if (status == null)
         new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses.finalizedArray))
       else status match {
-        case Proved => new ProverResult(Proved, time, proof)
+        case Proved => new ProverResult(Proved, time, StringDetails(proof))
         case Disproved => new ProverResult(Disproved, time, model)
         case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireTrace(clauses.finalizedArray))
       }
   }
 }
 
-case class VampireClause(term: String, var saNew: Int, var saActive: Int, var saPassive: Int)
-case class VampireTrace(clauses: Array[VampireClause])
+case class VampireClause(term: String, var saNew: Int, var saActive: Int, var saPassive: Int) {
+  override def toString = s"$term (new=$saNew, active=$saActive, passive=$saPassive)"
+}
+
+case class VampireTrace(clauses: Array[VampireClause]) extends ResultDetails {
+  override def toString = {
+    val b = StringBuilder.newBuilder
+    for (i <- 0 until clauses.length) {
+      b ++= s"$i:\t"
+      val c = clauses(i)
+      if (c == null)
+        b ++= "null"
+      else
+        b ++= s"new=${c.saNew}, active=${c.saActive}, passive=${c.saPassive}: ${c.term}"
+      b += '\n'
+    }
+    b.toString
+  }
+
+  override def toHumanString = {
+    val b = StringBuilder.newBuilder
+
+    var numClauses = 0
+    var numActive = 0
+    var numPassive = 0
+    var numActivePassive = 0
+    for (i <- 0 until clauses.length) {
+      val c = clauses(i)
+      if (c != null) {
+        numClauses += 1
+        if (c.saActive > 0 && c.saPassive > 0)
+          numActivePassive += 1
+        else if (c.saActive > 0)
+          numActive += 1
+        else if (c.saPassive > 0)
+          numPassive += 1
+      }
+    }
+    b ++= s"  Constructed $numClauses new clauses (active=$numActive, active&passive=$numActivePassive, passive=$numPassive)\n"
+
+    val newClauses = clauses.sortBy(c => if (c == null) -1 else c.saNew)
+    b ++= s"  Top 10 new clauses:\n"
+    for (i <- 1 to Math.min(10, newClauses.length))
+      b ++= f"    ${i}%02d: ${newClauses(newClauses.length - i)}\n"
+
+    val activeClauses = clauses.sortBy(c => if (c == null) -1 else c.saActive)
+    b ++= s"  Top 10 active clauses:\n"
+    for (i <- 1 to Math.min(10, activeClauses.length))
+      b ++= f"    ${i}%02d: ${activeClauses(activeClauses.length - i)}\n"
+
+    b.toString
+  }
+}

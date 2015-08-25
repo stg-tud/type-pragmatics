@@ -13,12 +13,15 @@ object Main extends App {
     proverConfigs: Seq[ProverConfig] = Seq(),
     logExec: Boolean = false,
     logPerFile: Boolean = false,
+    logProof: Boolean = false,
+    logDisproof: Boolean = false,
+    logInconclusive: Boolean = false,
     logSummary: Boolean = false,
     logCSV: File = null,
     logXLS: File = null
   ) {
     def ensureDefaultOptions: Config = {
-      if (!logExec && !logPerFile && !logSummary && logCSV == null && logXLS == null)
+      if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null && logXLS == null)
         copy(logPerFile = true, logSummary = true)
       else
         this
@@ -51,6 +54,15 @@ object Main extends App {
     opt[Unit]("logperfile") action { (_, config) =>
       config.copy(logPerFile = true)
     } text(s"log prover result per file")
+    opt[Unit]("logproof") action { (_, config) =>
+      config.copy(logProof = true)
+    } text(s"log proofs")
+    opt[Unit]("logdisproof") action { (_, config) =>
+      config.copy(logDisproof = true)
+    } text(s"log disproofs")
+    opt[Unit]("loginconclusive") action { (_, config) =>
+      config.copy(logInconclusive = true)
+    } text(s"log inconclusive hints")
     opt[Unit]("logsummary") action { (_, config) =>
       config.copy(logSummary = true)
     } text(s"log summary of prover results")
