@@ -1,8 +1,10 @@
 package veritas.benchmarking.vampire
 
 import java.io.File
+import java.util.regex.Pattern
 
 import veritas.benchmarking._
+import veritas.benchmarking.util.GrowingArray
 
 case class VampireConfig(version: String, mode: String = "casc") extends ProverConfig {
   def isValid = proverCommand != null
@@ -21,6 +23,7 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
 
     call = call ++ Seq("--proof", "tptp")
     call = call ++ Seq("--output_axiom_names", "on")
+    call = call ++ Seq("--show_new", "on")
 
     call = call :+ file.getAbsolutePath
     call
@@ -56,7 +59,7 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
   def tryFindModel(file: File, timeout: Int): String = {
     val call = makeSatCall(file, timeout)
     val buf = new StringBuffer
-    val (satout, _) = Runner.exec(call, false, new ResultProcessor {
+    val (satout, _) = Runner.exec(call, timeout, false, new ResultProcessor {
       var modelBuilder: StringBuilder = null
       var model: String = null
 
@@ -84,8 +87,13 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
 
   override def newResultProcessor(file: File, timeout: Int) = VampireResultProcessor(file, timeout)
 
+  val parenDigits = Pattern.compile("\\(\\d+")
+  val braceDigits = Pattern.compile("\\{\\d+")
+
   case class VampireResultProcessor(file: File, timeout: Int) extends ResultProcessor {
-    private val clauses = collection.mutable.ArrayBuffer[VampireClause]()
+
+    private var clauses = new GrowingArray[VampireClause](1000)
+    private var maxindex = -1
 
     var status: ProverStatus = null
     var time: Option[Double] = None
@@ -95,9 +103,15 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
     var model = "no counter example found"
     var terminationReason = null
 
-    override def out(s: => String) = {
+    override def out(s: => String) = try {
+//      println(s)
+
+      if (s.contains("Time limit reached!")) {
+        // do nothing
+      }
+
       // parse status
-      if (s.endsWith("Termination reason: Refutation"))
+      else if (s.endsWith("Termination reason: Refutation"))
         status = Proved
       else if (s.contains("Termination reason: Satisfiable")) {
         status = Disproved
@@ -135,21 +149,68 @@ case class VampireConfig(version: String, mode: String = "casc") extends ProverC
           time = Some(timeD)
         }
       }
+
+      // parse clauses
+      else if (s.startsWith("[SA] new: ")) {
+        var idend = s.indexOf('.')
+        if (idend < 0)
+          idend = s.length
+        val id = s.substring("[SA] new: ".length, idend).toInt
+
+        val termprefix = s.substring(idend + 1)
+
+        val termendParenMatcher = parenDigits.matcher(termprefix)
+        val termendBraceMatcher = braceDigits.matcher(termprefix)
+        val term =
+          if (termendParenMatcher.find()) {
+            val termend = termendParenMatcher.start() - 1
+            termprefix.substring(0, termend)
+          }
+          else if (termendBraceMatcher.find()) {
+            val termend = termendBraceMatcher.start() - 1
+            termprefix.substring(0, termend)
+          }
+          else {
+            var termend = s.indexOf('[') - 1
+            if (termend < 0)
+              termend = s.length
+            termprefix.substring(0, termend)
+          }
+
+        addClause(NEW, id, term)
+      }
+    } catch {
+      case e: Exception => println(s"Error ${e.getMessage} in $s")
+    }
+
+    val NEW = 0
+    val ACTIVE = 1
+    val PASSIVE = 2
+    def addClause(kind: Int, id: Int, term: String): Unit = {
+      var clause = clauses(id)
+      if (clause == null)
+        clause = VampireClause(term, 0, 0, 0)
+
+      kind match {
+        case NEW => clause.saNew += 1
+        case ACTIVE => clause.saActive += 1
+        case PASSIVE => clause.saPassive += 1
+      }
     }
 
     override def buffer[T](f: => T) = f // not setup or teardown
-    override def err(s: => String) = {} // ignore
+    override def err(s: => String) = {println(s)} // ignore
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses))
+        new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses.finalizedArray))
       else status match {
         case Proved => new ProverResult(Proved, time, proof)
         case Disproved => new ProverResult(Disproved, time, model)
-        case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireTrace(clauses))
+        case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireTrace(clauses.finalizedArray))
       }
   }
 }
 
-case class VampireClause(term: String, saNew: Int, saActive: Int, saPassive: Int)
-case class VampireTrace(clauses: collection.mutable.ArrayBuffer[VampireClause])
+case class VampireClause(term: String, var saNew: Int, var saActive: Int, var saPassive: Int)
+case class VampireTrace(clauses: Array[VampireClause])
