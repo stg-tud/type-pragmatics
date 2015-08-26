@@ -13,7 +13,7 @@ final case class DefinedType(name: String) extends TffAtomicType with SimplePret
 }
 
 // this currently only supports types without arguments!!
-final case class FunctionType(name: String) extends TffAtomicType with SimplePrettyPrintable {
+final case class SymbolType(name: String) extends TffAtomicType with SimplePrettyPrintable {
   override def prettyString = name
 }
 
