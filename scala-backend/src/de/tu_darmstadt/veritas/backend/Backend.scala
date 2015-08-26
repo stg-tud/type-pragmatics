@@ -106,6 +106,7 @@ object Backend {
   def main(args: Array[String]) {
     val (aterm, indexAndTaskenginePath) = args match {
       case Array() => (StrategoTerm.fromATermFile(DefaultATerm), DefaultIndexAndTaskenginePath)
+      case Array(atermFilename) => (StrategoTerm.fromATermFile(atermFilename), DefaultIndexAndTaskenginePath)
       case Array(atermFilename, indexAndTaskenginePath) 
         => (StrategoTerm.fromATermFile(atermFilename), indexAndTaskenginePath)
     }
@@ -116,9 +117,9 @@ object Backend {
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
     for (outputFiles <- run(aterm)) {
       // print a filename header, then the contents
-      outputPrettyPrinter.writeln()
       outputPrettyPrinter.write("File '", outputFiles.filename, "':")
       outputPrettyPrinter.indent().write(outputFiles).unindent()
+      outputPrettyPrinter.writeln()
     }
     outputPrettyPrinter.flush()
   }

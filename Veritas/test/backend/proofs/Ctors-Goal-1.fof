@@ -1,0 +1,5 @@
+
+fof('EQ-noType', axiom, (((vnoType=vnoType) => $true) & ($true => (vnoType=vnoType)))).
+fof('EQ-someType', axiom, (![VTyp0,VTyp1] : (((vsomeType(VTyp0)=vsomeType(VTyp1)) => (VTyp0=VTyp1)) & ((VTyp0=VTyp1) => (vsomeType(VTyp0)=vsomeType(VTyp1)))))).
+fof('DIFF-noType-someType', axiom, (![VTyp0] : (vnoType!=vsomeType(VTyp0)))).
+fof('Goal-1', conjecture, (![VT1,Ve,VT2] : ((vtchecksimple(Ve,VT1) & (VT1=VT2)) => vtchecksimple(Ve,VT2)))).
