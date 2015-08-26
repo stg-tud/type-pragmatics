@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 
 case class MetaVar(name: String) extends SimplePrettyPrintable {
-  override protected val prettyString = s"~$name"
+  override def prettyString = s"~$name"
 }
 
 object MetaVar {

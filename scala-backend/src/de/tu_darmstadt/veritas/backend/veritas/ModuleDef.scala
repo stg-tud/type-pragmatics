@@ -23,7 +23,7 @@ case class Local(defs: Seq[ModuleDef]) extends ModuleDef {
 }
 
 case object HideAll extends ModuleDef with SimplePrettyPrintable {
-  override protected val prettyString = "hide-all"
+  override def prettyString = "hide-all"
 }
 
 case class Hide(ruleNames: Seq[String]) extends ModuleDef {

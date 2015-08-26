@@ -80,11 +80,11 @@ final case class FunctionExpApp(functionName: String, args: Seq[FunctionExp]) ex
 
 // FIXME is this used? What is the difference to FunctionExpVar?
 final case class FunctionExpMeta(metavar: MetaVar) extends FunctionExp with SimplePrettyPrintable {
-  override protected val prettyString = metavar.toPrettyString
+  override def prettyString = metavar.toPrettyString
 }
 
 final case class FunctionExpVar(name: String) extends FunctionExp with SimplePrettyPrintable {
-  override protected val prettyString = name
+  override def prettyString = name
 }
 
 final case object FunctionExpTrue extends FunctionExp with SimplePrettyPrintable {

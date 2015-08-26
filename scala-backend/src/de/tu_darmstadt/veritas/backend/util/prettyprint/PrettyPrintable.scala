@@ -35,7 +35,6 @@ trait PrettyPrintable {
  * Convenience: Mixin this when the pretty printed repr of your data is just a String
  */
 trait SimplePrettyPrintable extends PrettyPrintable {
-  /* abstract */ protected val prettyString: String
+  /* abstract */ def prettyString: String
   override def prettyPrint(writer: PrettyPrintWriter): Unit = writer.write(prettyString)
-  override def toPrettyString: String = prettyString
 }

@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 trait Term extends PrettyPrintable
 
 abstract class Variable(name : String) extends Term with SimplePrettyPrintable {
-  override val prettyString = s"V$name" 
+  override def prettyString = s"V$name" 
 }
 
 // NOTE adds the V to make it valid _U_ppercase variable name 

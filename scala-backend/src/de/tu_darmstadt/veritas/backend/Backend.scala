@@ -49,10 +49,9 @@ object Backend {
     
     // TODO remove these lines as soon as tff pretty printing is complete and works
     // (also remove fof._ and tff._ import statements from above)
-    println("\n Test of tff pretty printing! \n")
     
     val testeq = new Eq(new UntypedVariable("x"), new UntypedVariable("x"))
-    val testforall = new ForAll(Seq(TypedVariable("x", DefinedType("i"))), testeq)
+    val testforall = new ForAll(Seq(TypedVariable("x", DefinedType("i")), UntypedVariable("y")), testeq)
     val testtff = new TffAnnotated("test", Conjecture, testforall)
     
     val tffs = Seq[TffAnnotated](testtff)

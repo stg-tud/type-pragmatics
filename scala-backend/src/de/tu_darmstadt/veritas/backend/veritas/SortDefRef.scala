@@ -6,11 +6,11 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
 case class SortDef(name: String) extends SimplePrettyPrintable {
-  override protected val prettyString = name
+  override def prettyString = name
 }
 
 case class SortRef(name: String) extends SimplePrettyPrintable {
-  override protected val prettyString = name
+  override def prettyString = name
 }
 
 object SortDef {

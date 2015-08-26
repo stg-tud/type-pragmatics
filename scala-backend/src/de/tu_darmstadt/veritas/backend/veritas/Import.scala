@@ -31,18 +31,18 @@ sealed trait Unresolved extends Import {
 // an import is processed in multiple stages, which are (from top to bottom):
 case class UnresolvedTaskId(moduleName: String, taskId: Int) extends Unresolved {
   override def toNablUse = StrategoAppl("Use", StrategoAppl("Result", taskId))
-  override protected val prettyString = s"import $moduleName // status: unresolved Task ID $taskId"
+  override def prettyString = s"import $moduleName // status: unresolved Task ID $taskId"
 }
 
 case class UnresolvedUri(moduleUri: VeritasModuleUri) extends Unresolved {
   override def moduleName = moduleUri.name
   override def toNablUse = moduleUri.toNablProperty
-  override protected val prettyString = s"import $moduleName // status: unresolved URI $moduleUri"
+  override def prettyString = s"import $moduleName // status: unresolved URI $moduleUri"
 }
 
 case class Resolved(moduleCode: Module) extends Import {
   override def moduleName = moduleCode.name
-  override protected val prettyString = s"import $moduleName // status: resolved" 
+  override def prettyString = s"import $moduleName // status: resolved" 
 }
 
 object Import {
