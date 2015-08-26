@@ -36,7 +36,7 @@ strategy induction-Progress {
 	exists ~cout
 		reduce(~cin) = some(~cout)
 	
-	goal
+	goal 130
 	~q == Selectsomefrom(~al, Ref(~tn)) 
 	~cin == conf(~q, ~TS)
 	!isValue(~q)

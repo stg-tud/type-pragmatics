@@ -90,7 +90,7 @@ welltypedRawtable(rtcons(~ft, ~RT), ~rt)
 welltypedRawtable(~RT, dropFirstColRaw(~rt))
 
 
-lemma
+lemma 40
 isSome(attachColToFrontRaw(tcons(~r, ~col), ~rt))
 ================================================================= AttachColToFrontRaw-Aux 
 exists ~f, ~rthead, ~rtrest
@@ -133,7 +133,8 @@ strategy induction-attachcol-preserves-typing {
 		======================================================================== AttachCol-Preserves-Typing-2-IH
 		welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(col, ~rt)))
 		
-		goal
+		// not provable with 300!
+		goal 1
 		welltypedRawtable(~RT, ~rt)
 		welltypedRawtable(rtcons(~colType, rtempty), tcons(r, col))
 		isSome(attachColToFrontRaw(tcons(r, col), ~rt))
@@ -286,7 +287,8 @@ strategy struc-induction-project-preservation {
 		===================================== Project-Preservation-acons-IH
 		~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
 		
-		goal
+		// proof not possible with timeout 300
+		goal 1
 		~al = acons(a, alrest)
 		welltypedtable(~TT, ~t)
 		isSome(project(~al, ~t))
