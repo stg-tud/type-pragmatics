@@ -1,0 +1,49 @@
+Module(
+  "backend.Ctors"{ Def(
+                     URI(
+                       Language("Veritas")
+                     , [ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))]
+                     )
+                   )
+                 }
+, []
+, [ Sorts([SortDef("OptTyp"{ Def(
+                               URI(
+                                 Language("Veritas")
+                               , [ ID(NablNsSort(), "OptTyp", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                 , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                 ]
+                               )
+                             )
+                           }), SortDef("Typ"{ Def(
+                                                URI(
+                                                  Language("Veritas")
+                                                , [ ID(NablNsSort(), "Typ", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                                  , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                                  ]
+                                                )
+                                              )
+                                            })])
+  , Constructors(
+      [ ConstructorDecl("noType"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsSymbol(), "noType", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                      , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                }, [], SortRef("OptTyp"{Use(Result(11662))}))
+      , ConstructorDecl("someType"{ Def(
+                                      URI(
+                                        Language("Veritas")
+                                      , [ ID(NablNsSymbol(), "someType", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                        , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                        ]
+                                      )
+                                    )
+                                  }, [SortRef("Typ"{Use(Result(11656))})], SortRef("OptTyp"{Use(Result(11662))}))
+      ]
+    )
+  ]
+)

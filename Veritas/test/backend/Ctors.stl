@@ -1,0 +1,12 @@
+module backend.Ctors
+
+sorts OptTyp Typ
+constructors
+  noType : OptTyp
+  someType : Typ -> OptTyp
+
+goal
+~e : ~T1
+~T1 = ~T2 
+=========== Goal-1
+~e : ~T2
