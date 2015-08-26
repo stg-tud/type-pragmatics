@@ -7,43 +7,82 @@ Module(
                    )
                  }
 , []
-, [ Sorts([SortDef("OptTyp"{ Def(
-                               URI(
-                                 Language("Veritas")
-                               , [ ID(NablNsSort(), "OptTyp", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
-                                 , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
-                                 ]
-                               )
-                             )
-                           }), SortDef("Typ"{ Def(
-                                                URI(
-                                                  Language("Veritas")
-                                                , [ ID(NablNsSort(), "Typ", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
-                                                  , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
-                                                  ]
-                                                )
-                                              )
-                                            })])
+, [ Sorts([SortDef("Typ"{ Def(
+                            URI(
+                              Language("Veritas")
+                            , [ ID(NablNsSort(), "Typ", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                              , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                              ]
+                            )
+                          )
+                        })])
   , Constructors(
-      [ ConstructorDecl("noType"{ Def(
-                                    URI(
-                                      Language("Veritas")
-                                    , [ ID(NablNsSymbol(), "noType", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
-                                      , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
-                                      ]
-                                    )
-                                  )
-                                }, [], SortRef("OptTyp"{Use(Result(11662))}))
-      , ConstructorDecl("someType"{ Def(
-                                      URI(
-                                        Language("Veritas")
-                                      , [ ID(NablNsSymbol(), "someType", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
-                                        , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
-                                        ]
-                                      )
-                                    )
-                                  }, [SortRef("Typ"{Use(Result(11656))})], SortRef("OptTyp"{Use(Result(11662))}))
+      [ ConstructorDecl("noInput"{ Def(
+                                     URI(
+                                       Language("Veritas")
+                                     , [ ID(NablNsSymbol(), "noInput", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                       , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                       ]
+                                     )
+                                   )
+                                 }, [], SortRef("Typ"{Use(Result(12353))}))
+      , ConstructorDecl("withOneInput"{ Def(
+                                          URI(
+                                            Language("Veritas")
+                                          , [ ID(NablNsSymbol(), "withOneInput", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                            , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                            ]
+                                          )
+                                        )
+                                      }, [SortRef("Typ"{Use(Result(12353))})], SortRef("Typ"{Use(Result(12353))}))
+      , ConstructorDecl(
+          "withTwoInputs"{ Def(
+                             URI(
+                               Language("Veritas")
+                             , [ ID(NablNsSymbol(), "withTwoInputs", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                               , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                               ]
+                             )
+                           )
+                         }
+        , [SortRef("Typ"{Use(Result(12353))}), SortRef("Typ"{Use(Result(12353))})]
+        , SortRef("Typ"{Use(Result(12353))})
+        )
       ]
     )
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(FunctionExpJudgment(FunctionExpTrue()))
+        , RuleName("===========", "Goal-1"{ Def(
+                                              URI(
+                                                Language("Veritas")
+                                              , [ ID(NablNsRule(), "Goal-1", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                                , Anonymous("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0")
+                                                , ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))
+                                                ]
+                                              )
+                                            )
+                                          })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpBiImpl(
+                FunctionExpApp("noInput"{Use(Result(13931))}, [FunctionExpMeta(Meta("e1"))])
+              , FunctionExpApp("noInput"{Use(Result(13931))}, [FunctionExpMeta(Meta("e2"))])
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"), ID(NablNsModule(), "backend.Ctors", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Ctors.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
   ]
 )
