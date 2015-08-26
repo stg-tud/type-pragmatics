@@ -14,17 +14,18 @@ abstract class Variable(name: String) extends Term with SimplePrettyPrintable {
 // NOTE adds the V to make it valid _U_ppercase variable name 
 final case class UntypedVariable(name: String) extends Variable(name)
 
-abstract class Symbol(name: String) extends Term with SimplePrettyPrintable {
-  override def prettyString = s"v$name"
+abstract class FunSymbol(name: String) extends Term with SimplePrettyPrintable {
+  def symstring = s"v$name"
+  override def prettyString = symstring
 }
 
 // NOTE adds the v to make it valid _l_owercase name for symbols (for functions in fof) 
-final case class UntypedSymbol(name: String) extends Symbol(name)
+final case class UntypedFunSymbol(name: String) extends FunSymbol(name)
 
 // TODO what exactly distinguishes PlainTerm from Term? No free variables? No variables at all?
 sealed trait PlainTerm extends Term with FofUnitary
 
-final case class Appl(function: UntypedSymbol, args: Term*) extends PlainTerm {
+final case class Appl(function: UntypedFunSymbol, args: Term*) extends PlainTerm {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(function.prettyString)
     if (!args.isEmpty) {
