@@ -10,8 +10,9 @@ imports
   lib/editor-common.generated
   lib/runtime/index/core
   lib/runtime/task/core
-  lib/runtime/analysis/core
+  lib/runtime/analysis/core  
 
+  backend
 
 rules // Incremental code generation of project using compilation library.
       
