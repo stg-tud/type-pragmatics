@@ -1,19 +1,19 @@
 Module(
-  "scalabackend.TwoGoalsOneAxiom"{ Def(
-                                     URI(
-                                       Language("Veritas")
-                                     , [ID(NablNsModule(), "scalabackend.TwoGoalsOneAxiom", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"))]
-                                     )
-                                   )
-                                 }
+  "backend.TwoGoalsOneAxiom"{ Def(
+                                URI(
+                                  Language("Veritas")
+                                , [ID(NablNsModule(), "backend.TwoGoalsOneAxiom", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"))]
+                                )
+                              )
+                            }
 , []
 , [ Axioms(
       [ TypingRule(
           RuleName("===========", "all-possible"{ Def(
                                                     URI(
                                                       Language("Veritas")
-                                                    , [ ID(NablNsRule(), "all-possible", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"))
-                                                      , ID(NablNsModule(), "scalabackend.TwoGoalsOneAxiom", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"))
+                                                    , [ ID(NablNsRule(), "all-possible", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"))
+                                                      , ID(NablNsModule(), "backend.TwoGoalsOneAxiom", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"))
                                                       ]
                                                     )
                                                   )
@@ -23,7 +23,8 @@ Module(
       ]
     )
   , Goals(
-      [ TypingRule(
+      None()
+    , [ TypingRule(
           PremiseList(
             JudgementCons(
               TypingJudgmentSimple(FunctionExpMeta(Meta("e")), FunctionExpMeta(Meta("T1")))
@@ -33,9 +34,9 @@ Module(
         , RuleName("===========", "Goal-1"{ Def(
                                               URI(
                                                 Language("Veritas")
-                                              , [ ID(NablNsRule(), "Goal-1", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"))
-                                                , Anonymous("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0")
-                                                , ID(NablNsModule(), "scalabackend.TwoGoalsOneAxiom", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"))
+                                              , [ ID(NablNsRule(), "Goal-1", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"))
+                                                , Anonymous("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0")
+                                                , ID(NablNsModule(), "backend.TwoGoalsOneAxiom", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"))
                                                 ]
                                               )
                                             )
@@ -52,9 +53,9 @@ Module(
         , RuleName("===========", "Goal-2"{ Def(
                                               URI(
                                                 Language("Veritas")
-                                              , [ ID(NablNsRule(), "Goal-2", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"))
-                                                , Anonymous("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0")
-                                                , ID(NablNsModule(), "scalabackend.TwoGoalsOneAxiom", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"))
+                                              , [ ID(NablNsRule(), "Goal-2", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"))
+                                                , Anonymous("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0")
+                                                , ID(NablNsModule(), "backend.TwoGoalsOneAxiom", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"))
                                                 ]
                                               )
                                             )
@@ -66,7 +67,7 @@ Module(
          [ ( NablNsRule()
            , URI(
                Language("Veritas")
-             , [Anonymous("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"), ID(NablNsModule(), "scalabackend.TwoGoalsOneAxiom", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/TwoGoalsOneAxiom.stl/0"))]
+             , [Anonymous("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"), ID(NablNsModule(), "backend.TwoGoalsOneAxiom", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/TwoGoalsOneAxiom.stl/0"))]
              )
            )
          ]
