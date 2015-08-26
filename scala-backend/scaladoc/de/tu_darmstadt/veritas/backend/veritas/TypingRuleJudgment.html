@@ -1,0 +1,543 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>TypingRuleJudgment - de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment</title>
+          <meta name="description" content="TypingRuleJudgment - de.tu darmstadt.veritas.backend.veritas.TypingRuleJudgment" />
+          <meta name="keywords" content="TypingRuleJudgment de.tu darmstadt.veritas.backend.veritas.TypingRuleJudgment" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../../lib/tools.tooltip.js"></script>
+      <script type="text/javascript" src="../../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../../lib/diagrams.js" id="diagrams-js"></script>
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../../index.html';
+            var hash = 'de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <a href="TypingRuleJudgment$.html" title="See companion object"><img src="../../../../../lib/trait_to_object_big.png" /></a>
+        <p id="owner"><a href="../../../../package.html" class="extype" name="de">de</a>.<a href="../../../package.html" class="extype" name="de.tu_darmstadt">tu_darmstadt</a>.<a href="../../package.html" class="extype" name="de.tu_darmstadt.veritas">veritas</a>.<a href="../package.html" class="extype" name="de.tu_darmstadt.veritas.backend">backend</a>.<a href="package.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas">veritas</a></p>
+        <h1><a href="TypingRuleJudgment$.html" title="See companion object">TypingRuleJudgment</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="TypingRuleJudgment$.html" title="See companion object">object TypingRuleJudgment</a>
+            | <a href="package.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas">package veritas</a>
+          </div></span></h3><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <span class="name">TypingRuleJudgment</span><span class="result"> extends <a href="../util/prettyprint/PrettyPrintable.html" class="extype" name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable">PrettyPrintable</a></span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="../util/prettyprint/PrettyPrintable.html" class="extype" name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable">PrettyPrintable</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block">
+            <span class="toggle">Known Subclasses</span>
+            <div class="subClasses hiddenContent"><a href="ExistsJudgment.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas.ExistsJudgment">ExistsJudgment</a>, <a href="ForallJudgment.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas.ForallJudgment">ForallJudgment</a>, <a href="FunctionExpJudgment.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment">FunctionExpJudgment</a>, <a href="NotJudgment.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas.NotJudgment">NotJudgment</a>, <a href="OrJudgment.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas.OrJudgment">OrJudgment</a>, <a href="ReduceJudgment.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas.ReduceJudgment">ReduceJudgment</a>, <a href="TypingJudgment.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas.TypingJudgment">TypingJudgment</a>, <a href="TypingJudgmentSimple.html" class="extype" name="de.tu_darmstadt.veritas.backend.veritas.TypingJudgmentSimple">TypingJudgmentSimple</a></div>
+          </div><div class="toggleContainer block diagram-container" id="inheritance-diagram-container">
+                <span class="toggle diagram-link">Type Hierarchy</span>
+                <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#diagrams" target="_blank" class="diagram-help">Learn more about scaladoc diagrams</a>
+                <div class="diagram" id="inheritance-diagram"><svg class="class-diagram" id="graph1" viewBox="0.00 0.00 1081.50 155.00" height="155pt" width="1082pt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><g transform="scale(1 1) rotate(0) translate(4 151)" class="graph" id="graph0"><polygon points="-4,4 -4,-151 1077.5,-151 1077.5,4 -4,4" stroke="none" fill="white"></polygon><g class="cluster" id="clust1"></g><g class="cluster" id="clust2"></g><!-- node0 --><g class="node this trait" id="graph1_0"><g id="a_this trait|graph1_0"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment (this trait)" xlink:href="#inheritance-diagram"><polygon points="598.5,-86 463.5,-86 463.5,-61 598.5,-61 598.5,-86" stroke="#37657d" fill="#498aad"></polygon><image xlink:href="../../../../../lib/trait_diagram.png" y="-80.5" x="474" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-70.5" x="495" text-anchor="start">TypingRuleJudgment</text></a></g></g><!-- node1 --><g class="node class" id="graph1_1"><g id="a_class|graph1_1"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.ExistsJudgment" xlink:href="ExistsJudgment.html#inheritance-diagram"><polygon points="114,-25 0,-25 0,-0 114,-0 114,-25" stroke="#115f3b" fill="#0a955b"></polygon><image xlink:href="../../../../../lib/class_diagram.png" y="-19.5" x="10" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-9.5" x="31" text-anchor="start">ExistsJudgment</text></a></g></g><!-- node0&#45;&gt;node1 --><g class="edge inheritance" id="graph1_0_1"><g id="a_inheritance|graph1_0_1"><a xlink:title="ExistsJudgment is a subtype of TypingRuleJudgment"><path d="M458.041,-65.2645C376.286,-56.8642 239.876,-41.972 123,-25 120.122,-24.5821 117.177,-24.1362 114.206,-23.6717" stroke="#d4d4d4" fill="none"></path><polygon points="458.194,-67.0392 463.347,-65.8084 458.551,-63.5575 458.194,-67.0392" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node2 --><g class="node class" id="graph1_2"><g id="a_class|graph1_2"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.ForallJudgment" xlink:href="ForallJudgment.html#inheritance-diagram"><polygon points="243.5,-25 132.5,-25 132.5,-0 243.5,-0 243.5,-25" stroke="#115f3b" fill="#0a955b"></polygon><image xlink:href="../../../../../lib/class_diagram.png" y="-19.5" x="143" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-9.5" x="164" text-anchor="start">ForallJudgment</text></a></g></g><!-- node0&#45;&gt;node2 --><g class="edge inheritance" id="graph1_0_2"><g id="a_inheritance|graph1_0_2"><a xlink:title="ForallJudgment is a subtype of TypingRuleJudgment"><path d="M458.283,-60.3072C401.962,-50.8183 322.002,-37.248 252,-25 249.331,-24.533 246.6,-24.0526 243.842,-23.5652" stroke="#d4d4d4" fill="none"></path><polygon points="458.096,-62.0503 463.317,-61.1551 458.677,-58.5989 458.096,-62.0503" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node3 --><g class="node class" id="graph1_3"><g id="a_class|graph1_3"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment" xlink:href="FunctionExpJudgment.html#inheritance-diagram"><polygon points="402.5,-25 261.5,-25 261.5,-0 402.5,-0 402.5,-25" stroke="#115f3b" fill="#0a955b"></polygon><image xlink:href="../../../../../lib/class_diagram.png" y="-19.5" x="272" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-9.5" x="293" text-anchor="start">FunctionExpJudgment</text></a></g></g><!-- node0&#45;&gt;node3 --><g class="edge inheritance" id="graph1_0_3"><g id="a_inheritance|graph1_0_3"><a xlink:title="FunctionExpJudgment is a subtype of TypingRuleJudgment"><path d="M487.14,-59.4964C452.452,-49.2119 404.467,-34.9851 371.083,-25.0875" stroke="#d4d4d4" fill="none"></path><polygon points="486.867,-61.2406 492.158,-60.9841 487.862,-57.885 486.867,-61.2406" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node4 --><g class="node class" id="graph1_4"><g id="a_class|graph1_4"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.NotJudgment" xlink:href="NotJudgment.html#inheritance-diagram"><polygon points="523,-25 421,-25 421,-0 523,-0 523,-25" stroke="#115f3b" fill="#0a955b"></polygon><image xlink:href="../../../../../lib/class_diagram.png" y="-19.5" x="431" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-9.5" x="452" text-anchor="start">NotJudgment</text></a></g></g><!-- node0&#45;&gt;node4 --><g class="edge inheritance" id="graph1_0_4"><g id="a_inheritance|graph1_0_4"><a xlink:title="NotJudgment is a subtype of TypingRuleJudgment"><path d="M515.794,-57.2936C505.768,-47.268 492.838,-34.338 483.632,-25.1323" stroke="#d4d4d4" fill="none"></path><polygon points="514.57,-58.5454 519.343,-60.8435 517.045,-56.0705 514.57,-58.5454" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node5 --><g class="node class" id="graph1_5"><g id="a_class|graph1_5"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.OrJudgment" xlink:href="OrJudgment.html#inheritance-diagram"><polygon points="638.5,-25 541.5,-25 541.5,-0 638.5,-0 638.5,-25" stroke="#115f3b" fill="#0a955b"></polygon><image xlink:href="../../../../../lib/class_diagram.png" y="-19.5" x="552" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-9.5" x="573" text-anchor="start">OrJudgment</text></a></g></g><!-- node0&#45;&gt;node5 --><g class="edge inheritance" id="graph1_0_5"><g id="a_inheritance|graph1_0_5"><a xlink:title="OrJudgment is a subtype of TypingRuleJudgment"><path d="M546.206,-57.2936C556.232,-47.268 569.162,-34.338 578.368,-25.1323" stroke="#d4d4d4" fill="none"></path><polygon points="544.955,-56.0705 542.657,-60.8435 547.43,-58.5454 544.955,-56.0705" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node6 --><g class="node class" id="graph1_6"><g id="a_class|graph1_6"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.ReduceJudgment" xlink:href="ReduceJudgment.html#inheritance-diagram"><polygon points="777,-25 657,-25 657,-0 777,-0 777,-25" stroke="#115f3b" fill="#0a955b"></polygon><image xlink:href="../../../../../lib/class_diagram.png" y="-19.5" x="667" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-9.5" x="688" text-anchor="start">ReduceJudgment</text></a></g></g><!-- node0&#45;&gt;node6 --><g class="edge inheritance" id="graph1_0_6"><g id="a_inheritance|graph1_0_6"><a xlink:title="ReduceJudgment is a subtype of TypingRuleJudgment"><path d="M572.394,-59.3697C604.784,-49.0954 649.395,-34.9445 680.47,-25.0875" stroke="#d4d4d4" fill="none"></path><polygon points="571.541,-57.8042 567.304,-60.9841 572.599,-61.1404 571.541,-57.8042" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node7 --><g class="node class" id="graph1_7"><g id="a_class|graph1_7"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.TypingJudgment" xlink:href="TypingJudgment.html#inheritance-diagram"><polygon points="910.5,-25 795.5,-25 795.5,-0 910.5,-0 910.5,-25" stroke="#115f3b" fill="#0a955b"></polygon><image xlink:href="../../../../../lib/class_diagram.png" y="-19.5" x="806" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-9.5" x="827" text-anchor="start">TypingJudgment</text></a></g></g><!-- node0&#45;&gt;node7 --><g class="edge inheritance" id="graph1_0_7"><g id="a_inheritance|graph1_0_7"><a xlink:title="TypingJudgment is a subtype of TypingRuleJudgment"><path d="M599.059,-60.0295C657.363,-49.3466 740.396,-34.1323 795.445,-24.0458" stroke="#d4d4d4" fill="none"></path><polygon points="598.452,-58.3616 593.849,-60.9841 599.083,-61.8043 598.452,-58.3616" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node8 --><g class="node class" id="graph1_8"><g id="a_class|graph1_8"><a xlink:title="de.tu_darmstadt.veritas.backend.veritas.TypingJudgmentSimple" xlink:href="TypingJudgmentSimple.html#inheritance-diagram"><polygon points="1073.5,-25 928.5,-25 928.5,-0 1073.5,-0 1073.5,-25" stroke="#115f3b" fill="#0a955b"></polygon><image xlink:href="../../../../../lib/class_diagram.png" y="-19.5" x="939" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-9.5" x="960" text-anchor="start">TypingJudgmentSimple</text></a></g></g><!-- node0&#45;&gt;node8 --><g class="edge inheritance" id="graph1_0_8"><g id="a_inheritance|graph1_0_8"><a xlink:title="TypingJudgmentSimple is a subtype of TypingRuleJudgment"><path d="M603.591,-64.0652C681.768,-54.881 809.777,-39.5526 920,-25 922.675,-24.6468 925.4,-24.2826 928.151,-23.9111" stroke="#d4d4d4" fill="none"></path><polygon points="603.276,-62.34 598.514,-64.6612 603.684,-65.8161 603.276,-62.34" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node9 --><g class="node trait" id="graph1_9"><g id="a_trait|graph1_9"><a xlink:title="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable" xlink:href="../util/prettyprint/PrettyPrintable.html#inheritance-diagram"><polygon points="585.5,-147 476.5,-147 476.5,-122 585.5,-122 585.5,-147" stroke="#37657d" fill="#498aad"></polygon><image xlink:href="../../../../../lib/trait_diagram.png" y="-141.5" x="487" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="10.00" font-family="Arial" y="-131.5" x="508" text-anchor="start">PrettyPrintable</text></a></g></g><!-- node9&#45;&gt;node0 --><g class="edge inheritance" id="graph1_9_0"><g id="a_inheritance|graph1_9_0"><a xlink:title="TypingRuleJudgment is a subtype of PrettyPrintable"><path d="M531,-116.687C531,-106.917 531,-94.8534 531,-86.1323" stroke="#d4d4d4" fill="none"></path><polygon points="529.25,-116.843 531,-121.843 532.75,-116.844 529.25,-116.843" stroke="#d4d4d4" fill="none"></polygon></a></g></g></g></svg></div>
+              </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment"><span>TypingRuleJudgment</span></li><li class="in" name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable"><span>PrettyPrintable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        
+
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable#prettyPrint" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="prettyPrint(writer:de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter):Unit"></a>
+      <a id="prettyPrint(PrettyPrintWriter):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">prettyPrint</span><span class="params">(<span name="writer">writer: <a href="../util/prettyprint/PrettyPrintWriter.html" class="extype" name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter">PrettyPrintWriter</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@prettyPrint(writer:de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter):Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Overwrite this in the implementations.</p><div class="fullcomment"><div class="comment cmt"><p>Overwrite this in the implementations. Use <span class="extype" name="PrettyPrintWriter.indent()">PrettyPrintWriter.indent()</span> before write()-ing
+a substructure of this and <span class="extype" name="PrettyPrintWriter.unindent()">PrettyPrintWriter.unindent()</span> afterwards.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../util/prettyprint/PrettyPrintable.html" class="extype" name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable">PrettyPrintable</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        <div id="values" class="values members">
+              <h3>Concrete Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@##():Int" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@clone():Object" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@notify():Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable#toPrettyString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toPrettyString():String"></a>
+      <a id="toPrettyString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toPrettyString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@toPrettyString():String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">NOTE do not use this inside a prettyPrint() body to obtain the pretty printed String
+of a substructure, rather call substructure.prettyPrint(writer) or the convenience method
+<span class="extype" name="writer.write[T">&lt;: PrettyPrintable](T)</span>
+WHY? Because toPrettyString generates the String by creating a new StringWriter internally,
+instead you could just use whatever Writer your current pretty printer is internally using!
+</p><div class="fullcomment"><div class="comment cmt"><p>NOTE do not use this inside a prettyPrint() body to obtain the pretty printed String
+of a substructure, rather call substructure.prettyPrint(writer) or the convenience method
+<span class="extype" name="writer.write[T">&lt;: PrettyPrintable](T)</span>
+WHY? Because toPrettyString generates the String by creating a new StringWriter internally,
+instead you could just use whatever Writer your current pretty printer is internally using!
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../util/prettyprint/PrettyPrintable.html" class="extype" name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable">PrettyPrintable</a></dd></dl></div>
+    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@toString():String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@wait():Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable">
+              <h3>Inherited from <a href="../util/prettyprint/PrettyPrintable.html" class="extype" name="de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable">PrettyPrintable</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
