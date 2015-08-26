@@ -13,6 +13,11 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       config
     } text("Summarizes the clauses of inconclusive prove attempts")
 
+    p.opt[Int]("vampire-top-weight") unbounded() action { (k,config) =>
+      analysisSeq += TopWeightClauses(k)
+      config
+    } text("Lists the clauses with least weight")
+
     p.opt[Int]("vampire-top-new") unbounded() action { (k,config) =>
       analysisSeq += TopNewClauses(k)
       config
@@ -73,6 +78,16 @@ case object ClauseSummary extends VampireTraceAnalisis {
       }
     }
     b ++= s"  Constructed $numClauses new clauses (active=$numActive, active&passive=$numActivePassive, passive=$numPassive)\n"
+    trace
+  }
+}
+
+case class TopWeightClauses(k: Int) extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    val newClauses = trace.clauses.sortBy(c => if (c == null) -1 else c.weight)
+    b ++= s"  Top $k weight clauses (with least weight):\n"
+    for (i <- 1 to Math.min(k, newClauses.length))
+      b ++= f"    ${i}:\t ${newClauses(i-1)}\n"
     trace
   }
 }
