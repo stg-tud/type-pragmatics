@@ -8,36 +8,40 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
   val analysisSeq = collection.mutable.ListBuffer[VampireTraceAnalisis]()
 
   def contributeOptions(p: OptionParser[Main.Config]) = {
-    p.opt[Unit]("vampire-clause-summary") action { (_,config) =>
+    p.opt[Unit]("vampire-clause-summary") unbounded() action { (_,config) =>
       analysisSeq += ClauseSummary
       config
     } text("Summarizes the clauses of inconclusive prove attempts")
 
-    p.opt[Int]("vampire-top-new") action { (k,config) =>
+    p.opt[Int]("vampire-top-new") unbounded() action { (k,config) =>
       analysisSeq += TopNewClauses(k)
       config
     } text("Lists the top new clauses of inconclusive prove attempts")
 
-    p.opt[Int]("vampire-top-active") action { (k,config) =>
+    p.opt[Int]("vampire-top-active") unbounded() action { (k,config) =>
       analysisSeq += TopActiveClauses(k)
       config
     } text("Lists the top active clauses of inconclusive prove attempts")
 
-    p.opt[String]("vampire-filter-symbol") action { (s,config) =>
+    p.opt[String]("vampire-filter-symbol") unbounded() action { (s,config) =>
       analysisSeq += FilterForSymbol(s)
       config
     } text("Remove clauses not featuring the given symbol")
 
-    p.opt[Int]("vampire-filter-weight") action { (w,config) =>
+    p.opt[Int]("vampire-filter-weight") unbounded() action { (w,config) =>
       analysisSeq += FilterWeight(w)
       config
     } text("Remove clauses whose weight is larger than the given weight")
 
-    p.opt[Unit]("vampire-merge-duplicates") action { (_,config) =>
+    p.opt[Unit]("vampire-merge-duplicates") unbounded() action { (_,config) =>
       analysisSeq += MergeDuplicates
       config
-    } text("Merge clauses that have the same term")
+    } text("Merge identical clauses")
 
+    p.opt[Unit]("vampire-unique-names") unbounded() action { (_,config) =>
+      analysisSeq += UniqueNames
+      config
+    } text("Rename variables in clauses such that the naming is unique (makes clauses equal that previously only were equal modulo renaming)")
   }
 }
 
@@ -130,5 +134,97 @@ case object MergeDuplicates extends VampireTraceAnalisis {
     VampireTrace(newclauses, trace.config)
   }
 
-  def merge(c1: VampireClause, c2: VampireClause) = VampireClause(c1.lits, Math.min(c1.age, c2.age), Math.min(c1.weight, c2.weight), c1.saNew + c2.saNew, c1.saActive + c2.saActive, c1.saPassive + c2.saPassive)
+  def merge(c1: VampireClause, c2: VampireClause) =
+    VampireClause(
+      c1.lits,
+      Math.min(c1.age, c2.age),
+      Math.min(c1.weight, c2.weight),
+      c1.saNew + c2.saNew,
+      c1.saActive + c2.saActive,
+      c1.saPassive + c2.saPassive)
+}
+
+case object UniqueNames extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    var renamed = 0
+    val newclauses = trace.clauses.map(c =>
+      if (c == null)
+        c
+      else {
+        reset()
+        val (lits, changed) = c.lits.map(uniqueNames(_)).unzip
+        if (changed.nonEmpty && changed.reduce(_||_))
+          renamed += 1
+        VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive)
+      }
+    )
+
+    b ++= s"  Renamed variables in $renamed clauses\n"
+    VampireTrace(newclauses, trace.config)
+  }
+
+  var subst = Map[String, String]()
+  var varCount = 0
+  var skoVarCount = 0
+  def reset(): Unit = {
+    subst = Map()
+    varCount = 0
+    skoVarCount = 0
+  }
+
+  def uniqueNames(l: Literal): (Literal, Boolean) = l match {
+    case Pos(at) =>
+      val (newat, changed) = uniqueNames(at)
+      (Pos(newat), changed)
+    case Neg(at) =>
+      val (newat, changed) = uniqueNames(at)
+      (Neg(newat), changed)
+  }
+
+  def uniqueNames(at: Atom): (Atom, Boolean) = at match {
+    case False => (False, false)
+    case Eq(t1, t2) =>
+      val (newt1, changed1) = uniqueNames(t1)
+      val (newt2, changed2) = uniqueNames(t2)
+      (Eq(newt1, newt2), changed1 || changed2)
+    case PredApp(f, xs) =>
+      val (fnew, fchanged) = uniqueNames(f)
+      val (xsnew, xschanged) = xs.map(uniqueNames(_)).unzip
+      (PredApp(fnew, xsnew), fchanged || xschanged.nonEmpty && xschanged.reduce(_||_))
+  }
+
+  def uniqueNames(s: Symbol): (Symbol, Boolean) =
+    if (s.isConst && !s.isSkolem)
+      (s, false)
+    else if (subst.isDefinedAt(s.x))
+      (Symbol(subst(s.x)), true)
+    else if (s.isVar) {
+      val nextVar = s"X$varCount"
+      if (nextVar == s.x)
+        (s, false)
+      else {
+        varCount += 1
+        subst += s.x -> nextVar
+        (Symbol(nextVar), true)
+      }
+    }
+    else { // s.isSkolem
+      val nextSkoVar = s"sK$skoVarCount"
+      if (nextSkoVar == s.x)
+        (s, false)
+      else {
+        skoVarCount += 1
+        subst += s.x -> nextSkoVar
+        (Symbol(nextSkoVar), true)
+      }
+    }
+    
+
+  def uniqueNames(t: Term): (Term, Boolean) = t match {
+    case s: Symbol => uniqueNames(s)
+    case FunApp(f, xs) =>
+      val (fnew, fchanged) = uniqueNames(f)
+      val (xsnew, xschanged) = xs.map(uniqueNames(_)).unzip
+      (FunApp(fnew, xsnew), fchanged || xschanged.nonEmpty && xschanged.reduce(_||_))
+  }
 }
