@@ -28,14 +28,14 @@ object Backend {
   private def run(input: StrategoTerm): Seq[PrettyPrintableFile] = {
     val mod = Module.from(input)
 
-    debug("Imported modules:")
-    val res = for {
-      imp <- mod.imports
-      resolved <- NameResolution.getModuleDef(imp)
-    } {
-      debug(resolved)
-      resolved
-    }
+//    debug("Imported modules:")
+//    val res = for {
+//      imp <- mod.imports
+//      resolved <- NameResolution.getModuleDef(imp)
+//    } {
+//      debug(resolved)
+//      resolved
+//    }
 
 //    Seq()
     
@@ -45,7 +45,19 @@ object Backend {
 
     // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
     // the original file!
-    Seq(Module(mod.name + "Out", mod.imports, mod.body))
+    //Seq(Module(mod.name + "Out", mod.imports, mod.body))
+    
+    // TODO remove these lines as soon as tff pretty printing is complete and works
+    // (also remove fof._ and tff._ import statements from above)
+    println("\n Test of tff pretty printing! \n")
+    
+    val testeq = new Eq(new UntypedVariable("x"), new UntypedVariable("x"))
+    val testforall = new ForAll(Seq(TypedVariable("x", DefinedType("i"))), testeq)
+    val testtff = new TffAnnotated("test", Conjecture, testforall)
+    
+    val tffs = Seq[TffAnnotated](testtff)
+    
+    Seq(Module(mod.name + "Out", mod.imports, mod.body), TffFile("TESTFILE", tffs))
   }
 
   /**
@@ -110,21 +122,5 @@ object Backend {
       outputPrettyPrinter.indent().write(outputFiles).unindent()
     }
     outputPrettyPrinter.flush()
-    
-    // TODO remove these lines as soon as tff pretty printing is complete and works
-    // (also remove fof._ and tff._ import statements from above)
-    println("\n Test of tff pretty printing! \n")
-    
-    
-    val testeq = new Eq(new UntypedVariable("x"), new UntypedVariable("x"))
-    val testforall = new ForAll(Seq(TypedVariable("x", DefinedType("i"))), testeq)
-    val testtff = new TffAnnotated("test", Conjecture, testforall)
-    
-    val tffs = Seq[TffAnnotated](testtff)
-    
-    val tfftestfile = new TffFile("TESTFILE", tffs)
-    val newoutputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-    testtff.prettyPrint(newoutputPrettyPrinter)
-    newoutputPrettyPrinter.flush()
   }
 }
