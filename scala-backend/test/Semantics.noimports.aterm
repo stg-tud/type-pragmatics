@@ -1,0 +1,1059 @@
+Module(
+  "sql.Semantics"
+, [ ]
+, [ Sorts([SortDef("SQLConf")])
+  , Constructors(
+      [ConstructorDecl(
+         "conf"
+       , [SortRef("SQLExp"), SortRef("TStore")]
+       , SortRef("SQLConf")
+       )]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("getSQL", [SortRef("SQLConf")], SortRef("SQLExp"))
+        , [ FunctionEq(
+              "getSQL"
+            , [FunctionPatApp("conf", [FunctionPatVar("sql"), FunctionPatVar("ts")])]
+            , FunctionExpVar("sql")
+            )
+          ]
+        )
+      ]
+    )
+  , Sorts([SortDef("OptConf")])
+  , Constructors(
+      [ ConstructorDecl("noConf", [], SortRef("OptConf"))
+      , ConstructorDecl("someConf", [SortRef("SQLConf")], SortRef("OptConf"))
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("isSomeConf", [SortRef("OptConf")], SortRef("Bool"))
+        , [ FunctionEq("isSomeConf", [FunctionPatVar("noConf")], FunctionExpFalse())
+          , FunctionEq(
+              "isSomeConf"
+            , [FunctionPatApp("someConf", [FunctionPatVar("c")])]
+            , FunctionExpTrue()
+            )
+          ]
+        )
+      ]
+    )
+  , PartialFunctions(
+      [ FunctionDef(
+          FunctionSig("getSomeConf", [SortRef("OptConf")], SortRef("SQLConf"))
+        , [ FunctionEq(
+              "getSomeConf"
+            , [FunctionPatApp("someConf", [FunctionPatVar("c")])]
+            , FunctionExpVar("c")
+            )
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "projection"
+          , [SortRef("TType"), SortRef("Table")]
+          , SortRef("OptTable")
+          )
+        , [ FunctionEq(
+              "projection"
+            , [ FunctionPatApp(
+                  "ttone"
+                , [FunctionPatApp("ctype", [FunctionPatVar("a1"), FunctionPatVar("ft1")])]
+                )
+              , FunctionPatApp(
+                  "table"
+                , [ FunctionPatApp(
+                      "ttone"
+                    , [FunctionPatApp("ctype", [FunctionPatVar("a2"), FunctionPatVar("ft2")])]
+                    )
+                  , FunctionPatVar("rt")
+                  ]
+                )
+              ]
+            , FunctionExpIf(
+                FunctionExpAnd(
+                  FunctionExpEq(FunctionExpVar("a1"), FunctionExpVar("a2"))
+                , FunctionExpEq(FunctionExpVar("ft1"), FunctionExpVar("ft2"))
+                )
+              , FunctionExpApp(
+                  "someTable"
+                , [ FunctionExpApp(
+                      "table"
+                    , [ FunctionExpApp(
+                          "ttone"
+                        , [FunctionExpApp("ctype", [FunctionExpVar("a1"), FunctionExpVar("ft1")])]
+                        )
+                      , FunctionExpVar("rt")
+                      ]
+                    )
+                  ]
+                )
+              , FunctionExpVar("noTable")
+              )
+            )
+          , FunctionEq(
+              "projection"
+            , [ FunctionPatApp(
+                  "ttone"
+                , [FunctionPatApp("ctype", [FunctionPatVar("a1"), FunctionPatVar("ft1")])]
+                )
+              , FunctionPatApp(
+                  "table"
+                , [ FunctionPatApp(
+                      "ttmany"
+                    , [FunctionPatApp("ctype", [FunctionPatVar("a2"), FunctionPatVar("ft2")]), FunctionPatVar("tt")]
+                    )
+                  , FunctionPatVar("rt")
+                  ]
+                )
+              ]
+            , FunctionExpIf(
+                FunctionExpAnd(
+                  FunctionExpEq(FunctionExpVar("a1"), FunctionExpVar("a2"))
+                , FunctionExpEq(FunctionExpVar("ft1"), FunctionExpVar("ft2"))
+                )
+              , FunctionExpApp(
+                  "someTable"
+                , [ FunctionExpApp(
+                      "table"
+                    , [ FunctionExpApp(
+                          "ttone"
+                        , [FunctionExpApp("ctype", [FunctionExpVar("a1"), FunctionExpVar("ft1")])]
+                        )
+                      , FunctionExpApp("projectFirstRaw", [FunctionExpVar("rt")])
+                      ]
+                    )
+                  ]
+                )
+              , FunctionExpApp(
+                  "projection"
+                , [ FunctionExpApp(
+                      "ttone"
+                    , [FunctionExpApp("ctype", [FunctionExpVar("a1"), FunctionExpVar("ft1")])]
+                    )
+                  , FunctionExpApp(
+                      "table"
+                    , [FunctionExpVar("tt"), FunctionExpApp("dropFirstColRaw", [FunctionExpVar("rt")])]
+                    )
+                  ]
+                )
+              )
+            )
+          , FunctionEq(
+              "projection"
+            , [ FunctionPatApp("ttmany", [FunctionPatVar("ct1"), FunctionPatVar("tt1")])
+              , FunctionPatApp(
+                  "table"
+                , [FunctionPatApp("ttone", [FunctionPatVar("ct2")]), FunctionPatVar("rt")]
+                )
+              ]
+            , FunctionExpVar("noTable")
+            )
+          , FunctionEq(
+              "projection"
+            , [ FunctionPatApp("ttmany", [FunctionPatVar("ct1"), FunctionPatVar("tt1")])
+              , FunctionPatApp(
+                  "table"
+                , [FunctionPatApp("ttmany", [FunctionPatVar("ct2"), FunctionPatVar("tt2")]), FunctionPatVar("rt")]
+                )
+              ]
+            , FunctionExpLet(
+                "prt1"
+              , FunctionExpApp(
+                  "projection"
+                , [ FunctionExpApp("ttone", [FunctionExpVar("ct1")])
+                  , FunctionExpApp(
+                      "table"
+                    , [FunctionExpApp("ttmany", [FunctionExpVar("ct2"), FunctionExpVar("tt2")]), FunctionExpVar("rt")]
+                    )
+                  ]
+                )
+              , FunctionExpLet(
+                  "prt2"
+                , FunctionExpApp(
+                    "projection"
+                  , [ FunctionExpVar("tt1")
+                    , FunctionExpApp(
+                        "table"
+                      , [FunctionExpApp("ttmany", [FunctionExpVar("ct2"), FunctionExpVar("tt2")]), FunctionExpVar("rt")]
+                      )
+                    ]
+                  )
+                , FunctionExpIf(
+                    FunctionExpAnd(
+                      FunctionExpApp("isSomeTable", [FunctionExpVar("prt1")])
+                    , FunctionExpApp("isSomeTable", [FunctionExpVar("prt2")])
+                    )
+                  , FunctionExpApp(
+                      "someTable"
+                    , [ FunctionExpApp(
+                          "table"
+                        , [ FunctionExpApp("ttmany", [FunctionExpVar("ct1"), FunctionExpVar("tt1")])
+                          , FunctionExpApp(
+                              "attachColToFrontRaw"
+                            , [ FunctionExpApp("getRaw", [FunctionExpApp("getSomeTable", [FunctionExpVar("prt1")])])
+                              , FunctionExpApp("getRaw", [FunctionExpApp("getSomeTable", [FunctionExpVar("prt2")])])
+                              ]
+                            )
+                          ]
+                        )
+                      ]
+                    )
+                  , FunctionExpVar("noTable")
+                  )
+                )
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , PartialFunctions(
+      [ FunctionDef(
+          FunctionSig(
+            "singleRowSelection"
+          , [SortRef("TType"), SortRef("SQLPred"), SortRef("RVar")]
+          , SortRef("Bool")
+          )
+        , [ FunctionEq(
+              "singleRowSelection"
+            , [ FunctionPatApp(
+                  "ttone"
+                , [FunctionPatApp("ctype", [FunctionPatVar("a1"), FunctionPatVar("ft")])]
+                )
+              , FunctionPatApp("VEquals", [FunctionPatVar("a2"), FunctionPatVar("fv")])
+              , FunctionPatApp("rone", [FunctionPatVar("f")])
+              ]
+            , FunctionExpAnd(
+                FunctionExpEq(FunctionExpVar("a1"), FunctionExpVar("a2"))
+              , FunctionExpAnd(
+                  FunctionExpEq(FunctionExpApp("fieldType", [FunctionExpVar("fv")]), FunctionExpVar("ft"))
+                , FunctionExpEq(FunctionExpVar("f"), FunctionExpVar("fv"))
+                )
+              )
+            )
+          , FunctionEq(
+              "singleRowSelection"
+            , [ FunctionPatApp(
+                  "ttmany"
+                , [FunctionPatApp("ctype", [FunctionPatVar("a1"), FunctionPatVar("ft")]), FunctionPatVar("ttr")]
+                )
+              , FunctionPatApp("VEquals", [FunctionPatVar("a2"), FunctionPatVar("fv")])
+              , FunctionPatApp("rmany", [FunctionPatVar("f"), FunctionPatVar("r")])
+              ]
+            , FunctionExpOr(
+                FunctionExpAnd(
+                  FunctionExpEq(FunctionExpVar("a1"), FunctionExpVar("a2"))
+                , FunctionExpAnd(
+                    FunctionExpEq(FunctionExpApp("fieldType", [FunctionExpVar("fv")]), FunctionExpVar("ft"))
+                  , FunctionExpEq(FunctionExpVar("f"), FunctionExpVar("fv"))
+                  )
+                )
+              , FunctionExpApp(
+                  "singleRowSelection"
+                , [ FunctionExpVar("ttr")
+                  , FunctionExpApp("VEquals", [FunctionExpVar("a2"), FunctionExpVar("fv")])
+                  , FunctionExpVar("r")
+                  ]
+                )
+              )
+            )
+          , FunctionEq(
+              "singleRowSelection"
+            , [ FunctionPatApp(
+                  "ttone"
+                , [FunctionPatApp("ctype", [FunctionPatVar("a1"), FunctionPatVar("ft")])]
+                )
+              , FunctionPatApp("VGreater", [FunctionPatVar("a2"), FunctionPatVar("fv")])
+              , FunctionPatApp("rone", [FunctionPatVar("f")])
+              ]
+            , FunctionExpAnd(
+                FunctionExpEq(FunctionExpVar("a1"), FunctionExpVar("a2"))
+              , FunctionExpAnd(
+                  FunctionExpEq(FunctionExpApp("fieldType", [FunctionExpVar("fv")]), FunctionExpVar("ft"))
+                , FunctionExpApp("ge", [FunctionExpVar("f"), FunctionExpVar("fv")])
+                )
+              )
+            )
+          , FunctionEq(
+              "singleRowSelection"
+            , [ FunctionPatApp(
+                  "ttmany"
+                , [FunctionPatApp("ctype", [FunctionPatVar("a1"), FunctionPatVar("ft")]), FunctionPatVar("ttr")]
+                )
+              , FunctionPatApp("VGreater", [FunctionPatVar("a2"), FunctionPatVar("fv")])
+              , FunctionPatApp("rmany", [FunctionPatVar("f"), FunctionPatVar("r")])
+              ]
+            , FunctionExpOr(
+                FunctionExpAnd(
+                  FunctionExpEq(FunctionExpVar("a1"), FunctionExpVar("a2"))
+                , FunctionExpAnd(
+                    FunctionExpEq(FunctionExpApp("fieldType", [FunctionExpVar("fv")]), FunctionExpVar("ft"))
+                  , FunctionExpApp("ge", [FunctionExpVar("f"), FunctionExpVar("fv")])
+                  )
+                )
+              , FunctionExpApp(
+                  "singleRowSelection"
+                , [ FunctionExpVar("ttr")
+                  , FunctionExpApp("VGreater", [FunctionExpVar("a2"), FunctionExpVar("fv")])
+                  , FunctionExpVar("r")
+                  ]
+                )
+              )
+            )
+          , FunctionEq(
+              "singleRowSelection"
+            , [ FunctionPatApp(
+                  "ttone"
+                , [FunctionPatApp("ctype", [FunctionPatVar("a1"), FunctionPatVar("ft")])]
+                )
+              , FunctionPatApp("VSmaller", [FunctionPatVar("a2"), FunctionPatVar("fv")])
+              , FunctionPatApp("rone", [FunctionPatVar("f")])
+              ]
+            , FunctionExpAnd(
+                FunctionExpEq(FunctionExpVar("a1"), FunctionExpVar("a2"))
+              , FunctionExpAnd(
+                  FunctionExpEq(FunctionExpApp("fieldType", [FunctionExpVar("fv")]), FunctionExpVar("ft"))
+                , FunctionExpApp("le", [FunctionExpVar("f"), FunctionExpVar("fv")])
+                )
+              )
+            )
+          , FunctionEq(
+              "singleRowSelection"
+            , [ FunctionPatApp(
+                  "ttmany"
+                , [FunctionPatApp("ctype", [FunctionPatVar("a1"), FunctionPatVar("ft")]), FunctionPatVar("ttr")]
+                )
+              , FunctionPatApp("VSmaller", [FunctionPatVar("a2"), FunctionPatVar("fv")])
+              , FunctionPatApp("rmany", [FunctionPatVar("f"), FunctionPatVar("r")])
+              ]
+            , FunctionExpOr(
+                FunctionExpAnd(
+                  FunctionExpEq(FunctionExpVar("a1"), FunctionExpVar("a2"))
+                , FunctionExpAnd(
+                    FunctionExpEq(FunctionExpApp("fieldType", [FunctionExpVar("fv")]), FunctionExpVar("ft"))
+                  , FunctionExpApp("le", [FunctionExpVar("f"), FunctionExpVar("fv")])
+                  )
+                )
+              , FunctionExpApp(
+                  "singleRowSelection"
+                , [ FunctionExpVar("ttr")
+                  , FunctionExpApp("VSmaller", [FunctionExpVar("a2"), FunctionExpVar("fv")])
+                  , FunctionExpVar("r")
+                  ]
+                )
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "selectionAux"
+          , [SortRef("TType"), SortRef("SQLPred"), SortRef("RawTable")]
+          , SortRef("RawTable")
+          )
+        , [ FunctionEq(
+              "selectionAux"
+            , [FunctionPatVar("tt"), FunctionPatVar("pred"), FunctionPatVar("tempty")]
+            , FunctionExpVar("tempty")
+            )
+          , FunctionEq(
+              "selectionAux"
+            , [ FunctionPatVar("tt")
+              , FunctionPatVar("pred")
+              , FunctionPatApp("tmany", [FunctionPatVar("r"), FunctionPatVar("rt")])
+              ]
+            , FunctionExpLet(
+                "rts"
+              , FunctionExpApp(
+                  "selectionAux"
+                , [FunctionExpVar("tt"), FunctionExpVar("pred"), FunctionExpVar("rt")]
+                )
+              , FunctionExpIf(
+                  FunctionExpApp(
+                    "singleRowSelection"
+                  , [FunctionExpVar("tt"), FunctionExpVar("pred"), FunctionExpVar("r")]
+                  )
+                , FunctionExpApp("tmany", [FunctionExpVar("r"), FunctionExpVar("rts")])
+                , FunctionExpVar("rts")
+                )
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "selection"
+          , [SortRef("Table"), SortRef("SQLPred")]
+          , SortRef("OptTable")
+          )
+        , [ FunctionEq(
+              "selection"
+            , [ FunctionPatApp("table", [FunctionPatVar("tt"), FunctionPatVar("rt")])
+              , FunctionPatApp("VEquals", [FunctionPatVar("a"), FunctionPatVar("fv")])
+              ]
+            , FunctionExpIf(
+                FunctionExpApp(
+                  "checkValidity"
+                , [FunctionExpVar("a"), FunctionExpVar("fv"), FunctionExpVar("tt")]
+                )
+              , FunctionExpApp(
+                  "someTable"
+                , [ FunctionExpApp(
+                      "table"
+                    , [ FunctionExpVar("tt")
+                      , FunctionExpApp(
+                          "selectionAux"
+                        , [ FunctionExpVar("tt")
+                          , FunctionExpApp("VEquals", [FunctionExpVar("a"), FunctionExpVar("fv")])
+                          , FunctionExpVar("rt")
+                          ]
+                        )
+                      ]
+                    )
+                  ]
+                )
+              , FunctionExpVar("noTable")
+              )
+            )
+          , FunctionEq(
+              "selection"
+            , [ FunctionPatApp("table", [FunctionPatVar("tt"), FunctionPatVar("rt")])
+              , FunctionPatApp("VGreater", [FunctionPatVar("a"), FunctionPatVar("fv")])
+              ]
+            , FunctionExpIf(
+                FunctionExpApp(
+                  "checkValidity"
+                , [FunctionExpVar("a"), FunctionExpVar("fv"), FunctionExpVar("tt")]
+                )
+              , FunctionExpApp(
+                  "someTable"
+                , [ FunctionExpApp(
+                      "table"
+                    , [ FunctionExpVar("tt")
+                      , FunctionExpApp(
+                          "selectionAux"
+                        , [ FunctionExpVar("tt")
+                          , FunctionExpApp("VGreater", [FunctionExpVar("a"), FunctionExpVar("fv")])
+                          , FunctionExpVar("rt")
+                          ]
+                        )
+                      ]
+                    )
+                  ]
+                )
+              , FunctionExpVar("noTable")
+              )
+            )
+          , FunctionEq(
+              "selection"
+            , [ FunctionPatApp("table", [FunctionPatVar("tt"), FunctionPatVar("rt")])
+              , FunctionPatApp("VSmaller", [FunctionPatVar("a"), FunctionPatVar("fv")])
+              ]
+            , FunctionExpIf(
+                FunctionExpApp(
+                  "checkValidity"
+                , [FunctionExpVar("a"), FunctionExpVar("fv"), FunctionExpVar("tt")]
+                )
+              , FunctionExpApp(
+                  "someTable"
+                , [ FunctionExpApp(
+                      "table"
+                    , [ FunctionExpVar("tt")
+                      , FunctionExpApp(
+                          "selectionAux"
+                        , [ FunctionExpVar("tt")
+                          , FunctionExpApp("VSmaller", [FunctionExpVar("a"), FunctionExpVar("fv")])
+                          , FunctionExpVar("rt")
+                          ]
+                        )
+                      ]
+                    )
+                  ]
+                )
+              , FunctionExpVar("noTable")
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "union"
+          , [SortRef("Table"), SortRef("Table")]
+          , SortRef("OptTable")
+          )
+        , [ FunctionEq(
+              "union"
+            , [ FunctionPatApp("table", [FunctionPatVar("tt1"), FunctionPatVar("rt1")])
+              , FunctionPatApp("table", [FunctionPatVar("tt2"), FunctionPatVar("rt2")])
+              ]
+            , FunctionExpIf(
+                FunctionExpEq(FunctionExpVar("tt1"), FunctionExpVar("tt2"))
+              , FunctionExpApp(
+                  "someTable"
+                , [ FunctionExpApp(
+                      "table"
+                    , [FunctionExpVar("tt1"), FunctionExpApp("rawUnion", [FunctionExpVar("rt1"), FunctionExpVar("rt2")])]
+                    )
+                  ]
+                )
+              , FunctionExpVar("noTable")
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "intersection"
+          , [SortRef("Table"), SortRef("Table")]
+          , SortRef("OptTable")
+          )
+        , [ FunctionEq(
+              "intersection"
+            , [ FunctionPatApp("table", [FunctionPatVar("tt1"), FunctionPatVar("rt1")])
+              , FunctionPatApp("table", [FunctionPatVar("tt2"), FunctionPatVar("rt2")])
+              ]
+            , FunctionExpIf(
+                FunctionExpEq(FunctionExpVar("tt1"), FunctionExpVar("tt2"))
+              , FunctionExpApp(
+                  "someTable"
+                , [ FunctionExpApp(
+                      "table"
+                    , [FunctionExpVar("tt1"), FunctionExpApp("rawIntersection", [FunctionExpVar("rt1"), FunctionExpVar("rt2")])]
+                    )
+                  ]
+                )
+              , FunctionExpVar("noTable")
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "difference"
+          , [SortRef("Table"), SortRef("Table")]
+          , SortRef("OptTable")
+          )
+        , [ FunctionEq(
+              "difference"
+            , [ FunctionPatApp("table", [FunctionPatVar("tt1"), FunctionPatVar("rt1")])
+              , FunctionPatApp("table", [FunctionPatVar("tt2"), FunctionPatVar("rt2")])
+              ]
+            , FunctionExpIf(
+                FunctionExpEq(FunctionExpVar("tt1"), FunctionExpVar("tt2"))
+              , FunctionExpApp(
+                  "someTable"
+                , [ FunctionExpApp(
+                      "table"
+                    , [FunctionExpVar("tt1"), FunctionExpApp("rawDifference", [FunctionExpVar("rt1"), FunctionExpVar("rt2")])]
+                    )
+                  ]
+                )
+              , FunctionExpVar("noTable")
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("reduce", [SortRef("SQLConf")], SortRef("OptConf"))
+        , [ FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [FunctionPatApp("TValue", [FunctionPatVar("t")]), FunctionPatVar("ts")]
+                )
+              ]
+            , FunctionExpVar("noConf")
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [FunctionPatApp("SelectAll", [FunctionPatVar("tn")]), FunctionPatVar("ts")]
+                )
+              ]
+            , FunctionExpLet(
+                "ltn"
+              , FunctionExpApp("lookup", [FunctionExpVar("tn"), FunctionExpVar("ts")])
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeTable", [FunctionExpVar("ltn")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp("TValue", [FunctionExpApp("getSomeTable", [FunctionExpVar("ltn")])])
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [FunctionPatApp("SelectFrom1", [FunctionPatVar("tt"), FunctionPatVar("tn")]), FunctionPatVar("ts")]
+                )
+              ]
+            , FunctionExpLet(
+                "ltn"
+              , FunctionExpApp("lookup", [FunctionExpVar("tn"), FunctionExpVar("ts")])
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeTable", [FunctionExpVar("ltn")])
+                , FunctionExpLet(
+                    "prt"
+                  , FunctionExpApp(
+                      "projection"
+                    , [FunctionExpVar("tt"), FunctionExpApp("getSomeTable", [FunctionExpVar("ltn")])]
+                    )
+                  , FunctionExpIf(
+                      FunctionExpApp("isSomeTable", [FunctionExpVar("prt")])
+                    , FunctionExpApp(
+                        "someConf"
+                      , [ FunctionExpApp(
+                            "conf"
+                          , [ FunctionExpApp("TValue", [FunctionExpApp("getSomeTable", [FunctionExpVar("prt")])])
+                            , FunctionExpVar("ts")
+                            ]
+                          )
+                        ]
+                      )
+                    , FunctionExpVar("noConf")
+                    )
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [FunctionPatApp("SelectAllFromWhere1", [FunctionPatVar("tn"), FunctionPatVar("p")]), FunctionPatVar("ts")]
+                )
+              ]
+            , FunctionExpLet(
+                "ltn"
+              , FunctionExpApp("lookup", [FunctionExpVar("tn"), FunctionExpVar("ts")])
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeTable", [FunctionExpVar("ltn")])
+                , FunctionExpLet(
+                    "srt"
+                  , FunctionExpApp(
+                      "selection"
+                    , [FunctionExpApp("getSomeTable", [FunctionExpVar("ltn")]), FunctionExpVar("p")]
+                    )
+                  , FunctionExpIf(
+                      FunctionExpApp("isSomeTable", [FunctionExpVar("srt")])
+                    , FunctionExpApp(
+                        "someConf"
+                      , [ FunctionExpApp(
+                            "conf"
+                          , [ FunctionExpApp("TValue", [FunctionExpApp("getSomeTable", [FunctionExpVar("srt")])])
+                            , FunctionExpVar("ts")
+                            ]
+                          )
+                        ]
+                      )
+                    , FunctionExpVar("noConf")
+                    )
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [ FunctionPatApp(
+                      "SelectFromWhere1"
+                    , [FunctionPatVar("tt"), FunctionPatVar("tn"), FunctionPatVar("p")]
+                    )
+                  , FunctionPatVar("ts")
+                  ]
+                )
+              ]
+            , FunctionExpLet(
+                "ltn"
+              , FunctionExpApp("lookup", [FunctionExpVar("tn"), FunctionExpVar("ts")])
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeTable", [FunctionExpVar("ltn")])
+                , FunctionExpLet(
+                    "srt"
+                  , FunctionExpApp(
+                      "selection"
+                    , [FunctionExpApp("getSomeTable", [FunctionExpVar("ltn")]), FunctionExpVar("p")]
+                    )
+                  , FunctionExpIf(
+                      FunctionExpApp("isSomeTable", [FunctionExpVar("srt")])
+                    , FunctionExpApp(
+                        "someConf"
+                      , [ FunctionExpApp(
+                            "conf"
+                          , [ FunctionExpApp(
+                                "SelectFrom1"
+                              , [FunctionExpVar("tt"), FunctionExpVar("tn"), FunctionExpApp("getSomeTable", [FunctionExpVar("srt")])]
+                              )
+                            , FunctionExpVar("ts")
+                            ]
+                          )
+                        ]
+                      )
+                    , FunctionExpVar("noConf")
+                    )
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [ FunctionPatApp(
+                      "Union"
+                    , [ FunctionPatApp("TValue", [FunctionPatVar("t1")])
+                      , FunctionPatApp("TValue", [FunctionPatVar("t2")])
+                      ]
+                    )
+                  , FunctionPatVar("ts")
+                  ]
+                )
+              ]
+            , FunctionExpLet(
+                "tunion"
+              , FunctionExpApp("union", [FunctionExpVar("t1"), FunctionExpVar("t2")])
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeTable", [FunctionExpVar("tunion")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp("TValue", [FunctionExpApp("getSomeTable", [FunctionExpVar("tunion")])])
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [ FunctionPatApp(
+                      "Union"
+                    , [FunctionPatApp("TValue", [FunctionPatVar("t")]), FunctionPatVar("sql2")]
+                    )
+                  , FunctionPatVar("ts")
+                  ]
+                )
+              ]
+            , FunctionExpLet(
+                "sql2reduce"
+              , FunctionExpApp(
+                  "reduce"
+                , [FunctionExpApp("conf", [FunctionExpVar("sql2"), FunctionExpVar("ts")])]
+                )
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeConf", [FunctionExpVar("sql2reduce")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp(
+                            "Union"
+                          , [ FunctionExpApp("TValue", [FunctionExpVar("t")])
+                            , FunctionExpApp("getSQL", [FunctionExpApp("getSomeConf", [FunctionExpVar("sql2reduce")])])
+                            ]
+                          )
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [FunctionPatApp("Union", [FunctionPatVar("sql1"), FunctionPatVar("sql2")]), FunctionPatVar("ts")]
+                )
+              ]
+            , FunctionExpLet(
+                "sql1reduce"
+              , FunctionExpApp(
+                  "reduce"
+                , [FunctionExpApp("conf", [FunctionExpVar("sql1"), FunctionExpVar("ts")])]
+                )
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeConf", [FunctionExpVar("sql1reduce")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp(
+                            "Union"
+                          , [ FunctionExpApp("getSQL", [FunctionExpApp("getSomeConf", [FunctionExpVar("sql1reduce")])])
+                            , FunctionExpVar("sql2")
+                            ]
+                          )
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [ FunctionPatApp(
+                      "Intersection"
+                    , [ FunctionPatApp("TValue", [FunctionPatVar("t1")])
+                      , FunctionPatApp("TValue", [FunctionPatVar("t2")])
+                      ]
+                    )
+                  , FunctionPatVar("ts")
+                  ]
+                )
+              ]
+            , FunctionExpLet(
+                "tintersection"
+              , FunctionExpApp("intersection", [FunctionExpVar("t1"), FunctionExpVar("t2")])
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeTable", [FunctionExpVar("tintersection")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp("TValue", [FunctionExpApp("getSomeTable", [FunctionExpVar("tintersection")])])
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [ FunctionPatApp(
+                      "Intersection"
+                    , [FunctionPatApp("TValue", [FunctionPatVar("t")]), FunctionPatVar("sql2")]
+                    )
+                  , FunctionPatVar("ts")
+                  ]
+                )
+              ]
+            , FunctionExpLet(
+                "sql2reduce"
+              , FunctionExpApp(
+                  "reduce"
+                , [FunctionExpApp("conf", [FunctionExpVar("sql2"), FunctionExpVar("ts")])]
+                )
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeConf", [FunctionExpVar("sql2reduce")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp(
+                            "Intersection"
+                          , [ FunctionExpApp("TValue", [FunctionExpVar("t")])
+                            , FunctionExpApp("getSQL", [FunctionExpApp("getSomeConf", [FunctionExpVar("sql2reduce")])])
+                            ]
+                          )
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [FunctionPatApp("Intersection", [FunctionPatVar("sql1"), FunctionPatVar("sql2")]), FunctionPatVar("ts")]
+                )
+              ]
+            , FunctionExpLet(
+                "sql1reduce"
+              , FunctionExpApp(
+                  "reduce"
+                , [FunctionExpApp("conf", [FunctionExpVar("sql1"), FunctionExpVar("ts")])]
+                )
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeConf", [FunctionExpVar("sql1reduce")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp(
+                            "Intersection"
+                          , [ FunctionExpApp("getSQL", [FunctionExpApp("getSomeConf", [FunctionExpVar("sql1reduce")])])
+                            , FunctionExpVar("sql2")
+                            ]
+                          )
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [ FunctionPatApp(
+                      "Difference"
+                    , [ FunctionPatApp("TValue", [FunctionPatVar("t1")])
+                      , FunctionPatApp("TValue", [FunctionPatVar("t2")])
+                      ]
+                    )
+                  , FunctionPatVar("ts")
+                  ]
+                )
+              ]
+            , FunctionExpLet(
+                "tdifference"
+              , FunctionExpApp("difference", [FunctionExpVar("t1"), FunctionExpVar("t2")])
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeTable", [FunctionExpVar("tdifference")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp("TValue", [FunctionExpApp("getSomeTable", [FunctionExpVar("tdifference")])])
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [ FunctionPatApp(
+                      "Difference"
+                    , [FunctionPatApp("TValue", [FunctionPatVar("t")]), FunctionPatVar("sql2")]
+                    )
+                  , FunctionPatVar("ts")
+                  ]
+                )
+              ]
+            , FunctionExpLet(
+                "sql2reduce"
+              , FunctionExpApp(
+                  "reduce"
+                , [FunctionExpApp("conf", [FunctionExpVar("sql2"), FunctionExpVar("ts")])]
+                )
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeConf", [FunctionExpVar("sql2reduce")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp(
+                            "Difference"
+                          , [ FunctionExpApp("TValue", [FunctionExpVar("t")])
+                            , FunctionExpApp("getSQL", [FunctionExpApp("getSomeConf", [FunctionExpVar("sql2reduce")])])
+                            ]
+                          )
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          , FunctionEq(
+              "reduce"
+            , [ FunctionPatApp(
+                  "conf"
+                , [FunctionPatApp("Difference", [FunctionPatVar("sql1"), FunctionPatVar("sql2")]), FunctionPatVar("ts")]
+                )
+              ]
+            , FunctionExpLet(
+                "sql1reduce"
+              , FunctionExpApp(
+                  "reduce"
+                , [FunctionExpApp("conf", [FunctionExpVar("sql1"), FunctionExpVar("ts")])]
+                )
+              , FunctionExpIf(
+                  FunctionExpApp("isSomeConf", [FunctionExpVar("sql1reduce")])
+                , FunctionExpApp(
+                    "someConf"
+                  , [ FunctionExpApp(
+                        "conf"
+                      , [ FunctionExpApp(
+                            "Difference"
+                          , [ FunctionExpApp("getSQL", [FunctionExpApp("getSomeConf", [FunctionExpVar("sql1reduce")])])
+                            , FunctionExpVar("sql2")
+                            ]
+                          )
+                        , FunctionExpVar("ts")
+                        ]
+                      )
+                    ]
+                  )
+                , FunctionExpVar("noConf")
+                )
+              )
+            )
+          ]
+        )
+      ]
+    )
+  ]
+)
