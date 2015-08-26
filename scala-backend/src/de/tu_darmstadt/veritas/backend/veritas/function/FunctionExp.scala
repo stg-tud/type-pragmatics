@@ -42,6 +42,17 @@ final case class FunctionExpAnd(left: FunctionExp, right: FunctionExp) extends F
   }
 }
 
+/**
+ * convenience to create more than binary ands (and also optimization if args.isEmpty => gives just true)
+ */
+object FunctionExpAnd {
+  def apply(args: Seq[FunctionExp]): FunctionExp = args match {
+    case Seq() => FunctionExpTrue
+    case Seq(oneArg) => oneArg
+    case Seq(head,rest@_*) => FunctionExpAnd(head, FunctionExpAnd(rest))
+  }
+}
+
 final case class FunctionExpOr(left: FunctionExp, right: FunctionExp) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("(")
@@ -89,6 +100,13 @@ final case class FunctionExpApp(functionName: String, args: Seq[FunctionExp]) ex
 // FIXME is this used? What is the difference to FunctionExpVar?
 final case class FunctionExpMeta(metavar: MetaVar) extends FunctionExp with SimplePrettyPrintable {
   override def prettyString = metavar.toPrettyString
+}
+
+/**
+ * convenience, such that MetaVars don't have to be explicitly wrapped when used inside as FunctionExp
+ */
+object FunctionExpMeta {
+  implicit def wrap(metavar: MetaVar): FunctionExpMeta = FunctionExpMeta(metavar)
 }
 
 final case class FunctionExpVar(name: String) extends FunctionExp with SimplePrettyPrintable {

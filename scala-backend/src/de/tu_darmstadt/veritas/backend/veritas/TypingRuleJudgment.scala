@@ -27,6 +27,13 @@ case class FunctionExpJudgment(f: FunctionExp) extends TypingRuleJudgment {
   override def prettyPrint(writer: PrettyPrintWriter) = writer.write(f)
 }
 
+/**
+ * convenience, such that MetaVars don't have to be explicitly wrapped when used inside as FunctionExp
+ */
+object FunctionExpJudgment {
+  implicit def wrap(f: FunctionExp): FunctionExpJudgment = FunctionExpJudgment(f)
+}
+
 case class ExistsJudgment(varlist : Seq[MetaVar], jdglst: Seq[TypingRuleJudgment]) extends TypingRuleJudgment {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("exists ")
