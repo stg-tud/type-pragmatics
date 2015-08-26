@@ -30,10 +30,12 @@ final case class Appl(function: FunSymbol, args: Term*) extends PlainTerm {
     if (!args.isEmpty) {
       writer.write("(")
       writer.write(args.head)
-      args.tail foreach {
-        writer.write(", ")
-        writer.write(_)
-      }
+      if (args.tail != Seq())
+        args.tail foreach {
+          writer.write(", ")
+          writer.write(_)
+        }
+      
       writer.write(")")
     }
   }
