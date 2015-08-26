@@ -1,0 +1,98 @@
+module backend
+
+imports
+  include/Veritas
+  
+  lib/editor-common.generated
+  lib/runtime/index/core
+  lib/runtime/index/query
+  lib/runtime/task/core
+  
+  libstratego-lib
+  
+  names
+  generate
+  
+strategies
+
+  // Argument: Directory of current stl file in editor
+  // Argument: its AST
+  // Returns: List of tuples, one tuple per output FOF file
+  //          The first element of the tuples is the filename relative to the project path
+  //          The second is the content of the output file (as String)
+  external backend-strategy(|)
+
+rules // Incremental code generation of project using compilation library.
+  	  // See lib/compilation-library.generated.str for documentation
+  	 
+  // NOTE reuses the write-file strategy that takes a list of tuple (filename, content)
+  // invoke-backend then returns the first of these file, such that it gets opened in the editor
+  invoke-backend : (selected, position, ast, path, project-path) -> result
+  with
+  	// uncomment this only if you want to always store the Index/Tasks on disk, i.e.
+  	// because the loading from the Java objects in the Backend doesnt work
+	//index-and-task-persist;
+	index-setup(|<language>, project-path);
+	task-setup(|project-path);
+    files := <backend-strategy <+ error(!"backend strategy failed: ")> (<dirname> path, ast);
+    <map(write-file)> files;
+    result := <if <?[]> files then !None() else !<Hd> files end> ()
+
+  index-and-task-persist : (selected, position, ast, path, project-path) -> None()
+  with
+  	index-setup(|<language>, project-path); index-persist;
+  	task-setup(|project-path); task-persist
+
+//   // DEPRECATED
+//   debug-show-backend-input: (selected, position, ast, path, project-path) -> (filename, result)
+//   with
+// 	index-setup(|<language>, project-path);
+// 	task-setup(|project-path);
+// 	filename := <guarantee-extension(|"backend.aterm")> path;
+// 	!ast; ?Module(mod, imps, body);
+// 	result := Module(mod, <resolve-imports(|[<strip-annos> mod])> imps, body)
+// 
+//   // DEPRECATED
+//   resolve-imports(|already-resolved): [] -> []
+//   resolve-imports(|already-resolved): [Import(mod, annos) | rest] -> result 
+//   with
+//   	mname := <strip-annos> mod;
+//   	result := <if <elem> (mname, already-resolved)
+//   		// requested module is already resolved -> ignore
+//   		then <resolve-imports(|already-resolved)> rest
+//   		else 
+//   			resolved-module := <get-module-ref> mod;
+//   			// all the imports of that module must also be processed
+//   			!resolved-module; ?Module(_, imps, _);
+//   			new-rest := <conc> (imps, rest);
+//   			// return annotated import
+//   			this-import := Import(mod { resolved-module }, annos);
+//   			other-imports := <resolve-imports(|[mname | already-resolved])> new-rest;
+//   			![this-import | other-imports] end> ()
+// 			
+//   // DEPRECATED: homegrown text serialization	  
+//   serialize-index : (selected, position, ast, path, project-path) -> ("index.serialized", index)
+//   with
+// 	index-setup(|<language>, project-path);
+// 	task-setup(|project-path);
+//   	index := <get-index-for-all-files>
+// 
+//   // DEPRECATED: homegrown text serialization
+//   serialize-tasks : (selected, position, ast, path, project-path) -> ("tasks.serialized", taskmap)
+//   with
+// 	index-setup(|<language>, project-path);
+// 	task-setup(|project-path);
+//   	index := <get-index-for-all-files>;
+//   	taskmap := <get-all-used-taskids; map(resolve-task)> index
+// 
+//   // DEPRECATED
+//   get-index-for-all-files = index-get-all-sources; filter(has-extension(|"stl")); mapconcat(index-get-all-pairs-in-source)
+// 
+//   // DEPRECATED
+//   // collect all used task ids in the index
+//   get-all-used-taskids = filter(\ (_,Result(taskid)) -> taskid \); make-set
+//   
+//   // DEPRECATED
+//   // map taskids to the task result, i.e. make a pair (<taskid>, <task result>)
+//   resolve-task: taskid -> (taskid, <task-get-results> Result(taskid))
+ 

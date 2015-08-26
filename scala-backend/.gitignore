@@ -1,0 +1,7 @@
+# eclipse files
+.cache
+.settings/
+
+# binaries and generated files
+bin/
+scala-backend.jar

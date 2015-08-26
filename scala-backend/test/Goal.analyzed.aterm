@@ -1,0 +1,42 @@
+Module(
+  "scalabackend.Goal"{ Def(
+                         URI(
+                           Language("Veritas")
+                         , [ID(NablNsModule(), "scalabackend.Goal", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/Goal.stl/0"))]
+                         )
+                       )
+                     }
+, []
+, [ Goals(
+      [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              TypingJudgmentSimple(FunctionExpMeta(Meta("e")), FunctionExpMeta(Meta("T1")))
+            , FunctionExpJudgment(FunctionExpEq(FunctionExpMeta(Meta("T1")), FunctionExpMeta(Meta("T2"))))
+            )
+          )
+        , RuleName("===========", "Goal-1"{ Def(
+                                              URI(
+                                                Language("Veritas")
+                                              , [ ID(NablNsRule(), "Goal-1", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/Goal.stl/0"))
+                                                , Anonymous("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/Goal.stl/0")
+                                                , ID(NablNsModule(), "scalabackend.Goal", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/Goal.stl/0"))
+                                                ]
+                                              )
+                                            )
+                                          })
+        , ConsequenceList(TypingJudgmentSimple(FunctionExpMeta(Meta("e")), FunctionExpMeta(Meta("T2"))))
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/Goal.stl/0"), ID(NablNsModule(), "scalabackend.Goal", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/Goal.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  ]
+)

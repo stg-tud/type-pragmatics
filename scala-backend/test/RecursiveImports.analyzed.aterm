@@ -1,0 +1,7 @@
+Module("scalabackend.RecursiveImports"{ Def(
+                                          URI(
+                                            Language("Veritas")
+                                          , [ID(NablNsModule(), "scalabackend.RecursiveImports", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/RecursiveImports.stl/0"))]
+                                          )
+                                        )
+                                      }, [Import("scalabackend.Imports"{Use(Result(2090))}, None())], [])
