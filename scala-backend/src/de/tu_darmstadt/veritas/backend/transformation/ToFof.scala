@@ -59,8 +59,8 @@ object ToFof {
 
   // TODO make these methods more general
   private def toFof(rule: TypingRuleJudgment): FofUnitary = rule match {
-    case TypingJudgment(f1, f2, f3) => Appl("vtcheck", toFof(f1), toFof(f2), toFof(f3))
-    case TypingJudgmentSimple(f1, f2) => Appl("vtchecksimple", toFof(f1), toFof(f2))
+    case TypingJudgment(f1, f2, f3) => Appl(UntypedSymbol("tcheck"), toFof(f1), toFof(f2), toFof(f3))
+    case TypingJudgmentSimple(f1, f2) => Appl(UntypedSymbol("tchecksimple"), toFof(f1), toFof(f2))
     case FunctionExpJudgment(FunctionExpEq(f1, f2)) => Eq(toFof(f1), toFof(f2))
     case _ => throw BackendError("toFof(TypingRuleJudgement)")
   }

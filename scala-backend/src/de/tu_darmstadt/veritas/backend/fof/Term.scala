@@ -7,19 +7,26 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
 trait Term extends PrettyPrintable
 
-abstract class Variable(name : String) extends Term with SimplePrettyPrintable {
+abstract class Variable(name: String) extends Term with SimplePrettyPrintable {
   override def prettyString = s"V$name" 
 }
 
 // NOTE adds the V to make it valid _U_ppercase variable name 
 final case class UntypedVariable(name: String) extends Variable(name)
 
+abstract class Symbol(name: String) extends Term with SimplePrettyPrintable {
+  override def prettyString = s"v$name"
+}
+
+// NOTE adds the v to make it valid _l_owercase name for symbols (for functions in fof) 
+final case class UntypedSymbol(name: String) extends Symbol(name)
+
 // TODO what exactly distinguishes PlainTerm from Term? No free variables? No variables at all?
 sealed trait PlainTerm extends Term with FofUnitary
 
-final case class Appl(function: String, args: Term*) extends PlainTerm {
+final case class Appl(function: UntypedSymbol, args: Term*) extends PlainTerm {
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    writer.write(function)
+    writer.write(function.prettyString)
     if (!args.isEmpty) {
       writer.write("(")
       writer.write(args.head)
