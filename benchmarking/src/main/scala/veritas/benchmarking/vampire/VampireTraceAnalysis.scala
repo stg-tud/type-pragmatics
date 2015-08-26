@@ -108,7 +108,7 @@ case class FilterWeight(w: Int) extends VampireTraceAnalisis {
 
 case object MergeDuplicates extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
-    var map = Map[String, VampireClause]()
+    var map = Map[Seq[Literal], VampireClause]()
     var oldsize = 0
     trace.clauses.map(c =>
       if (c == null) {
@@ -116,9 +116,9 @@ case object MergeDuplicates extends VampireTraceAnalisis {
       }
       else {
         oldsize += 1
-        map.get(c.term) match {
-          case None => map += c.term -> c
-          case Some(c2) => map += c.term -> merge(c, c2)
+        map.get(c.lits) match {
+          case None => map += c.lits -> c
+          case Some(c2) => map += c.lits -> merge(c, c2)
         }
       }
     )
@@ -130,5 +130,5 @@ case object MergeDuplicates extends VampireTraceAnalisis {
     VampireTrace(newclauses, trace.config)
   }
 
-  def merge(c1: VampireClause, c2: VampireClause) = VampireClause(c1.term, Math.min(c1.age, c2.age), Math.min(c1.weight, c2.weight), c1.saNew + c2.saNew, c1.saActive + c2.saActive, c1.saPassive + c2.saPassive)
+  def merge(c1: VampireClause, c2: VampireClause) = VampireClause(c1.lits, Math.min(c1.age, c2.age), Math.min(c1.weight, c2.weight), c1.saNew + c2.saNew, c1.saActive + c2.saActive, c1.saPassive + c2.saPassive)
 }

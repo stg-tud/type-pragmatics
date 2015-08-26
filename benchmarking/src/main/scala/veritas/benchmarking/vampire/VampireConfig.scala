@@ -176,7 +176,7 @@ case class VampireConfig(version: String, mode: String = "casc", traceAnalyses: 
         idend = s.length
       val id = s.substring(prefix.length, idend).toInt
 
-      val termprefix = s.substring(idend + 1)
+      val termprefix = s.substring(idend + 2)
 
       val termendParenMatcher = parenDigits.matcher(termprefix)
       val parenStart = if (termendParenMatcher.find()) termendParenMatcher.start() else Int.MaxValue
@@ -215,10 +215,82 @@ case class VampireConfig(version: String, mode: String = "casc", traceAnalyses: 
     val NEW = 0
     val ACTIVE = 1
     val PASSIVE = 2
+
+    def parseClauseLiterals(term: String): Seq[Literal] = {
+      val litStrings = term.split(" \\| ")
+      litStrings map { litString =>
+        if (litString.startsWith("~")) {
+          // use term parser to parse predicate application
+          val FunApp(f, xs) = parseTerm(litString.substring(1))
+          Neg(PredApp(f, xs))
+        }
+        else {
+          val eqs = litString.split(" = ")
+          if (eqs.length == 2) {
+            val t1 = parseTerm(eqs(0))
+            val t2 = parseTerm(eqs(1))
+            Pos(Eq(t1, t2))
+          }
+          else {
+            val neqs = litString.split(" != ")
+            if (neqs.length == 2) {
+              val t1 = parseTerm(neqs(0))
+              val t2 = parseTerm(neqs(1))
+              Neg(Eq(t1, t2))
+            }
+            else {
+              // use term parser to parse predicate application
+              parseTerm(litString.substring(0)) match {
+                case FunApp(f, xs) => Pos(PredApp(f, xs))
+                case Symbol("$false") => Pos(False)
+                case Symbol("$true") => Neg(False)
+                case t => throw new IllegalArgumentException(s"Unexpected term $t")
+              }
+
+            }
+          }
+        }
+      }
+    }
+
+    def parseTerm(s: String): Term = {
+      val (t, rest) = parseTermRest(s)
+      if (rest.nonEmpty)
+        throw new IllegalStateException(s"Incomplete parse $t of $s, rest $rest")
+      t
+    }
+    def parseTermRest(s: String): (Term, String) = {
+      var open = s.indexOf('(')
+      val comma = s.indexOf(',')
+      val close = s.indexOf(')')
+      if (open < 0 || comma > 0 && comma < open || close > 0 && close < open) {
+        val ixOpen = if (open >= 0) open else s.length
+        val ixComma = if (comma >= 0) comma else s.length
+        val ixClose = if (close >= 0) close else s.length
+        val end = Math.min(ixOpen, Math.min(ixComma, ixClose))
+
+        val (sym, rest) = s.splitAt(end)
+        (Symbol(sym), rest)
+      }
+      else {
+        val sym = s.substring(0, open)
+        var args = Seq[Term]()
+        var rest = s.substring(open)
+        while (!rest.startsWith(")")) {
+          val (arg, newrest) = parseTermRest(rest.substring(1)) // skip '(' and ','
+          args = args :+ arg
+          rest = newrest
+        }
+        (FunApp(Symbol(sym), args), rest.substring(1))
+      }
+    }
+
     def addClause(kind: Int, id: Int, term: String, age: Int, weight: Int): Unit = {
+      val lits = parseClauseLiterals(term)
+
       var clause = clauses(id)
       if (clause == null) {
-        clause = VampireClause(term, age, weight, 0, 0, 0)
+        clause = VampireClause(lits, age, weight, 0, 0, 0)
         clauses(id) = clause
       }
 
