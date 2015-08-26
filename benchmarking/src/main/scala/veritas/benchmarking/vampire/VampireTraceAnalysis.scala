@@ -264,7 +264,10 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
           lits = lits map (_.subst(subst))
           lits = lits.distinct
         }
-        VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive)
+        if (lits.isEmpty)
+          null
+        else
+          VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive)
       }
     )
 
