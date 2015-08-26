@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.backend.tff
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.fof.FormulaRole
-import de.tu_darmstadt.veritas.backend.fof.Fof
+import de.tu_darmstadt.veritas.backend.fof.{Fof, Parenthesized}
 
 /** 
  * A TFF File consists of one or more of these TffAnnotated.
@@ -13,7 +13,7 @@ import de.tu_darmstadt.veritas.backend.fof.Fof
 final case class TffAnnotated(name: String, role: FormulaRole, formula: Fof) extends PrettyPrintable {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("tff('", name, "', ").write(role).write(", ")
-    writer.write(formula).write(").")
+    writer.write(Parenthesized(formula)).write(").")
   }
 }
 

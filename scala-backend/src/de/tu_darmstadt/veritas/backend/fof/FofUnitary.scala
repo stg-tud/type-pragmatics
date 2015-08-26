@@ -26,7 +26,7 @@ sealed abstract class QuantifiedFormula(variableList: Seq[Variable],
   require(!variableList.isEmpty, "quantify at least over 1 variable")
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    writer.write("(" + opString + "[")
+    writer.write(opString + "[")
     writer.write(variableList.head)
     // NOTE see ScalaUnderscoreVsFunctionLiteral
     variableList.tail foreach { v =>
@@ -35,7 +35,6 @@ sealed abstract class QuantifiedFormula(variableList: Seq[Variable],
     }
     writer.write("] : ")
     writer.write(formula)
-    writer.write(")")
   }
 }
 

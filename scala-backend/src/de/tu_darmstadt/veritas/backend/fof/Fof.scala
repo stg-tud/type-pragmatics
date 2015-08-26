@@ -10,12 +10,13 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
 /** 
  * A FOF File consists of one or more of these FofAnnotated.
- * FofAnnotated is basically == First order Forumula (Fof) + Role (Conjecture or Axiom etc.)
+ * FofAnnotated is basically == First order Formula (Fof) + Role (Conjecture or Axiom etc.)
+ * Formula has to be enclosed in brackets!
  */
 final case class FofAnnotated(name: String, role: FormulaRole, formula: Fof) extends PrettyPrintable {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("fof('", name, "', ").write(role).write(", ")
-    writer.write(formula).write(").")
+    writer.write(Parenthesized(formula)).write(").")
   }
 }
 
