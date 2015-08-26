@@ -1,12 +1,12 @@
 module backend.Ctors
 
-sorts OptTyp Typ
+sorts Typ
 constructors
-  noType : OptTyp
-  someType : Typ -> OptTyp
+  noInput: Typ
+  withOneInput: Typ -> Typ
+  withTwoInputs: Typ Typ -> Typ
 
 goal
-~e : ~T1
-~T1 = ~T2 
+true
 =========== Goal-1
-~e : ~T2
+true

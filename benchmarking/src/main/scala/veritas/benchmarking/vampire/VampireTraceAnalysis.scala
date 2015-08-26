@@ -13,6 +13,11 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       config
     } text("Summarizes the clauses of inconclusive prove attempts")
 
+    p.opt[Int]("vampire-top-weight") unbounded() action { (k,config) =>
+      analysisSeq += TopWeightClauses(k)
+      config
+    } text("Lists the clauses with least weight")
+
     p.opt[Int]("vampire-top-new") unbounded() action { (k,config) =>
       analysisSeq += TopNewClauses(k)
       config
@@ -42,6 +47,11 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       analysisSeq += UniqueNames
       config
     } text("Rename variables in clauses such that the naming is unique (makes clauses equal that previously only were equal modulo renaming)")
+
+    p.opt[Unit]("vampire-simplify-inlining") unbounded() action { (_,config) =>
+      analysisSeq += SimplifyWithInlining
+      config
+    } text("Simplify clauses through inlining of equations")
   }
 }
 
@@ -68,6 +78,16 @@ case object ClauseSummary extends VampireTraceAnalisis {
       }
     }
     b ++= s"  Constructed $numClauses new clauses (active=$numActive, active&passive=$numActivePassive, passive=$numPassive)\n"
+    trace
+  }
+}
+
+case class TopWeightClauses(k: Int) extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    val newClauses = trace.clauses.sortBy(c => if (c == null) -1 else c.weight)
+    b ++= s"  Top $k weight clauses (with least weight):\n"
+    for (i <- 1 to Math.min(k, newClauses.length))
+      b ++= f"    ${i}:\t ${newClauses(i-1)}\n"
     trace
   }
 }
@@ -227,4 +247,63 @@ case object UniqueNames extends VampireTraceAnalisis {
       val (xsnew, xschanged) = xs.map(uniqueNames(_)).unzip
       (FunApp(fnew, xsnew), fchanged || xschanged.nonEmpty && xschanged.reduce(_||_))
   }
+}
+
+case object SimplifyWithInlining extends VampireTraceAnalisis {
+
+  override def analyze(trace: VampireTrace, b: StringBuilder): VampireTrace = {
+    var simplified = 0
+    val newclauses = trace.clauses.map(c =>
+      if (c == null)
+        c
+      else {
+        subst = Map[String, Term]()
+        var lits = simplify(c.lits)
+        if (lits.size != c.lits.size) {
+          simplified += 1
+          lits = lits map (_.subst(subst))
+          lits = lits.distinct
+        }
+        if (lits.isEmpty)
+          null
+        else
+          VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive)
+      }
+    )
+
+    b ++= s"  Simplified $simplified clauses by equation inlining\n"
+    VampireTrace(newclauses, trace.config)
+  }
+
+  var subst = Map[String, Term]()
+
+  def simplify(lits: Seq[Literal], previous: Seq[Literal] = Seq()): Seq[Literal] =
+    if (lits.isEmpty)
+      previous
+    else
+      simplify(lits.head, lits.tail, previous)
+
+  def simplify(current: Literal, rest: Seq[Literal], previous: Seq[Literal]): Seq[Literal] = {
+    val (s,t) = current match {
+      case Neg(Eq(s:Symbol, t)) => s -> t
+      case Neg(Eq(t, s:Symbol)) => s -> t
+      case _ => return simplify(rest, previous :+ current)
+    }
+
+    if (subst.isDefinedAt(s.x) || t.contains(s))
+      return simplify(rest, previous :+ current)
+
+    if (s.isVar) {
+      subst += s.x -> t
+      simplify(rest, previous)
+    }
+    else if (s.isConst && (previous.exists(_.contains(s)) || rest.exists(_.contains(s)))) {
+      subst += s.x -> t
+      simplify(rest, previous)
+    }
+    else
+      simplify(rest, previous :+ current)
+  }
+
+
 }

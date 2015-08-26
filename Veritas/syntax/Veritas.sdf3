@@ -227,6 +227,9 @@ FunctionExp "==" FunctionExp
 FunctionExp.FunctionExpNeq = 
 FunctionExp "!=" FunctionExp
 
+FunctionExp.FunctionExpBiImpl = 
+FunctionExp "<=>" FunctionExp
+
 FunctionExp.FunctionExpAnd = 
 FunctionExp "&&" FunctionExp {right}
 
@@ -237,7 +240,7 @@ context-free priorities
 
    FunctionExp.FunctionExpNot > {non-assoc:
    FunctionExp.FunctionExpEq FunctionExp.FunctionExpNeq
-     } > FunctionExp.FunctionExpAnd > FunctionExp.FunctionExpOr
+     } > FunctionExp.FunctionExpAnd > FunctionExp.FunctionExpOr > FunctionExp.FunctionExpBiImpl
 
 context-free syntax
 

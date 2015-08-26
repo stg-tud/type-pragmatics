@@ -42,10 +42,29 @@ final case class FunctionExpAnd(left: FunctionExp, right: FunctionExp) extends F
   }
 }
 
+/**
+ * convenience to create more than binary ands (and also optimization if args.isEmpty => gives just true)
+ */
+object FunctionExpAnd {
+  def apply(args: Seq[FunctionExp]): FunctionExp = args match {
+    case Seq() => FunctionExpTrue
+    case Seq(oneArg) => oneArg
+    case Seq(head,rest@_*) => FunctionExpAnd(head, FunctionExpAnd(rest))
+  }
+}
+
 final case class FunctionExpOr(left: FunctionExp, right: FunctionExp) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("(")
     writer.write(left).write(" || ")
+    writer.write(right).write(")")
+  }
+}
+
+final case class FunctionExpBiImpl(left: FunctionExp, right: FunctionExp) extends FunctionExp {
+  override def prettyPrint(writer: PrettyPrintWriter) = {
+    writer.write("(")
+    writer.write(left).write(" <=> ")
     writer.write(right).write(")")
   }
 }
@@ -83,6 +102,13 @@ final case class FunctionExpMeta(metavar: MetaVar) extends FunctionExp with Simp
   override def prettyString = metavar.toPrettyString
 }
 
+/**
+ * convenience, such that MetaVars don't have to be explicitly wrapped when used inside as FunctionExp
+ */
+object FunctionExpMeta {
+  implicit def wrap(metavar: MetaVar): FunctionExpMeta = FunctionExpMeta(metavar)
+}
+
 final case class FunctionExpVar(name: String) extends FunctionExp with SimplePrettyPrintable {
   override def prettyString = name
 }
@@ -107,6 +133,8 @@ object FunctionExp {
       => FunctionExpAnd(FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpOr", f1, f2)
       => FunctionExpOr(FunctionExp.from(f1), FunctionExp.from(f2))
+    case StrategoAppl("FunctionExpBiImpl", f1, f2)
+      => FunctionExpBiImpl(FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpIf", cond, f1, f2)
       => FunctionExpIf(FunctionExp.from(cond), FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpLet", StrategoString(name), namedExpr, in)
