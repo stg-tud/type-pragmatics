@@ -1,0 +1,7 @@
+module backend.Goal
+
+goal
+~e : ~T1
+~T1 = ~T2 
+=========== Goal-1
+~e : ~T2

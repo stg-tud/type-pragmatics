@@ -1,7 +1,7 @@
-Module("scalabackend.Imports"{ Def(
-                                 URI(
-                                   Language("Veritas")
-                                 , [ID(NablNsModule(), "scalabackend.Imports", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/Imports.stl/0"))]
-                                 )
-                               )
-                             }, [Import("scalabackend.Goal"{Use(Result(1954))}, None())], [])
+Module("backend.Imports"{ Def(
+                            URI(
+                              Language("Veritas")
+                            , [ID(NablNsModule(), "backend.Imports", Unique("C:/Users/Daniel/Documents/HiWi Veritas/[Github offizielles Repo]/Veritas/test/backend/Imports.stl/0"))]
+                            )
+                          )
+                        }, [Import("backend.Goal"{Use(Result(4212))}, None())], [])

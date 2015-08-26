@@ -58,7 +58,7 @@ case class Strategy(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) ex
 case class Goals(goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     val timeoutString = timeout.map(" " + _.toString).getOrElse("")
-    goals.dropRight(1) foreach (writer.writeln("goal" + timeoutString).writeln(_))
+    goals.dropRight(1) foreach (writer.writeln("goal" + timeoutString).writeln(_).writeln())
     goals.lastOption foreach (writer.writeln("goal"+ timeoutString).write(_))
   }
 }
@@ -66,16 +66,15 @@ case class Goals(goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef
 case class GoalsWithStrategy(strategy: String, goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     val timeoutString = timeout.map(" " + _.toString).getOrElse("")
-    goals.dropRight(1) foreach (writer.writeln(s"goal verify-with ${strategy} " + timeoutString).writeln(_))
+    goals.dropRight(1) foreach (writer.writeln(s"goal verify-with ${strategy} " + timeoutString).writeln(_).writeln())
     goals.lastOption foreach (writer.writeln(s"goal verify-with ${strategy} " + timeoutString).write(_))
   }
 }
 
-
 case class Lemmas(lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     val timeoutString = timeout.map(" " + _.toString).getOrElse("")
-    lemmas.dropRight(1) foreach (writer.writeln("lemma" + timeoutString).writeln(_))
+    lemmas.dropRight(1) foreach (writer.writeln("lemma" + timeoutString).writeln(_).writeln())
     lemmas.lastOption foreach (writer.writeln("lemma"+ timeoutString).write(_))
   }
 }
@@ -83,14 +82,14 @@ case class Lemmas(lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleD
 case class LemmasWithStrategy(strategy: String, lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     val timeoutString = timeout.map(" " + _.toString).getOrElse("")
-    lemmas.dropRight(1) foreach (writer.writeln(s"lemma verify-with ${strategy} " + timeoutString).writeln(_))
+    lemmas.dropRight(1) foreach (writer.writeln(s"lemma verify-with ${strategy} " + timeoutString).writeln(_).writeln())
     lemmas.lastOption foreach (writer.writeln(s"lemma verify-with ${strategy} " + timeoutString).write(_))
   }
 }
 
 case class Axioms(axioms: Seq[TypingRule]) extends ModuleDef {
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    axioms.dropRight(1) foreach (writer.writeln("axiom").writeln(_))
+    axioms.dropRight(1) foreach (writer.writeln("axiom").writeln(_).writeln())
     axioms.lastOption foreach (writer.writeln("axiom").write(_))
   }
 }
@@ -116,7 +115,7 @@ case class Constructors(ctors: Seq[ConstructorDecl]) extends ModuleDef {
 
 case class Functions(funcs: Seq[FunctionDef]) extends ModuleDef {
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    funcs.dropRight(1) foreach (writer.writeln("function").writeln(_))
+    funcs.dropRight(1) foreach (writer.writeln("function").writeln(_).writeln())
     funcs.lastOption foreach (writer.writeln("function").write(_))
   }
 }

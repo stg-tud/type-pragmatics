@@ -1,0 +1,16 @@
+module backend.TwoGoalsOneAxiom
+
+axioms
+=========== all-possible
+~e : ~T
+
+goals
+~e : ~T1
+~T1 = ~T2 
+=========== Goal-1
+~e : ~T2
+
+~e : ~T1
+~T1 = ~T2 
+=========== Goal-2
+~e : ~T2
