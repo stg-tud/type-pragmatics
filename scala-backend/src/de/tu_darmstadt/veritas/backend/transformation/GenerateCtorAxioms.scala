@@ -10,14 +10,23 @@ import de.tu_darmstadt.veritas.backend.veritas.FunctionExpEq
 import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment.wrap
 import de.tu_darmstadt.veritas.backend.veritas.FunctionExpMeta
 import de.tu_darmstadt.veritas.backend.veritas.MetaVar
+import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.TypingRule
 
+/**
+ * Precondition: The module has only a single Constructors()
+ */
 object GenerateCtorAxioms extends ModuleDefTransformation {
+  override protected def checkPrecondition(input: Module): Unit = {
+    if (input.body.filter(_.isInstanceOf[Constructors]).size > 1)
+      throw TransformationError("Expected a Module() with a single Constructors() ModuleDef, got: " + input)
+  }
+  
   override protected def apply: PartialFunction[ModuleDef, Seq[ModuleDef]] = {
     case input@Constructors(decls) => {
       // generate EQ axioms
-      var generatedAxioms: Seq[TypingRule] = decls map { constructor =>
+      var generatedAxioms = decls map { constructor =>
         val args = constructor.in.map(_.name)
         
         val freshNames = new FreshNames
