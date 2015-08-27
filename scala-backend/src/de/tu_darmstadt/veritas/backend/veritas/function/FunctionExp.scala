@@ -71,7 +71,6 @@ final case class FunctionExpBiImpl(left: FunctionExp, right: FunctionExp) extend
 
 final case class FunctionExpIf(cond: FunctionExp, thenE: FunctionExp, elseE: FunctionExp) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    // TODO currently always prints on 3 newlines, should/can we shorten this?
     writer.write("if ")
     writer.writeln(cond)
     writer.write("then ")
@@ -90,6 +89,9 @@ final case class FunctionExpLet(name: String, namedExpr: FunctionExp, in: Functi
 
 final case class FunctionExpApp(functionName: String, args: Seq[FunctionExp]) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
+    // NOTE the parenthesis are necessary! They distinguish an empty-args function application (e.g.
+    // "something()" from a variable, bound by the pattern on the left side of a FunctionEq (just
+    // "something")
     writer.write(functionName, "(")
     args.dropRight(1) foreach (writer.write(_).write(", "))
     args.lastOption foreach (writer.write(_))
@@ -97,7 +99,6 @@ final case class FunctionExpApp(functionName: String, args: Seq[FunctionExp]) ex
   }
 }
 
-// FIXME is this used? What is the difference to FunctionExpVar?
 final case class FunctionExpMeta(metavar: MetaVar) extends FunctionExp with SimplePrettyPrintable {
   override def prettyString = metavar.toPrettyString
 }
