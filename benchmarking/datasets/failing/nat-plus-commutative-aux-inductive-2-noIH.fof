@@ -1,0 +1,21 @@
+fof('zero-is-nat', axiom, nat(z)).
+fof('succ-is-nat', axiom, (![X] : (nat(X) <=> nat(succ(X))))).
+fof('nat-dom', axiom, ![X] : (nat(X) => (X = z | (?[Y] : X = succ(Y))))).
+
+fof('nat-eq-z', axiom, z = z <=> true).
+fof('nat-eq-succ', axiom, (![X,Y] : (succ(X) = succ(Y) <=> X = Y))).
+fof('nat-neq', axiom, (![X] : z != succ(X))).
+
+fof('plus-zero', axiom, (![X] : plus(z, X) = X)).
+fof('plus-succ', axiom, (![X,Y] : plus(succ(X), Y) = succ(plus(X, Y)))).
+
+% Theorem
+% fof('plus-commutative-aux', axiom, ![X,Y] : (succ(plus(X,Y)) = plus(X,succ(Y)))).
+
+% Step case X = succ(a) with a of type nat
+fof('a-is-nat', axiom, nat(a)).
+
+% induction hypothesis is required
+% fof('plus-commutative-aux-IH', axiom, ![Y] : (succ(plus(a,Y)) = plus(a,succ(Y)))).
+
+fof('plus-commutative-aux', conjecture, ![Y] : (succ(plus(succ(a),Y)) = plus(succ(a),succ(Y)))).
