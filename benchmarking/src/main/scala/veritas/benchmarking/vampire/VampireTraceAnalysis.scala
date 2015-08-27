@@ -7,6 +7,8 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
   // shared between all vampire configurations
   val analysisSeq = collection.mutable.ListBuffer[VampireTraceAnalisis]()
 
+  var logIDs = false
+
   def contributeOptions(p: OptionParser[Main.Config]) = {
     p.opt[Unit]("vampire-clause-summary") unbounded() action { (_,config) =>
       analysisSeq += ClauseSummary
@@ -52,6 +54,12 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       analysisSeq += SimplifyWithInlining
       config
     } text("Simplify clauses through inlining of equations")
+
+    p.opt[Unit]("vampire-log-ids") action { (_,config) =>
+      logIDs = true
+      config
+    } text("Show origin ids of clauses")
+
   }
 }
 
@@ -161,7 +169,8 @@ case object MergeDuplicates extends VampireTraceAnalisis {
       Math.min(c1.weight, c2.weight),
       c1.saNew + c2.saNew,
       c1.saActive + c2.saActive,
-      c1.saPassive + c2.saPassive)
+      c1.saPassive + c2.saPassive,
+      c1.ids ++ c2.ids)
 }
 
 case object UniqueNames extends VampireTraceAnalisis {
@@ -175,7 +184,7 @@ case object UniqueNames extends VampireTraceAnalisis {
         val (lits, changed) = c.lits.map(uniqueNames(_)).unzip
         if (changed.nonEmpty && changed.reduce(_||_))
           renamed += 1
-        VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive)
+        VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids)
       }
     )
 
@@ -267,7 +276,7 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
         if (lits.isEmpty)
           null
         else
-          VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive)
+          VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids)
       }
     )
 

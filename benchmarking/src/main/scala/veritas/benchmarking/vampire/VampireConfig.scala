@@ -6,7 +6,10 @@ import java.util.regex.Pattern
 import veritas.benchmarking._
 import veritas.benchmarking.util.GrowingArray
 
-case class VampireConfig(version: String, mode: String = "casc", traceAnalyses: collection.mutable.Seq[VampireTraceAnalisis] = VampireTraceAnalisisOptions.analysisSeq) extends ProverConfig {
+case class VampireConfig(version: String,
+                         mode: String = "casc",
+                         traceAnalyses: collection.mutable.Seq[VampireTraceAnalisis] = VampireTraceAnalisisOptions.analysisSeq,
+                         logIDs: Boolean = false) extends ProverConfig {
   def isValid = proverCommand != null
 
   override val name = if (version == null) s"vampire" else s"vampire-$version"
@@ -290,7 +293,7 @@ case class VampireConfig(version: String, mode: String = "casc", traceAnalyses: 
 
       var clause = clauses(id)
       if (clause == null) {
-        clause = VampireClause(lits, age, weight, 0, 0, 0)
+        clause = VampireClause(lits, age, weight, 0, 0, 0, Set(id))
         clauses(id) = clause
       }
 

@@ -74,8 +74,13 @@ case class Neg(a: Atom) extends Literal {
 }
 
 // a clause is a disjunction of literals $lits
-case class VampireClause(lits: Seq[Literal], age: Int, weight: Int, var saNew: Int, var saActive: Int, var saPassive: Int) {
-  override def toString = s"${lits.mkString(" | ")} (weight=$weight, new=$saNew, active=$saActive, passive=$saPassive, age=$age)"
+case class VampireClause(lits: Seq[Literal], age: Int, weight: Int, var saNew: Int, var saActive: Int, var saPassive: Int, ids: Set[Int]) {
+  val IDstring =
+    if (VampireTraceAnalisisOptions.logIDs)
+      s", ids=${ids.toList.sorted.mkString("{", ",", "}")})"
+    else
+      ""
+  override def toString = s"${lits.mkString(" | ")} (weight=$weight, new=$saNew, active=$saActive, passive=$saPassive, age=$age$IDstring)"
   def term = lits.mkString(" | ")
 }
 
