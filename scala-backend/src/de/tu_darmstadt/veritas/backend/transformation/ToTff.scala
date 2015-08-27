@@ -87,9 +87,22 @@ object ToTff {
       case OrJudgment(ors)               => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgtoTff)))))
       case _                             => throw TransformationError("Encountered unsupported judgment while translating a goal or axiom (e.g. typing judgment)")
     }
-  
-  private def functionExpToTff(f: FunctionExp): FofUnitary = ???
-  
+
+  private def functionExpToTff(f: FunctionExp): FofUnitary =
+    f match {
+      case FunctionExpNot(f)           => ???
+      case FunctionExpEq(f1, f2)       => ???
+      case FunctionExpNeq(f1, f2)      => ???
+      case FunctionExpAnd(l, r)        => ???
+      case FunctionExpOr(l, r)         => ???
+      case FunctionExpBiImpl(l, r)     => ???
+      case FunctionExpApp(n, args)     => ???
+      case FunctionExpMeta(MetaVar(m)) => ??? //MetaVars should not be FunctionExps!!
+      case FunctionExpTrue             => True
+      case FunctionExpFalse            => False
+      case _                           => throw TransformationError("Encountered unsupported function expression while translating (e.g. if or let expression)")
+    }
+
   private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = ???
 
   private def constructFinalTff(name: String): TffFile = {
