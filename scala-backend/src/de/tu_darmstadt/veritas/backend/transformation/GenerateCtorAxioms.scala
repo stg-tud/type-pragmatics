@@ -14,8 +14,8 @@ import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.TypingRule
 
 object GenerateCtorAxioms extends ModuleDefTransformation {
-  override protected def apply(input: ModuleDef): Seq[ModuleDef] = input match {
-    case Constructors(decls) => {
+  override protected def apply: PartialFunction[ModuleDef, Seq[ModuleDef]] = {
+    case input@Constructors(decls) => {
       // generate EQ axioms
       var generatedAxioms: Seq[TypingRule] = decls map { constructor =>
         val args = constructor.in.map(_.name)
@@ -38,8 +38,5 @@ object GenerateCtorAxioms extends ModuleDefTransformation {
       
       Seq(input, Axioms(generatedAxioms))
     }
-    
-    // do not change anything but ctors
-    case _ => Seq(input)
   }
 }

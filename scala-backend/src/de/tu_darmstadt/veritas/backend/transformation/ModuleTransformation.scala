@@ -11,8 +11,8 @@ trait ModuleDefTransformation extends ModuleTransformation {
   final override def apply(input: Module): Module = {
     Module(input.name,
            input.imports,
-           input.body.flatMap(apply))
+           input.body.flatMap(apply orElse { case m => Seq(m) }))
   }
   
-  protected /* abstract */ def apply(input: ModuleDef): Seq[ModuleDef]
+  protected /* abstract */ def apply: PartialFunction[ModuleDef, Seq[ModuleDef]]
 }
