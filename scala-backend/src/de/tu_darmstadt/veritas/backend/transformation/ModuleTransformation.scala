@@ -11,8 +11,8 @@ trait ModuleDefTransformation extends ModuleTransformation {
   final override def apply(input: Module): Module = {
     Module(input.name,
            input.imports,
-           input.body.map(apply))
+           input.body.flatMap(apply))
   }
   
-  protected /* abstract */ def apply(input: ModuleDef): ModuleDef
+  protected /* abstract */ def apply(input: ModuleDef): Seq[ModuleDef]
 }
