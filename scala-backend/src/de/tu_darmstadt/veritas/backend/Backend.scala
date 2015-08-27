@@ -129,7 +129,8 @@ object Backend {
     
     val tffs = Seq[TffAnnotated](student_type, professor_type, course_type, michael_type, 
         victor_type, csc410_type, enrolled_type, teaches_type, taught_by_type, coordinator_of_type,
-        student_enrolled_axiom, student_enrolled_taught, michael_enrolled_csc410_axiom,
+        student_enrolled_axiom, professor_teaches_axiom, course_enrolled, course_teaches, coordinator_teaches,
+        student_enrolled_taught, michael_enrolled_csc410_axiom,
         victor_coordinator_csc410_axiom, teaching_conjecture)
     
     Seq(Module(mod.name + "Out", mod.imports, mod.body), TffFile("Victor_teaches_Michael", tffs))
