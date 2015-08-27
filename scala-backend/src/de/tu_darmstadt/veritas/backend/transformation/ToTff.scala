@@ -10,7 +10,7 @@ import de.tu_darmstadt.veritas.backend.veritas._
  * Structure of Core Modules
  * - no imports
  * - section with "symbol declarations" (constructor decls, const decls, function sigs...) (can be empty)
- * - section with n axioms (can be empty)
+ * - section with n axioms, where typing judgments were already transformed to some typed function! (can be empty)
  * - exactly one goal!
  */
 object ToTff {
@@ -38,6 +38,7 @@ object ToTff {
           constructFinalTff(name)
         } catch {
           case TransformationError(s) => throw TransformationError(s"Module ${name} was to be transformed to TFF, but contained elements not supported by core modules:" + s)
+          case e: Exception           => throw e
         }
       }
       case Module(name, _, _) => throw TransformationError(s"Module ${name} was to be transformed to TFF, but still contained imports!")
@@ -67,22 +68,29 @@ object ToTff {
       case TypingRule(name, prems, conseqs) =>
         TffAnnotated(name, Axiom, typingRuleToTff(prems, conseqs))
     }
-  
-  private def translateGoal(g: TypingRule): TffAnnotated = 
-    g match {
-    case TypingRule(name, prems, conseqs) =>
-      TffAnnotated(name, Conjecture, typingRuleToTff(prems, conseqs))
-  }
-  
-  private def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) =
-    Impl(makeAnd(prems map jdgtoTff), makeAnd(conseqs map jdgtoTff))
 
+  private def translateGoal(g: TypingRule): TffAnnotated =
+    g match {
+      case TypingRule(name, prems, conseqs) =>
+        TffAnnotated(name, Conjecture, typingRuleToTff(prems, conseqs))
+    }
+
+  private def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) =
+    Impl(Parenthesized(And(prems map jdgtoTff)), Parenthesized(And(conseqs map jdgtoTff)))
+
+  private def jdgtoTff(jdg: TypingRuleJudgment): FofUnitary =
+    jdg match {
+      case FunctionExpJudgment(f)        => functionExpToTff(f)
+      case ExistsJudgment(vars, jdglist) => Exists(makeVarlist(vars, jdglist), Parenthesized(And(jdglist map jdgtoTff)))
+      case ForallJudgment(vars, jdglist) => ForAll(makeVarlist(vars, jdglist), Parenthesized(And(jdglist map jdgtoTff)))
+      case NotJudgment(jdg)              => Not(jdgtoTff(jdg))
+      case OrJudgment(ors)               => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgtoTff)))))
+      case _                             => throw TransformationError("Encountered unsupported judgment while translating a goal or axiom (e.g. typing judgment)")
+    }
   
+  private def functionExpToTff(f: FunctionExp): FofUnitary = ???
   
-  private def jdgtoTff(jdg: TypingRuleJudgment): FofUnitary = ???
-  
-  private def makeAnd(formulas: Seq[FofUnitary]): FofUnitary = ???
-  
+  private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = ???
 
   private def constructFinalTff(name: String): TffFile = {
     goal match {
