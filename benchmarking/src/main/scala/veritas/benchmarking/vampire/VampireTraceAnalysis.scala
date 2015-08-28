@@ -40,6 +40,11 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       config
     } text("Remove clauses whose weight is larger than the given weight")
 
+    p.opt[Unit]("vampire-filter-used") unbounded() action { (_,config) =>
+      analysisSeq += FilterUsed
+      config
+    } text("Remove clauses used for deriving other clauses")
+
     p.opt[Unit]("vampire-merge-duplicates") unbounded() action { (_,config) =>
       analysisSeq += MergeDuplicates
       config
@@ -124,7 +129,7 @@ case class FilterForSymbol(s: String) extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
     var deleted = 0
     val filteredClauses = trace.clauses.filter(c => if (c == null || c.term.contains(s)) true else {deleted += 1; false})
-    b ++= s"  Filtered out $deleted clauses not containing symbol $s\n"
+    b ++= s"  Filtered out $deleted of ${trace.clauses.size} clauses not containing symbol $s\n"
     VampireTrace(filteredClauses, trace.config)
   }
 }
@@ -133,7 +138,28 @@ case class FilterWeight(w: Int) extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
     var deleted = 0
     val filteredClauses = trace.clauses.filter(c => if (c == null || c.weight <= w) true else {deleted += 1; false})
-    b ++= s"  Filtered out $deleted clauses with weight larger than $w\n"
+    b ++= s"  Filtered out $deleted of ${trace.clauses.size} clauses with weight larger than $w\n"
+    VampireTrace(filteredClauses, trace.config)
+  }
+}
+
+case object FilterUsed extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    var used = Set[Int]()
+    trace.clauses foreach (c =>
+      if (c != null)
+        c.steps foreach (used ++= _.predecessors)
+    )
+    var deleted = 0
+    val filteredClauses = trace.clauses.filter(c =>
+      if (c == null || c.ids.exists(used.contains(_)))
+        true
+      else  {
+        deleted += 1
+        false
+      }
+    )
+    b ++= s"  Filtered out $deleted of ${trace.clauses.size} clauses that were used for deriving other clauses\n"
     VampireTrace(filteredClauses, trace.config)
   }
 }
@@ -156,7 +182,7 @@ case object MergeDuplicates extends VampireTraceAnalisis {
     )
 
     val newsize = map.size
-    b ++= s"  Merged ${oldsize - newsize} duplicate clauses\n"
+    b ++= s"  Merged ${oldsize - newsize} of ${trace.clauses.size} duplicate clauses\n"
 
     val newclauses = map.values.toArray
     VampireTrace(newclauses, trace.config)
@@ -314,6 +340,4 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
     else
       simplify(rest, previous :+ current)
   }
-
-
 }

@@ -185,8 +185,8 @@ case class VampireConfig(version: String,
       val parenStart = if (termendParenMatcher.find()) termendParenMatcher.start() else Int.MaxValue
       val termendBraceMatcher = braceDigits.matcher(termprefix)
       val braceStart = if (termendBraceMatcher.find()) termendBraceMatcher.start() else Int.MaxValue
-      var squareStart = s.indexOf('[')
-      if (squareStart <= 0)  squareStart = s.length + 1
+      var squareStart = termprefix.indexOf('[')
+      if (squareStart <= 0)  squareStart = termprefix.length + 1
 
       val termend = Math.min(parenStart, Math.min(braceStart, squareStart)) - 1
       val term = termprefix.substring(0, termend)
@@ -213,15 +213,19 @@ case class VampireConfig(version: String,
         }
 
       val step =
-        if (braceStart == Int.MaxValue)
+        if (squareStart == s.length + 1)
           null
         else {
-          val restTerm = termprefix.substring(braceStart + 1)
-          val space = restTerm.indexOf(' ')
+          val restTerm = termprefix.substring(squareStart + 1)
+          val space = restTerm.lastIndexOf(' ')
           val rule = restTerm.substring(0, space)
           val predString = restTerm.substring(space + 1, restTerm.length - 1)
-          val predStrings = predString.split(",")
-          VampireStep(rule, predStrings.map(_.toInt))
+          if (predString.charAt(0).isDigit) {
+            val predStrings = predString.split(",")
+            VampireStep(rule, predStrings.map(_.toInt))
+          }
+          else
+            VampireStep(restTerm.substring(0, restTerm.size - 1), Seq())
         }
 
       (id, term, age, weight, step)
