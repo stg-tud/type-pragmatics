@@ -17,7 +17,7 @@ isValue(app(e1, e2)) = false
 function
 isFreeVar : Var Exp -> Bool
 isFreeVar(v, var(x))       = x == v
-isFreeVar(v, abs(x, T, e)) = x != v && isFreeVar(v, e) 
+isFreeVar(v, abs(x, T, e)) = (x != v) && (isFreeVar(v, e)) 
 isFreeVar(v, app(e1, e2))  = isFreeVar(v, e1) || isFreeVar(v, e2)
 
 // axiom

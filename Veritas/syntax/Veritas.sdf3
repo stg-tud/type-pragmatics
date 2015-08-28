@@ -67,16 +67,16 @@ OrCaseList.OrCons =
 > {layout("1.first.col == 3.first.col")}
 
 TypingJudgment.TypingJudgment = 
-<<FunctionExp> |- <FunctionExp> : <FunctionExp>> 
+<<FunctionExpMeta> |- <FunctionExpMeta> : <FunctionExpMeta>> 
 
 TypingJudgment.TypingJudgmentSimple = 
-<<FunctionExp> : <FunctionExp>>
+<<FunctionExpMeta> : <FunctionExpMeta>>
 
 FunctionExpJudgment.FunctionExpJudgment = 
 FunctionExp 
 
 ReduceJudgment.ReduceJudgment = 
-<<FunctionExp> -\> <FunctionExp>> 
+<<FunctionExpMeta> -\> <FunctionExpMeta>> 
 
 ExistsJudgment.ExistsJudgment = 
 <exists <{MetaVar ","}+> 
@@ -103,7 +103,7 @@ TypingRuleJudgment = NotJudgment
 
 sorts
 
-  Module Rules DerivedRules Import ModuleDec Qualified Definitions
+  Module Import
 
 lexical syntax
 
@@ -146,12 +146,12 @@ FunctionSig =
 <<ID> : <SortRef>> {ast("FunctionSig(<1>, [], <2>)")}
 
 FunctionEq = 
-<<ID> = <FunctionExp>
+<<ID> = <FunctionExpMeta>
 
 > {ast("FunctionEq(<1>, [], <2>)")}
 
 FunctionEq.FunctionEq = 
-<<ID>(<{FunctionPattern ","}*>) = <FunctionExp>
+<<ID>(<{FunctionPattern ","}*>) = <FunctionExpMeta>
 
 >
  
@@ -174,6 +174,15 @@ RelationEq =
 
 > {ast("FunctionEq(<1>, <2>, FunctionExpTrue())")}
 
+FunctionExpMeta = FunctionExp
+
+FunctionExpMeta.FunctionMeta = 
+MetaVar
+
+MetaVar.Meta = 
+<~<ID>> 
+
+
 FunctionExp.FunctionExpUndefined = 
 <undefined>
  
@@ -187,27 +196,21 @@ FunctionExp.FunctionExpVar =
 ID
  
 FunctionExp.FunctionExpIf = 
-<if <FunctionExp>
-then <FunctionExp> 
-else <FunctionExp>
+<if <FunctionExpMeta>
+then <FunctionExpMeta> 
+else <FunctionExpMeta>
 >
  
 FunctionExp.FunctionExpLet = 
-<let <ID> = <FunctionExp> in 
-  <FunctionExp>
+<let <ID> = <FunctionExpMeta> in 
+  <FunctionExpMeta>
 >
  
 FunctionExp.FunctionExpApp = 
-<<ID>(<{FunctionExp ","}*>)>
+<<ID>(<{FunctionExpMeta ","}*>)>
  
 FunctionExp = 
 <(<FunctionExp>)> {bracket}
-
-FunctionExp.FunctionExpMeta = 
-MetaVar 
-
-MetaVar.Meta = 
-<~<ID>> 
   
 FunctionPattern.FunctionPatVar = 
 ID 
@@ -219,13 +222,13 @@ FunctionExp.FunctionExpNot =
 "!"FunctionExp
 
 FunctionExp.FunctionExpEq = 
-FunctionExp "=" FunctionExp 
+FunctionExpMeta "=" FunctionExpMeta 
 
 FunctionExp.FunctionExpEq = 
-FunctionExp "==" FunctionExp
+FunctionExpMeta "==" FunctionExpMeta
  
 FunctionExp.FunctionExpNeq = 
-FunctionExp "!=" FunctionExp
+FunctionExpMeta "!=" FunctionExpMeta
 
 FunctionExp.FunctionExpBiImpl = 
 FunctionExp "<=>" FunctionExp

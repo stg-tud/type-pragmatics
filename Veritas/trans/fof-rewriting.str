@@ -10,7 +10,7 @@ rules
 	R : FunctionExpVar(v) -> Var(v)
 	R : FunctionExpTrue() -> True()
 	R : FunctionExpFalse() -> False()
-	R : FunctionExpMeta(Meta(v)) -> Meta(v)
+	R : FunctionMeta(Meta(v)) -> Meta(v)
 	R : FunctionExpNeq(t1, t2) -> Neq(t1, t2)
 	R : FunctionExpEq(t1, t2) -> Eq(t1, t2)
 	R : FunctionExpNot(t) -> <make-not> (t)
