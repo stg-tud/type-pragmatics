@@ -254,16 +254,16 @@ Module(
             JudgementCons(
               FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("rt"))
+                  FunctionMeta(Meta("rt"))
                 , FunctionExpApp(
                     "tcons"
                   , [ FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("x1"))
+                      , [ FunctionMeta(Meta("x1"))
                         , FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("y2"))
-                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                          , [ FunctionMeta(Meta("y2"))
+                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                             ]
                           )
                         ]
@@ -272,11 +272,11 @@ Module(
                         "tcons"
                       , [ FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("x2"))
+                          , [ FunctionMeta(Meta("x2"))
                             , FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("y1"))
-                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                              , [ FunctionMeta(Meta("y1"))
+                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                 ]
                               )
                             ]
@@ -285,11 +285,11 @@ Module(
                             "tcons"
                           , [ FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("x2"))
+                              , [ FunctionMeta(Meta("x2"))
                                 , FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("y2"))
-                                    , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                  , [ FunctionMeta(Meta("y2"))
+                                    , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                     ]
                                   )
                                 ]
@@ -298,11 +298,11 @@ Module(
                                 "tcons"
                               , [ FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("x1"))
+                                  , [ FunctionMeta(Meta("x1"))
                                     , FunctionExpApp(
                                         "rcons"
-                                      , [ FunctionExpMeta(Meta("y1"))
-                                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                      , [ FunctionMeta(Meta("y1"))
+                                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                         ]
                                       )
                                     ]
@@ -311,11 +311,11 @@ Module(
                                     "tcons"
                                   , [ FunctionExpApp(
                                         "rcons"
-                                      , [ FunctionExpMeta(Meta("x1"))
+                                      , [ FunctionMeta(Meta("x1"))
                                         , FunctionExpApp(
                                             "rcons"
-                                          , [ FunctionExpMeta(Meta("y2"))
-                                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                          , [ FunctionMeta(Meta("y2"))
+                                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                             ]
                                           )
                                         ]
@@ -324,11 +324,11 @@ Module(
                                         "tcons"
                                       , [ FunctionExpApp(
                                             "rcons"
-                                          , [ FunctionExpMeta(Meta("x2"))
+                                          , [ FunctionMeta(Meta("x2"))
                                             , FunctionExpApp(
                                                 "rcons"
-                                              , [ FunctionExpMeta(Meta("y2"))
-                                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                                              , [ FunctionMeta(Meta("y2"))
+                                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                                                 ]
                                               )
                                             ]
@@ -350,14 +350,14 @@ Module(
               )
             , FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("r"))
+                  FunctionMeta(Meta("r"))
                 , FunctionExpApp(
                     "rcons"
-                  , [ FunctionExpMeta(Meta("x1"))
+                  , [ FunctionMeta(Meta("x1"))
                     , FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("y2"))
-                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                      , [ FunctionMeta(Meta("y2"))
+                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                         ]
                       )
                     ]
@@ -371,7 +371,7 @@ Module(
             FunctionExpJudgment(
               FunctionExpApp(
                 "rowIn"
-              , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("rt"))]
+              , [FunctionMeta(Meta("r")), FunctionMeta(Meta("rt"))]
               )
             )
           )
@@ -391,7 +391,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("rt"))
+                      FunctionMeta(Meta("rt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -405,7 +405,7 @@ Module(
                   )
                 , FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("r"))
+                      FunctionMeta(Meta("r"))
                     , FunctionExpApp(
                         "rcons"
                       , [FunctionExpVar("x1"), FunctionExpApp("rcons", [FunctionExpVar("x1"), FunctionExpVar("rempty")])]
@@ -420,7 +420,7 @@ Module(
                   FunctionExpNot(
                     FunctionExpApp(
                       "rowIn"
-                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("rt"))]
+                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("rt"))]
                     )
                   )
                 )
@@ -447,7 +447,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("rt"))
+                      FunctionMeta(Meta("rt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -479,7 +479,7 @@ Module(
                   )
                 , FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("r"))
+                      FunctionMeta(Meta("r"))
                     , FunctionExpApp(
                         "rcons"
                       , [ FunctionExpVar("x1")
@@ -499,7 +499,7 @@ Module(
                   FunctionExpNot(
                     FunctionExpApp(
                       "rowIn"
-                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("rt"))]
+                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("rt"))]
                     )
                   )
                 )
@@ -526,7 +526,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("rt"))
+                      FunctionMeta(Meta("rt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -597,7 +597,7 @@ Module(
                   )
                 , FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("r"))
+                      FunctionMeta(Meta("r"))
                     , FunctionExpApp(
                         "rcons"
                       , [ FunctionExpVar("x1")
@@ -617,7 +617,7 @@ Module(
                   FunctionExpNot(
                     FunctionExpApp(
                       "rowIn"
-                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("rt"))]
+                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("rt"))]
                     )
                   )
                 )
@@ -634,16 +634,16 @@ Module(
             JudgementCons(
               FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("rt"))
+                  FunctionMeta(Meta("rt"))
                 , FunctionExpApp(
                     "tcons"
                   , [ FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("x1"))
+                      , [ FunctionMeta(Meta("x1"))
                         , FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("y2"))
-                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                          , [ FunctionMeta(Meta("y2"))
+                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                             ]
                           )
                         ]
@@ -652,11 +652,11 @@ Module(
                         "tcons"
                       , [ FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("x2"))
+                          , [ FunctionMeta(Meta("x2"))
                             , FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("y1"))
-                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                              , [ FunctionMeta(Meta("y1"))
+                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                 ]
                               )
                             ]
@@ -665,11 +665,11 @@ Module(
                             "tcons"
                           , [ FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("x2"))
+                              , [ FunctionMeta(Meta("x2"))
                                 , FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("y2"))
-                                    , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                  , [ FunctionMeta(Meta("y2"))
+                                    , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                     ]
                                   )
                                 ]
@@ -678,11 +678,11 @@ Module(
                                 "tcons"
                               , [ FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("x1"))
+                                  , [ FunctionMeta(Meta("x1"))
                                     , FunctionExpApp(
                                         "rcons"
-                                      , [ FunctionExpMeta(Meta("y1"))
-                                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                      , [ FunctionMeta(Meta("y1"))
+                                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                         ]
                                       )
                                     ]
@@ -691,11 +691,11 @@ Module(
                                     "tcons"
                                   , [ FunctionExpApp(
                                         "rcons"
-                                      , [ FunctionExpMeta(Meta("x1"))
+                                      , [ FunctionMeta(Meta("x1"))
                                         , FunctionExpApp(
                                             "rcons"
-                                          , [ FunctionExpMeta(Meta("y2"))
-                                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                          , [ FunctionMeta(Meta("y2"))
+                                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                             ]
                                           )
                                         ]
@@ -704,11 +704,11 @@ Module(
                                         "tcons"
                                       , [ FunctionExpApp(
                                             "rcons"
-                                          , [ FunctionExpMeta(Meta("x2"))
+                                          , [ FunctionMeta(Meta("x2"))
                                             , FunctionExpApp(
                                                 "rcons"
-                                              , [ FunctionExpMeta(Meta("y2"))
-                                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                                              , [ FunctionMeta(Meta("y2"))
+                                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                                                 ]
                                               )
                                             ]
@@ -730,25 +730,25 @@ Module(
               )
             , FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("prt"))
+                  FunctionMeta(Meta("prt"))
                 , FunctionExpApp(
                     "tcons"
-                  , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x1")), FunctionExpVar("rempty")])
+                  , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x1")), FunctionExpVar("rempty")])
                     , FunctionExpApp(
                         "tcons"
-                      , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x2")), FunctionExpVar("rempty")])
+                      , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x2")), FunctionExpVar("rempty")])
                         , FunctionExpApp(
                             "tcons"
-                          , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x2")), FunctionExpVar("rempty")])
+                          , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x2")), FunctionExpVar("rempty")])
                             , FunctionExpApp(
                                 "tcons"
-                              , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x1")), FunctionExpVar("rempty")])
+                              , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x1")), FunctionExpVar("rempty")])
                                 , FunctionExpApp(
                                     "tcons"
-                                  , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x1")), FunctionExpVar("rempty")])
+                                  , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x1")), FunctionExpVar("rempty")])
                                     , FunctionExpApp(
                                         "tcons"
-                                      , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x2")), FunctionExpVar("rempty")])
+                                      , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x2")), FunctionExpVar("rempty")])
                                         , FunctionExpVar("tempty")
                                         ]
                                       )
@@ -770,8 +770,8 @@ Module(
         , ConsequenceList(
             FunctionExpJudgment(
               FunctionExpEq(
-                FunctionExpApp("projectFirstRaw", [FunctionExpMeta(Meta("rt"))])
-              , FunctionExpMeta(Meta("prt"))
+                FunctionExpApp("projectFirstRaw", [FunctionMeta(Meta("rt"))])
+              , FunctionMeta(Meta("prt"))
               )
             )
           )
@@ -784,25 +784,25 @@ Module(
           PremiseList(
             FunctionExpJudgment(
               FunctionExpEq(
-                FunctionExpMeta(Meta("prt"))
+                FunctionMeta(Meta("prt"))
               , FunctionExpApp(
                   "tcons"
-                , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x1")), FunctionExpVar("rempty")])
+                , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x1")), FunctionExpVar("rempty")])
                   , FunctionExpApp(
                       "tcons"
-                    , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x2")), FunctionExpVar("rempty")])
+                    , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x2")), FunctionExpVar("rempty")])
                       , FunctionExpApp(
                           "tcons"
-                        , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x2")), FunctionExpVar("rempty")])
+                        , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x2")), FunctionExpVar("rempty")])
                           , FunctionExpApp(
                               "tcons"
-                            , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x1")), FunctionExpVar("rempty")])
+                            , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x1")), FunctionExpVar("rempty")])
                               , FunctionExpApp(
                                   "tcons"
-                                , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x1")), FunctionExpVar("rempty")])
+                                , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x1")), FunctionExpVar("rempty")])
                                   , FunctionExpApp(
                                       "tcons"
-                                    , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x2")), FunctionExpVar("rempty")])
+                                    , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x2")), FunctionExpVar("rempty")])
                                       , FunctionExpVar("tempty")
                                       ]
                                     )
@@ -823,8 +823,8 @@ Module(
         , ConsequenceList(
             FunctionExpJudgment(
               FunctionExpEq(
-                FunctionExpApp("projectFirstRaw", [FunctionExpMeta(Meta("prt"))])
-              , FunctionExpMeta(Meta("prt"))
+                FunctionExpApp("projectFirstRaw", [FunctionMeta(Meta("prt"))])
+              , FunctionMeta(Meta("prt"))
               )
             )
           )
@@ -838,16 +838,16 @@ Module(
             JudgementCons(
               FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("rt"))
+                  FunctionMeta(Meta("rt"))
                 , FunctionExpApp(
                     "tcons"
                   , [ FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("x1"))
+                      , [ FunctionMeta(Meta("x1"))
                         , FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("y2"))
-                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                          , [ FunctionMeta(Meta("y2"))
+                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                             ]
                           )
                         ]
@@ -856,11 +856,11 @@ Module(
                         "tcons"
                       , [ FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("x2"))
+                          , [ FunctionMeta(Meta("x2"))
                             , FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("y1"))
-                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                              , [ FunctionMeta(Meta("y1"))
+                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                 ]
                               )
                             ]
@@ -869,11 +869,11 @@ Module(
                             "tcons"
                           , [ FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("x2"))
+                              , [ FunctionMeta(Meta("x2"))
                                 , FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("y2"))
-                                    , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                  , [ FunctionMeta(Meta("y2"))
+                                    , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                     ]
                                   )
                                 ]
@@ -882,11 +882,11 @@ Module(
                                 "tcons"
                               , [ FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("x1"))
+                                  , [ FunctionMeta(Meta("x1"))
                                     , FunctionExpApp(
                                         "rcons"
-                                      , [ FunctionExpMeta(Meta("y1"))
-                                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                      , [ FunctionMeta(Meta("y1"))
+                                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                         ]
                                       )
                                     ]
@@ -895,11 +895,11 @@ Module(
                                     "tcons"
                                   , [ FunctionExpApp(
                                         "rcons"
-                                      , [ FunctionExpMeta(Meta("x1"))
+                                      , [ FunctionMeta(Meta("x1"))
                                         , FunctionExpApp(
                                             "rcons"
-                                          , [ FunctionExpMeta(Meta("y2"))
-                                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                          , [ FunctionMeta(Meta("y2"))
+                                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                             ]
                                           )
                                         ]
@@ -908,11 +908,11 @@ Module(
                                         "tcons"
                                       , [ FunctionExpApp(
                                             "rcons"
-                                          , [ FunctionExpMeta(Meta("x2"))
+                                          , [ FunctionMeta(Meta("x2"))
                                             , FunctionExpApp(
                                                 "rcons"
-                                              , [ FunctionExpMeta(Meta("y2"))
-                                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                                              , [ FunctionMeta(Meta("y2"))
+                                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                                                 ]
                                               )
                                             ]
@@ -934,53 +934,53 @@ Module(
               )
             , FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("drt"))
+                  FunctionMeta(Meta("drt"))
                 , FunctionExpApp(
                     "tcons"
                   , [ FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("y2"))
-                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                      , [ FunctionMeta(Meta("y2"))
+                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                         ]
                       )
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("y1"))
-                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                          , [ FunctionMeta(Meta("y1"))
+                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                             ]
                           )
                         , FunctionExpApp(
                             "tcons"
                           , [ FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("y2"))
-                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                              , [ FunctionMeta(Meta("y2"))
+                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                 ]
                               )
                             , FunctionExpApp(
                                 "tcons"
                               , [ FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("y1"))
-                                    , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                  , [ FunctionMeta(Meta("y1"))
+                                    , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                     ]
                                   )
                                 , FunctionExpApp(
                                     "tcons"
                                   , [ FunctionExpApp(
                                         "rcons"
-                                      , [ FunctionExpMeta(Meta("y2"))
-                                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                      , [ FunctionMeta(Meta("y2"))
+                                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                         ]
                                       )
                                     , FunctionExpApp(
                                         "tcons"
                                       , [ FunctionExpApp(
                                             "rcons"
-                                          , [ FunctionExpMeta(Meta("y2"))
-                                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                                          , [ FunctionMeta(Meta("y2"))
+                                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                                             ]
                                           )
                                         , FunctionExpVar("tempty")
@@ -1004,8 +1004,8 @@ Module(
         , ConsequenceList(
             FunctionExpJudgment(
               FunctionExpEq(
-                FunctionExpApp("dropFirstColRaw", [FunctionExpMeta(Meta("rt"))])
-              , FunctionExpMeta(Meta("drt"))
+                FunctionExpApp("dropFirstColRaw", [FunctionMeta(Meta("rt"))])
+              , FunctionMeta(Meta("drt"))
               )
             )
           )
@@ -1019,10 +1019,10 @@ Module(
             JudgementCons(
               FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("prt"))
+                  FunctionMeta(Meta("prt"))
                 , FunctionExpApp(
                     "tcons"
-                  , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x1")), FunctionExpVar("rempty")])
+                  , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x1")), FunctionExpVar("rempty")])
                     , FunctionExpVar("tempty")
                     ]
                   )
@@ -1031,10 +1031,10 @@ Module(
             , JudgementCons(
                 FunctionExpJudgment(
                   FunctionExpEq(
-                    FunctionExpMeta(Meta("drt"))
+                    FunctionMeta(Meta("drt"))
                   , FunctionExpApp(
                       "tcons"
-                    , [ FunctionExpApp("rcons", [FunctionExpMeta(Meta("x2")), FunctionExpVar("rempty")])
+                    , [ FunctionExpApp("rcons", [FunctionMeta(Meta("x2")), FunctionExpVar("rempty")])
                       , FunctionExpVar("tempty")
                       ]
                     )
@@ -1042,13 +1042,13 @@ Module(
                 )
               , FunctionExpJudgment(
                   FunctionExpEq(
-                    FunctionExpMeta(Meta("rt"))
+                    FunctionMeta(Meta("rt"))
                   , FunctionExpApp(
                       "tcons"
                     , [ FunctionExpApp(
                           "rcons"
-                        , [ FunctionExpMeta(Meta("x1"))
-                          , FunctionExpApp("rcons", [FunctionExpMeta(Meta("x2")), FunctionExpVar("rempty")])
+                        , [ FunctionMeta(Meta("x1"))
+                          , FunctionExpApp("rcons", [FunctionMeta(Meta("x2")), FunctionExpVar("rempty")])
                           ]
                         )
                       , FunctionExpVar("tempty")
@@ -1065,9 +1065,9 @@ Module(
               FunctionExpEq(
                 FunctionExpApp(
                   "attachColToFrontRaw"
-                , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                 )
-              , FunctionExpApp("some", [FunctionExpMeta(Meta("rt"))])
+              , FunctionExpApp("some", [FunctionMeta(Meta("rt"))])
               )
             )
           )
@@ -1090,7 +1090,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("prt"))
+                      FunctionMeta(Meta("prt"))
                     , FunctionExpApp(
                         "tcons"
                       , [FunctionExpApp("rcons", [FunctionExpVar("x1"), FunctionExpVar("rempty")]), FunctionExpVar("tempty")]
@@ -1100,7 +1100,7 @@ Module(
                 , JudgementCons(
                     FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("drt"))
+                        FunctionMeta(Meta("drt"))
                       , FunctionExpApp(
                           "tcons"
                         , [FunctionExpApp("rcons", [FunctionExpVar("x2"), FunctionExpVar("rempty")]), FunctionExpVar("tempty")]
@@ -1109,7 +1109,7 @@ Module(
                     )
                   , FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("rt"))
+                        FunctionMeta(Meta("rt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -1130,9 +1130,9 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "attachColToFrontRaw"
-                    , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                    , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                     )
-                  , FunctionExpApp("some", [FunctionExpMeta(Meta("rt"))])
+                  , FunctionExpApp("some", [FunctionMeta(Meta("rt"))])
                   )
                 )
               )
@@ -1146,7 +1146,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("prt"))
+                      FunctionMeta(Meta("prt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp("rcons", [FunctionExpVar("x1"), FunctionExpVar("rempty")])
@@ -1161,7 +1161,7 @@ Module(
                 , JudgementCons(
                     FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("drt"))
+                        FunctionMeta(Meta("drt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp("rcons", [FunctionExpVar("x2"), FunctionExpVar("rempty")])
@@ -1175,7 +1175,7 @@ Module(
                     )
                   , FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("rt"))
+                        FunctionMeta(Meta("rt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -1204,9 +1204,9 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "attachColToFrontRaw"
-                    , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                    , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                     )
-                  , FunctionExpApp("some", [FunctionExpMeta(Meta("rt"))])
+                  , FunctionExpApp("some", [FunctionMeta(Meta("rt"))])
                   )
                 )
               )
@@ -1222,37 +1222,37 @@ Module(
             JudgementCons(
               FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("prt"))
+                  FunctionMeta(Meta("prt"))
                 , FunctionExpApp(
                     "tcons"
                   , [ FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("y2"))
-                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                      , [ FunctionMeta(Meta("y2"))
+                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                         ]
                       )
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("y1"))
-                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                          , [ FunctionMeta(Meta("y1"))
+                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                             ]
                           )
                         , FunctionExpApp(
                             "tcons"
                           , [ FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("y2"))
-                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                              , [ FunctionMeta(Meta("y2"))
+                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                 ]
                               )
                             , FunctionExpApp(
                                 "tcons"
                               , [ FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("y1"))
-                                    , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                  , [ FunctionMeta(Meta("y1"))
+                                    , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                     ]
                                   )
                                 , FunctionExpVar("tempty")
@@ -1269,37 +1269,37 @@ Module(
             , JudgementCons(
                 FunctionExpJudgment(
                   FunctionExpEq(
-                    FunctionExpMeta(Meta("drt"))
+                    FunctionMeta(Meta("drt"))
                   , FunctionExpApp(
                       "tcons"
                     , [ FunctionExpApp(
                           "rcons"
-                        , [ FunctionExpMeta(Meta("y2"))
-                          , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                        , [ FunctionMeta(Meta("y2"))
+                          , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                           ]
                         )
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
                               "rcons"
-                            , [ FunctionExpMeta(Meta("y1"))
-                              , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                            , [ FunctionMeta(Meta("y1"))
+                              , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                               ]
                             )
                           , FunctionExpApp(
                               "tcons"
                             , [ FunctionExpApp(
                                   "rcons"
-                                , [ FunctionExpMeta(Meta("y2"))
-                                  , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                , [ FunctionMeta(Meta("y2"))
+                                  , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                   ]
                                 )
                               , FunctionExpApp(
                                   "tcons"
                                 , [ FunctionExpApp(
                                       "rcons"
-                                    , [ FunctionExpMeta(Meta("y1"))
-                                      , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                    , [ FunctionMeta(Meta("y1"))
+                                      , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                       ]
                                     )
                                   , FunctionExpVar("tempty")
@@ -1315,37 +1315,37 @@ Module(
                 )
               , FunctionExpJudgment(
                   FunctionExpEq(
-                    FunctionExpMeta(Meta("rt"))
+                    FunctionMeta(Meta("rt"))
                   , FunctionExpApp(
                       "tcons"
                     , [ FunctionExpApp(
                           "rcons"
-                        , [ FunctionExpMeta(Meta("y2"))
-                          , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                        , [ FunctionMeta(Meta("y2"))
+                          , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                           ]
                         )
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
                               "rcons"
-                            , [ FunctionExpMeta(Meta("y1"))
-                              , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                            , [ FunctionMeta(Meta("y1"))
+                              , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                               ]
                             )
                           , FunctionExpApp(
                               "tcons"
                             , [ FunctionExpApp(
                                   "rcons"
-                                , [ FunctionExpMeta(Meta("y2"))
-                                  , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                , [ FunctionMeta(Meta("y2"))
+                                  , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                   ]
                                 )
                               , FunctionExpApp(
                                   "tcons"
                                 , [ FunctionExpApp(
                                       "rcons"
-                                    , [ FunctionExpMeta(Meta("y1"))
-                                      , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                    , [ FunctionMeta(Meta("y1"))
+                                      , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                       ]
                                     )
                                   , FunctionExpVar("tempty")
@@ -1368,9 +1368,9 @@ Module(
               FunctionExpEq(
                 FunctionExpApp(
                   "rawUnion"
-                , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                 )
-              , FunctionExpMeta(Meta("rt"))
+              , FunctionMeta(Meta("rt"))
               )
             )
           )
@@ -1392,7 +1392,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("prt"))
+                      FunctionMeta(Meta("prt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -1407,7 +1407,7 @@ Module(
                 , JudgementCons(
                     FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("drt"))
+                        FunctionMeta(Meta("drt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -1437,7 +1437,7 @@ Module(
                     )
                   , FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("rt"))
+                        FunctionMeta(Meta("rt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -1482,9 +1482,9 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "rawUnion"
-                    , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                    , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                     )
-                  , FunctionExpMeta(Meta("rt"))
+                  , FunctionMeta(Meta("rt"))
                   )
                 )
               )
@@ -1508,7 +1508,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("prt"))
+                      FunctionMeta(Meta("prt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -1531,7 +1531,7 @@ Module(
                 , JudgementCons(
                     FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("drt"))
+                        FunctionMeta(Meta("drt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -1561,7 +1561,7 @@ Module(
                     )
                   , FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("rt"))
+                        FunctionMeta(Meta("rt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -1606,9 +1606,9 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "rawUnion"
-                    , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                    , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                     )
-                  , FunctionExpMeta(Meta("rt"))
+                  , FunctionMeta(Meta("rt"))
                   )
                 )
               )
@@ -1624,37 +1624,37 @@ Module(
             JudgementCons(
               FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("prt"))
+                  FunctionMeta(Meta("prt"))
                 , FunctionExpApp(
                     "tcons"
                   , [ FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("y2"))
-                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                      , [ FunctionMeta(Meta("y2"))
+                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                         ]
                       )
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("y1"))
-                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                          , [ FunctionMeta(Meta("y1"))
+                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                             ]
                           )
                         , FunctionExpApp(
                             "tcons"
                           , [ FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("y2"))
-                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                              , [ FunctionMeta(Meta("y2"))
+                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                 ]
                               )
                             , FunctionExpApp(
                                 "tcons"
                               , [ FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("y1"))
-                                    , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                  , [ FunctionMeta(Meta("y1"))
+                                    , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                     ]
                                   )
                                 , FunctionExpVar("tempty")
@@ -1671,37 +1671,37 @@ Module(
             , JudgementCons(
                 FunctionExpJudgment(
                   FunctionExpEq(
-                    FunctionExpMeta(Meta("drt"))
+                    FunctionMeta(Meta("drt"))
                   , FunctionExpApp(
                       "tcons"
                     , [ FunctionExpApp(
                           "rcons"
-                        , [ FunctionExpMeta(Meta("y2"))
-                          , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                        , [ FunctionMeta(Meta("y2"))
+                          , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                           ]
                         )
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
                               "rcons"
-                            , [ FunctionExpMeta(Meta("y1"))
-                              , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                            , [ FunctionMeta(Meta("y1"))
+                              , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                               ]
                             )
                           , FunctionExpApp(
                               "tcons"
                             , [ FunctionExpApp(
                                   "rcons"
-                                , [ FunctionExpMeta(Meta("y2"))
-                                  , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                , [ FunctionMeta(Meta("y2"))
+                                  , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                   ]
                                 )
                               , FunctionExpApp(
                                   "tcons"
                                 , [ FunctionExpApp(
                                       "rcons"
-                                    , [ FunctionExpMeta(Meta("y1"))
-                                      , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                    , [ FunctionMeta(Meta("y1"))
+                                      , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                       ]
                                     )
                                   , FunctionExpVar("tempty")
@@ -1717,37 +1717,37 @@ Module(
                 )
               , FunctionExpJudgment(
                   FunctionExpEq(
-                    FunctionExpMeta(Meta("rt"))
+                    FunctionMeta(Meta("rt"))
                   , FunctionExpApp(
                       "tcons"
                     , [ FunctionExpApp(
                           "rcons"
-                        , [ FunctionExpMeta(Meta("y2"))
-                          , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                        , [ FunctionMeta(Meta("y2"))
+                          , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                           ]
                         )
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
                               "rcons"
-                            , [ FunctionExpMeta(Meta("y1"))
-                              , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                            , [ FunctionMeta(Meta("y1"))
+                              , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                               ]
                             )
                           , FunctionExpApp(
                               "tcons"
                             , [ FunctionExpApp(
                                   "rcons"
-                                , [ FunctionExpMeta(Meta("y2"))
-                                  , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                , [ FunctionMeta(Meta("y2"))
+                                  , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                   ]
                                 )
                               , FunctionExpApp(
                                   "tcons"
                                 , [ FunctionExpApp(
                                       "rcons"
-                                    , [ FunctionExpMeta(Meta("y1"))
-                                      , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                    , [ FunctionMeta(Meta("y1"))
+                                      , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                       ]
                                     )
                                   , FunctionExpVar("tempty")
@@ -1770,9 +1770,9 @@ Module(
               FunctionExpEq(
                 FunctionExpApp(
                   "rawIntersection"
-                , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                 )
-              , FunctionExpMeta(Meta("rt"))
+              , FunctionMeta(Meta("rt"))
               )
             )
           )
@@ -1794,7 +1794,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("prt"))
+                      FunctionMeta(Meta("prt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -1808,7 +1808,7 @@ Module(
                   )
                 , FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("drt"))
+                      FunctionMeta(Meta("drt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -1844,7 +1844,7 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "rawIntersection"
-                    , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                    , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                     )
                   , FunctionExpVar("tempty")
                   )
@@ -1870,7 +1870,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("prt"))
+                      FunctionMeta(Meta("prt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -1893,7 +1893,7 @@ Module(
                 , JudgementCons(
                     FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("drt"))
+                        FunctionMeta(Meta("drt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -1923,7 +1923,7 @@ Module(
                     )
                   , FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("rt"))
+                        FunctionMeta(Meta("rt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -1944,9 +1944,9 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "rawIntersection"
-                    , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                    , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                     )
-                  , FunctionExpMeta(Meta("rt"))
+                  , FunctionMeta(Meta("rt"))
                   )
                 )
               )
@@ -1962,37 +1962,37 @@ Module(
             JudgementCons(
               FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("prt"))
+                  FunctionMeta(Meta("prt"))
                 , FunctionExpApp(
                     "tcons"
                   , [ FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("y2"))
-                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                      , [ FunctionMeta(Meta("y2"))
+                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                         ]
                       )
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("y1"))
-                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                          , [ FunctionMeta(Meta("y1"))
+                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                             ]
                           )
                         , FunctionExpApp(
                             "tcons"
                           , [ FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("y2"))
-                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                              , [ FunctionMeta(Meta("y2"))
+                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                 ]
                               )
                             , FunctionExpApp(
                                 "tcons"
                               , [ FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("y1"))
-                                    , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                  , [ FunctionMeta(Meta("y1"))
+                                    , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                     ]
                                   )
                                 , FunctionExpVar("tempty")
@@ -2008,37 +2008,37 @@ Module(
               )
             , FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("drt"))
+                  FunctionMeta(Meta("drt"))
                 , FunctionExpApp(
                     "tcons"
                   , [ FunctionExpApp(
                         "rcons"
-                      , [ FunctionExpMeta(Meta("y2"))
-                        , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z2")), FunctionExpVar("rempty")])
+                      , [ FunctionMeta(Meta("y2"))
+                        , FunctionExpApp("rcons", [FunctionMeta(Meta("z2")), FunctionExpVar("rempty")])
                         ]
                       )
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
                             "rcons"
-                          , [ FunctionExpMeta(Meta("y1"))
-                            , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                          , [ FunctionMeta(Meta("y1"))
+                            , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                             ]
                           )
                         , FunctionExpApp(
                             "tcons"
                           , [ FunctionExpApp(
                                 "rcons"
-                              , [ FunctionExpMeta(Meta("y2"))
-                                , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                              , [ FunctionMeta(Meta("y2"))
+                                , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                 ]
                               )
                             , FunctionExpApp(
                                 "tcons"
                               , [ FunctionExpApp(
                                     "rcons"
-                                  , [ FunctionExpMeta(Meta("y1"))
-                                    , FunctionExpApp("rcons", [FunctionExpMeta(Meta("z1")), FunctionExpVar("rempty")])
+                                  , [ FunctionMeta(Meta("y1"))
+                                    , FunctionExpApp("rcons", [FunctionMeta(Meta("z1")), FunctionExpVar("rempty")])
                                     ]
                                   )
                                 , FunctionExpVar("tempty")
@@ -2060,7 +2060,7 @@ Module(
               FunctionExpEq(
                 FunctionExpApp(
                   "rawDifference"
-                , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                 )
               , FunctionExpVar("tempty")
               )
@@ -2084,7 +2084,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("prt"))
+                      FunctionMeta(Meta("prt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -2098,7 +2098,7 @@ Module(
                   )
                 , FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("drt"))
+                      FunctionMeta(Meta("drt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -2134,9 +2134,9 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "rawDifference"
-                    , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                    , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                     )
-                  , FunctionExpMeta(Meta("prt"))
+                  , FunctionMeta(Meta("prt"))
                   )
                 )
               )
@@ -2160,7 +2160,7 @@ Module(
                 JudgementCons(
                   FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("prt"))
+                      FunctionMeta(Meta("prt"))
                     , FunctionExpApp(
                         "tcons"
                       , [ FunctionExpApp(
@@ -2183,7 +2183,7 @@ Module(
                 , JudgementCons(
                     FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("drt"))
+                        FunctionMeta(Meta("drt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -2213,7 +2213,7 @@ Module(
                     )
                   , FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("rt"))
+                        FunctionMeta(Meta("rt"))
                       , FunctionExpApp(
                           "tcons"
                         , [ FunctionExpApp(
@@ -2234,9 +2234,9 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "rawDifference"
-                    , [FunctionExpMeta(Meta("prt")), FunctionExpMeta(Meta("drt"))]
+                    , [FunctionMeta(Meta("prt")), FunctionMeta(Meta("drt"))]
                     )
-                  , FunctionExpMeta(Meta("rt"))
+                  , FunctionMeta(Meta("rt"))
                   )
                 )
               )

@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.backend.veritas.FunctionExpApp
 import de.tu_darmstadt.veritas.backend.veritas.FunctionExpBiImpl
 import de.tu_darmstadt.veritas.backend.veritas.FunctionExpEq
 import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment.wrap
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpMeta
+import de.tu_darmstadt.veritas.backend.veritas.FunctionMeta
 import de.tu_darmstadt.veritas.backend.veritas.FunctionExpNeq
 import de.tu_darmstadt.veritas.backend.veritas.MetaVar
 import de.tu_darmstadt.veritas.backend.veritas.Module
@@ -26,8 +26,8 @@ object GenerateCtorAxioms extends ModuleDefTransformation {
         val args = constructor.in map (_.name)
         
         val freshNames = new FreshNames
-        val argsLeft = freshNames(args) map (MetaVar(_)) map (FunctionExpMeta(_))
-        val argsRight = freshNames(args) map (MetaVar(_)) map (FunctionExpMeta(_))
+        val argsLeft = freshNames(args) map (MetaVar(_)) map (FunctionMeta(_))
+        val argsRight = freshNames(args) map (MetaVar(_)) map (FunctionMeta(_))
         
         // no premise, just a biimplication as conclusion
         TypingRule("EQ-" + constructor.name, Nil, 
@@ -45,8 +45,8 @@ object GenerateCtorAxioms extends ModuleDefTransformation {
         if constructorLeft.out == constructorRight.out
       } yield {
         val freshNames = new FreshNames
-        val argsLeft = freshNames(constructorLeft.in map (_.name)) map (MetaVar(_)) map (FunctionExpMeta(_))
-        val argsRight = freshNames(constructorRight.in map (_.name)) map (MetaVar(_)) map (FunctionExpMeta(_))
+        val argsLeft = freshNames(constructorLeft.in map (_.name)) map (MetaVar(_)) map (FunctionMeta(_))
+        val argsRight = freshNames(constructorRight.in map (_.name)) map (MetaVar(_)) map (FunctionMeta(_))
         
         TypingRule("DIFF-" + constructorLeft.name + "-" + constructorRight.name, Nil,
             Seq(FunctionExpNeq(FunctionExpApp(constructorLeft.name, argsLeft),

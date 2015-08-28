@@ -8,7 +8,9 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 
-sealed trait FunctionExp extends PrettyPrintable
+sealed trait FunctionExpMeta extends PrettyPrintable
+
+sealed trait FunctionExp extends FunctionExpMeta with PrettyPrintable
 
 final case class FunctionExpNot(f: FunctionExp) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -17,7 +19,7 @@ final case class FunctionExpNot(f: FunctionExp) extends FunctionExp {
   }
 }
 
-final case class FunctionExpEq(f1: FunctionExp, f2: FunctionExp) extends FunctionExp {
+final case class FunctionExpEq(f1: FunctionExpMeta, f2: FunctionExpMeta) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     // NOTE according to Veritas.sdf3 both pretty printings are correct: " = " and " == "
     writer.write("(")
@@ -26,7 +28,7 @@ final case class FunctionExpEq(f1: FunctionExp, f2: FunctionExp) extends Functio
   }
 }
 
-final case class FunctionExpNeq(f1: FunctionExp, f2: FunctionExp) extends FunctionExp {
+final case class FunctionExpNeq(f1: FunctionExpMeta, f2: FunctionExpMeta) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("(")
     writer.write(f1).write(" != ")
@@ -69,7 +71,7 @@ final case class FunctionExpBiImpl(left: FunctionExp, right: FunctionExp) extend
   }
 }
 
-final case class FunctionExpIf(cond: FunctionExp, thenE: FunctionExp, elseE: FunctionExp) extends FunctionExp {
+final case class FunctionExpIf(cond: FunctionExpMeta, thenE: FunctionExpMeta, elseE: FunctionExpMeta) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("if ")
     writer.writeln(cond)
@@ -80,34 +82,34 @@ final case class FunctionExpIf(cond: FunctionExp, thenE: FunctionExp, elseE: Fun
   }
 }
 
-final case class FunctionExpLet(name: String, namedExpr: FunctionExp, in: FunctionExp) extends FunctionExp {
+final case class FunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: FunctionExpMeta) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("let ", name, " = ").write(namedExpr).write(" in ")
     writer.indentOptional().write(in).unindent()
   }
 }
 
-final case class FunctionExpApp(functionName: String, args: Seq[FunctionExp]) extends FunctionExp {
+final case class FunctionExpApp(functionName: String, args: Seq[FunctionExpMeta]) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     // NOTE the parenthesis are necessary! They distinguish an empty-args function application (e.g.
     // "something()" from a variable, bound by the pattern on the left side of a FunctionEq (just
     // "something")
     writer.write(functionName, "(")
     args.dropRight(1) foreach (writer.write(_).write(", "))
-    args.lastOption foreach (writer.write(_))
+    //args.lastOption foreach (writer.write(_))
     writer.write(")")
   }
 }
 
-final case class FunctionExpMeta(metavar: MetaVar) extends FunctionExp with SimplePrettyPrintable {
+final case class FunctionMeta(metavar: MetaVar) extends FunctionExpMeta with SimplePrettyPrintable {
   override def prettyString = metavar.toPrettyString
 }
 
 /**
  * convenience, such that MetaVars don't have to be explicitly wrapped when used inside as FunctionExp
  */
-object FunctionExpMeta {
-  implicit def wrap(metavar: MetaVar): FunctionExpMeta = FunctionExpMeta(metavar)
+object FunctionMeta {
+  implicit def wrap(metavar: MetaVar): FunctionMeta = FunctionMeta(metavar)
 }
 
 final case class FunctionExpVar(name: String) extends FunctionExp with SimplePrettyPrintable {
@@ -122,14 +124,22 @@ final case object FunctionExpFalse extends FunctionExp with SimplePrettyPrintabl
   override val prettyString = "false"
 }
 
+
+object FunctionExpMeta {
+  def from(term: StrategoTerm): FunctionExpMeta = term match {
+    case StrategoAppl("FunctionMeta", metavar) => FunctionMeta(MetaVar.from(metavar))
+    case sa => FunctionExp.from(sa) //if not a meta variable, try to parse as FunctionExp (will throw error if it doesn't work)
+  }
+}
+
 object FunctionExp {
   def from(term: StrategoTerm): FunctionExp = term match {
     case StrategoAppl("FunctionExpNot", f)
       => FunctionExpNot(FunctionExp.from(f))
     case StrategoAppl("FunctionExpEq", f1, f2)
-      => FunctionExpEq(FunctionExp.from(f1), FunctionExp.from(f2))
+      => FunctionExpEq(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
     case StrategoAppl("FunctionExpNeq", f1, f2)
-      => FunctionExpNeq(FunctionExp.from(f1), FunctionExp.from(f2))
+      => FunctionExpNeq(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
     case StrategoAppl("FunctionExpAnd", f1, f2)
       => FunctionExpAnd(FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpOr", f1, f2)
@@ -137,12 +147,11 @@ object FunctionExp {
     case StrategoAppl("FunctionExpBiImpl", f1, f2)
       => FunctionExpBiImpl(FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpIf", cond, f1, f2)
-      => FunctionExpIf(FunctionExp.from(cond), FunctionExp.from(f1), FunctionExp.from(f2))
+      => FunctionExpIf(FunctionExpMeta.from(cond), FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
     case StrategoAppl("FunctionExpLet", StrategoString(name), namedExpr, in)
-      => FunctionExpLet(name, FunctionExp.from(namedExpr), FunctionExp.from(in))
+      => FunctionExpLet(name, FunctionExpMeta.from(namedExpr), FunctionExpMeta.from(in))
     case StrategoAppl("FunctionExpApp", StrategoString(func), StrategoList(args)) 
-      => FunctionExpApp(func, args map FunctionExp.from)
-    case StrategoAppl("FunctionExpMeta", metavar) => FunctionExpMeta(MetaVar.from(metavar))
+      => FunctionExpApp(func, args map FunctionExpMeta.from)
     case StrategoAppl("FunctionExpVar", StrategoString(name)) => FunctionExpVar(name)
     case StrategoAppl("FunctionExpTrue") => FunctionExpTrue
     case StrategoAppl("FunctionExpFalse") => FunctionExpFalse

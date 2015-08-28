@@ -37,15 +37,15 @@ Module(
     )
   , Axioms(
       [ TypingRule(
-          PremiseList(FunctionExpJudgment(FunctionExpApp("isValue", [FunctionExpMeta(Meta("sql"))])))
+          PremiseList(FunctionExpJudgment(FunctionExpApp("isValue", [FunctionMeta(Meta("sql"))])))
         , RuleName("======================", "isValue-INV")
         , ConsequenceList(
             ExistsJudgment(
               [Meta("t")]
             , FunctionExpJudgment(
                 FunctionExpEq(
-                  FunctionExpMeta(Meta("sql"))
-                , FunctionExpApp("Tvalue", [FunctionExpMeta(Meta("t"))])
+                  FunctionMeta(Meta("sql"))
+                , FunctionExpApp("Tvalue", [FunctionMeta(Meta("t"))])
                 )
               )
             )

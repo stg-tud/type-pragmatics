@@ -65,8 +65,8 @@ object ToFof {
     case _ => throw BackendError("toFof(TypingRuleJudgement)")
   }
 
-  private def toFof(exp: FunctionExp): Term = exp match {
-    case FunctionExpMeta(MetaVar(metavar)) => UntypedVariable(metavar)
+  private def toFof(exp: FunctionExpMeta): Term = exp match {
+    case FunctionMeta(MetaVar(metavar)) => UntypedVariable(metavar)
     // FIXME how to ensure that "FunctionExp" will always only give Terms, not new Formulas?
     // case FunctionExpEq(f1, f2) => Variable("TODO eq")
     case _                        => throw BackendError("toFof(FunctionExp)")
@@ -89,8 +89,8 @@ private object CollectVariables {
   }
 
   // FIXME String for variables is not typesafe...
-  def allVariables(exp: FunctionExp): Seq[String] = exp match {
-    case FunctionExpMeta(MetaVar(metavar)) => List(metavar)
+  def allVariables(exp: FunctionExpMeta): Seq[String] = exp match {
+    case FunctionMeta(MetaVar(metavar)) => List(metavar)
     case FunctionExpNot(f) => allVariables(f)
     case FunctionExpEq(f1, f2) => allVariables(f1) ++ allVariables(f2)
     case FunctionExpNeq(f1, f2) => allVariables(f1) ++ allVariables(f2)

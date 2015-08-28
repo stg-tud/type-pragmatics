@@ -97,7 +97,7 @@ object ToTff {
       case FunctionExpOr(l, r)         => ???
       case FunctionExpBiImpl(l, r)     => ???
       case FunctionExpApp(n, args)     => ???
-      case FunctionExpMeta(MetaVar(m)) => ??? //MetaVars should not be FunctionExps!!
+      //case FunctionMeta(MetaVar(m)) => ??? //MetaVars should not be FunctionExps!!
       case FunctionExpTrue             => True
       case FunctionExpFalse            => False
       case _                           => throw TransformationError("Encountered unsupported function expression while translating (e.g. if or let expression)")

@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 
 sealed trait TypingRuleJudgment extends PrettyPrintable
 
-case class TypingJudgment(f1: FunctionExp, f2: FunctionExp, f3: FunctionExp) extends TypingRuleJudgment {
+case class TypingJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta, f3: FunctionExpMeta) extends TypingRuleJudgment {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(f1).write(" |- ")
     writer.write(f2).write(" : ")
@@ -16,7 +16,7 @@ case class TypingJudgment(f1: FunctionExp, f2: FunctionExp, f3: FunctionExp) ext
   }
 }
 
-case class TypingJudgmentSimple(f1: FunctionExp, f2: FunctionExp) extends TypingRuleJudgment {
+case class TypingJudgmentSimple(f1: FunctionExpMeta, f2: FunctionExpMeta) extends TypingRuleJudgment {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(f1).write(" : ")
     writer.write(f2)
@@ -60,7 +60,7 @@ case class ForallJudgment(varlist : Seq[MetaVar], jdglst: Seq[TypingRuleJudgment
 
 // TODO untested, no example in Veritas/test/*.stl files
 // TODO decide whether we keep this or not
-case class ReduceJudgment(f1: FunctionExp, f2: FunctionExp) extends TypingRuleJudgment {
+case class ReduceJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta) extends TypingRuleJudgment {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(f1).write(" -> ")
     writer.write(f2)
@@ -92,8 +92,8 @@ case class OrJudgment(orCases: Seq[Seq[TypingRuleJudgment]]) extends TypingRuleJ
 
 object TypingRuleJudgment {
   def from(term: StrategoTerm): TypingRuleJudgment = term match {
-    case StrategoAppl("TypingJudgment", f1, f2, f3) => TypingJudgment(FunctionExp.from(f1), FunctionExp.from(f2), FunctionExp.from(f3))
-    case StrategoAppl("TypingJudgmentSimple", f1, f2) => TypingJudgmentSimple(FunctionExp.from(f1), FunctionExp.from(f2))
+    case StrategoAppl("TypingJudgment", f1, f2, f3) => TypingJudgment(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2), FunctionExpMeta.from(f3))
+    case StrategoAppl("TypingJudgmentSimple", f1, f2) => TypingJudgmentSimple(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
     case StrategoAppl("FunctionExpJudgment", f) => FunctionExpJudgment(FunctionExp.from(f))
     case StrategoAppl("ExistsJudgment", StrategoList(metavars), jdglst) => ExistsJudgment(
       metavars map MetaVar.from,
@@ -106,7 +106,7 @@ object TypingRuleJudgment {
         TypingRule.unpackJudgmentCons(jdglst) map TypingRuleJudgment.from
       }
     )
-    case StrategoAppl("ReduceJudgment", f1, f2) => ReduceJudgment(FunctionExp.from(f1), FunctionExp.from(f2))
+    case StrategoAppl("ReduceJudgment", f1, f2) => ReduceJudgment(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
     case StrategoAppl("NotJudgment", jdg) => NotJudgment(TypingRuleJudgment.from(jdg))
     case t => throw VeritasParseError(t)
   }

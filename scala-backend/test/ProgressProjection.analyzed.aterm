@@ -74,16 +74,16 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [ FunctionExpMeta(Meta("a"))
-                          , FunctionExpApp("table"{Use(Result(4399))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionExpMeta(Meta("rt"))])
+                        , [ FunctionMeta(Meta("a"))
+                          , FunctionExpApp("table"{Use(Result(4399))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionMeta(Meta("rt"))])
                           ]
                         )
                       , FunctionExpApp(
                           "some"{Use(Result(4409))}
                         , [ FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                              , FunctionExpMeta(Meta("rt1"))
+                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                              , FunctionMeta(Meta("rt1"))
                               ]
                             )
                           ]
@@ -107,19 +107,19 @@ Module(
                     , JudgementCons(
                         FunctionExpJudgment(
                           FunctionExpEq(
-                            FunctionExpMeta(Meta("al"))
+                            FunctionMeta(Meta("al"))
                           , FunctionExpApp(
                               "acons"{Use(Result(4413))}
-                            , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("al"))]
+                            , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("al"))]
                             )
                           )
                         )
                       , FunctionExpJudgment(
                           FunctionExpEq(
-                            FunctionExpMeta(Meta("rt"))
+                            FunctionMeta(Meta("rt"))
                           , FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                             )
                           )
                         )
@@ -145,18 +145,18 @@ Module(
                     JudgementCons(
                       FunctionExpJudgment(
                         FunctionExpEq(
-                          FunctionExpMeta(Meta("al"))
-                        , FunctionExpApp("acons"{Use(Result(4413))}, [FunctionExpMeta(Meta("a2")), FunctionExpVar("aempty"{Use(Result(4397))})])
+                          FunctionMeta(Meta("al"))
+                        , FunctionExpApp("acons"{Use(Result(4413))}, [FunctionMeta(Meta("a2")), FunctionExpVar("aempty"{Use(Result(4397))})])
                         )
                       )
                     , FunctionExpJudgment(
                         FunctionExpEq(
                           FunctionExpApp(
                             "findCol"{Use(Result(4401))}
-                          , [ FunctionExpMeta(Meta("a"))
+                          , [ FunctionMeta(Meta("a"))
                             , FunctionExpApp(
                                 "table"{Use(Result(4399))}
-                              , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("rt"))]
+                              , [FunctionMeta(Meta("al")), FunctionMeta(Meta("rt"))]
                               )
                             ]
                           )
@@ -164,8 +164,8 @@ Module(
                             "some"{Use(Result(4409))}
                           , [ FunctionExpApp(
                                 "tcons"{Use(Result(4407))}
-                              , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                                , FunctionExpMeta(Meta("rt1"))
+                              , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                                , FunctionMeta(Meta("rt1"))
                                 ]
                               )
                             ]
@@ -190,19 +190,19 @@ Module(
                     , JudgementCons(
                         FunctionExpJudgment(
                           FunctionExpEq(
-                            FunctionExpMeta(Meta("al"))
+                            FunctionMeta(Meta("al"))
                           , FunctionExpApp(
                               "acons"{Use(Result(4413))}
-                            , [FunctionExpMeta(Meta("a3")), FunctionExpMeta(Meta("ar"))]
+                            , [FunctionMeta(Meta("a3")), FunctionMeta(Meta("ar"))]
                             )
                           )
                         )
                       , FunctionExpJudgment(
                           FunctionExpEq(
-                            FunctionExpMeta(Meta("rt"))
+                            FunctionMeta(Meta("rt"))
                           , FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                             )
                           )
                         )
@@ -238,15 +238,15 @@ Module(
                         JudgementCons(
                           FunctionExpJudgment(FunctionExpNeq(FunctionExpVar("al"{Use(Result(4443))}), FunctionExpVar("aempty"{Use(Result(4445))})))
                         , JudgementCons(
-                            FunctionExpJudgment(FunctionExpEq(FunctionExpMeta(Meta("al")), FunctionExpVar("al"{Use(Result(4443))})))
+                            FunctionExpJudgment(FunctionExpEq(FunctionMeta(Meta("al")), FunctionExpVar("al"{Use(Result(4443))})))
                           , FunctionExpJudgment(
                               FunctionExpEq(
                                 FunctionExpApp(
                                   "findCol"{Use(Result(4450))}
-                                , [ FunctionExpMeta(Meta("a"))
+                                , [ FunctionMeta(Meta("a"))
                                   , FunctionExpApp(
                                       "table"{Use(Result(4448))}
-                                    , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("rt"))]
+                                    , [FunctionMeta(Meta("al")), FunctionMeta(Meta("rt"))]
                                     )
                                   ]
                                 )
@@ -254,8 +254,8 @@ Module(
                                   "some"{Use(Result(4458))}
                                 , [ FunctionExpApp(
                                       "tcons"{Use(Result(4456))}
-                                    , [ FunctionExpApp("rcons"{Use(Result(4454))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4452))})])
-                                      , FunctionExpMeta(Meta("rt1"))
+                                    , [ FunctionExpApp("rcons"{Use(Result(4454))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4452))})])
+                                      , FunctionMeta(Meta("rt1"))
                                       ]
                                     )
                                   ]
@@ -281,19 +281,19 @@ Module(
                         , JudgementCons(
                             FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpMeta(Meta("al"))
+                                FunctionMeta(Meta("al"))
                               , FunctionExpApp(
                                   "acons"{Use(Result(4462))}
-                                , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("ar"))]
+                                , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("ar"))]
                                 )
                               )
                             )
                           , FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpMeta(Meta("rt"))
+                                FunctionMeta(Meta("rt"))
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4456))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                 )
                               )
                             )
@@ -312,18 +312,18 @@ Module(
                         , JudgementCons(
                             FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpMeta(Meta("al"))
-                              , FunctionExpApp("acons"{Use(Result(4462))}, [FunctionExpMeta(Meta("a2")), FunctionExpVar("al"{Use(Result(4443))})])
+                                FunctionMeta(Meta("al"))
+                              , FunctionExpApp("acons"{Use(Result(4462))}, [FunctionMeta(Meta("a2")), FunctionExpVar("al"{Use(Result(4443))})])
                               )
                             )
                           , FunctionExpJudgment(
                               FunctionExpEq(
                                 FunctionExpApp(
                                   "findCol"{Use(Result(4450))}
-                                , [ FunctionExpMeta(Meta("a"))
+                                , [ FunctionMeta(Meta("a"))
                                   , FunctionExpApp(
                                       "table"{Use(Result(4448))}
-                                    , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("rt"))]
+                                    , [FunctionMeta(Meta("al")), FunctionMeta(Meta("rt"))]
                                     )
                                   ]
                                 )
@@ -331,8 +331,8 @@ Module(
                                   "some"{Use(Result(4458))}
                                 , [ FunctionExpApp(
                                       "tcons"{Use(Result(4456))}
-                                    , [ FunctionExpApp("rcons"{Use(Result(4454))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4452))})])
-                                      , FunctionExpMeta(Meta("rt1"))
+                                    , [ FunctionExpApp("rcons"{Use(Result(4454))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4452))})])
+                                      , FunctionMeta(Meta("rt1"))
                                       ]
                                     )
                                   ]
@@ -359,19 +359,19 @@ Module(
                         , JudgementCons(
                             FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpMeta(Meta("al"))
+                                FunctionMeta(Meta("al"))
                               , FunctionExpApp(
                                   "acons"{Use(Result(4462))}
-                                , [FunctionExpMeta(Meta("a3")), FunctionExpMeta(Meta("ar"))]
+                                , [FunctionMeta(Meta("a3")), FunctionMeta(Meta("ar"))]
                                 )
                               )
                             )
                           , FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpMeta(Meta("rt"))
+                                FunctionMeta(Meta("rt"))
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4456))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                 )
                               )
                             )
@@ -426,10 +426,10 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [ FunctionExpMeta(Meta("a"))
+                        , [ FunctionMeta(Meta("a"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("rt"))]
+                            , [FunctionMeta(Meta("al")), FunctionMeta(Meta("rt"))]
                             )
                           ]
                         )
@@ -437,8 +437,8 @@ Module(
                           "some"{Use(Result(4409))}
                         , [ FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                              , FunctionExpMeta(Meta("rt1"))
+                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                              , FunctionMeta(Meta("rt1"))
                               ]
                             )
                           ]
@@ -461,19 +461,19 @@ Module(
                     , JudgementCons(
                         FunctionExpJudgment(
                           FunctionExpEq(
-                            FunctionExpMeta(Meta("al"))
+                            FunctionMeta(Meta("al"))
                           , FunctionExpApp(
                               "acons"{Use(Result(4413))}
-                            , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("ar"))]
+                            , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("ar"))]
                             )
                           )
                         )
                       , FunctionExpJudgment(
                           FunctionExpEq(
-                            FunctionExpMeta(Meta("rt"))
+                            FunctionMeta(Meta("rt"))
                           , FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                             )
                           )
                         )
@@ -494,14 +494,14 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "findCol"{Use(Result(4401))}
-                    , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                    , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                     )
                   , FunctionExpApp(
                       "some"{Use(Result(4409))}
                     , [ FunctionExpApp(
                           "tcons"{Use(Result(4407))}
-                        , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                          , FunctionExpMeta(Meta("rt1"))
+                        , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                          , FunctionMeta(Meta("rt1"))
                           ]
                         )
                       ]
@@ -523,16 +523,16 @@ Module(
                   [Meta("a2"), Meta("al"), Meta("r"), Meta("trest")]
                 , FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("t"))
+                      FunctionMeta(Meta("t"))
                     , FunctionExpApp(
                         "table"{Use(Result(4399))}
                       , [ FunctionExpApp(
                             "acons"{Use(Result(4413))}
-                          , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("al"))]
+                          , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("al"))]
                           )
                         , FunctionExpApp(
                             "tcons"{Use(Result(4407))}
-                          , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                          , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                           )
                         ]
                       )
@@ -555,13 +555,13 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [ FunctionExpMeta(Meta("a"))
+                        , [ FunctionMeta(Meta("a"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [ FunctionExpApp("acons"{Use(Result(4413))}, [FunctionExpMeta(Meta("a2")), FunctionExpVar("aempty"{Use(Result(4397))})])
+                            , [ FunctionExpApp("acons"{Use(Result(4413))}, [FunctionMeta(Meta("a2")), FunctionExpVar("aempty"{Use(Result(4397))})])
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4407))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
@@ -571,8 +571,8 @@ Module(
                           "some"{Use(Result(4409))}
                         , [ FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                              , FunctionExpMeta(Meta("rt1"))
+                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                              , FunctionMeta(Meta("rt1"))
                               ]
                             )
                           ]
@@ -595,16 +595,16 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [ FunctionExpMeta(Meta("a"))
+                        , [ FunctionMeta(Meta("a"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [ FunctionExpApp("acons"{Use(Result(4413))}, [FunctionExpMeta(Meta("a2")), FunctionExpVar("aempty"{Use(Result(4397))})])
-                              , FunctionExpMeta(Meta("trest"))
+                            , [ FunctionExpApp("acons"{Use(Result(4413))}, [FunctionMeta(Meta("a2")), FunctionExpVar("aempty"{Use(Result(4397))})])
+                              , FunctionMeta(Meta("trest"))
                               ]
                             )
                           ]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt1"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt1"))])
                       )
                     )
                   )
@@ -651,13 +651,13 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4539))}
-                            , [ FunctionExpMeta(Meta("a"))
+                            , [ FunctionMeta(Meta("a"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4537))}
-                                , [ FunctionExpApp("acons"{Use(Result(4533))}, [FunctionExpMeta(Meta("a2")), FunctionExpVar("al"{Use(Result(4531))})])
+                                , [ FunctionExpApp("acons"{Use(Result(4533))}, [FunctionMeta(Meta("a2")), FunctionExpVar("al"{Use(Result(4531))})])
                                   , FunctionExpApp(
                                       "tcons"{Use(Result(4535))}
-                                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                     )
                                   ]
                                 )
@@ -667,8 +667,8 @@ Module(
                               "some"{Use(Result(4546))}
                             , [ FunctionExpApp(
                                   "tcons"{Use(Result(4535))}
-                                , [ FunctionExpApp("rcons"{Use(Result(4543))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4541))})])
-                                  , FunctionExpMeta(Meta("rt1"))
+                                , [ FunctionExpApp("rcons"{Use(Result(4543))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4541))})])
+                                  , FunctionMeta(Meta("rt1"))
                                   ]
                                 )
                               ]
@@ -691,16 +691,16 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4539))}
-                            , [ FunctionExpMeta(Meta("a"))
+                            , [ FunctionMeta(Meta("a"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4537))}
-                                , [ FunctionExpApp("acons"{Use(Result(4533))}, [FunctionExpMeta(Meta("a2")), FunctionExpVar("al"{Use(Result(4531))})])
-                                  , FunctionExpMeta(Meta("trest"))
+                                , [ FunctionExpApp("acons"{Use(Result(4533))}, [FunctionMeta(Meta("a2")), FunctionExpVar("al"{Use(Result(4531))})])
+                                  , FunctionMeta(Meta("trest"))
                                   ]
                                 )
                               ]
                             )
-                          , FunctionExpApp("some"{Use(Result(4546))}, [FunctionExpMeta(Meta("rt1"))])
+                          , FunctionExpApp("some"{Use(Result(4546))}, [FunctionMeta(Meta("rt1"))])
                           )
                         )
                       )
@@ -715,18 +715,18 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4539))}
-                            , [ FunctionExpMeta(Meta("a"))
+                            , [ FunctionMeta(Meta("a"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4537))}
                                 , [ FunctionExpApp(
                                       "acons"{Use(Result(4533))}
-                                    , [ FunctionExpMeta(Meta("a2"))
+                                    , [ FunctionMeta(Meta("a2"))
                                       , FunctionExpApp("acons"{Use(Result(4533))}, [FunctionExpVar("a3"{Use(Result(4555))}), FunctionExpVar("al"{Use(Result(4531))})])
                                       ]
                                     )
                                   , FunctionExpApp(
                                       "tcons"{Use(Result(4535))}
-                                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                     )
                                   ]
                                 )
@@ -736,8 +736,8 @@ Module(
                               "some"{Use(Result(4546))}
                             , [ FunctionExpApp(
                                   "tcons"{Use(Result(4535))}
-                                , [ FunctionExpApp("rcons"{Use(Result(4543))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4541))})])
-                                  , FunctionExpMeta(Meta("rt1"))
+                                , [ FunctionExpApp("rcons"{Use(Result(4543))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4541))})])
+                                  , FunctionMeta(Meta("rt1"))
                                   ]
                                 )
                               ]
@@ -761,21 +761,21 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4539))}
-                            , [ FunctionExpMeta(Meta("a"))
+                            , [ FunctionMeta(Meta("a"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4537))}
                                 , [ FunctionExpApp(
                                       "acons"{Use(Result(4533))}
-                                    , [ FunctionExpMeta(Meta("a2"))
+                                    , [ FunctionMeta(Meta("a2"))
                                       , FunctionExpApp("acons"{Use(Result(4533))}, [FunctionExpVar("a3"{Use(Result(4555))}), FunctionExpVar("al"{Use(Result(4531))})])
                                       ]
                                     )
-                                  , FunctionExpMeta(Meta("trest"))
+                                  , FunctionMeta(Meta("trest"))
                                   ]
                                 )
                               ]
                             )
-                          , FunctionExpApp("some"{Use(Result(4546))}, [FunctionExpMeta(Meta("rt1"))])
+                          , FunctionExpApp("some"{Use(Result(4546))}, [FunctionMeta(Meta("rt1"))])
                           )
                         )
                       )
@@ -827,16 +827,16 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [ FunctionExpMeta(Meta("a"))
+                        , [ FunctionMeta(Meta("a"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
                             , [ FunctionExpApp(
                                   "acons"{Use(Result(4413))}
-                                , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("al"))]
+                                , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("al"))]
                                 )
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4407))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
@@ -846,8 +846,8 @@ Module(
                           "some"{Use(Result(4409))}
                         , [ FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                              , FunctionExpMeta(Meta("rt1"))
+                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                              , FunctionMeta(Meta("rt1"))
                               ]
                             )
                           ]
@@ -869,19 +869,19 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [ FunctionExpMeta(Meta("a"))
+                        , [ FunctionMeta(Meta("a"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
                             , [ FunctionExpApp(
                                   "acons"{Use(Result(4413))}
-                                , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("al"))]
+                                , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("al"))]
                                 )
-                              , FunctionExpMeta(Meta("trest"))
+                              , FunctionMeta(Meta("trest"))
                               ]
                             )
                           ]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt1"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt1"))])
                       )
                     )
                   )
@@ -899,16 +899,16 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "findCol"{Use(Result(4401))}
-                    , [ FunctionExpMeta(Meta("a"))
+                    , [ FunctionMeta(Meta("a"))
                       , FunctionExpApp(
                           "table"{Use(Result(4399))}
                         , [ FunctionExpApp(
                               "acons"{Use(Result(4413))}
-                            , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("al"))]
+                            , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("al"))]
                             )
                           , FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                             )
                           ]
                         )
@@ -918,8 +918,8 @@ Module(
                       "some"{Use(Result(4409))}
                     , [ FunctionExpApp(
                           "tcons"{Use(Result(4407))}
-                        , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                          , FunctionExpMeta(Meta("rt1"))
+                        , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                          , FunctionMeta(Meta("rt1"))
                           ]
                         )
                       ]
@@ -941,19 +941,19 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "findCol"{Use(Result(4401))}
-                    , [ FunctionExpMeta(Meta("a"))
+                    , [ FunctionMeta(Meta("a"))
                       , FunctionExpApp(
                           "table"{Use(Result(4399))}
                         , [ FunctionExpApp(
                               "acons"{Use(Result(4413))}
-                            , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("al"))]
+                            , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("al"))]
                             )
-                          , FunctionExpMeta(Meta("trest"))
+                          , FunctionMeta(Meta("trest"))
                           ]
                         )
                       ]
                     )
-                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt1"))])
+                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt1"))])
                   )
                 )
               )
@@ -1030,12 +1030,12 @@ Module(
                   PremiseList(
                     FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpApp("project"{Use(Result(4605))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionExpMeta(Meta("t"))])
+                        FunctionExpApp("project"{Use(Result(4605))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionMeta(Meta("t"))])
                       , FunctionExpApp(
                           "some"{Use(Result(4409))}
                         , [FunctionExpApp(
                              "tcons"{Use(Result(4407))}
-                           , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                           , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                            )]
                         )
                       )
@@ -1055,13 +1055,13 @@ Module(
                       [Meta("ar2"), Meta("r"), Meta("trest")]
                     , FunctionExpJudgment(
                         FunctionExpEq(
-                          FunctionExpMeta(Meta("t"))
+                          FunctionMeta(Meta("t"))
                         , FunctionExpApp(
                             "table"{Use(Result(4399))}
-                          , [ FunctionExpMeta(Meta("ar2"))
+                          , [ FunctionMeta(Meta("ar2"))
                             , FunctionExpApp(
                                 "tcons"{Use(Result(4407))}
-                              , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                              , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                               )
                             ]
                           )
@@ -1083,16 +1083,16 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4401))}
-                            , [ FunctionExpMeta(Meta("a"))
-                              , FunctionExpApp("table"{Use(Result(4399))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionExpMeta(Meta("rt"))])
+                            , [ FunctionMeta(Meta("a"))
+                              , FunctionExpApp("table"{Use(Result(4399))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionMeta(Meta("rt"))])
                               ]
                             )
                           , FunctionExpApp(
                               "some"{Use(Result(4409))}
                             , [ FunctionExpApp(
                                   "tcons"{Use(Result(4407))}
-                                , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                                  , FunctionExpMeta(Meta("rt1"))
+                                , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                                  , FunctionMeta(Meta("rt1"))
                                   ]
                                 )
                               ]
@@ -1115,10 +1115,10 @@ Module(
                           [Meta("r"), Meta("trest")]
                         , FunctionExpJudgment(
                             FunctionExpEq(
-                              FunctionExpMeta(Meta("rt"))
+                              FunctionMeta(Meta("rt"))
                             , FunctionExpApp(
                                 "tcons"{Use(Result(4407))}
-                              , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                              , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                               )
                             )
                           )
@@ -1198,8 +1198,8 @@ Module(
                                   "some"{Use(Result(4664))}
                                 , [ FunctionExpApp(
                                       "tcons"{Use(Result(4662))}
-                                    , [ FunctionExpApp("rcons"{Use(Result(4660))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4658))})])
-                                      , FunctionExpMeta(Meta("rt1"))
+                                    , [ FunctionExpApp("rcons"{Use(Result(4660))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4658))})])
+                                      , FunctionMeta(Meta("rt1"))
                                       ]
                                     )
                                   ]
@@ -1225,7 +1225,7 @@ Module(
                                   FunctionExpVar("rt"{Use(Result(4650))})
                                 , FunctionExpApp(
                                     "tcons"{Use(Result(4662))}
-                                  , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                  , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                   )
                                 )
                               )
@@ -1253,8 +1253,8 @@ Module(
                                   "some"{Use(Result(4664))}
                                 , [ FunctionExpApp(
                                       "tcons"{Use(Result(4662))}
-                                    , [ FunctionExpApp("rcons"{Use(Result(4660))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4658))})])
-                                      , FunctionExpMeta(Meta("rt1"))
+                                    , [ FunctionExpApp("rcons"{Use(Result(4660))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4658))})])
+                                      , FunctionMeta(Meta("rt1"))
                                       ]
                                     )
                                   ]
@@ -1281,7 +1281,7 @@ Module(
                                   FunctionExpVar("rt"{Use(Result(4650))})
                                 , FunctionExpApp(
                                     "tcons"{Use(Result(4662))}
-                                  , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                  , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                   )
                                 )
                               )
@@ -1336,10 +1336,10 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4401))}
-                            , [ FunctionExpMeta(Meta("a"))
+                            , [ FunctionMeta(Meta("a"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4399))}
-                                , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("rt"))]
+                                , [FunctionMeta(Meta("al")), FunctionMeta(Meta("rt"))]
                                 )
                               ]
                             )
@@ -1347,8 +1347,8 @@ Module(
                               "some"{Use(Result(4409))}
                             , [ FunctionExpApp(
                                   "tcons"{Use(Result(4407))}
-                                , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                                  , FunctionExpMeta(Meta("rt1"))
+                                , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                                  , FunctionMeta(Meta("rt1"))
                                   ]
                                 )
                               ]
@@ -1370,10 +1370,10 @@ Module(
                           [Meta("r"), Meta("trest")]
                         , FunctionExpJudgment(
                             FunctionExpEq(
-                              FunctionExpMeta(Meta("rt"))
+                              FunctionMeta(Meta("rt"))
                             , FunctionExpApp(
                                 "tcons"{Use(Result(4407))}
-                              , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                              , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                               )
                             )
                           )
@@ -1393,10 +1393,10 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [ FunctionExpMeta(Meta("a"))
+                        , [ FunctionMeta(Meta("a"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("rt"))]
+                            , [FunctionMeta(Meta("al")), FunctionMeta(Meta("rt"))]
                             )
                           ]
                         )
@@ -1404,8 +1404,8 @@ Module(
                           "some"{Use(Result(4409))}
                         , [ FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                              , FunctionExpMeta(Meta("rt1"))
+                            , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                              , FunctionMeta(Meta("rt1"))
                               ]
                             )
                           ]
@@ -1427,10 +1427,10 @@ Module(
                       [Meta("r"), Meta("trest")]
                     , FunctionExpJudgment(
                         FunctionExpEq(
-                          FunctionExpMeta(Meta("rt"))
+                          FunctionMeta(Meta("rt"))
                         , FunctionExpApp(
                             "tcons"{Use(Result(4407))}
-                          , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                          , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                           )
                         )
                       )
@@ -1449,16 +1449,16 @@ Module(
                           "project"{Use(Result(4605))}
                         , [ FunctionExpApp(
                               "acons"{Use(Result(4413))}
-                            , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("al"))]
+                            , [FunctionMeta(Meta("a")), FunctionMeta(Meta("al"))]
                             )
-                          , FunctionExpMeta(Meta("t"))
+                          , FunctionMeta(Meta("t"))
                           ]
                         )
                       , FunctionExpApp(
                           "some"{Use(Result(4409))}
                         , [FunctionExpApp(
                              "tcons"{Use(Result(4407))}
-                           , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                           , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                            )]
                         )
                       )
@@ -1478,13 +1478,13 @@ Module(
                       [Meta("ar2"), Meta("r"), Meta("trest")]
                     , FunctionExpJudgment(
                         FunctionExpEq(
-                          FunctionExpMeta(Meta("t"))
+                          FunctionMeta(Meta("t"))
                         , FunctionExpApp(
                             "table"{Use(Result(4399))}
-                          , [ FunctionExpMeta(Meta("ar2"))
+                          , [ FunctionMeta(Meta("ar2"))
                             , FunctionExpApp(
                                 "tcons"{Use(Result(4407))}
-                              , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                              , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                               )
                             ]
                           )
@@ -1506,13 +1506,13 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "project"{Use(Result(4605))}
-                    , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                    , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                     )
                   , FunctionExpApp(
                       "some"{Use(Result(4409))}
                     , [FunctionExpApp(
                          "tcons"{Use(Result(4407))}
-                       , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                       , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                        )]
                     )
                   )
@@ -1532,13 +1532,13 @@ Module(
                   [Meta("ar2"), Meta("r"), Meta("trest")]
                 , FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpMeta(Meta("t"))
+                      FunctionMeta(Meta("t"))
                     , FunctionExpApp(
                         "table"{Use(Result(4399))}
-                      , [ FunctionExpMeta(Meta("ar2"))
+                      , [ FunctionMeta(Meta("ar2"))
                         , FunctionExpApp(
                             "tcons"{Use(Result(4407))}
-                          , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                          , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                           )
                         ]
                       )
@@ -1616,10 +1616,10 @@ Module(
                         , [ FunctionExpVar("aempty"{Use(Result(4397))})
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [ FunctionExpMeta(Meta("ar2"))
+                            , [ FunctionMeta(Meta("ar2"))
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4407))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
@@ -1629,7 +1629,7 @@ Module(
                           "some"{Use(Result(4409))}
                         , [FunctionExpApp(
                              "tcons"{Use(Result(4407))}
-                           , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                           , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                            )]
                         )
                       )
@@ -1653,11 +1653,11 @@ Module(
                         , [ FunctionExpVar("aempty"{Use(Result(4397))})
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                             )
                           ]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt2"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt2"))])
                       )
                     )
                   )
@@ -1707,10 +1707,10 @@ Module(
                             , [ FunctionExpVar("al"{Use(Result(4748))})
                               , FunctionExpApp(
                                   "table"{Use(Result(4752))}
-                                , [ FunctionExpMeta(Meta("ar2"))
+                                , [ FunctionMeta(Meta("ar2"))
                                   , FunctionExpApp(
                                       "tcons"{Use(Result(4750))}
-                                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                     )
                                   ]
                                 )
@@ -1720,7 +1720,7 @@ Module(
                               "some"{Use(Result(4757))}
                             , [FunctionExpApp(
                                  "tcons"{Use(Result(4750))}
-                               , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                               , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                                )]
                             )
                           )
@@ -1744,11 +1744,11 @@ Module(
                             , [ FunctionExpVar("al"{Use(Result(4748))})
                               , FunctionExpApp(
                                   "table"{Use(Result(4752))}
-                                , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
-                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rt2"))])
+                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rt2"))])
                           )
                         )
                       )
@@ -1766,10 +1766,10 @@ Module(
                             , [ FunctionExpApp("acons"{Use(Result(4768))}, [FunctionExpVar("a"{Use(Result(4765))}), FunctionExpVar("al"{Use(Result(4748))})])
                               , FunctionExpApp(
                                   "table"{Use(Result(4752))}
-                                , [ FunctionExpMeta(Meta("ar2"))
+                                , [ FunctionMeta(Meta("ar2"))
                                   , FunctionExpApp(
                                       "tcons"{Use(Result(4750))}
-                                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                     )
                                   ]
                                 )
@@ -1779,7 +1779,7 @@ Module(
                               "some"{Use(Result(4757))}
                             , [FunctionExpApp(
                                  "tcons"{Use(Result(4750))}
-                               , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                               , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                                )]
                             )
                           )
@@ -1801,16 +1801,16 @@ Module(
                         , JudgementCons(
                             FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("col"))])
+                                FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("col"))])
                               , FunctionExpApp(
                                   "findCol"{Use(Result(4780))}
-                                , [ FunctionExpMeta(Meta("a"))
+                                , [ FunctionMeta(Meta("a"))
                                   , FunctionExpApp(
                                       "table"{Use(Result(4752))}
-                                    , [ FunctionExpMeta(Meta("ar2"))
+                                    , [ FunctionMeta(Meta("ar2"))
                                       , FunctionExpApp(
                                           "tcons"{Use(Result(4750))}
-                                        , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                        , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                         )
                                       ]
                                     )
@@ -1821,16 +1821,16 @@ Module(
                           , JudgementCons(
                               FunctionExpJudgment(
                                 FunctionExpEq(
-                                  FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rest"))])
+                                  FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rest"))])
                                 , FunctionExpApp(
                                     "project"{Use(Result(4754))}
-                                  , [ FunctionExpMeta(Meta("al"))
+                                  , [ FunctionMeta(Meta("al"))
                                     , FunctionExpApp(
                                         "table"{Use(Result(4752))}
-                                      , [ FunctionExpMeta(Meta("ar2"))
+                                      , [ FunctionMeta(Meta("ar2"))
                                         , FunctionExpApp(
                                             "tcons"{Use(Result(4750))}
-                                          , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                          , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                           )
                                         ]
                                       )
@@ -1842,13 +1842,13 @@ Module(
                                 FunctionExpEq(
                                   FunctionExpApp(
                                     "attachColToFrontRaw"{Use(Result(4786))}
-                                  , [FunctionExpMeta(Meta("col")), FunctionExpMeta(Meta("rest"))]
+                                  , [FunctionMeta(Meta("col")), FunctionMeta(Meta("rest"))]
                                   )
                                 , FunctionExpApp(
                                     "some"{Use(Result(4757))}
                                   , [FunctionExpApp(
                                        "tcons"{Use(Result(4750))}
-                                     , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                                     , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                                      )]
                                   )
                                 )
@@ -1869,13 +1869,13 @@ Module(
                             FunctionExpEq(
                               FunctionExpApp(
                                 "attachColToFrontRaw"{Use(Result(4786))}
-                              , [FunctionExpMeta(Meta("col")), FunctionExpMeta(Meta("rest"))]
+                              , [FunctionMeta(Meta("col")), FunctionMeta(Meta("rest"))]
                               )
                             , FunctionExpApp(
                                 "some"{Use(Result(4757))}
                               , [FunctionExpApp(
                                    "tcons"{Use(Result(4750))}
-                                 , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                                 , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                                  )]
                               )
                             )
@@ -1883,16 +1883,16 @@ Module(
                         , JudgementCons(
                             FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("col"))])
+                                FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("col"))])
                               , FunctionExpApp(
                                   "findCol"{Use(Result(4780))}
-                                , [ FunctionExpMeta(Meta("a"))
+                                , [ FunctionMeta(Meta("a"))
                                   , FunctionExpApp(
                                       "table"{Use(Result(4752))}
-                                    , [ FunctionExpMeta(Meta("ar2"))
+                                    , [ FunctionMeta(Meta("ar2"))
                                       , FunctionExpApp(
                                           "tcons"{Use(Result(4750))}
-                                        , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                        , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                         )
                                       ]
                                     )
@@ -1902,16 +1902,16 @@ Module(
                             )
                           , FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rest"))])
+                                FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rest"))])
                               , FunctionExpApp(
                                   "project"{Use(Result(4754))}
-                                , [ FunctionExpMeta(Meta("al"))
+                                , [ FunctionMeta(Meta("al"))
                                   , FunctionExpApp(
                                       "table"{Use(Result(4752))}
-                                    , [ FunctionExpMeta(Meta("ar2"))
+                                    , [ FunctionMeta(Meta("ar2"))
                                       , FunctionExpApp(
                                           "tcons"{Use(Result(4750))}
-                                        , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                        , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                         )
                                       ]
                                     )
@@ -1938,21 +1938,21 @@ Module(
                         , JudgementCons(
                             FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpMeta(Meta("col"))
+                                FunctionMeta(Meta("col"))
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4750))}
-                                , [ FunctionExpApp("rcons"{Use(Result(4805))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4803))})])
-                                  , FunctionExpMeta(Meta("rt"))
+                                , [ FunctionExpApp("rcons"{Use(Result(4805))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4803))})])
+                                  , FunctionMeta(Meta("rt"))
                                   ]
                                 )
                               )
                             )
                           , FunctionExpJudgment(
                               FunctionExpEq(
-                                FunctionExpMeta(Meta("rest"))
+                                FunctionMeta(Meta("rest"))
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4750))}
-                                , [FunctionExpMeta(Meta("r3")), FunctionExpMeta(Meta("rt3"))]
+                                , [FunctionMeta(Meta("r3")), FunctionMeta(Meta("rt3"))]
                                 )
                               )
                             )
@@ -1970,13 +1970,13 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4780))}
-                            , [ FunctionExpMeta(Meta("a"))
+                            , [ FunctionMeta(Meta("a"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4752))}
-                                , [ FunctionExpMeta(Meta("ar2"))
+                                , [ FunctionMeta(Meta("ar2"))
                                   , FunctionExpApp(
                                       "tcons"{Use(Result(4750))}
-                                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                     )
                                   ]
                                 )
@@ -1986,8 +1986,8 @@ Module(
                               "some"{Use(Result(4757))}
                             , [ FunctionExpApp(
                                   "tcons"{Use(Result(4750))}
-                                , [ FunctionExpApp("rcons"{Use(Result(4805))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4803))})])
-                                  , FunctionExpMeta(Meta("rt"))
+                                , [ FunctionExpApp("rcons"{Use(Result(4805))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4803))})])
+                                  , FunctionMeta(Meta("rt"))
                                   ]
                                 )
                               ]
@@ -2010,14 +2010,14 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4780))}
-                            , [ FunctionExpMeta(Meta("a"))
+                            , [ FunctionMeta(Meta("a"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4752))}
-                                , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
-                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rt"))])
+                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rt"))])
                           )
                         )
                       )
@@ -2034,13 +2034,13 @@ Module(
                               "attachColToFrontRaw"{Use(Result(4786))}
                             , [ FunctionExpApp(
                                   "tcons"{Use(Result(4750))}
-                                , [ FunctionExpApp("rcons"{Use(Result(4805))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4803))})])
-                                  , FunctionExpMeta(Meta("rt"))
+                                , [ FunctionExpApp("rcons"{Use(Result(4805))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4803))})])
+                                  , FunctionMeta(Meta("rt"))
                                   ]
                                 )
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4750))}
-                                , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt1"))]
+                                , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt1"))]
                                 )
                               ]
                             )
@@ -2048,7 +2048,7 @@ Module(
                               "some"{Use(Result(4757))}
                             , [FunctionExpApp(
                                  "tcons"{Use(Result(4750))}
-                               , [FunctionExpMeta(Meta("r2")), FunctionExpMeta(Meta("rt2"))]
+                               , [FunctionMeta(Meta("r2")), FunctionMeta(Meta("rt2"))]
                                )]
                             )
                           )
@@ -2069,9 +2069,9 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "attachColToFrontRaw"{Use(Result(4786))}
-                            , [FunctionExpMeta(Meta("rt")), FunctionExpMeta(Meta("rt1"))]
+                            , [FunctionMeta(Meta("rt")), FunctionMeta(Meta("rt1"))]
                             )
-                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rt2"))])
+                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rt2"))])
                           )
                         )
                       )
@@ -2087,14 +2087,14 @@ Module(
                             FunctionExpEq(
                               FunctionExpApp(
                                 "findCol"{Use(Result(4780))}
-                              , [ FunctionExpMeta(Meta("a"))
+                              , [ FunctionMeta(Meta("a"))
                                 , FunctionExpApp(
                                     "table"{Use(Result(4752))}
-                                  , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                                  , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                                   )
                                 ]
                               )
-                            , FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rt"))])
+                            , FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rt"))])
                             )
                           )
                         , JudgementCons(
@@ -2102,23 +2102,23 @@ Module(
                               FunctionExpEq(
                                 FunctionExpApp(
                                   "project"{Use(Result(4754))}
-                                , [ FunctionExpMeta(Meta("al"))
+                                , [ FunctionMeta(Meta("al"))
                                   , FunctionExpApp(
                                       "table"{Use(Result(4752))}
-                                    , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                                    , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                                     )
                                   ]
                                 )
-                              , FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rest"))])
+                              , FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rest"))])
                               )
                             )
                           , FunctionExpJudgment(
                               FunctionExpEq(
                                 FunctionExpApp(
                                   "attachColToFrontRaw"{Use(Result(4786))}
-                                , [FunctionExpMeta(Meta("rt")), FunctionExpMeta(Meta("rest"))]
+                                , [FunctionMeta(Meta("rt")), FunctionMeta(Meta("rest"))]
                                 )
-                              , FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rt2"))])
+                              , FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rt2"))])
                               )
                             )
                           )
@@ -2141,15 +2141,15 @@ Module(
                               "project"{Use(Result(4754))}
                             , [ FunctionExpApp(
                                   "acons"{Use(Result(4768))}
-                                , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("al"))]
+                                , [FunctionMeta(Meta("a")), FunctionMeta(Meta("al"))]
                                 )
                               , FunctionExpApp(
                                   "table"{Use(Result(4752))}
-                                , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
-                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rt2"))])
+                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rt2"))])
                           )
                         )
                       )
@@ -2167,10 +2167,10 @@ Module(
                             , [ FunctionExpApp("acons"{Use(Result(4768))}, [FunctionExpVar("a"{Use(Result(4765))}), FunctionExpVar("al"{Use(Result(4748))})])
                               , FunctionExpApp(
                                   "table"{Use(Result(4752))}
-                                , [ FunctionExpMeta(Meta("ar2"))
+                                , [ FunctionMeta(Meta("ar2"))
                                   , FunctionExpApp(
                                       "tcons"{Use(Result(4750))}
-                                    , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                    , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                     )
                                   ]
                                 )
@@ -2180,7 +2180,7 @@ Module(
                               "some"{Use(Result(4757))}
                             , [FunctionExpApp(
                                  "tcons"{Use(Result(4750))}
-                               , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                               , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                                )]
                             )
                           )
@@ -2205,11 +2205,11 @@ Module(
                             , [ FunctionExpApp("acons"{Use(Result(4768))}, [FunctionExpVar("a"{Use(Result(4765))}), FunctionExpVar("al"{Use(Result(4748))})])
                               , FunctionExpApp(
                                   "table"{Use(Result(4752))}
-                                , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
-                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionExpMeta(Meta("rt2"))])
+                          , FunctionExpApp("some"{Use(Result(4757))}, [FunctionMeta(Meta("rt2"))])
                           )
                         )
                       )
@@ -2262,13 +2262,13 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "project"{Use(Result(4605))}
-                        , [ FunctionExpMeta(Meta("ar"))
+                        , [ FunctionMeta(Meta("ar"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [ FunctionExpMeta(Meta("ar2"))
+                            , [ FunctionMeta(Meta("ar2"))
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4407))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
@@ -2278,7 +2278,7 @@ Module(
                           "some"{Use(Result(4409))}
                         , [FunctionExpApp(
                              "tcons"{Use(Result(4407))}
-                           , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                           , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                            )]
                         )
                       )
@@ -2298,14 +2298,14 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "project"{Use(Result(4605))}
-                        , [ FunctionExpMeta(Meta("ar"))
+                        , [ FunctionMeta(Meta("ar"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                             )
                           ]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt2"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt2"))])
                       )
                     )
                   )
@@ -2323,13 +2323,13 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "project"{Use(Result(4605))}
-                    , [ FunctionExpMeta(Meta("ar"))
+                    , [ FunctionMeta(Meta("ar"))
                       , FunctionExpApp(
                           "table"{Use(Result(4399))}
-                        , [ FunctionExpMeta(Meta("ar2"))
+                        , [ FunctionMeta(Meta("ar2"))
                           , FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                             )
                           ]
                         )
@@ -2339,7 +2339,7 @@ Module(
                       "some"{Use(Result(4409))}
                     , [FunctionExpApp(
                          "tcons"{Use(Result(4407))}
-                       , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                       , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                        )]
                     )
                   )
@@ -2359,14 +2359,14 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "project"{Use(Result(4605))}
-                    , [ FunctionExpMeta(Meta("ar"))
+                    , [ FunctionMeta(Meta("ar"))
                       , FunctionExpApp(
                           "table"{Use(Result(4399))}
-                        , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                        , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                         )
                       ]
                     )
-                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt2"))])
+                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt2"))])
                   )
                 )
               )
@@ -2381,20 +2381,20 @@ Module(
                   FunctionExpJudgment(
                     FunctionExpApp(
                       "welltypedtable"{Use(Result(4882))}
-                    , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                    , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                     )
                   )
                 , FunctionExpJudgment(
                     FunctionExpEq(
                       FunctionExpApp(
                         "project"{Use(Result(4605))}
-                      , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                      , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                       )
                     , FunctionExpApp(
                         "some"{Use(Result(4409))}
                       , [FunctionExpApp(
                            "tcons"{Use(Result(4407))}
-                         , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                         , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                          )]
                       )
                     )
@@ -2416,13 +2416,13 @@ Module(
                 , JudgementCons(
                     FunctionExpJudgment(
                       FunctionExpEq(
-                        FunctionExpMeta(Meta("t"))
+                        FunctionMeta(Meta("t"))
                       , FunctionExpApp(
                           "table"{Use(Result(4399))}
-                        , [ FunctionExpMeta(Meta("ar2"))
+                        , [ FunctionMeta(Meta("ar2"))
                           , FunctionExpApp(
                               "tcons"{Use(Result(4407))}
-                            , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                             )
                           ]
                         )
@@ -2432,14 +2432,14 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "project"{Use(Result(4605))}
-                        , [ FunctionExpMeta(Meta("ar"))
+                        , [ FunctionMeta(Meta("ar"))
                           , FunctionExpApp(
                               "table"{Use(Result(4399))}
-                            , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                            , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                             )
                           ]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt2"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt2"))])
                       )
                     )
                   )
@@ -2461,7 +2461,7 @@ Module(
                   FunctionExpJudgment(
                     FunctionExpApp(
                       "welltypedtable"{Use(Result(4882))}
-                    , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                    , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                     )
                   )
                 , JudgementCons(
@@ -2469,7 +2469,7 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                         )
                       , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpVar("tempty"{Use(Result(4896))})])
                       )
@@ -2478,7 +2478,7 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "project"{Use(Result(4605))}
-                        , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                         )
                       , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpVar("tempty"{Use(Result(4896))})])
                       )
@@ -2502,7 +2502,7 @@ Module(
                 , FunctionExpJudgment(
                     FunctionExpEq(
                       FunctionExpApp("attachColToFrontRaw"{Use(Result(4906))}, [FunctionExpVar("tempty"{Use(Result(4896))}), FunctionExpVar("tempty"{Use(Result(4896))})])
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt2"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt2"))])
                     )
                   )
                 )
@@ -2611,7 +2611,7 @@ Module(
                       FunctionExpJudgment(
                         FunctionExpApp(
                           "welltypedtable"{Use(Result(4932))}
-                        , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                         )
                       )
                     , JudgementCons(
@@ -2619,7 +2619,7 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4934))}
-                            , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                            , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                             )
                           , FunctionExpApp("some"{Use(Result(4938))}, [FunctionExpVar("rt1"{Use(Result(4936))})])
                           )
@@ -2628,7 +2628,7 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "project"{Use(Result(4940))}
-                            , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                            , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                             )
                           , FunctionExpApp("some"{Use(Result(4938))}, [FunctionExpVar("rt2"{Use(Result(4942))})])
                           )
@@ -2652,7 +2652,7 @@ Module(
                     , FunctionExpJudgment(
                         FunctionExpEq(
                           FunctionExpApp("attachColToFrontRaw"{Use(Result(4949))}, [FunctionExpVar("rt1"{Use(Result(4936))}), FunctionExpVar("rt2"{Use(Result(4942))})])
-                        , FunctionExpApp("some"{Use(Result(4938))}, [FunctionExpMeta(Meta("rt3"))])
+                        , FunctionExpApp("some"{Use(Result(4938))}, [FunctionMeta(Meta("rt3"))])
                         )
                       )
                     )
@@ -2689,16 +2689,16 @@ Module(
                     FunctionExpJudgment(
                       FunctionExpApp(
                         "welltypedtable"{Use(Result(4932))}
-                      , [ FunctionExpMeta(Meta("TT1"))
+                      , [ FunctionMeta(Meta("TT1"))
                         , FunctionExpApp(
                             "table"{Use(Result(4956))}
                           , [ FunctionExpApp(
                                 "acons"{Use(Result(4952))}
-                              , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("al"))]
+                              , [FunctionMeta(Meta("a")), FunctionMeta(Meta("al"))]
                               )
                             , FunctionExpApp(
                                 "tcons"{Use(Result(4954))}
-                              , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                              , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                               )
                             ]
                           )
@@ -2720,14 +2720,14 @@ Module(
                     FunctionExpJudgment(
                       FunctionExpApp(
                         "welltypedtable"{Use(Result(4932))}
-                      , [ FunctionExpMeta(Meta("TT1"))
+                      , [ FunctionMeta(Meta("TT1"))
                         , FunctionExpApp(
                             "table"{Use(Result(4956))}
                           , [ FunctionExpApp(
                                 "acons"{Use(Result(4952))}
-                              , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("al"))]
+                              , [FunctionMeta(Meta("a")), FunctionMeta(Meta("al"))]
                               )
-                            , FunctionExpMeta(Meta("trest"))
+                            , FunctionMeta(Meta("trest"))
                             ]
                           )
                         ]
@@ -2746,14 +2746,14 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4934))}
-                        , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                         )
                       , FunctionExpApp(
                           "some"{Use(Result(4938))}
                         , [ FunctionExpApp(
                               "tcons"{Use(Result(4954))}
-                            , [ FunctionExpApp("rcons"{Use(Result(4967))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4965))})])
-                              , FunctionExpMeta(Meta("rt1"))
+                            , [ FunctionExpApp("rcons"{Use(Result(4967))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4965))})])
+                              , FunctionMeta(Meta("rt1"))
                               ]
                             )
                           ]
@@ -2777,16 +2777,16 @@ Module(
                     , JudgementCons(
                         FunctionExpJudgment(
                           FunctionExpEq(
-                            FunctionExpMeta(Meta("t"))
+                            FunctionMeta(Meta("t"))
                           , FunctionExpApp(
                               "table"{Use(Result(4956))}
                             , [ FunctionExpApp(
                                   "acons"{Use(Result(4952))}
-                                , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("al"))]
+                                , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("al"))]
                                 )
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4954))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
@@ -2796,19 +2796,19 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4934))}
-                            , [ FunctionExpMeta(Meta("a"))
+                            , [ FunctionMeta(Meta("a"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4956))}
                                 , [ FunctionExpApp(
                                       "acons"{Use(Result(4952))}
-                                    , [FunctionExpMeta(Meta("a2")), FunctionExpMeta(Meta("al"))]
+                                    , [FunctionMeta(Meta("a2")), FunctionMeta(Meta("al"))]
                                     )
-                                  , FunctionExpMeta(Meta("trest"))
+                                  , FunctionMeta(Meta("trest"))
                                   ]
                                 )
                               ]
                             )
-                          , FunctionExpApp("some"{Use(Result(4938))}, [FunctionExpMeta(Meta("rt1"))])
+                          , FunctionExpApp("some"{Use(Result(4938))}, [FunctionMeta(Meta("rt1"))])
                           )
                         )
                       )
@@ -2826,20 +2826,20 @@ Module(
                       FunctionExpJudgment(
                         FunctionExpApp(
                           "welltypedtable"{Use(Result(4932))}
-                        , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                         )
                       )
                     , FunctionExpJudgment(
                         FunctionExpEq(
                           FunctionExpApp(
                             "project"{Use(Result(4940))}
-                          , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                          , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                           )
                         , FunctionExpApp(
                             "some"{Use(Result(4938))}
                           , [FunctionExpApp(
                                "tcons"{Use(Result(4954))}
-                             , [FunctionExpMeta(Meta("r1")), FunctionExpMeta(Meta("rt2"))]
+                             , [FunctionMeta(Meta("r1")), FunctionMeta(Meta("rt2"))]
                              )]
                           )
                         )
@@ -2862,13 +2862,13 @@ Module(
                     , JudgementCons(
                         FunctionExpJudgment(
                           FunctionExpEq(
-                            FunctionExpMeta(Meta("t"))
+                            FunctionMeta(Meta("t"))
                           , FunctionExpApp(
                               "table"{Use(Result(4956))}
-                            , [ FunctionExpMeta(Meta("ar2"))
+                            , [ FunctionMeta(Meta("ar2"))
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4954))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
@@ -2878,14 +2878,14 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "project"{Use(Result(4940))}
-                            , [ FunctionExpMeta(Meta("ar"))
+                            , [ FunctionMeta(Meta("ar"))
                               , FunctionExpApp(
                                   "table"{Use(Result(4956))}
-                                , [FunctionExpMeta(Meta("ar2")), FunctionExpMeta(Meta("trest"))]
+                                , [FunctionMeta(Meta("ar2")), FunctionMeta(Meta("trest"))]
                                 )
                               ]
                             )
-                          , FunctionExpApp("some"{Use(Result(4938))}, [FunctionExpMeta(Meta("rt2"))])
+                          , FunctionExpApp("some"{Use(Result(4938))}, [FunctionMeta(Meta("rt2"))])
                           )
                         )
                       )
@@ -2902,7 +2902,7 @@ Module(
                       FunctionExpJudgment(
                         FunctionExpApp(
                           "welltypedtable"{Use(Result(4932))}
-                        , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                         )
                       )
                     , JudgementCons(
@@ -2910,7 +2910,7 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4934))}
-                            , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                            , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                             )
                           , FunctionExpApp(
                               "some"{Use(Result(4938))}
@@ -2926,7 +2926,7 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "project"{Use(Result(4940))}
-                            , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                            , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                             )
                           , FunctionExpApp(
                               "some"{Use(Result(4938))}
@@ -2962,7 +2962,7 @@ Module(
                             , FunctionExpApp("tcons"{Use(Result(4954))}, [FunctionExpVar("r"{Use(Result(5001))}), FunctionExpVar("rt2"{Use(Result(4942))})])
                             ]
                           )
-                        , FunctionExpApp("some"{Use(Result(4938))}, [FunctionExpMeta(Meta("rt3"))])
+                        , FunctionExpApp("some"{Use(Result(4938))}, [FunctionMeta(Meta("rt3"))])
                         )
                       )
                     )
@@ -3015,8 +3015,8 @@ Module(
                 JudgementCons(
                   OrJudgement(
                     OrCons(
-                      FunctionExpJudgment(FunctionExpNeq(FunctionExpMeta(Meta("crt")), FunctionExpVar("tempty"{Use(Result(4896))})))
-                    , OrEnd(FunctionExpJudgment(FunctionExpNeq(FunctionExpMeta(Meta("rt")), FunctionExpVar("tempty"{Use(Result(4896))}))))
+                      FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("crt")), FunctionExpVar("tempty"{Use(Result(4896))})))
+                    , OrEnd(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("rt")), FunctionExpVar("tempty"{Use(Result(4896))}))))
                     )
                   )
                 , JudgementCons(
@@ -3026,11 +3026,11 @@ Module(
                           [Meta("f"), Meta("rt1")]
                         , FunctionExpJudgment(
                             FunctionExpNeq(
-                              FunctionExpMeta(Meta("crt"))
+                              FunctionMeta(Meta("crt"))
                             , FunctionExpApp(
                                 "tcons"{Use(Result(4407))}
-                              , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionExpMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
-                                , FunctionExpMeta(Meta("rt1"))
+                              , [ FunctionExpApp("rcons"{Use(Result(4405))}, [FunctionMeta(Meta("f")), FunctionExpVar("rempty"{Use(Result(4403))})])
+                                , FunctionMeta(Meta("rt1"))
                                 ]
                               )
                             )
@@ -3041,10 +3041,10 @@ Module(
                             [Meta("r"), Meta("rt2")]
                           , FunctionExpJudgment(
                               FunctionExpNeq(
-                                FunctionExpMeta(Meta("rt"))
+                                FunctionMeta(Meta("rt"))
                               , FunctionExpApp(
                                   "tcons"{Use(Result(4407))}
-                                , [FunctionExpMeta(Meta("r")), FunctionExpMeta(Meta("rt2"))]
+                                , [FunctionMeta(Meta("r")), FunctionMeta(Meta("rt2"))]
                                 )
                               )
                             )
@@ -3056,7 +3056,7 @@ Module(
                       FunctionExpJudgment(
                         FunctionExpApp(
                           "welltypedtable"{Use(Result(4882))}
-                        , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                         )
                       )
                     , JudgementCons(
@@ -3064,18 +3064,18 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "findCol"{Use(Result(4401))}
-                            , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                            , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                             )
-                          , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("crt"))])
+                          , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("crt"))])
                           )
                         )
                       , FunctionExpJudgment(
                           FunctionExpEq(
                             FunctionExpApp(
                               "project"{Use(Result(4605))}
-                            , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                            , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                             )
-                          , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt"))])
+                          , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt"))])
                           )
                         )
                       )
@@ -3100,9 +3100,9 @@ Module(
                     FunctionExpEq(
                       FunctionExpApp(
                         "attachColToFrontRaw"{Use(Result(4906))}
-                      , [FunctionExpMeta(Meta("crt")), FunctionExpMeta(Meta("rt"))]
+                      , [FunctionMeta(Meta("crt")), FunctionMeta(Meta("rt"))]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt3"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt3"))])
                     )
                   )
                 )
@@ -3127,7 +3127,7 @@ Module(
                   FunctionExpJudgment(
                     FunctionExpApp(
                       "welltypedtable"{Use(Result(4882))}
-                    , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                    , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                     )
                   )
                 , JudgementCons(
@@ -3135,18 +3135,18 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "findCol"{Use(Result(4401))}
-                        , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("crt"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("crt"))])
                       )
                     )
                   , FunctionExpJudgment(
                       FunctionExpEq(
                         FunctionExpApp(
                           "project"{Use(Result(4605))}
-                        , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                        , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt"))])
                       )
                     )
                   )
@@ -3168,9 +3168,9 @@ Module(
                     FunctionExpEq(
                       FunctionExpApp(
                         "attachColToFrontRaw"{Use(Result(4906))}
-                      , [FunctionExpMeta(Meta("crt")), FunctionExpMeta(Meta("rt"))]
+                      , [FunctionMeta(Meta("crt")), FunctionMeta(Meta("rt"))]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt2"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt2"))])
                     )
                   )
                 )
@@ -3189,7 +3189,7 @@ Module(
               FunctionExpJudgment(
                 FunctionExpApp(
                   "welltypedtable"{Use(Result(4882))}
-                , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                 )
               )
             , JudgementCons(
@@ -3197,18 +3197,18 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "findCol"{Use(Result(4401))}
-                    , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                    , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                     )
-                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("crt"))])
+                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("crt"))])
                   )
                 )
               , FunctionExpJudgment(
                   FunctionExpEq(
                     FunctionExpApp(
                       "project"{Use(Result(4605))}
-                    , [FunctionExpMeta(Meta("ar")), FunctionExpMeta(Meta("t"))]
+                    , [FunctionMeta(Meta("ar")), FunctionMeta(Meta("t"))]
                     )
-                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt"))])
+                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt"))])
                   )
                 )
               )
@@ -3230,9 +3230,9 @@ Module(
                 FunctionExpEq(
                   FunctionExpApp(
                     "attachColToFrontRaw"{Use(Result(4906))}
-                  , [FunctionExpMeta(Meta("crt")), FunctionExpMeta(Meta("rt"))]
+                  , [FunctionMeta(Meta("crt")), FunctionMeta(Meta("rt"))]
                   )
-                , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt2"))])
+                , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt2"))])
                 )
               )
             )
@@ -3251,8 +3251,8 @@ Module(
                   FunctionExpJudgment(
                     FunctionExpApp(
                       "welltypedtable"{Use(Result(4882))}
-                    , [ FunctionExpMeta(Meta("TT1"))
-                      , FunctionExpApp("table"{Use(Result(4399))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionExpMeta(Meta("rt"))])
+                    , [ FunctionMeta(Meta("TT1"))
+                      , FunctionExpApp("table"{Use(Result(4399))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionMeta(Meta("rt"))])
                       ]
                     )
                   )
@@ -3262,12 +3262,12 @@ Module(
                         "projectType"{Use(Result(5055))}
                       , [ FunctionExpApp(
                             "acons"{Use(Result(4413))}
-                          , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("ar"))]
+                          , [FunctionMeta(Meta("a")), FunctionMeta(Meta("ar"))]
                           )
-                        , FunctionExpMeta(Meta("TT1"))
+                        , FunctionMeta(Meta("TT1"))
                         ]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT2"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT2"))])
                     )
                   )
                 )
@@ -3289,11 +3289,11 @@ Module(
                     FunctionExpEq(
                       FunctionExpApp(
                         "findCol"{Use(Result(4401))}
-                      , [ FunctionExpMeta(Meta("a"))
-                        , FunctionExpApp("table"{Use(Result(4399))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionExpMeta(Meta("rt"))])
+                      , [ FunctionMeta(Meta("a"))
+                        , FunctionExpApp("table"{Use(Result(4399))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionMeta(Meta("rt"))])
                         ]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("c"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("c"))])
                     )
                   )
                 )
@@ -3365,7 +3365,7 @@ Module(
                           FunctionExpJudgment(
                             FunctionExpApp(
                               "welltypedtable"{Use(Result(5097))}
-                            , [ FunctionExpMeta(Meta("TTR"))
+                            , [ FunctionMeta(Meta("TTR"))
                               , FunctionExpApp(
                                   "table"{Use(Result(5095))}
                                 , [FunctionExpVar("al"{Use(Result(5089))}), FunctionExpApp("dropFirstColRaw"{Use(Result(5093))}, [FunctionExpVar("rt"{Use(Result(5091))})])]
@@ -3375,8 +3375,8 @@ Module(
                           )
                         , FunctionExpJudgment(
                             FunctionExpEq(
-                              FunctionExpApp("findColType"{Use(Result(5101))}, [FunctionExpVar("a"{Use(Result(5099))}), FunctionExpMeta(Meta("TTR"))])
-                            , FunctionExpApp("some"{Use(Result(5103))}, [FunctionExpMeta(Meta("TTR2"))])
+                              FunctionExpApp("findColType"{Use(Result(5101))}, [FunctionExpVar("a"{Use(Result(5099))}), FunctionMeta(Meta("TTR"))])
+                            , FunctionExpApp("some"{Use(Result(5103))}, [FunctionMeta(Meta("TTR2"))])
                             )
                           )
                         )
@@ -3405,7 +3405,7 @@ Module(
                                   )
                                 ]
                               )
-                            , FunctionExpApp("some"{Use(Result(5103))}, [FunctionExpMeta(Meta("c"))])
+                            , FunctionExpApp("some"{Use(Result(5103))}, [FunctionMeta(Meta("c"))])
                             )
                           )
                         )
@@ -3479,14 +3479,14 @@ Module(
                         FunctionExpJudgment(
                           FunctionExpApp(
                             "welltypedtable"{Use(Result(5097))}
-                          , [ FunctionExpMeta(Meta("TT1"))
+                          , [ FunctionMeta(Meta("TT1"))
                             , FunctionExpApp(
                                 "table"{Use(Result(5095))}
                               , [ FunctionExpApp(
                                     "acons"{Use(Result(5115))}
-                                  , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("al"))]
+                                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("al"))]
                                   )
-                                , FunctionExpMeta(Meta("rt"))
+                                , FunctionMeta(Meta("rt"))
                                 ]
                               )
                             ]
@@ -3508,14 +3508,14 @@ Module(
                           [Meta("ft"), Meta("TTR")]
                         , FunctionExpJudgment(
                             FunctionExpEq(
-                              FunctionExpMeta(Meta("TT1"))
+                              FunctionMeta(Meta("TT1"))
                             , FunctionExpApp(
                                 "ttcons"{Use(Result(5123))}
                               , [ FunctionExpApp(
                                     "ctype"{Use(Result(5121))}
-                                  , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("ft"))]
+                                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("ft"))]
                                   )
-                                , FunctionExpMeta(Meta("TTR"))
+                                , FunctionMeta(Meta("TTR"))
                                 ]
                               )
                             )
@@ -3537,18 +3537,18 @@ Module(
                                 "ttcons"{Use(Result(5123))}
                               , [ FunctionExpApp(
                                     "ctype"{Use(Result(5121))}
-                                  , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("ft"))]
+                                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("ft"))]
                                   )
-                                , FunctionExpMeta(Meta("TTR"))
+                                , FunctionMeta(Meta("TTR"))
                                 ]
                               )
                             , FunctionExpApp(
                                 "table"{Use(Result(5095))}
                               , [ FunctionExpApp(
                                     "acons"{Use(Result(5115))}
-                                  , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("al"))]
+                                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("al"))]
                                   )
-                                , FunctionExpMeta(Meta("rt"))
+                                , FunctionMeta(Meta("rt"))
                                 ]
                               )
                             ]
@@ -3569,10 +3569,10 @@ Module(
                         FunctionExpJudgment(
                           FunctionExpApp(
                             "welltypedtable"{Use(Result(5097))}
-                          , [ FunctionExpMeta(Meta("TTR"))
+                          , [ FunctionMeta(Meta("TTR"))
                             , FunctionExpApp(
                                 "table"{Use(Result(5095))}
-                              , [FunctionExpMeta(Meta("al")), FunctionExpApp("dropFirstColRaw"{Use(Result(5093))}, [FunctionExpMeta(Meta("rt"))])]
+                              , [FunctionMeta(Meta("al")), FunctionExpApp("dropFirstColRaw"{Use(Result(5093))}, [FunctionMeta(Meta("rt"))])]
                               )
                             ]
                           )
@@ -3592,7 +3592,7 @@ Module(
                       FunctionExpJudgment(
                         FunctionExpApp(
                           "welltypedtable"{Use(Result(5097))}
-                        , [ FunctionExpMeta(Meta("TT1"))
+                        , [ FunctionMeta(Meta("TT1"))
                           , FunctionExpApp(
                               "table"{Use(Result(5095))}
                             , [FunctionExpApp("acons"{Use(Result(5115))}, [FunctionExpVar("a2"{Use(Result(5135))}), FunctionExpVar("al"{Use(Result(5089))})]), FunctionExpVar("rt"{Use(Result(5091))})]
@@ -3602,8 +3602,8 @@ Module(
                       )
                     , FunctionExpJudgment(
                         FunctionExpEq(
-                          FunctionExpApp("findColType"{Use(Result(5101))}, [FunctionExpVar("a"{Use(Result(5099))}), FunctionExpMeta(Meta("TT1"))])
-                        , FunctionExpApp("some"{Use(Result(5103))}, [FunctionExpMeta(Meta("TT2"))])
+                          FunctionExpApp("findColType"{Use(Result(5101))}, [FunctionExpVar("a"{Use(Result(5099))}), FunctionMeta(Meta("TT1"))])
+                        , FunctionExpApp("some"{Use(Result(5103))}, [FunctionMeta(Meta("TT2"))])
                         )
                       )
                     )
@@ -3632,7 +3632,7 @@ Module(
                               )
                             ]
                           )
-                        , FunctionExpApp("some"{Use(Result(5103))}, [FunctionExpMeta(Meta("c"))])
+                        , FunctionExpApp("some"{Use(Result(5103))}, [FunctionMeta(Meta("c"))])
                         )
                       )
                     )
@@ -3676,16 +3676,16 @@ Module(
                   FunctionExpJudgment(
                     FunctionExpApp(
                       "welltypedtable"{Use(Result(4882))}
-                    , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                    , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                     )
                   )
                 , FunctionExpJudgment(
                     FunctionExpEq(
                       FunctionExpApp(
                         "findColType"{Use(Result(5156))}
-                      , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("TT1"))]
+                      , [FunctionMeta(Meta("a")), FunctionMeta(Meta("TT1"))]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT2"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT2"))])
                     )
                   )
                 )
@@ -3706,9 +3706,9 @@ Module(
                     FunctionExpEq(
                       FunctionExpApp(
                         "findCol"{Use(Result(4401))}
-                      , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                      , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("c"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("c"))])
                     )
                   )
                 )
@@ -3727,16 +3727,16 @@ Module(
               FunctionExpJudgment(
                 FunctionExpApp(
                   "welltypedtable"{Use(Result(4882))}
-                , [FunctionExpMeta(Meta("TT1")), FunctionExpMeta(Meta("t"))]
+                , [FunctionMeta(Meta("TT1")), FunctionMeta(Meta("t"))]
                 )
               )
             , FunctionExpJudgment(
                 FunctionExpEq(
                   FunctionExpApp(
                     "findColType"{Use(Result(5156))}
-                  , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("TT1"))]
+                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("TT1"))]
                   )
-                , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT2"))])
+                , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT2"))])
                 )
               )
             )
@@ -3757,9 +3757,9 @@ Module(
                 FunctionExpEq(
                   FunctionExpApp(
                     "findCol"{Use(Result(4401))}
-                  , [FunctionExpMeta(Meta("a")), FunctionExpMeta(Meta("t"))]
+                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("t"))]
                   )
-                , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("c"))])
+                , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("c"))])
                 )
               )
             )
@@ -3787,7 +3787,7 @@ Module(
                   FunctionExpJudgment(
                     FunctionExpApp(
                       "StoreContextConsistent"{Use(Result(5175))}
-                    , [FunctionExpMeta(Meta("TS")), FunctionExpMeta(Meta("TTC"))]
+                    , [FunctionMeta(Meta("TS")), FunctionMeta(Meta("TTC"))]
                     )
                   )
                 , JudgementCons(
@@ -3795,9 +3795,9 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "clookup"{Use(Result(5177))}
-                        , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TTC"))]
+                        , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT1"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT1"))])
                       )
                     )
                   , JudgementCons(
@@ -3805,15 +3805,15 @@ Module(
                         FunctionExpEq(
                           FunctionExpApp(
                             "lookup"{Use(Result(5180))}
-                          , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TS"))]
+                          , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TS"))]
                           )
-                        , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("t"))])
+                        , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("t"))])
                         )
                       )
                     , FunctionExpJudgment(
                         FunctionExpEq(
-                          FunctionExpApp("projectType"{Use(Result(5055))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionExpMeta(Meta("TT1"))])
-                        , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT2"))])
+                          FunctionExpApp("projectType"{Use(Result(5055))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionMeta(Meta("TT1"))])
+                        , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT2"))])
                         )
                       )
                     )
@@ -3835,8 +3835,8 @@ Module(
                   [Meta("t2")]
                 , FunctionExpJudgment(
                     FunctionExpEq(
-                      FunctionExpApp("project"{Use(Result(4605))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionExpMeta(Meta("t"))])
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("t2"))])
+                      FunctionExpApp("project"{Use(Result(4605))}, [FunctionExpVar("aempty"{Use(Result(4397))}), FunctionMeta(Meta("t"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("t2"))])
                     )
                   )
                 )
@@ -3862,7 +3862,7 @@ Module(
                       FunctionExpJudgment(
                         FunctionExpApp(
                           "StoreContextConsistent"{Use(Result(5195))}
-                        , [FunctionExpMeta(Meta("TS")), FunctionExpMeta(Meta("TTC"))]
+                        , [FunctionMeta(Meta("TS")), FunctionMeta(Meta("TTC"))]
                         )
                       )
                     , JudgementCons(
@@ -3870,9 +3870,9 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "clookup"{Use(Result(5197))}
-                            , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TTC"))]
+                            , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
                             )
-                          , FunctionExpApp("some"{Use(Result(5199))}, [FunctionExpMeta(Meta("TT1"))])
+                          , FunctionExpApp("some"{Use(Result(5199))}, [FunctionMeta(Meta("TT1"))])
                           )
                         )
                       , JudgementCons(
@@ -3880,15 +3880,15 @@ Module(
                             FunctionExpEq(
                               FunctionExpApp(
                                 "lookup"{Use(Result(5201))}
-                              , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TS"))]
+                              , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TS"))]
                               )
-                            , FunctionExpApp("some"{Use(Result(5199))}, [FunctionExpMeta(Meta("t"))])
+                            , FunctionExpApp("some"{Use(Result(5199))}, [FunctionMeta(Meta("t"))])
                             )
                           )
                         , FunctionExpJudgment(
                             FunctionExpEq(
-                              FunctionExpApp("projectType"{Use(Result(5206))}, [FunctionExpVar("ar"{Use(Result(5204))}), FunctionExpMeta(Meta("TT1"))])
-                            , FunctionExpApp("some"{Use(Result(5199))}, [FunctionExpMeta(Meta("TT2"))])
+                              FunctionExpApp("projectType"{Use(Result(5206))}, [FunctionExpVar("ar"{Use(Result(5204))}), FunctionMeta(Meta("TT1"))])
+                            , FunctionExpApp("some"{Use(Result(5199))}, [FunctionMeta(Meta("TT2"))])
                             )
                           )
                         )
@@ -3910,8 +3910,8 @@ Module(
                       [Meta("rt")]
                     , FunctionExpJudgment(
                         FunctionExpEq(
-                          FunctionExpApp("project"{Use(Result(5212))}, [FunctionExpVar("ar"{Use(Result(5204))}), FunctionExpMeta(Meta("t"))])
-                        , FunctionExpApp("some"{Use(Result(5199))}, [FunctionExpMeta(Meta("rt"))])
+                          FunctionExpApp("project"{Use(Result(5212))}, [FunctionExpVar("ar"{Use(Result(5204))}), FunctionMeta(Meta("t"))])
+                        , FunctionExpApp("some"{Use(Result(5199))}, [FunctionMeta(Meta("rt"))])
                         )
                       )
                     )
@@ -3978,7 +3978,7 @@ Module(
                       FunctionExpJudgment(
                         FunctionExpApp(
                           "StoreContextConsistent"{Use(Result(5195))}
-                        , [FunctionExpMeta(Meta("TS")), FunctionExpMeta(Meta("TTC"))]
+                        , [FunctionMeta(Meta("TS")), FunctionMeta(Meta("TTC"))]
                         )
                       )
                     , JudgementCons(
@@ -3986,9 +3986,9 @@ Module(
                           FunctionExpEq(
                             FunctionExpApp(
                               "clookup"{Use(Result(5197))}
-                            , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TTC"))]
+                            , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
                             )
-                          , FunctionExpApp("some"{Use(Result(5199))}, [FunctionExpMeta(Meta("TT1"))])
+                          , FunctionExpApp("some"{Use(Result(5199))}, [FunctionMeta(Meta("TT1"))])
                           )
                         )
                       , JudgementCons(
@@ -3996,20 +3996,20 @@ Module(
                             FunctionExpEq(
                               FunctionExpApp(
                                 "lookup"{Use(Result(5201))}
-                              , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TS"))]
+                              , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TS"))]
                               )
-                            , FunctionExpApp("some"{Use(Result(5199))}, [FunctionExpMeta(Meta("t"))])
+                            , FunctionExpApp("some"{Use(Result(5199))}, [FunctionMeta(Meta("t"))])
                             )
                           )
                         , FunctionExpJudgment(
                             FunctionExpEq(
                               FunctionExpApp(
                                 "projectType"{Use(Result(5206))}
-                              , [ FunctionExpApp("acons"{Use(Result(5221))}, [FunctionExpMeta(Meta("a")), FunctionExpVar("ar"{Use(Result(5204))})])
-                                , FunctionExpMeta(Meta("TT1"))
+                              , [ FunctionExpApp("acons"{Use(Result(5221))}, [FunctionMeta(Meta("a")), FunctionExpVar("ar"{Use(Result(5204))})])
+                                , FunctionMeta(Meta("TT1"))
                                 ]
                               )
-                            , FunctionExpApp("some"{Use(Result(5199))}, [FunctionExpMeta(Meta("TT2"))])
+                            , FunctionExpApp("some"{Use(Result(5199))}, [FunctionMeta(Meta("TT2"))])
                             )
                           )
                         )
@@ -4034,11 +4034,11 @@ Module(
                         FunctionExpEq(
                           FunctionExpApp(
                             "project"{Use(Result(5212))}
-                          , [ FunctionExpApp("acons"{Use(Result(5221))}, [FunctionExpMeta(Meta("a")), FunctionExpVar("ar"{Use(Result(5204))})])
-                            , FunctionExpMeta(Meta("t"))
+                          , [ FunctionExpApp("acons"{Use(Result(5221))}, [FunctionMeta(Meta("a")), FunctionExpVar("ar"{Use(Result(5204))})])
+                            , FunctionMeta(Meta("t"))
                             ]
                           )
-                        , FunctionExpApp("some"{Use(Result(5199))}, [FunctionExpMeta(Meta("rt"))])
+                        , FunctionExpApp("some"{Use(Result(5199))}, [FunctionMeta(Meta("rt"))])
                         )
                       )
                     )
@@ -4092,7 +4092,7 @@ Module(
                   FunctionExpJudgment(
                     FunctionExpApp(
                       "StoreContextConsistent"{Use(Result(5175))}
-                    , [FunctionExpMeta(Meta("TS")), FunctionExpMeta(Meta("TTC"))]
+                    , [FunctionMeta(Meta("TS")), FunctionMeta(Meta("TTC"))]
                     )
                   )
                 , JudgementCons(
@@ -4100,9 +4100,9 @@ Module(
                       FunctionExpEq(
                         FunctionExpApp(
                           "clookup"{Use(Result(5177))}
-                        , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TTC"))]
+                        , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
                         )
-                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT1"))])
+                      , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT1"))])
                       )
                     )
                   , JudgementCons(
@@ -4110,18 +4110,18 @@ Module(
                         FunctionExpEq(
                           FunctionExpApp(
                             "lookup"{Use(Result(5180))}
-                          , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TS"))]
+                          , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TS"))]
                           )
-                        , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("t"))])
+                        , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("t"))])
                         )
                       )
                     , FunctionExpJudgment(
                         FunctionExpEq(
                           FunctionExpApp(
                             "projectType"{Use(Result(5055))}
-                          , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("TT1"))]
+                          , [FunctionMeta(Meta("al")), FunctionMeta(Meta("TT1"))]
                           )
-                        , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT2"))])
+                        , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT2"))])
                         )
                       )
                     )
@@ -4144,9 +4144,9 @@ Module(
                     FunctionExpEq(
                       FunctionExpApp(
                         "project"{Use(Result(4605))}
-                      , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("t"))]
+                      , [FunctionMeta(Meta("al")), FunctionMeta(Meta("t"))]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt"))])
                     )
                   )
                 )
@@ -4165,7 +4165,7 @@ Module(
               FunctionExpJudgment(
                 FunctionExpApp(
                   "StoreContextConsistent"{Use(Result(5175))}
-                , [FunctionExpMeta(Meta("TS")), FunctionExpMeta(Meta("TTC"))]
+                , [FunctionMeta(Meta("TS")), FunctionMeta(Meta("TTC"))]
                 )
               )
             , JudgementCons(
@@ -4173,9 +4173,9 @@ Module(
                   FunctionExpEq(
                     FunctionExpApp(
                       "clookup"{Use(Result(5177))}
-                    , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TTC"))]
+                    , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
                     )
-                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT1"))])
+                  , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT1"))])
                   )
                 )
               , JudgementCons(
@@ -4183,18 +4183,18 @@ Module(
                     FunctionExpEq(
                       FunctionExpApp(
                         "lookup"{Use(Result(5180))}
-                      , [FunctionExpMeta(Meta("tn")), FunctionExpMeta(Meta("TS"))]
+                      , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TS"))]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("t"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("t"))])
                     )
                   )
                 , FunctionExpJudgment(
                     FunctionExpEq(
                       FunctionExpApp(
                         "projectType"{Use(Result(5055))}
-                      , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("TT1"))]
+                      , [FunctionMeta(Meta("al")), FunctionMeta(Meta("TT1"))]
                       )
-                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("TT2"))])
+                    , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("TT2"))])
                     )
                   )
                 )
@@ -4217,9 +4217,9 @@ Module(
                 FunctionExpEq(
                   FunctionExpApp(
                     "project"{Use(Result(4605))}
-                  , [FunctionExpMeta(Meta("al")), FunctionExpMeta(Meta("t"))]
+                  , [FunctionMeta(Meta("al")), FunctionMeta(Meta("t"))]
                   )
-                , FunctionExpApp("some"{Use(Result(4409))}, [FunctionExpMeta(Meta("rt"))])
+                , FunctionExpApp("some"{Use(Result(4409))}, [FunctionMeta(Meta("rt"))])
                 )
               )
             )

@@ -12,8 +12,8 @@ Module(
     , [ TypingRule(
           PremiseList(
             JudgementCons(
-              TypingJudgmentSimple(FunctionExpMeta(Meta("e")), FunctionExpMeta(Meta("T1")))
-            , FunctionExpJudgment(FunctionExpEq(FunctionExpMeta(Meta("T1")), FunctionExpMeta(Meta("T2"))))
+              TypingJudgmentSimple(FunctionMeta(Meta("e")), FunctionMeta(Meta("T1")))
+            , FunctionExpJudgment(FunctionExpEq(FunctionMeta(Meta("T1")), FunctionMeta(Meta("T2"))))
             )
           )
         , RuleName("===========", "Goal-1"{ Def(
@@ -26,7 +26,7 @@ Module(
                                               )
                                             )
                                           })
-        , ConsequenceList(TypingJudgmentSimple(FunctionExpMeta(Meta("e")), FunctionExpMeta(Meta("T2"))))
+        , ConsequenceList(TypingJudgmentSimple(FunctionMeta(Meta("e")), FunctionMeta(Meta("T2"))))
         )
       ]
     ){ Scope(

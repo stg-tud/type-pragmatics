@@ -72,20 +72,20 @@ Module(
       [ TypingRule(
           PremiseList(
             JudgementCons(
-              FunctionExpJudgment(FunctionExpEq(FunctionExpMeta(Meta("x")), FunctionExpMeta(Meta("y"))))
+              FunctionExpJudgment(FunctionExpEq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
             , TypingJudgment(
                 FunctionExpApp(
                   "bind"
-                , [ FunctionExpMeta(Meta("x"))
-                  , FunctionExpMeta(Meta("Tx"))
+                , [ FunctionMeta(Meta("x"))
+                  , FunctionMeta(Meta("Tx"))
                   , FunctionExpApp(
                       "bind"
-                    , [FunctionExpMeta(Meta("y")), FunctionExpMeta(Meta("Ty")), FunctionExpMeta(Meta("C"))]
+                    , [FunctionMeta(Meta("y")), FunctionMeta(Meta("Ty")), FunctionMeta(Meta("C"))]
                     )
                   ]
                 )
-              , FunctionExpMeta(Meta("e"))
-              , FunctionExpMeta(Meta("T"))
+              , FunctionMeta(Meta("e"))
+              , FunctionMeta(Meta("T"))
               )
             )
           )
@@ -94,30 +94,30 @@ Module(
             TypingJudgment(
               FunctionExpApp(
                 "bind"
-              , [FunctionExpMeta(Meta("x")), FunctionExpMeta(Meta("Tx")), FunctionExpMeta(Meta("C"))]
+              , [FunctionMeta(Meta("x")), FunctionMeta(Meta("Tx")), FunctionMeta(Meta("C"))]
               )
-            , FunctionExpMeta(Meta("e"))
-            , FunctionExpMeta(Meta("T"))
+            , FunctionMeta(Meta("e"))
+            , FunctionMeta(Meta("T"))
             )
           )
         )
       , TypingRule(
           PremiseList(
             JudgementCons(
-              FunctionExpJudgment(FunctionExpNeq(FunctionExpMeta(Meta("x")), FunctionExpMeta(Meta("y"))))
+              FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
             , TypingJudgment(
                 FunctionExpApp(
                   "bind"
-                , [ FunctionExpMeta(Meta("x"))
-                  , FunctionExpMeta(Meta("Tx"))
+                , [ FunctionMeta(Meta("x"))
+                  , FunctionMeta(Meta("Tx"))
                   , FunctionExpApp(
                       "bind"
-                    , [FunctionExpMeta(Meta("y")), FunctionExpMeta(Meta("Ty")), FunctionExpMeta(Meta("C"))]
+                    , [FunctionMeta(Meta("y")), FunctionMeta(Meta("Ty")), FunctionMeta(Meta("C"))]
                     )
                   ]
                 )
-              , FunctionExpMeta(Meta("e"))
-              , FunctionExpMeta(Meta("T"))
+              , FunctionMeta(Meta("e"))
+              , FunctionMeta(Meta("T"))
               )
             )
           )
@@ -126,16 +126,16 @@ Module(
             TypingJudgment(
               FunctionExpApp(
                 "bind"
-              , [ FunctionExpMeta(Meta("y"))
-                , FunctionExpMeta(Meta("Ty"))
+              , [ FunctionMeta(Meta("y"))
+                , FunctionMeta(Meta("Ty"))
                 , FunctionExpApp(
                     "bind"
-                  , [FunctionExpMeta(Meta("x")), FunctionExpMeta(Meta("Tx")), FunctionExpMeta(Meta("C"))]
+                  , [FunctionMeta(Meta("x")), FunctionMeta(Meta("Tx")), FunctionMeta(Meta("C"))]
                   )
                 ]
               )
-            , FunctionExpMeta(Meta("e"))
-            , FunctionExpMeta(Meta("T"))
+            , FunctionMeta(Meta("e"))
+            , FunctionMeta(Meta("T"))
             )
           )
         )
