@@ -90,17 +90,23 @@ object ToTff {
 
   private def functionExpToTff(f: FunctionExp): FofUnitary =
     f match {
-      case FunctionExpNot(f)           => ???
-      case FunctionExpEq(f1, f2)       => ???
-      case FunctionExpNeq(f1, f2)      => ???
-      case FunctionExpAnd(l, r)        => ???
-      case FunctionExpOr(l, r)         => ???
-      case FunctionExpBiImpl(l, r)     => ???
-      case FunctionExpApp(n, args)     => ???
-      //case FunctionMeta(MetaVar(m)) => ??? //MetaVars should not be FunctionExps!!
-      case FunctionExpTrue             => True
-      case FunctionExpFalse            => False
-      case _                           => throw TransformationError("Encountered unsupported function expression while translating (e.g. if or let expression)")
+      case FunctionExpNot(f)       => ???
+      case FunctionExpEq(f1, f2)   => ???
+      case FunctionExpNeq(f1, f2)  => ???
+      case FunctionExpAnd(l, r)    => ???
+      case FunctionExpOr(l, r)     => ???
+      case FunctionExpBiImpl(l, r) => ???
+      case FunctionExpApp(n, args) => ???
+      case FunctionExpTrue         => True
+      case FunctionExpFalse        => False
+      case _                       => throw TransformationError("Encountered unsupported function expression while translating (e.g. if or let expression)")
+    }
+
+  private def functionExpMetaToTff(f: FunctionExpMeta): Term =
+    f match {
+      case FunctionMeta(MetaVar(m)) => ???
+      case FunctionExpApp(n, args)  => ???
+      case _                        => throw TransformationError("Encountered unexpected construct in functionExpMetaToTff.")
     }
 
   private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = ???
