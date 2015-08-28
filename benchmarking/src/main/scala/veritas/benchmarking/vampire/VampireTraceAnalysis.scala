@@ -170,7 +170,8 @@ case object MergeDuplicates extends VampireTraceAnalisis {
       c1.saNew + c2.saNew,
       c1.saActive + c2.saActive,
       c1.saPassive + c2.saPassive,
-      c1.ids ++ c2.ids)
+      c1.ids ++ c2.ids,
+      c1.steps ++ c2.steps)
 }
 
 case object UniqueNames extends VampireTraceAnalisis {
@@ -184,7 +185,7 @@ case object UniqueNames extends VampireTraceAnalisis {
         val (lits, changed) = c.lits.map(uniqueNames(_)).unzip
         if (changed.nonEmpty && changed.reduce(_||_))
           renamed += 1
-        VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids)
+        VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps)
       }
     )
 
@@ -276,7 +277,7 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
         if (lits.isEmpty)
           null
         else
-          VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids)
+          VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps)
       }
     )
 

@@ -157,23 +157,23 @@ case class VampireConfig(version: String,
 
       // parse clauses
       else if (s.startsWith("[SA] new: ")) {
-        val (id, term, age, weight) = parseClause(s, "[SA] new: ")
-        addClause(NEW, id, term, age, weight)
+        val (id, term, age, weight, step) = parseClause(s, "[SA] new: ")
+        addClause(NEW, id, term, age, weight, step)
       }
       else if (s.startsWith("[SA] active: ")) {
-        val (id, term, age, weight) = parseClause(s, "[SA] active: ")
-        addClause(ACTIVE, id, term, age, weight)
+        val (id, term, age, weight, step) = parseClause(s, "[SA] active: ")
+        addClause(ACTIVE, id, term, age, weight, step)
       }
       else if (s.startsWith("[SA] passive: ")) {
-        val (id, term, age, weight) = parseClause(s, "[SA] passive: ")
-        addClause(PASSIVE, id, term, age, weight)
+        val (id, term, age, weight, step) = parseClause(s, "[SA] passive: ")
+        addClause(PASSIVE, id, term, age, weight, step)
       }
     } catch {
       case e: Exception => println(s"Error ${e.getMessage} in $s")
         throw e
     }
 
-    def parseClause(s: String, prefix: String): (Int, String, Int, Int) = {
+    def parseClause(s: String, prefix: String): (Int, String, Int, Int, VampireStep) = {
       var idend = s.indexOf('.')
       if (idend < 0)
         idend = s.length
@@ -212,7 +212,19 @@ case class VampireConfig(version: String,
           (age, weight)
         }
 
-      (id, term, age, weight)
+      val step =
+        if (braceStart == Int.MaxValue)
+          null
+        else {
+          val restTerm = termprefix.substring(braceStart + 1)
+          val space = restTerm.indexOf(' ')
+          val rule = restTerm.substring(0, space)
+          val predString = restTerm.substring(space + 1, restTerm.length - 1)
+          val predStrings = predString.split(",")
+          VampireStep(rule, predStrings.map(_.toInt))
+        }
+
+      (id, term, age, weight, step)
     }
 
     val NEW = 0
@@ -288,12 +300,12 @@ case class VampireConfig(version: String,
       }
     }
 
-    def addClause(kind: Int, id: Int, term: String, age: Int, weight: Int): Unit = {
+    def addClause(kind: Int, id: Int, term: String, age: Int, weight: Int, step: VampireStep): Unit = {
       val lits = parseClauseLiterals(term)
 
       var clause = clauses(id)
       if (clause == null) {
-        clause = VampireClause(lits, age, weight, 0, 0, 0, Set(id))
+        clause = VampireClause(lits, age, weight, 0, 0, 0, Seq(id), Seq(step))
         clauses(id) = clause
       }
 
