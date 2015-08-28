@@ -52,16 +52,24 @@ case class Eq(t1: Term, t2: Term) extends Atom {
   override def toString = s"$t1 = $t2"
   override def subst(s: Map[String, Term]) = Eq(t1.subst(s), t2.subst(s))
   override def contains(s: Symbol) = t1.contains(s) || t2.contains(s)
+
+  override def hashCode = 17 * (t1.hashCode + t2.hashCode)
+  override def equals(o: Any) = o.isInstanceOf[Eq] && {
+    val eq = o.asInstanceOf[Eq]
+    t1 == eq.t1 && t2 == eq.t2 || t1 == eq.t2 && t2 == eq.t1
+  }
 }
 
 trait Literal {
   def subst(s: Map[String, Term]): Literal
   def contains(s: Symbol): Boolean
+  def negate: Literal
 }
 case class Pos(a: Atom) extends Literal {
   override def toString = a.toString
   override def subst(s: Map[String, Term]) = Pos(a.subst(s))
   override def contains(s: Symbol) = a.contains(s)
+  override def negate = Neg(a)
 }
 case class Neg(a: Atom) extends Literal {
   override def toString = a match {
@@ -71,6 +79,7 @@ case class Neg(a: Atom) extends Literal {
   }
   override def subst(s: Map[String, Term]) = Neg(a.subst(s))
   override def contains(s: Symbol) = a.contains(s)
+  override def negate = Pos(a)
 }
 
 // a clause is a disjunction of literals $lits
@@ -82,6 +91,9 @@ case class VampireClause(lits: Seq[Literal],
                          var saPassive: Int,
                          ids: Seq[Int], // alternative original IDs for this clause
                          steps: Seq[VampireStep]) { // alternative steps that lead to this clause
+  if (lits.isEmpty)
+    throw new IllegalArgumentException(s"A clause cannot be empty")
+
   val IDstring =
     if (VampireTraceAnalisisOptions.logIDs)
       s", ids=${ids.toList.sorted.mkString("{", ",", "}")})"

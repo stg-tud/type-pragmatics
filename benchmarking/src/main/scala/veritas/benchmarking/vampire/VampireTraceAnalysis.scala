@@ -45,6 +45,11 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       config
     } text("Remove clauses used for deriving other clauses")
 
+    p.opt[Unit]("vampire-filter-tautologies") unbounded() action { (_,config) =>
+      analysisSeq += FilterTautologies
+      config
+    } text("Remove clauses that are tautologies")
+
     p.opt[Unit]("vampire-merge-duplicates") unbounded() action { (_,config) =>
       analysisSeq += MergeDuplicates
       config
@@ -59,6 +64,11 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       analysisSeq += SimplifyWithInlining
       config
     } text("Simplify clauses through inlining of equations")
+
+    p.opt[Unit]("vampire-simplify-facts") unbounded() action { (_,config) =>
+      analysisSeq += SimplifyFacts
+      config
+    } text("Simplify clauses by removing negated facts")
 
     p.opt[Unit]("vampire-log-ids") action { (_,config) =>
       logIDs = true
@@ -97,7 +107,7 @@ case object ClauseSummary extends VampireTraceAnalisis {
 
 case class TopWeightClauses(k: Int) extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
-    val newClauses = trace.clauses.sortBy(c => if (c == null) -1 else c.weight)
+    val newClauses = trace.clauses.sortBy(c => if (c == null) Int.MaxValue else c.weight)
     b ++= s"  Top $k weight clauses (with least weight):\n"
     for (i <- 1 to Math.min(k, newClauses.length))
       b ++= f"    ${i}:\t ${newClauses(i-1)}\n"
@@ -160,6 +170,22 @@ case object FilterUsed extends VampireTraceAnalisis {
       }
     )
     b ++= s"  Filtered out $deleted of ${trace.clauses.size} clauses that were used for deriving other clauses\n"
+    VampireTrace(filteredClauses, trace.config)
+  }
+}
+
+case object FilterTautologies extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    var deleted = 0
+    val filteredClauses = trace.clauses.filter(c =>
+      if (c == null || !c.lits.exists(l => c.lits.contains(l.negate)))
+        true
+      else  {
+        deleted += 1
+        false
+      }
+    )
+    b ++= s"  Filtered out $deleted of ${trace.clauses.size} clauses that were tautologies\n"
     VampireTrace(filteredClauses, trace.config)
   }
 }
@@ -339,5 +365,32 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
     }
     else
       simplify(rest, previous :+ current)
+  }
+}
+
+case object SimplifyFacts extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    var facts = Set[Literal]()
+    trace.clauses.foreach(c =>
+      if (c != null && c.lits.size == 1)
+        facts += c.lits.head
+    )
+
+    var simplified = 0
+    val simplifiedClauses = trace.clauses.map(c =>
+      if (c == null)
+        c
+      else {
+        val newlits = c.lits.filter(l => !facts.contains(l.negate))
+        if (newlits.size != c.lits.size)
+          simplified += 1
+        if (newlits.isEmpty)
+          null
+        else
+          VampireClause(newlits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps)
+      }
+    )
+    b ++= s"  Simplified $simplified of ${trace.clauses.size} by eliminating negated facts\n"
+    VampireTrace(simplifiedClauses, trace.config)
   }
 }
