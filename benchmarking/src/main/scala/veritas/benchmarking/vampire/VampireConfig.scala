@@ -8,8 +8,7 @@ import veritas.benchmarking.util.GrowingArray
 
 case class VampireConfig(version: String,
                          mode: String = "casc",
-                         traceAnalyses: collection.mutable.Seq[VampireTraceAnalisis] = VampireTraceAnalisisOptions.analysisSeq,
-                         logIDs: Boolean = false) extends ProverConfig {
+                         traceAnalyses: collection.mutable.Seq[VampireTraceAnalisis] = VampireTraceAnalisisOptions.analysisSeq) extends ProverConfig {
   def isValid = proverCommand != null
 
   override val name = if (version == null) s"vampire" else s"vampire-$version"
