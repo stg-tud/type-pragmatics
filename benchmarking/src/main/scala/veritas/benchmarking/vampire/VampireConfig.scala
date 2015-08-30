@@ -97,21 +97,39 @@ case class VampireConfig(version: String,
 
   case class VampireResultProcessor(file: File, timeout: Int) extends ResultProcessor {
 
-    private var clauses = new GrowingArray[VampireClause](1000)
-    private var maxindex = -1
+    private var clauses: GrowingArray[VampireClause] = _
+    private var maxindex: Int = _
 
-    var status: ProverStatus = null
-    var time: Option[Double] = None
+    var status: ProverStatus = _
+    var time: Option[Double] = _
 
-    var proofBuilder: StringBuilder = null
-    var proof: String = null
-    var model: ResultDetails = StringDetails("no counter example found")
-    var terminationReason = null
+    var proofBuilder: StringBuilder = _
+    var proof: String = _
+    var model: ResultDetails = _
+
+    var traces = Seq[VampireTrace]()
+
+    def nextStrategy(): Unit = {
+      if (clauses != null && clauses.size > 0)
+        traces = traces :+ VampireTrace(clauses.finalizedArray, VampireConfig.this)
+
+      clauses = new GrowingArray[VampireClause](1000)
+      maxindex = -1
+      status = null
+      time = None
+      proofBuilder = null
+      proof = null
+      model = StringDetails("no counter example found")
+    }
 
     override def out(s: => String) = try {
 //      println(s)
 
-      if (s.contains("Time limit reached!")) {
+      if (s.contains("% remaining time: ")) {
+        nextStrategy()
+      }
+
+      else if (s.contains("Time limit reached!")) {
         // do nothing
       }
 
@@ -320,7 +338,7 @@ case class VampireConfig(version: String,
       }
     }
 
-    override def buffer[T](f: => T) = f // not setup or teardown
+    override def buffer[T](f: => T) = f // no setup or teardown
     override def err(s: => String) = {println(s)} // ignore
 
     override def result =
@@ -329,7 +347,7 @@ case class VampireConfig(version: String,
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails(proof))
         case Disproved => new ProverResult(Disproved, time, model)
-        case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireTrace(clauses.finalizedArray, VampireConfig.this))
+        case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, ManyDetails(traces :+ VampireTrace(clauses.finalizedArray, VampireConfig.this)))
       }
   }
 }

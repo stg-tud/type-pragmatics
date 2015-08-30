@@ -1,5 +1,3 @@
-Vampire seems to assign new indexes when a new strategy is tried. Thus, a Vampire run should yield multiple clause traces.
-
 Due to "sat splitting component", some reasoning happens under an implicit assumption.
 We may not reason across clauses derived under different assumptions.
 Maybe the number in curlies indicats the sat splitting component context?
