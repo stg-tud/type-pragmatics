@@ -75,11 +75,33 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       config
     } text("Show origin ids of clauses")
 
+    p.opt[Unit]("vampire-merge-traces") action { (_,config) =>
+      analysisSeq += MergeTraces
+      config
+    } text("Merge traces of all strategies run by Vampire")
   }
 }
 
 trait VampireTraceAnalisis {
   def analyze(trace: VampireTrace, b: StringBuilder): VampireTrace
+}
+
+case object MergeTraces extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = trace
+
+  def merge(traces: Seq[VampireTrace]): (VampireTrace, String) = {
+    var clauses = Map[Seq[Literal], VampireClause]()
+
+    for (trace <- traces;
+         clause <- trace.clauses if clause != null) {
+      clauses.get(clause.lits) match {
+        case None => clauses += clause.lits -> clause
+        case Some(c) => clauses += clause.lits -> MergeDuplicates.merge(c, clause)
+      }
+    }
+
+    (VampireTrace(clauses.values.toArray, traces.head.config), "Merging traces\n")
+  }
 }
 
 case object ClauseSummary extends VampireTraceAnalisis {
@@ -94,9 +116,9 @@ case object ClauseSummary extends VampireTraceAnalisis {
         numClauses += 1
         if (c.saActive > 0 && c.saPassive > 0)
           numActivePassive += 1
-        else if (c.saActive > 0)
+        if (c.saActive > 0)
           numActive += 1
-        else if (c.saPassive > 0)
+        if (c.saPassive > 0)
           numPassive += 1
       }
     }

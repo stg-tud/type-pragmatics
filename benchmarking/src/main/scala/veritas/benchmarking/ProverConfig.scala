@@ -27,10 +27,6 @@ case class StringDetails(details: String) extends ResultDetails {
   override def toString = details
   override def toHumanString = details
 }
-case class ManyDetails[T <: ResultDetails](res: Iterable[T]) extends ResultDetails {
-  override def toString = res.tail.foldLeft(res.head.toString)((s, t) => s + "\n" + t.toString)
-  override def toHumanString = res.tail.foldLeft(res.head.toHumanString)((s, t) => s + "\n" + t.toHumanString)
-}
 
 class ProverResult(
   val status: ProverStatus,

@@ -124,9 +124,41 @@ case class VampireTrace(clauses: Array[VampireClause], config: VampireConfig) ex
     val b = StringBuilder.newBuilder
 
     var trace = this
-    for (analysis <- config.traceAnalyses)
+    for (analysis <- VampireTraceAnalisisOptions.analysisSeq)
       trace = analysis.analyze(trace, b)
 
     b.toString()
+  }
+
+  def analyze(analyses: Iterable[VampireTraceAnalisis]): (VampireTrace, String) = {
+    var trace = this
+    var stop = false
+
+    val b = StringBuilder.newBuilder
+    for (analysis <- analyses if !stop) {
+      if (analysis == MergeTraces)
+        stop = true
+      trace = analysis.analyze(trace, b)
+    }
+
+    (trace, b.toString)
+  }
+
+}
+
+case class VampireManyTraces(traces: Seq[VampireTrace]) extends ResultDetails {
+  override def toString = traces.tail.foldLeft(traces.head.toString)((s, t) => s + "\n" + t.toString)
+
+  override def toHumanString = {
+    val (simplifiedTraces, descriptions) = traces.map(_.analyze(VampireTraceAnalisisOptions.analysisSeq)).unzip
+    if (!VampireTraceAnalisisOptions.analysisSeq.contains(MergeTraces))
+      descriptions.mkString("\n")
+    else {
+      val pref = descriptions.mkString("\n") + "\n"
+      val (mergedTrace, mergeDesc) = MergeTraces.merge(simplifiedTraces)
+      val remainingAnalyses = VampireTraceAnalisisOptions.analysisSeq.dropWhile(_ != MergeTraces).tail
+      val (trace, desc) = mergedTrace.analyze(remainingAnalyses)
+      pref + mergeDesc + desc
+    }
   }
 }
