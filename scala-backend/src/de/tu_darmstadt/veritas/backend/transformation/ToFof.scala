@@ -10,7 +10,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 object ToFof {
   def toFofFiles(veritasModule: Module): Seq[FofFile] = {
     val formulas = toFofFormulas(veritasModule)
-    
+
     // divide into conjectures and everything else (TODO only axioms?)
     val isConjectureMap = formulas groupBy (_.role == Conjecture)
     val conjectures = isConjectureMap.getOrElse(true, Nil)
@@ -22,15 +22,15 @@ object ToFof {
       FofFile(inputModule + "-" + conjectureFormula.name + ".fof", notConjectures :+ conjectureFormula)
     }
   }
-      
+
   private def toFofFormulas(veritasModule: Module): Seq[FofAnnotated] = {
     // TODO put this in an optimization pass
     // collect all goals and axioms into one list each (such that they are not scattered over different ModuleDefs)
     val collectedGoals = veritasModule.body.collect({ case Goals(goals, _) => goals }).flatten
     val collectedAxioms = veritasModule.body.collect({ case Axioms(axioms) => axioms }).flatten
-    
+
     val goals = collectedGoals map (ToFof.toFofAnnotated(_, Conjecture))
-    val axioms =  collectedAxioms map (ToFof.toFofAnnotated(_, Axiom))
+    val axioms = collectedAxioms map (ToFof.toFofAnnotated(_, Axiom))
 
     goals ++ axioms
   }
@@ -43,14 +43,14 @@ object ToFof {
     // premises are ANDed, consequences ORed
     // TODO put this in an optimization pass: simplify And(oneFormula) => oneFormula
     val premiseFormulas: FofUnitary = rule.premises match {
-      case Seq() => True
-      case Seq(premise) => ToFof.toFof(premise)
+      case Seq()              => True
+      case Seq(premise)       => ToFof.toFof(premise)
       case premises @ Seq(_*) => Parenthesized(And(premises map ToFof.toFof))
     }
     val consequenceFormulas: FofUnitary = rule.consequences match {
       // TODO goal without consequences ever useful?
-      case Seq() => throw BackendError("Goal without consequences (list of consequences is empty)")
-      case Seq(consequence) => ToFof.toFof(consequence)
+      case Seq()                  => throw BackendError("Goal without consequences (list of consequences is empty)")
+      case Seq(consequence)       => ToFof.toFof(consequence)
       case consequences @ Seq(_*) => Parenthesized(Or(consequences map ToFof.toFof))
     }
 
@@ -69,7 +69,7 @@ object ToFof {
     case FunctionMeta(MetaVar(metavar)) => UntypedVariable(metavar)
     // FIXME how to ensure that "FunctionExp" will always only give Terms, not new Formulas?
     // case FunctionExpEq(f1, f2) => Variable("TODO eq")
-    case _                        => throw BackendError("toFof(FunctionExp)")
+    case _                              => throw BackendError("toFof(FunctionExp)")
   }
 }
 
@@ -90,17 +90,18 @@ private object CollectVariables {
 
   // FIXME String for variables is not typesafe...
   def allVariables(exp: FunctionExpMeta): Seq[String] = exp match {
-    case FunctionMeta(MetaVar(metavar)) => List(metavar)
-    case FunctionExpNot(f) => allVariables(f)
-    case FunctionExpEq(f1, f2) => allVariables(f1) ++ allVariables(f2)
-    case FunctionExpNeq(f1, f2) => allVariables(f1) ++ allVariables(f2)
-    case FunctionExpOr(f1, f2) => allVariables(f1) ++ allVariables(f2)
-    case FunctionExpAnd(f1, f2) => allVariables(f1) ++ allVariables(f2)
-    case FunctionExpIf(c, f1, f2) => allVariables(c) ++ allVariables(f1) ++ allVariables(f2)
-    case FunctionExpLet(_, f1, f2) => allVariables(f1) ++ allVariables(f2)
-    case FunctionExpApp(_, args) => args.flatMap(allVariables)
+    case FunctionMeta(MetaVar(metavar))     => List(metavar)
+    case FunctionExpNot(f)                  => allVariables(f)
+    case FunctionExpEq(f1, f2)              => allVariables(f1) ++ allVariables(f2)
+    case FunctionExpNeq(f1, f2)             => allVariables(f1) ++ allVariables(f2)
+    case FunctionExpOr(f1, f2)              => allVariables(f1) ++ allVariables(f2)
+    case FunctionExpBiImpl(f1, f2)          => allVariables(f1) ++ allVariables(f2)
+    case FunctionExpAnd(f1, f2)             => allVariables(f1) ++ allVariables(f2)
+    case FunctionExpIf(c, f1, f2)           => allVariables(c) ++ allVariables(f1) ++ allVariables(f2)
+    case FunctionExpLet(_, f1, f2)          => allVariables(f1) ++ allVariables(f2)
+    case FunctionExpApp(_, args @ _*)       => args.flatMap(allVariables)
     case FunctionExpTrue | FunctionExpFalse => Nil
     // FIXME how is FunctionExpVar to handle?
-    case _:FunctionExpVar => Nil 
+    case _: FunctionExpVar                  => Nil
   }
 }

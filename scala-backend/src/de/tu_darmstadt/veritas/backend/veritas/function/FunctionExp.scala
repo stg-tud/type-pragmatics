@@ -89,7 +89,7 @@ final case class FunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: Fu
   }
 }
 
-final case class FunctionExpApp(functionName: String, args: Seq[FunctionExpMeta]) extends FunctionExp {
+final case class FunctionExpApp(functionName: String, args: FunctionExpMeta*) extends FunctionExp {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     // NOTE the parenthesis are necessary! They distinguish an empty-args function application (e.g.
     // "something()" from a variable, bound by the pattern on the left side of a FunctionEq (just
@@ -151,7 +151,7 @@ object FunctionExp {
     case StrategoAppl("FunctionExpLet", StrategoString(name), namedExpr, in)
       => FunctionExpLet(name, FunctionExpMeta.from(namedExpr), FunctionExpMeta.from(in))
     case StrategoAppl("FunctionExpApp", StrategoString(func), StrategoList(args)) 
-      => FunctionExpApp(func, args map FunctionExpMeta.from)
+      => FunctionExpApp(func, (args map FunctionExpMeta.from): _*)
     case StrategoAppl("FunctionExpVar", StrategoString(name)) => FunctionExpVar(name)
     case StrategoAppl("FunctionExpTrue") => FunctionExpTrue
     case StrategoAppl("FunctionExpFalse") => FunctionExpFalse

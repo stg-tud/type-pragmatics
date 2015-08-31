@@ -90,23 +90,26 @@ object ToTff {
 
   private def functionExpToTff(f: FunctionExp): FofUnitary =
     f match {
-      case FunctionExpNot(f)       => ???
-      case FunctionExpEq(f1, f2)   => ???
-      case FunctionExpNeq(f1, f2)  => ???
-      case FunctionExpAnd(l, r)    => ???
-      case FunctionExpOr(l, r)     => ???
-      case FunctionExpBiImpl(l, r) => ???
-      case FunctionExpApp(n, args) => ???
-      case FunctionExpTrue         => True
-      case FunctionExpFalse        => False
-      case _                       => throw TransformationError("Encountered unsupported function expression while translating (e.g. if or let expression)")
+      case FunctionExpNot(f)            => Not(functionExpToTff(f))
+      case FunctionExpEq(f1, f2)        => Eq(functionExpMetaToTff(f1), functionExpMetaToTff(f2))
+      case FunctionExpNeq(f1, f2)       => NeqEq(functionExpMetaToTff(f1), functionExpMetaToTff(f2))
+      case FunctionExpAnd(l, r)         => Parenthesized(And(Seq(functionExpToTff(l), functionExpToTff(r))))
+      case FunctionExpOr(l, r)          => Parenthesized(Or(Seq(functionExpToTff(l), functionExpToTff(r))))
+      case FunctionExpBiImpl(l, r)      => Parenthesized(BiImpl(functionExpToTff(l), functionExpToTff(r)))
+      case FunctionExpApp(n, args @ _*) => Appl(UntypedFunSymbol(n), (args map functionExpMetaToTff): _*)
+      case FunctionExpTrue              => True
+      case FunctionExpFalse             => False
+      case _                            => throw TransformationError("Encountered unsupported function expression while translating (e.g. if or let expression)")
     }
 
   private def functionExpMetaToTff(f: FunctionExpMeta): Term =
+    // the only two constructs which can be turned into a term are
+    // FunctionMeta and FunctionExpApp (Appl is both a Term and a FofUnitary!)
+    // therefore, encountering any other FunctionExpMeta must result in an error!
     f match {
-      case FunctionMeta(MetaVar(m)) => ???
-      case FunctionExpApp(n, args)  => ???
-      case _                        => throw TransformationError("Encountered unexpected construct in functionExpMetaToTff.")
+      case FunctionMeta(MetaVar(m))     => UntypedVariable(m)
+      case FunctionExpApp(n, args @ _*) => Appl(UntypedFunSymbol(n), (args map functionExpMetaToTff): _*)
+      case _                            => throw TransformationError("Encountered unexpected construct in functionExpMetaToTff.")
     }
 
   private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = ???
