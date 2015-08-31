@@ -22,7 +22,7 @@ case class Runner(config: Config) {
     for (proverConfig <- config.proverConfigs) {
       for (file <- allFiles) {
         val call = proverConfig.makeCall(file, config.timeout)
-        val (result, proctime) = Runner.exec(call, config.timeout, config.logExec, proverConfig.newResultProcessor(file, config.timeout))
+        val (result, proctime) = Runner.exec(call, config.timeout, config.logExec, () => proverConfig.newResultProcessor(file, config.timeout))
         val tooltime = result.timeSeconds
         val time = tooltime match {
           case None => proctime
@@ -40,34 +40,36 @@ case class Runner(config: Config) {
 }
 
 object Runner {
-  def exec(call: Seq[String], timeoutSeconds: Int, logExec: Boolean, resultProcessor: ResultProcessor): (ProverResult, Double) = {
+  def exec(call: Seq[String], timeoutSeconds: Int, logExec: Boolean, resultProcessor: () => ResultProcessor): (ProverResult, Double) = {
     import scala.sys.process._
 
     if (logExec)
       print("Calling " + call.mkString(" ") + " ...")
 
     val start = System.nanoTime()
-    val p = call.run(resultProcessor)
+    val resultProc = resultProcessor()
+    val p = call.run(resultProc)
 
     import concurrent._
     import ExecutionContext.Implicits.global
     val f = Future(blocking(p.exitValue()))
-    val code = try {
-      Await.result(f, duration.Duration(timeoutSeconds + 5, "sec"))
+    try {
+      val code = Await.result(f, duration.Duration(timeoutSeconds + 5, "sec"))
+      val end = System.nanoTime()
+
+      if (logExec)
+        println(" done")
+
+      (resultProc.result, (end - start).toDouble / 1000000000)
+
     } catch {
       case _: TimeoutException =>
         if (logExec)
           println()
-        println(s" *** Process timed out ${call.mkString(" ")}")
         p.destroy()
-        p.exitValue()
+        println(s" *** Broked pipe while calling ${call.head}, restarting prover...")
+        exec(call, timeoutSeconds, logExec, resultProcessor)
     }
 
-    val end = System.nanoTime()
-
-    if (logExec)
-      println(" done")
-
-    (resultProcessor.result, (end - start).toDouble / 1000000000)
   }
 }

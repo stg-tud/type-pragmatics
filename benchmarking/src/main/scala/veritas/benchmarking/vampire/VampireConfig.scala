@@ -62,7 +62,7 @@ case class VampireConfig(version: String,
   def tryFindModel(file: File, timeout: Int): ResultDetails = {
     val call = makeSatCall(file, timeout)
     val buf = new StringBuffer
-    val (satout, _) = Runner.exec(call, timeout, false, new ResultProcessor {
+    val (satout, _) = Runner.exec(call, timeout, false, () => new ResultProcessor {
       var modelBuilder: StringBuilder = null
       var model: String = null
 
