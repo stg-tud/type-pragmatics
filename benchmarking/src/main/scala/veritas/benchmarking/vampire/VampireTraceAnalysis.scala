@@ -365,7 +365,13 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
         c
       else {
         subst = Map[String, Term]()
+        var lastSize = c.lits.size
         var lits = simplify(c.lits)
+        while (lastSize != lits.size) {
+          lastSize = lits.size
+          lits = lits map (_.subst(subst))
+          lits = simplify(lits)
+        }
         if (lits.size != c.lits.size) {
           simplified += 1
           lits = lits map (_.subst(subst))
@@ -378,8 +384,14 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
       }
     )
 
-    b ++= s"  Simplified $simplified clauses by equation inlining\n"
-    VampireTrace(newclauses, trace.config)
+    // TODO possible to eliminate all equations without recursion?
+    val newtrace = VampireTrace(newclauses, trace.config)
+    if (simplified > 0) {
+      b ++= s"  Simplified $simplified clauses by equation inlining\n"
+      analyze(newtrace, b)
+    }
+    else
+      newtrace
   }
 
   var subst = Map[String, Term]()
@@ -391,25 +403,24 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
       simplify(lits.head, lits.tail, previous)
 
   def simplify(current: Literal, rest: Seq[Literal], previous: Seq[Literal]): Seq[Literal] = {
+    def ok(s: Symbol, t: Term) = {
+      val cond1 = !subst.isDefinedAt(s.x) && !t.contains(s)
+      if (s.isVar)
+        cond1
+      else if (s.isConst)
+        cond1 && (previous.exists(_.contains(s)) || rest.exists(_.contains(s)))
+      else
+        false
+    }
+
     val (s,t) = current match {
-      case Neg(Eq(s:Symbol, t)) => s -> t
-      case Neg(Eq(t, s:Symbol)) => s -> t
+      case Neg(Eq(s:Symbol, t)) if ok(s,t) => s -> t
+      case Neg(Eq(t, s:Symbol)) if ok(s,t) => s -> t
       case _ => return simplify(rest, previous :+ current)
     }
 
-    if (subst.isDefinedAt(s.x) || t.contains(s))
-      return simplify(rest, previous :+ current)
-
-    if (s.isVar) {
-      subst += s.x -> t
-      simplify(rest, previous)
-    }
-    else if (s.isConst && (previous.exists(_.contains(s)) || rest.exists(_.contains(s)))) {
-      subst += s.x -> t
-      simplify(rest, previous)
-    }
-    else
-      simplify(rest, previous :+ current)
+    subst += s.x -> t
+    simplify(rest, previous)
   }
 }
 
