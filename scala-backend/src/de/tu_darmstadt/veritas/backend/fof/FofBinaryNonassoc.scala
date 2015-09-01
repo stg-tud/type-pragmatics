@@ -11,8 +11,22 @@ sealed abstract class FofBinaryNonassoc(argLeft:  FofUnitary,
     }
 }
 
-final case class Impl(argLeft: FofUnitary, argRight: FofUnitary) 
-  extends FofBinaryNonassoc(argLeft, argRight, " => ")
+final class Impl private(val argLeft: FofUnitary, val argRight: FofUnitary) 
+  extends FofBinaryNonassoc(argLeft, argRight, " => ") {
+  override def toString = s"Impl($argLeft, $argRight)"
+}
+object Impl {
+  def apply(argLeft: FofUnitary, argRight: FofUnitary) = (argLeft, argRight) match {
+    case (True, _) => argRight
+    case (False, _) => True
+    case (_, True) => True
+    case (_, False) => Not(argLeft)
+    case (p1, p2) if p1 == p2 => True
+    case _ => new Impl(argLeft, argRight)
+  }
+  def unapply(e: Impl): Option[(FofUnitary, FofUnitary)] = Some((e.argLeft, e.argRight))
+}
+
 final case class BiImpl(argLeft: FofUnitary, argRight: FofUnitary)
   extends FofBinaryNonassoc(argLeft, argRight, " <=> ")
 

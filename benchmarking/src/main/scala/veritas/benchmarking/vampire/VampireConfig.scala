@@ -104,6 +104,7 @@ case class VampireConfig(version: String,
     var proofBuilder: StringBuilder = _
     var proof: String = _
     var model: ResultDetails = _
+    var satSplitting: Map[Int, Int] = _
 
     var traces = Seq[VampireTrace]()
 
@@ -118,6 +119,7 @@ case class VampireConfig(version: String,
       proofBuilder = null
       proof = null
       model = StringDetails("no counter example found")
+      satSplitting = Map()
     }
 
     override def out(s: => String) = try {
@@ -173,23 +175,23 @@ case class VampireConfig(version: String,
 
       // parse clauses
       else if (s.startsWith("[SA] new: ")) {
-        val (id, term, age, weight, step) = parseClause(s, "[SA] new: ")
-        addClause(NEW, id, term, age, weight, step)
+        val (id, term, age, weight, step, satC) = parseClause(s, "[SA] new: ")
+        addClause(NEW, id, term, age, weight, step, satC)
       }
       else if (s.startsWith("[SA] active: ")) {
-        val (id, term, age, weight, step) = parseClause(s, "[SA] active: ")
-        addClause(ACTIVE, id, term, age, weight, step)
+        val (id, term, age, weight, step, satC) = parseClause(s, "[SA] active: ")
+        addClause(ACTIVE, id, term, age, weight, step, satC)
       }
       else if (s.startsWith("[SA] passive: ")) {
-        val (id, term, age, weight, step) = parseClause(s, "[SA] passive: ")
-        addClause(PASSIVE, id, term, age, weight, step)
+        val (id, term, age, weight, step, satC) = parseClause(s, "[SA] passive: ")
+        addClause(PASSIVE, id, term, age, weight, step, satC)
       }
     } catch {
       case e: Exception => println(s"Error ${e.getMessage} in $s")
         throw e
     }
 
-    def parseClause(s: String, prefix: String): (Int, String, Int, Int, VampireStep) = {
+    def parseClause(s: String, prefix: String): (Int, String, Int, Int, VampireStep, Seq[Int]) = {
       var idend = s.indexOf('.')
       if (idend < 0)
         idend = s.length
@@ -206,6 +208,15 @@ case class VampireConfig(version: String,
 
       val termend = Math.min(parenStart, Math.min(braceStart, squareStart)) - 1
       val term = termprefix.substring(0, termend)
+
+      val satContext =
+        if (braceStart == Int.MaxValue)
+          Seq()
+        else {
+          val braceEnd = termprefix.indexOf('}', braceStart)
+          val satContextS = termprefix.substring(braceStart + 1, braceEnd)
+          satContextS.split(", ").map(_.toInt).toSeq
+        }
 
       val (age, weight) =
         if (parenStart == Int.MaxValue)
@@ -244,7 +255,7 @@ case class VampireConfig(version: String,
             VampireStep(restTerm.substring(0, restTerm.size - 1), Seq())
         }
 
-      (id, term, age, weight, step)
+      (id, term, age, weight, step, satContext)
     }
 
     val NEW = 0
@@ -320,12 +331,20 @@ case class VampireConfig(version: String,
       }
     }
 
-    def addClause(kind: Int, id: Int, term: String, age: Int, weight: Int, step: VampireStep): Unit = {
+    def addClause(kind: Int, id: Int, term: String, age: Int, weight: Int, step: VampireStep, satContext: Seq[Int]): Unit = {
       val lits = parseClauseLiterals(term)
+
+      val contextConditions =
+        if (step.rule == "sat splitting component") {
+          satSplitting += satContext.head -> id
+          Seq()
+        }
+        else
+          satContext.map(i => clauses(satSplitting(i)))
 
       var clause = clauses(id)
       if (clause == null) {
-        clause = VampireClause(lits, age, weight, 0, 0, 0, Seq(id), Seq(step))
+        clause = VampireClause(lits, age, weight, 0, 0, 0, Seq(id), Seq(step), contextConditions)
         clauses(id) = clause
       }
 

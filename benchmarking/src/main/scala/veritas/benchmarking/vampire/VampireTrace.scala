@@ -90,7 +90,8 @@ case class VampireClause(lits: Seq[Literal],
                          var saActive: Int,
                          var saPassive: Int,
                          ids: Seq[Int], // alternative original IDs for this clause
-                         steps: Seq[VampireStep]) { // alternative steps that lead to this clause
+                         steps: Seq[VampireStep], // alternative steps that lead to this clause
+                         contextConditions: Seq[VampireClause]) {
   if (lits.isEmpty)
     throw new IllegalArgumentException(s"A clause cannot be empty")
 
@@ -99,7 +100,7 @@ case class VampireClause(lits: Seq[Literal],
       s", ids=${ids.toList.sorted.mkString("{", ",", "}")})"
     else
       ""
-  override def toString = s"${lits.mkString(" | ")} (weight=$weight, new=$saNew, active=$saActive, passive=$saPassive, age=$age$IDstring)"
+  override def toString = s"${lits.mkString(" | ")} (weight=$weight, new=$saNew, active=$saActive, passive=$saPassive, age=$age$IDstring, satContext=${contextConditions.map(_.ids.head).mkString("{",",","}")})"
   def term = lits.mkString(" | ")
 }
 

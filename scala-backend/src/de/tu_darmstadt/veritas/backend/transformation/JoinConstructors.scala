@@ -11,7 +11,7 @@ import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
  * ModuleDef, all remaining Constructors() are removed from the Module.body
  */
 object JoinConstructors extends ModuleTransformation {
-  override def apply(input: Module): Module = {
+  override def apply(input: Module): Seq[Module] = {
     val (nonCtorsPrefix, rest) = input.body span (!_.isInstanceOf[Constructors])
     
     val collectedCtorDecls = collection.mutable.ListBuffer.empty[ConstructorDecl]
@@ -21,13 +21,13 @@ object JoinConstructors extends ModuleTransformation {
       case other => nonCtorsSuffix += other
     }
 
-    Module(input.name, input.imports, 
-        nonCtorsPrefix ++ (Constructors(collectedCtorDecls) +: nonCtorsSuffix))
+    Seq(Module(input.name, input.imports, 
+        nonCtorsPrefix ++ (Constructors(collectedCtorDecls) +: nonCtorsSuffix)))
   }
 }
 
 // FIXME Problem: cannot cast/isInstanceOf on abstract type T due to type erasure -.-
 // how to implement this?
 trait JoinModuleDefTransformation[T <: ModuleDef] extends ModuleTransformation {
-  override def apply(input: Module): Module
+  override def apply(input: Module): Seq[Module]
 }

@@ -19,6 +19,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.transformation.ToFof
+import de.tu_darmstadt.veritas.backend.transformation.DesugarLemmas
 
 object Backend {
   
@@ -133,7 +134,8 @@ object Backend {
         student_enrolled_taught, michael_enrolled_csc410_axiom,
         victor_coordinator_csc410_axiom, teaching_conjecture)
     
-    Seq(Module(mod.name + "Out", mod.imports, mod.body), TffFile("Victor_teaches_Michael", tffs))
+    Seq(DesugarLemmas(Module(mod.name + "Out", mod.imports, mod.body))(0), 
+        TffFile("Victor_teaches_Michael", tffs))
   }
 
   /**
