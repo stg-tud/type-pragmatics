@@ -228,7 +228,7 @@ case object FilterConditionalClauses extends VampireTraceAnalisis {
         false
       }
     )
-    b ++= s"  Filtered out $deleted of ${trace.clauses.size} clauses that conditional under a sat-splitting context\n"
+    b ++= s"  Filtered out $deleted of ${trace.clauses.size} clauses that are conditional under a sat-splitting context\n"
     VampireTrace(filteredClauses, trace.config)
   }
 }

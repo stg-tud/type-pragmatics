@@ -100,7 +100,7 @@ case class VampireClause(lits: Seq[Literal],
       s", ids=${ids.toList.sorted.mkString("{", ",", "}")})"
     else
       ""
-  override def toString = s"${lits.mkString(" | ")} (weight=$weight, new=$saNew, active=$saActive, passive=$saPassive, age=$age$IDstring, satContext=${contextConditions.map(_.ids.head).mkString("{",",","}")}})"
+  override def toString = s"${lits.mkString(" | ")} (weight=$weight, new=$saNew, active=$saActive, passive=$saPassive, age=$age$IDstring, satContext=${contextConditions.map(_.ids.head).mkString("{",",","}")})"
   def term = lits.mkString(" | ")
 }
 
