@@ -6,17 +6,37 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 // NOTE I would like to make this sealed, but then PlainTerm would have to be in this file...
 /* sealed */ trait FofUnitary extends Fof
 
-final case class Parenthesized(val formula: Fof) extends FofUnitary {
+final class Parenthesized private(val formula: Fof) extends FofUnitary {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("(")
     writer.write(formula).write(")")
   } 
+  override def toString = s"($formula)"
 }
-final case class Not(arg: FofUnitary) extends FofUnitary {
+object Parenthesized {
+  def apply(formula: Fof): FofUnitary = formula match {
+    case alreadyUnitary: FofUnitary => alreadyUnitary
+    case _ => new Parenthesized(formula)
+  }
+  def unapply(e: Parenthesized): Option[Fof] = Some(e.formula)
+}
+
+
+final class Not private(val arg: FofUnitary) extends FofUnitary {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("!(")
     writer.write(arg).write(")")
   } 
+  override def toString = s"Not($arg)"
+}
+object Not {
+  def apply(arg: FofUnitary): FofUnitary = arg match {
+    case True => False
+    case False => True
+    case _: Not => arg
+    case _ => new Not(arg)
+  }
+  def unapply(e: Not): Option[FofUnitary] = Some(e.arg)
 }
 
 

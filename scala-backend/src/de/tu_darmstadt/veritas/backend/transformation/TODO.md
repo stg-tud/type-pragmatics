@@ -6,7 +6,8 @@
 - split Module into Modules with one goal per Module (also with Strategy blocks)
 - rewrite function equations to Axioms
 - generate function inversion axioms
-
+- Core TSSL -> fof transformation cleanup/check with ToTff (Daniel)
+- TypingJudgment/TypingJudgmentSimple -> tcheck function Application
 
 # Combinations of Transformations TODO
 

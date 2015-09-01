@@ -50,6 +50,11 @@ object VampireTraceAnalisisOptions extends ContributedOptions {
       config
     } text("Remove clauses that are tautologies")
 
+    p.opt[Unit]("vampire-filter-conditionals") unbounded() action { (_,config) =>
+      analysisSeq += FilterConditionalClauses
+      config
+    } text("Remove clauses that are conditional under a sat-splitting context")
+
     p.opt[Unit]("vampire-merge-duplicates") unbounded() action { (_,config) =>
       analysisSeq += MergeDuplicates
       config
@@ -212,9 +217,25 @@ case object FilterTautologies extends VampireTraceAnalisis {
   }
 }
 
+case object FilterConditionalClauses extends VampireTraceAnalisis {
+  override def analyze(trace: VampireTrace, b: StringBuilder) = {
+    var deleted = 0
+    val filteredClauses = trace.clauses.filter(c =>
+      if (c == null || c.contextConditions.isEmpty)
+        true
+      else  {
+        deleted += 1
+        false
+      }
+    )
+    b ++= s"  Filtered out $deleted of ${trace.clauses.size} clauses that are conditional under a sat-splitting context\n"
+    VampireTrace(filteredClauses, trace.config)
+  }
+}
+
 case object MergeDuplicates extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
-    var map = Map[Seq[Literal], VampireClause]()
+    var map = Map[(Seq[Literal], Seq[VampireClause]), VampireClause]()
     var oldsize = 0
     trace.clauses.map(c =>
       if (c == null) {
@@ -222,9 +243,10 @@ case object MergeDuplicates extends VampireTraceAnalisis {
       }
       else {
         oldsize += 1
-        map.get(c.lits) match {
-          case None => map += c.lits -> c
-          case Some(c2) => map += c.lits -> merge(c, c2)
+        val key = (c.lits, c.contextConditions)
+        map.get(key) match {
+          case None => map += key -> c
+          case Some(c2) => map += key -> merge(c, c2)
         }
       }
     )
@@ -245,7 +267,8 @@ case object MergeDuplicates extends VampireTraceAnalisis {
       c1.saActive + c2.saActive,
       c1.saPassive + c2.saPassive,
       c1.ids ++ c2.ids,
-      c1.steps ++ c2.steps)
+      c1.steps ++ c2.steps,
+      c1.contextConditions)
 }
 
 case object UniqueNames extends VampireTraceAnalisis {
@@ -259,7 +282,7 @@ case object UniqueNames extends VampireTraceAnalisis {
         val (lits, changed) = c.lits.map(uniqueNames(_)).unzip
         if (changed.nonEmpty && changed.reduce(_||_))
           renamed += 1
-        VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps)
+        VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps, c.contextConditions)
       }
     )
 
@@ -351,7 +374,7 @@ case object SimplifyWithInlining extends VampireTraceAnalisis {
         if (lits.isEmpty)
           null
         else
-          VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps)
+          VampireClause(lits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps, c.contextConditions)
       }
     )
 
@@ -394,7 +417,7 @@ case object SimplifyFacts extends VampireTraceAnalisis {
   override def analyze(trace: VampireTrace, b: StringBuilder) = {
     var facts = Set[Literal]()
     trace.clauses.foreach(c =>
-      if (c != null && c.lits.size == 1)
+      if (c != null && c.lits.size == 1 && c.contextConditions.isEmpty)
         facts += c.lits.head
     )
 
@@ -409,7 +432,7 @@ case object SimplifyFacts extends VampireTraceAnalisis {
         if (newlits.isEmpty)
           null
         else
-          VampireClause(newlits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps)
+          VampireClause(newlits, c.age, c.weight, c.saNew, c.saActive, c.saPassive, c.ids, c.steps, c.contextConditions)
       }
     )
     b ++= s"  Simplified $simplified of ${trace.clauses.size} by eliminating negated facts\n"

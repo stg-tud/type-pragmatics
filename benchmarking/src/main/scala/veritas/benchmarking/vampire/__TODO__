@@ -1,3 +1,0 @@
-Due to "sat splitting component", some reasoning happens under an implicit assumption.
-We may not reason across clauses derived under different assumptions.
-Maybe the number in curlies indicats the sat splitting component context?
