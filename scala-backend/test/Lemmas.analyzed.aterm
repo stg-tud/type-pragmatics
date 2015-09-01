@@ -1,0 +1,28 @@
+Module(
+  "backend.Lemmas"{ Def(
+                      URI(
+                        Language("Veritas")
+                      , [ID(NablNsModule(), "backend.Lemmas", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Lemmas.stl/0"))]
+                      )
+                    )
+                  }
+, []
+, [ Lemmas(
+      None()
+    , [ TypingRule(
+          PremiseList(FunctionExpJudgment(FunctionExpTrue()))
+        , RuleName("=====", "l1"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsRule(), "l1", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Lemmas.stl/0"))
+                                      , ID(NablNsModule(), "backend.Lemmas", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Lemmas.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                })
+        , ConsequenceList(FunctionExpJudgment(FunctionExpTrue()))
+        )
+      ]
+    )
+  ]
+)
