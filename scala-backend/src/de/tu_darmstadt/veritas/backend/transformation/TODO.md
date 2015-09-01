@@ -6,3 +6,12 @@
 - split Module into Modules with one goal per Module (also with Strategy blocks)
 - rewrite function equations to Axioms
 - generate function inversion axioms
+
+
+# Combinations of Transformations TODO
+
+- write convenience trait/abstract class for combining Module transformations in a
+nice way on a module (maybe also inherit from ModuleTransformation)
+e.g. trait has a sequence of
+ModuleTranformations/ModuleDefTransformations, applies them one after
+the other to a Module)
