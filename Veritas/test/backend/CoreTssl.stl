@@ -1,0 +1,23 @@
+module backend.CoreTssl
+
+// no imports
+
+// symbol declarations: ctors, consts, function sigs
+sort Typ
+function
+somePred: Typ -> Bool
+
+// axiom section
+axiom
+========== Ax-1
+tcheck(~e)
+
+axiom
+============ Ax-2
+somePred(~e)
+
+// one goal per Core TSSL file 
+goal
+somePred(~e)
+=========== Goal-1
+tcheck(~e)
