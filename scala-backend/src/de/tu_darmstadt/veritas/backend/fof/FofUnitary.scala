@@ -21,7 +21,6 @@ object Parenthesized {
   def unapply(e: Parenthesized): Option[Fof] = Some(e.formula)
 }
 
-
 final class Not private(val arg: FofUnitary) extends FofUnitary {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("!(")
@@ -39,30 +38,6 @@ object Not {
   def unapply(e: Not): Option[FofUnitary] = Some(e.arg)
 }
 
-
-sealed abstract class QuantifiedFormula(variableList: Seq[Variable],
-                                        formula: FofUnitary,
-                                        opString: String) extends FofUnitary {
-  require(!variableList.isEmpty, "quantify at least over 1 variable")
-
-  override def prettyPrint(writer: PrettyPrintWriter) = {
-    writer.write(opString + "[")
-    writer.write(variableList.head)
-    // NOTE see ScalaUnderscoreVsFunctionLiteral
-    variableList.tail foreach { v =>
-      writer.write(", ")
-      writer.write(v)
-    }
-    writer.write("] : ")
-    writer.write(formula)
-  }
-}
-
-final case class ForAll(variableList: Seq[Variable], formula: FofUnitary) 
-  extends QuantifiedFormula(variableList, formula, "!")
-final case class Exists(variableList: Seq[Variable], formula: FofUnitary)
-  extends QuantifiedFormula(variableList, formula, "?")
-
 sealed abstract class FofInfixUnary(termLeft: Term,
                                     termRight: Term,
                                     opString: String) extends FofUnitary {
@@ -75,6 +50,7 @@ sealed abstract class FofInfixUnary(termLeft: Term,
 
 final case class Eq(termLeft: Term, termRight: Term) 
   extends FofInfixUnary(termLeft, termRight, " = ")
+
 final case class NeqEq(termLeft: Term, termRight: Term)
   extends FofInfixUnary(termLeft, termRight, " != ")
 
