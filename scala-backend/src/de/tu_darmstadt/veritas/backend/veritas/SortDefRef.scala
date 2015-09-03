@@ -6,6 +6,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
 case class SortDef(name: String) extends SimplePrettyPrintable {
+  require(!(SortDef.predefinedSorts contains name), "Attempting to redefine a predefined sort!")
   override def prettyString = name
 }
 
@@ -14,6 +15,9 @@ case class SortRef(name: String) extends SimplePrettyPrintable {
 }
 
 object SortDef {
+  
+  val predefinedSorts: List[String] = List("Bool", "iType")
+  
   def from(term: StrategoTerm): SortDef = term match {
     case StrategoAppl("SortDef", StrategoString(name)) => SortDef(name)
   }
