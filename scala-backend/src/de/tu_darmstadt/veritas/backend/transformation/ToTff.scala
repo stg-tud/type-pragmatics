@@ -65,7 +65,7 @@ object ToTff {
   private def bodyToTff(body: Seq[ModuleDef]): Unit = {
     body foreach { md =>
       md match {
-        case Axioms(axs) => axiomlist ++ translateAxioms(axs)
+        case Axioms(axs) => axiomlist ++= translateAxioms(axs)
         case Goals(gs, _) => if (goal != None | gs.length > 1)
           throw TransformationError("More than one goal found!")
         else goal = Some(translateGoal(gs(0)))
@@ -80,29 +80,38 @@ object ToTff {
   }
 
   /**
-   * collects newly discovered sorts in sorts, 
+   * collects newly discovered sorts in sorts variable,
    * adds top-level type declaration to typedecllist
-   * 
+   *
    * throws an error if the sort is already defined
-   */  
-  private def addSortDef(sds: Seq[SortDef]): Unit = ???
-  
+   */
+  private def addSortDef(sds: Seq[SortDef]): Unit =
+    typedecllist ++=
+      (for (SortDef(name) <- sds) yield {
+        if (sorts contains name)
+          throw TransformationError(s"Sort ${name} has been defined twice!")
+        else
+          sorts += name
+
+        TffAnnotated(s"${name}_type", Type, TypedSymbol(name, DefinedType("tType")))
+      })
+
   /**
-   * collects newly discovered constructor/const/function declarations in declmap (mapping their names to the appropriate Tff type),
+   * collects newly discovered constructor/const/function declarations in declmap variable (mapping their names to the appropriate Tff type),
    * adds a top-level type declaration to typedecllist
-   * 
+   *
    * throws an error if the referenced sorts are not present in sorts set
    */
   private def addConstDecl(cs: Seq[ConstructorDecl]): Unit = ???
-  
+
   /**
    * extracts function signatures from function definitions, if definitions are empty
    * transforms function signatures to constructor declarations
-   * 
+   *
    * throws an error if the function definitions are not empty (not supported by core modules!)
    */
   private def getFunctionSigs(fds: Seq[FunctionDef]): Seq[ConstructorDecl] = ???
-  
+
   /**
    * translates axioms to Tff
    */
@@ -142,7 +151,7 @@ object ToTff {
     }
 
   /**
-   * translate individual function expressions to Tff (-> FofUnitary); 
+   * translate individual function expressions to Tff (-> FofUnitary);
    * outer function expressions cannot be MetaVars, since a MetaVar cannot be translated to a FofUnitary
    */
   private def functionExpToTff(f: FunctionExp): FofUnitary =
@@ -174,7 +183,7 @@ object ToTff {
 
   /**
    * create a list of MetaVars for a quantifier
-   * tries to infer the type of each MetaVar to create a TypedVariable 
+   * tries to infer the type of each MetaVar to create a TypedVariable
    * if that is not possible (e.g. due to ambiguity) leaves variables untyped
    */
   private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = ???
