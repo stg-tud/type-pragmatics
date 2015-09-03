@@ -11,6 +11,7 @@ binding rules
 		defines unique Module m
 			of module-ref mod
 		implicitly defines Sort "Bool"
+		implicitly defines Sort "iType"
 		implicitly defines Symbol "tcheck"
 		scopes Sort, Symbol, Axiom, Rule
 		
