@@ -11,6 +11,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.Context
 import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.backend.nameresolution.NameResolution
+import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 
 /**
  * Imports of other Veritas modules. 
@@ -19,6 +20,12 @@ import de.tu_darmstadt.veritas.backend.nameresolution.NameResolution
  */
 
 sealed trait Import extends SimplePrettyPrintable {
+  private var _importAnnotations: Seq[ImportAnnotation] = Seq()
+  def importAnnotations = _importAnnotations
+  def importAnnotationsPretty = 
+    if (importAnnotations.isEmpty) "" 
+    else importAnnotations.map(_.prettyString).mkString("{", ", ", "} ")
+    
   /* abstract */ def moduleName: String
 }
 
@@ -30,31 +37,39 @@ sealed trait Unresolved extends Import {
 
 // an import is processed in multiple stages, which are (from top to bottom):
 case class UnresolvedTaskId(moduleName: String, taskId: Int) extends Unresolved {
-  override def toNablUse = StrategoAppl("Use", StrategoAppl("Result", taskId))
-  override def prettyString = s"import $moduleName // status: unresolved Task ID $taskId"
+  override def toNablUse = StrategoAppl("Use", StrategoAppl("Result", StrategoInt(taskId)))
+  override def prettyString = s"import $moduleName $importAnnotationsPretty// status: unresolved Task ID $taskId"
 }
 
 case class UnresolvedUri(moduleUri: VeritasModuleUri) extends Unresolved {
   override def moduleName = moduleUri.name
   override def toNablUse = moduleUri.toNablProperty
-  override def prettyString = s"import $moduleName // status: unresolved URI $moduleUri"
+  override def prettyString = s"import $moduleName $importAnnotationsPretty// status: unresolved URI $moduleUri"
 }
 
 case class Resolved(moduleCode: Module) extends Import {
   override def moduleName = moduleCode.name
-  override def prettyString = s"import $moduleName // status: resolved" 
+  override def prettyString = s"import $moduleName $importAnnotationsPretty// status: resolved" 
 }
 
 object Import {
   def from(term: StrategoTerm): Import = term match {
-    case StrategoAppl("Import", module@StrategoString(moduleName), _ /* TODO (Veritas, not NaBL) import annotations */) => {
-      module.getFirstAnnotation match {
+    case StrategoAppl("Import", module@StrategoString(moduleName), annos) => {
+      val importAnnotations = annos match {
+        case StrategoAppl("None") => Seq()
+        case StrategoAppl("Some", StrategoAppl("ImportAnno", StrategoList(annos))) => annos map ImportAnnotation.from
+        case t => throw VeritasParseError("Import annotation is wrong, must be either None or Some(ImportAnno([...])), got: " + t)
+      }
+      
+      val result: Import = module.getFirstAnnotation match {
         case Some(StrategoAppl("Use", StrategoAppl("Result", StrategoInt(taskId)))) 
           => UnresolvedTaskId(moduleName, taskId)
         case Some(StrategoAppl("Use", urlTerm)) 
           => UnresolvedUri(VeritasModuleUri.fromNablDef(urlTerm))
-        case t => throw VeritasParseError("Import() annotation is wrong. Must be a NaBL Use(...) with either task ID or module URL, got: " + t)
+        case t => throw VeritasParseError("Import (NaBL) annotation is wrong. Must be a NaBL Use(...) with either task ID or module URL, got: " + t)
       }
+      result._importAnnotations = importAnnotations.distinct
+      result
     }
     case t => throw VeritasParseError(t)
   }
