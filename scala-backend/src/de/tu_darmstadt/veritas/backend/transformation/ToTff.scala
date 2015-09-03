@@ -80,13 +80,12 @@ object ToTff {
    */
   private def makeTopLevelSymbol(name: String): TypedSymbol =
     TypedSymbol(name, DefinedType("tType"))
-    
-    
-  private def addTSIfNew(ts: TypedSymbol): Unit = 
+
+  private def addTSIfNew(ts: TypedSymbol): Unit =
     if (typedSymbols contains ts)
-          throw TransformationError(s"Sort, Constructor, or function ${ts.name} has been defined twice!")
-        else
-          typedSymbols += ts
+      throw TransformationError(s"Sort, Constructor, or function ${ts.name} has been defined twice!")
+    else
+      typedSymbols += ts
 
   /**
    * collects newly discovered sorts in sorts variable,
@@ -97,10 +96,40 @@ object ToTff {
   private def addSortDef(sds: Seq[SortDef]): Unit =
     typedecllist ++=
       (for (SortDef(name) <- sds) yield {
+        // note: SortDefs can never contain predefined sorts (ensured via "require")
+        // so blindly adding the SortDef is ok
         val ts = makeTopLevelSymbol(name)
         addTSIfNew(ts)
         TffAnnotated(s"${name}_type", Type, ts)
       })
+
+  private def translatePredefinedType(t: String): DefinedType =
+    t match {
+      case "Bool"  => DefinedType("o")
+      case "iType" => DefinedType("i")
+      case n       => DefinedType(n)
+    }
+
+  /**
+   * transforms a SortRef into a type for Tff
+   * Case 1) predefined type, returns a DefinedType
+   * Case 2) type is not predefined - checks whether type was already defined and throws an error if not!
+   * otherwise returns a SymbolType
+   *
+   */
+  private def makeAtomicType(sr: SortRef): TffAtomicType =
+    sr match {
+      case SortRef(name) =>
+        if (SortDef.predefinedSorts contains name)
+          translatePredefinedType(name)
+        else {
+          val ts = makeTopLevelSymbol(name)
+          if (typedSymbols contains ts)
+            SymbolType(ts)
+          else
+            throw TransformationError(s"Encountered sort reference ${name}, which has not been defined yet!")
+        }
+    }
 
   /**
    * collects newly discovered constructor/const/function declarations in declmap variable (mapping their names to the appropriate Tff type),
@@ -111,16 +140,13 @@ object ToTff {
   private def addConstDecl(cs: Seq[ConstructorDecl]): Unit =
     typedecllist ++=
       (for (ConstructorDecl(name, in, out) <- cs) yield {
-        val outt = makeTopLevelSymbol(out.name)
-        val ints = in map { case SortRef(name) => makeTopLevelSymbol(name) }
-        if ((typedSymbols contains outt) && (ints forall (typedSymbols contains _))) {
-          val t = if (ints.isEmpty) SymbolType(outt) else
-            TffMappingType(ints map SymbolType, SymbolType(outt))
-          val ts = TypedSymbol(name, t)
-          addTSIfNew(ts)
-          TffAnnotated(s"${name}_type", Type, ts)
-        } else
-          throw TransformationError(s"Constructor ${name} contained undefined sort!")
+        val outt = makeAtomicType(out)
+        val ints = in map makeAtomicType
+        val t = if (ints.isEmpty) outt else
+          TffMappingType(ints, outt)
+        val ts = TypedSymbol(name, t)
+        addTSIfNew(ts)
+        TffAnnotated(s"${name}_type", Type, ts)
       })
 
   /**
@@ -129,10 +155,9 @@ object ToTff {
    *
    * throws an error if the function equations are not empty (not supported by core modules!)
    */
-  private def getFunctionSigs(fds: Seq[FunctionDef]): Seq[ConstructorDecl] = 
-    for (FunctionDef(FunctionSig(name, in, out), eqs) <- fds) yield 
-      if (eqs.isEmpty) ConstructorDecl(name, in, out) else 
-        throw TransformationError(s"Function definition ${name} still contained untransformed function equations!")
+  private def getFunctionSigs(fds: Seq[FunctionDef]): Seq[ConstructorDecl] =
+    for (FunctionDef(FunctionSig(name, in, out), eqs) <- fds) yield if (eqs.isEmpty) ConstructorDecl(name, in, out) else
+      throw TransformationError(s"Function definition ${name} still contained untransformed function equations!")
 
   /**
    * translates axioms to Tff
