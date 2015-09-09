@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.backend.transformation
 import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff._
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 /**
  * Transforms Core TSSL (Veritas) Modules to TFF syntax
@@ -230,11 +231,92 @@ object ToTff {
     }
 
   /**
+   * finds constructs in given sequence of TypingRuleJudgment that have the
+   * given MetaVar m as direct child and are one of
+   * - function applications (Appl)
+   * - equalities/inequalities with the m on one side and a function application on the other side
+   *
+   */
+  private def findTypableOccurrences(m: MetaVar)(jdglist: Seq[TypingRuleJudgment]): Set[FunctionExp] = {
+    def containsMetaVar(args: Seq[FunctionExpMeta]): Boolean = args exists
+      {
+        case FunctionMeta(m0) => m == m0
+        case _                => false
+      }
+
+    def searchFunctionExp(e: FunctionExpMeta): Set[FunctionExp] = {
+      e match {
+        // base cases just return empty set, all listed explicitly just in case!  
+        case FunctionMeta(m)   => Set()
+        case FunctionExpVar(n) => Set()
+        case FunctionExpTrue   => Set()
+        case FunctionExpFalse  => Set()
+        case FunctionExpNot(f) => searchFunctionExp(f)
+        case fe @ FunctionExpEq(FunctionMeta(mx), r @ FunctionExpApp(n, args)) =>
+          if (mx == m) Set(fe) else searchFunctionExp(r)
+        case fe @ FunctionExpEq(l @ FunctionExpApp(n, args), FunctionMeta(mx)) =>
+          if (mx == m) Set(fe) else searchFunctionExp(l)
+        case FunctionExpEq(f1, f2) => searchFunctionExp(f1) ++ searchFunctionExp(f2)
+        case fe @ FunctionExpNeq(FunctionMeta(mx), r @ FunctionExpApp(n, args)) =>
+          if (mx == m) Set(fe) else searchFunctionExp(r)
+        case fe @ FunctionExpNeq(l @ FunctionExpApp(n, args), FunctionMeta(mx)) =>
+          if (mx == m) Set(fe) else searchFunctionExp(l)
+        case FunctionExpNeq(f1, f2)  => searchFunctionExp(f1) ++ searchFunctionExp(f2)
+        case FunctionExpAnd(l, r)    => searchFunctionExp(l) ++ searchFunctionExp(r)
+        case FunctionExpOr(l, r)     => searchFunctionExp(l) ++ searchFunctionExp(r)
+        case FunctionExpBiImpl(l, r) => searchFunctionExp(l) ++ searchFunctionExp(r)
+        case FunctionExpIf(c, t, e)  => searchFunctionExp(c) ++ searchFunctionExp(t) ++ searchFunctionExp(e)
+        case FunctionExpLet(n, e, i) => searchFunctionExp(e) ++ searchFunctionExp(i)
+        case fe @ FunctionExpApp(fn, args @ _*) => {
+          val afe = (args flatMap searchFunctionExp).toSet
+          if (containsMetaVar(args)) afe ++ Set(fe) else afe
+        }
+        // this should never happen
+        case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, found a function expression that is not covered by the code!")
+      }
+    }
+    (for (jdg <- jdglist) yield {
+      jdg match {
+        case FunctionExpJudgment(f)   => searchFunctionExp(f)
+        case ExistsJudgment(vl, jdgl) => findTypableOccurrences(m)(jdgl)
+        case ForallJudgment(vl, jdgl) => findTypableOccurrences(m)(jdgl)
+        case NotJudgment(jdg)         => findTypableOccurrences(m)(Seq(jdg))
+        case OrJudgment(jdgll)        => jdgll flatMap findTypableOccurrences(m)
+        case _                        => throw TransformationError(s"While trying to type meta variable ${m.name}, encountered a construct in an axiom, premise, or conclusion that is not supported by core modules!")
+      }
+    }).flatten.toSet
+  }
+
+  /**
+   * given a FunctionExp such as the ones found by findTypableOccurrences,
+   * tries to determine the type of the given MetaVar m
+   */
+  private def typeOcc(m: MetaVar, occ: FunctionExp): Option[TffAtomicType] = ???
+
+  /**
    * create a list of MetaVars for a quantifier
    * tries to infer the type of each MetaVar to create a TypedVariable
    * if that is not possible (e.g. due to ambiguity) leaves variables untyped
    */
-  private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = ???
+  private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = {
+    val freeVars = FreeVariables.freeVariables(jdglist)
+    val typesPerFV = for (fv <- freeVars.toList) yield {
+      val typelist = for {
+        occ <- findTypableOccurrences(fv)(jdglist)
+        val t = typeOcc(fv, occ)
+        if (t != None)
+      } yield t.get
+      fv -> typelist.toSet //remove duplicate occurrences of found types; ideally, only one occurrence should be left!
+    }
+
+    for ((m, tl) <- typesPerFV) yield {
+      tl.size match {
+        case 0 => UntypedVariable(m.name) //TODO work out whether this is a good idea, or whether it should rather be an error case!!
+        case 1 => TypedVariable(m.name, tl.head)
+        case _ => throw TransformationError(s"Trying to type meta variable ${m.name} yielded several possible types!")
+      }
+    }
+  }
 
   /**
    * assembles the final TffFile from the individual collections defined above
