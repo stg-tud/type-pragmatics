@@ -289,7 +289,7 @@ object ToTff {
   /**
    * given a FunctionExp such as the ones found by findTypableOccurrences,
    * tries to determine the type of the given MetaVar m
-   * 
+   *
    * TODO: Currently, this function is "nice": if it cannot type the given FunctionExp, it just returns none, no error is thrown.
    * Thinks about whether this function should rather throw errors if it cannot type sth.
    */
@@ -307,6 +307,7 @@ object ToTff {
     def getReturnType(t: TffTopLevelType): Option[TffAtomicType] =
       t match {
         case TffMappingType(_, restype) => Some(restype)
+        case st @ SymbolType(t)         => Some(st)
         case _                          => None
       }
 
