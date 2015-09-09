@@ -133,7 +133,6 @@ object ToTff {
     }
 
   /**
-   * collects newly discovered constructor/const/function declarations in declmap variable (mapping their names to the appropriate Tff type),
    * adds a top-level type declaration to typedecllist
    *
    * throws an error if the referenced sorts are not present in sorts set
@@ -254,13 +253,13 @@ object ToTff {
         case FunctionExpNot(f) => searchFunctionExp(f)
         case fe @ FunctionExpEq(FunctionMeta(mx), r @ FunctionExpApp(n, args)) =>
           if (mx == m) Set(fe) else searchFunctionExp(r)
-        case fe @ FunctionExpEq(l @ FunctionExpApp(n, args), FunctionMeta(mx)) =>
-          if (mx == m) Set(fe) else searchFunctionExp(l)
+        case fe @ FunctionExpEq(l @ FunctionExpApp(n, args), r @ FunctionMeta(mx)) =>
+          if (mx == m) Set(FunctionExpEq(r, l)) else searchFunctionExp(l)
         case FunctionExpEq(f1, f2) => searchFunctionExp(f1) ++ searchFunctionExp(f2)
         case fe @ FunctionExpNeq(FunctionMeta(mx), r @ FunctionExpApp(n, args)) =>
           if (mx == m) Set(fe) else searchFunctionExp(r)
-        case fe @ FunctionExpNeq(l @ FunctionExpApp(n, args), FunctionMeta(mx)) =>
-          if (mx == m) Set(fe) else searchFunctionExp(l)
+        case fe @ FunctionExpNeq(l @ FunctionExpApp(n, args), r @ FunctionMeta(mx)) =>
+          if (mx == m) Set(FunctionExpNeq(r, l)) else searchFunctionExp(l)
         case FunctionExpNeq(f1, f2)  => searchFunctionExp(f1) ++ searchFunctionExp(f2)
         case FunctionExpAnd(l, r)    => searchFunctionExp(l) ++ searchFunctionExp(r)
         case FunctionExpOr(l, r)     => searchFunctionExp(l) ++ searchFunctionExp(r)
@@ -290,8 +289,44 @@ object ToTff {
   /**
    * given a FunctionExp such as the ones found by findTypableOccurrences,
    * tries to determine the type of the given MetaVar m
+   * 
+   * TODO: Currently, this function is "nice": if it cannot type the given FunctionExp, it just returns none, no error is thrown.
+   * Thinks about whether this function should rather throw errors if it cannot type sth.
    */
-  private def typeOcc(m: MetaVar, occ: FunctionExp): Option[TffAtomicType] = ???
+  private def typeOcc(m: MetaVar, occ: FunctionExp): Option[TffAtomicType] = {
+
+    def getMetaVarPos(args: Seq[FunctionExpMeta]): Seq[Int] =
+      for (i <- args.indices if (args(i) == FunctionMeta(m))) yield i
+
+    def retrieveType(n: String): TffTopLevelType = {
+      val types = typedSymbols filter { case TypedSymbol(v, t) => v == n }
+      if (types.size == 1) types.head.tfftype
+      else throw TransformationError(s"Type for constructor or function n ${n} not found or found more than once!")
+    }
+
+    def getReturnType(t: TffTopLevelType): Option[TffAtomicType] =
+      t match {
+        case TffMappingType(_, restype) => Some(restype)
+        case _                          => None
+      }
+
+    def getArgType(t: TffTopLevelType, args: Seq[FunctionExpMeta]): Option[TffAtomicType] =
+      t match {
+        case TffMappingType(arglist, _) => {
+          val poslist = getMetaVarPos(args)
+          val typeset = (for (p <- poslist) yield arglist(p)).toSet
+          if (typeset.size == 1) Some(typeset.head) else None
+        }
+        case _ => None
+      }
+
+    occ match {
+      case FunctionExpEq(mx @ FunctionMeta(_), FunctionExpApp(n, _)) if (mx == m) => getReturnType(retrieveType(n))
+      case FunctionExpNeq(mx @ FunctionMeta(_), FunctionExpApp(n, _)) if (mx == m) => getReturnType(retrieveType(n))
+      case FunctionExpApp(fn, args @ _*) => getArgType(retrieveType(fn), args)
+      case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, an untypable FunctionExp was marked as typable.")
+    }
+  }
 
   /**
    * create a list of MetaVars for a quantifier
