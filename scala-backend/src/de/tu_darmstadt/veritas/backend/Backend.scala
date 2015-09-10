@@ -20,7 +20,7 @@ import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.transformation.ToFof
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
-import de.tu_darmstadt.veritas.backend.transformation.basic.DesugarLemmas
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel.DesugarLemmas
 
 object Backend {
   
