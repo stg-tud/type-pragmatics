@@ -1,10 +1,11 @@
-package de.tu_darmstadt.veritas.backend.transformation
+package de.tu_darmstadt.veritas.backend.transformation.defs
 
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.Functions
 import de.tu_darmstadt.veritas.backend.veritas.FunctionDef
 import de.tu_darmstadt.veritas.backend.veritas.Axioms
 import de.tu_darmstadt.veritas.backend.veritas.FunctionEq
+import de.tu_darmstadt.veritas.backend.transformation.ModuleDefTransformation
 
 /**
  * generates axioms for function equations

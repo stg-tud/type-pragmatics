@@ -1,9 +1,10 @@
-package de.tu_darmstadt.veritas.backend.transformation
+package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
 import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.Constructors
 import de.tu_darmstadt.veritas.backend.veritas.ConstructorDecl
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
+import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 
 /**
  * Collects all Constructors(Seq(...)) ModuleDefs into a single Constructors(<concat of all Seqs>)

@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.backend.transformation
+package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.Axioms
@@ -6,6 +6,7 @@ import de.tu_darmstadt.veritas.backend.veritas.Lemmas
 import de.tu_darmstadt.veritas.backend.veritas.Goals
 import de.tu_darmstadt.veritas.backend.veritas.LemmasWithStrategy
 import de.tu_darmstadt.veritas.backend.veritas.GoalsWithStrategy
+import de.tu_darmstadt.veritas.backend.transformation.ModuleDefTransformation
 
 /**
  * no precondition necessary, 
