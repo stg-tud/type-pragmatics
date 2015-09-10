@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 
-case class MetaVar(name: String) extends SimplePrettyPrintable {
+case class MetaVar(name: String) extends VeritasConstruct with SimplePrettyPrintable {
   override def prettyString = s"~$name"
 }
 

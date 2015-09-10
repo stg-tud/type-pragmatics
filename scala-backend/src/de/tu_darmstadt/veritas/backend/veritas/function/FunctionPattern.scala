@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
-sealed trait FunctionPattern extends PrettyPrintable
+sealed trait FunctionPattern extends VeritasConstruct with PrettyPrintable
 
 case class FunctionPatApp(functionName: String, args: Seq[FunctionPattern]) extends FunctionPattern {
   override def prettyPrint(writer: PrettyPrintWriter) = {

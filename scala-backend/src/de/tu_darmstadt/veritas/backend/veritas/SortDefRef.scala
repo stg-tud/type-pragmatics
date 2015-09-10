@@ -5,12 +5,12 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
-case class SortDef(name: String) extends SimplePrettyPrintable {
+case class SortDef(name: String) extends VeritasConstruct with SimplePrettyPrintable {
   require(!(SortDef.predefinedSorts contains name), "Attempting to redefine a predefined sort!")
   override def prettyString = name
 }
 
-case class SortRef(name: String) extends SimplePrettyPrintable {
+case class SortRef(name: String) extends VeritasConstruct with SimplePrettyPrintable {
   override def prettyString = name
 }
 

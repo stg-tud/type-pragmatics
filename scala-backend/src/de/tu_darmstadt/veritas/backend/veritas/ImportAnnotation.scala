@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
 // NOTE xxxImport for these case object names, since they clash with the ModuleDef subclasses
-sealed trait ImportAnnotation extends SimplePrettyPrintable
+sealed trait ImportAnnotation extends VeritasConstruct with SimplePrettyPrintable
 final case object ImportNames extends ImportAnnotation { override def prettyString = "names" }
 final case object ImportAxioms extends ImportAnnotation { override def prettyString = "axioms" }
 final case object ImportFunctions extends ImportAnnotation { override def prettyString = "functions" }

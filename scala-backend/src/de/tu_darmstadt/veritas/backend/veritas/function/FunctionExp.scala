@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 
-sealed trait FunctionExpMeta extends PrettyPrintable
+sealed trait FunctionExpMeta extends VeritasConstruct with PrettyPrintable
 
 sealed trait FunctionExp extends FunctionExpMeta with PrettyPrintable
 

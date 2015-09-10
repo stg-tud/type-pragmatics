@@ -12,7 +12,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 /**
  * The top-level structure of any Veritas file
  */
-case class Module(name: String, imports: Seq[Import], body: Seq[ModuleDef]) extends PrettyPrintableFile {
+case class Module(name: String, imports: Seq[Import], body: Seq[ModuleDef]) extends VeritasConstruct with PrettyPrintableFile {
   override val filename = name.split('.').last + ".stl"
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("module ")

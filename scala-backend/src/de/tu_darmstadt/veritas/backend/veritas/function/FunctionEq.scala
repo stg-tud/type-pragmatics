@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 
-case class FunctionEq(functionName: String, patterns: Seq[FunctionPattern], right: FunctionExp) extends PrettyPrintable {
+case class FunctionEq(functionName: String, patterns: Seq[FunctionPattern], right: FunctionExp) extends VeritasConstruct with PrettyPrintable {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     // TODO print the parenthesis if patterns.isEmpty?
     writer.write(functionName, "(")

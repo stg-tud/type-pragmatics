@@ -10,7 +10,7 @@ import de.tu_darmstadt.veritas.backend.util.Context
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
-sealed trait ModuleDef extends PrettyPrintable
+sealed trait ModuleDef extends VeritasConstruct with PrettyPrintable
 
 case class Local(defs: Seq[ModuleDef]) extends ModuleDef {
   override def prettyPrint(writer: PrettyPrintWriter) = {

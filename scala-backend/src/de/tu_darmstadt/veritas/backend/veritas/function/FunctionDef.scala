@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 
-case class FunctionDef(signature: FunctionSig, eqn: Seq[FunctionEq]) extends PrettyPrintable {
+case class FunctionDef(signature: FunctionSig, eqn: Seq[FunctionEq]) extends VeritasConstruct with PrettyPrintable {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(signature)
     if (!eqn.isEmpty) 

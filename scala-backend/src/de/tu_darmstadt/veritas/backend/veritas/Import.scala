@@ -19,7 +19,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoList
  * different forms, i.e. a "Task ID" (such as "Use(Result(<someInteger>))") or a Module URI.  
  */
 
-sealed trait Import extends SimplePrettyPrintable {
+sealed trait Import extends VeritasConstruct with SimplePrettyPrintable {
   private var _importAnnotations: Seq[ImportAnnotation] = Seq()
   def importAnnotations = _importAnnotations
   def importAnnotationsPretty = 

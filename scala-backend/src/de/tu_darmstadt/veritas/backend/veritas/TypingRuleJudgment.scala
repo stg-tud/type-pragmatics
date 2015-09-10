@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 
-sealed trait TypingRuleJudgment extends PrettyPrintable
+sealed trait TypingRuleJudgment extends VeritasConstruct with PrettyPrintable
 
 case class TypingJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta, f3: FunctionExpMeta) extends TypingRuleJudgment {
   override def prettyPrint(writer: PrettyPrintWriter) = {
