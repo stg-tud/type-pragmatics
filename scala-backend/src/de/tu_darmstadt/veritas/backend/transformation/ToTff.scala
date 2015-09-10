@@ -182,8 +182,11 @@ object ToTff {
    * translates typing rules (= implications) to Tff
    * TODO: universal quantification over all free variables!!
    */
-  private def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) =
-    Impl(Parenthesized(And(prems map jdgtoTff)), Parenthesized(And(conseqs map jdgtoTff)))
+  private def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) = {
+    val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs)
+    ForAll(makeVarlist(quantifiedVars.toSeq, prems ++ conseqs), Parenthesized(
+      (Impl(Parenthesized(And(prems map jdgtoTff)), Parenthesized(And(conseqs map jdgtoTff))))))
+  }
 
   /**
    * translates individual clauses (premises or conclusion) to Tff (-> FofUnitary)
