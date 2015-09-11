@@ -9,6 +9,27 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 sealed trait TypingRuleJudgment extends VeritasConstruct with PrettyPrintable
 
 case class TypingJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta, f3: FunctionExpMeta) extends TypingRuleJudgment {
+  override val children = Seq(Seq(f1), Seq(f2), Seq(f3))
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 3 || !(newchildren forall (_.length == 1)))
+      throw new ClassCastException
+
+    val newf1: FunctionExpMeta = newchildren(0).head match {
+      case e: FunctionExpMeta => e
+      case _                  => throw new ClassCastException
+    }
+    val newf2: FunctionExpMeta = newchildren(1).head match {
+      case e: FunctionExpMeta => e
+      case _                  => throw new ClassCastException
+    }
+    val newf3: FunctionExpMeta = newchildren(2).head match {
+      case e: FunctionExpMeta => e
+      case _                  => throw new ClassCastException
+    }
+    TypingJudgment(newf1, newf2, newf3)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(f1).write(" |- ")
     writer.write(f2).write(" : ")
@@ -17,6 +38,24 @@ case class TypingJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta, f3: Function
 }
 
 case class TypingJudgmentSimple(f1: FunctionExpMeta, f2: FunctionExpMeta) extends TypingRuleJudgment {
+  override val children = Seq(Seq(f1), Seq(f2))
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 3 || !(newchildren forall (_.length == 1)))
+      throw new ClassCastException
+
+    val newf1: FunctionExpMeta = newchildren(0).head match {
+      case e: FunctionExpMeta => e
+      case _                  => throw new ClassCastException
+    }
+    val newf2: FunctionExpMeta = newchildren(1).head match {
+      case e: FunctionExpMeta => e
+      case _                  => throw new ClassCastException
+    }
+
+    TypingJudgmentSimple(newf1, newf2)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(f1).write(" : ")
     writer.write(f2)
@@ -24,6 +63,20 @@ case class TypingJudgmentSimple(f1: FunctionExpMeta, f2: FunctionExpMeta) extend
 }
 
 case class FunctionExpJudgment(f: FunctionExp) extends TypingRuleJudgment {
+  override val children = Seq(Seq(f))
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1 || !(newchildren forall (_.length == 1)))
+      throw new ClassCastException
+
+    val newf: FunctionExp = newchildren(0).head match {
+      case e: FunctionExp => e
+      case _              => throw new ClassCastException
+    }
+
+    FunctionExpJudgment(newf)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = writer.write(f)
 }
 
@@ -34,7 +87,26 @@ object FunctionExpJudgment {
   implicit def wrap(f: FunctionExp): FunctionExpJudgment = FunctionExpJudgment(f)
 }
 
-case class ExistsJudgment(varlist : Seq[MetaVar], jdglst: Seq[TypingRuleJudgment]) extends TypingRuleJudgment {
+case class ExistsJudgment(varlist: Seq[MetaVar], jdglst: Seq[TypingRuleJudgment]) extends TypingRuleJudgment {
+  override val children = Seq(varlist, jdglst)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 2 || !(newchildren forall (_.length > 0)))
+      throw new ClassCastException
+
+    val newvl = newchildren(0) map {
+      case m: MetaVar => m
+      case _          => throw new ClassCastException
+    }
+
+    val newjdglist: Seq[TypingRuleJudgment] = newchildren(1) map {
+      case j: TypingRuleJudgment => j
+      case _                     => throw new ClassCastException
+    }
+
+    ExistsJudgment(newvl, newjdglist)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("exists ")
     varlist.dropRight(1) foreach (writer.write(_).write(", "))
@@ -46,7 +118,26 @@ case class ExistsJudgment(varlist : Seq[MetaVar], jdglst: Seq[TypingRuleJudgment
   }
 }
 
-case class ForallJudgment(varlist : Seq[MetaVar], jdglst: Seq[TypingRuleJudgment]) extends TypingRuleJudgment {
+case class ForallJudgment(varlist: Seq[MetaVar], jdglst: Seq[TypingRuleJudgment]) extends TypingRuleJudgment {
+  override val children = Seq(varlist, jdglst)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 2 || !(newchildren forall (_.length > 0)))
+      throw new ClassCastException
+
+    val newvl = newchildren(0) map {
+      case m: MetaVar => m
+      case _          => throw new ClassCastException
+    }
+
+    val newjdglist: Seq[TypingRuleJudgment] = newchildren(1) map {
+      case j: TypingRuleJudgment => j
+      case _                     => throw new ClassCastException
+    }
+
+    ForallJudgment(newvl, newjdglist)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("forall ")
     varlist.dropRight(1) foreach (writer.write(_).write(", "))
@@ -61,6 +152,24 @@ case class ForallJudgment(varlist : Seq[MetaVar], jdglst: Seq[TypingRuleJudgment
 // TODO untested, no example in Veritas/test/*.stl files
 // TODO decide whether we keep this or not
 case class ReduceJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta) extends TypingRuleJudgment {
+  override val children = Seq(Seq(f1), Seq(f2))
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 2 || !(newchildren forall (_.length == 1)))
+      throw new ClassCastException
+
+    val newf1: FunctionExpMeta = newchildren(0).head match {
+      case e: FunctionExpMeta => e
+      case _                  => throw new ClassCastException
+    }
+    val newf2: FunctionExpMeta = newchildren(1).head match {
+      case e: FunctionExpMeta => e
+      case _                  => throw new ClassCastException
+    }
+
+    ReduceJudgment(newf1, newf2)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(f1).write(" -> ")
     writer.write(f2)
@@ -69,6 +178,20 @@ case class ReduceJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta) extends Typi
 
 // TODO untested, no example in Veritas/test/*.stl files
 case class NotJudgment(jdg: TypingRuleJudgment) extends TypingRuleJudgment {
+  override val children = Seq(Seq(jdg))
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1 || !(newchildren forall (_.length == 1)))
+      throw new ClassCastException
+
+    val newjdg: TypingRuleJudgment = newchildren(0).head match {
+      case e: TypingRuleJudgment => e
+      case _                     => throw new ClassCastException
+    }
+
+    NotJudgment(jdg)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("not ")
     writer.write(jdg)
@@ -76,9 +199,26 @@ case class NotJudgment(jdg: TypingRuleJudgment) extends TypingRuleJudgment {
 }
 
 case class OrJudgment(orCases: Seq[Seq[TypingRuleJudgment]]) extends TypingRuleJudgment {
+  override val children = orCases
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length < 2 || !(newchildren forall (_.length > 0)))
+      throw new ClassCastException
+
+    val neworcases: Seq[Seq[TypingRuleJudgment]] =
+      for (list <- newchildren) yield {
+        for (trj <- list) yield trj match {
+          case e: TypingRuleJudgment => e
+          case _                     => throw new ClassCastException
+        }
+      }
+
+    OrJudgment(neworcases)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.writeln("OR")
-    orCases.dropRight(1) foreach { orCase => 
+    orCases.dropRight(1) foreach { orCase =>
       writer.write("=> ")
       orCase foreach (writer.writeln(_))
     }
@@ -92,9 +232,9 @@ case class OrJudgment(orCases: Seq[Seq[TypingRuleJudgment]]) extends TypingRuleJ
 
 object TypingRuleJudgment {
   def from(term: StrategoTerm): TypingRuleJudgment = term match {
-    case StrategoAppl("TypingJudgment", f1, f2, f3) => TypingJudgment(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2), FunctionExpMeta.from(f3))
+    case StrategoAppl("TypingJudgment", f1, f2, f3)   => TypingJudgment(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2), FunctionExpMeta.from(f3))
     case StrategoAppl("TypingJudgmentSimple", f1, f2) => TypingJudgmentSimple(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
-    case StrategoAppl("FunctionExpJudgment", f) => FunctionExpJudgment(FunctionExp.from(f))
+    case StrategoAppl("FunctionExpJudgment", f)       => FunctionExpJudgment(FunctionExp.from(f))
     case StrategoAppl("ExistsJudgment", StrategoList(metavars), jdglst) => ExistsJudgment(
       metavars map MetaVar.from,
       TypingRule.unpackJudgmentCons(jdglst) map TypingRuleJudgment.from)
@@ -104,16 +244,15 @@ object TypingRuleJudgment {
     case StrategoAppl("OrJudgement", orCases) => OrJudgment(
       unpackOrCaseList(orCases) map { jdglst =>
         TypingRule.unpackJudgmentCons(jdglst) map TypingRuleJudgment.from
-      }
-    )
+      })
     case StrategoAppl("ReduceJudgment", f1, f2) => ReduceJudgment(FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
-    case StrategoAppl("NotJudgment", jdg) => NotJudgment(TypingRuleJudgment.from(jdg))
-    case t => throw VeritasParseError(t)
+    case StrategoAppl("NotJudgment", jdg)       => NotJudgment(TypingRuleJudgment.from(jdg))
+    case t                                      => throw VeritasParseError(t)
   }
-  
+
   def unpackOrCaseList(term: StrategoTerm): Seq[StrategoTerm] = term match {
     case StrategoAppl("OrCons", head, rest) => head +: unpackOrCaseList(rest)
-    case StrategoAppl("OrEnd", elem) => List(elem)
-    case t => throw VeritasParseError("expected Or cases (OrCons/OrEnd), got: " + t)
+    case StrategoAppl("OrEnd", elem)        => List(elem)
+    case t                                  => throw VeritasParseError("expected Or cases (OrCons/OrEnd), got: " + t)
   }
 }

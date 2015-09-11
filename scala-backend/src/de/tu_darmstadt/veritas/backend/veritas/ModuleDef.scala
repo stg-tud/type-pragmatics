@@ -13,6 +13,19 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 sealed trait ModuleDef extends VeritasConstruct with PrettyPrintable
 
 case class Local(defs: Seq[ModuleDef]) extends ModuleDef {
+  override val children = Seq(defs)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newdefs: Seq[ModuleDef] = newchildren(0) map {
+      case e: ModuleDef => e
+      case _            => throw new ClassCastException
+    }
+    Local(newdefs)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("local { ")
     writer.indent()
@@ -23,10 +36,27 @@ case class Local(defs: Seq[ModuleDef]) extends ModuleDef {
 }
 
 case object HideAll extends ModuleDef with SimplePrettyPrintable {
+  override val children = Seq()
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (!newchildren.isEmpty) throw new ClassCastException
+
+    //return myself
+    HideAll
+  }
   override def prettyString = "hide-all"
 }
 
 case class Hide(ruleNames: Seq[String]) extends ModuleDef {
+  override val children = Seq()
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (!newchildren.isEmpty) throw new ClassCastException
+
+    //return myself
+    Hide(ruleNames)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("hide {")
     writer.indentOptional().write(ruleNames.mkString(", "))
@@ -35,6 +65,15 @@ case class Hide(ruleNames: Seq[String]) extends ModuleDef {
 }
 
 case class Include(ruleNames: Seq[String]) extends ModuleDef {
+  override val children = Seq()
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (!newchildren.isEmpty) throw new ClassCastException
+
+    //return myself
+    Include(ruleNames)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("include {")
     writer.indentOptional().write(ruleNames.mkString(", "))
@@ -42,13 +81,36 @@ case class Include(ruleNames: Seq[String]) extends ModuleDef {
   }
 }
 
+//TODO: How to deal with empty strategy, goal, lemma, axiom.... blocks? 
+//Should that be allowed to occur? Currently, no errors are thrown if that happens!
+//Maybe introduce require-clauses?
+
 case class Strategy(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) extends ModuleDef {
+  override val children = Seq(imports, defs)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 2)
+      throw new ClassCastException
+
+    val newimps: Seq[Import] = newchildren(0) map {
+      case i: Import => i
+      case _         => throw new ClassCastException
+    }
+
+    val newdefs: Seq[ModuleDef] = newchildren(1) map {
+      case e: ModuleDef => e
+      case _            => throw new ClassCastException
+    }
+
+    Strategy(name, newimps, newdefs)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(s"strategy ${name} { ")
     writer.indent()
-    
+
     imports foreach (writer.writeln(_))
-    
+
     defs.dropRight(1) foreach (writer.writeln(_).writeln())
     defs.lastOption foreach (writer.writeln(_))
     writer.unindent().write("}")
@@ -56,14 +118,40 @@ case class Strategy(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) ex
 }
 
 case class Goals(goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
+  override val children = Seq(goals)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newgoals: Seq[TypingRule] = newchildren(0) map {
+      case e: TypingRule => e
+      case _             => throw new ClassCastException
+    }
+    Goals(newgoals, timeout)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     val timeoutString = timeout.map(" " + _.toString).getOrElse("")
     goals.dropRight(1) foreach (writer.writeln("goal" + timeoutString).writeln(_).writeln())
-    goals.lastOption foreach (writer.writeln("goal"+ timeoutString).write(_))
+    goals.lastOption foreach (writer.writeln("goal" + timeoutString).write(_))
   }
 }
 
 case class GoalsWithStrategy(strategy: String, goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
+  override val children = Seq(goals)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newgoals: Seq[TypingRule] = newchildren(0) map {
+      case e: TypingRule => e
+      case _             => throw new ClassCastException
+    }
+    GoalsWithStrategy(strategy, newgoals, timeout)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     val timeoutString = timeout.map(" " + _.toString).getOrElse("")
     goals.dropRight(1) foreach (writer.writeln(s"goal verify-with ${strategy} " + timeoutString).writeln(_).writeln())
@@ -72,14 +160,40 @@ case class GoalsWithStrategy(strategy: String, goals: Seq[TypingRule], timeout: 
 }
 
 case class Lemmas(lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
+  override val children = Seq(lemmas)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newlemmas: Seq[TypingRule] = newchildren(0) map {
+      case e: TypingRule => e
+      case _             => throw new ClassCastException
+    }
+    Lemmas(newlemmas, timeout)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     val timeoutString = timeout.map(" " + _.toString).getOrElse("")
     lemmas.dropRight(1) foreach (writer.writeln("lemma" + timeoutString).writeln(_).writeln())
-    lemmas.lastOption foreach (writer.writeln("lemma"+ timeoutString).write(_))
+    lemmas.lastOption foreach (writer.writeln("lemma" + timeoutString).write(_))
   }
 }
 
 case class LemmasWithStrategy(strategy: String, lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
+  override val children = Seq(lemmas)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newlemmas: Seq[TypingRule] = newchildren(0) map {
+      case e: TypingRule => e
+      case _             => throw new ClassCastException
+    }
+    LemmasWithStrategy(strategy, newlemmas, timeout)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     val timeoutString = timeout.map(" " + _.toString).getOrElse("")
     lemmas.dropRight(1) foreach (writer.writeln(s"lemma verify-with ${strategy} " + timeoutString).writeln(_).writeln())
@@ -88,6 +202,19 @@ case class LemmasWithStrategy(strategy: String, lemmas: Seq[TypingRule], timeout
 }
 
 case class Axioms(axioms: Seq[TypingRule]) extends ModuleDef {
+  override val children = Seq(axioms)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newaxioms: Seq[TypingRule] = newchildren(0) map {
+      case e: TypingRule => e
+      case _             => throw new ClassCastException
+    }
+    Axioms(newaxioms)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     axioms.dropRight(1) foreach (writer.writeln("axiom").writeln(_).writeln())
     axioms.lastOption foreach (writer.writeln("axiom").write(_))
@@ -95,6 +222,19 @@ case class Axioms(axioms: Seq[TypingRule]) extends ModuleDef {
 }
 
 case class Sorts(sorts: Seq[SortDef]) extends ModuleDef {
+  override val children = Seq(sorts)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newsorts: Seq[SortDef] = newchildren(0) map {
+      case e: SortDef => e
+      case _          => throw new ClassCastException
+    }
+    Sorts(newsorts)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("sorts  ")
     writer.indentOptional()
@@ -104,6 +244,19 @@ case class Sorts(sorts: Seq[SortDef]) extends ModuleDef {
 }
 
 case class Constructors(ctors: Seq[ConstructorDecl]) extends ModuleDef {
+  override val children = Seq(ctors)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newctors: Seq[ConstructorDecl] = newchildren(0) map {
+      case e: ConstructorDecl => e
+      case _                  => throw new ClassCastException
+    }
+    Constructors(newctors)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("constructors")
     writer.indent()
@@ -114,6 +267,19 @@ case class Constructors(ctors: Seq[ConstructorDecl]) extends ModuleDef {
 }
 
 case class Functions(funcs: Seq[FunctionDef]) extends ModuleDef {
+  override val children = Seq(funcs)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newfuncs: Seq[FunctionDef] = newchildren(0) map {
+      case e: FunctionDef => e
+      case _              => throw new ClassCastException
+    }
+    Functions(newfuncs)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     funcs.dropRight(1) foreach (writer.writeln("function").writeln(_).writeln())
     funcs.lastOption foreach (writer.writeln("function").write(_))
@@ -121,6 +287,19 @@ case class Functions(funcs: Seq[FunctionDef]) extends ModuleDef {
 }
 
 case class PartialFunctions(funcs: Seq[FunctionDef]) extends ModuleDef {
+  override val children = Seq(funcs)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newfuncs: Seq[FunctionDef] = newchildren(0) map {
+      case e: FunctionDef => e
+      case _              => throw new ClassCastException
+    }
+    Functions(newfuncs)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     funcs.dropRight(1) foreach (writer.writeln("partial function").writeln(_))
     funcs.lastOption foreach (writer.writeln("partial function").write(_))
@@ -128,12 +307,25 @@ case class PartialFunctions(funcs: Seq[FunctionDef]) extends ModuleDef {
 }
 
 case class Consts(consts: Seq[ConstructorDecl]) extends ModuleDef {
+  override val children = Seq(consts)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newctors: Seq[ConstructorDecl] = newchildren(0) map {
+      case e: ConstructorDecl => e
+      case _                  => throw new ClassCastException
+    }
+    Consts(newctors)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    consts.dropRight(1) foreach { c => 
+    consts.dropRight(1) foreach { c =>
       writer.write("const ");
       writer.writeln(c)
     }
-    consts.lastOption foreach { c => 
+    consts.lastOption foreach { c =>
       writer.write("const ");
       writer.write(c)
     }
@@ -150,14 +342,14 @@ case class Consts(consts: Seq[ConstructorDecl]) extends ModuleDef {
 object ModuleDef {
   def from(term: StrategoTerm): ModuleDef = term match {
     case StrategoAppl("Local", StrategoList(defs)) => Local(defs map ModuleDef.from)
-    case StrategoAppl("HideAll") => HideAll
+    case StrategoAppl("HideAll")                   => HideAll
     case StrategoAppl("Hide", StrategoList(ruleNames)) => Hide(ruleNames map {
       case StrategoString(name) => name
-      case t => throw VeritasParseError("expected StrategoString, got: " + t)
+      case t                    => throw VeritasParseError("expected StrategoString, got: " + t)
     })
     case StrategoAppl("Include", StrategoList(ruleNames)) => Include(ruleNames map {
       case StrategoString(name) => name
-      case t => throw VeritasParseError("expected StrategoString, got: " + t)
+      case t                    => throw VeritasParseError("expected StrategoString, got: " + t)
     })
     case StrategoAppl("Strategy", StrategoString(name), StrategoList(imps), StrategoList(defs)) => Strategy(name, imps map Import.from, defs map ModuleDef.from)
     case StrategoAppl("Goals", StrategoAppl("None"), StrategoList(goals)) => Goals(goals map TypingRule.from, None)

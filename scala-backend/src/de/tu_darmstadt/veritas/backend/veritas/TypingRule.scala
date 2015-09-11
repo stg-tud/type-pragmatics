@@ -8,7 +8,25 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 
 case class TypingRule(name: String, premises: Seq[TypingRuleJudgment], consequences: Seq[TypingRuleJudgment]) extends VeritasConstruct with PrettyPrintable {
   require(!consequences.isEmpty, "typing rule without consequences is not allowed")
-  
+  override val children = Seq(premises, consequences)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 2 || newchildren(1).isEmpty)
+      throw new ClassCastException
+
+    val newprems: Seq[TypingRuleJudgment] = newchildren(0) map {
+      case e: TypingRuleJudgment => e
+      case _                     => throw new ClassCastException
+    }
+
+    val newconss: Seq[TypingRuleJudgment] = newchildren(1) map {
+      case e: TypingRuleJudgment => e
+      case _                     => throw new ClassCastException
+    }
+
+    TypingRule(name, newprems, newconss)
+  }
+
   override def prettyPrint(writer: PrettyPrintWriter) = {
     premises foreach (writer.writeln(_))
     // NOTE make the ===== bar as long as the surrounding judgments
@@ -24,24 +42,24 @@ case class TypingRule(name: String, premises: Seq[TypingRuleJudgment], consequen
 object TypingRule {
   def from(term: StrategoTerm): TypingRule = term match {
     case StrategoAppl("TypingRule",
-        StrategoAppl("PremiseList", premises),
-        StrategoAppl("RuleName", _, StrategoString(name)),
-        StrategoAppl("ConsequenceList", consequences)) => TypingRule(name, 
-            unpackJudgmentCons(premises) map TypingRuleJudgment.from, 
-            unpackJudgmentCons(consequences) map TypingRuleJudgment.from)
+      StrategoAppl("PremiseList", premises),
+      StrategoAppl("RuleName", _, StrategoString(name)),
+      StrategoAppl("ConsequenceList", consequences)) => TypingRule(name,
+      unpackJudgmentCons(premises) map TypingRuleJudgment.from,
+      unpackJudgmentCons(consequences) map TypingRuleJudgment.from)
     case StrategoAppl("TypingRule",
-        // NOTE no premises
-        StrategoAppl("RuleName", _, StrategoString(name)),
-        StrategoAppl("ConsequenceList", consequences)) => TypingRule(name, Nil,
-            unpackJudgmentCons(consequences) map TypingRuleJudgment.from)
+      // NOTE no premises
+      StrategoAppl("RuleName", _, StrategoString(name)),
+      StrategoAppl("ConsequenceList", consequences)) => TypingRule(name, Nil,
+      unpackJudgmentCons(consequences) map TypingRuleJudgment.from)
     case t => throw VeritasParseError(t)
   }
-  
+
   // NOTE there is a "Judgement" (BE) vs "Judgment" (AE) consistency, also in Veritas.sdf3
   // We always use Judgment (AE) in the Backend, but parsing must obviously be compatible with Veritas.sdf3
   def unpackJudgmentCons(term: StrategoTerm): Seq[StrategoTerm] = term match {
     case StrategoAppl("JudgementCons", head, rest) => head +: unpackJudgmentCons(rest)
-    case elem @ StrategoAppl(_, _*) => List(elem)
-    case t => throw VeritasParseError(t)
+    case elem @ StrategoAppl(_, _*)                => List(elem)
+    case t                                         => throw VeritasParseError(t)
   }
 }

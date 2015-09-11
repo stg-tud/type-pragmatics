@@ -37,17 +37,44 @@ sealed trait Unresolved extends Import {
 
 // an import is processed in multiple stages, which are (from top to bottom):
 case class UnresolvedTaskId(moduleName: String, taskId: Int) extends Unresolved {
+  override val children = Seq()
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (!newchildren.isEmpty) throw new ClassCastException
+
+    //return myself
+    UnresolvedTaskId(moduleName, taskId)
+  }
+
   override def toNablUse = StrategoAppl("Use", StrategoAppl("Result", StrategoInt(taskId)))
   override def prettyString = s"import $moduleName $importAnnotationsPretty// status: unresolved Task ID $taskId"
 }
 
 case class UnresolvedUri(moduleUri: VeritasModuleUri) extends Unresolved {
+  override val children = Seq()
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (!newchildren.isEmpty) throw new ClassCastException
+
+    //return myself
+    UnresolvedUri(moduleUri)
+  }
+
   override def moduleName = moduleUri.name
   override def toNablUse = moduleUri.toNablProperty
   override def prettyString = s"import $moduleName $importAnnotationsPretty// status: unresolved URI $moduleUri"
 }
 
 case class Resolved(moduleCode: Module) extends Import {
+  override val children = Seq()
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (!newchildren.isEmpty) throw new ClassCastException
+
+    //return myself
+    Resolved(moduleCode)
+  }
+
   override def moduleName = moduleCode.name
   override def prettyString = s"import $moduleName $importAnnotationsPretty// status: resolved" 
 }

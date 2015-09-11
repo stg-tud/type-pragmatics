@@ -6,6 +6,15 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 
 case class MetaVar(name: String) extends VeritasConstruct with SimplePrettyPrintable {
+  override val children = Seq()
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (!newchildren.isEmpty) throw new ClassCastException
+
+    //return myself
+    MetaVar(name)
+  }
+
   override def prettyString = s"~$name"
 }
 
