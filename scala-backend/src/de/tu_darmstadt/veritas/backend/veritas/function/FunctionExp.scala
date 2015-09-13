@@ -245,7 +245,7 @@ final case class FunctionExpApp(functionName: String, args: FunctionExpMeta*) ex
     // "something")
     writer.write(functionName, "(")
     args.dropRight(1) foreach (writer.write(_).write(", "))
-    //args.lastOption foreach (writer.write(_))
+    args.lastOption foreach (writer.write(_))
     writer.write(")")
   }
 }
