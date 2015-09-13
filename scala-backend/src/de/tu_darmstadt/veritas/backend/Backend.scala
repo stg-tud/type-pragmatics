@@ -18,8 +18,10 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
+import de.tu_darmstadt.veritas.backend.veritas.FunctionExpApp
 import de.tu_darmstadt.veritas.backend.transformation.ToFof
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.DesugarLemmas
 
 object Backend {
@@ -46,7 +48,8 @@ object Backend {
     // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
     // the original file!
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
-    Seq(ToFof.toFofFile(mod), ToTff.toTffFile(mod))
+    val transformedModule = VarToApp0(Seq(mod)) map (_.asInstanceOf[Module])
+    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
     
   }
 
