@@ -45,7 +45,7 @@ object ToTff {
       case Module(name, Seq(), body) => {
         try {
           bodyToTff(body)
-          constructFinalTff(name)
+          constructFinalTff(name + ".tff")
         } catch {
           case TransformationError(s) => throw TransformationError(s"Failed to transform Module ${name} to TFF:" + s)
           case e: Exception           => throw e
