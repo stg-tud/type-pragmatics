@@ -1,7 +1,6 @@
 package de.tu_darmstadt.veritas.backend.util
 
 import de.tu_darmstadt.veritas.backend.veritas._
-import de.tu_darmstadt.veritas.backend.veritas.function._
 
 object FreeVariables {
   /**
