@@ -133,8 +133,13 @@ strategy induction-attachcol-preserves-typing {
 		======================================================================== AttachCol-Preserves-Typing-2-IH
 		welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(col, ~rt)))
 		
-		// not provable with 300!
-		goal 1
+		//TODO refine this!
+		hide-all
+		include{AttachCol-WelltypedRawtable-Aux, getSome0, DIFF-tempty-tcons, 
+		projectEmptyCol-INV, EQ-tcons, welltypedRawtable1, AttachColToFrontRaw-Aux, 
+		AttachCol-Preserves-Typing-2-IH}
+		
+		goal 60
 		welltypedRawtable(~RT, ~rt)
 		welltypedRawtable(rtcons(~colType, rtempty), tcons(r, col))
 		isSome(attachColToFrontRaw(tcons(r, col), ~rt))
@@ -287,8 +292,17 @@ strategy struc-induction-project-preservation {
 		===================================== Project-Preservation-acons-IH
 		~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
 		
+		// axiom
+		// ~al = acons(a, alrest)
+		// welltypedtable(~TT, ~t)
+		// isSome(project(alrest, ~t))
+		// isSome(projectType(alrest, ~TT))
+		// ~TTC |- Tvalue(table(alrest, getSome(project(alrest, ~t)))) : getSome(projectType(alrest, ~TT))
+		// ======================================================================================== aux2
+		// ~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
+		
 		// proof not possible with timeout 300
-		goal 1
+		goal 65
 		~al = acons(a, alrest)
 		welltypedtable(~TT, ~t)
 		isSome(project(~al, ~t))
