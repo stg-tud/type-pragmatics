@@ -12,7 +12,7 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
                         linewidth: Int = 100,
                         defaultIndentation: String = "  ",
                         linebreak: String = "\n") extends Writer {
-  
+
   private val indentation = new IndentationStack
   private val currentLineBuffer = new LineBuffer(linewidth)
 
@@ -20,12 +20,12 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
    * Call this before a pretty printing new "substructure" of your data
    * NOTE prints a newline!
    */
-  def indent(indentChars: String = defaultIndentation): this.type = { 
+  def indent(indentChars: String = defaultIndentation): this.type = {
     write(linebreak)
     indentation.push(ForcedIndent(indentChars))
     this
   }
-  
+
   def indentOptional(indentChars: String = defaultIndentation): this.type = {
     // two adjacent optional indents should become two forced indents
     if (indentation.isCurrentOptional) {
@@ -37,7 +37,7 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
       this
     }
   }
-  
+
   /**
    * Removes the last added indentation
    */
@@ -48,16 +48,15 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
     this
   }
 
-
   /*
    * Writer interface
    */
-    
+
   override def write(str: Array[Char], off: Int, len: Int): Unit = {
     // to conform with the Writer signature
-    if (off < 0 || len < 0 || off+len < 0 || off+len > str.length)
+    if (off < 0 || len < 0 || off + len < 0 || off + len > str.length)
       throw new IndexOutOfBoundsException
-    val subString = String.valueOf(str.slice(off, off+len))
+    val subString = String.valueOf(str.slice(off, off + len))
 
     // NOTE match against \r\n to work also for CRLF line endings
     val lines = subString.split("\r?\n", /* IMPORTANT for trailing empty lines! */ -1)
@@ -68,11 +67,11 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
   override def close(): Unit = {
     this.flush(); writer.close()
   }
-  
+
   /**
    * Write the pending line first, then flush the underlying writer
    * NOTE: Only writes the indentation of the current line, if it contains any actual content,
-   * because for empty lines unindent() will change the current indentation 
+   * because for empty lines unindent() will change the current indentation
    */
   private var linePartiallyWritten = false
   override def flush(): Unit = {
@@ -88,8 +87,7 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
     }
     writer.flush()
   }
-  
-  
+
   /**
    * Main method: handles
    *  - partially written lines by explicit flush()-ing
@@ -107,7 +105,7 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
         linePartiallyWritten = false
       }
     }
-    
+
     if (!newLines.isEmpty) {
       // write the pending line
       var lineToPrint = ""
@@ -119,18 +117,17 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
       writer.write(lineToPrint.replaceAll("\\s+$", "") + linebreak)
       currentLineBuffer.newLine()
       linePartiallyWritten = false
-            
+
       writeLines(newLines.head, newLines.tail)
     }
   }
-  
-  
+
   /*
    * Convenience methods below:
    */
-    
+
   override def toString() = { this.flush(); writer.toString }
-  
+
   /**
    * Convenience for many strings.
    * The calls are also chainable, since it returns this again
@@ -140,7 +137,7 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
     write(str1); write(str2); strs foreach (write(_))
     this
   }
-  
+
   def writeln(strs: String*): this.type = {
     strs foreach (write(_))
     write(linebreak)
@@ -154,7 +151,7 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
     inputs foreach (_.prettyPrint(this))
     this
   }
-  
+
   // NOTE have to add explicit input1 to disambiguate from writeln(String*) for empty varargs given
   def writeln[T <: PrettyPrintable](input1: T, inputs: T*): this.type = {
     write(input1).write(inputs: _*)
