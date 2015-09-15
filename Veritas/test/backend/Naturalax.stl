@@ -1,0 +1,54 @@
+module backend.Naturalax
+
+sorts 
+N
+
+constructors
+zero : N
+succ : N -> N
+
+functions
+add : N N -> N
+
+axioms
+
+=================== add-zero
+add(~n, zero) == ~n
+
+====================================== add-succ
+add(~n, succ(~m)) == succ(add(~n, ~m))
+
+
+goal
+
+=========================== add-comm
+add(~m, ~n) == add(~n, ~m)
+
+
+// local {
+// 
+// 	consts one : N
+// 		two : N
+// 		three : N
+// 	
+// 	axiom
+// 	================== one-ax
+// 	one == succ(zero)
+// 	
+// 	axiom
+// 	======================= two-ax
+// 	two == succ(succ(zero))
+// 	
+// 	axiom 
+// 	================================ three-ax
+// 	three == succ(succ(succ(zero)))
+// 	
+// 	goal
+// 	============================== test1
+// 	add(one, two) == three
+// 	
+// 	goal
+// 	============================== test2
+// 	add(one, two) == add(two, one)
+// }
+
