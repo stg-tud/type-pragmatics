@@ -12,7 +12,7 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
  * - no imports
  * - section with "symbol declarations" (constructor decls, const decls, function sigs...) (can be empty)
  * - section with n axioms, where typing judgments were already transformed to some typed function! (can be empty)
- * - exactly one goal!
+ * - exactly one goal! (which must not be followed by other axioms, constructors etc, which would be out of scope!)
  */
 object ToTff {
 
@@ -47,7 +47,7 @@ object ToTff {
           bodyToTff(body)
           constructFinalTff(name + ".tff")
         } catch {
-          case TransformationError(s) => throw TransformationError(s"Failed to transform Module ${name} to TFF:" + s)
+          case TransformationError(s) => throw TransformationError(s"Failed to transform Module ${name} to TFF: " + s)
           case e: Exception           => throw e
         }
       }
@@ -60,12 +60,10 @@ object ToTff {
    *  adds the collected declarations to the appropriate collections of the object defined above
    */
   private def bodyToTff(body: Seq[ModuleDef]): Unit = {
-    body foreach { md =>
+    body.dropRight(1) foreach { md =>
       md match {
-        case Axioms(axs) => axiomlist ++= translateAxioms(axs)
-        case Goals(gs, _) => if (goal != None | gs.length > 1)
-          throw TransformationError("More than one goal found!")
-        else goal = Some(translateGoal(gs(0)))
+        case Axioms(axs)      => axiomlist ++= translateAxioms(axs)
+        case Goals(gs, _)     => throw TransformationError("Found goal in Module which was not at last position!")
         case Constructors(cs) => addConstDecl(cs)
         case Consts(cs)       => addConstDecl(cs)
         case Sorts(s)         => addSortDef(s)
@@ -73,6 +71,12 @@ object ToTff {
         case _                => throw TransformationError("Unsupported top-level construct!")
 
       }
+    }
+    body.last match {
+      case Goals(gs, _) => if (gs.length > 1) throw TransformationError("More than one goal found!")
+      else goal = Some(translateGoal(gs(0)))
+
+      case _ => throw TransformationError("Module contained no goal or goal in module was not at last position!")
     }
   }
 

@@ -15,43 +15,49 @@ import de.tu_darmstadt.veritas.backend.fof.Variable
  * - no imports
  * - section with "symbol declarations" (constructor decls, const decls, function sigs...) (can be empty)
  * - section with n axioms, where typing judgments were already transformed to some typed function! (can be empty)
- * - exactly one goal!
+ * - exactly one goal! (which must not be followed by other axioms, constructors etc, which would be out of scope!)
  */
 object ToFof {
   def toFofFile(coreModule: Module): FofFile = coreModule match {
     case Module(name, Seq(), body) => {
       val goal = getOnlyGoal(coreModule)
-      val axioms = coreModule.body.collect{ case Axioms(axioms) => axioms }.flatten
+      val axioms = coreModule.body.collect { case Axioms(axioms) => axioms }.flatten
 
       val transformedAxioms = axioms map (typingRuleToFof(_, Axiom))
       val transformedGoal = typingRuleToFof(goal, Conjecture)
-      
+
       FofFile(name + ".fof", transformedAxioms :+ transformedGoal)
     }
     case Module(name, _, _) => throw TransformationError(s"(Core TSSL) Module $name still contained imports")
   }
 
   /**
-   * returns the single goal, throws TransformationError if
+   * returns the single goal at the end of the file, throws TransformationError if
    *  - there is no goal (every .fof file must have one for proof)
    *  - there is more than one (fof allows only one per file)
+   *  - there are elements that are not goals after a goal (not in scope!!)
    */
   private def getOnlyGoal(mod: Module): TypingRule = {
-    val allGoals = mod.body.collect{ case Goals(goals, /* TODO */ timeout) => goals }.flatten 
-    allGoals match {
-      case Seq() => throw TransformationError(s"(Core TSSL) Module ${mod.name} contained no goal")
-      case Seq(singleGoal) => singleGoal
-      case _ => throw TransformationError(s"(Core TSSL) Module ${mod.name} contained more than one goal")
+    mod.body.last match {
+      case Goals(goals, /* TODO */ timeout) if (goals.length == 1) => {
+        val allGoals = mod.body.collect { case g @ Goals(goals, _) => g }
+        if (allGoals.length > 1)
+          throw throw TransformationError(s"(Core TSSL) Module ${mod.name} contained more than one goal (several positions)")
+        else
+          goals.head
+      }
+      case Goals(goals, /* TODO */ timeout) if (goals.length != 1) => throw TransformationError(s"(Core TSSL) Module ${mod.name} contained more than one goal at last position (or illegal empty goal block)")
+      case _ => throw TransformationError(s"(Core TSSL) Module ${mod.name} contained no goal at all or did not have a goal as last construct! ")
     }
   }
-  
+
   private def typingRuleToFof(rule: TypingRule, role: FormulaRole): FofAnnotated =
     FofAnnotated(rule.name, role, typingRuleToFof(rule.premises, rule.consequences))
-  
+
   private def typingRuleToFof(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]): Fof = {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs) map toUntypedVar
-    ForAll(quantifiedVars.toSeq, Parenthesized( 
-        Impl(Parenthesized(And(prems map jdgToFof)), Parenthesized(And(conseqs map jdgToFof)))))
+    ForAll(quantifiedVars.toSeq, Parenthesized(
+      Impl(Parenthesized(And(prems map jdgToFof)), Parenthesized(And(conseqs map jdgToFof)))))
   }
 
   /**
@@ -66,7 +72,7 @@ object ToFof {
       case OrJudgment(ors)               => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgToFof)))))
       case _                             => throw TransformationError("Encountered unsupported (not Core) judgment while translating a goal or axiom (e.g. typing judgment): " + jdg)
     }
-  
+
   private def toUntypedVar(v: MetaVar): UntypedVariable = UntypedVariable(v.name)
 
   /**
