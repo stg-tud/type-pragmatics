@@ -1,6 +1,9 @@
 # Transformations TODO
 
-- (DONE) replace FunctionPatVar and FunctionExpVar with a nullary FunctionPatApp/FunctionExpApp if they have the name of a constructor (as in resolve-vars in fof-rewriting.str)
+- replace FunctionPatVar and FunctionExpVar with a nullary
+  FunctionPatApp/FunctionExpApp if they have the name of a constructor
+  (as in resolve-vars in fof-rewriting.str) - PARTIALLY DONE, does not
+  check for constructor names yet!
 - a generic "JoinModuleDef[T <: ModuleDef]" transformation that collects all module defs of the same type in a single one (basically a generic version of JoinConstructors)
 - (DONE) Lemmas to Axioms/Goals
 - split Module into Modules with one goal per Module (also with Strategy blocks) (Daniel)
