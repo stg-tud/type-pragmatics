@@ -30,13 +30,13 @@ trait VeritasConstructTransformation {
   /**
    * recursively apply the transformation defined by transform
    * to a given sequence of VeritasConstructs
-   * * (top-down one pass traversal!)
-   * (recursively traverses the AST behind each VeritasConstruct)
+   * (top-down one pass traversal, stops traversing as soon as a construct can be transformed via the transform function! -
+   * that is, it does not check the children of such a construct again)
    */
   def apply(vcl: Seq[VeritasConstruct]): Seq[VeritasConstruct] = {
     (for (vc <- vcl if precheck(vc)) yield {
       if (transform.isDefinedAt(vc))
-        apply(transform(vc))
+        transform(vc)
       else {
         val newchildren = (vc.children map apply)
         try {
