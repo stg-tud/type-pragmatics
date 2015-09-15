@@ -11,10 +11,11 @@ import de.tu_darmstadt.veritas.backend.transformation.VeritasConstructTransforma
 /**
  * no precondition necessary, 
  * simply desugars lemmas to Axioms and Goals
+ * - the order is important: first goal, then axiom!
  */
 object DesugarLemmas extends VeritasConstructTransformation {
   override def transform: PartialFunction[VeritasConstruct, Seq[VeritasConstruct]] = {
-    case Lemmas(lm, t)                => Seq(Axioms(lm), Goals(lm, t))
-    case LemmasWithStrategy(s, lm, t) => Seq(Axioms(lm), GoalsWithStrategy(s, lm, t))
+    case Lemmas(lm, t)                => Seq(Goals(lm, t), Axioms(lm))
+    case LemmasWithStrategy(s, lm, t) => Seq(GoalsWithStrategy(s, lm, t), Axioms(lm))
   }
 }
