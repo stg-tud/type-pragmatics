@@ -1,0 +1,1 @@
+fof('f-eq-g', conjecture, (![X] : f(X) = g(X))).

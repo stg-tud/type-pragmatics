@@ -1,0 +1,3 @@
+
+fof('AttachCol-Preserves-Typing-ind', axiom, (![VcolType,VRT,Vcol,Vrt] : ((vwelltypedRawtable(VRT,Vrt) & (vwelltypedRawtable(vrtcons(VcolType,vrtempty),Vcol) & visSome(vattachColToFrontRaw(Vcol,Vrt)))) => vwelltypedRawtable(vrtcons(VcolType,VRT),vgetSome(vattachColToFrontRaw(Vcol,Vrt)))))).
+fof('AttachCol-Preserves-Typing', conjecture, (![VcolType,VRT,Vcol,Vrt] : ((vwelltypedRawtable(VRT,Vrt) & (vwelltypedRawtable(vrtcons(VcolType,vrtempty),Vcol) & visSome(vattachColToFrontRaw(Vcol,Vrt)))) => vwelltypedRawtable(vrtcons(VcolType,VRT),vgetSome(vattachColToFrontRaw(Vcol,Vrt)))))).

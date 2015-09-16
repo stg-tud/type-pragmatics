@@ -1,0 +1,3 @@
+
+fof('Project-Preservation-ind', axiom, (![Vt,VTT,VTTC,Val,Vpt,VPT] : ((vwelltypedtable(VTT,Vt) & ((vproject(Val,Vt)=vsome(Vpt)) & (vprojectType(Val,VTT)=vsome(VPT)))) => vtcheck(VTTC,vTvalue(vtable(Val,Vpt)),VPT)))).
+fof('Project-Preservation', conjecture, (![Vt,VTT,VTTC,Val,Vpt,VPT] : ((vwelltypedtable(VTT,Vt) & ((vproject(Val,Vt)=vsome(Vpt)) & (vprojectType(Val,VTT)=vsome(VPT)))) => vtcheck(VTTC,vTvalue(vtable(Val,Vpt)),VPT)))).

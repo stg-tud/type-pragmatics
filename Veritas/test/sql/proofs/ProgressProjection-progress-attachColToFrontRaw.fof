@@ -1,0 +1,3 @@
+
+fof('progress-attachColToFrontRaw-ind', axiom, (![VTT1,Va,Var,Vt,Vcrt,Vrt] : ((vwelltypedtable(VTT1,Vt) & ((vfindCol(Va,Vt)=vsome(Vcrt)) & (vproject(Var,Vt)=vsome(Vrt)))) => (?[Vrt2] : (vattachColToFrontRaw(Vcrt,Vrt)=vsome(Vrt2)))))).
+fof('progress-attachColToFrontRaw', conjecture, (![VTT1,Va,Var,Vt,Vcrt,Vrt] : ((vwelltypedtable(VTT1,Vt) & ((vfindCol(Va,Vt)=vsome(Vcrt)) & (vproject(Var,Vt)=vsome(Vrt)))) => (?[Vrt2] : (vattachColToFrontRaw(Vcrt,Vrt)=vsome(Vrt2)))))).

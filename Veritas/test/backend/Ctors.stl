@@ -1,0 +1,15 @@
+module backend.Ctors
+
+sorts  Typ
+
+constructors
+  noInput : Typ
+  withOneInput : Typ -> Typ
+
+constructors
+  withTwoInputs : Typ Typ -> Typ
+
+goal
+true
+==== Goal-1
+true

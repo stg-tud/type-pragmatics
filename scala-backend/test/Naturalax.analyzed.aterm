@@ -1,0 +1,149 @@
+Module(
+  "backend.Naturalax"{ Def(
+                         URI(
+                           Language("Veritas")
+                         , [ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))]
+                         )
+                       )
+                     }
+, []
+, [ Sorts([SortDef("N"{ Def(
+                          URI(
+                            Language("Veritas")
+                          , [ ID(NablNsSort(), "N", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                            , ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                            ]
+                          )
+                        )
+                      })])
+  , Constructors(
+      [ ConstructorDecl("zero"{ Def(
+                                  URI(
+                                    Language("Veritas")
+                                  , [ ID(NablNsSymbol(), "zero", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                    , ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                    ]
+                                  )
+                                )
+                              }, [], SortRef("N"{Use(Result(420915))}))
+      , ConstructorDecl("succ"{ Def(
+                                  URI(
+                                    Language("Veritas")
+                                  , [ ID(NablNsSymbol(), "succ", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                    , ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                    ]
+                                  )
+                                )
+                              }, [SortRef("N"{Use(Result(420915))})], SortRef("N"{Use(Result(420915))}))
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "add"{ Def(
+                     URI(
+                       Language("Veritas")
+                     , [ ID(NablNsSymbol(), "add", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                       , ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                       ]
+                     )
+                   )
+                 }
+          , [SortRef("N"{Use(Result(420915))}), SortRef("N"{Use(Result(420915))})]
+          , SortRef("N"{Use(Result(420915))})
+          )
+        , []
+        )
+      ]
+    )
+  , Axioms(
+      [ TypingRule(
+          RuleName("===================", "add-zero"{ Def(
+                                                        URI(
+                                                          Language("Veritas")
+                                                        , [ ID(NablNsRule(), "add-zero", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                                          , ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                                          ]
+                                                        )
+                                                      )
+                                                    })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpEq(
+                FunctionExpApp("add"{Use(Result(420934))}, [FunctionMeta(Meta("n")), FunctionExpVar("zero"{Use(Result(420932))})])
+              , FunctionMeta(Meta("n"))
+              )
+            )
+          )
+        )
+      , TypingRule(
+          RuleName("======================================", "add-succ"{ Def(
+                                                                           URI(
+                                                                             Language("Veritas")
+                                                                           , [ ID(NablNsRule(), "add-succ", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                                                             , ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                                                             ]
+                                                                           )
+                                                                         )
+                                                                       })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpEq(
+                FunctionExpApp(
+                  "add"{Use(Result(420934))}
+                , [FunctionMeta(Meta("n")), FunctionExpApp("succ"{Use(Result(420938))}, [FunctionMeta(Meta("m"))])]
+                )
+              , FunctionExpApp(
+                  "succ"{Use(Result(420938))}
+                , [FunctionExpApp(
+                     "add"{Use(Result(420934))}
+                   , [FunctionMeta(Meta("n")), FunctionMeta(Meta("m"))]
+                   )]
+                )
+              )
+            )
+          )
+        )
+      ]
+    )
+  , Goals(
+      None()
+    , [ TypingRule(
+          RuleName("===========================", "add-comm"{ Def(
+                                                                URI(
+                                                                  Language("Veritas")
+                                                                , [ ID(NablNsRule(), "add-comm", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                                                  , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0")
+                                                                  , ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))
+                                                                  ]
+                                                                )
+                                                              )
+                                                            })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpEq(
+                FunctionExpApp(
+                  "add"{Use(Result(420934))}
+                , [FunctionMeta(Meta("m")), FunctionMeta(Meta("n"))]
+                )
+              , FunctionExpApp(
+                  "add"{Use(Result(420934))}
+                , [FunctionMeta(Meta("n")), FunctionMeta(Meta("m"))]
+                )
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"), ID(NablNsModule(), "backend.Naturalax", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Naturalax.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  ]
+)

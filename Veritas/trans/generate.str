@@ -10,7 +10,9 @@ imports
   lib/editor-common.generated
   lib/runtime/index/core
   lib/runtime/task/core
+  lib/runtime/analysis/core  
 
+  backend
 
 rules // Incremental code generation of project using compilation library.
       
@@ -39,20 +41,72 @@ rules // Incremental code generation of project using compilation library.
     <fputs> (output, stream);
     <fclose> stream
     
+  //path for putting proofs within a project
+  aux-file-path = !"/proofs/"
+  
+  gen-proofpath = 
+  	?path;
+  	dir := <dirname> path;
+  	base := <base-filename> path;
+  	proofpath := <concat-strings> [dir, <aux-file-path>];
+  	//ensure that directory exists!
+  	try(<mkdir> proofpath);
+  	<concat-strings> [proofpath, base]
+    
   generate-fof :
   	   (selected, position, ast, path, project-path) -> result
   with
 	index-setup(|<language>, project-path);
 	task-setup(|project-path);
-    filename := <guarantee-extension(|"fof")> path;
-	rulez := <collect-all(?Goals(<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
-		  <+ ?GoalsWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?Lemmas(<filter(?TypingRule(_,RuleName(_,<id>),_))>)
-	      <+ ?LemmasWithStrategy(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
+	proofpath := <gen-proofpath> path; 
+    filename := <guarantee-extension(|"fof")> proofpath;
+	rulez := <collect-all(?Goals(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>) 
+		  <+ ?GoalsWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?Lemmas(_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)
+	      <+ ?LemmasWithStrategy(_,_,<filter(?TypingRule(_,RuleName(_,<id>),_))>)); concat> ast; 
     goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
     strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
     outfiles := <generate-files(|filename,rulez)> strings;
     result := <if <?[]> goals then !None() else !(<Hd> outfiles, <Hd> strings) end> ()
+	
+  
+  get-analyzed-files-folder(|path, project-path) =
+  		dir := <dirname> path;
+		filelist := <readdir> dir;
+		filteredlist := <filter(\s -> <has-extension(|"stl")> s\)> filelist;
+		paths := <map(\s -> <concat-strings> [dir, "/", s]\)> filteredlist;
+		res := <analysis-top(parse-file, id, id, id|"Veritas", project-path)> paths;
+		<?Result(frlist,_,_,_)> res;
+		astlist := <map(?(_,_,_,_,<id>,_,_,_))> frlist;
+		<zip> (paths, astlist)
+  
+  gen-fof-for-folder : 
+		(selected, position, ast, path, project-path) -> None()
+	where
+		pastlist := <get-analyzed-files-folder(|path, project-path)>;
+		<map(\(p, anast) -> <generate-fof> (selected, position, anast, p, project-path)\)> pastlist
+	
+  
+
+  open-fof :
+  	   (selected, position, ast, path, project-path) -> result
+  with
+  	rule := <find-at-position(?TypingRule(_,_,_)|position)> ast;
+  	rulename := <?TypingRule(_,RuleName(_,<id>),_)> rule;
+  	proofpath := <gen-proofpath> path; 
+  	[filename] := <generate-file-names(|<guarantee-extension(|"fof")> proofpath)> [rulename];
+  	text := <read-text-file <+ !""> filename;
+	result := (filename, text)
+
+  find-at-position(s|pos) :
+  	term -> <s> term
+  where <?[]> pos
+        
+  find-at-position(s|pos) :
+  	term@c#(xs) -> <find-at-position(s|ps) <+ (<s> term)> x
+  where <?[p|ps]> pos;
+        <index(|<addi> (p, 1))> xs => x
+  
 
   pp-formula =
     ast2abox(|[<parse-pptable-file> "trans/fof-rewriting.pp"]);
@@ -65,7 +119,8 @@ rules // Incremental code generation of project using compilation library.
   with
    	index-setup(|<language>, project-path);
 	task-setup(|project-path);
-	filename := <guarantee-extension(|"smt2")> path;
+	proofpath := <gen-proofpath> path; 
+	filename := <guarantee-extension(|"smt2")> proofpath;
     formula := <smt-trans> ast;
     result := <pp-smt> formula
     

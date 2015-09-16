@@ -12,44 +12,47 @@ import sql.TableAux
 import sql.SoundnessAuxDefs
 import sql.PreservationProjection
 
-goal 
-~qi == Tvalue(~t)
-~cin == conf(~qi, ~TS)
-~cout == conf(~qo, ~TS)
-reduce(~cin) = some(~cout)
-~TTC |- ~qi : ~TT
-StoreContextConsistent(~TS, ~TTC)
-=================================== SQL-Preservation-T-Tvalue
-~TTC |- ~qo : ~TT
+
+strategy induction-Preservation {
+	
+	goal 
+	~qi == Tvalue(~t)
+	~cin == conf(~qi, ~TS)
+	~cout == conf(~qo, ~TS)
+	reduce(~cin) = some(~cout)
+	~TTC |- ~qi : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	=================================== SQL-Preservation-T-Tvalue
+	~TTC |- ~qo : ~TT
 
 
-goal 
-~qi == Selectallfrom(Ref(~tn))
-~cin == conf(~qi, ~TS)
-~cout == conf(~qo, ~TS)
-reduce(~cin) = some(~cout)
-~TTC |- ~qi : ~TT
-StoreContextConsistent(~TS, ~TTC)
-=================================== SQL-Preservation-T-Selectallfrom
-~TTC |- ~qo : ~TT
+	goal 
+	~qi == Selectallfrom(Ref(~tn))
+	~cin == conf(~qi, ~TS)
+	~cout == conf(~qo, ~TS)
+	reduce(~cin) = some(~cout)
+	~TTC |- ~qi : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	=================================== SQL-Preservation-T-Selectallfrom
+	~TTC |- ~qo : ~TT
 
-// Verification succeeded, used lemmas: StoreContext-Lookup-WT, EQ-Tvalue, isSome-INV-1, T-inv-Selectallfrom, 
-//  T-Tvalue, getRaw0, getAL0, getAL-INV, isValue0, EQ-conf, reduce1, reduce2, DIFF-none-some, getSome0, 
-//  isValue-INV.
+	// Verification succeeded, used lemmas: StoreContext-Lookup-WT, EQ-Tvalue, isSome-INV-1, T-inv-Selectallfrom, 
+	//  T-Tvalue, getRaw0, getAL0, getAL-INV, isValue0, EQ-conf, reduce1, reduce2, DIFF-none-some, getSome0, 
+	//  isValue-INV.
 
-goal 
-~qi == Selectsomefrom(~al, Ref(~tn))
-~cin == conf(~qi, ~TS)
-~cout == conf(~qo, ~TS)
-reduce(~cin) = some(~cout)
-~TTC |- ~qi : ~TT
-StoreContextConsistent(~TS, ~TTC)
-=================================== SQL-Preservation-T-Selectsomefrom
-~TTC |- ~qo : ~TT
+	goal 40
+	~qi == Selectsomefrom(~al, Ref(~tn))
+	~cin == conf(~qi, ~TS)
+	~cout == conf(~qo, ~TS)
+	reduce(~cin) = some(~cout)
+	~TTC |- ~qi : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	=================================== SQL-Preservation-T-Selectsomefrom
+	~TTC |- ~qo : ~TT
 
-// Verification succeeded, used lemmas: EQ-conf, reduce3, isSome1, Project-Preservation, T-inv-Selectallfrom, 
-//  StoreContext-Lookup-WT, isSome-INV-2, T-Selectallfrom, T-inv-Selectsomefrom, reduce4, reduce5, DIFF-none-
-//  some, isSome-INV-1.
+	// Verification succeeded, used lemmas: EQ-conf, reduce3, isSome1, Project-Preservation, T-inv-Selectallfrom, 
+	//  StoreContext-Lookup-WT, isSome-INV-2, T-Selectallfrom, T-inv-Selectsomefrom, reduce4, reduce5, DIFF-none-
+	//  some, isSome-INV-1.
 
 
 // 
@@ -266,9 +269,22 @@ StoreContextConsistent(~TS, ~TTC)
 // // 	TS |- ~sqlo : TT
 // // }
 // 
+	hide-all
+	axiom
+	~cin == conf(~qi, ~TS)
+	~cout == conf(~qo, ~TS)
+	reduce(~cin) = some(~cout)
+	~TTC |- ~qi : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	=================================== SQL-Preservation-ind
+	~TTC |- ~qo : ~TT
+
+}
+
+
 //final preservation theorem
 //for now: restricted to the case where table store (and context) does not change!
-axiom
+goal verify-with induction-Preservation
 ~cin == conf(~qi, ~TS)
 ~cout == conf(~qo, ~TS)
 reduce(~cin) = some(~cout)

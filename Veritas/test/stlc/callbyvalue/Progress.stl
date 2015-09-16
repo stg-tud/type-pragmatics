@@ -64,11 +64,10 @@ local {
 	exists ~eout
 		reduce(app(e1, e2)) == someExp(~eout)
 		
-	// Verification succeeded, used lemmas: reduce3, isValue1, T-Progress-T-app-IH2, reduce2, EQ-abs, DIFF-var-
-    // abs, T-Weak, isSomeExp0, EQ-arrow, isSomeExp1, isValue2, reduce5, reduce1, lookup0, DIFF-noType-
-    // someType, reduce-CODOM, EQ-app, T-inv, DIFF-var-app, DIFF-abs-app, T-Progress-T-app-IH1, DIFF-noExp-
-    // someExp. -> 22
-		
+	// Verification succeeded in 5.832 s, used lemmas: reduce3, isValue1, T-Progress-T-app-IH2, reduce2, EQ-abs, 
+ 	// DIFF-var-abs, T-Weak, isSomeExp0, EQ-arrow, isSomeExp1, isValue2, reduce5, reduce1, lookup0, DIFF-
+ 	// noType-someType, reduce-CODOM, EQ-app, T-inv, DIFF-var-app, DIFF-abs-app, T-Progress-T-app-IH1, DIFF-
+ 	// noExp-someExp.
 }
 
 axiom

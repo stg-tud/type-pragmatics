@@ -12,10 +12,7 @@ You need:
 
 1. Java 7 or higher
 2. Eclipse Luna ("Eclipse IDE for Java Developers")
-3. First-Order Theorem Prover Vampire, Version 3.0 (Note: The binaries are currently not available on the official webpage - here is one link to an archive from CASC that contains the Vampire binaries we currently use: http://www.cs.miami.edu/~tptp/CASC/24/Systems.tgz (entire archive ca. 3.2 GB!))
-
-(Note: To run a first test with the Vampire run "vampire" on a console - should show "User error: Unsupported mode")
-
+3. First-Order Theorem Prover Vampire, at least Version 3.0
 
 Installation steps:
 
@@ -24,6 +21,24 @@ Installation steps:
 3. Clone the Veritas folder on your desktop and import the Veritas project in your Eclipse with Spoofax.
 4. Build the Veritas project in Eclipse (make sure the build is successful before continuing with further steps).
 
+### Optional: How to install Veritas and the scala-backend
+
+You need:
+
+1. Java 7 or higher (as above)
+2. Instead of of vanilla Eclipse Luna, use the Scala IDE (http://scala-ide.org/download/sdk.html). It includes Scala 2.11.
+3. First-Order Theorem Prover Vampire, at least Version 3.0 (as above)
+
+Installation steps:
+
+1. and 2. as above
+3. Clone the repository and import the Veritas and the scala-backend project into your Scala IDE (with Spoofax plugin) workspace. (The Veritas project will have a warning "Build path entry is missing: Veritas/include/scala-backend.jar", we will resolve this in the next step.)
+4. Build the scala-backend project in Scala IDE. (Manual build via "rightclick on scala-backend -> Build Project" might unavailable unless you uncheck "Project -> Build Automatically"). This should have generated a scala-backend.jar file in the scala-backend directory. Refresh the Veritas project (the "missing build path entry" warning should be resolved now, otherwise manually copy the scala-backend/scala-backend.jar file to Veritas/include/)
+5. Build the Veritas project in Eclipse (make sure the build is successful before continuing with further steps).
+
+Optional settings:
+
+- Whenever scala-backend is changed, a rebuild of the scala-backend.jar and reload of the Veritas editor component is triggered. If you only want to run the backend "standalone" and want save time during the development, you can uncheck the two Ant builders in "scala-backend -> Properties -> Builders". Note however, that this way, changes to the backend are no longer available when running it from the Veritas editor.
 
 ## Running the STLC case study ##
 

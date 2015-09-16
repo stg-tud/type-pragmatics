@@ -1,0 +1,57 @@
+Module(
+  "sql.Syntax"
+, [ ]
+, [ Sorts([SortDef("Pred"), SortDef("Query"), SortDef("TRef")])
+  , Constructors(
+      [ ConstructorDecl("Ref", [SortRef("TName")], SortRef("TRef"))
+      , ConstructorDecl("Tvalue", [SortRef("Table")], SortRef("Query"))
+      , ConstructorDecl("Selectallfrom", [SortRef("TRef")], SortRef("Query"))
+      , ConstructorDecl(
+          "Selectsomefrom"
+        , [SortRef("AList"), SortRef("TRef")]
+        , SortRef("Query")
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("isValue", [SortRef("Query")], SortRef("Bool"))
+        , [ FunctionEq(
+              "isValue"
+            , [FunctionPatApp("Tvalue", [FunctionPatVar("t")])]
+            , FunctionExpTrue()
+            )
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp("Selectallfrom", [FunctionPatVar("n")])]
+            , FunctionExpFalse()
+            )
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp("Selectsomefrom", [FunctionPatVar("al"), FunctionPatVar("tn")])]
+            , FunctionExpFalse()
+            )
+          ]
+        )
+      ]
+    )
+  , Axioms(
+      [ TypingRule(
+          PremiseList(FunctionExpJudgment(FunctionExpApp("isValue", [FunctionMeta(Meta("sql"))])))
+        , RuleName("======================", "isValue-INV")
+        , ConsequenceList(
+            ExistsJudgment(
+              [Meta("t")]
+            , FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionMeta(Meta("sql"))
+                , FunctionExpApp("Tvalue", [FunctionMeta(Meta("t"))])
+                )
+              )
+            )
+          )
+        )
+      ]
+    )
+  ]
+)

@@ -1,0 +1,7 @@
+fof('EQ-noInput', axiom, (((vnoInput=vnoInput) => $true) & ($true => (vnoInput=vnoInput)))).
+fof('EQ-withOneInput', axiom, (![VTyp0,VTyp1] : (((vwithOneInput(VTyp0)=vwithOneInput(VTyp1)) => (VTyp0=VTyp1)) & ((VTyp0=VTyp1) => (vwithOneInput(VTyp0)=vwithOneInput(VTyp1)))))).
+fof('EQ-withTwoInputs', axiom, (![VTyp0,VTyp1,VTyp2,VTyp3] : (((vwithTwoInputs(VTyp0,VTyp1)=vwithTwoInputs(VTyp2,VTyp3)) => ((VTyp0=VTyp2) & (VTyp1=VTyp3))) & (((VTyp0=VTyp2) & (VTyp1=VTyp3)) => (vwithTwoInputs(VTyp0,VTyp1)=vwithTwoInputs(VTyp2,VTyp3)))))).
+fof('DIFF-noInput-withOneInput', axiom, (![VTyp0] : (vnoInput!=vwithOneInput(VTyp0)))).
+fof('DIFF-noInput-withTwoInputs', axiom, (![VTyp0,VTyp1] : (vnoInput!=vwithTwoInputs(VTyp0,VTyp1)))).
+fof('DIFF-withOneInput-withTwoInputs', axiom, (![VTyp0,VTyp1,VTyp2] : (vwithOneInput(VTyp0)!=vwithTwoInputs(VTyp1,VTyp2)))).
+fof('Goal-1', conjecture, $true).

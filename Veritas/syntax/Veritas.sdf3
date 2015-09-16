@@ -7,6 +7,7 @@ lexical syntax
 
   RuleSep = "===" "="* 
   Name = [a-zA-Z0-9\-]+ 
+  TM = [0-9]+
 
 lexical restrictions
 
@@ -66,16 +67,16 @@ OrCaseList.OrCons =
 > {layout("1.first.col == 3.first.col")}
 
 TypingJudgment.TypingJudgment = 
-<<FunctionExp> |- <FunctionExp> : <FunctionExp>> 
+<<FunctionExpMeta> |- <FunctionExpMeta> : <FunctionExpMeta>> 
 
 TypingJudgment.TypingJudgmentSimple = 
-<<FunctionExp> : <FunctionExp>>
+<<FunctionExpMeta> : <FunctionExpMeta>>
 
 FunctionExpJudgment.FunctionExpJudgment = 
 FunctionExp 
 
 ReduceJudgment.ReduceJudgment = 
-<<FunctionExp> -\> <FunctionExp>> 
+<<FunctionExpMeta> -\> <FunctionExpMeta>> 
 
 ExistsJudgment.ExistsJudgment = 
 <exists <{MetaVar ","}+> 
@@ -102,7 +103,7 @@ TypingRuleJudgment = NotJudgment
 
 sorts
 
-  Module Rules DerivedRules Import ModuleDec Qualified Definitions
+  Module Import
 
 lexical syntax
 
@@ -145,12 +146,12 @@ FunctionSig =
 <<ID> : <SortRef>> {ast("FunctionSig(<1>, [], <2>)")}
 
 FunctionEq = 
-<<ID> = <FunctionExp>
+<<ID> = <FunctionExpMeta>
 
 > {ast("FunctionEq(<1>, [], <2>)")}
 
 FunctionEq.FunctionEq = 
-<<ID>(<{FunctionPattern ","}*>) = <FunctionExp>
+<<ID>(<{FunctionPattern ","}*>) = <FunctionExpMeta>
 
 >
  
@@ -173,6 +174,15 @@ RelationEq =
 
 > {ast("FunctionEq(<1>, <2>, FunctionExpTrue())")}
 
+FunctionExpMeta = FunctionExp
+
+FunctionExpMeta.FunctionMeta = 
+MetaVar
+
+MetaVar.Meta = 
+<~<ID>> 
+
+
 FunctionExp.FunctionExpUndefined = 
 <undefined>
  
@@ -186,27 +196,21 @@ FunctionExp.FunctionExpVar =
 ID
  
 FunctionExp.FunctionExpIf = 
-<if <FunctionExp>
-then <FunctionExp> 
-else <FunctionExp>
+<if <FunctionExpMeta>
+then <FunctionExpMeta> 
+else <FunctionExpMeta>
 >
  
 FunctionExp.FunctionExpLet = 
-<let <ID> = <FunctionExp> in 
-  <FunctionExp>
+<let <ID> = <FunctionExpMeta> in 
+  <FunctionExpMeta>
 >
  
 FunctionExp.FunctionExpApp = 
-<<ID>(<{FunctionExp ","}*>)>
+<<ID>(<{FunctionExpMeta ","}*>)>
  
 FunctionExp = 
 <(<FunctionExp>)> {bracket}
-
-FunctionExp.FunctionExpMeta = 
-MetaVar 
-
-MetaVar.Meta = 
-<~<ID>> 
   
 FunctionPattern.FunctionPatVar = 
 ID 
@@ -218,13 +222,16 @@ FunctionExp.FunctionExpNot =
 "!"FunctionExp
 
 FunctionExp.FunctionExpEq = 
-FunctionExp "=" FunctionExp 
+FunctionExpMeta "=" FunctionExpMeta 
 
 FunctionExp.FunctionExpEq = 
-FunctionExp "==" FunctionExp
+FunctionExpMeta "==" FunctionExpMeta
  
 FunctionExp.FunctionExpNeq = 
-FunctionExp "!=" FunctionExp
+FunctionExpMeta "!=" FunctionExpMeta
+
+FunctionExp.FunctionExpBiImpl = 
+FunctionExp "<=>" FunctionExp
 
 FunctionExp.FunctionExpAnd = 
 FunctionExp "&&" FunctionExp {right}
@@ -236,7 +243,7 @@ context-free priorities
 
    FunctionExp.FunctionExpNot > {non-assoc:
    FunctionExp.FunctionExpEq FunctionExp.FunctionExpNeq
-     } > FunctionExp.FunctionExpAnd > FunctionExp.FunctionExpOr
+     } > FunctionExp.FunctionExpAnd > FunctionExp.FunctionExpOr > FunctionExp.FunctionExpBiImpl
 
 context-free syntax
 
@@ -358,52 +365,52 @@ ModuleDef =
 > {ast("Axioms([<1>])")}
 
 ModuleDef.Goals = 
-<goals 
+<goals <TM?>
 <TypingRule*>
 
 > 
 
 ModuleDef = 
-<goal 
+<goal <TM?>
 <TypingRule>
 
-> {ast("Goals([<1>])")}
+> {ast("Goals(<1>,[<2>])")}
 
 ModuleDef.GoalsWithStrategy = 
-<goals verify-with <Name>
+<goals verify-with <Name> <TM?>
 <TypingRule*>
 
 >
 
 ModuleDef = 
-<goal verify-with <Name>
+<goal verify-with <Name> <TM?>
 <TypingRule>
 
-> {ast("GoalsWithStrategy(<1>,[<2>])")}
+> {ast("GoalsWithStrategy(<1>,<2>,[<3>])")}
 
 ModuleDef.Lemmas = 
-<lemmas 
+<lemmas <TM?>
 <TypingRule*>
 
 >
  
 ModuleDef = 
-<lemma 
+<lemma <TM?>
 <TypingRule>
 
-> {ast("Lemmas([<1>])")}
+> {ast("Lemmas(<1>,[<2>])")}
 
 ModuleDef.LemmasWithStrategy = 
-<lemmas verify-with <Name>
+<lemmas verify-with <Name> <TM?>
 <TypingRule*>
 
 > 
 
 ModuleDef = 
-<lemma verify-with <Name>
+<lemma verify-with <Name> <TM?>
 <TypingRule>
 
-> {ast("LemmasWithStrategy(<1>,[<2>])")}
+> {ast("LemmasWithStrategy(<1>,<2>,[<3>])")}
 
 ModuleDef.Include = 
 <include {<{Name ","}*>}>

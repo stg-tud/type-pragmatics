@@ -35,7 +35,16 @@ reduce(app(e1, e2)) = let e1red = reduce(e1) in
 	then someExp(app(getSomeExp(e1red), e2))
 	else noExp
 	
-//needs 120 sec timeout!
+strategy reduce-defs-only {
+	hide-all
+	include {
+	EQ-var, EQ-abs, EQ-app, DIFF-var-abs, DIFF-var-app, DIFF-abs-app,
+	EQ-noExp, EQ-someExp, DIFF-noExp-someExp, isSomeExp0, isSomeExp1, getSomeExp0, 
+	reduce0, reduce1, reduce2, reduce3, reduce4, reduce5, reduce6, reduce-INV,
+	gensym-is-fresh
+	}
+}
+	
 lemma // could be derived from return type of `reduce`
 reduce(~e) == ~res
 ========================== reduce-CODOM

@@ -1,0 +1,16 @@
+fof('zero-is-nat', axiom, nat(z)).
+fof('succ-is-nat', axiom, (![X] : (nat(X) <=> nat(succ(X))))).
+fof('nat-dom', axiom, ![X] : (nat(X) => (X = z | (?[Y] : X = succ(Y))))).
+
+fof('nat-eq-z', axiom, z = z <=> true).
+fof('nat-eq-succ', axiom, (![X,Y] : (succ(X) = succ(Y) <=> X = Y))).
+fof('nat-neq', axiom, (![X] : z != succ(X))).
+
+fof('plus-zero', axiom, (![X] : plus(z, X) = X)).
+fof('plus-succ', axiom, (![X,Y] : plus(succ(X), Y) = succ(plus(X, Y)))).
+
+% Theorem
+% fof('plus-assoc', conjecture, ![X,Y,Z] : (plus(X,plus(Y,Z)) = plus(plus(X,Y), Z))).
+
+% base case X = z
+fof('plus-assoc', conjecture, ![Y,Z] : (plus(z,plus(Y,Z)) = plus(plus(z,Y), Z))).

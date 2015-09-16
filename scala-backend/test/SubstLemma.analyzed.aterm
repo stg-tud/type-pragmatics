@@ -1,0 +1,777 @@
+Module(
+  "stlc.SubstLemma"{ Def(
+                       URI(
+                         Language("Veritas")
+                       , [ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+                       )
+                     )
+                   }
+, [ Import("stlc.Syntax"{Use(Result(8115))}, None())
+  , Import("stlc.Context"{Use(Result(8347))}, None()) ]
+, [ Strategy(
+      "subst-abs-3-alpha-equiv"
+    , [Import("stlc.AlphaEquivalence"{Use(Result(8716))}, None())]
+    , [ Axioms(
+          [ TypingRule(
+              PremiseList(
+                JudgementCons(
+                  FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpNot(
+                        FunctionExpApp(
+                          "isFreeVar"{Use(Result(8956))}
+                        , [FunctionMeta(Meta("y")), FunctionMeta(Meta("e"))]
+                        )
+                      )
+                    )
+                  , JudgementCons(
+                      TypingJudgment(
+                        FunctionMeta(Meta("C"))
+                      , FunctionMeta(Meta("e"))
+                      , FunctionMeta(Meta("T"))
+                      )
+                    , TypingJudgment(
+                        FunctionExpApp(
+                          "bind"{Use(Result(8958))}
+                        , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                        )
+                      , FunctionExpApp(
+                          "abs"{Use(Result(8960))}
+                        , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionMeta(Meta("e1"))]
+                        )
+                      , FunctionMeta(Meta("T2"))
+                      )
+                    )
+                  )
+                )
+              )
+            , RuleName("=================================================", "T-subst-abs-2-gen"{ Def(
+                                                                                                   URI(
+                                                                                                     Language("Veritas")
+                                                                                                   , [ ID(NablNsRule(), "T-subst-abs-2-gen", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                                     , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                                     ]
+                                                                                                   )
+                                                                                                 )
+                                                                                               })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(8965))}
+                  , [ FunctionMeta(Meta("x"))
+                    , FunctionMeta(Meta("e"))
+                    , FunctionExpApp(
+                        "abs"{Use(Result(8960))}
+                      , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionMeta(Meta("e1"))]
+                      )
+                    ]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          ]
+        )
+      , Lemmas(
+          None()
+        , [ TypingRule(
+              PremiseList(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionMeta(Meta("fresh"))
+                  , FunctionExpApp(
+                      "gensym"{Use(Result(8972))}
+                    , [ FunctionExpApp(
+                          "app"{Use(Result(8967))}
+                        , [ FunctionExpApp(
+                              "app"{Use(Result(8967))}
+                            , [FunctionMeta(Meta("e")), FunctionMeta(Meta("e1"))]
+                            )
+                          , FunctionExpApp("var"{Use(Result(8969))}, [FunctionMeta(Meta("x"))])
+                          ]
+                        )
+                      ]
+                    )
+                  )
+                )
+              )
+            , RuleName("=============================================", "fresh-unequal-var-3"{ Def(
+                                                                                                 URI(
+                                                                                                   Language("Veritas")
+                                                                                                 , [ ID(NablNsRule(), "fresh-unequal-var-3", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                                   , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                                   ]
+                                                                                                 )
+                                                                                               )
+                                                                                             })
+            , ConsequenceList(
+                FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("x")), FunctionMeta(Meta("fresh"))))
+              )
+            )
+          ]
+        )
+      , Lemmas(
+          None()
+        , [ TypingRule(
+              PremiseList(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionMeta(Meta("fresh"))
+                  , FunctionExpApp(
+                      "gensym"{Use(Result(8972))}
+                    , [ FunctionExpApp(
+                          "app"{Use(Result(8967))}
+                        , [ FunctionExpApp(
+                              "app"{Use(Result(8967))}
+                            , [FunctionMeta(Meta("e")), FunctionMeta(Meta("e1"))]
+                            )
+                          , FunctionExpApp("var"{Use(Result(8969))}, [FunctionMeta(Meta("x"))])
+                          ]
+                        )
+                      ]
+                    )
+                  )
+                )
+              )
+            , RuleName("=============================================", "fresh-free-2"{ Def(
+                                                                                          URI(
+                                                                                            Language("Veritas")
+                                                                                          , [ ID(NablNsRule(), "fresh-free-2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                            , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                            ]
+                                                                                          )
+                                                                                        )
+                                                                                      })
+            , ConsequenceList(
+                FunctionExpJudgment(
+                  FunctionExpNot(
+                    FunctionExpApp(
+                      "isFreeVar"{Use(Result(8956))}
+                    , [FunctionMeta(Meta("fresh")), FunctionMeta(Meta("e1"))]
+                    )
+                  )
+                )
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              TypingJudgment(
+                FunctionMeta(Meta("C"))
+              , FunctionMeta(Meta("e"))
+              , FunctionMeta(Meta("T"))
+              )
+            , TypingJudgment(
+                FunctionExpApp(
+                  "bind"{Use(Result(8958))}
+                , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                )
+              , FunctionExpApp("var"{Use(Result(8969))}, [FunctionMeta(Meta("y"))])
+              , FunctionMeta(Meta("T2"))
+              )
+            )
+          )
+        , RuleName("==============================", "T-subst-var"{ Def(
+                                                                      URI(
+                                                                        Language("Veritas")
+                                                                      , [ ID(NablNsRule(), "T-subst-var", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0")
+                                                                        , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                        ]
+                                                                      )
+                                                                    )
+                                                                  })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("C"))
+            , FunctionExpApp(
+                "subst"{Use(Result(8965))}
+              , [ FunctionMeta(Meta("x"))
+                , FunctionMeta(Meta("e"))
+                , FunctionExpApp("var"{Use(Result(8969))}, [FunctionMeta(Meta("y"))])
+                ]
+              )
+            , FunctionMeta(Meta("T2"))
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Local(
+      [ Consts(
+          [ ConstructorDecl("e1"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsSymbol(), "e1", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                      , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/2")
+                                      , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                }, [], SortRef("Exp"{Use(Result(8998))}))
+          , ConstructorDecl("e2"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsSymbol(), "e2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                      , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/2")
+                                      , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                }, [], SortRef("Exp"{Use(Result(8998))}))
+          ]
+        )
+      , Axioms(
+          [ TypingRule(
+              PremiseList(
+                JudgementCons(
+                  TypingJudgment(
+                    FunctionMeta(Meta("C"))
+                  , FunctionMeta(Meta("e"))
+                  , FunctionMeta(Meta("T"))
+                  )
+                , TypingJudgment(
+                    FunctionExpApp(
+                      "bind"{Use(Result(9007))}
+                    , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                    )
+                  , FunctionExpVar("e1"{Use(Result(9009))})
+                  , FunctionMeta(Meta("T2"))
+                  )
+                )
+              )
+            , RuleName("==============================", "T-subst-IH-app1"{ Def(
+                                                                              URI(
+                                                                                Language("Veritas")
+                                                                              , [ ID(NablNsRule(), "T-subst-IH-app1", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/4")
+                                                                                , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                ]
+                                                                              )
+                                                                            )
+                                                                          })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(9014))}
+                  , [FunctionMeta(Meta("x")), FunctionMeta(Meta("e")), FunctionExpVar("e1"{Use(Result(9009))})]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          , TypingRule(
+              PremiseList(
+                JudgementCons(
+                  TypingJudgment(
+                    FunctionMeta(Meta("C"))
+                  , FunctionMeta(Meta("e"))
+                  , FunctionMeta(Meta("T"))
+                  )
+                , TypingJudgment(
+                    FunctionExpApp(
+                      "bind"{Use(Result(9007))}
+                    , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                    )
+                  , FunctionExpVar("e2"{Use(Result(9017))})
+                  , FunctionMeta(Meta("T2"))
+                  )
+                )
+              )
+            , RuleName("==============================", "T-subst-IH-app2"{ Def(
+                                                                              URI(
+                                                                                Language("Veritas")
+                                                                              , [ ID(NablNsRule(), "T-subst-IH-app2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/4")
+                                                                                , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                ]
+                                                                              )
+                                                                            )
+                                                                          })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(9014))}
+                  , [FunctionMeta(Meta("x")), FunctionMeta(Meta("e")), FunctionExpVar("e2"{Use(Result(9017))})]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          ]
+        )
+      , Goals(
+          None()
+        , [ TypingRule(
+              PremiseList(
+                JudgementCons(
+                  TypingJudgment(
+                    FunctionMeta(Meta("C"))
+                  , FunctionMeta(Meta("e"))
+                  , FunctionMeta(Meta("T"))
+                  )
+                , TypingJudgment(
+                    FunctionExpApp(
+                      "bind"{Use(Result(9007))}
+                    , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                    )
+                  , FunctionExpApp("app"{Use(Result(9026))}, [FunctionExpVar("e1"{Use(Result(9009))}), FunctionExpVar("e2"{Use(Result(9017))})])
+                  , FunctionMeta(Meta("T2"))
+                  )
+                )
+              )
+            , RuleName("======================================", "T-subst-app"{ Def(
+                                                                                  URI(
+                                                                                    Language("Veritas")
+                                                                                  , [ ID(NablNsRule(), "T-subst-app", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                    , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0")
+                                                                                    , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/4")
+                                                                                    , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                    ]
+                                                                                  )
+                                                                                )
+                                                                              })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(9014))}
+                  , [ FunctionMeta(Meta("x"))
+                    , FunctionMeta(Meta("e"))
+                    , FunctionExpApp("app"{Use(Result(9026))}, [FunctionExpVar("e1"{Use(Result(9009))}), FunctionExpVar("e2"{Use(Result(9017))})])
+                    ]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          ]
+        ){ Scope(
+             [ ( NablNsRule()
+               , URI(
+                   Language("Veritas")
+                 , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"), Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/4"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+                 )
+               )
+             ]
+           )
+         }
+      ]
+    ){ Scope(
+         [ ( NablNsSort()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/1"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         , ( NablNsSymbol()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/2"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         , ( NablNsAxiom()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/3"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         , ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/4"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Local(
+      [ Consts([ConstructorDecl("eabs"{ Def(
+                                          URI(
+                                            Language("Veritas")
+                                          , [ ID(NablNsSymbol(), "eabs", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                            , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/6")
+                                            , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                            ]
+                                          )
+                                        )
+                                      }, [], SortRef("Exp"{Use(Result(9040))}))])
+      , Axioms(
+          [ TypingRule(
+              PremiseList(
+                JudgementCons(
+                  TypingJudgment(
+                    FunctionMeta(Meta("C"))
+                  , FunctionMeta(Meta("e"))
+                  , FunctionMeta(Meta("T"))
+                  )
+                , TypingJudgment(
+                    FunctionExpApp(
+                      "bind"{Use(Result(9046))}
+                    , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                    )
+                  , FunctionExpVar("eabs"{Use(Result(9048))})
+                  , FunctionMeta(Meta("T2"))
+                  )
+                )
+              )
+            , RuleName("==============================", "T-subst-IH-abs"{ Def(
+                                                                             URI(
+                                                                               Language("Veritas")
+                                                                             , [ ID(NablNsRule(), "T-subst-IH-abs", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                               , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/8")
+                                                                               , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                               ]
+                                                                             )
+                                                                           )
+                                                                         })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(9053))}
+                  , [FunctionMeta(Meta("x")), FunctionMeta(Meta("e")), FunctionExpVar("eabs"{Use(Result(9048))})]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          ]
+        )
+      , Lemmas(
+          None()
+        , [ TypingRule(
+              PremiseList(
+                JudgementCons(
+                  FunctionExpJudgment(FunctionExpEq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
+                , JudgementCons(
+                    TypingJudgment(
+                      FunctionMeta(Meta("C"))
+                    , FunctionMeta(Meta("e"))
+                    , FunctionMeta(Meta("T"))
+                    )
+                  , TypingJudgment(
+                      FunctionExpApp(
+                        "bind"{Use(Result(9046))}
+                      , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                      )
+                    , FunctionExpApp(
+                        "abs"{Use(Result(9056))}
+                      , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionMeta(Meta("e1"))]
+                      )
+                    , FunctionMeta(Meta("T2"))
+                    )
+                  )
+                )
+              )
+            , RuleName("===========================================", "T-subst-abs-1"{ Def(
+                                                                                         URI(
+                                                                                           Language("Veritas")
+                                                                                         , [ ID(NablNsRule(), "T-subst-abs-1", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                           , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/8")
+                                                                                           , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                           ]
+                                                                                         )
+                                                                                       )
+                                                                                     })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(9053))}
+                  , [ FunctionMeta(Meta("x"))
+                    , FunctionMeta(Meta("e"))
+                    , FunctionExpApp(
+                        "abs"{Use(Result(9056))}
+                      , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionMeta(Meta("e1"))]
+                      )
+                    ]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          ]
+        )
+      , Lemmas(
+          None()
+        , [ TypingRule(
+              PremiseList(
+                JudgementCons(
+                  FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpNot(
+                        FunctionExpApp(
+                          "isFreeVar"{Use(Result(9062))}
+                        , [FunctionMeta(Meta("y")), FunctionMeta(Meta("e"))]
+                        )
+                      )
+                    )
+                  , JudgementCons(
+                      TypingJudgment(
+                        FunctionMeta(Meta("C"))
+                      , FunctionMeta(Meta("e"))
+                      , FunctionMeta(Meta("T"))
+                      )
+                    , TypingJudgment(
+                        FunctionExpApp(
+                          "bind"{Use(Result(9046))}
+                        , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                        )
+                      , FunctionExpApp(
+                          "abs"{Use(Result(9056))}
+                        , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionExpVar("eabs"{Use(Result(9048))})]
+                        )
+                      , FunctionMeta(Meta("T2"))
+                      )
+                    )
+                  )
+                )
+              )
+            , RuleName("=================================================", "T-subst-abs-2"{ Def(
+                                                                                               URI(
+                                                                                                 Language("Veritas")
+                                                                                               , [ ID(NablNsRule(), "T-subst-abs-2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                                 , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/8")
+                                                                                                 , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                                 ]
+                                                                                               )
+                                                                                             )
+                                                                                           })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(9053))}
+                  , [ FunctionMeta(Meta("x"))
+                    , FunctionMeta(Meta("e"))
+                    , FunctionExpApp(
+                        "abs"{Use(Result(9056))}
+                      , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionExpVar("eabs"{Use(Result(9048))})]
+                      )
+                    ]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          ]
+        )
+      , LemmasWithStrategy(
+          "subst-abs-3-alpha-equiv"
+        , None()
+        , [ TypingRule(
+              PremiseList(
+                JudgementCons(
+                  FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpApp(
+                        "isFreeVar"{Use(Result(9062))}
+                      , [FunctionMeta(Meta("y")), FunctionMeta(Meta("e"))]
+                      )
+                    )
+                  , JudgementCons(
+                      TypingJudgment(
+                        FunctionMeta(Meta("C"))
+                      , FunctionMeta(Meta("e"))
+                      , FunctionMeta(Meta("T"))
+                      )
+                    , TypingJudgment(
+                        FunctionExpApp(
+                          "bind"{Use(Result(9046))}
+                        , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                        )
+                      , FunctionExpApp(
+                          "abs"{Use(Result(9056))}
+                        , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionExpVar("eabs"{Use(Result(9048))})]
+                        )
+                      , FunctionMeta(Meta("T2"))
+                      )
+                    )
+                  )
+                )
+              )
+            , RuleName("=================================================", "T-subst-abs-3"{ Def(
+                                                                                               URI(
+                                                                                                 Language("Veritas")
+                                                                                               , [ ID(NablNsRule(), "T-subst-abs-3", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                                 , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/8")
+                                                                                                 , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                                 ]
+                                                                                               )
+                                                                                             )
+                                                                                           })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(9053))}
+                  , [ FunctionMeta(Meta("x"))
+                    , FunctionMeta(Meta("e"))
+                    , FunctionExpApp(
+                        "abs"{Use(Result(9056))}
+                      , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionExpVar("eabs"{Use(Result(9048))})]
+                      )
+                    ]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          ]
+        )
+      , Goals(
+          None()
+        , [ TypingRule(
+              PremiseList(
+                JudgementCons(
+                  TypingJudgment(
+                    FunctionMeta(Meta("C"))
+                  , FunctionMeta(Meta("e"))
+                  , FunctionMeta(Meta("T"))
+                  )
+                , TypingJudgment(
+                    FunctionExpApp(
+                      "bind"{Use(Result(9046))}
+                    , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                    )
+                  , FunctionExpApp(
+                      "abs"{Use(Result(9056))}
+                    , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionExpVar("eabs"{Use(Result(9048))})]
+                    )
+                  , FunctionMeta(Meta("T2"))
+                  )
+                )
+              )
+            , RuleName("=================================================", "T-subst-abs"{ Def(
+                                                                                             URI(
+                                                                                               Language("Veritas")
+                                                                                             , [ ID(NablNsRule(), "T-subst-abs", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                               , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0")
+                                                                                               , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/8")
+                                                                                               , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                                               ]
+                                                                                             )
+                                                                                           )
+                                                                                         })
+            , ConsequenceList(
+                TypingJudgment(
+                  FunctionMeta(Meta("C"))
+                , FunctionExpApp(
+                    "subst"{Use(Result(9053))}
+                  , [ FunctionMeta(Meta("x"))
+                    , FunctionMeta(Meta("e"))
+                    , FunctionExpApp(
+                        "abs"{Use(Result(9056))}
+                      , [FunctionMeta(Meta("y")), FunctionMeta(Meta("S")), FunctionExpVar("eabs"{Use(Result(9048))})]
+                      )
+                    ]
+                  )
+                , FunctionMeta(Meta("T2"))
+                )
+              )
+            )
+          ]
+        ){ Scope(
+             [ ( NablNsRule()
+               , URI(
+                   Language("Veritas")
+                 , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"), Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/8"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+                 )
+               )
+             ]
+           )
+         }
+      ]
+    ){ Scope(
+         [ ( NablNsSort()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/5"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         , ( NablNsSymbol()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/6"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         , ( NablNsAxiom()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/7"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         , ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/8"), ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Axioms(
+      [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              TypingJudgment(
+                FunctionMeta(Meta("C"))
+              , FunctionMeta(Meta("e"))
+              , FunctionMeta(Meta("T"))
+              )
+            , TypingJudgment(
+                FunctionExpApp(
+                  "bind"{Use(Result(8958))}
+                , [FunctionMeta(Meta("x")), FunctionMeta(Meta("T")), FunctionMeta(Meta("C"))]
+                )
+              , FunctionMeta(Meta("e2"))
+              , FunctionMeta(Meta("T2"))
+              )
+            )
+          )
+        , RuleName("==============================", "T-subst"{ Def(
+                                                                  URI(
+                                                                    Language("Veritas")
+                                                                  , [ ID(NablNsRule(), "T-subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                    , ID(NablNsModule(), "stlc.SubstLemma", Unique("/Users/sylvia/Documents/Dissertation/Implementation/scala-backend/scala-backend/Veritas/test/stlc/SubstLemma.stl/0"))
+                                                                    ]
+                                                                  )
+                                                                )
+                                                              })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("C"))
+            , FunctionExpApp(
+                "subst"{Use(Result(8965))}
+              , [FunctionMeta(Meta("x")), FunctionMeta(Meta("e")), FunctionMeta(Meta("e2"))]
+              )
+            , FunctionMeta(Meta("T2"))
+            )
+          )
+        )
+      ]
+    )
+  ]
+)

@@ -216,7 +216,7 @@ local {
 	==================================================== test-attachColToFrontRaw0
 	attachColToFrontRaw(~prt, ~drt) == some(~rt)
 
-	goal
+	goal 100
 	~prt = tcons(rcons(x1, rempty), tcons(rcons(x1, rempty), tempty))
 	~drt = tcons(rcons(x2, rempty), tcons(rcons(x2, rempty), tempty))
 	~rt = tcons(rcons(x1, rcons(x2, rempty)), tcons(rcons(x1, rcons(x2, rempty)), tempty))
@@ -323,7 +323,7 @@ local {
 		y2 : FVal
 		z1 : FVal
 		z2 : FVal
-	goal
+	goal 85
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
 	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
 		tcons(rcons(y2, rcons(z1, rempty)),
@@ -359,8 +359,9 @@ local {
 		y2 : FVal
 		z1 : FVal
 		z2 : FVal
-		
-	goal
+	
+	// proof does not work anymore, even with timeout 300!!	
+	goal 1
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
 		tcons(rcons(y2, rcons(z1, rempty)), tempty))
 	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
@@ -409,7 +410,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	goal
+	goal 86
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
 	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
 		tcons(rcons(y2, rcons(z1, rempty)),
@@ -431,7 +432,7 @@ local {
 // ========================================================== test-rawIntersection3
 // rawIntersection(~prt, ~drt) == ~rt
 
-// requires 120 timeout! (needs between 70-80 seconds to prove!)
+
 local {
 	
 	constructors 
@@ -440,7 +441,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 
-	goal
+	goal 85
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
 		tcons(rcons(y2, rcons(z1, rempty)), tempty))
 	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
@@ -471,7 +472,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	goal
+	goal 85
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
 	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
 		tcons(rcons(y2, rcons(z1, rempty)),
@@ -489,7 +490,8 @@ local {
 		z1 : FVal
 		z2 : FVal
 
-	goal
+	// proof does not work anymore, even with timeout 300!
+	goal 1
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
 		tcons(rcons(y2, rcons(z1, rempty)), tempty))
 	~drt = tcons(rcons(y1,  rcons(z1, rempty)),

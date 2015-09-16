@@ -1,0 +1,145 @@
+Module(
+  "sql.TStore"
+, [ ]
+, [ Sorts([SortDef("TStore"), SortDef("TName"), SortDef("OptTable")])
+  , Constructors(
+      [ ConstructorDecl("empty", [], SortRef("TStore"))
+      , ConstructorDecl(
+          "bind"
+        , [SortRef("TName"), SortRef("Table"), SortRef("TStore")]
+        , SortRef("TStore")
+        )
+      , ConstructorDecl("noTable", [], SortRef("OptTable"))
+      , ConstructorDecl("someTable", [SortRef("Table")], SortRef("OptTable"))
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("isSomeTable", [SortRef("OptTable")], SortRef("Bool"))
+        , [ FunctionEq("isSomeTable", [FunctionPatVar("noTable")], FunctionExpFalse())
+          , FunctionEq(
+              "isSomeTable"
+            , [FunctionPatApp("someTable", [FunctionPatVar("t")])]
+            , FunctionExpTrue()
+            )
+          ]
+        )
+      ]
+    )
+  , PartialFunctions(
+      [ FunctionDef(
+          FunctionSig("getSomeTable", [SortRef("OptTable")], SortRef("Table"))
+        , [ FunctionEq(
+              "getSomeTable"
+            , [FunctionPatApp("someTable", [FunctionPatVar("tt")])]
+            , FunctionExpVar("tt")
+            )
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "lookup"
+          , [SortRef("TName"), SortRef("TStore")]
+          , SortRef("OptTable")
+          )
+        , [ FunctionEq(
+              "lookup"
+            , [FunctionPatVar("n"), FunctionPatVar("empty")]
+            , FunctionExpVar("noTable")
+            )
+          , FunctionEq(
+              "lookup"
+            , [ FunctionPatVar("n")
+              , FunctionPatApp(
+                  "bind"
+                , [FunctionPatVar("m"), FunctionPatVar("t"), FunctionPatVar("TS")]
+                )
+              ]
+            , FunctionExpIf(
+                FunctionExpEq(FunctionExpVar("n"), FunctionExpVar("m"))
+              , FunctionExpApp("someTable", [FunctionExpVar("t")])
+              , FunctionExpApp("lookup", [FunctionExpVar("n"), FunctionExpVar("TS")])
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Axioms(
+      [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(FunctionExpEq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
+            , TypingJudgment(
+                FunctionExpApp(
+                  "bind"
+                , [ FunctionMeta(Meta("x"))
+                  , FunctionMeta(Meta("Tx"))
+                  , FunctionExpApp(
+                      "bind"
+                    , [FunctionMeta(Meta("y")), FunctionMeta(Meta("Ty")), FunctionMeta(Meta("C"))]
+                    )
+                  ]
+                )
+              , FunctionMeta(Meta("e"))
+              , FunctionMeta(Meta("T"))
+              )
+            )
+          )
+        , RuleName("===========================================", "T-TStore-Duplicate")
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionExpApp(
+                "bind"
+              , [FunctionMeta(Meta("x")), FunctionMeta(Meta("Tx")), FunctionMeta(Meta("C"))]
+              )
+            , FunctionMeta(Meta("e"))
+            , FunctionMeta(Meta("T"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
+            , TypingJudgment(
+                FunctionExpApp(
+                  "bind"
+                , [ FunctionMeta(Meta("x"))
+                  , FunctionMeta(Meta("Tx"))
+                  , FunctionExpApp(
+                      "bind"
+                    , [FunctionMeta(Meta("y")), FunctionMeta(Meta("Ty")), FunctionMeta(Meta("C"))]
+                    )
+                  ]
+                )
+              , FunctionMeta(Meta("e"))
+              , FunctionMeta(Meta("T"))
+              )
+            )
+          )
+        , RuleName("===========================================", "T-TStore-Swap")
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionExpApp(
+                "bind"
+              , [ FunctionMeta(Meta("y"))
+                , FunctionMeta(Meta("Ty"))
+                , FunctionExpApp(
+                    "bind"
+                  , [FunctionMeta(Meta("x")), FunctionMeta(Meta("Tx")), FunctionMeta(Meta("C"))]
+                  )
+                ]
+              )
+            , FunctionMeta(Meta("e"))
+            , FunctionMeta(Meta("T"))
+            )
+          )
+        )
+      ]
+    )
+  ]
+)

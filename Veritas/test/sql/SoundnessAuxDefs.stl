@@ -19,7 +19,7 @@ StoreContextConsistent(bind(tn1, t, tsr), cbind(tn2, tt, ttcr)) =
 StoreContextConsistent(ts, ttc) = false 
 
 // proof of StoreContext-Lookup-WT
-local {
+strategy induction-StoreContext-Lookup-WT {
 	// by structural induction on ~TS and ~TTC
 	
 	goal
@@ -90,9 +90,18 @@ local {
 		================================= StoreContext-Lookup-WT-4
 		welltypedtable(~tt, ~t)
 	}
+	
+	hide-all
+	axiom
+	StoreContextConsistent(~TS, ~TTC)
+	lookup(~tn, ~TS) = some(~t)
+	clookup(~tn, ~TTC) == some(~tt)
+	================================= StoreContext-Lookup-WT-ind
+	welltypedtable(~tt, ~t)
+	
 } // qed StoreContext-Lookup-WT
 
-axiom
+lemma verify-with induction-StoreContext-Lookup-WT
 StoreContextConsistent(~TS, ~TTC)
 lookup(~tn, ~TS) = some(~t)
 clookup(~tn, ~TTC) == some(~tt)
