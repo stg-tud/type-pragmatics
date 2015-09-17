@@ -45,6 +45,7 @@ trait ModuleTrans {
     case Functions(fs) => trace(fs)(transFunctionDef(_))
     case Axioms(as) => trace(as)(transTypingRule(_))
     case Goals(gs, _) => trace(gs)(transTypingRule(_))
+    case _ => ???
   }
   
   
