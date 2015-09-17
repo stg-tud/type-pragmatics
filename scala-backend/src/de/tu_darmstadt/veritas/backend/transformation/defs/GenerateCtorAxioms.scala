@@ -18,26 +18,25 @@ import de.tu_darmstadt.veritas.backend.veritas.TypingRule
 /**
  * Precondition: The module has only a single Constructors()
  */
-object GenerateCtorAxioms extends ModuleDefTransformation {
-  override protected def apply: PartialFunction[ModuleDef, Seq[ModuleDef]] = {
-    case input@Constructors(decls) => {
+object GenerateCtorAxioms extends ModuleTransformation {
+  override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = mdef match {
+    case input @ Constructors(decls) => {
       // generate EQ axioms
       val EQaxioms = decls map { constructor =>
         val args = constructor.in map (_.name)
-        
+
         val freshNames = new FreshNames
         val argsLeft = freshNames(args) map (MetaVar(_)) map (FunctionMeta(_))
         val argsRight = freshNames(args) map (MetaVar(_)) map (FunctionMeta(_))
-        
+
         // no premise, just a biimplication as conclusion
-        TypingRule("EQ-" + constructor.name, Nil, 
-            Seq(FunctionExpBiImpl(
-              FunctionExpAnd((argsLeft, argsRight).zipped map (FunctionExpEq(_, _))),
-              FunctionExpEq(FunctionExpApp(constructor.name, argsLeft: _*),
-                            FunctionExpApp(constructor.name, argsRight: _*))
-            )))
+        TypingRule("EQ-" + constructor.name, Nil,
+          Seq(FunctionExpBiImpl(
+            FunctionExpAnd((argsLeft, argsRight).zipped map (FunctionExpEq(_, _))),
+            FunctionExpEq(FunctionExpApp(constructor.name, argsLeft: _*),
+              FunctionExpApp(constructor.name, argsRight: _*)))))
       }
-      
+
       // generate DIFF axioms
       val DIFFaxioms = for {
         constructorPairs <- decls.combinations(2)
@@ -47,19 +46,21 @@ object GenerateCtorAxioms extends ModuleDefTransformation {
         val freshNames = new FreshNames
         val argsLeft = freshNames(constructorLeft.in map (_.name)) map (MetaVar(_)) map (FunctionMeta(_))
         val argsRight = freshNames(constructorRight.in map (_.name)) map (MetaVar(_)) map (FunctionMeta(_))
-        
+
         TypingRule("DIFF-" + constructorLeft.name + "-" + constructorRight.name, Nil,
-            Seq(FunctionExpNeq(FunctionExpApp(constructorLeft.name, argsLeft: _*),
-                               FunctionExpApp(constructorRight.name, argsRight: _*))))
+          Seq(FunctionExpNeq(FunctionExpApp(constructorLeft.name, argsLeft: _*),
+            FunctionExpApp(constructorRight.name, argsRight: _*))))
       }
-      
+
       Seq(input, Axioms(EQaxioms ++ DIFFaxioms))
     }
+
+    case f => super.transModuleDefs(f)
   }
-  
+
   override protected def checkPrecondition(input: Module): Unit = {
     if (input.body.filter(_.isInstanceOf[Constructors]).size > 1)
       throw TransformationError("Expected a Module() with a single Constructors() ModuleDef, got: " + input)
   }
-  
+
 }
