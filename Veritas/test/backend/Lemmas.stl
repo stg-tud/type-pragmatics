@@ -1,6 +1,22 @@
 module backend.Lemmas
 
+local {
+	lemma
+	true
+	===== l1
+	true
+	
+	strategy bla {
+		lemma
+		true
+		===== l3
+		true
+	}
+	
+}
+
+
 lemma
 true
-===== l1
+===== l2
 true
