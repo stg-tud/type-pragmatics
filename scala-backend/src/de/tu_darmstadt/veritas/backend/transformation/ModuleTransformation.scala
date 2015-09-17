@@ -14,6 +14,28 @@ trait ModuleTransformation {
   var path: Seq[VeritasConstruct] = Seq()
 
   def testPath(p: VeritasConstruct => Boolean) = path.exists(p)
+  
+  /**
+   * convenience function, can be used whenever overriding one of the trans- functions below
+   * in a concrete transformation to execute the "parent transformation" first
+   * 
+   * subtransres is the result of applying the super transformation, f the new transformation that 
+   * shall be applied in addition, leaving unchanged all constructs for which the f is not defined
+   */
+  def withSuper[T](suptransres: Seq[T])(f: PartialFunction[T, Seq[T]]): Seq[T] =
+    suptransres flatMap (t => if (f.isDefinedAt(t)) f(t) else Seq(t))
+  
+  
+  /**
+   * convenience function, can be used whenever overriding one of the trans- functions below
+   * in a concrete transformation to execute the "parent transformation" first
+   * 
+   * subtransres is the result of applying the super transformation, f the new transformation that 
+   * shall be applied in addition, leaving unchanged all constructs for which the f is not defined
+   */
+  def withSuper[T](suptransres: T)(f: PartialFunction[T, T]): T =
+    if (f.isDefinedAt(suptransres)) f(suptransres) else suptransres
+  
 
   /**
    * collect the path of a VeritasConstruct within a given AST
