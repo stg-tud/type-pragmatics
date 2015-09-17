@@ -2,6 +2,9 @@ package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.veritas._
 
+/**
+ * this trait is just a test trait for trying out things
+ */
 trait ModuleTrans {
 	var path: Seq[VeritasConstruct] = Seq()
   
