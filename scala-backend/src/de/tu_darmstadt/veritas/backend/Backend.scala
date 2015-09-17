@@ -48,9 +48,8 @@ object Backend {
     // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
     // the original file!
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
-    val transformedModule = VarToApp0(Seq(mod)) map (_.asInstanceOf[Module])
+    val transformedModule = DesugarLemmas(VarToApp0(Seq(mod)))
     Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
-    
   }
 
   /**
