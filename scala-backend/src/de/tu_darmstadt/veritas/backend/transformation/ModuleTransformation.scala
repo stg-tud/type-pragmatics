@@ -96,7 +96,7 @@ trait ModuleTransformation {
     Seq(Module(name, trace(is)(transModuleImport(_)), trace(mdefs)(transModuleDefs(_))))
 
   def transModuleImport(i: Import): Seq[Import] = Seq(i)
-  def transModuleBody(mdefs: Seq[ModuleDef]): Seq[ModuleDef] = mdefs.flatMap(transModuleDefs(_))
+
   def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = mdef match {
     case Local(defs)                  => Seq(Local(trace(defs)(transModuleDefs(_))))
     case h @ HideAll                  => Seq(h)
