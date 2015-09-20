@@ -23,6 +23,11 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
         //then a list of axioms from all the function equations
         Seq(Functions(fs map { case FunctionDef(sig, _) => FunctionDef(sig, Seq()) })) ++
           (fs flatMap { case FunctionDef(sig, feqs) => makeAxiomsEqs(feqs, sig.out, Seq()) })
+      case PartialFunctions(fs) =>
+        //generate one block with all the function signatures
+        //then a list of axioms from all the function equations
+        Seq(PartialFunctions(fs map { case FunctionDef(sig, _) => FunctionDef(sig, Seq()) })) ++
+          (fs flatMap { case FunctionDef(sig, feqs) => makeAxiomsEqs(feqs, sig.out, Seq()) })
     }
 
   private def makeAxiomsEqs(feqs: Seq[FunctionEq], restype: SortRef, prepats: Seq[Seq[FunctionPattern]]): Seq[Axioms] = {
