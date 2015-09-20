@@ -146,12 +146,12 @@ FunctionSig =
 <<ID> : <SortRef>> {ast("FunctionSig(<1>, [], <2>)")}
 
 FunctionEq = 
-<<ID> = <FunctionExpMeta>
+<<ID> = <FunctionExp>
 
 > {ast("FunctionEq(<1>, [], <2>)")}
 
 FunctionEq.FunctionEq = 
-<<ID>(<{FunctionPattern ","}*>) = <FunctionExpMeta>
+<<ID>(<{FunctionPattern ","}*>) = <FunctionExp>
 
 >
  
