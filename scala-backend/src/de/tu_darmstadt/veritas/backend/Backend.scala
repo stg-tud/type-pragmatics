@@ -23,6 +23,7 @@ import de.tu_darmstadt.veritas.backend.transformation.ToFof
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.DesugarLemmas
+import de.tu_darmstadt.veritas.backend.transformation.defs.FunctionEqToAxiomsSimple
 
 object Backend {
   
@@ -50,7 +51,7 @@ object Backend {
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
 //    val transformedModule = DesugarLemmas(VarToApp0(Seq(mod)))
 //    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
-    DesugarLemmas(VarToApp0(Seq(mod)))
+    FunctionEqToAxiomsSimple(VarToApp0(Seq(mod)))
   }
 
   /**

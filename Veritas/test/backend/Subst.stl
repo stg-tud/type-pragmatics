@@ -1,0 +1,72 @@
+module backend.Subst
+
+sorts
+  Var Exp Typ
+
+constructors
+  var : Var -> Exp
+  abs : Var Typ Exp -> Exp
+  app : Exp Exp -> Exp
+
+function
+isValue : Exp -> Bool
+isValue(abs(x, S, e)) = true
+isValue(var(x)) = false
+isValue(app(e1, e2)) = false
+
+function
+isFreeVar : Var Exp -> Bool
+isFreeVar(v, var(x))       = x == v
+isFreeVar(v, abs(x, T, e)) = (x != v) && (isFreeVar(v, e)) 
+isFreeVar(v, app(e1, e2))  = isFreeVar(v, e1) || isFreeVar(v, e2)
+
+function
+gensym : Exp -> Var
+
+function
+subst : Var Exp Exp -> Exp
+subst(x, e, var(y)) =
+	if x == y
+	then e
+	else var(y)
+subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
+subst(x, e, abs(y, T, e1)) =
+	if x == y
+	then abs(y, T, e1)
+	else if isFreeVar(y, e)
+	     then let fresh = gensym(app(app(e, e1), var(x)))
+	          in subst(x, e, abs(fresh, T, subst(y, var(fresh), e1))) 
+	     else abs(y, T, subst(x, e, e1))
+	
+sorts
+	OptExp
+
+constructors
+	noExp : OptExp
+	someExp : Exp -> OptExp
+     
+	     
+function
+isSomeExp : OptExp -> Bool
+isSomeExp(noExp) = false
+isSomeExp(someExp(e)) = true
+
+partial function
+getSomeExp : OptExp -> Exp
+getSomeExp(someExp(e)) = e
+
+function
+reduce : Exp -> OptExp
+reduce(var(x)) = noExp
+reduce(abs(x, S, e)) = noExp
+reduce(app(abs(x, S, e1), e2)) = let e2red = reduce(e2) in
+	if isSomeExp(e2red)
+	then someExp(app(abs(x, S, e1), getSomeExp(e2red)))
+	else 
+		if isValue(e2)
+		then someExp(subst(x, e2, e1))
+		else noExp
+reduce(app(e1, e2)) = let e1red = reduce(e1) in
+	if isSomeExp(e1red)
+	then someExp(app(getSomeExp(e1red), e2))
+	else noExp
