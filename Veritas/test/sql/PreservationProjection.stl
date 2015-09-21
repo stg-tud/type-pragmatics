@@ -133,6 +133,8 @@ strategy induction-attachcol-preserves-typing {
 		======================================================================== AttachCol-Preserves-Typing-2-IH
 		welltypedRawtable(rtcons(~colType, ~RT), getSome(attachColToFrontRaw(col, ~rt)))
 		
+		//This proof previously worked without modifying the axiom set!
+		//stopped working when correction of inversion lemma encoding was introduced!
 		//TODO refine this!
 		hide-all
 		include{AttachCol-WelltypedRawtable-Aux, getSome0, DIFF-tempty-tcons, 
