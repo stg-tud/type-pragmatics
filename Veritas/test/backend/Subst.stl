@@ -70,3 +70,8 @@ reduce(app(e1, e2)) = let e1red = reduce(e1) in
 	if isSomeExp(e1red)
 	then someExp(app(getSomeExp(e1red), e2))
 	else noExp
+	
+goal
+true
+===== g
+true

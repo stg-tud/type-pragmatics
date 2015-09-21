@@ -985,7 +985,7 @@ Module(
                       )
                     ]
                   )
-                , FunctionExpVar("noExp"{Use(Result(8437))})
+                , FunctionExpVar("noExp"{Use(Result(19318))})
                 )
               )
             ){ Scope(
@@ -1002,5 +1002,32 @@ Module(
         )
       ]
     )
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(FunctionExpJudgment(FunctionExpTrue()))
+        , RuleName("=====", "g"{ Def(
+                                   URI(
+                                     Language("Veritas")
+                                   , [ ID(NablNsRule(), "g", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
+                                     , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/16")
+                                     , ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
+                                     ]
+                                   )
+                                 )
+                               })
+        , ConsequenceList(FunctionExpJudgment(FunctionExpTrue()))
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/16"), ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
   ]
 )

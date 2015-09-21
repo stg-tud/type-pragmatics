@@ -26,32 +26,31 @@ import de.tu_darmstadt.veritas.backend.transformation.lowlevel.DesugarLemmas
 import de.tu_darmstadt.veritas.backend.transformation.defs.FunctionEqToAxiomsSimple
 
 object Backend {
-  
+
   @throws[BackendError[_]]("and the appropriate subclasses on internal error at any stage")
   private def run(input: StrategoTerm): Seq[PrettyPrintableFile] = {
     val mod = Module.from(input)
 
-//    debug("Imported modules:")
-//    val res = for {
-//      imp <- mod.imports
-//      resolved <- NameResolution.getModuleDef(imp)
-//    } {
-//      debug(resolved)
-//      resolved
-//    }
+    //    debug("Imported modules:")
+    //    val res = for {
+    //      imp <- mod.imports
+    //      resolved <- NameResolution.getModuleDef(imp)
+    //    } {
+    //      debug(resolved)
+    //      resolved
+    //    }
 
-//    Seq()
-    
-//    ToFof.toFofFiles(mod)
+    //    Seq()
 
-//    Seq(PrettyPrintableFile("debug.out", "just a test"))
+    //    ToFof.toFofFiles(mod)
+
+    //    Seq(PrettyPrintableFile("debug.out", "just a test"))
 
     // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
     // the original file!
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
-//    val transformedModule = DesugarLemmas(VarToApp0(Seq(mod)))
-//    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
-    FunctionEqToAxiomsSimple(VarToApp0(Seq(mod)))
+    val transformedModule = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod)))
+    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
   }
 
   /**
@@ -61,23 +60,23 @@ object Backend {
     // check and destructure input
     val (inputDirectory, ast) = StrategoTerm(inputFromEditor) match {
       case StrategoTuple(StrategoString(inputDirectory), ast) => (inputDirectory, ast)
-      case _ => throw new IllegalArgumentException("Illegal input to backend-strategy: " + 
-                "Argument must be a tuple: (input file directory, AST of file as Stratego term)")
+      case _ => throw new IllegalArgumentException("Illegal input to backend-strategy: " +
+        "Argument must be a tuple: (input file directory, AST of file as Stratego term)")
     }
-    
+
     Context.initStrategy(context)
-    
+
     // NOTE we need to capture exceptions with Try, so we can print the full stack trace below
     // (otherwise Stratego will silence the stack trace...)
     val backendResult = Try(run(ast))
-    
+
     backendResult match {
       case Failure(ex) => {
         context.getIOAgent.printError(stacktraceToString(ex))
         // return empty list on failure
         context.getFactory.makeList()
       }
-      
+
       case Success(outputFiles) => {
         val scalaSeq = for {
           outputFile <- outputFiles
@@ -91,23 +90,21 @@ object Backend {
     }
   }
 
-
   /**
    * Run backend as console application, with optional arguments for giving the ATerm and Index/Tasks
    */
   val DefaultATerm = "test/TableAux.noimports.aterm"
   val DefaultIndexAndTaskenginePath = "test/"
-  
+
   def main(args: Array[String]) {
     val (aterm, indexAndTaskenginePath) = args match {
-      case Array() => (StrategoTerm.fromATermFile(DefaultATerm), DefaultIndexAndTaskenginePath)
-      case Array(atermFilename) => (StrategoTerm.fromATermFile(atermFilename), DefaultIndexAndTaskenginePath)
-      case Array(atermFilename, indexAndTaskenginePath) 
-        => (StrategoTerm.fromATermFile(atermFilename), indexAndTaskenginePath)
+      case Array()                                      => (StrategoTerm.fromATermFile(DefaultATerm), DefaultIndexAndTaskenginePath)
+      case Array(atermFilename)                         => (StrategoTerm.fromATermFile(atermFilename), DefaultIndexAndTaskenginePath)
+      case Array(atermFilename, indexAndTaskenginePath) => (StrategoTerm.fromATermFile(atermFilename), indexAndTaskenginePath)
     }
-    
+
     Context.initStandalone(indexAndTaskenginePath)
-    
+
     // call the strategy on the IStrategoTerm
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
     for (outputFiles <- run(aterm)) {
