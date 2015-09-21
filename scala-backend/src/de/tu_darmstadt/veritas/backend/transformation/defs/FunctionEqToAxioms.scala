@@ -67,8 +67,8 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
   private def negatePrepats(pats: Seq[FunctionPattern], prepats: Seq[Seq[FunctionPattern]]): Seq[TypingRuleJudgment] = {
     def relevantPattern(patpair: (FunctionPattern, FunctionPattern)): Boolean =
       patpair match {
-        case (FunctionPatVar(n), FunctionPatApp(m, args2 @ _*)) => true
-        case (FunctionPatApp(n, args1 @ _*), FunctionPatApp(m, args2 @ _*)) => n == m && args1.length == args2.length
+        case (FunctionPatVar(n), FunctionPatApp(m, args2)) => true
+        case (FunctionPatApp(n, args1), FunctionPatApp(m, args2)) => n == m && args1.length == args2.length
         case _ => false
       }
 
@@ -82,10 +82,10 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
 
   private def negatePatternPart(patpair: (FunctionPattern, FunctionPattern)): Seq[TypingRuleJudgment] =
     patpair match {
-      case (FunctionPatVar(n), a @ FunctionPatApp(m, args2 @ _*)) =>
+      case (FunctionPatVar(n), a @ FunctionPatApp(m, args2)) =>
         Seq(ForallJudgment(collectVars(args2),
           Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar(n)), varsToMetaVars(patsToVars(a)))))))
-      case (FunctionPatApp(n, args1 @ _*), FunctionPatApp(m, args2 @ _*)) =>
+      case (FunctionPatApp(n, args1), FunctionPatApp(m, args2)) =>
         if (n == m)
           negatePrepats(args1, Seq(args2))
         else throw TransformationError("Could not find negation of pattern: " + patpair)
@@ -95,8 +95,8 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
   private def collectVars(ps: Seq[FunctionPattern]): Seq[MetaVar] =
     (for (p <- ps) yield {
       p match {
-        case FunctionPatVar(n)            => Seq(MetaVar(n))
-        case FunctionPatApp(n, args @ _*) => collectVars(args)
+        case FunctionPatVar(n)       => Seq(MetaVar(n))
+        case FunctionPatApp(n, args) => collectVars(args)
       }
     }).flatten
 
@@ -151,7 +151,7 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
   private def makeConclusions(f: FunctionEq, restype: SortRef): Seq[TypingRuleJudgment] =
     f match {
       case FunctionEq(name, pats, ext) => {
-        val left = FunctionExpApp(name, ((pats map patsToVars) map varsToMetaVars): _*)
+        val left = FunctionExpApp(name, (pats map patsToVars) map varsToMetaVars)
         val seprights = separateRights(ext)
         val rights = seprights map varsToMetaVars
 
@@ -196,30 +196,30 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
 
   private def patsToVars(f: FunctionPattern): FunctionExpMeta =
     f match {
-      case FunctionPatVar(n)            => FunctionExpVar(n)
-      case FunctionPatApp(n, args @ _*) => FunctionExpApp(n, (args map patsToVars): _*)
+      case FunctionPatVar(n)       => FunctionExpVar(n)
+      case FunctionPatApp(n, args) => FunctionExpApp(n, args map patsToVars)
     }
 
   private def varsToMetaVars(f: FunctionExpMeta): FunctionExpMeta =
     try {
       f match {
-        case FunctionExpVar(n)            => FunctionMeta(MetaVar(n))
-        case m @ FunctionMeta(_)          => m //if this happens, input file was not as expected, funtion equations should not contain any MetaVars
-        case FunctionExpApp(n, args @ _*) => FunctionExpApp(n, (args map varsToMetaVars): _*)
+        case FunctionExpVar(n)           => FunctionMeta(MetaVar(n))
+        case m @ FunctionMeta(_)         => m //if this happens, input file was not as expected, funtion equations should not contain any MetaVars
+        case FunctionExpApp(n, args)     => FunctionExpApp(n, args map varsToMetaVars)
         //casting to FunctionExp below should be ok because 
         //1) l and r cannot contain MetaVars, 
         //2) Transformation assumes that FunctionExpVars have been revolved to FunctionExpApp previously
-        case FunctionExpNot(e)            => FunctionExpNot(varsToMetaVars(e).asInstanceOf[FunctionExp])
-        case FunctionExpAnd(l, r)         => FunctionExpAnd(varsToMetaVars(l).asInstanceOf[FunctionExp], varsToMetaVars(r).asInstanceOf[FunctionExp])
-        case FunctionExpOr(l, r)          => FunctionExpOr(varsToMetaVars(l).asInstanceOf[FunctionExp], varsToMetaVars(r).asInstanceOf[FunctionExp])
-        case FunctionExpBiImpl(l, r)      => FunctionExpBiImpl(varsToMetaVars(l).asInstanceOf[FunctionExp], varsToMetaVars(r).asInstanceOf[FunctionExp])
-        case FunctionExpEq(l, r)          => FunctionExpEq(varsToMetaVars(l), varsToMetaVars(r))
-        case FunctionExpNeq(l, r)         => FunctionExpNeq(varsToMetaVars(l), varsToMetaVars(r))
-        case t @ FunctionExpTrue          => t
-        case f @ FunctionExpFalse         => f
+        case FunctionExpNot(e)           => FunctionExpNot(varsToMetaVars(e).asInstanceOf[FunctionExp])
+        case FunctionExpAnd(l, r)        => FunctionExpAnd(varsToMetaVars(l).asInstanceOf[FunctionExp], varsToMetaVars(r).asInstanceOf[FunctionExp])
+        case FunctionExpOr(l, r)         => FunctionExpOr(varsToMetaVars(l).asInstanceOf[FunctionExp], varsToMetaVars(r).asInstanceOf[FunctionExp])
+        case FunctionExpBiImpl(l, r)     => FunctionExpBiImpl(varsToMetaVars(l).asInstanceOf[FunctionExp], varsToMetaVars(r).asInstanceOf[FunctionExp])
+        case FunctionExpEq(l, r)         => FunctionExpEq(varsToMetaVars(l), varsToMetaVars(r))
+        case FunctionExpNeq(l, r)        => FunctionExpNeq(varsToMetaVars(l), varsToMetaVars(r))
+        case t @ FunctionExpTrue         => t
+        case f @ FunctionExpFalse        => f
         //the last two cases should not occur, since we transform if and let expressions...
-        case i @ FunctionExpIf(c, t, e)   => throw TransformationError("varsToMetaVars encountered an untransformed If-expression in: " + i)
-        case l @ FunctionExpLet(n, i, e)  => throw TransformationError("varsToMetaVars encountered an untransformed Let-expression in: " + l)
+        case i @ FunctionExpIf(c, t, e)  => throw TransformationError("varsToMetaVars encountered an untransformed If-expression in: " + i)
+        case l @ FunctionExpLet(n, i, e) => throw TransformationError("varsToMetaVars encountered an untransformed Let-expression in: " + l)
       }
     } catch {
       case c: ClassCastException => throw TransformationError("In the following function expression, a construct either contained illegal meta variables, or unresolved constructor variables: " + f)

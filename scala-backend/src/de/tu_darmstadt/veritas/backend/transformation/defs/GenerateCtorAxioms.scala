@@ -34,8 +34,8 @@ object GenerateCtorAxioms extends ModuleTransformation {
           TypingRule("EQ-" + constructor.name, Nil,
             Seq(FunctionExpBiImpl(
               FunctionExpAnd((argsLeft, argsRight).zipped map (FunctionExpEq(_, _))),
-              FunctionExpEq(FunctionExpApp(constructor.name, argsLeft: _*),
-                FunctionExpApp(constructor.name, argsRight: _*)))))
+              FunctionExpEq(FunctionExpApp(constructor.name, argsLeft),
+                FunctionExpApp(constructor.name, argsRight)))))
         }
 
         // generate DIFF axioms
@@ -49,8 +49,8 @@ object GenerateCtorAxioms extends ModuleTransformation {
           val argsRight = freshNames(constructorRight.in map (_.name)) map (MetaVar(_)) map (FunctionMeta(_))
 
           TypingRule("DIFF-" + constructorLeft.name + "-" + constructorRight.name, Nil,
-            Seq(FunctionExpNeq(FunctionExpApp(constructorLeft.name, argsLeft: _*),
-              FunctionExpApp(constructorRight.name, argsRight: _*))))
+            Seq(FunctionExpNeq(FunctionExpApp(constructorLeft.name, argsLeft),
+              FunctionExpApp(constructorRight.name, argsRight))))
         }
 
         Seq(input, Axioms(EQaxioms ++ DIFFaxioms))

@@ -81,16 +81,16 @@ object ToFof {
    */
   private def functionExpToFof(f: FunctionExp): FofUnitary =
     f match {
-      case FunctionExpNot(f)            => Not(functionExpToFof(f))
-      case FunctionExpEq(f1, f2)        => Eq(functionExpMetaToFof(f1), functionExpMetaToFof(f2))
-      case FunctionExpNeq(f1, f2)       => NeqEq(functionExpMetaToFof(f1), functionExpMetaToFof(f2))
-      case FunctionExpAnd(l, r)         => Parenthesized(And(Seq(functionExpToFof(l), functionExpToFof(r))))
-      case FunctionExpOr(l, r)          => Parenthesized(Or(Seq(functionExpToFof(l), functionExpToFof(r))))
-      case FunctionExpBiImpl(l, r)      => Parenthesized(BiImpl(functionExpToFof(l), functionExpToFof(r)))
-      case FunctionExpApp(n, args @ _*) => Appl(UntypedFunSymbol(n), (args map functionExpMetaToFof): _*)
-      case FunctionExpTrue              => True
-      case FunctionExpFalse             => False
-      case _                            => throw TransformationError("Encountered unsupported (not Core) function expression while translating (e.g. if or let expression): " + f)
+      case FunctionExpNot(f)       => Not(functionExpToFof(f))
+      case FunctionExpEq(f1, f2)   => Eq(functionExpMetaToFof(f1), functionExpMetaToFof(f2))
+      case FunctionExpNeq(f1, f2)  => NeqEq(functionExpMetaToFof(f1), functionExpMetaToFof(f2))
+      case FunctionExpAnd(l, r)    => Parenthesized(And(Seq(functionExpToFof(l), functionExpToFof(r))))
+      case FunctionExpOr(l, r)     => Parenthesized(Or(Seq(functionExpToFof(l), functionExpToFof(r))))
+      case FunctionExpBiImpl(l, r) => Parenthesized(BiImpl(functionExpToFof(l), functionExpToFof(r)))
+      case FunctionExpApp(n, args) => Appl(UntypedFunSymbol(n), args map functionExpMetaToFof)
+      case FunctionExpTrue         => True
+      case FunctionExpFalse        => False
+      case _                       => throw TransformationError("Encountered unsupported (not Core) function expression while translating (e.g. if or let expression): " + f)
     }
 
   /**
@@ -101,8 +101,8 @@ object ToFof {
     // FunctionMeta and FunctionExpApp (Appl is both a Term and a FofUnitary!)
     // therefore, encountering any other FunctionExpMeta must result in an error!
     f match {
-      case FunctionMeta(MetaVar(m))     => UntypedVariable(m)
-      case FunctionExpApp(n, args @ _*) => Appl(UntypedFunSymbol(n), (args map functionExpMetaToFof): _*)
-      case _                            => throw TransformationError("Encountered unexpected construct in functionExpMetaToTff: " + f)
+      case FunctionMeta(MetaVar(m)) => UntypedVariable(m)
+      case FunctionExpApp(n, args)  => Appl(UntypedFunSymbol(n), args map functionExpMetaToFof)
+      case _                        => throw TransformationError("Encountered unexpected construct in functionExpMetaToTff: " + f)
     }
 }

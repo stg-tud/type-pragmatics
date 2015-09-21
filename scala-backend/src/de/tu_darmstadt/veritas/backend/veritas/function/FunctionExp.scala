@@ -225,7 +225,7 @@ final case class FunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: Fu
   }
 }
 
-final case class FunctionExpApp(functionName: String, args: FunctionExpMeta*) extends FunctionExp {
+final case class FunctionExpApp(functionName: String, args: Seq[FunctionExpMeta]) extends FunctionExp {
   override val children = Seq(args)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -236,7 +236,7 @@ final case class FunctionExpApp(functionName: String, args: FunctionExpMeta*) ex
       case e: FunctionExpMeta => e
       case _                  => throw new ClassCastException
     }
-    FunctionExpApp(functionName, newargs: _*)
+    FunctionExpApp(functionName, newargs)
   }
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -330,7 +330,7 @@ object FunctionExp {
     case StrategoAppl("FunctionExpBiImpl", f1, f2) => FunctionExpBiImpl(FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpIf", cond, f1, f2) => FunctionExpIf(FunctionExpMeta.from(cond), FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
     case StrategoAppl("FunctionExpLet", StrategoString(name), namedExpr, in) => FunctionExpLet(name, FunctionExpMeta.from(namedExpr), FunctionExpMeta.from(in))
-    case StrategoAppl("FunctionExpApp", StrategoString(func), StrategoList(args)) => FunctionExpApp(func, (args map FunctionExpMeta.from): _*)
+    case StrategoAppl("FunctionExpApp", StrategoString(func), StrategoList(args)) => FunctionExpApp(func, args map FunctionExpMeta.from)
     case StrategoAppl("FunctionExpVar", StrategoString(name)) => FunctionExpVar(name)
     case StrategoAppl("FunctionExpTrue") => FunctionExpTrue
     case StrategoAppl("FunctionExpFalse") => FunctionExpFalse

@@ -10,7 +10,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
 sealed trait FunctionPattern extends VeritasConstruct with PrettyPrintable
 
-case class FunctionPatApp(functionName: String, args: FunctionPattern*) extends FunctionPattern {
+case class FunctionPatApp(functionName: String, args: Seq[FunctionPattern]) extends FunctionPattern {
   override val children = Seq(args)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -21,7 +21,7 @@ case class FunctionPatApp(functionName: String, args: FunctionPattern*) extends 
       case e: FunctionPattern => e
       case _                  => throw new ClassCastException
     }
-    FunctionPatApp(functionName, newargs: _*)
+    FunctionPatApp(functionName, newargs)
   }
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -47,7 +47,7 @@ case class FunctionPatVar(varName: String) extends FunctionPattern with SimplePr
 
 object FunctionPattern {
   def from(term: StrategoTerm): FunctionPattern = term match {
-    case StrategoAppl("FunctionPatApp", StrategoString(func), StrategoList(args)) => FunctionPatApp(func, (args map FunctionPattern.from): _*)
+    case StrategoAppl("FunctionPatApp", StrategoString(func), StrategoList(args)) => FunctionPatApp(func, args map FunctionPattern.from)
     case StrategoAppl("FunctionPatVar", StrategoString(v)) => FunctionPatVar(v)
     case t => throw VeritasParseError(t)
   }
