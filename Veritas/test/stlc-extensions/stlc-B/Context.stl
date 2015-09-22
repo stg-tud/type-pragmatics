@@ -1,0 +1,46 @@
+module stlcB.Context
+
+import stlcB.Syntax
+
+sorts Ctx OptTyp
+constructors
+  empty : Ctx
+  bind : Var Typ Ctx -> Ctx
+  
+  noType : OptTyp
+  someType : Typ -> OptTyp
+
+function
+isSomeType : OptTyp -> Bool
+isSomeType(noType) = false
+isSomeType(someType(e)) = true
+
+partial function
+getSomeType : OptTyp -> Exp
+getSomeType(someType(e)) = e
+
+
+function
+lookup : Var Ctx -> OptTyp
+lookup(x, empty) = noType
+lookup(x, bind(y, Ty, C)) = 
+  if (x == y)
+  then someType(Ty)
+  else lookup(x, C)
+
+
+axioms
+~x == ~y
+bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-Context-Duplicate
+bind(~x, ~Tx, ~C) |- ~e : ~T
+
+~x != ~y
+bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-Context-Swap
+bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T
+
+
+
+
+

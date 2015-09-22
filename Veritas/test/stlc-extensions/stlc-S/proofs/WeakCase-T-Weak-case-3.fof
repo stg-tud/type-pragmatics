@@ -1,0 +1,10 @@
+
+fof('isFreeVar0', axiom, (![VVar0,VExp0,Vx,Vv] : (((VVar0=Vv) & (VExp0=vvar(Vx))) => (((Vx=Vv) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (Vx=Vv)))))).
+fof('isFreeVar2', axiom, (![VVar0,VExp0,Ve1,Vv,Ve2] : (((VVar0=Vv) & (VExp0=vapp(Ve1,Ve2))) => (((visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2))))))).
+fof('isFreeVar5', axiom, (![VVar0,VExp0,Ve,Vx1,Ve1,Vx2,Vv,Ve2] : (((VVar0=Vv) & (VExp0=vcase(Ve,Vx1,Ve1,Vx2,Ve2))) => (((visFreeVar(Vv,Ve) | (((Vv!=Vx1) & visFreeVar(Vv,Ve1)) | ((Vv!=Vx2) & visFreeVar(Vv,Ve2)))) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (visFreeVar(Vv,Ve) | (((Vv!=Vx1) & visFreeVar(Vv,Ve1)) | ((Vv!=Vx2) & visFreeVar(Vv,Ve2))))))))).
+fof('gensym-is-fresh', axiom, (![Vv,Ve] : ((vgensym(Ve)=Vv) => (~visFreeVar(Vv,Ve))))).
+fof('alpha-equiv-sym', axiom, (![Ve2,Ve1] : (valphaEquivalent(Ve1,Ve2) => valphaEquivalent(Ve2,Ve1)))).
+fof('alpha-equiv-typing', axiom, (![Ve,VC,Ve1,VT] : ((vtcheck(VC,Ve,VT) & valphaEquivalent(Ve,Ve1)) => vtcheck(VC,Ve1,VT)))).
+fof('alpha-equiv-subst-case-1', axiom, (![Ve,Vx1,Vy,Vt1,Vx2,Vt2] : ((~visFreeVar(Vy,Vt1)) => valphaEquivalent(vcase(Ve,Vx1,Vt1,Vx2,Vt2),vcase(Ve,Vy,vsubst(Vx1,vvar(Vy),Vt1),Vx2,Vt2))))).
+fof('T-Weak-case-1', axiom, (![Ve1,Vx1,Vt1,Vx2,Vt2,Vx,VS,VC,Ve,VT] : (((Vx!=Vx1) & ((Vx!=Vx2) & ((Ve=vcase(Ve1,Vx1,Vt1,Vx2,Vt2)) & ((vlookup(Vx,VC)=vnoType) & vtcheck(VC,Ve,VT))))) => vtcheck(vbind(Vx,VS,VC),Ve,VT)))).
+fof('T-Weak-case-3', conjecture, (![Vx1,Vx2,Vx,VS,VC,Ve,VT] : (((Vx!=Vx1) & ((Vx=Vx2) & ((Ve=vcase(ve1,Vx1,vt1,Vx2,vt2)) & ((vlookup(Vx,VC)=vnoType) & vtcheck(VC,Ve,VT))))) => vtcheck(vbind(Vx,VS,VC),Ve,VT)))).

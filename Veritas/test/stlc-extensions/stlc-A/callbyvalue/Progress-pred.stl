@@ -1,0 +1,33 @@
+module stlca.callbyvalue.ProgressPred
+
+import stlca.Syntax
+import stlca.Context
+import stlca.TypeBase
+import stlca.callbyvalue.Reduction
+
+local {
+	const e1 : Exp
+	
+	
+	axiom
+	~ein == e1
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	===================== T-Progress-T-pred-IH
+	exists ~eout
+	    reduce(~ein) == someExp(~eout)
+	
+	lemma
+	~ein == pred(e1)
+	empty |- ~ein : ~T
+	================== pred-parameter-type
+	empty |- e1 : Num
+	
+	goal
+	~ein == pred(e1)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	===================== T-Progress-T-pred
+	exists ~eout
+	    reduce(~ein) == someExp(~eout)
+}

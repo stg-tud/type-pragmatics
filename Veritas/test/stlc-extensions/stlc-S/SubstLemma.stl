@@ -1,0 +1,483 @@
+module stlcS.SubstLemma
+
+import stlcS.Syntax
+import stlcS.Context
+import stlcS.Types
+import stlcS.Gensym
+import stlcS.AlphaEquivalence
+import stlcS.Subst
+import stlcS.SubstLemmaAux
+
+goal
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- var(~y) : ~T2
+============================== T-subst-var
+~C |- subst(~x, ~e, var(~y)) : ~T2
+
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+	
+	axioms
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e1app : ~T2
+	============================== T-subst-IH-app1
+	~C |- subst(~x, ~e, e1app) : ~T2
+	
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e2app : ~T2
+	============================== T-subst-IH-app2
+	~C |- subst(~x, ~e, e2app) : ~T2
+	
+	goal
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- app(e1app, e2app) : ~T2
+	============================== T-subst-app
+	~C |- subst(~x, ~e, app(e1app, e2app)) : ~T2
+}
+
+goal
+~e2 == abs(~y, ~S, ~e1)
+~x == ~y
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-abs-1
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+
+local {
+	const eabs : Exp
+	
+	//Lemma must be used locally only here! Proof is in SubstLemmaAux.stl
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+
+	// lemma
+	// ~e2 == abs(~y, ~S, eabs)
+	// ~x != ~y
+	// !isFreeVar(~y, ~e)
+	// ================================= T-subst-abs-test
+	// subst(~x, ~e, ~e2) == abs(~y, ~S, subst(~x, ~e, eabs))
+	
+	lemma
+	~C |- abs(~y, ~S, ~e) : arrow(~S, ~T)
+	======================================= T-inv-abs
+	bind(~y, ~S, ~C) |- ~e : ~T
+	
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	bind(~x, ~T, ~C) |- ~e2 : arrow(~S, ~T2)
+	========================================= T-subst-eabs-type-context-switch
+	bind(~x, ~T, bind(~y, ~S, ~C)) |- eabs : ~T2
+	
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : arrow(~S, ~T2)
+	============================================ T-subst-abs-2-type-decomposition
+	~C |- abs(~y, ~S, subst(~x, ~e, eabs)) : arrow(~S, ~T2)
+	
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	bind(~x, ~T, ~C) |- ~e2 : ~A
+	============================= T-abs-type-extraction
+	exists ~T2
+	    ~A == arrow(~S, ~T2)
+	    
+	// lemma
+	// ~e2 == abs(~y, ~S, eabs)
+	// ~x != ~y
+	// !isFreeVar(~y, ~e)
+	// ~C |- ~e : ~T
+	// bind(~x, ~T, ~C) |- ~e2 : ~T2
+	// ============================================ T-subst-abs-2-subst-step
+	// ~C |- abs(~y, ~S, subst(~x, ~e, eabs)) : ~T2
+		
+
+	goal
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+
+local {
+	const eabs : Exp
+	
+	axiom
+	~e2 == abs(~y, ~S, ~e1)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	//auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-unequal-var-3
+	~x != ~fresh
+	
+	//another auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-free-2
+	!isFreeVar(~fresh, ~e1)
+		
+	axiom //not needed
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+
+	lemma
+	!isFreeVar(~y, eabs)
+	gensym(app(app(~e, eabs), var(~x))) == ~y
+	======================================== T-apply-alpha-equiv
+	alphaEquivalent(abs(~z, ~S, eabs), abs(~y, ~S, subst(~z, var(~y), eabs)))
+
+	goal
+	~x != ~y
+	isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- abs(~y, ~S, eabs) : ~T2
+	================================================= T-subst-abs-3
+	~C |- subst(~x, ~e, abs(~y, ~S, eabs)) : ~T2
+}
+
+local {
+	const exp : Exp
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- exp : ~T2
+	============================== T-subst-IH-case
+	~C |- subst(~x, ~e, exp) : ~T2
+	
+	goal
+	~x == ~y1
+	~x == ~y2
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, ~t1, ~y2, ~t2) : ~T2
+	============================== T-subst-case-1
+	~C |- subst(~x, ~e, case(exp, ~y1, ~t1, ~y2, ~t2)) : ~T2
+}
+
+local {
+	consts
+	   exp : Exp
+	   t1 : Exp
+	   t2 : Exp
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- exp : ~T2
+	============================== T-subst-IH-case-1
+	~C |- subst(~x, ~e, exp) : ~T2
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- t1 : ~T2
+	============================== T-subst-IH-case-2
+	~C |- subst(~x, ~e, t1) : ~T2
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- t2 : ~T2
+	============================== T-subst-IH-case-3
+	~C |- subst(~x, ~e, t2) : ~T2
+	
+	lemma
+	~C |- case(~e, ~x1, ~t1, ~x2, ~t2) : ~T
+	======================================= T-inv-case
+	exists ~T1, ~T2
+	  ~C |- ~e : sum(~T1, ~T2)
+	  bind(~x1, ~T1, ~C) |- ~t1 : ~T
+	  bind(~x2, ~T2, ~C) |- ~t2 : ~T
+
+	lemma
+	~x == ~y1
+	~x != ~y2
+	!isFreeVar(~y2, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, t1, ~y2, t2) : ~T2
+	============================== T-subst-case-2-use-IH
+	exists ~T1, ~T3
+	  ~C |- subst(~x, ~e, exp) : sum(~T1, ~T3)
+	  bind(~y1, ~T1, ~C) |- t1 : ~T2
+	  bind(~y2, ~T3, ~C) |- subst(~x, ~e, t2) : ~T2
+	
+	lemma
+	~x == ~y1
+	~x != ~y2
+	!isFreeVar(~y2, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, t1, ~y2, t2) : ~T2
+	============================== T-subst-case-2-single-step
+	~C |- case(subst(~x, ~e, exp), ~y1, t1, ~y2, subst(~x, ~e, t2)) : ~T2
+	  
+	goal
+	~x == ~y1
+	~x != ~y2
+	!isFreeVar(~y2, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, t1, ~y2, t2) : ~T2
+	============================== T-subst-case-2
+	~C |- subst(~x, ~e, case(exp, ~y1, t1, ~y2, t2)) : ~T2
+}
+
+local {
+	consts
+	   exp : Exp
+	   t1 : Exp
+	   t2 : Exp
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- exp : ~T2
+	============================== T-subst-IH-case-1
+	~C |- subst(~x, ~e, exp) : ~T2
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- t1 : ~T2
+	============================== T-subst-IH-case-2
+	~C |- subst(~x, ~e, t1) : ~T2
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- t2 : ~T2
+	============================== T-subst-IH-case-3
+	~C |- subst(~x, ~e, t2) : ~T2
+	
+	lemma
+	~C |- case(~e, ~x1, ~t1, ~x2, ~t2) : ~T
+	======================================= T-inv-case
+	exists ~T1, ~T2
+	  ~C |- ~e : sum(~T1, ~T2)
+	  bind(~x1, ~T1, ~C) |- ~t1 : ~T
+	  bind(~x2, ~T2, ~C) |- ~t2 : ~T
+
+	axiom
+	~x == ~y1
+	~x != ~y2
+	!isFreeVar(~y2, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, t1, ~y2, t2) : ~T2
+	============================== T-subst-case-2
+	~C |- subst(~x, ~e, case(exp, ~y1, t1, ~y2, t2)) : ~T2
+	
+	
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	!isFreeVar(~y, ~t1)
+	====================================================================== alpha-equiv-subst-case-1
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~x2, ~t2))
+
+	!isFreeVar(~y, ~t2)
+	====================================================================== alpha-equiv-subst-case-2
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~x1, ~t1, ~y, subst(~x2, var(~y), ~t2)))
+	
+	!isFreeVar(~x, ~e)
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-FreeVar
+	!isFreeVar(~x, ~e1)
+	
+	lemma
+	!isFreeVar(~y, ~t1)
+	!isFreeVar(~y, ~t2)
+	=================== alpha-equiv-subst-case-3
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~y, subst(~x2, var(~y), ~t2)))
+
+	//auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-unequal-var-3
+	~x != ~fresh
+	
+	//another auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-free-2
+	!isFreeVar(~fresh, ~e1)
+	
+	lemma
+	!isFreeVar(~y, t2)
+	gensym(app(app(~e, t2), var(~x))) == ~y
+	======================================== T-apply-alpha-equiv-case-3
+	alphaEquivalent(case(exp, ~y1, t1, ~y2, t2), case(exp, ~y1, t1, ~y, subst(~y2, var(~y), t2)))
+	
+	lemma
+	~x == ~y1
+	~x != ~y2
+	isFreeVar(~y1, ~e)
+	!isFreeVar(~y, t2)
+	gensym(app(app(~e, t2), var(~x))) == ~y
+	======================================= subst-case-3-equiv
+	subst(~x, ~e, case(exp, ~y1, t1, ~y, subst(~y2, var(~y), t2))) == subst(~x, ~e, case(exp, ~y1, t1, ~y2, t2))
+	
+	//case(subst(x, e, exp), y1, t1, fresh2, subst(x, e, subst(x2, var(fresh2), t2)))
+	
+	goal
+	~x == ~y1
+	~x != ~y2
+	isFreeVar(~y1, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, t1, ~y2, t2) : ~T2
+	============================== T-subst-case-3
+	~C |- subst(~x, ~e, case(exp, ~y1, t1, ~y2, t2)) : ~T2
+}
+
+local {
+	consts
+	   exp : Exp
+	   t1 : Exp
+	   t2 : Exp
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- exp : ~T2
+	============================== T-subst-IH-case-1
+	~C |- subst(~x, ~e, exp) : ~T2
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- t1 : ~T2
+	============================== T-subst-IH-case-2
+	~C |- subst(~x, ~e, t1) : ~T2
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- t2 : ~T2
+	============================== T-subst-IH-case-3
+	~C |- subst(~x, ~e, t2) : ~T2
+	
+	lemma
+	~C |- case(~e, ~x1, ~t1, ~x2, ~t2) : ~T
+	======================================= T-inv-case
+	exists ~T1, ~T2
+	  ~C |- ~e : sum(~T1, ~T2)
+	  bind(~x1, ~T1, ~C) |- ~t1 : ~T
+	  bind(~x2, ~T2, ~C) |- ~t2 : ~T
+
+	lemma
+	~x != ~y1
+	~x == ~y2
+	!isFreeVar(~y1, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, t1, ~y2, t2) : ~T2
+	============================== T-subst-case-37-use-IH
+	exists ~T1, ~T3
+	  ~C |- subst(~x, ~e, exp) : sum(~T1, ~T3)
+	  bind(~y1, ~T1, ~C) |- subst(~x, ~e, t1) : ~T2
+	  bind(~y2, ~T3, ~C) |- t2 : ~T2
+	
+	lemma
+	~x != ~y1
+	~x == ~y2
+	!isFreeVar(~y1, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, t1, ~y2, t2) : ~T2
+	============================== T-subst-case-37-single-step
+	~C |- case(subst(~x, ~e, exp), ~y1, subst(~x, ~e, t1), ~y2, t2) : ~T2
+	  
+	goal
+	~x != ~y1
+	~x == ~y2
+	!isFreeVar(~y1, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- case(exp, ~y1, t1, ~y2, t2) : ~T2
+	============================== T-subst-case-37
+	~C |- subst(~x, ~e, case(exp, ~y1, t1, ~y2, t2)) : ~T2
+}
+
+// substitution lemma becomes an axiom after the proof
+axiom
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+

@@ -1,0 +1,121 @@
+module stlcS.WeakCase
+
+import stlcS.Types
+import stlcS.Syntax
+import stlcS.Context
+import stlcS.AlphaEquivalence
+import stlcS.Subst { names }
+
+local {
+	consts
+	    e1 : Exp
+	    t1 : Exp
+	    t2 : Exp
+	    
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- e1 : ~T
+	=========================== T-Weak-case-IH1
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- t1 : ~T
+	=========================== T-Weak-case-IH2
+	bind(~x, ~S, ~C) |- t1 : ~T
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- t2 : ~T
+	=========================== T-Weak-case-IH3
+	bind(~x, ~S, ~C) |- t2 : ~T
+    
+    // necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	!isFreeVar(~y, ~t1)
+	====================================================================== alpha-equiv-subst-case-1
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~x2, ~t2))
+
+	!isFreeVar(~y, ~t2)
+	====================================================================== alpha-equiv-subst-case-2
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~x1, ~t1, ~y, subst(~x2, var(~y), ~t2)))
+	
+	goal
+	!isFreeVar(~y, ~t1)
+	!isFreeVar(~y, ~t2)
+	=================== alpha-equiv-subst-case-3
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~y, subst(~x2, var(~y), ~t2)))
+	
+	axiom
+	!isFreeVar(~y, ~t1)
+	!isFreeVar(~y, ~t2)
+	=================== alpha-equiv-subst-case-3
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~y, subst(~x2, var(~y), ~t2)))
+    
+    
+	goal
+	~x != ~x1
+	~x != ~x2
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	~x != ~x1
+	~x != ~x2
+	~e == case(~e1, ~x1, ~t1, ~x2, ~t2)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+
+	hide-all
+	include { gensym-is-fresh, alpha-equiv-sym, T-Weak-case-1, alpha-equiv-subst-case-1, alpha-equiv-typing, isFreeVar5, isFreeVar2, isFreeVar0 }
+	goal
+	~x == ~x1
+	~x != ~x2
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	goal
+	~x != ~x1
+	~x == ~x2
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-3
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	goal
+	~x == ~x1
+	~x == ~x2
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-4
+	bind(~x, ~S, ~C) |- ~e : ~T
+}

@@ -1,0 +1,164 @@
+module stlcB.callbyvalue.Progress
+
+import stlcB.Syntax
+import stlcB.Context
+import stlcB.callbyvalue.Reduction
+import stlcB.Types
+
+// Prove by induction on typing relation. Cases: T-var, T-abs, T-app
+
+goal
+~ein == var(~x)
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-var
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+	
+goal
+~ein == True
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-true
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+	
+goal
+~ein == False
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-false
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom
+	~ein == e1	 
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-abs-IH
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+
+	goal
+	~ein == abs(~x, ~S, e1)
+	~Tin == arrow(~T1, ~T2)
+	empty |- ~ein : ~Tin
+	!isValue(~ein)
+	=========================== T-Progress-T-abs
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+}
+
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom	 
+	~ein == e1
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app-IH1
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+
+	axiom // NEEDED! (as expected)
+	~ein == e2	 
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app-IH2
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+
+	lemma
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	reduce(e1) == noExp
+	==================== T-e1-is-abs
+	exists ~x, ~S, ~eabs
+	  e1 == abs(~x, ~S, ~eabs)
+
+	goal
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+}
+
+local {
+	consts
+	    c : Exp
+		e1 : Exp
+		e2 : Exp
+	
+	axiom
+	~ein == c
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-if-IH1
+	exists ~eout
+	    reduce(~ein) == someExp(~eout)
+	 
+	axiom
+	~ein == e1
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-if-IH2
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+
+	axiom
+	~ein == e2	 
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-if-IH3
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+
+	lemma
+	~ein == ifExp(c, e1, e2)
+	empty |- ~ein : ~T
+	reduce(c) == noExp
+	================== reduce-noExp-isValue
+	isValue(c)
+	
+	lemma
+	empty |- c : ~T
+	isValue(c)
+	==================== isValue-is-TrueOrFalseOrAbs
+	OR
+	=> exists ~x, ~S, ~eabs
+	    c == abs(~x, ~S, ~eabs)
+	=> c == False
+	=> c == True
+	
+	lemma
+	empty |- ifExp(c, ~et, ~el) : ~T
+	isValue(c)
+	====================  isValue-is-TrueOrFalse
+	OR
+	=> c == False
+	=> c == True
+
+	goal
+	~ein == ifExp(c, e1, e2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-if
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+}
+
+axiom
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress
+exists ~eout
+	reduce(~ein) == someExp(~eout)

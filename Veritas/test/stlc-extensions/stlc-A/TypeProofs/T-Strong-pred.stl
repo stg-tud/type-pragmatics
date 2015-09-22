@@ -1,0 +1,23 @@
+module stlca.TypeProofs.TStrongpred
+
+import stlca.TypeBase
+import stlca.Context
+import stlca.Syntax
+
+// faster proof as own file
+local {
+	const epred : Exp
+	
+	axiom
+	!isFreeVar(~x, epred)
+	bind(~x, ~S, ~C) |- epred : ~T
+	=========================== T-Strong-pred-IH
+	~C |- epred : ~T
+
+	goal
+	~e == pred(epred)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-pred
+	~C |- ~e : ~T
+}

@@ -1,0 +1,4 @@
+
+fof('T-Weak-FreeVar-case-use-gensym', axiom, (![Vx1,Vx2,VC,VT,Ve,Vx] : (((Vx=Vx1) & ((Vx!=Vx2) & ((Ve=vcase(ve1,Vx1,vt1,Vx2,vt2)) & ((~visFreeVar(Vx,Ve)) & vtcheck(VC,Ve,VT))))) => (?[Vy] : ((~visFreeVar(Vy,Ve)) & ((~visFreeVar(Vy,vt1)) & (Vx!=Vy))))))).
+fof('T-Weak-FreeVar-case-use-alphaEquiv', axiom, (![Vx,VC,VT,Ve,Vx1,Vy,Vx2] : (((Vx=Vx1) & ((Vx!=Vx2) & ((Vy!=Vx) & ((Ve=vcase(ve1,Vx1,vt1,Vx2,vt2)) & ((~visFreeVar(Vx,Ve)) & ((~visFreeVar(Vy,Ve)) & ((~visFreeVar(Vy,vt1)) & vtcheck(VC,Ve,VT)))))))) => valphaEquivalent(Ve,vcase(ve1,Vy,vsubst(Vx1,vvar(Vy),vt1),Vx2,vt2))))).
+fof('T-Weak-FreeVar-do-stuff', conjecture, (![Vx,VC,VT,Ve,Vx1,Vx2] : (((Vx=Vx1) & ((Vx!=Vx2) & ((Ve=vcase(ve1,Vx1,vt1,Vx2,vt2)) & ((~visFreeVar(Vx,Ve)) & vtcheck(VC,Ve,VT))))) => (?[Vy] : valphaEquivalent(Ve,vcase(ve1,Vy,vsubst(Vx1,vvar(Vy),vt1),Vx2,vt2)))))).

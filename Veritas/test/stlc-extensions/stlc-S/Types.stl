@@ -1,0 +1,66 @@
+module stlcS.Types
+
+import stlcS.Syntax
+import stlcS.Context
+
+constructors
+	arrow : Typ Typ -> Typ
+	sum : Typ Typ -> Typ
+
+
+axioms
+
+lookup(~x, ~C) == someType(~T)
+============================== T-var
+~C |- var(~x) : ~T
+
+bind(~x, ~S, ~C) |- ~e : ~T
+===================================== T-abs
+~C |- abs(~x, ~S, ~e) : arrow(~S, ~T)
+
+~C |- ~e1 : arrow(~S, ~T)
+~C |- ~e2 : ~S
+========================= T-app
+~C |- app(~e1, ~e2) : ~T
+
+~C |- ~e : ~T1
+============================================ T-inl
+~C |- inl(~e, sum(~T1, ~T2)) : sum(~T1, ~T2)
+
+~C |- ~e : ~T2
+============================================ T-inr
+~C |- inr(~e, sum(~T1, ~T2)) : sum(~T1, ~T2)
+
+~C |- ~e : sum(~T1, ~T2)
+bind(~x1, ~T1, ~C) |- ~t1 : ~T
+bind(~x2, ~T2, ~C) |- ~t2 : ~T
+======================================= T-case
+~C |- case(~e, ~x1, ~t1, ~x2, ~t2) : ~T
+
+~C |- ~e : ~T
+=============================== T-inv
+OR
+=> exists ~x
+     ~e == var(~x)
+     lookup(~x, ~C) == someType(~T)
+=> exists ~x, ~e2, ~T1, ~T2
+     ~e == abs(~x, ~T1, ~e2)
+     ~T == arrow(~T1, ~T2)
+     bind(~x, ~T1, ~C) |- ~e2 : ~T2
+=> exists ~e1, ~e2, ~S
+     ~e == app(~e1, ~e2)
+     ~C |- ~e1 : arrow(~S, ~T)
+     ~C |- ~e2 : ~S
+=> exists ~t, ~T1, ~T2
+     ~e == inl(~t, sum(~T1, ~T2))
+     ~T == sum(~T1, ~T2)
+     ~C |- ~t : ~T1
+=> exists ~t, ~T1, ~T2
+     ~e == inr(~t, sum(~T1, ~T2))
+     ~T == sum(~T1, ~T2)
+     ~C |- ~t : ~T2
+=> exists ~e1, ~x1, ~t1, ~x2, ~t2, ~T1, ~T2
+    ~e == case(~e1, ~x1, ~t1, ~x2, ~t2)
+    ~C |- ~e1 : sum(~T1, ~T2)
+    bind(~x1, ~T1, ~C) |- ~t1 : ~T
+    bind(~x2, ~T2, ~C) |- ~t2 : ~T

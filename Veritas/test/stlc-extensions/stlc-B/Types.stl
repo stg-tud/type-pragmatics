@@ -1,0 +1,318 @@
+module stlcB.Types
+
+import stlcB.Syntax
+import stlcB.Context
+import stlcB.Subst
+import stlcB.AlphaEquivalence
+
+constructors
+	Boolean : Typ
+	arrow : Typ Typ -> Typ
+
+axioms
+
+=========== T-true
+~C |- True : Boolean
+
+
+============ T-false
+~C |- False : Boolean
+
+~C |- ~c : Boolean
+~C |- ~e1 : ~T
+~C |- ~e2 : ~T
+========================= T-if
+~C |- ifExp(~c, ~e1, ~e2) : ~T
+
+lookup(~x, ~C) == someType(~T)
+============================== T-var
+~C |- var(~x) : ~T
+
+bind(~x, ~S, ~C) |- ~e : ~T
+===================================== T-abs
+~C |- abs(~x, ~S, ~e) : arrow(~S, ~T)
+
+~C |- ~e1 : arrow(~S, ~T)
+~C |- ~e2 : ~S
+========================= T-app
+~C |- app(~e1, ~e2) : ~T
+
+
+~C |- ~e : ~T
+=============================== T-inv
+OR
+=> exists ~x
+     ~e == var(~x)
+     lookup(~x, ~C) == someType(~T)
+=> exists ~x, ~e2, ~T1, ~T2
+     ~e == abs(~x, ~T1, ~e2)
+     ~T == arrow(~T1, ~T2)
+     bind(~x, ~T1, ~C) |- ~e2 : ~T2
+=> exists ~e1, ~e2, ~S
+     ~e == app(~e1, ~e2)
+     ~C |- ~e1 : arrow(~S, ~T)
+     ~C |- ~e2 : ~S
+=> exists ~c, ~e1, ~e2
+     ~e == ifExp(~c, ~e1, ~e2)
+     ~C |- ~c : Boolean
+     ~C |- ~e1 : ~T
+     ~C |- ~e2 : ~T
+=> ~e == True
+   ~T == Boolean
+=> ~e == False
+   ~T == Boolean
+
+
+
+goal
+~e == True
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak-true
+bind(~x, ~S, ~C) |- ~e : ~T
+
+goal
+~e == False
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak-false
+bind(~x, ~S, ~C) |- ~e : ~T
+
+goal
+~e == var(~y)
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak-var
+bind(~x, ~S, ~C) |- ~e : ~T
+
+local {
+	const eabs : Exp
+
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+	
+	goal
+	~x != ~y
+	lookup(~x, ~C) == noType
+	~C |- abs(~y, ~S1, eabs) : ~T
+	============================= T-Weak-abs-1
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+}
+
+local {
+	const eabs : Exp
+	
+	axiom
+	~e == abs(~y, ~S1, ~e1)
+	~x != ~y
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	======================================== T-Weak-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+
+ 	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+
+	//NOT needed!
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+
+	goal
+	~e == abs(~y, ~S1, eabs)
+	~x == ~y
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================================== T-Weak-abs-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+		
+	axioms
+	lookup(~x, ~C) == noType
+	~C |- e1app : ~T
+	=========================== T-Weak-app-IH1
+	bind(~x, ~S, ~C) |- e1app : ~T
+	
+	lookup(~x, ~C) == noType
+	~C |- e2app : ~T
+	=========================== T-Weak-app-IH2
+	bind(~x, ~S, ~C) |- e2app : ~T
+	
+	
+	goal
+	~e == app(e1app, e2app)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	========================================== T-Weak-app
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+	    c : Exp
+	    e1 : Exp
+	    e2 : Exp
+	axioms
+	lookup(~x, ~C) == noType
+	~C |- c : ~T
+	=============================== T-Weak-if-IH1
+	bind(~x, ~S, ~C) |- c : ~T
+	
+	lookup(~x, ~C) == noType
+	~C |- e1 : ~T
+	=============================== T-Weak-if-IH2
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	lookup(~x, ~C) == noType
+	~C |- e2 : ~T
+	=============================== T-Weak-if-IH3
+	bind(~x, ~S, ~C) |- e2 : ~T
+	
+	goal
+	~e == ifExp(c, e1, e2)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-if
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+axiom
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
+
+
+
+//Proof by structural induction, Strenghthening
+
+goal
+~e == True
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong-true
+~C |- ~e : ~T
+
+goal
+~e == False
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong-false
+~C |- ~e : ~T
+
+goal
+~e == var(~y)
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong-var
+~C |- ~e : ~T
+
+local {
+	const eabs : Exp
+	
+	axiom
+	!isFreeVar(~x, eabs)
+	bind(~x, ~S, ~C) |- eabs : ~T
+	=========================== T-Strong-abs-IH
+	~C |- eabs : ~T
+
+	hide { subst0, subst1, subst2, subst3, subst4, subst5, subst6, subst7, subst8, subst-INV }
+	goal
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-abs
+	~C |- ~e : ~T
+}
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+
+	axioms 
+	!isFreeVar(~x, e1app)
+	bind(~x, ~S, ~C) |- e1app : ~T
+	=========================== T-Strong-app-IH1
+	~C |- e1app : ~T
+	
+	!isFreeVar(~x, e2app)
+	bind(~x, ~S, ~C) |- e2app : ~T
+	=========================== T-Strong-app-IH2
+	~C |- e2app : ~T
+	
+	goal
+	!isFreeVar(~x, app(e1app, e2app))
+	bind(~x, ~S, ~C) |- app(e1app, e2app) : ~T
+	=========================== T-Strong-app
+	~C |- app(e1app, e2app) : ~T
+}
+
+local {
+	consts
+	    c : Exp
+	    e1 : Exp
+	    e2 : Exp
+	axioms
+	!isFreeVar(~x, c)
+	bind(~x, ~S, ~C) |- c : ~T
+	=============================== T-Strong-if-IH1
+	~C |- c : ~T
+	
+	!isFreeVar(~x, e1)
+	bind(~x, ~S, ~C) |- e1 : ~T
+	=============================== T-Strong-if-IH2
+	~C |- e1 : ~T
+	
+	!isFreeVar(~x, e2)
+	bind(~x, ~S, ~C) |- e2 : ~T
+	=============================== T-Strong-if-IH3
+	~C |- e2 : ~T
+	
+	goal
+	~e == ifExp(c, e1, e2)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-if
+	~C |- ~e : ~T
+}
+
+axiom
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong
+~C |- ~e : ~T

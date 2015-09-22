@@ -1,0 +1,2 @@
+fof('gensym-is-fresh', axiom, (![Vv,Ve] : ((vgensym(Ve)=Vv) => (~visFreeVar(Vv,Ve))))).
+fof('FALSE', conjecture, $false).

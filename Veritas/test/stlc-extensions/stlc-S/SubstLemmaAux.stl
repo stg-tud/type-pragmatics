@@ -1,0 +1,501 @@
+module stlcS.SubstLemmaAux
+
+import stlcS.Syntax
+import stlcS.Context
+import stlcS.Subst
+import stlcS.AlphaEquivalence
+import stlcS.Types
+import stlcS.Gensym
+
+//Auxiliary lemmas for on contexts
+
+//Proof by structural induction 
+
+goal
+!isFreeVar(~x, var(~y))
+~C |- var(~y) : ~T
+=========================== T-Weak-FreeVar-var
+bind(~x, ~S, ~C) |- var(~y) : ~T
+
+local {
+	const eabs : Exp
+
+	axiom
+	!isFreeVar(~x, eabs)
+	~C |- eabs : ~T
+	============================== T-Weak-FreeVar-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+	
+	lemma
+	~C |- abs(~x, ~S, ~e) : ~T
+	========================== T-inv-abs
+	exists ~T2
+	    ~T == arrow(~S, ~T2)
+	    bind(~x, ~S, ~C) |- ~e : ~T2	    
+	
+	goal
+	~x != ~y
+	!isFreeVar(~x, abs(~y, ~S1, eabs))
+	~C |- abs(~y, ~S1, eabs) : ~T
+	============================= T-Weak-FreeVar-abs-1
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+}
+
+local {
+	const eabs : Exp
+	
+	// proof in T-Weak-FreeVar-abs1.stl
+	axiom
+	~x != ~y
+	~e == abs(~y, ~S1, ~e1)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	============================= T-Weak-FreeVar-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+
+	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	!isFreeVar(~x, ~e)
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-FreeVar
+	!isFreeVar(~x, ~e1)
+
+	//NOT needed!
+	axiom
+	!isFreeVar(~x, eabs)
+	~C |- eabs : ~T
+	============================== T-Weak-FreeVar-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+
+	goal
+	~x == ~y
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	============================ T-Weak-FreeVar-abs-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+		
+	axioms
+	!isFreeVar(~x, e1app)
+	~C |- e1app : ~T
+	=============================== T-Weak-FreeVar-app-IH1
+	bind(~x, ~S, ~C) |- e1app : ~T
+	
+	!isFreeVar(~x, e2app)
+	~C |- e2app : ~T
+	=============================== T-Weak-FreeVar-app-IH2
+	bind(~x, ~S, ~C) |- e2app : ~T
+	
+	
+	goal
+	~e == app(e1app, e2app)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar-app
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+	    e1 : Exp
+	    t1 : Exp
+	    t2 : Exp
+	    
+	axiom
+	!isFreeVar(~x, e1)
+	~C |- e1 : ~T
+	=========================== T-Weak-FreeVar-case-IH1
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	axiom
+	!isFreeVar(~x, t1)
+	~C |- t1 : ~T
+	=========================== T-Weak-FreeVar-case-IH2
+	bind(~x, ~S, ~C) |- t1 : ~T
+	
+	axiom
+	!isFreeVar(~x, t2)
+	~C |- t2 : ~T
+	=========================== T-Weak-FreeVar-case-IH3
+	bind(~x, ~S, ~C) |- t2 : ~T
+    
+    lemma
+    ~x != ~x1
+    ~x != ~x2
+    ~e == case(e1, ~x1, t1, ~x2, t2)
+    !isFreeVar(~x, ~e)
+    ~C |- ~e : ~T
+    === T-case-inv
+    exists ~T1, ~T2
+        bind(~x1, ~T1, ~C) |- t1 : ~T
+        bind(~x2, ~T2, ~C) |- t2 : ~T
+        ~C |- e1 : sum(~T1, ~T2)
+    
+    lemma
+    ~x != ~x1
+    ~x != ~x2
+    ~e == case(e1, ~x1, t1, ~x2, t2)
+    !isFreeVar(~x, ~e)
+    ~C |- ~e : ~T
+    === T-Weak-FreeVar-use-IH
+    exists ~T1, ~T2
+        bind(~x, ~S, bind(~x1, ~T1, ~C)) |- t1 : ~T
+        bind(~x, ~S, bind(~x2, ~T2, ~C)) |- t2 : ~T
+        bind(~x, ~S, ~C) |- e1 : sum(~T1, ~T2)
+    
+	goal
+	~x != ~x1
+	~x != ~x2
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	================================ T-Weak-FreeVar-case-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+	    e1 : Exp
+	    t1 : Exp
+	    t2 : Exp
+	
+    axiom
+	~x != ~x1
+	~x != ~x2
+	~e == case(~e11, ~x1, ~t11, ~x2, ~t21)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	================================ T-Weak-FreeVar-case-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	!isFreeVar(~x, e1)
+	~C |- e1 : ~T
+	=========================== T-Weak-FreeVar-case-IH1
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	axiom
+	!isFreeVar(~x, t1)
+	~C |- t1 : ~T
+	=========================== T-Weak-FreeVar-case-IH2
+	bind(~x, ~S, ~C) |- t1 : ~T
+	
+	axiom
+	!isFreeVar(~x, t2)
+	~C |- t2 : ~T
+	=========================== T-Weak-FreeVar-case-IH3
+	bind(~x, ~S, ~C) |- t2 : ~T
+    
+    // necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	!isFreeVar(~y, ~t1)
+	====================================================================== alpha-equiv-subst-case-1
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~x2, ~t2))
+
+	!isFreeVar(~y, ~t2)
+	====================================================================== alpha-equiv-subst-case-2
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~x1, ~t1, ~y, subst(~x2, var(~y), ~t2)))
+	
+	!isFreeVar(~x, ~e)
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-FreeVar
+	!isFreeVar(~x, ~e1)
+	
+	lemma
+	!isFreeVar(~y, ~t1)
+	!isFreeVar(~y, ~t2)
+	=================== alpha-equiv-subst-case-3
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~y, subst(~x2, var(~y), ~t2)))
+    
+    
+    // lemma
+    // ~e == case(e1, ~x1, t1, ~x2, t2)
+    // !isFreeVar(~x, ~e)
+    // ~C |- ~e : ~T
+    // ============================== T-Weak-FreeVar-case-use-IH1
+    // exists ~T1, ~T2
+    //     bind(~x, ~S, ~C) |- e1 : sum(~T1, ~T2)
+
+    
+    lemma
+    ~x == ~x1
+    ~x != ~x2
+    ~e == case(e1, ~x1, t1, ~x2, t2)
+    !isFreeVar(~x, ~e)
+    ~C |- ~e : ~T
+    ============================== T-Weak-FreeVar-case-2-use-gensym
+    exists ~y
+        !isFreeVar(~y, ~e)
+        !isFreeVar(~y, t1)
+        ~x != ~y
+   
+	goal
+	~x == ~x1
+	~x != ~x2
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	================================ T-Weak-FreeVar-case-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+	    e1 : Exp
+	    t1 : Exp
+	    t2 : Exp
+	
+    axiom
+	~x != ~x1
+	~x != ~x2
+	~e == case(~e11, ~x1, ~t11, ~x2, ~t21)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	================================ T-Weak-FreeVar-case-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	!isFreeVar(~x, e1)
+	~C |- e1 : ~T
+	=========================== T-Weak-FreeVar-case-IH1
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	axiom
+	!isFreeVar(~x, t1)
+	~C |- t1 : ~T
+	=========================== T-Weak-FreeVar-case-IH2
+	bind(~x, ~S, ~C) |- t1 : ~T
+	
+	axiom
+	!isFreeVar(~x, t2)
+	~C |- t2 : ~T
+	=========================== T-Weak-FreeVar-case-IH3
+	bind(~x, ~S, ~C) |- t2 : ~T
+    
+    // necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	!isFreeVar(~y, ~t1)
+	====================================================================== alpha-equiv-subst-case-1
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~x2, ~t2))
+
+	!isFreeVar(~y, ~t2)
+	====================================================================== alpha-equiv-subst-case-2
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~x1, ~t1, ~y, subst(~x2, var(~y), ~t2)))
+	
+	!isFreeVar(~x, ~e)
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-FreeVar
+	!isFreeVar(~x, ~e1)
+	
+	lemma
+	!isFreeVar(~y, ~t1)
+	!isFreeVar(~y, ~t2)
+	=================== alpha-equiv-subst-case-3
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~y, subst(~x2, var(~y), ~t2)))
+    
+    
+    // lemma
+    // ~e == case(e1, ~x1, t1, ~x2, t2)
+    // !isFreeVar(~x, ~e)
+    // ~C |- ~e : ~T
+    // ============================== T-Weak-FreeVar-case-use-IH1
+    // exists ~T1, ~T2
+    //     bind(~x, ~S, ~C) |- e1 : sum(~T1, ~T2)
+
+    
+    lemma
+    ~x != ~x1
+    ~x == ~x2
+    ~e == case(e1, ~x1, t1, ~x2, t2)
+    !isFreeVar(~x, ~e)
+    ~C |- ~e : ~T
+    ============================== T-Weak-FreeVar-case-3-use-gensym
+    exists ~y
+        !isFreeVar(~y, ~e)
+        !isFreeVar(~y, t2)
+        ~x != ~y
+   
+	goal
+	~x != ~x1
+	~x == ~x2
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	================================ T-Weak-FreeVar-case-3
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+	    e1 : Exp
+	    t1 : Exp
+	    t2 : Exp
+	
+    axiom
+	~x != ~x1
+	~x != ~x2
+	~e == case(~e11, ~x1, ~t11, ~x2, ~t21)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	================================ T-Weak-FreeVar-case-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	!isFreeVar(~x, e1)
+	~C |- e1 : ~T
+	=========================== T-Weak-FreeVar-case-IH1
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	axiom
+	!isFreeVar(~x, t1)
+	~C |- t1 : ~T
+	=========================== T-Weak-FreeVar-case-IH2
+	bind(~x, ~S, ~C) |- t1 : ~T
+	
+	axiom
+	!isFreeVar(~x, t2)
+	~C |- t2 : ~T
+	=========================== T-Weak-FreeVar-case-IH3
+	bind(~x, ~S, ~C) |- t2 : ~T
+    
+    // necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	!isFreeVar(~y, ~t1)
+	====================================================================== alpha-equiv-subst-case-1
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~x2, ~t2))
+
+	!isFreeVar(~y, ~t2)
+	====================================================================== alpha-equiv-subst-case-2
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~x1, ~t1, ~y, subst(~x2, var(~y), ~t2)))
+	
+	!isFreeVar(~x, ~e)
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-FreeVar
+	!isFreeVar(~x, ~e1)
+	
+	lemma
+	!isFreeVar(~y, ~t1)
+	!isFreeVar(~y, ~t2)
+	=================== alpha-equiv-subst-case-3
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~y, subst(~x2, var(~y), ~t2)))
+    
+    
+    // lemma
+    // ~e == case(e1, ~x1, t1, ~x2, t2)
+    // !isFreeVar(~x, ~e)
+    // ~C |- ~e : ~T
+    // ============================== T-Weak-FreeVar-case-use-IH1
+    // exists ~T1, ~T2
+    //     bind(~x, ~S, ~C) |- e1 : sum(~T1, ~T2)
+
+    
+    lemma
+    ~x == ~x1
+    ~x == ~x2
+    ~e == case(e1, ~x1, t1, ~x2, t2)
+    !isFreeVar(~x, ~e)
+    ~C |- ~e : ~T
+    ============================== T-Weak-FreeVar-case-4-use-gensym
+    exists ~y
+        !isFreeVar(~y, ~e)
+        !isFreeVar(~y, t1)
+        !isFreeVar(~y, t2)
+        ~x != ~y
+   
+	goal
+	~x == ~x1
+	~x == ~x2
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	================================ T-Weak-FreeVar-case-4
+	bind(~x, ~S, ~C) |- ~e : ~T
+}

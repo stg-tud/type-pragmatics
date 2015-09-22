@@ -1,0 +1,95 @@
+module stlca.callbyvalue.Preservationpred
+
+import stlca.Syntax
+import stlca.Subst {names}
+import stlca.SubstLemma
+import stlca.callbyvalue.Reduction
+import stlca.TypeBase
+import stlca.Context
+
+local {
+	const e1 : Exp
+	
+	axiom
+	~ein == e1	 
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-pred-IH
+	~C |- ~eout : ~T
+
+	lemma
+	~C |- succ(~e) : ~T
+	=================== T-succ-inv
+	~T == Num
+	~C |- ~e : Num
+	
+	lemma
+	~C |- pred(~e) : ~T
+	=================== T-pred-inv
+	~T == Num
+	~C |- ~e : Num
+
+	lemma
+	~ein == pred(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	e1 == succ(~e)
+	isNum(~e)
+	======================= T-Preservation-T-pred-1
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == pred(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	e1 == succ(~e)
+	!isNum(~e)
+	reduce(~e) = someExp(~ered)
+	======================= T-Preservation-T-pred-2
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == pred(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	e1 == succ(~e)
+	!isNum(~e)
+	reduce(~e) = noExp
+	======================= T-Preservation-T-pred-3
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == pred(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	e1 == Zero
+	======================= T-Preservation-T-pred-4
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == pred(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	e1 != Zero
+	e1 != succ(~e)
+	reduce(e1) = someExp(~ered)
+	======================= T-Preservation-T-pred-5
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == pred(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	e1 != Zero
+	e1 != succ(~e)
+	reduce(e1) = noExp
+	======================= T-Preservation-T-pred-6
+	~C |- ~eout : ~T
+	
+	goal
+	~ein == pred(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	======================= T-Preservation-T-pred
+	~C |- ~eout : ~T
+}

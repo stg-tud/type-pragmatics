@@ -1,0 +1,61 @@
+module stlcS.WeakAbs2
+
+import stlcS.Syntax
+import stlcS.Context
+import stlcS.Types
+import stlcS.Subst
+import stlcS.AlphaEquivalence
+
+local {
+	const eabs : Exp
+	
+	axiom
+	~x != ~y
+	~e == abs(~y, ~S1, ~e1)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	============================= T-Weak-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+
+ 	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+
+	//NOT needed!
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+
+	goal
+	~x == ~y
+	~e == abs(~y, ~S1, eabs)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	============================ T-Weak-abs-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+}

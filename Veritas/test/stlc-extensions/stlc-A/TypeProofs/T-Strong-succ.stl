@@ -1,0 +1,23 @@
+module stlca.TypeProofs.TStrongsucc
+
+import stlca.TypeBase
+import stlca.Context
+import stlca.Syntax
+
+// needs own file for faster proof
+local {
+	const esucc : Exp
+	
+	axiom
+	!isFreeVar(~x, esucc)
+	bind(~x, ~S, ~C) |- esucc : ~T
+	=========================== T-Strong-succ-IH
+	~C |- esucc : ~T
+
+	goal
+	~e == succ(esucc)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-succ
+	~C |- ~e : ~T
+}

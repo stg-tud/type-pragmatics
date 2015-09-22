@@ -1,0 +1,611 @@
+module stlc2.Types
+
+import stlc2.Syntax
+import stlc2.Context
+import stlc2.Subst { names }
+import stlc2.AlphaEquivalence
+
+constructors
+	arrow : Typ Typ -> Typ
+	Boolean : Typ
+	Num : Typ
+
+axioms
+
+=========== T-true
+~C |- True : Boolean
+
+============ T-false
+~C |- False : Boolean
+
+============ T-Zero
+~C |- Zero : Num
+
+lookup(~x, ~C) == someType(~T)
+============================== T-var
+~C |- var(~x) : ~T
+
+~C |- ~e : Num
+==================== T-succ
+~C |- succ(~e) : Num
+
+~C |- ~e : Num
+==================== T-pred
+~C |- pred(~e) : Num
+
+~C |- ~e : Num
+==================== T-isZero
+~C |- isZero(~e) : Boolean
+
+
+bind(~x, ~S, ~C) |- ~e : ~T
+===================================== T-abs
+~C |- abs(~x, ~S, ~e) : arrow(~S, ~T)
+
+~C |- ~e1 : arrow(~S, ~T)
+~C |- ~e2 : ~S
+========================= T-app
+~C |- app(~e1, ~e2) : ~T
+
+
+~C |- ~e : ~T
+=============================== T-inv
+OR
+=> exists ~x
+     ~e == var(~x)
+     lookup(~x, ~C) == someType(~T)
+=> exists ~x, ~e2, ~T1, ~T2
+     ~e == abs(~x, ~T1, ~e2)
+     ~T == arrow(~T1, ~T2)
+     bind(~x, ~T1, ~C) |- ~e2 : ~T2
+=> exists ~e1, ~e2, ~S
+     ~e == app(~e1, ~e2)
+     ~C |- ~e1 : arrow(~S, ~T)
+     ~C |- ~e2 : ~S
+=> exists ~e1
+     ~e == succ(~e1)
+     ~T == Num
+     ~C |- ~e1 : Num
+=> exists ~e1
+     ~e == pred(~e1)
+     ~T == Num
+     ~C |- ~e1 : Num
+=> exists ~e1
+     ~e == isZero(~e1)
+     ~T == Boolean
+     ~C |- ~e1 : Num
+=> ~e == True
+   ~T == Boolean
+=> ~e == False
+   ~T == Boolean
+=> ~e == Zero
+   ~T == Num
+
+lemma
+~C |- var(~x) : ~T
+============================== T-inv-var
+lookup(~x, ~C) == someType(~T)
+
+lemma
+~C |- abs(~x, ~T1, ~e) : ~T
+========================== T-inv-abs
+exists ~T2
+    ~T == arrow(~T1, ~T2)
+    bind(~x, ~T1, ~C) |- ~e : ~T2
+
+lemma
+~C |- app(~e1, ~e2) : ~T
+======================== T-inv-app
+exists ~S
+    ~C |- ~e1 : arrow(~S, ~T)
+    ~C |- ~e2 : ~S
+
+lemma
+~C |- succ(~e) : ~T
+=================== T-inv-succ
+~T == Num
+~C |- ~e : Num
+
+lemma
+~C |- pred(~e) : ~T
+=================== T-inv-pred
+~T == Num
+~C |- ~e : Num
+
+lemma
+~C |- isZero(~e) : ~T
+===================== T-inv-isZero
+~T == Boolean
+~C |- ~e : Num
+
+lemma
+~C |- True : ~T
+=============== T-inv-True
+~T == Boolean
+
+lemma
+~C |- False : ~T
+=============== T-inv-False
+~T == Boolean
+
+lemma
+~C |- Zero : ~T
+=============== T-inv-Zero
+~T == Num
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-var, T-inv-False, T-inv-Zero, T-app, T-abs, T-succ, T-pred, T-isZero, T-var, T-false, T-zero }
+
+	goal
+	~e == True
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-true
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-var, T-inv-Zero, T-app, T-abs, T-succ, T-pred, T-isZero, T-true, T-var, T-zero }
+
+	goal
+	~e == False
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-false
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-var, T-app, T-abs, T-succ, T-pred, T-isZero, T-true, T-false, T-var }
+
+	goal
+	~e == Zero
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-zero
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-abs, T-succ, T-pred, T-isZero, T-true, T-false, T-zero }
+	goal
+	~e == var(~y)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-var
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-var, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-abs, T-succ, T-var, T-isZero, T-true, T-false, T-zero }
+
+	const epred : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- epred : ~T
+	============================== T-Weak-pred-IH
+	bind(~x, ~S, ~C) |- epred : ~T
+	
+	goal
+	~e == pred(epred)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-pred
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-var, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-abs, T-var, T-pred, T-isZero, T-true, T-false, T-zero }
+
+	const esucc : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- esucc : ~T
+	============================== T-Weak-succ-IH
+	bind(~x, ~S, ~C) |- esucc : ~T
+	
+	goal
+	~e == succ(esucc)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-succ
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-var, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-abs, T-succ, T-pred, T-var, T-true, T-false, T-zero }
+
+	const eisZero : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eisZero : ~T
+	============================== T-Weak-isZero-IH
+	bind(~x, ~S, ~C) |- eisZero : ~T
+	
+	goal
+	~e == isZero(eisZero)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-isZero
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-var, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-var, T-succ, T-pred, T-isZero, T-true, T-false, T-zero }
+
+	const eabs : Exp
+
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+	
+	goal
+	~e == abs(~y, ~S1, eabs)
+	~x != ~y
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	============================= T-Weak-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-var, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-var, T-succ, T-pred, T-isZero, T-true, T-false, T-zero }
+
+	const eabs : Exp
+	
+	axiom
+	~e == abs(~y, ~S1, ~e1)
+	~x != ~y
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	======================================== T-Weak-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+
+ 	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+
+	//NOT needed!
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+
+	goal
+	~e == abs(~y, ~S1, eabs)
+	~x == ~y
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================================== T-Weak-abs-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-var, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-var, T-abs, T-succ, T-pred, T-isZero, T-true, T-false, T-zero }
+
+	consts
+		e1app : Exp
+		e2app : Exp
+		
+	axioms
+	lookup(~x, ~C) == noType
+	~C |- e1app : ~T
+	=========================== T-Weak-app-IH1
+	bind(~x, ~S, ~C) |- e1app : ~T
+	
+	lookup(~x, ~C) == noType
+	~C |- e2app : ~T
+	=========================== T-Weak-app-IH2
+	bind(~x, ~S, ~C) |- e2app : ~T
+	
+	goal
+	~e == app(e1app, e2app)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-app
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+axiom
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
+
+
+
+//Proof by structural induction, Strenghthening
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-var, T-inv-False, T-inv-Zero, T-app, T-abs, T-succ, T-pred, T-isZero, T-var, T-false, T-zero }
+
+	goal
+	~e == True
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-true
+	~C |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-var, T-inv-Zero, T-app, T-abs, T-succ, T-pred, T-isZero, T-true, T-var, T-zero }
+
+	
+	goal
+	~e == False
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-false
+	~C |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-var, T-app, T-abs, T-succ, T-pred, T-isZero, T-true, T-false, T-var }
+
+	
+	goal
+	~e == Zero
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-zero
+	~C |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-abs, T-succ, T-pred, T-isZero, T-true, T-false, T-zero }
+
+	goal
+	~e == var(~y)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-var
+	~C |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-var, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-abs, T-succ, T-var, T-isZero, T-true, T-false, T-zero }
+
+	const epred : Exp
+	
+	axiom
+	!isFreeVar(~x, epred)
+	bind(~x, ~S, ~C) |- epred : ~T
+	=========================== T-Strong-pred-IH
+	~C |- epred : ~T
+
+	goal
+	~e == pred(epred)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-pred
+	~C |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-var, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-abs, T-var, T-pred, T-isZero, T-true, T-false, T-zero }
+
+	const esucc : Exp
+	
+	axiom
+	!isFreeVar(~x, esucc)
+	bind(~x, ~S, ~C) |- esucc : ~T
+	=========================== T-Strong-succ-IH
+	~C |- esucc : ~T
+
+	goal
+	~e == succ(esucc)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-succ
+	~C |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-var, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-abs, T-succ, T-pred, T-var, T-true, T-false, T-zero }
+
+	const eisZero : Exp
+	
+	axiom
+	!isFreeVar(~x, eisZero)
+	bind(~x, ~S, ~C) |- eisZero : ~T
+	=========================== T-Strong-isZero-IH
+	~C |- eisZero : ~T
+
+	goal
+	~e == isZero(eisZero)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-isZero
+	~C |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-app, T-inv-var, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-app, T-var, T-succ, T-pred, T-isZero, T-true, T-false, T-zero }
+
+	const eabs : Exp
+	
+	axiom
+	!isFreeVar(~x, eabs)
+	bind(~x, ~S, ~C) |- eabs : ~T
+	=========================== T-Strong-abs-IH
+	~C |- eabs : ~T
+
+	goal
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-abs
+	~C |- ~e : ~T
+}
+
+local {
+	hide { T-inv, T-inv-var, T-inv-abs, T-inv-succ, T-inv-pred, T-inv-isZero, T-inv-True, T-inv-False, T-inv-Zero, T-var, T-abs, T-succ, T-pred, T-isZero, T-true, T-false, T-zero }
+
+	consts
+		e1app : Exp
+		e2app : Exp
+
+	axioms 
+	!isFreeVar(~x, e1app)
+	bind(~x, ~S, ~C) |- e1app : ~T
+	=========================== T-Strong-app-IH1
+	~C |- e1app : ~T
+	
+	!isFreeVar(~x, e2app)
+	bind(~x, ~S, ~C) |- e2app : ~T
+	=========================== T-Strong-app-IH2
+	~C |- e2app : ~T
+
+	goal
+	~e == app(e1app, e2app)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-app
+	~C |- ~e : ~T
+}
+
+
+// goal
+// !isFreeVar(~x, True)
+// bind(~x, ~S, ~C) |- True : ~T
+// =========================== T-Strong-true
+// ~C |- True : ~T
+// 
+// goal
+// !isFreeVar(~x, False)
+// bind(~x, ~S, ~C) |- False : ~T
+// =========================== T-Strong-false
+// ~C |- False : ~T
+// 
+// goal
+// !isFreeVar(~x, Zero)
+// bind(~x, ~S, ~C) |- Zero : ~T
+// =========================== T-Strong-zero
+// ~C |- Zero : ~T
+// 
+// goal
+// !isFreeVar(~x, var(~y))
+// bind(~x, ~S, ~C) |- var(~y) : ~T
+// =========================== T-Strong-var
+// ~C |- var(~y) : ~T
+// 
+// local {
+// 	const epred : Exp
+// 	
+// 	axiom
+// 	!isFreeVar(~x, epred)
+// 	bind(~x, ~S, ~C) |- epred : ~T
+// 	=========================== T-Strong-pred-IH
+// 	~C |- epred : ~T
+// 
+// 	goal
+// 	!isFreeVar(~x, pred(epred))
+// 	bind(~x, ~S, ~C) |- pred(epred) : ~T
+// 	=========================== T-Strong-pred
+// 	~C |- pred(epred) : ~T
+// }
+// 
+// local {
+// 	const esucc : Exp
+// 	
+// 	axiom
+// 	!isFreeVar(~x, esucc)
+// 	bind(~x, ~S, ~C) |- esucc : ~T
+// 	=========================== T-Strong-succ-IH
+// 	~C |- esucc : ~T
+// 
+// 	goal
+// 	!isFreeVar(~x, succ(esucc))
+// 	bind(~x, ~S, ~C) |- succ(esucc) : ~T
+// 	=========================== T-Strong-succ
+// 	~C |- succ(esucc) : ~T
+// }
+// 
+// local {
+// 	const eisZero : Exp
+// 	
+// 	axiom
+// 	!isFreeVar(~x, eisZero)
+// 	bind(~x, ~S, ~C) |- eisZero : ~T
+// 	=========================== T-Strong-isZero-IH
+// 	~C |- eisZero : ~T
+// 
+// 	goal
+// 	!isFreeVar(~x, isZero(eisZero))
+// 	bind(~x, ~S, ~C) |- isZero(eisZero) : ~T
+// 	=========================== T-Strong-isZero
+// 	~C |- isZero(eisZero) : ~T
+// }
+// 
+// local {
+// 	const eabs : Exp
+// 	
+// 	axiom
+// 	!isFreeVar(~x, eabs)
+// 	bind(~x, ~S, ~C) |- eabs : ~T
+// 	=========================== T-Strong-abs-IH
+// 	~C |- eabs : ~T
+// 
+// 	goal
+// 	!isFreeVar(~x, abs(~y, ~S1, eabs))
+// 	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+// 	=========================== T-Strong-abs
+// 	~C |- abs(~y, ~S1, eabs) : ~T
+// }
+// 
+// local {
+// 	consts
+// 		e1app : Exp
+// 		e2app : Exp
+// 
+// 	axioms 
+// 	!isFreeVar(~x, e1app)
+// 	bind(~x, ~S, ~C) |- e1app : ~T
+// 	=========================== T-Strong-app-IH1
+// 	~C |- e1app : ~T
+// 	
+// 	!isFreeVar(~x, e2app)
+// 	bind(~x, ~S, ~C) |- e2app : ~T
+// 	=========================== T-Strong-app-IH2
+// 	~C |- e2app : ~T
+// 	
+// 	goal
+// 	!isFreeVar(~x, app(e1app, e2app))
+// 	bind(~x, ~S, ~C) |- app(e1app, e2app) : ~T
+// 	=========================== T-Strong-app
+// 	~C |- app(e1app, e2app) : ~T
+// }
+
+axiom
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong
+~C |- ~e : ~T

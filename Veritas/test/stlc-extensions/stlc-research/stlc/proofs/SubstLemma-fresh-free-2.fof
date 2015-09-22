@@ -1,0 +1,15 @@
+
+fof('isFreeVar6', axiom, (![VVar0,VExp0,Vx,Vv] : (((VVar0=Vv) & (VExp0=vvar(Vx))) => (((Vx=Vv) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (Vx=Vv)))))).
+fof('isFreeVar7', axiom, (![VT,VVar0,VExp0,Vx,Vv,Ve] : (((VVar0=Vv) & (VExp0=vabs(Vx,VT,Ve))) => ((((Vx!=Vv) & visFreeVar(Vv,Ve)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => ((Vx!=Vv) & visFreeVar(Vv,Ve))))))).
+fof('isFreeVar8', axiom, (![VVar0,VExp0,Ve1,Vv,Ve2] : (((VVar0=Vv) & (VExp0=vapp(Ve1,Ve2))) => (((visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2))))))).
+fof('gensym-is-fresh', axiom, (![Vv,Ve] : ((vgensym(Ve)=Vv) => (~visFreeVar(Vv,Ve))))).
+fof('subst10', axiom, (![VVar0,VExp0,VExp1,RESULT,Vx,Ve,VT,Vy,Vfresh,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vabs(Vy,VT,Ve1)))) => (((~(Vx=Vy)) & (visFreeVar(Vy,Ve) & (Vfresh=vgensym(vapp(vapp(Ve,Ve1),vvar(Vx)))))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vsubst(Vx,Ve,vabs(Vfresh,VT,vsubst(Vy,vvar(Vfresh),Ve1))))))))).
+fof('EQ-eabs', axiom, (((veabs=veabs) => $true) & ($true => (veabs=veabs)))).
+fof('T-subst-abs-2', axiom, (![VT,VC,Vx,Ve,Vy,VS,Ve1,VT2] : (((Vx!=Vy) & ((~visFreeVar(Vy,Ve)) & (vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),vabs(Vy,VS,Ve1),VT2)))) => vtcheck(VC,vsubst(Vx,Ve,vabs(Vy,VS,Ve1)),VT2)))).
+fof('alpha-equiv-refl', axiom, (![Ve] : valphaEquivalent(Ve,Ve))).
+fof('alpha-equiv-sym', axiom, (![Ve2,Ve1] : (valphaEquivalent(Ve1,Ve2) => valphaEquivalent(Ve2,Ve1)))).
+fof('alpha-equiv-trans', axiom, (![Ve2,Ve1,Ve3] : ((valphaEquivalent(Ve1,Ve2) & valphaEquivalent(Ve2,Ve3)) => valphaEquivalent(Ve1,Ve3)))).
+fof('alpha-equiv-subst-abs', axiom, (![VS,Vx,Vy,Ve] : ((~visFreeVar(Vy,Ve)) => valphaEquivalent(vabs(Vx,VS,Ve),vabs(Vy,VS,vsubst(Vx,vvar(Vy),Ve)))))).
+fof('alpha-equiv-typing', axiom, (![Ve,VC,Ve1,VT] : ((vtcheck(VC,Ve,VT) & valphaEquivalent(Ve,Ve1)) => vtcheck(VC,Ve1,VT)))).
+fof('fresh-unequal-var-3', axiom, (![Ve,Ve1,Vx,Vfresh] : ((Vfresh=vgensym(vapp(vapp(Ve,Ve1),vvar(Vx)))) => (Vx!=Vfresh)))).
+fof('fresh-free-2', conjecture, (![Ve,Vx,Vfresh,Ve1] : ((Vfresh=vgensym(vapp(vapp(Ve,Ve1),vvar(Vx)))) => (~visFreeVar(Vfresh,Ve1))))).

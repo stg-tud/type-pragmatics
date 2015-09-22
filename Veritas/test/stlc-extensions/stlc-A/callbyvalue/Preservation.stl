@@ -1,0 +1,82 @@
+module stlca.callbyvalue.Preservation
+
+import stlca.Syntax
+import stlca.Subst {names}
+import stlca.SubstLemma
+import stlca.callbyvalue.Reduction
+import stlca.Types
+
+
+// Prove type preservation by induction on recursive structure of reduction relation
+// Each derived rule represents one induction case.
+
+goal
+~ein == var(~x)
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation-T-var
+~C |- ~eout : ~T
+
+goal
+~ein == True
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation-T-true
+~C |- ~eout : ~T
+
+goal
+~ein == False
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation-T-false
+~C |- ~eout : ~T
+
+goal
+~ein == Zero
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation-T-zero
+~C |- ~eout : ~T
+
+local {
+	const e1 : Exp
+	
+	axiom
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	======================= T-Preservation-T-succ-IH
+	~C |- ~eout : ~T
+	
+	goal
+	~ein == succ(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	======================= T-Preservation-T-succ
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom
+	~ein == e1	 
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-abs-IH
+	~C |- ~eout : ~T
+
+	goal
+	~ein == abs(~x, ~S, e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-abs
+	~C |- ~eout : ~T
+}
+
+axiom
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation
+~C |- ~eout : ~T

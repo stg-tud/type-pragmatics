@@ -1,0 +1,41 @@
+module stlca.Tsubstapp
+
+import stlca.Context
+import stlca.Gensym
+import stlca.Subst
+import stlca.TypeBase
+import stlca.Syntax
+
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+	
+	axioms
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e1app : ~T2
+	============================== T-subst-IH-app1
+	~C |- subst(~x, ~e, e1app) : ~T2
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e2app : ~T2
+	============================== T-subst-IH-app2
+	~C |- subst(~x, ~e, e2app) : ~T2
+
+	lemma
+	~e2 == app(e1app, e2app)
+	~C |- ~e2 : ~T2
+	============================== T-app-parameter-type-relation
+	exists ~S
+		~C |- e1app : arrow(~S, ~T2)
+		~C |- e2app : ~S
+	
+	goal
+	~e2 == app(e1app, e2app)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	============================== T-subst-app
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}

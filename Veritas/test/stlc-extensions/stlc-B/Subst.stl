@@ -1,0 +1,23 @@
+module stlcB.Subst
+
+import stlcB.Syntax
+import stlcB.Context
+import stlcB.Gensym
+
+function
+subst : Var Exp Exp -> Exp
+subst(x, e, var(y)) =
+	if x == y
+	then e
+	else var(y)
+subst(x, e, app(e1, e2)) = app(subst(x, e, e1), subst(x, e, e2))
+subst(x, e, abs(y, T, e1)) =
+	if x == y
+	then abs(y, T, e1)
+	else if isFreeVar(y, e)
+	     then let fresh = gensym(app(app(e, e1), var(x)))
+	          in subst(x, e, abs(fresh, T, subst(y, var(fresh), e1))) 
+	     else abs(y, T, subst(x, e, e1))
+subst(x, e, True) = True
+subst(x, e, False) = False
+subst(x, e, ifExp(c, e1, e2)) = ifExp(subst(x, e, c), subst(x, e, e1), subst(x, e, e2))

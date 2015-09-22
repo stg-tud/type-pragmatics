@@ -1,0 +1,13 @@
+module stlca.TypeProofs.TStrongvar
+
+import stlca.TypeBase
+import stlca.Context
+import stlca.Syntax
+
+// Needs seperate file for faster proof
+goal
+~e == var(~y)
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong-var
+~C |- ~e : ~T

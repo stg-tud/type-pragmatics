@@ -1,0 +1,24 @@
+
+fof('isFreeVar0', axiom, (![VVar0,VExp0,Vx,Vv] : (((VVar0=Vv) & (VExp0=vvar(Vx))) => (((Vx=Vv) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (Vx=Vv)))))).
+fof('isFreeVar1', axiom, (![VT,VVar0,VExp0,Vx,Vv,Ve] : (((VVar0=Vv) & (VExp0=vabs(Vx,VT,Ve))) => ((((Vx!=Vv) & visFreeVar(Vv,Ve)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => ((Vx!=Vv) & visFreeVar(Vv,Ve))))))).
+fof('isFreeVar2', axiom, (![VVar0,VExp0,Ve1,Vv,Ve2] : (((VVar0=Vv) & (VExp0=vapp(Ve1,Ve2))) => (((visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2))))))).
+fof('isFreeVar3', axiom, (![VVar0,VExp0,Ve1,Vv,Ve2] : (((VVar0=Vv) & (VExp0=vpair(Ve1,Ve2))) => (((visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2))))))).
+fof('isFreeVar4', axiom, (![VVar0,VExp0,Vv,Ve] : (((VVar0=Vv) & (VExp0=vfirst(Ve))) => ((visFreeVar(Vv,Ve) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => visFreeVar(Vv,Ve)))))).
+fof('isFreeVar5', axiom, (![VVar0,VExp0,Vv,Ve] : (((VVar0=Vv) & (VExp0=vsecond(Ve))) => ((visFreeVar(Vv,Ve) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => visFreeVar(Vv,Ve)))))).
+fof('gensym-is-fresh', axiom, (![Vv,Ve] : ((vgensym(Ve)=Vv) => (~visFreeVar(Vv,Ve))))).
+fof('subst0', axiom, (![Vx,Vy,VVar0,VExp0,VExp1,RESULT,Ve] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vvar(Vy)))) => ((Vx=Vy) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=Ve)))))).
+fof('subst1', axiom, (![Ve,Vx,VVar0,VExp0,VExp1,RESULT,Vy] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vvar(Vy)))) => ((~(Vx=Vy)) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vvar(Vy))))))).
+fof('subst2', axiom, (![VVar0,VExp0,VExp1,RESULT,Ve1,Vx,Ve,Ve2] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vapp(Ve1,Ve2)))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vapp(vsubst(Vx,Ve,Ve1),vsubst(Vx,Ve,Ve2))))))).
+fof('subst3', axiom, (![Ve,Vx,VVar0,VExp0,VExp1,RESULT,Vy,VT,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vabs(Vy,VT,Ve1)))) => ((Vx=Vy) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vabs(Vy,VT,Ve1))))))).
+fof('subst4', axiom, (![VVar0,VExp0,VExp1,RESULT,Vx,Ve,VT,Vy,Vfresh,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vabs(Vy,VT,Ve1)))) => (((~(Vx=Vy)) & (visFreeVar(Vy,Ve) & (Vfresh=vgensym(vapp(vapp(Ve,Ve1),vvar(Vx)))))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vsubst(Vx,Ve,vabs(Vfresh,VT,vsubst(Vy,vvar(Vfresh),Ve1))))))))).
+fof('subst5', axiom, (![VVar0,VExp0,VExp1,RESULT,Vy,VT,Vx,Ve,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vabs(Vy,VT,Ve1)))) => (((~(Vx=Vy)) & (~visFreeVar(Vy,Ve))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vabs(Vy,VT,vsubst(Vx,Ve,Ve1)))))))).
+fof('subst6', axiom, (![VVar0,VExp0,VExp1,RESULT,Ve1,Vx,Ve,Ve2] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vpair(Ve1,Ve2)))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vpair(vsubst(Vx,Ve,Ve1),vsubst(Vx,Ve,Ve2))))))).
+fof('subst7', axiom, (![VVar0,VExp0,VExp1,RESULT,Vx,Ve,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vfirst(Ve1)))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vfirst(vsubst(Vx,Ve,Ve1))))))).
+fof('subst8', axiom, (![VVar0,VExp0,VExp1,RESULT,Vx,Ve,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vsecond(Ve1)))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vsecond(vsubst(Vx,Ve,Ve1))))))).
+fof('T-subst-abs-2', axiom, (![VS,Ve1,Vy,VT,VC,Vx,Ve,Ve2,VT2] : (((Ve2=vabs(Vy,VS,Ve1)) & ((Vx!=Vy) & ((~visFreeVar(Vy,Ve)) & (vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),Ve2,VT2))))) => vtcheck(VC,vsubst(Vx,Ve,Ve2),VT2)))).
+fof('alpha-equiv-refl', axiom, (![Ve] : valphaEquivalent(Ve,Ve))).
+fof('alpha-equiv-sym', axiom, (![Ve2,Ve1] : (valphaEquivalent(Ve1,Ve2) => valphaEquivalent(Ve2,Ve1)))).
+fof('alpha-equiv-trans', axiom, (![Ve2,Ve1,Ve3] : ((valphaEquivalent(Ve1,Ve2) & valphaEquivalent(Ve2,Ve3)) => valphaEquivalent(Ve1,Ve3)))).
+fof('alpha-equiv-subst-abs', axiom, (![VS,Vx,Vy,Ve] : ((~visFreeVar(Vy,Ve)) => valphaEquivalent(vabs(Vx,VS,Ve),vabs(Vy,VS,vsubst(Vx,vvar(Vy),Ve)))))).
+fof('alpha-equiv-typing', axiom, (![Ve,VC,Ve1,VT] : ((vtcheck(VC,Ve,VT) & valphaEquivalent(Ve,Ve1)) => vtcheck(VC,Ve1,VT)))).
+fof('fresh-unequal-var-3', conjecture, (![Ve,Ve1,Vx,Vfresh] : ((Vfresh=vgensym(vapp(vapp(Ve,Ve1),vvar(Vx)))) => (Vx!=Vfresh)))).

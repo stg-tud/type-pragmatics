@@ -1,0 +1,14 @@
+module stlca.SubstLemmaAux.TWeakFreeVar
+
+import stlca.TypeBase
+import stlca.Syntax
+import stlca.Context
+
+
+
+goal
+~e == var(~y)
+!isFreeVar(~x, ~e)
+~C |- ~e : ~T
+=========================== T-Weak-FreeVar-var
+bind(~x, ~S, ~C) |- ~e : ~T

@@ -1,0 +1,78 @@
+module stlca.TypeBase
+
+import stlca.Syntax
+import stlca.Context
+
+constructors
+	arrow : Typ Typ -> Typ
+	Boolean : Typ
+	Num : Typ
+	
+axioms
+
+============ T-true
+~C |- True : Boolean
+
+============ T-false
+~C |- False : Boolean
+
+============ T-Zero
+~C |- Zero : Num
+
+lookup(~x, ~C) == someType(~T)
+============================== T-var
+~C |- var(~x) : ~T
+
+~C |- ~e : Num
+==================== T-succ
+~C |- succ(~e) : Num
+
+~C |- ~e : Num
+==================== T-pred
+~C |- pred(~e) : Num
+
+~C |- ~e : Num
+==================== T-isZero
+~C |- isZero(~e) : Boolean
+
+bind(~x, ~S, ~C) |- ~e : ~T
+===================================== T-abs
+~C |- abs(~x, ~S, ~e) : arrow(~S, ~T)
+
+~C |- ~e1 : arrow(~S, ~T)
+~C |- ~e2 : ~S
+========================= T-app
+~C |- app(~e1, ~e2) : ~T
+
+~C |- ~e : ~T
+=============================== T-inv
+OR
+=> exists ~x
+     ~e == var(~x)
+     lookup(~x, ~C) == someType(~T)
+=> exists ~x, ~e2, ~T1, ~T2
+     ~e == abs(~x, ~T1, ~e2)
+     ~T == arrow(~T1, ~T2)
+     bind(~x, ~T1, ~C) |- ~e2 : ~T2
+=> exists ~e1, ~e2, ~S
+     ~e == app(~e1, ~e2)
+     ~C |- ~e1 : arrow(~S, ~T)
+     ~C |- ~e2 : ~S
+=> exists ~e1
+     ~e == succ(~e1)
+     ~T == Num
+     ~C |- ~e1 : Num
+=> exists ~e1
+     ~e == pred(~e1)
+     ~T == Num
+     ~C |- ~e1 : Num
+=> exists ~e1
+     ~e == isZero(~e1)
+     ~T == Boolean
+     ~C |- ~e1 : Num
+=> ~e == True
+   ~T == Boolean
+=> ~e == False
+   ~T == Boolean
+=> ~e == Zero
+   ~T == Num

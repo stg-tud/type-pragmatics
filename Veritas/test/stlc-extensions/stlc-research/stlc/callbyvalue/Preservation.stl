@@ -1,0 +1,655 @@
+module stlc2.callbyvalue.Preservation
+
+import stlc2.Syntax
+import stlc2.Subst {names}
+import stlc2.SubstLemma
+import stlc2.callbyvalue.Reduction
+import stlc2.Types
+import stlc2.Context {names}
+
+
+// Prove type preservation by induction on recursive structure of reduction relation
+// Each derived rule represents one induction case.
+
+// goal
+// ~ein == var(~x)
+// reduce(~ein) = someExp(~eout)
+// ~C |- ~ein : ~T
+// =================== T-Preservation-T-var
+// ~C |- ~eout : ~T
+// 
+// goal
+// ~ein == True
+// reduce(~ein) = someExp(~eout)
+// ~C |- ~ein : ~T
+// =================== T-Preservation-T-true
+// ~C |- ~eout : ~T
+// 
+// goal
+// ~ein == False
+// reduce(~ein) = someExp(~eout)
+// ~C |- ~ein : ~T
+// =================== T-Preservation-T-false
+// ~C |- ~eout : ~T
+// 
+// goal
+// ~ein == Zero
+// reduce(~ein) = someExp(~eout)
+// ~C |- ~ein : ~T
+// =================== T-Preservation-T-zero
+// ~C |- ~eout : ~T
+// 
+// local {
+// 	const e1 : Exp
+// 	
+// 	axiom 
+// 	reduce(e1) = someExp(~eout)
+// 	~C |- e1 : ~T
+// 	================================ T-Preservation-T-pred-IH
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 == succ(~e)
+// 	isNum(~e)
+// 	~ein == pred(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-pred-1
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 == succ(~e)
+// 	!isNum(~e)
+// 	isSomeExp(reduce(~e))
+// 	~ein == pred(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-pred-2
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 == succ(~e)
+// 	!isNum(~e)
+// 	!isSomeExp(reduce(~e))
+// 	~ein == pred(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-pred-3
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 == Zero
+// 	~ein == pred(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-pred-4
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 != succ(~e)
+// 	e1 != Zero
+// 	isSomeExp(reduce(e1))
+// 	~ein == pred(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-pred-5
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 != succ(~e)
+// 	e1 != Zero
+// 	!isSomeExp(reduce(e1))
+// 	~ein == pred(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-pred-6
+// 	~C |- ~eout : ~T
+// 	
+// 	goal
+// 	~ein == pred(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-pred
+// 	~C |- ~eout : ~T
+// }
+// 
+// local {
+// 	const e1 : Exp
+// 	
+// 	axiom 
+// 	reduce(e1) = someExp(~eout)
+// 	~C |- e1 : ~T
+// 	================================ T-Preservation-T-succ-IH
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	isNum(e1)
+// 	~ein == succ(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-succ-1
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	!isNum(e1)
+// 	isSomeExp(reduce(e1))
+// 	~ein == succ(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-succ-2
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	!isNum(e1)
+// 	!isSomeExp(reduce(e1))
+// 	~ein == succ(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-succ-3
+// 	~C |- ~eout : ~T
+// 	
+// 	goal
+// 	~ein == succ(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-succ
+// 	~C |- ~eout : ~T
+// }
+// 
+// 
+// local {
+// 	const e1 : Exp
+// 	
+// 	axiom
+// 	reduce(e1) = someExp(~eout)
+// 	~C |- e1 : ~T
+// 	================================ T-Preservation-T-isZero-IH
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 == Zero
+// 	~ein == isZero(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-isZero-1
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 != Zero
+// 	isValue(e1)
+// 	~ein == isZero(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-isZero-2
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 != Zero
+// 	!isValue(e1)
+// 	isSomeExp(reduce(e1))
+// 	~ein == isZero(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-isZero-4
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 != Zero
+// 	!isValue(e1)
+// 	isSomeExp(reduce(e1))
+// 	~ein == isZero(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-isZero-5
+// 	~C |- ~eout : ~T
+// 
+// 	goal
+// 	~ein == isZero(e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-isZero
+// 	~C |- ~eout : ~T
+// }
+// 
+// local {
+// 	consts
+// 		e1 : Exp
+// 	
+// 	axiom 
+// 	reduce(e1) = someExp(~eout)
+// 	~C |- e1 : ~T
+// 	================================ T-Preservation-T-abs-IH
+// 	~C |- ~eout : ~T
+// 
+// 	goal
+// 	~ein == abs(~x, ~S, e1)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-abs
+// 	~C |- ~eout : ~T
+// }
+// 
+// local {
+// 	consts
+// 		e1 : Exp
+// 		e2 : Exp
+// 	
+// 	axiom
+// 	reduce(e1) = someExp(~eout)
+// 	~C |- e1 : ~T
+// 	================================ T-Preservation-T-app-IH1
+// 	~C |- ~eout : ~T
+// 
+// 	axiom // NEEDED (as expected!)
+// 	reduce(e2) = someExp(~eout)
+// 	~C |- e2 : ~T
+// 	================================ T-Preservation-T-app-IH2
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 == abs(~x, ~S, ~eabs)
+// 	isSomeExp(reduce(~e))
+// 	~ein == app(e1, e2)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-app-1
+// 	~C |- ~eout : ~T
+// 
+// 	lemma
+// 	e1 == abs(~x, ~S, ~eabs)
+// 	!isSomeExp(reduce(e2))
+// 	isValue(e2)
+// 	~ein == app(e1, e2)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-app-2
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 == abs(~x, ~S, ~eabs)
+// 	!isSomeExp(reduce(e2))
+// 	!isValue(e2)
+// 	~ein == app(e1, e2)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-app-3
+// 	~C |- ~eout : ~T
+// 	
+// 	// lemma
+// 	// e1 != abs(~x, ~S, ~eabs)
+// 	// isSomeExp(reduce(e1))
+// 	// ================== TEST-REDUCE
+// 	// reduce(app(e1, e2)) == someExp(app(getSomeExp(reduce(e1)), e2))
+// 	// 
+// 	// hide-all
+// 	// include { T-inv-app, T-app, T-Preservation-T-app-IH1 }
+// 	// lemma
+// 	// ~C |- app(e1, e2) : ~T
+// 	// reduce(e1) = someExp(~eout)
+// 	// ====================== TEST-REDUCE-2
+// 	// ~C |- app(~eout, e2) : ~T
+// 	
+// 	lemma
+// 	e1 != abs(~x, ~S, ~eabs)
+// 	isSomeExp(reduce(e1))
+// 	~ein == app(e1, e2)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-app-4
+// 	~C |- ~eout : ~T
+// 	
+// 	lemma
+// 	e1 != abs(~x, ~S, ~eabs)
+// 	!isSomeExp(reduce(e1))
+// 	~ein == app(e1, e2)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-app-5
+// 	~C |- ~eout : ~T
+// 
+// 	goal
+// 	~ein == app(e1, e2)
+// 	reduce(~ein) = someExp(~eout)
+// 	~C |- ~ein : ~T
+// 	=================== T-Preservation-T-app
+// 	~C |- ~eout : ~T
+// }
+
+goal
+reduce(var(~x)) = someExp(~eout)
+~C |- var(~x) : ~T
+=================== T-Preservation-T-var
+~C |- ~eout : ~T
+
+goal
+reduce(True) = someExp(~eout)
+~C |- True : ~T
+=================== T-Preservation-T-true
+~C |- ~eout : ~T
+
+goal
+reduce(False) = someExp(~eout)
+~C |- False : ~T
+=================== T-Preservation-T-false
+~C |- ~eout : ~T
+
+goal
+reduce(Zero) = someExp(~eout)
+~C |- Zero : ~T
+=================== T-Preservation-T-zero
+~C |- ~eout : ~T
+
+local {
+	const e1 : Exp
+	
+	axiom 
+	reduce(e1) = someExp(~eout)
+	~C |- e1 : ~T
+	================================ T-Preservation-T-pred-IH
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == succ(~e)
+	reduce(~e) = someExp(~ered)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-results-1
+	~C |- ~ered : ~T
+	
+	lemma
+	e1 == succ(~e)
+	reduce(~e) = someExp(~ered)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-results-2
+	~C |- pred(succ(~ered)) : ~T
+	
+	lemma
+	~C |- pred(Zero) : ~T
+	======================= T-Preservation-T-pred-results-3
+	~C |- Zero : ~T
+	
+	lemma
+	reduce(e1) = someExp(~ered)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-results-4
+	~C |- pred(~ered) : ~T
+	
+	lemma
+	e1 == succ(~e)
+	isNum(~e)
+	reduce(pred(e1)) = someExp(~eout)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-1
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == succ(~e)
+	!isNum(~e)
+	isSomeExp(reduce(~e))
+	reduce(pred(e1)) = someExp(~eout)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-2
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == succ(~e)
+	!isNum(~e)
+	!isSomeExp(reduce(~e))
+	reduce(pred(e1)) = someExp(~eout)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-3
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == Zero
+	reduce(pred(e1)) = someExp(~eout)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-4
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != succ(~e)
+	e1 != Zero
+	isSomeExp(reduce(e1))
+	reduce(pred(e1)) = someExp(~eout)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-5
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != succ(~e)
+	e1 != Zero
+	!isSomeExp(reduce(e1))
+	reduce(pred(e1)) = someExp(~eout)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred-6
+	~C |- ~eout : ~T
+	
+	goal
+	reduce(pred(e1)) = someExp(~eout)
+	~C |- pred(e1) : ~T
+	======================= T-Preservation-T-pred
+	~C |- ~eout : ~T
+}
+
+local {
+	const e1 : Exp
+	
+	axiom 
+	reduce(e1) = someExp(~eout)
+	~C |- e1 : ~T
+	================================ T-Preservation-T-succ-IH
+	~C |- ~eout : ~T
+	
+	lemma
+	reduce(e1) = someExp(~ered)
+	~C |- succ(e1) : ~T
+	======================= T-Preservation-T-succ-results-1
+	~C |- succ(~ered) : ~T
+	
+	lemma
+	isNum(e1)
+	reduce(succ(e1)) = someExp(~eout)
+	~C |- succ(e1) : ~T
+	======================= T-Preservation-T-succ-1
+	~C |- ~eout : ~T
+	
+	lemma
+	!isNum(e1)
+	isSomeExp(reduce(e1))
+	reduce(succ(e1)) = someExp(~eout)
+	~C |- succ(e1) : ~T
+	======================= T-Preservation-T-succ-2
+	~C |- ~eout : ~T
+	
+	lemma
+	!isNum(e1)
+	!isSomeExp(reduce(e1))
+	reduce(succ(e1)) = someExp(~eout)
+	~C |- succ(e1) : ~T
+	======================= T-Preservation-T-succ-3
+	~C |- ~eout : ~T
+	
+	goal
+	reduce(succ(e1)) = someExp(~eout)
+	~C |- succ(e1) : ~T
+	======================= T-Preservation-T-succ
+	~C |- ~eout : ~T
+}
+
+
+local {
+	const e1 : Exp
+	
+	axiom
+	reduce(e1) = someExp(~eout)
+	~C |- e1 : ~T
+	================================ T-Preservation-T-isZero-IH
+	~C |- ~eout : ~T
+	
+	lemma
+	~C |- isZero(Zero) : ~T
+	======================= T-Preservation-T-isZero-results-1
+	~C |- True : ~T
+	
+	lemma
+	~C |- isZero(e1) : ~T
+	======================= T-Preservation-T-isZero-results-2
+	~C |- False : ~T
+	
+	lemma
+	reduce(e1) = someExp(~ered)
+	~C |- isZero(e1) : ~T
+	======================= T-Preservation-T-isZero-results-3
+	~C |- isZero(~ered) : ~T
+	
+	lemma
+	e1 == Zero
+	reduce(isZero(e1)) = someExp(~eout)
+	~C |- isZero(e1) : ~T
+	======================= T-Preservation-T-isZero-1
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != Zero
+	isValue(e1)
+	reduce(isZero(e1)) = someExp(~eout)
+	~C |- isZero(e1) : ~T
+	======================= T-Preservation-T-isZero-2
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != Zero
+	!isValue(e1)
+	isSomeExp(reduce(e1))
+	reduce(isZero(e1)) = someExp(~eout)
+	~C |- isZero(e1) : ~T
+	======================= T-Preservation-T-isZero-3
+	~C |- ~eout : ~T
+
+	lemma
+	e1 != Zero
+	!isValue(e1)
+	!isSomeExp(reduce(e1))
+	reduce(isZero(e1)) = someExp(~eout)
+	~C |- isZero(e1) : ~T
+	======================= T-Preservation-T-isZero-4
+	~C |- ~eout : ~T
+	
+	goal
+	reduce(isZero(e1)) = someExp(~eout)
+	~C |- isZero(e1) : ~T
+	======================= T-Preservation-T-isZero
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom 
+	reduce(e1) = someExp(~eout)
+	~C |- e1 : ~T
+	================================ T-Preservation-T-abs-IH
+	~C |- ~eout : ~T
+
+	goal
+	reduce(abs(~x, ~S, e1)) = someExp(~eout)
+	~C |- abs(~x, ~S, e1) : ~T
+	================================ T-Preservation-T-abs
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom
+	reduce(e1) = someExp(~eout)
+	~C |- e1 : ~T
+	================================ T-Preservation-T-app-IH1
+	~C |- ~eout : ~T
+
+	axiom // NEEDED (as expected!)
+	reduce(e2) = someExp(~eout)
+	~C |- e2 : ~T
+	================================ T-Preservation-T-app-IH2
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == abs(~x, ~S, ~e)
+	~C |- app(e1, e2) : ~T
+	reduce(e2) == someExp(~e2red)
+	============================= T-Preservation-T-app-results-1
+	~C |- app(abs(~x, ~S, ~e), ~e2red) : ~T
+	
+	lemma
+	e1 == abs(~x, ~S, ~e)
+	~C |- app(e1, e2) : ~T
+	============================= T-Preservation-T-app-results-2
+	~C |- subst(~x, e2, ~e) : ~T
+	
+	lemma
+	~C |- app(e1, e2) : ~T
+	reduce(e1) == someExp(~e1red)
+	====================== T-Preservation-T-app-results-4
+	~C |- app(~e1red, e2) : ~T
+	
+	//hide-all
+	//include { reduce18, isSomeExp0, getSomeExp0, reduce-CODOM, T-Preservation-T-app-results-1 }
+	lemma
+	e1 == abs(~x, ~S, ~e)
+	isSomeExp(reduce(e2))
+	reduce(app(e1, e2)) = someExp(~eout)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-1
+	~C |- ~eout : ~T
+	
+	//hide-all
+	//include { reduce19, isSomeExp0, getSomeExp0, reduce-CODOM, T-Preservation-T-app-results-2 }
+	lemma
+	e1 == abs(~x, ~S, ~e)
+	!isSomeExp(reduce(e2))
+	isValue(e2)
+	reduce(app(e1, e2)) = someExp(~eout)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-2
+	~C |- ~eout : ~T
+
+	lemma
+	e1 == abs(~x, ~S, ~e)
+	!isSomeExp(reduce(e2))
+	!isValue(e2)
+	reduce(app(e1, e2)) = someExp(~eout)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-3
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != abs(~x, ~S, ~e)
+	isSomeExp(reduce(e1))
+	reduce(app(e1, e2)) = someExp(~eout)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-4
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != abs(~x, ~S, ~e)
+	!isSomeExp(reduce(e1))
+	reduce(app(e1, e2)) = someExp(~eout)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-5
+	~C |- ~eout : ~T
+
+	goal
+	reduce(app(e1, e2)) = someExp(~eout)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app
+	~C |- ~eout : ~T
+}
+
+axiom
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation
+~C |- ~eout : ~T

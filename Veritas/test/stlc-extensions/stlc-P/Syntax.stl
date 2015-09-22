@@ -1,0 +1,48 @@
+module stlcP.Syntax
+
+sorts
+  Var Exp Typ
+
+constructors
+  var : Var -> Exp
+  abs : Var Typ Exp -> Exp
+  app : Exp Exp -> Exp
+  pair : Exp Exp -> Exp
+  first : Exp -> Exp
+  second : Exp -> Exp
+
+function
+isValue : Exp -> Bool
+isValue(abs(x, S, e)) = true
+isValue(var(x)) = false
+isValue(app(e1, e2)) = false
+isValue(pair(e1, e2)) = isValue(e1) && isValue(e2)
+isValue(first(e)) = false
+isValue(second(e)) = false
+
+function
+isFreeVar : Var Exp -> Bool
+isFreeVar(v, var(x))       = x == v
+isFreeVar(v, abs(x, T, e)) = ((x != v) && (isFreeVar(v, e))) 
+isFreeVar(v, app(e1, e2))  = isFreeVar(v, e1) || isFreeVar(v, e2)
+isFreeVar(v, pair(e1, e2)) = isFreeVar(v, e1) || isFreeVar(v, e2)
+isFreeVar(v, first(e)) = isFreeVar(v, e)
+isFreeVar(v, second(e)) = isFreeVar(v, e)
+
+// axiom
+// isFreeVar(~v, ~e)
+// ================= isFreeVar-inv
+// OR
+// => exists ~x
+//      ~e = var(~x)
+//      ~x = ~v
+// => exists ~x, ~T, ~e1
+//      ~e = abs(~x, ~T, ~e1)
+//      ~x != ~v
+//      isFreeVar(~v, ~e1)
+// => exists ~e1, ~e2
+//      ~e = app(~e1, ~e2)
+//      isFreeVar(~v, ~e1)
+// => exists ~e1, ~e2
+//      ~e = app(~e1, ~e2)
+//      isFreeVar(~v, ~e2)
