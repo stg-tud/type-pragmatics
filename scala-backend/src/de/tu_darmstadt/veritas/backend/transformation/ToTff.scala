@@ -62,13 +62,14 @@ object ToTff {
   private def bodyToTff(body: Seq[ModuleDef]): Unit = {
     body.dropRight(1) foreach { md =>
       md match {
-        case Axioms(axs)      => axiomlist ++= translateAxioms(axs)
-        case Goals(gs, _)     => throw TransformationError("Found goal in Module which was not at last position!")
-        case Constructors(cs) => addConstDecl(cs)
-        case Consts(cs)       => addConstDecl(cs)
-        case Sorts(s)         => addSortDef(s)
-        case Functions(fds)   => addConstDecl(getFunctionSigs(fds))
-        case _                => throw TransformationError("Unsupported top-level construct!")
+        case Axioms(axs)           => axiomlist ++= translateAxioms(axs)
+        case Goals(gs, _)          => throw TransformationError("Found goal in Module which was not at last position!")
+        case Constructors(cs)      => addConstDecl(cs)
+        case Consts(cs)            => addConstDecl(cs)
+        case Sorts(s)              => addSortDef(s)
+        case Functions(fds)        => addConstDecl(getFunctionSigs(fds))
+        case PartialFunctions(fds) => addConstDecl(getFunctionSigs(fds))
+        case _                     => throw TransformationError("Unsupported top-level construct!")
 
       }
     }
@@ -329,8 +330,8 @@ object ToTff {
       }
 
     occ match {
-      case FunctionExpEq(mx @ FunctionMeta(_), FunctionExpApp(n, _)) if (mx == m) => getReturnType(retrieveType(n))
-      case FunctionExpNeq(mx @ FunctionMeta(_), FunctionExpApp(n, _)) if (mx == m) => getReturnType(retrieveType(n))
+      case FunctionExpEq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(retrieveType(n))
+      case FunctionExpNeq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(retrieveType(n))
       case FunctionExpApp(fn, args) => getArgType(retrieveType(fn), args)
       case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, an untypable FunctionExp was marked as typable.")
     }

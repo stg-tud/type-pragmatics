@@ -50,8 +50,7 @@ object Backend {
     // the original file!
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
     val transformedModule = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod)))
-    //Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
-    transformedModule map ToFof.toFofFile 
+    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
   }
 
   /**
