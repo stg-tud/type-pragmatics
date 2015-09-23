@@ -7,9 +7,9 @@ sealed abstract class FofBinaryAssoc(args: Seq[FofUnitary], opString: String) ex
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(args.head)
-    args.tail foreach {
+    args.tail foreach { fu =>
       writer.write(opString)
-      writer.write(_)
+      writer.write(fu)
     }
   }
 }
@@ -23,7 +23,7 @@ object Or {
     else {
       val filteredArgs = args.filterNot {
         case False => true
-        case _    => false
+        case _     => false
       }
       filteredArgs match {
         case Seq()       => False
@@ -31,7 +31,7 @@ object Or {
         case s           => new Or(s)
       }
     }
- 
+
   def unapply(e: Or): Option[Seq[FofUnitary]] = Some(e.args)
 }
 
