@@ -31,6 +31,8 @@ case class FunctionSig(name: String, in: Seq[SortRef], out: SortRef) extends Ver
     if (!in.isEmpty) writer.write("-> ")
     writer.write(out)
   }
+  
+  override def toString() = s"${name} : ${in.mkString(" ")} -> ${out}"
 }
 
 object FunctionSig {

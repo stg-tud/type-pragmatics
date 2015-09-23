@@ -17,6 +17,7 @@ case class SortDef(name: String) extends VeritasConstruct with SimplePrettyPrint
   }
   
   override def prettyString = name
+  override def toString() = name
 }
 
 case class SortRef(name: String) extends VeritasConstruct with SimplePrettyPrintable {
@@ -30,6 +31,7 @@ case class SortRef(name: String) extends VeritasConstruct with SimplePrettyPrint
   }
   
   override def prettyString = name
+  override def toString() = name
 }
 
 object SortDef {

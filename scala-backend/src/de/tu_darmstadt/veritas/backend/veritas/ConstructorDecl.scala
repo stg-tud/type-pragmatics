@@ -31,6 +31,8 @@ case class ConstructorDecl(name: String, in: Seq[SortRef], out: SortRef) extends
     if (!in.isEmpty) writer.write("-> ")
     writer.write(out)
   }
+  
+  override def toString() = s"${name} : ${in.mkString(" ")} -> ${out}"
 }
 
 object ConstructorDecl {

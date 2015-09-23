@@ -30,6 +30,8 @@ case class FunctionPatApp(functionName: String, args: Seq[FunctionPattern]) exte
     args.lastOption foreach (writer.write(_))
     writer.write(")")
   }
+  
+  override def toString() = s"${functionName}(${args.mkString(",")})"
 }
 
 case class FunctionPatVar(varName: String) extends FunctionPattern with SimplePrettyPrintable {
@@ -43,6 +45,8 @@ case class FunctionPatVar(varName: String) extends FunctionPattern with SimplePr
   }
 
   override val prettyString = varName
+  
+  override def toString() = varName
 }
 
 object FunctionPattern {

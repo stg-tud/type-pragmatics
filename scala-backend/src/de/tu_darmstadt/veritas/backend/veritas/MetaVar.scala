@@ -16,6 +16,7 @@ case class MetaVar(name: String) extends VeritasConstruct with SimplePrettyPrint
   }
 
   override def prettyString = s"~$name"
+  override def toString() = s"~${name}"
 }
 
 object MetaVar {

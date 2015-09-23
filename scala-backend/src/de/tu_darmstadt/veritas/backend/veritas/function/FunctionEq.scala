@@ -37,6 +37,8 @@ case class FunctionEq(functionName: String, patterns: Seq[FunctionPattern], righ
     writer.write(") = ")
     writer.indentOptional().write(right).unindent()
   }
+  
+  override def toString() = s"${functionName}(${patterns.mkString(",")}) = ${right}"
 }
 
 object FunctionEq {

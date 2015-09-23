@@ -37,6 +37,8 @@ case class TypingRule(name: String, premises: Seq[TypingRuleJudgment], consequen
     consequences.dropRight(1) foreach (writer.writeln(_))
     consequences.lastOption foreach (writer.write(_))
   }
+  
+  override def toString() = s"${premises.mkString("\n")}\n=== ${name}\n${consequences.mkString("\n")}"
 }
 
 object TypingRule {

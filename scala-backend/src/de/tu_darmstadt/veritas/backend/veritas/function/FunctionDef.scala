@@ -36,6 +36,8 @@ case class FunctionDef(signature: FunctionSig, eqn: Seq[FunctionEq]) extends Ver
     eqn.dropRight(1) foreach (writer.writeln(_))
     eqn.lastOption foreach (writer.write(_))
   }
+  
+  override def toString() = s"functions \n ${signature} \n ${eqn.mkString("\n")}"
 }
 
 object FunctionDef {

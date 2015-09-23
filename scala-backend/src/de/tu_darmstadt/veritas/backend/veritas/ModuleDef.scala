@@ -33,6 +33,8 @@ case class Local(defs: Seq[ModuleDef]) extends ModuleDef {
     defs.lastOption foreach (writer.writeln(_))
     writer.unindent().write("}")
   }
+  
+  override def toString() = s"local(${defs.mkString("\n")})"
 }
 
 case object HideAll extends ModuleDef with SimplePrettyPrintable {

@@ -35,6 +35,8 @@ case class TypingJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta, f3: Function
     writer.write(f2).write(" : ")
     writer.write(f3)
   }
+  
+  override def toString() = s"${f1} |- ${f2} : ${f3}"
 }
 
 case class TypingJudgmentSimple(f1: FunctionExpMeta, f2: FunctionExpMeta) extends TypingRuleJudgment {
@@ -60,6 +62,8 @@ case class TypingJudgmentSimple(f1: FunctionExpMeta, f2: FunctionExpMeta) extend
     writer.write(f1).write(" : ")
     writer.write(f2)
   }
+  
+  override def toString() = s"${f1} : ${f2}"
 }
 
 case class FunctionExpJudgment(f: FunctionExp) extends TypingRuleJudgment {
@@ -78,6 +82,7 @@ case class FunctionExpJudgment(f: FunctionExp) extends TypingRuleJudgment {
   }
 
   override def prettyPrint(writer: PrettyPrintWriter) = writer.write(f)
+  override def toString() = f.toString()
 }
 
 /**
@@ -116,6 +121,8 @@ case class ExistsJudgment(varlist: Seq[MetaVar], jdglst: Seq[TypingRuleJudgment]
     jdglst.lastOption foreach (writer.write(_))
     writer.unindent()
   }
+  
+  override def toString() = s"exists ${varlist.mkString(",")}: \n ${jdglst.mkString("=> " , "\n", "")}"
 }
 
 case class ForallJudgment(varlist: Seq[MetaVar], jdglst: Seq[TypingRuleJudgment]) extends TypingRuleJudgment {
@@ -147,6 +154,8 @@ case class ForallJudgment(varlist: Seq[MetaVar], jdglst: Seq[TypingRuleJudgment]
     jdglst.lastOption foreach (writer.write(_))
     writer.unindent()
   }
+  
+  override def toString() = s"forall ${varlist.mkString(",")}: \n ${jdglst.mkString("=> " , "\n", "")}"
 }
 
 // TODO untested, no example in Veritas/test/*.stl files
@@ -174,6 +183,8 @@ case class ReduceJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta) extends Typi
     writer.write(f1).write(" -> ")
     writer.write(f2)
   }
+  
+  override def toString() = s"${f1} -> ${f2}"
 }
 
 // TODO untested, no example in Veritas/test/*.stl files
@@ -196,6 +207,8 @@ case class NotJudgment(jdg: TypingRuleJudgment) extends TypingRuleJudgment {
     writer.write("not ")
     writer.write(jdg)
   }
+  
+  override def toString() = jdg.toString
 }
 
 case class OrJudgment(orCases: Seq[Seq[TypingRuleJudgment]]) extends TypingRuleJudgment {
@@ -228,6 +241,8 @@ case class OrJudgment(orCases: Seq[Seq[TypingRuleJudgment]]) extends TypingRuleJ
       orCase.lastOption foreach (writer.write(_))
     }
   }
+  
+  override def toString() = s"Or \n ${orCases.mkString("=> " , "\n", "")}"
 }
 
 object TypingRuleJudgment {
