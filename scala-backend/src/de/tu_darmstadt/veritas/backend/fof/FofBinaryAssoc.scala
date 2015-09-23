@@ -19,18 +19,24 @@ final class Or private (val args: Seq[FofUnitary]) extends FofBinaryAssoc(args, 
 }
 object Or {
   def apply(args: Seq[FofUnitary]): Fof =
-    if (args contains True) True
-    else {
-      val filteredArgs = args.filterNot {
-        case False => true
-        case _     => false
-      }
-      filteredArgs match {
-        case Seq()       => False
-        case Seq(single) => single
-        case s           => new Or(s)
-      }
+    args match {
+      case Seq()       => False
+      case Seq(single) => single
+      case s           => new Or(s)
     }
+
+  //    if (args contains True) True
+  //    else {
+  //      val filteredArgs = args.filterNot {
+  //        case False => true
+  //        case _     => false
+  //      }
+  //      filteredArgs match {
+  //        case Seq()       => False
+  //        case Seq(single) => single
+  //        case s           => new Or(s)
+  //      }
+  //    }
 
   def unapply(e: Or): Option[Seq[FofUnitary]] = Some(e.args)
 }
@@ -40,18 +46,24 @@ final class And private (val args: Seq[FofUnitary]) extends FofBinaryAssoc(args,
 }
 object And {
   def apply(args: Seq[FofUnitary]): Fof =
-    if (args contains False) False
-    else {
-      val filteredArgs = args.filterNot {
-        case True => true
-        case _    => false
-      }
-      filteredArgs match {
-        case Seq()       => True
-        case Seq(single) => single
-        case s           => new And(s)
-      }
+    args match {
+      case Seq()       => True
+      case Seq(single) => single
+      case s           => new And(s)
     }
+
+  //    if (args contains False) False
+  //    else {
+  //      val filteredArgs = args.filterNot {
+  //        case True => true
+  //        case _    => false
+  //      }
+  //      filteredArgs match {
+  //        case Seq()       => True
+  //        case Seq(single) => single
+  //        case s           => new And(s)
+  //      }
+  //    }
 
   def unapply(e: And): Option[Seq[FofUnitary]] = Some(e.args)
 }

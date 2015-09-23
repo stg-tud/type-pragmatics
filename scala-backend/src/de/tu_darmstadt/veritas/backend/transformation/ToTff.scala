@@ -189,8 +189,13 @@ object ToTff {
    */
   private def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) = {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs)
-    ForAll(makeVarlist(quantifiedVars.toSeq, prems ++ conseqs), Parenthesized(
-      (Impl(Parenthesized(And(prems map jdgtoTff)), Parenthesized(And(conseqs map jdgtoTff))))))
+    val transformedprems = prems map jdgtoTff
+
+    if (transformedprems == Seq(True))
+      ForAll(makeVarlist(quantifiedVars.toSeq, prems ++ conseqs), Parenthesized(And(conseqs map jdgtoTff)))
+    else
+      ForAll(makeVarlist(quantifiedVars.toSeq, prems ++ conseqs), Parenthesized(
+        (Impl(Parenthesized(And(transformedprems)), Parenthesized(And(conseqs map jdgtoTff))))))
   }
 
   /**

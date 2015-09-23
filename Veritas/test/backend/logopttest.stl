@@ -1,0 +1,26 @@
+module backend.logopttest
+
+sorts N
+
+constructors
+ zero : N
+ succ : N -> N
+
+functions
+test : N N -> N
+test(n, m) = if (n == m) then n else n
+
+functions
+test1 : N N -> N
+test1(n, m) = if ((n == n) && (m == m)) then false else true
+
+axioms
+
+true
+(~n == ~n) && (~m == ~m)
+~n == ~m
+========= a1
+true
+
+
+     

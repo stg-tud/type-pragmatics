@@ -23,6 +23,7 @@ import de.tu_darmstadt.veritas.backend.transformation.ToFof
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.DesugarLemmas
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel.LogicalTermOptimization
 import de.tu_darmstadt.veritas.backend.transformation.defs.FunctionEqToAxiomsSimple
 
 object Backend {
@@ -49,8 +50,10 @@ object Backend {
     // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
     // the original file!
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
-    val transformedModule = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod)))
+    val transformedModule = LogicalTermOptimization(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
     Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
+
+    
   }
 
   /**

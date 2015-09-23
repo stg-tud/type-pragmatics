@@ -56,8 +56,13 @@ object ToFof {
 
   private def typingRuleToFof(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]): Fof = {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs) map toUntypedVar
-    ForAll(quantifiedVars.toSeq, Parenthesized(
-      Impl(Parenthesized(And(prems map jdgToFof)), Parenthesized(And(conseqs map jdgToFof)))))
+    val transformedprems = prems map jdgToFof
+
+    if (transformedprems == Seq(True))
+      ForAll(quantifiedVars.toSeq, Parenthesized(And(conseqs map jdgToFof)))
+    else
+      ForAll(quantifiedVars.toSeq, Parenthesized(
+        Impl(Parenthesized(And(transformedprems)), Parenthesized(And(conseqs map jdgToFof)))))
   }
 
   /**
