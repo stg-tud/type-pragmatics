@@ -71,6 +71,10 @@ reduce(app(e1, e2)) = let e1red = reduce(e1) in
 	then someExp(app(getSomeExp(e1red), e2))
 	else noExp
 	
+function
+test: OptExp OptExp -> OptExp
+test(noExp(), noExp()) = noExp
+	
 goal
 true
 ===== g

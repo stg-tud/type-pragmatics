@@ -54,7 +54,7 @@ object Backend {
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
 //    val transformedModule = LogicalTermOptimization(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
 //    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
-    NameFunctionResultsOnly((FunctionEqToAxiomsSimple(VarToApp0(Seq(mod)))))
+    NameEverythingButMetaVars(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
     
   }
 

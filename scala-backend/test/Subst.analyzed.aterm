@@ -794,8 +794,8 @@ Module(
           , FunctionEq(
               "reduce"
             , [FunctionPatApp(
-                 "abs"{Use(Result(8332))}
-               , [FunctionPatVar("x"{ Use(Result(8322))
+                 "abs"{Use(Result(40438))}
+               , [FunctionPatVar("x"{ Use(Result(40428))
                                     , Def(
                                         URI(
                                           Language("Veritas")
@@ -805,7 +805,7 @@ Module(
                                           ]
                                         )
                                       )
-                                    }), FunctionPatVar("S"{ Use(Result(8326))
+                                    }), FunctionPatVar("S"{ Use(Result(40432))
                                                           , Def(
                                                               URI(
                                                                 Language("Veritas")
@@ -815,7 +815,7 @@ Module(
                                                                 ]
                                                               )
                                                             )
-                                                          }), FunctionPatVar("e"{ Use(Result(8330))
+                                                          }), FunctionPatVar("e"{ Use(Result(40436))
                                                                                 , Def(
                                                                                     URI(
                                                                                       Language("Veritas")
@@ -827,7 +827,7 @@ Module(
                                                                                   )
                                                                                 })]
                )]
-            , FunctionExpVar("noExp"{Use(Result(8334))})
+            , FunctionExpVar("noExp"{Use(Result(40440))})
             ){ Scope(
                  [ ( NablNsSymbol()
                    , URI(
@@ -841,10 +841,10 @@ Module(
           , FunctionEq(
               "reduce"
             , [ FunctionPatApp(
-                  "app"{Use(Result(8358))}
+                  "app"{Use(Result(40464))}
                 , [ FunctionPatApp(
-                      "abs"{Use(Result(8352))}
-                    , [FunctionPatVar("x"{ Use(Result(8342))
+                      "abs"{Use(Result(40458))}
+                    , [FunctionPatVar("x"{ Use(Result(40448))
                                          , Def(
                                              URI(
                                                Language("Veritas")
@@ -854,7 +854,7 @@ Module(
                                                ]
                                              )
                                            )
-                                         }), FunctionPatVar("S"{ Use(Result(8346))
+                                         }), FunctionPatVar("S"{ Use(Result(40452))
                                                                , Def(
                                                                    URI(
                                                                      Language("Veritas")
@@ -864,7 +864,7 @@ Module(
                                                                      ]
                                                                    )
                                                                  )
-                                                               }), FunctionPatVar("e1"{ Use(Result(8350))
+                                                               }), FunctionPatVar("e1"{ Use(Result(40456))
                                                                                       , Def(
                                                                                           URI(
                                                                                             Language("Veritas")
@@ -876,7 +876,7 @@ Module(
                                                                                         )
                                                                                       })]
                     )
-                  , FunctionPatVar("e2"{ Use(Result(8356))
+                  , FunctionPatVar("e2"{ Use(Result(40462))
                                        , Def(
                                            URI(
                                              Language("Veritas")
@@ -901,32 +901,32 @@ Module(
                            )
                          )
                        }
-              , FunctionExpApp("reduce"{Use(Result(8368))}, [FunctionExpVar("e2"{Use(Result(8366))})])
+              , FunctionExpApp("reduce"{Use(Result(40474))}, [FunctionExpVar("e2"{Use(Result(40472))})])
               , FunctionExpIf(
-                  FunctionExpApp("isSomeExp"{Use(Result(8372))}, [FunctionExpVar("e2red"{Use(Result(8370))})])
+                  FunctionExpApp("isSomeExp"{Use(Result(40478))}, [FunctionExpVar("e2red"{Use(Result(40476))})])
                 , FunctionExpApp(
-                    "someExp"{Use(Result(8387))}
+                    "someExp"{Use(Result(40493))}
                   , [ FunctionExpApp(
-                        "app"{Use(Result(8385))}
+                        "app"{Use(Result(40491))}
                       , [ FunctionExpApp(
-                            "abs"{Use(Result(8380))}
-                          , [FunctionExpVar("x"{Use(Result(8374))}), FunctionExpVar("S"{Use(Result(8376))}), FunctionExpVar("e1"{Use(Result(8378))})]
+                            "abs"{Use(Result(40486))}
+                          , [FunctionExpVar("x"{Use(Result(40480))}), FunctionExpVar("S"{Use(Result(40482))}), FunctionExpVar("e1"{Use(Result(40484))})]
                           )
-                        , FunctionExpApp("getSomeExp"{Use(Result(8383))}, [FunctionExpVar("e2red"{Use(Result(8370))})])
+                        , FunctionExpApp("getSomeExp"{Use(Result(40489))}, [FunctionExpVar("e2red"{Use(Result(40476))})])
                         ]
                       )
                     ]
                   )
                 , FunctionExpIf(
-                    FunctionExpApp("isValue"{Use(Result(8390))}, [FunctionExpVar("e2"{Use(Result(8366))})])
+                    FunctionExpApp("isValue"{Use(Result(40496))}, [FunctionExpVar("e2"{Use(Result(40472))})])
                   , FunctionExpApp(
-                      "someExp"{Use(Result(8387))}
+                      "someExp"{Use(Result(40493))}
                     , [FunctionExpApp(
-                         "subst"{Use(Result(8395))}
-                       , [FunctionExpVar("x"{Use(Result(8374))}), FunctionExpVar("e2"{Use(Result(8366))}), FunctionExpVar("e1"{Use(Result(8378))})]
+                         "subst"{Use(Result(40501))}
+                       , [FunctionExpVar("x"{Use(Result(40480))}), FunctionExpVar("e2"{Use(Result(40472))}), FunctionExpVar("e1"{Use(Result(40484))})]
                        )]
                     )
-                  , FunctionExpVar("noExp"{Use(Result(8398))})
+                  , FunctionExpVar("noExp"{Use(Result(40504))})
                   )
                 )
               )
@@ -942,27 +942,27 @@ Module(
              }
           , FunctionEq(
               "reduce"
-            , [FunctionPatApp("app"{Use(Result(8412))}, [FunctionPatVar("e1"{ Use(Result(8406))
-                                                                            , Def(
-                                                                                URI(
-                                                                                  Language("Veritas")
-                                                                                , [ ID(NablNsSymbol(), "e1", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
-                                                                                  , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/15")
-                                                                                  , ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            }), FunctionPatVar("e2"{ Use(Result(8410))
-                                                                                                   , Def(
-                                                                                                       URI(
-                                                                                                         Language("Veritas")
-                                                                                                       , [ ID(NablNsSymbol(), "e2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
-                                                                                                         , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/15")
-                                                                                                         , ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
-                                                                                                         ]
-                                                                                                       )
-                                                                                                     )
-                                                                                                   })])]
+            , [FunctionPatApp("app"{Use(Result(40518))}, [FunctionPatVar("e1"{ Use(Result(40512))
+                                                                             , Def(
+                                                                                 URI(
+                                                                                   Language("Veritas")
+                                                                                 , [ ID(NablNsSymbol(), "e1", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
+                                                                                   , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/15")
+                                                                                   , ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
+                                                                                   ]
+                                                                                 )
+                                                                               )
+                                                                             }), FunctionPatVar("e2"{ Use(Result(40516))
+                                                                                                    , Def(
+                                                                                                        URI(
+                                                                                                          Language("Veritas")
+                                                                                                        , [ ID(NablNsSymbol(), "e2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
+                                                                                                          , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/15")
+                                                                                                          , ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
+                                                                                                          ]
+                                                                                                        )
+                                                                                                      )
+                                                                                                    })])]
             , FunctionExpLet(
                 "e1red"{ Def(
                            URI(
@@ -974,18 +974,18 @@ Module(
                            )
                          )
                        }
-              , FunctionExpApp("reduce"{Use(Result(8422))}, [FunctionExpVar("e1"{Use(Result(8420))})])
+              , FunctionExpApp("reduce"{Use(Result(40528))}, [FunctionExpVar("e1"{Use(Result(40526))})])
               , FunctionExpIf(
-                  FunctionExpApp("isSomeExp"{Use(Result(8426))}, [FunctionExpVar("e1red"{Use(Result(8424))})])
+                  FunctionExpApp("isSomeExp"{Use(Result(40532))}, [FunctionExpVar("e1red"{Use(Result(40530))})])
                 , FunctionExpApp(
-                    "someExp"{Use(Result(8435))}
+                    "someExp"{Use(Result(40541))}
                   , [ FunctionExpApp(
-                        "app"{Use(Result(8433))}
-                      , [FunctionExpApp("getSomeExp"{Use(Result(8429))}, [FunctionExpVar("e1red"{Use(Result(8424))})]), FunctionExpVar("e2"{Use(Result(8431))})]
+                        "app"{Use(Result(40539))}
+                      , [FunctionExpApp("getSomeExp"{Use(Result(40535))}, [FunctionExpVar("e1red"{Use(Result(40530))})]), FunctionExpVar("e2"{Use(Result(40537))})]
                       )
                     ]
                   )
-                , FunctionExpVar("noExp"{Use(Result(19318))})
+                , FunctionExpVar("noExp"{Use(Result(40543))})
                 )
               )
             ){ Scope(
@@ -993,6 +993,39 @@ Module(
                    , URI(
                        Language("Veritas")
                      , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/15"), ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "test"{ Def(
+                      URI(
+                        Language("Veritas")
+                      , [ ID(NablNsSymbol(), "test", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
+                        , ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
+                        ]
+                      )
+                    )
+                  }
+          , [SortRef("OptExp"{Use(Result(8264))}), SortRef("OptExp"{Use(Result(8264))})]
+          , SortRef("OptExp"{Use(Result(8264))})
+          )
+        , [ FunctionEq(
+              "test"
+            , [FunctionPatApp("noExp"{Use(Result(40639))}, []), FunctionPatApp("noExp"{Use(Result(40639))}, [])]
+            , FunctionExpVar("noExp"{Use(Result(40639))})
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/16"), ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))]
                      )
                    )
                  ]
@@ -1010,7 +1043,7 @@ Module(
                                    URI(
                                      Language("Veritas")
                                    , [ ID(NablNsRule(), "g", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
-                                     , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/16")
+                                     , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/17")
                                      , ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))
                                      ]
                                    )
@@ -1023,7 +1056,7 @@ Module(
          [ ( NablNsRule()
            , URI(
                Language("Veritas")
-             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/16"), ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))]
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/17"), ID(NablNsModule(), "backend.Subst", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/backend/Subst.stl/0"))]
              )
            )
          ]
