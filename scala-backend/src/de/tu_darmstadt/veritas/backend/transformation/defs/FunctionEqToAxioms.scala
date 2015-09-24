@@ -82,9 +82,11 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
 
   private def negatePatternPart(patpair: (FunctionPattern, FunctionPattern)): Seq[TypingRuleJudgment] =
     patpair match {
-      case (FunctionPatVar(n), a @ FunctionPatApp(m, args2)) =>
-        Seq(ForallJudgment(collectVars(args2),
-          Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar(n)), varsToMetaVars(patsToVars(a)))))))
+      case (FunctionPatVar(n), a @ FunctionPatApp(m, args2)) => {
+        val fresha = makeFreshVars(a, new FreshNames)
+        Seq(ForallJudgment(collectVars(fresha),
+          Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar(n)), varsToMetaVars(patsToVars(fresha)))))))
+      }
       case (FunctionPatApp(n, args1), FunctionPatApp(m, args2)) =>
         if (n == m)
           negatePrepats(args1, Seq(args2))
@@ -92,13 +94,18 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       case _ => throw TransformationError("Could not find negation of pattern: " + patpair)
     }
 
-  private def collectVars(ps: Seq[FunctionPattern]): Seq[MetaVar] =
-    (for (p <- ps) yield {
-      p match {
-        case FunctionPatVar(n)       => Seq(MetaVar(n))
-        case FunctionPatApp(n, args) => collectVars(args)
-      }
-    }).flatten
+  private def makeFreshVars(p: FunctionPattern, fn: FreshNames): FunctionPattern = {
+    p match {
+      case FunctionPatVar(n)       => FunctionPatVar(fn.freshName(n))
+      case FunctionPatApp(n, args) => FunctionPatApp(n, args map (p => makeFreshVars(p, fn)))
+    }
+  }
+
+  private def collectVars(p: FunctionPattern): Seq[MetaVar] =
+    p match {
+      case FunctionPatVar(n)       => Seq(MetaVar(n))
+      case FunctionPatApp(n, args) => args flatMap collectVars
+    }
 
   private def collectIfLetPremises(ext: FunctionExp): Seq[Seq[FunctionExpJudgment]] =
     ext match {
