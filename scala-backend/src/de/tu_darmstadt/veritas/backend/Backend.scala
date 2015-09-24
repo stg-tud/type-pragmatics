@@ -25,6 +25,8 @@ import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.DesugarLemmas
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.LogicalTermOptimization
 import de.tu_darmstadt.veritas.backend.transformation.defs.FunctionEqToAxiomsSimple
+import de.tu_darmstadt.veritas.backend.transformation.defs.NameEverythingButMetaVars
+import de.tu_darmstadt.veritas.backend.transformation.defs.NameFunctionResultsOnly
 
 object Backend {
 
@@ -50,9 +52,9 @@ object Backend {
     // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
     // the original file!
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
-    val transformedModule = LogicalTermOptimization(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
-    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
-
+//    val transformedModule = LogicalTermOptimization(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
+//    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
+    NameFunctionResultsOnly((FunctionEqToAxiomsSimple(VarToApp0(Seq(mod)))))
     
   }
 
