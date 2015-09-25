@@ -16,6 +16,9 @@ trait CollectSubformulas extends ModuleTransformation {
   //collect the additional naming premises that are generated during traversal
   var additionalPremises: Set[TypingRuleJudgment] = Set()
 
+  //collect premises generated in exists/forall bodies!
+  var inneradditionalPremises: Set[TypingRuleJudgment] = Set()
+
   /**
    * override to control which constructs get named subformulas
    *
@@ -25,14 +28,14 @@ trait CollectSubformulas extends ModuleTransformation {
   def checkConstruct(vc: VeritasConstruct): Boolean = true
 
   /**
-   * gets direct parent of subformula for which a meta variable is to be generated
+   * gets subformula for which a meta variable is to be generated
    * as parameter
    *
    * this information can be used to construct a certain name
    * default implementation just generates a fresh name with "VAR"
    *
    */
-  def newMetaVar(parent: VeritasConstruct): MetaVar = MetaVar(freshNames.freshName("VAR"))
+  def newMetaVar(vc: VeritasConstruct): MetaVar = MetaVar(freshNames.freshName("VAR"))
 
   private def addAdditionalPremise(mv: MetaVar, mexp: FunctionExpMeta): Unit =
     additionalPremises = additionalPremises + FunctionExpJudgment(FunctionExpEq(FunctionMeta(mv), mexp))
@@ -44,17 +47,20 @@ trait CollectSubformulas extends ModuleTransformation {
     additionalPremises = Set()
     freshNames = new FreshNames
     generatedNames = Set()
-    withSuper(super.transTypingRules(tr)) {
-      case t @ TypingRule(n, prems, conss) => Seq(t)
+    tr match {
+      case t @ TypingRule(n, prems, conss) => super.transTypingRules(t)
     }
   }
 
   override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
-    withSuper(super.transTypingRuleJudgment(trj)) {
+    //warning: unclear if the current solution works for nested exists/forall
+    //I think it should, but didn't test ...
+    trj match {
       case e @ ExistsJudgment(vl, jl) => {
         val oldaddprems = additionalPremises
         additionalPremises = Set()
         val res = ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
+        inneradditionalPremises = additionalPremises
         additionalPremises = oldaddprems
         res
       }
@@ -62,27 +68,34 @@ trait CollectSubformulas extends ModuleTransformation {
         val oldaddprems = additionalPremises
         additionalPremises = Set()
         val res = ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
+        inneradditionalPremises = additionalPremises
         additionalPremises = oldaddprems
         res
       }
+      case t => super.transTypingRuleJudgment(t)
     }
 
   override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
-    withSuper(super.transTypingRuleJudgments(trj)) {
+    //warning: unclear if the current solution works for nested exists/forall
+    //I think it should, but didn't test ...
+    trj match {
       case e @ ExistsJudgment(vl, jl) => {
         val oldaddprems = additionalPremises
         additionalPremises = Set()
-        val res = ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
+        val res = Seq(ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_))))
+        inneradditionalPremises = additionalPremises
         additionalPremises = oldaddprems
-        Seq(res)
+        res
       }
       case e @ ForallJudgment(vl, jl) => {
         val oldaddprems = additionalPremises
         additionalPremises = Set()
-        val res = ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
+        val res = Seq(ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_))))
+        inneradditionalPremises = additionalPremises
         additionalPremises = oldaddprems
-        Seq(res)
+        res
       }
+      case t => super.transTypingRuleJudgments(t)
     }
 
   protected def findExistingPremise(mexp: FunctionExpMeta): Option[FunctionMeta] = {
@@ -110,7 +123,7 @@ trait CollectSubformulas extends ModuleTransformation {
           case FunctionMeta(m) if (generatedNames contains m) => mexp
           //in all other cases, add a new premise
           case _ => {
-            val newmeta = newMetaVar(path.head)
+            val newmeta = newMetaVar(mexp)
             generatedNames += newmeta
             addAdditionalPremise(newmeta, mexp)
             mexp
@@ -178,6 +191,15 @@ trait CollectSubformulas extends ModuleTransformation {
  */
 trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
 
+  /**
+   * override to control which constructs actually get substituted
+   * (if this shall differ from the constructs for which premises are generated)
+   *
+   * can use information from path variable, for example
+   * parameter vc is the construct itself
+   */
+  def checkSubstitute(vc: VeritasConstruct): Boolean = true
+
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     withSuper(super.transTypingRules(tr)) {
       case TypingRule(n, prems, conss) => {
@@ -189,51 +211,79 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
   }
 
   private def makeOrImpl(jl: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
-    val premisesSeq = (additionalPremises.toSeq map (a => NotJudgment(a))) map (s => Seq(s))
-    Seq(OrJudgment(premisesSeq :+ jl))
+    val premisesSeq = (inneradditionalPremises.toSeq map (a => NotJudgment(a))) map (s => Seq(s))
+    val orcases = premisesSeq :+ jl
+    if (orcases.length > 1)
+      Seq(OrJudgment(premisesSeq :+ jl))
+    else
+      jl
   }
 
   override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
     withSuper(super.transTypingRuleJudgment(trj)) {
       case e @ ExistsJudgment(vl, jl) => {
-        val previousFV = FreeVariables.freeVariables(Seq(e))
-        val newexistsbody = makeOrImpl(trace(jl)(transTypingRuleJudgments(_)))
-        ExistsJudgment((FreeVariables.freeVariables(newexistsbody, previousFV)).toSeq, newexistsbody)
+        //note: jl already is the substituted body, so the quantified variables have to be recomputed
+        val newexistsbody = makeOrImpl(jl)
+        val allFV = FreeVariables.freeVariables(newexistsbody)
+        //including generatedNames from allFV is ok since no generated name
+        //within body jl can ever come from outside e (additionalPremises is reset when moving into e,
+        //so no old names are retained!)
+        val outsideVars = allFV diff generatedNames diff vl.toSet
+        ExistsJudgment((allFV diff outsideVars).toSeq, newexistsbody)
       }
       case e @ ForallJudgment(vl, jl) => {
-        val previousFV = FreeVariables.freeVariables(Seq(e))
-        val newforallbody = makeOrImpl(trace(jl)(transTypingRuleJudgments(_)))
-        ForallJudgment((FreeVariables.freeVariables(newforallbody, previousFV)).toSeq, newforallbody)
+        //note: jl already is the substituted body, so the quantified variables have to be recomputed
+        val newforallbody = makeOrImpl(jl)
+        val allFV = FreeVariables.freeVariables(newforallbody)
+        //including generatedNames from allFV is ok since no generated name
+        //within body jl can ever come from outside e (additionalPremises is reset when moving into e,
+        //so no old names are retained!)
+        val outsideVars = allFV diff generatedNames diff vl.toSet
+        ForallJudgment((allFV diff outsideVars).toSeq, newforallbody)
       }
     }
 
   override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
     withSuper(super.transTypingRuleJudgments(trj)) {
       case e @ ExistsJudgment(vl, jl) => {
-        val previousFV = FreeVariables.freeVariables(Seq(e))
-        val newexistsbody = makeOrImpl(trace(jl)(transTypingRuleJudgments(_)))
-        Seq(ExistsJudgment((FreeVariables.freeVariables(newexistsbody, previousFV)).toSeq, newexistsbody))
+        //note: jl already is the substituted body, so the quantified variables have to be recomputed
+        val newexistsbody = makeOrImpl(jl)
+        val allFV = FreeVariables.freeVariables(newexistsbody)
+        //including generatedNames from allFV is ok since no generated name
+        //within body jl can ever come from outside e (additionalPremises is reset when moving into e,
+        //so no old names are retained!)
+        val outsideVars = allFV diff generatedNames diff vl.toSet
+        Seq(ExistsJudgment((allFV diff outsideVars).toSeq, newexistsbody))
       }
       case e @ ForallJudgment(vl, jl) => {
-        val previousFV = FreeVariables.freeVariables(Seq(e))
-        val newforallbody = makeOrImpl(trace(jl)(transTypingRuleJudgments(_)))
-        Seq(ForallJudgment((FreeVariables.freeVariables(newforallbody, previousFV)).toSeq, newforallbody))
+        //note: jl already is the substituted body, so the quantified variables have to be recomputed
+        val newforallbody = makeOrImpl(jl)
+        val allFV = FreeVariables.freeVariables(newforallbody)
+        //including generatedNames from allFV is ok since no generated name
+        //within body jl can ever come from outside e (additionalPremises is reset when moving into e,
+        //so no old names are retained!)
+        val outsideVars = allFV diff generatedNames diff vl.toSet
+        Seq(ForallJudgment((allFV diff outsideVars).toSeq, newforallbody))
       }
     }
 
   private def checkAndSubstituteMexp(mexp: FunctionExpMeta): FunctionExpMeta =
-    //check whether there has already been a premise with the desired mexp
-    findExistingPremise(mexp) match {
-      case Some(fm) => fm
-      case None     => mexp
-    }
+    if (checkSubstitute(mexp))
+      //check whether there has already been a premise with the desired mexp
+      findExistingPremise(mexp) match {
+        case Some(fm) => fm
+        case None     => mexp
+      }
+    else mexp
 
   private def checkAndSubstituteMexps(mexp: FunctionExpMeta): Seq[FunctionExpMeta] =
-    //check whether there has already been a premise with the desired mexp
-    findExistingPremise(mexp) match {
-      case Some(fm) => Seq(fm)
-      case None     => Seq(mexp)
-    }
+    if (checkSubstitute(mexp))
+      //check whether there has already been a premise with the desired mexp
+      findExistingPremise(mexp) match {
+        case Some(fm) => Seq(fm)
+        case None     => Seq(mexp)
+      }
+    else Seq(mexp)
 
   override def transFunctionExpMeta(f: FunctionExpMeta): FunctionExpMeta =
     withSuper(super.transFunctionExpMeta(f)) {
