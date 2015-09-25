@@ -320,6 +320,10 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
 
 object NameEverything extends NameSubformulas
 
+object NameEverythingSubstituteNothing extends NameSubformulas {
+  override def checkSubstitute(vc: VeritasConstruct): Boolean = false
+}
+
 /**
  * excludes all meta variables from being named
  */
@@ -330,6 +334,17 @@ object NameEverythingButMetaVars extends NameSubformulas {
       case MetaVar(_)      => false
       case _               => true
     }
+}
+
+object NameEverythingButMetaVarsSubstituteNothing extends NameSubformulas {
+  override def checkConstruct(vc: VeritasConstruct): Boolean =
+    vc match {
+      case FunctionMeta(_) => false
+      case MetaVar(_)      => false
+      case _               => true
+    }
+
+  override def checkSubstitute(vc: VeritasConstruct): Boolean = false
 }
 
 /**
@@ -347,6 +362,38 @@ object NameFunctionResultsOnly extends NameSubformulas {
   }
 
   override def newMetaVar(parent: VeritasConstruct): MetaVar = MetaVar("RESULT")
+
+}
+
+object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with CollectTypeInfo {
+  override def checkConstruct(vc: VeritasConstruct): Boolean = {
+    //only rename right-hand side of single equation in conclusion
+    val grandparent = path(2)
+    val grandgrandparent = path(3)
+
+    grandparent match {
+      case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpApp(f, args)))) if (args contains vc) => true
+      case _ => grandgrandparent match {
+        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(f, args))))) if (args contains vc) => true
+        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(f, args), r)))) if (args contains vc) => true
+        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(f, args), r)))) if (args contains vc) => true
+        case _ => false
+      }
+    }
+
+  }
+
+  override def checkSubstitute(vc: VeritasConstruct): Boolean = checkConstruct(vc)
+
+  override def newMetaVar(vc: VeritasConstruct): MetaVar =
+    path.head match {
+      case FunctionExpApp(n, args) => {
+        val vcpos = args.indexOf(vc)
+        val funcparamsorts = functypes(n)._1
+        MetaVar(freshNames.freshName(funcparamsorts(vcpos).name))
+      }
+      case _ => super.newMetaVar(vc) //should not happen
+    }
 
 }
 

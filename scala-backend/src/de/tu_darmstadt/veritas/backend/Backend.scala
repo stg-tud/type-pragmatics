@@ -21,12 +21,8 @@ import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.FunctionExpApp
 import de.tu_darmstadt.veritas.backend.transformation.ToFof
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel.DesugarLemmas
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel.LogicalTermOptimization
-import de.tu_darmstadt.veritas.backend.transformation.defs.FunctionEqToAxiomsSimple
-import de.tu_darmstadt.veritas.backend.transformation.defs.NameEverythingButMetaVars
-import de.tu_darmstadt.veritas.backend.transformation.defs.NameFunctionResultsOnly
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
+import de.tu_darmstadt.veritas.backend.transformation.defs._
 
 object Backend {
 
@@ -54,7 +50,7 @@ object Backend {
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
 //    val transformedModule = LogicalTermOptimization(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
 //    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
-    NameEverythingButMetaVars(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
+    NameSubstituteFunctionDefParametersOnly(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
     
   }
 
