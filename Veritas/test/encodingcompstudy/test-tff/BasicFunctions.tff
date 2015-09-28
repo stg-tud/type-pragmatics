@@ -1,0 +1,16 @@
+tff('A_type', type, vA: $tType).
+tff('Opt_type', type, vOpt: $tType).
+tff('Opt3_type', type, vOpt3: $tType).
+tff('none_type', type, vnone: vOpt).
+tff('some_type', type, vsome: vA > vOpt).
+tff('error_type', type, verror: vOpt3).
+tff('isTrue_type', type, visTrue: vOpt3).
+tff('isFalse_type', type, visFalse: vOpt3).
+tff('isSome_type', type, visSome: vOpt > $o).
+tff('getSome_type', type, vgetSome: vOpt > vA).
+tff('isSome2', axiom, ![VOpt0: vOpt] : (VOpt0 = vnone => !(visSome(VOpt0)))).
+tff('isSome3', axiom, ![VOpt0: vOpt, Va: vA] : (VOpt0 = vsome(Va) => visSome(VOpt0))).
+tff('getSome1', axiom, ![VOpt0: vOpt, Va: vA, VRESULT: vA] : ((VOpt0 = vsome(Va) & VRESULT = Va) => vgetSome(VOpt0) = VRESULT)).
+tff('isSome-INV-1', axiom, ![Vopt: vOpt] : (visSome(Vopt) => ?[Vopt: vOpt, Va: vA] : (Vopt = vsome(Va) & vgetSome(Vopt) = Va))).
+tff('isSome-INV-2', axiom, ![VRESULT: vA, Vb, Vopt: vOpt, Va: vA] : ((VRESULT = Vb & Vopt = vsome(Va) & vgetSome(Vopt) = VRESULT) => Va = VRESULT)).
+tff('g', conjecture, $true).

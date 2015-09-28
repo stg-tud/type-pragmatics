@@ -1,0 +1,984 @@
+Module(
+  "enccompstudy.Tables"{ Def(
+                           URI(
+                             Language("Veritas")
+                           , [ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                           )
+                         )
+                       }
+, []
+, [ Sorts(
+      [ SortDef("FType"{ Def(
+                           URI(
+                             Language("Veritas")
+                           , [ ID(NablNsSort(), "FType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             ]
+                           )
+                         )
+                       })
+      , SortDef("AName"{ Def(
+                           URI(
+                             Language("Veritas")
+                           , [ ID(NablNsSort(), "AName", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             ]
+                           )
+                         )
+                       })
+      , SortDef("AList"{ Def(
+                           URI(
+                             Language("Veritas")
+                           , [ ID(NablNsSort(), "AList", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             ]
+                           )
+                         )
+                       })
+      , SortDef("CType"{ Def(
+                           URI(
+                             Language("Veritas")
+                           , [ ID(NablNsSort(), "CType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             ]
+                           )
+                         )
+                       })
+      , SortDef("TType"{ Def(
+                           URI(
+                             Language("Veritas")
+                           , [ ID(NablNsSort(), "TType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                             ]
+                           )
+                         )
+                       })
+      , SortDef("RawType"{ Def(
+                             URI(
+                               Language("Veritas")
+                             , [ ID(NablNsSort(), "RawType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                               , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                               ]
+                             )
+                           )
+                         })
+      ]
+    )
+  , Constructors(
+      [ ConstructorDecl(
+          "ctype"{ Def(
+                     URI(
+                       Language("Veritas")
+                     , [ ID(NablNsSymbol(), "ctype", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       ]
+                     )
+                   )
+                 }
+        , [SortRef("AName"{Use(Result(50157))}), SortRef("FType"{Use(Result(50159))})]
+        , SortRef("CType"{Use(Result(50161))})
+        )
+      , ConstructorDecl("aempty"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsSymbol(), "aempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                }, [], SortRef("AList"{Use(Result(50165))}))
+      , ConstructorDecl(
+          "acons"{ Def(
+                     URI(
+                       Language("Veritas")
+                     , [ ID(NablNsSymbol(), "acons", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       ]
+                     )
+                   )
+                 }
+        , [SortRef("AName"{Use(Result(50157))}), SortRef("AList"{Use(Result(50165))})]
+        , SortRef("AList"{Use(Result(50165))})
+        )
+      , ConstructorDecl("ttempty"{ Def(
+                                     URI(
+                                       Language("Veritas")
+                                     , [ ID(NablNsSymbol(), "ttempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                       ]
+                                     )
+                                   )
+                                 }, [], SortRef("TType"{Use(Result(50174))}))
+      , ConstructorDecl(
+          "ttcons"{ Def(
+                      URI(
+                        Language("Veritas")
+                      , [ ID(NablNsSymbol(), "ttcons", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                        , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                        ]
+                      )
+                    )
+                  }
+        , [SortRef("CType"{Use(Result(50161))}), SortRef("TType"{Use(Result(50174))})]
+        , SortRef("TType"{Use(Result(50174))})
+        )
+      , ConstructorDecl("rtempty"{ Def(
+                                     URI(
+                                       Language("Veritas")
+                                     , [ ID(NablNsSymbol(), "rtempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                       ]
+                                     )
+                                   )
+                                 }, [], SortRef("RawType"{Use(Result(50183))}))
+      , ConstructorDecl(
+          "rtcons"{ Def(
+                      URI(
+                        Language("Veritas")
+                      , [ ID(NablNsSymbol(), "rtcons", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                        , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                        ]
+                      )
+                    )
+                  }
+        , [SortRef("FType"{Use(Result(50159))}), SortRef("RawType"{Use(Result(50183))})]
+        , SortRef("RawType"{Use(Result(50183))})
+        )
+      ]
+    )
+  , Sorts(
+      [SortDef("FVal"{ Def(
+                         URI(
+                           Language("Veritas")
+                         , [ ID(NablNsSort(), "FVal", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                           , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                           ]
+                         )
+                       )
+                     }), SortDef("Row"{ Def(
+                                          URI(
+                                            Language("Veritas")
+                                          , [ ID(NablNsSort(), "Row", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                            , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                            ]
+                                          )
+                                        )
+                                      }), SortDef("RawTable"{ Def(
+                                                                URI(
+                                                                  Language("Veritas")
+                                                                , [ ID(NablNsSort(), "RawTable", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                  , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                  ]
+                                                                )
+                                                              )
+                                                            }), SortDef("Table"{ Def(
+                                                                                   URI(
+                                                                                     Language("Veritas")
+                                                                                   , [ ID(NablNsSort(), "Table", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                     , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                     ]
+                                                                                   )
+                                                                                 )
+                                                                               })]
+    )
+  , Constructors(
+      [ ConstructorDecl("rempty"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsSymbol(), "rempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                }, [], SortRef("Row"{Use(Result(50200))}))
+      , ConstructorDecl(
+          "rcons"{ Def(
+                     URI(
+                       Language("Veritas")
+                     , [ ID(NablNsSymbol(), "rcons", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       ]
+                     )
+                   )
+                 }
+        , [SortRef("FVal"{Use(Result(50204))}), SortRef("Row"{Use(Result(50200))})]
+        , SortRef("Row"{Use(Result(50200))})
+        )
+      , ConstructorDecl("tempty"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsSymbol(), "tempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                }, [], SortRef("RawTable"{Use(Result(50210))}))
+      , ConstructorDecl(
+          "tcons"{ Def(
+                     URI(
+                       Language("Veritas")
+                     , [ ID(NablNsSymbol(), "tcons", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       ]
+                     )
+                   )
+                 }
+        , [SortRef("Row"{Use(Result(50200))}), SortRef("RawTable"{Use(Result(50210))})]
+        , SortRef("RawTable"{Use(Result(50210))})
+        )
+      , ConstructorDecl(
+          "table"{ Def(
+                     URI(
+                       Language("Veritas")
+                     , [ ID(NablNsSymbol(), "table", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                       ]
+                     )
+                   )
+                 }
+        , [SortRef("AList"{Use(Result(50165))}), SortRef("RawTable"{Use(Result(50210))})]
+        , SortRef("Table"{Use(Result(50221))})
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("getRaw"{ Def(
+                                  URI(
+                                    Language("Veritas")
+                                  , [ ID(NablNsSymbol(), "getRaw", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                    , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                    ]
+                                  )
+                                )
+                              }, [SortRef("Table"{Use(Result(50221))})], SortRef("RawTable"{Use(Result(50210))}))
+        , [ FunctionEq(
+              "getRaw"
+            , [FunctionPatApp("table"{Use(Result(50242))}, [FunctionPatVar("al"{ Use(Result(50236))
+                                                                               , Def(
+                                                                                   URI(
+                                                                                     Language("Veritas")
+                                                                                   , [ ID(NablNsSymbol(), "al", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                     , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0")
+                                                                                     , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                     ]
+                                                                                   )
+                                                                                 )
+                                                                               }), FunctionPatVar("rt"{ Use(Result(50240))
+                                                                                                      , Def(
+                                                                                                          URI(
+                                                                                                            Language("Veritas")
+                                                                                                          , [ ID(NablNsSymbol(), "rt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                            , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0")
+                                                                                                            , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        )
+                                                                                                      })])]
+            , FunctionExpVar("rt"{Use(Result(50240))})
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("getAL"{ Def(
+                                 URI(
+                                   Language("Veritas")
+                                 , [ ID(NablNsSymbol(), "getAL", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                   , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                   ]
+                                 )
+                               )
+                             }, [SortRef("Table"{Use(Result(50221))})], SortRef("AList"{Use(Result(50165))}))
+        , [ FunctionEq(
+              "getAL"
+            , [FunctionPatApp("table"{Use(Result(50261))}, [FunctionPatVar("al"{ Use(Result(50255))
+                                                                               , Def(
+                                                                                   URI(
+                                                                                     Language("Veritas")
+                                                                                   , [ ID(NablNsSymbol(), "al", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                     , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/1")
+                                                                                     , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                     ]
+                                                                                   )
+                                                                                 )
+                                                                               }), FunctionPatVar("rt"{ Use(Result(50259))
+                                                                                                      , Def(
+                                                                                                          URI(
+                                                                                                            Language("Veritas")
+                                                                                                          , [ ID(NablNsSymbol(), "rt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                            , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/1")
+                                                                                                            , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        )
+                                                                                                      })])]
+            , FunctionExpVar("al"{Use(Result(50255))})
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/1"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [FunctionDef(
+         FunctionSig("fieldType"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsSymbol(), "fieldType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                }, [SortRef("FVal"{Use(Result(50204))})], SortRef("FType"{Use(Result(50159))}))
+       , []
+       )]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "le"{ Def(
+                    URI(
+                      Language("Veritas")
+                    , [ ID(NablNsSymbol(), "le", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                      ]
+                    )
+                  )
+                }
+          , [SortRef("FVal"{Use(Result(50204))}), SortRef("FVal"{Use(Result(50204))})]
+          , SortRef("Bool"{Use(Result(50272))})
+          )
+        , []
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "ge"{ Def(
+                    URI(
+                      Language("Veritas")
+                    , [ ID(NablNsSymbol(), "ge", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                      ]
+                    )
+                  )
+                }
+          , [SortRef("FVal"{Use(Result(50204))}), SortRef("FVal"{Use(Result(50204))})]
+          , SortRef("Bool"{Use(Result(50272))})
+          )
+        , []
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "matchingAList"{ Def(
+                               URI(
+                                 Language("Veritas")
+                               , [ ID(NablNsSymbol(), "matchingAList", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                 , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                 ]
+                               )
+                             )
+                           }
+          , [SortRef("TType"{Use(Result(50174))}), SortRef("AList"{Use(Result(50165))})]
+          , SortRef("Bool"{Use(Result(50272))})
+          )
+        , [ FunctionEq("matchingAList", [FunctionPatVar("ttempty"{ Use(Result(50290))
+                                                                 , Def(
+                                                                     URI(
+                                                                       Language("Veritas")
+                                                                     , [ ID(NablNsSymbol(), "ttempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                       , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/2")
+                                                                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                       ]
+                                                                     )
+                                                                   )
+                                                                 }), FunctionPatVar("aempty"{ Use(Result(50294))
+                                                                                            , Def(
+                                                                                                URI(
+                                                                                                  Language("Veritas")
+                                                                                                , [ ID(NablNsSymbol(), "aempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                  , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/2")
+                                                                                                  , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                  ]
+                                                                                                )
+                                                                                              )
+                                                                                            })], FunctionExpTrue()){ Scope(
+                                                                                                                       [ ( NablNsSymbol()
+                                                                                                                         , URI(
+                                                                                                                             Language("Veritas")
+                                                                                                                           , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/2"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                                                                                                                           )
+                                                                                                                         )
+                                                                                                                       ]
+                                                                                                                     )
+                                                                                                                   }
+          , FunctionEq(
+              "matchingAList"
+            , [ FunctionPatApp(
+                  "ttcons"{Use(Result(50314))}
+                , [FunctionPatApp("ctype"{Use(Result(50308))}, [FunctionPatVar("a1"{ Use(Result(50302))
+                                                                                   , Def(
+                                                                                       URI(
+                                                                                         Language("Veritas")
+                                                                                       , [ ID(NablNsSymbol(), "a1", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                         , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/3")
+                                                                                         , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                         ]
+                                                                                       )
+                                                                                     )
+                                                                                   }), FunctionPatVar("f"{ Use(Result(50306))
+                                                                                                         , Def(
+                                                                                                             URI(
+                                                                                                               Language("Veritas")
+                                                                                                             , [ ID(NablNsSymbol(), "f", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                               , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/3")
+                                                                                                               , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                               ]
+                                                                                                             )
+                                                                                                           )
+                                                                                                         })]), FunctionPatVar("tt"{ Use(Result(50312))
+                                                                                                                                  , Def(
+                                                                                                                                      URI(
+                                                                                                                                        Language("Veritas")
+                                                                                                                                      , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/3")
+                                                                                                                                        , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                                        ]
+                                                                                                                                      )
+                                                                                                                                    )
+                                                                                                                                  })]
+                )
+              , FunctionPatApp("acons"{Use(Result(50324))}, [FunctionPatVar("a2"{ Use(Result(50318))
+                                                                                , Def(
+                                                                                    URI(
+                                                                                      Language("Veritas")
+                                                                                    , [ ID(NablNsSymbol(), "a2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                      , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/3")
+                                                                                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                      ]
+                                                                                    )
+                                                                                  )
+                                                                                }), FunctionPatVar("al"{ Use(Result(50322))
+                                                                                                       , Def(
+                                                                                                           URI(
+                                                                                                             Language("Veritas")
+                                                                                                           , [ ID(NablNsSymbol(), "al", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                             , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/3")
+                                                                                                             , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                             ]
+                                                                                                           )
+                                                                                                         )
+                                                                                                       })])
+              ]
+            , FunctionExpAnd(
+                FunctionExpEq(FunctionExpVar("a1"{Use(Result(50302))}), FunctionExpVar("a2"{Use(Result(50318))}))
+              , FunctionExpApp("matchingAList"{Use(Result(50330))}, [FunctionExpVar("tt"{Use(Result(50312))}), FunctionExpVar("al"{Use(Result(50322))})])
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/3"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq("matchingAList", [FunctionPatVar("tt"{ Use(Result(50338))
+                                                            , Def(
+                                                                URI(
+                                                                  Language("Veritas")
+                                                                , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                  , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/4")
+                                                                  , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                  ]
+                                                                )
+                                                              )
+                                                            }), FunctionPatVar("al"{ Use(Result(50342))
+                                                                                   , Def(
+                                                                                       URI(
+                                                                                         Language("Veritas")
+                                                                                       , [ ID(NablNsSymbol(), "al", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                         , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/4")
+                                                                                         , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                         ]
+                                                                                       )
+                                                                                     )
+                                                                                   })], FunctionExpFalse()){ Scope(
+                                                                                                               [ ( NablNsSymbol()
+                                                                                                                 , URI(
+                                                                                                                     Language("Veritas")
+                                                                                                                   , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/4"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                                                                                                                   )
+                                                                                                                 )
+                                                                                                               ]
+                                                                                                             )
+                                                                                                           }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "welltypedtable"{ Def(
+                                URI(
+                                  Language("Veritas")
+                                , [ ID(NablNsSymbol(), "welltypedtable", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                  , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                  ]
+                                )
+                              )
+                            }
+          , [SortRef("TType"{Use(Result(50174))}), SortRef("Table"{Use(Result(50221))})]
+          , SortRef("Bool"{Use(Result(50272))})
+          )
+        , [ FunctionEq(
+              "welltypedtable"
+            , [FunctionPatVar("tt"{ Use(Result(50355))
+                                  , Def(
+                                      URI(
+                                        Language("Veritas")
+                                      , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/5")
+                                        , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                        ]
+                                      )
+                                    )
+                                  }), FunctionPatApp("table"{Use(Result(50365))}, [FunctionPatVar("al"{ Use(Result(50359))
+                                                                                                      , Def(
+                                                                                                          URI(
+                                                                                                            Language("Veritas")
+                                                                                                          , [ ID(NablNsSymbol(), "al", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                            , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/5")
+                                                                                                            , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        )
+                                                                                                      }), FunctionPatVar("t"{ Use(Result(50363))
+                                                                                                                            , Def(
+                                                                                                                                URI(
+                                                                                                                                  Language("Veritas")
+                                                                                                                                , [ ID(NablNsSymbol(), "t", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                                  , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/5")
+                                                                                                                                  , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                                  ]
+                                                                                                                                )
+                                                                                                                              )
+                                                                                                                            })])]
+            , FunctionExpAnd(
+                FunctionExpApp("matchingAList"{Use(Result(50369))}, [FunctionExpVar("tt"{Use(Result(50355))}), FunctionExpVar("al"{Use(Result(50359))})])
+              , FunctionExpApp(
+                  "welltypedRawtable"{Use(Result(50375))}
+                , [FunctionExpApp("rawType"{Use(Result(50372))}, [FunctionExpVar("tt"{Use(Result(50355))})]), FunctionExpVar("t"{Use(Result(50363))})]
+                )
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/5"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("rawType"{ Def(
+                                   URI(
+                                     Language("Veritas")
+                                   , [ ID(NablNsSymbol(), "rawType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                     , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                     ]
+                                   )
+                                 )
+                               }, [SortRef("TType"{Use(Result(50174))})], SortRef("RawType"{Use(Result(50183))}))
+        , [ FunctionEq("rawType", [FunctionPatVar("ttempty"{ Use(Result(50387))
+                                                           , Def(
+                                                               URI(
+                                                                 Language("Veritas")
+                                                               , [ ID(NablNsSymbol(), "ttempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                 , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/6")
+                                                                 , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                 ]
+                                                               )
+                                                             )
+                                                           })], FunctionExpVar("rtempty"{Use(Result(50389))})){ Scope(
+                                                                                                                  [ ( NablNsSymbol()
+                                                                                                                    , URI(
+                                                                                                                        Language("Veritas")
+                                                                                                                      , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/6"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                                                                                                                      )
+                                                                                                                    )
+                                                                                                                  ]
+                                                                                                                )
+                                                                                                              }
+          , FunctionEq(
+              "rawType"
+            , [ FunctionPatApp(
+                  "ttcons"{Use(Result(50409))}
+                , [FunctionPatApp("ctype"{Use(Result(50403))}, [FunctionPatVar("a"{ Use(Result(50397))
+                                                                                  , Def(
+                                                                                      URI(
+                                                                                        Language("Veritas")
+                                                                                      , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/7")
+                                                                                        , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                        ]
+                                                                                      )
+                                                                                    )
+                                                                                  }), FunctionPatVar("ft"{ Use(Result(50401))
+                                                                                                         , Def(
+                                                                                                             URI(
+                                                                                                               Language("Veritas")
+                                                                                                             , [ ID(NablNsSymbol(), "ft", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                               , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/7")
+                                                                                                               , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                               ]
+                                                                                                             )
+                                                                                                           )
+                                                                                                         })]), FunctionPatVar("tt"{ Use(Result(50407))
+                                                                                                                                  , Def(
+                                                                                                                                      URI(
+                                                                                                                                        Language("Veritas")
+                                                                                                                                      , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/7")
+                                                                                                                                        , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                                        ]
+                                                                                                                                      )
+                                                                                                                                    )
+                                                                                                                                  })]
+                )
+              ]
+            , FunctionExpApp(
+                "rtcons"{Use(Result(50415))}
+              , [FunctionExpVar("ft"{Use(Result(50401))}), FunctionExpApp("rawType"{Use(Result(50413))}, [FunctionExpVar("tt"{Use(Result(50407))})])]
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/7"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "welltypedRawtable"{ Def(
+                                   URI(
+                                     Language("Veritas")
+                                   , [ ID(NablNsSymbol(), "welltypedRawtable", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                     , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                     ]
+                                   )
+                                 )
+                               }
+          , [SortRef("RawType"{Use(Result(50183))}), SortRef("RawTable"{Use(Result(50210))})]
+          , SortRef("Bool"{Use(Result(50272))})
+          )
+        , [ FunctionEq("welltypedRawtable", [FunctionPatVar("rt"{ Use(Result(50428))
+                                                                , Def(
+                                                                    URI(
+                                                                      Language("Veritas")
+                                                                    , [ ID(NablNsSymbol(), "rt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                      , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/8")
+                                                                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                      ]
+                                                                    )
+                                                                  )
+                                                                }), FunctionPatVar("tempty"{ Use(Result(50432))
+                                                                                           , Def(
+                                                                                               URI(
+                                                                                                 Language("Veritas")
+                                                                                               , [ ID(NablNsSymbol(), "tempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                 , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/8")
+                                                                                                 , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                 ]
+                                                                                               )
+                                                                                             )
+                                                                                           })], FunctionExpTrue()){ Scope(
+                                                                                                                      [ ( NablNsSymbol()
+                                                                                                                        , URI(
+                                                                                                                            Language("Veritas")
+                                                                                                                          , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/8"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                                                                                                                          )
+                                                                                                                        )
+                                                                                                                      ]
+                                                                                                                    )
+                                                                                                                  }
+          , FunctionEq(
+              "welltypedRawtable"
+            , [FunctionPatVar("rt"{ Use(Result(50440))
+                                  , Def(
+                                      URI(
+                                        Language("Veritas")
+                                      , [ ID(NablNsSymbol(), "rt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/9")
+                                        , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                        ]
+                                      )
+                                    )
+                                  }), FunctionPatApp("tcons"{Use(Result(50450))}, [FunctionPatVar("r"{ Use(Result(50444))
+                                                                                                     , Def(
+                                                                                                         URI(
+                                                                                                           Language("Veritas")
+                                                                                                         , [ ID(NablNsSymbol(), "r", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                           , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/9")
+                                                                                                           , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                           ]
+                                                                                                         )
+                                                                                                       )
+                                                                                                     }), FunctionPatVar("t"{ Use(Result(50448))
+                                                                                                                           , Def(
+                                                                                                                               URI(
+                                                                                                                                 Language("Veritas")
+                                                                                                                               , [ ID(NablNsSymbol(), "t", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                                 , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/9")
+                                                                                                                                 , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                                 ]
+                                                                                                                               )
+                                                                                                                             )
+                                                                                                                           })])]
+            , FunctionExpAnd(
+                FunctionExpApp("welltypedRow"{Use(Result(50454))}, [FunctionExpVar("rt"{Use(Result(50440))}), FunctionExpVar("r"{Use(Result(50444))})])
+              , FunctionExpApp("welltypedRawtable"{Use(Result(50458))}, [FunctionExpVar("rt"{Use(Result(50440))}), FunctionExpVar("t"{Use(Result(50448))})])
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/9"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "welltypedRow"{ Def(
+                              URI(
+                                Language("Veritas")
+                              , [ ID(NablNsSymbol(), "welltypedRow", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                ]
+                              )
+                            )
+                          }
+          , [SortRef("RawType"{Use(Result(50183))}), SortRef("Row"{Use(Result(50200))})]
+          , SortRef("Bool"{Use(Result(50272))})
+          )
+        , [ FunctionEq("welltypedRow", [FunctionPatVar("rtempty"{ Use(Result(50471))
+                                                                , Def(
+                                                                    URI(
+                                                                      Language("Veritas")
+                                                                    , [ ID(NablNsSymbol(), "rtempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                      , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/10")
+                                                                      , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                      ]
+                                                                    )
+                                                                  )
+                                                                }), FunctionPatVar("rempty"{ Use(Result(50475))
+                                                                                           , Def(
+                                                                                               URI(
+                                                                                                 Language("Veritas")
+                                                                                               , [ ID(NablNsSymbol(), "rempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                 , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/10")
+                                                                                                 , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                 ]
+                                                                                               )
+                                                                                             )
+                                                                                           })], FunctionExpTrue()){ Scope(
+                                                                                                                      [ ( NablNsSymbol()
+                                                                                                                        , URI(
+                                                                                                                            Language("Veritas")
+                                                                                                                          , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/10"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                                                                                                                          )
+                                                                                                                        )
+                                                                                                                      ]
+                                                                                                                    )
+                                                                                                                  }
+          , FunctionEq(
+              "welltypedRow"
+            , [ FunctionPatApp("rtcons"{Use(Result(50489))}, [FunctionPatVar("ft"{ Use(Result(50483))
+                                                                                 , Def(
+                                                                                     URI(
+                                                                                       Language("Veritas")
+                                                                                     , [ ID(NablNsSymbol(), "ft", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                       , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/11")
+                                                                                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                       ]
+                                                                                     )
+                                                                                   )
+                                                                                 }), FunctionPatVar("rt"{ Use(Result(50487))
+                                                                                                        , Def(
+                                                                                                            URI(
+                                                                                                              Language("Veritas")
+                                                                                                            , [ ID(NablNsSymbol(), "rt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                              , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/11")
+                                                                                                              , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                              ]
+                                                                                                            )
+                                                                                                          )
+                                                                                                        })])
+              , FunctionPatApp("rcons"{Use(Result(50499))}, [FunctionPatVar("v"{ Use(Result(50493))
+                                                                               , Def(
+                                                                                   URI(
+                                                                                     Language("Veritas")
+                                                                                   , [ ID(NablNsSymbol(), "v", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                     , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/11")
+                                                                                     , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                     ]
+                                                                                   )
+                                                                                 )
+                                                                               }), FunctionPatVar("r"{ Use(Result(50497))
+                                                                                                     , Def(
+                                                                                                         URI(
+                                                                                                           Language("Veritas")
+                                                                                                         , [ ID(NablNsSymbol(), "r", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                           , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/11")
+                                                                                                           , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                           ]
+                                                                                                         )
+                                                                                                       )
+                                                                                                     })])
+              ]
+            , FunctionExpAnd(
+                FunctionExpEq(FunctionExpApp("fieldType"{Use(Result(50502))}, [FunctionExpVar("v"{Use(Result(50493))})]), FunctionExpVar("ft"{Use(Result(50483))}))
+              , FunctionExpApp("welltypedRow"{Use(Result(50507))}, [FunctionExpVar("rt"{Use(Result(50487))}), FunctionExpVar("r"{Use(Result(50497))})])
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/11"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq("welltypedRow", [FunctionPatVar("rt"{ Use(Result(50515))
+                                                           , Def(
+                                                               URI(
+                                                                 Language("Veritas")
+                                                               , [ ID(NablNsSymbol(), "rt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                 , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/12")
+                                                                 , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                 ]
+                                                               )
+                                                             )
+                                                           }), FunctionPatVar("r"{ Use(Result(50519))
+                                                                                 , Def(
+                                                                                     URI(
+                                                                                       Language("Veritas")
+                                                                                     , [ ID(NablNsSymbol(), "r", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                       , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/12")
+                                                                                       , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                       ]
+                                                                                     )
+                                                                                   )
+                                                                                 })], FunctionExpFalse()){ Scope(
+                                                                                                             [ ( NablNsSymbol()
+                                                                                                               , URI(
+                                                                                                                   Language("Veritas")
+                                                                                                                 , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/12"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+                                                                                                                 )
+                                                                                                               )
+                                                                                                             ]
+                                                                                                           )
+                                                                                                         }
+          ]
+        )
+      ]
+    )
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(50522))}, [FunctionMeta(Meta("x"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , FunctionExpJudgment(FunctionExpEq(FunctionMeta(Meta("tt")), FunctionExpVar("ttempty"{Use(Result(50524))})))
+            )
+          )
+        , RuleName("============================================================================", "test1"{ Def(
+                                                                                                              URI(
+                                                                                                                Language("Veritas")
+                                                                                                              , [ ID(NablNsRule(), "test1", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/13")
+                                                                                                                , ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(50538))}
+              , [ FunctionMeta(Meta("tt"))
+                , FunctionExpApp(
+                    "table"{Use(Result(50536))}
+                  , [FunctionExpVar("aempty"{Use(Result(50528))}), FunctionExpApp("tcons"{Use(Result(50534))}, [FunctionExpVar("rempty"{Use(Result(50530))}), FunctionExpVar("tempty"{Use(Result(50532))})])]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/13"), ID(NablNsModule(), "enccompstudy.Tables", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/enccompstudy/Tables.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  ]
+)

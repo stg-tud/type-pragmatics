@@ -7,6 +7,7 @@ import scala.util.Success
 import scala.util.Try
 import org.spoofax.interpreter.terms.IStrategoList
 import org.spoofax.interpreter.terms.IStrategoTerm
+import org.spoofax.interpreter.terms.IStrategoTuple
 import de.tu_darmstadt.veritas.backend.nameresolution.NameResolution
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
@@ -26,6 +27,9 @@ import de.tu_darmstadt.veritas.backend.transformation.defs._
 
 object Backend {
 
+  private var outputfolder: String = ""
+  private var study = new EncodingComparisonStudy
+  
   @throws[BackendError[_]]("and the appropriate subclasses on internal error at any stage")
   private def run(input: StrategoTerm): Seq[PrettyPrintableFile] = {
     val mod = Module.from(input)
@@ -48,10 +52,9 @@ object Backend {
     // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
     // the original file!
     //Seq(Module(mod.name + "Out", mod.imports, mod.body))
-//    val transformedModule = LogicalTermOptimization(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
-//    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
-    NameSubstituteFunctionDefParametersOnly(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))))
-    
+    val (sname, output) = study.currEncoding(mod)
+    outputfolder = sname
+    output
   }
 
   /**
@@ -66,29 +69,43 @@ object Backend {
     }
 
     Context.initStrategy(context)
+    study = new EncodingComparisonStudy
 
     // NOTE we need to capture exceptions with Try, so we can print the full stack trace below
     // (otherwise Stratego will silence the stack trace...)
-    val backendResult = Try(run(ast))
+    //val backendResult = Try(run(ast))
 
-    backendResult match {
-      case Failure(ex) => {
-        context.getIOAgent.printError(stacktraceToString(ex))
-        // return empty list on failure
-        context.getFactory.makeList()
-      }
+    var resseq: Seq[IStrategoTuple] = Seq()
+    
+    for (i <- (0 until study.encodingnum)) yield {
+      val result = Try(run(ast))
+      
+      result match {
+        case Failure(ex) => {
+          context.getIOAgent.printError(stacktraceToString(ex))
+          // skip files that don't work
+        }
 
-      case Success(outputFiles) => {
-        val scalaSeq = for {
-          outputFile <- outputFiles
-          // map files to IStrategoTuples with (filename, contents)
-          filename = context.getFactory.makeString(inputDirectory + "/" + outputFile.filename)
-          content = context.getFactory.makeString(outputFile.toPrettyString)
-        } yield context.getFactory.makeTuple(filename, content)
-        // convert Scala Seq to Spoofax IStrategoList
-        context.getFactory.makeList(scalaSeq.asJava)
+        case Success(outputFiles) => {
+          val scalaSeq = for {
+            outputFile <- outputFiles
+            // map files to IStrategoTuples with (filename, contents)
+            filename = context.getFactory.makeString(inputDirectory + "/" + outputfolder + "/" + outputFile.filename)
+            content = context.getFactory.makeString(outputFile.toPrettyString)
+          } yield context.getFactory.makeTuple(filename, content)
+          // convert Scala Seq to Spoofax IStrategoList
+          resseq = resseq ++ scalaSeq
+        }
       }
+      
+      study.moveToNextEncoding()
     }
+
+    if (resseq.isEmpty)
+      // return empty list on failure
+      context.getFactory.makeList()
+    else
+      context.getFactory.makeList(resseq.asJava)
   }
 
   /**

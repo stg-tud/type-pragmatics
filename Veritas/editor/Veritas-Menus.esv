@@ -4,7 +4,8 @@ module Veritas-Menus
 menus
 
   menu: "Backend"
-    action: "Invoke Backend"         = invoke-backend (openeditor)
+    action: "Invoke Backend"          = invoke-backend (openeditor)
+    action: "Invoke Backend Folder"   = invoke-backend-folder
     action: "Persist Index and Tasks" = index-and-task-persist
   
   menu: "Syntax"                       (openeditor)

@@ -35,9 +35,17 @@ rules // Incremental code generation of project using compilation library.
 	index-setup(|<language>, project-path);
 	task-setup(|project-path);
     files := <backend-strategy <+ error(!"backend strategy failed: ")> (<dirname> path, ast);
+    <map(\(fn, c) -> <dirname; try(mkdir)> fn\)> files;
     <map(write-file)> files;
     result := <if <?[]> files then !None() else !<Hd> files end> ()
-
+    
+  invoke-backend-folder : 
+		(selected, position, ast, path, project-path) -> result
+	where
+		pastlist := <get-analyzed-files-folder(|path, project-path)>;
+		singleres := <map(\(p, anast) -> <invoke-backend> (selected, position, anast, p, project-path)\)> pastlist;
+		result := <if <?[]> singleres then !None() else !<Hd> singleres end> ()
+		
   index-and-task-persist : (selected, position, ast, path, project-path) -> None()
   with
   	index-setup(|<language>, project-path); index-persist;

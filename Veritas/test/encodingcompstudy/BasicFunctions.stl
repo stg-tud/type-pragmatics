@@ -1,0 +1,51 @@
+module BasicFunctions
+
+//this module contains basic utility function
+
+//option datatype (ignoring types!) check whether this is a good idea!
+
+sorts
+	A Opt
+	
+constructors
+	none : Opt
+	some : A -> Opt
+	
+function
+isSome : Opt -> Bool
+isSome(none) = false
+isSome(some(a)) = true
+
+partial function
+getSome : Opt -> A
+getSome(some(a)) = a
+
+axiom
+isSome(~opt)
+================= isSome-INV-1
+exists ~a
+	~opt = some(~a)
+	getSome(~opt) = ~a
+
+axiom
+~opt = some(~a)
+getSome(~opt) = ~b
+================= isSome-INV-2
+~a = ~b
+
+
+// Option variant for option boolean (3 answers: true, false, error)
+sorts
+	Opt3
+	
+constructors
+	error : Opt3
+	isTrue : Opt3
+	isFalse : Opt3
+	
+goal
+true
+===== g
+true
+	
+
