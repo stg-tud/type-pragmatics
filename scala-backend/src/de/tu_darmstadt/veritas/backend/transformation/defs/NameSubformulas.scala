@@ -40,6 +40,15 @@ trait CollectSubformulas extends ModuleTransformation {
   private def addAdditionalPremise(mv: MetaVar, mexp: FunctionExpMeta): Unit =
     additionalPremises = additionalPremises + FunctionExpJudgment(FunctionExpEq(FunctionMeta(mv), mexp))
 
+  override def apply(m: Seq[Module]): Seq[Module] = {
+    //make sure that any mutable state is initialized upon application!
+    freshNames = new FreshNames
+    generatedNames = Set()
+    additionalPremises = Set()
+    inneradditionalPremises = Set()
+    super.apply(m)
+  }
+
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     //the traversal of the other constructs will collect named subformulas as premises
     //and modify variable additionalPremises

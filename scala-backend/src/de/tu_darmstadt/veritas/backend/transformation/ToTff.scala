@@ -41,6 +41,12 @@ object ToTff {
    * top-level function for translating a Module to a TffFile
    */
   def toTffFile(veritasModule: Module): TffFile = {
+    //make sure every mutable state is initialized when applying this!
+    typedecllist = Seq()
+    axiomlist = Seq()
+    goal = None
+    typedSymbols = Set()
+    
     veritasModule match {
       case Module(name, Seq(), body) => {
         try {
@@ -314,7 +320,7 @@ object ToTff {
     def retrieveType(n: String): TffTopLevelType = {
       val types = typedSymbols filter { case TypedSymbol(v, t) => v == n }
       if (types.size == 1) types.head.tfftype
-      else throw TransformationError(s"Type for constructor or function n ${n} not found or found more than once!")
+      else throw TransformationError(s"Type for constructor or function ${n} not found or found more than once!")
     }
 
     def getReturnType(t: TffTopLevelType): Option[TffAtomicType] =

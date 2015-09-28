@@ -6,6 +6,12 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 
 trait CollectConstructorNames extends ModuleTransformation {
   var consNames: Set[String] = Set()
+  
+  override def apply(m: Seq[Module]): Seq[Module] = {
+    //make sure mutable state is initialized upon application
+    consNames = Set()
+    super.apply(m)
+  }
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     //take scoping into account (local blocks and strategy blocks!)
@@ -37,7 +43,13 @@ trait CollectConstructorNames extends ModuleTransformation {
 }
 
 trait CollectSortNames extends ModuleTransformation {
-  var sortNames: Seq[String] = Seq()
+  var sortNames: Set[String] = Set()
+  
+  override def apply(m: Seq[Module]): Seq[Module] = {
+    //make sure mutable state is initialized upon application
+    sortNames = Set()
+    super.apply(m)
+  }
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     //take scoping into account (local blocks and strategy blocks!)
@@ -61,7 +73,7 @@ trait CollectSortNames extends ModuleTransformation {
   override def transSortDefs(sd: SortDef): Seq[SortDef] =
     withSuper(super.transSortDefs(sd)) {
       case s @ SortDef(_) => {
-        sortNames = sortNames :+ sd.name
+        sortNames = sortNames + sd.name
         Seq(s)
       }
     }
@@ -71,6 +83,13 @@ trait CollectSortNames extends ModuleTransformation {
 trait CollectTypeInfo extends ModuleTransformation {
   var constypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   var functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  
+  override def apply(m: Seq[Module]): Seq[Module] = {
+    //make sure mutable state is initialized upon application
+    constypes = Map()
+    functypes = Map()
+    super.apply(m)
+  }
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     //take scoping into account (local blocks and strategy blocks!)
