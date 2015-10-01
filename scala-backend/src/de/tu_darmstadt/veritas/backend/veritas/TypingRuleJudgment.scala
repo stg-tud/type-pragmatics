@@ -208,7 +208,7 @@ case class NotJudgment(jdg: TypingRuleJudgment) extends TypingRuleJudgment {
     writer.write(jdg)
   }
   
-  override def toString() = jdg.toString
+  override def toString() = "not(" + jdg.toString + ")"
 }
 
 case class OrJudgment(orCases: Seq[Seq[TypingRuleJudgment]]) extends TypingRuleJudgment {
