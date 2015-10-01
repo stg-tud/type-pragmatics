@@ -9,23 +9,26 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint._
 import de.tu_darmstadt.veritas.backend.fof.FofFile
 
 class EncodingComparisonStudy {
-  
+
   var encodingStrategies: Map[String, Seq[Module] => Seq[PrettyPrintableFile]] = TreeMap(
-    ("test-fof" ->
-      (sm => {
-        val transformedModules = MoveDeclsToFront(OldFunctionEqTransformation(FunctionEqToAxiomsSimple(VarToApp0(sm))))
-        transformedModules map ToFof.toFofFile
-      }))
-      ,
-    ("test-tff" ->
-      (sm => {
-        val transformedModules = MoveDeclsToFront(OldFunctionEqTransformation(FunctionEqToAxiomsSimple(VarToApp0(sm))))
-        transformedModules map ToTff.toTffFile
-      }))
-  )
+    ("test-inline" -> (sm => {
+      //FunctionEqToAxiomsSimple(VarToApp0(sm))
+      InlineEverythingFP(NameEverything(FunctionEqToAxiomsSimple(VarToApp0(sm))))
+    })) //,
+    //    ("test-fof" ->
+    //      (sm => {
+    //        val transformedModules = MoveDeclsToFront(OldFunctionEqTransformation(FunctionEqToAxiomsSimple(VarToApp0(sm))))
+    //        transformedModules map ToFof.toFofFile
+    //      })),
+    //    ("test-tff" ->
+    //      (sm => {
+    //        val transformedModules = MoveDeclsToFront(OldFunctionEqTransformation(FunctionEqToAxiomsSimple(VarToApp0(sm))))
+    //        transformedModules map ToTff.toTffFile
+    //      }))
+    )
 
   val encodingnum = encodingStrategies.size
-  
+
   def currEncoding(module: Module): (String, Seq[PrettyPrintableFile]) = {
     if (encodingStrategies.isEmpty)
       ("", Seq())
