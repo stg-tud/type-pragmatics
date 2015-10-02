@@ -127,13 +127,10 @@ code > span.er { color: #ff0000; font-weight: bold; }
 
 <span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoAppl</span>
 <span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTerm</span>
+<span class="kw">import</span> org.<span class="fu">strategoxt</span>.<span class="fu">lang</span>.<span class="fu">Context</span>
 
 <span class="kw">object</span> ScalaStrategy {
-  <span class="co">/**</span>
-<span class="co">   * here goes all your actual strategy code...</span>
-<span class="co">   */</span>
-  <span class="kw">def</span> <span class="fu">runAsStrategy</span>(context: org.<span class="fu">strategoxt</span>.<span class="fu">lang</span>.<span class="fu">Context</span>, 
-                    inputFromEditor: IStrategoTerm): IStrategoAppl = {
+  <span class="kw">def</span> <span class="fu">runAsStrategy</span>(context: Context, inputFromEditor: IStrategoTerm): IStrategoAppl = {
     <span class="co">// output to the Spoofax console is handled via Context.getIOAgent.printError</span>
     context.<span class="fu">getIOAgent</span>.<span class="fu">printError</span>(<span class="st">&quot;Hello, World! Your input was: &quot;</span>)
     context.<span class="fu">getIOAgent</span>.<span class="fu">printError</span>(inputFromEditor.<span class="fu">toString</span>)    
@@ -161,16 +158,13 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <p class="caption">The Scala strategy project directory after successful compilation</p>
 </div>
 <h3 id="a.2.-setting-up-the-spoofax-project">3a.2. Setting up the Spoofax project</h3>
-<p>To make the strategy we just created available to Spoofax, we need to</p>
-<ul>
-<li>For Eclipse: Add the Scala project to the Spoofax project's build path. Go the the Spoofax project's <code>Properties -&gt; Java Build Path -&gt; Projects -&gt; Add...</code> and add the Scala project.</li>
-<li><p>The build process of the Spoofax editor component does not use Eclipse's builder, but the <code>build.main.xml</code>. Hence, the previous point did only fix Java errors in the Eclipse editor, but did not add the Jar to the actual build. We do this by adding the following line to <code>SampleLang/build.main.xml</code>, preferrably before the comment <code>Optional: external .def and .jar locations</code>:</p>
+<p>To make the strategy we just created available to Spoofax, we need to add the Scala project to the Spoofax project's build path. Go the the Spoofax project's <code>Properties -&gt; Java Build Path -&gt; Projects -&gt; Add...</code> and add the Scala project.</p>
+<p>However, the actual build process of the Spoofax editor component does not use Eclipse's builder, but the <code>build.main.xml</code>. Hence, the previous point did only fix Java errors in the Eclipse editor, but did not add the Jar to the build. We do this by adding the following line to <code>SampleLang/build.main.xml</code>, preferrably before the comment <code>Optional: external .def and .jar locations</code>:</p>
 <pre class="sourceCode xml"><code class="sourceCode xml"><span class="kw">&lt;property</span><span class="ot"> name=</span><span class="st">&quot;externaljar&quot;</span><span class="ot"> value=</span><span class="st">&quot;../SampleStrategy/scala-strategy.jar&quot;</span><span class="kw">/&gt;</span></code></pre>
-This copies the Jar at every build to <code>SampleLang/include/</code>.</li>
-<li><p>Now we need to make the strategies in the Jar available to Stratego by adding the following line to <code>SampleLang/editor/SampleLang.main.esv</code>:</p>
-<pre><code>  provider:      include/scala-strategy.jar</code></pre></li>
-<li><p>and by registering the Java strategy class in the <code>SampleLang/editor/java/SampleLang/strategies/InteropRegisterer.java</code> file. In our case, this file should look like this:</p></li>
-</ul>
+<p>This copies the Jar at every build from <code>ScalaStrategy/</code> to <code>SampleLang/include/</code> and adds it to the classpath.</p>
+<p>Now, we need to make the strategies in the Jar available to Stratego by adding the following line to <code>SampleLang/editor/SampleLang.main.esv</code>:</p>
+<pre><code>  provider:      include/scala-strategy.jar</code></pre>
+<p>and by registering the Java strategy class in the <code>SampleLang/editor/java/SampleLang/strategies/InteropRegisterer.java</code> file. In our case, this file should be edited to look like this:</p>
 <pre class="sourceCode java"><code class="sourceCode java"><span class="kw">package SampleLang.strategies;</span>
 
 <span class="kw">import mypackage.scala_strategy_0_0;</span>
@@ -187,32 +181,63 @@ This copies the Jar at every build to <code>SampleLang/include/</code>.</li>
     <span class="kw">super</span>(<span class="kw">new</span> Strategy[] { scala_strategy_0_0.<span class="fu">instance</span> });
   }
 }</code></pre>
-<ul>
-<li><p>Also, one needs to declare the strategy to Stratego by adding the following lines to <code>SampleLang/trans/generate.str</code>:</p>
+<p>Also, one needs to declare the strategy to Stratego by adding the following lines to <code>SampleLang/trans/generate.str</code>:</p>
 <pre><code>strategies
   // NOTE how the name here is mangled, i.e. underscores in the Java class name
   // become minus, and the suffix goes away.
-  external scala-strategy(|)</code></pre></li>
-<li><p>Finally, we add a button to invoke the Scala strategy from the editor by adding the following lines to the <code>SampleLang/editor/SampleLang-Menus.esv</code>:</p>
+  external scala-strategy(|)</code></pre>
+<p>Finally, we add a button to invoke the Scala strategy from the editor by adding the following lines to the <code>SampleLang/editor/SampleLang-Menus.esv</code>:</p>
 <pre><code>menu: &quot;Scala Strategy&quot;
-  action: &quot;Invoke Strategy&quot;        = scala-strategy (openeditor)</code></pre></li>
-</ul>
+  action: &quot;Invoke Strategy&quot;        = scala-strategy (openeditor)</code></pre>
 <div class="figure">
 <img src="10.png" alt="All the necessary changes again in one image" />
 <p class="caption">All the necessary changes again in one image</p>
 </div>
-<p>You can verify that your strategy can in fact be called by building the Spoofax editor project via <code>Project -&gt; Build Project</code> (You need to disable <code>Build Automatically</code> to manually trigger the build). When finished, open the <code>SampleLang/test/example.sam</code> and click the now available <code>Scala Strategy</code> button. It should print &quot;Hello, World!&quot; along with a <code>toString()</code> representation of your input Stratego term:</p>
+<p>You can verify that your strategy can in fact be called after all these changes by building the Spoofax editor project via <code>Project -&gt; Build Project</code> (You need to disable <code>Build Automatically</code> to manually trigger the build.) When finished, open the <code>SampleLang/test/example.sam</code> and click the now available <code>Scala Strategy</code> button. It should print &quot;Hello, World!&quot; along with a <code>toString()</code> representation of your input Stratego term:</p>
 <div class="figure">
-<img src="11.png" alt="Calling a Scala strategy from a Spoofax button. Yeah!" />
-<p class="caption">Calling a Scala strategy from a Spoofax button. Yeah!</p>
+<img src="11.png" alt="Calling a Scala strategy from a Spoofax button, finally working :)" />
+<p class="caption">Calling a Scala strategy from a Spoofax button, finally working :)</p>
 </div>
 <h3 id="a.3.-fixing-the-project-dependencies-and-build-order">3a.3. Fixing the project dependencies and build order</h3>
-<ul>
-<li>Turn off automatic build</li>
-<li>in the Ant configuration for SampleStrategy/build.xml: uncheck &quot;Build entire workspace before&quot;</li>
-<li>Add the Ant runner as a builder to the SampleStrategy project. Also add a &quot;reload-jar&quot; target to the <code>SampleLang/build.main.xml</code> and add an Ant runner for that to the SampleStrategy project builders. Check both Ant builders if you want the Spoofax editor component to be updated/reloaded with your changes, uncheck to safe time, when using 3b. as interop variant.</li>
-</ul>
-<p>TODO: nicer writedown, screenshots</p>
+<p>Currently, whenever you change any file in the Spoofax or Scala project, a full build of both projects is triggered. To fix this and speed up build time a little, you need to first uncheck <code>Build Automatically</code> under <code>Project -&gt; Build Project</code>.</p>
+<p>Also, currently the Spoofax project is always built before the Scala project, because we referenced the <code>strategoxt.jar</code> in the latter. Since this jar file should never change anyway, you can right click on <code>SampleStrategy/build.xml</code> (the Ant file building the <code>scala-strategy.jar</code>), go to <code>Run As -&gt; External Tools Configurations...</code>, select the <code>SampleStrategy build.xml</code> and uncheck <code>Build before launch</code> in the <code>Build</code> tab.</p>
+<div class="figure">
+<img src="12.png" alt="Disabling the build of the Spoofax project before the Scala one" />
+<p class="caption">Disabling the build of the Spoofax project before the Scala one</p>
+</div>
+<p>So far, when we made changes to the Scala strategy, we need to build the Scala project, then manually run the <code>SampleStrategy/build.xml</code> to get a jar and then manually build the Spoofax project. To simplify this a little, you can go to the <code>SampleStrategy</code>'s <code>Properties -&gt; Builders</code> and <code>Import...</code> the <code>build.xml</code> launch configuration. (It was created for us when we first ran the <code>build.xml</code> as an Ant script.)</p>
+<div class="figure">
+<img src="13.png" alt="Adding the Ant build.xml as a builder to the Scala project" />
+<p class="caption">Adding the Ant <code>build.xml</code> as a builder to the Scala project</p>
+</div>
+<p>Finally, we add a new Ant target to the <code>SampleLang/build.main.xml</code> file that only reloads the editor component with the new <code>scala-strategy.jar</code> file and does not recompile all the other Spoofax components of the project. To do so, add the following lines below (!) the <code>&lt;import file=&quot;build.generated.xml&quot;/&gt;</code> line in the <code>SampleLang/build.main.xml</code>:</p>
+<pre class="sourceCode xml"><code class="sourceCode xml"><span class="co">&lt;!-- used for building inside of Eclipse --&gt;</span>
+<span class="kw">&lt;import</span><span class="ot"> file=</span><span class="st">&quot;build.generated.xml&quot;</span><span class="kw">/&gt;</span> <span class="co">&lt;!-- &lt;- below this line! --&gt;</span>
+
+<span class="co">&lt;!-- target for only reloading jars/editor (when updating only an external java strategy) --&gt;</span>
+<span class="co">&lt;!-- NOTE: the called ant targets (e.g. refresh or sdf2imp.eclipse.load) need many</span>
+<span class="co">    environment variables set. You need to ensure that (e.g. but not only!) eclipse.running</span>
+<span class="co">    is set to true in the Builder. --&gt;</span>
+<span class="kw">&lt;target</span><span class="ot"> name=</span><span class="st">&quot;reload-jars&quot;</span><span class="ot"> depends=</span><span class="st">&quot;copy-jar,refresh,sdf2imp.eclipse.load&quot;</span> <span class="kw">/&gt;</span></code></pre>
+<p>Now go back to the <code>SampleStrategy -&gt; Properties -&gt; Builders</code> and create a <code>New...</code> build configuration. In the upcoming dialog, choose <code>Ant Builder</code> type. In the new dialog, go the the <code>Main</code> tab and click <code>Browse Workspace...</code> to chose a <code>Buildfile</code>. Select the <code>SampleLang/build.main.xml</code>. Next, go to the <code>Targets</code> tab and <code>Set Targets...</code> for the <code>After a &quot;Clean&quot;</code> and <code>Manual Build</code>. For the former, uncheck all targets. For the latter, check only the <code>reload-jars</code> target and uncheck everything else.</p>
+<div class="figure">
+<img src="14.png" alt="Adding a new Ant builder to the Scala project, that uses the reload-jars target (1)" />
+<p class="caption">Adding a new Ant builder to the Scala project, that uses the <code>reload-jars</code> target (1)</p>
+</div>
+<div class="figure">
+<img src="15.png" alt="Adding a new Ant builder to the Scala project, that uses the reload-jars target (2)" />
+<p class="caption">Adding a new Ant builder to the Scala project, that uses the <code>reload-jars</code> target (2)</p>
+</div>
+<div class="figure">
+<img src="16.png" alt="Adding a new Ant builder to the Scala project, that uses the reload-jars target (3)" />
+<p class="caption">Adding a new Ant builder to the Scala project, that uses the <code>reload-jars</code> target (3)</p>
+</div>
+<p>The final <code>Builders</code> configuration of the Scala project should look like this:</p>
+<div class="figure">
+<img src="17.png" alt="Final Builders configuration of the Scala project" />
+<p class="caption">Final <code>Builders</code> configuration of the Scala project</p>
+</div>
+<p>You can verify that it is working, by changing the output in the Scala code and manually build the strategy project. It should first compile the Scala source file, build the jar and then reload the Spoofax editor. When you now click on <code>Invoke Strategy</code> the new output should get shown.</p>
 <h2 id="b.-directly-running-the-scala-strategy-not-from-within-the-spoofax-editor">3b. Directly running the Scala strategy, not from within the Spoofax editor</h2>
 <p>As we have seen, to update Spoofax with the changes made to the Scala strategy, we need to reload or recompile the editor component everytime there are changes. To speed up the develop-run cycle, it might be worth to set up your strategy, such that it can be directly run from the commandline on your <code>aterm</code> files. This way, you can make changes to the strategy and directly test on some files, without the waiting time of recompiling/reloading the Spoofax editor component.</p>
 <p>TODO</p>
