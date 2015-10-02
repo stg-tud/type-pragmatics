@@ -104,9 +104,7 @@ We will include the compiled strategy as a jar file into the Spoofax editor proj
 <?xml version="1.0" ?>
 <project default="create-jar">
 	<target name="create-jar">
-		<jar jarfile="scala-strategy.jar" basedir="bin" includes="**" compress="false" >
-			<!-- TODO: include the scala libraries in a nice way, not just repackaging them in the jar -->
-		</jar>
+		<jar jarfile="scala-strategy.jar" basedir="bin" includes="**" />
 	</target>
 	<target name="clean-jar">
 		<delete file="scala-strategy.jar" />
@@ -122,17 +120,18 @@ Run the `build.xml` as an Ant build, you should now have a `scala-strategy.jar` 
 
 To make the strategy we just created available to Spoofax, we need to add the Scala project to the Spoofax project's build path. Go the the Spoofax project's `Properties -> Java Build Path -> Projects -> Add...` and add the Scala project.
 
-However, the actual build process of the Spoofax editor component does not use Eclipse's builder, but the `build.main.xml`. Hence, the previous point did only fix Java errors in the Eclipse editor, but did not add the Jar to the build. We do this by adding the following line to `SampleLang/build.main.xml`, preferrably before the comment `Optional: external .def and .jar locations`:
+However, the actual build process of the Spoofax editor component does not use Eclipse's builder, but the `build.main.xml`. Hence, the previous point did only fix Java errors in the Eclipse editor, but did not add the Jar to the build. We do this by adding the following line to `SampleLang/build.main.xml`, preferrably before the comment `<!-- Optional: external .def and .jar locations -->`:
 ```XML
 <property name="externaljar" value="../SampleStrategy/scala-strategy.jar"/>
 ```
-This copies the Jar at every build from `ScalaStrategy/` to `SampleLang/include/` and adds it to the classpath.
-
-Now, we need to make the strategies in the Jar available to Stratego by adding the following line to `SampleLang/editor/SampleLang.main.esv`:
+This copies the Jar at every build from `ScalaStrategy/` to `SampleLang/include/`. Additionally, we need to add this jar and the Scala library to the classpath during execution of the Spoofax editor. We do so by adding the following lines to `SampleLang/editor/SampleLang.main.esv`.
 ```
   provider:      include/scala-strategy.jar
+  provider:      include/scala-library.jar
 ```
-and by registering the Java strategy class in the `SampleLang/editor/java/SampleLang/strategies/InteropRegisterer.java` file. In our case, this file should be edited to look like this:
+and copying (and renaming) the `scala-library.jar` to `SampleLang/include/scala-library.jar`. You can find the version of the Scala library your Scala IDE uses in its installation directory under e.g. `scala-SDK-4.2.0-vfinal-2.11-win32.win32.x86_64/eclipse/plugins/org.scala-lang.scala-library_2.11.7.v20150622-112736-1fbce4612c.jar`.
+
+Also, you need to register the Java strategy class in the `SampleLang/editor/java/SampleLang/strategies/InteropRegisterer.java` file. In our case, this file should be edited to look like this:
 
 ```Java
 package SampleLang.strategies;
@@ -216,19 +215,155 @@ You can verify that it is working, by changing the output in the Scala code and 
 
 As we have seen, to update Spoofax with the changes made to the Scala strategy, we need to reload or recompile the editor component everytime there are changes. To speed up the develop-run cycle, it might be worth to set up your strategy, such that it can be directly run from the commandline on your `aterm` files. This way, you can make changes to the strategy and directly test on some files, without the waiting time of recompiling/reloading the Spoofax editor component.
 
-TODO
+As any standalone application, our Scala strategy needs a `main` method. In it, we either take a filename as the first commandline argument or use a default `aterm` file. Then, we parse the file using the `TAFTermReader` class from Spoofax. (Note, how we need to be cautious with CRLF (Windows) line endings.) Once the `aterm` file is parsed to an `IStrategoTerm`, we can work on it as if it came from the Spoofax editor. Thus, we extract our strategy code into a `run()` method that can be called either form `main()` or from our previous `runAsStrategy()`. The full code is listed below:
 
-- add a main method
-- Using `HybridInterpreter.java` to run Stratego strategies from the standalone Scala code. Use the `Context` object to run Stratego strategies when executing from within Spoofax.
- 
-## 4. Optional: Spoofax/Stratego Sources
+```Scala
+package mypackage
 
-TODO
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 
-- download the sources from github.org/metaborg, zip them, attach the zip to the Eclipse project
+import scala.io.Source
 
-## 5. Writing a first _useful_ strategy
+import org.spoofax.interpreter.terms.IStrategoAppl
+import org.spoofax.interpreter.terms.IStrategoTerm
+import org.spoofax.interpreter.terms.ITermFactory
+import org.spoofax.terms.TermFactory
+import org.spoofax.terms.io.TAFTermReader
+import org.strategoxt.HybridInterpreter
+import org.strategoxt.lang.Context
 
-TODO
+object ScalaStrategy {
+  /*
+   * 3a) run from Spoofax editor as strategy
+   */
+  def runAsStrategy(context: Context, inputFromEditor: IStrategoTerm): IStrategoAppl = {
+    run(x => context.getIOAgent.printError(x.toString), 
+        inputFromEditor, 
+        context.getFactory, 
+        context.invokeStrategy)
+  }
+  
+  /*
+   * 3b) run standalone as Scala program
+   */
+  def main(args: Array[String]) {
+    val atermFilename = args match {
+      case Array(atermFilename) => atermFilename
+      // default aterm file
+      case _ => "../SampleLang/test/example.aterm"
+    }
+    val atermFile = Source.fromFile(atermFilename)
+    
+    /* 
+     * StrategoXT throws ParseError on input files with CRLF line endings
+     * WORKAROUND explicitly replace all line endings with LF (these are handled in TAFTermReader, line 291)
+     */
+    // NOTE source.mkString will use CRLF on Windows, so we need mkString("\n")
+    val atermFileLinuxEndings = new ByteArrayInputStream(atermFile.getLines()
+                                                                  .mkString("\n")
+                                                                  .getBytes(StandardCharsets.UTF_8))
+    
+    // try to parse that input file as a IStrategoTerm, may throw an exception
+    val strategoTerm = new TAFTermReader(new TermFactory()).parseFromStream(atermFileLinuxEndings)
+    
+    /*
+     * Prepare the arguments for the run() function
+     */
+    // NOTE: we need MUTABLE TermFactory when you want to use Index/TaskEngine
+    val termFactory = new TermFactory().getFactoryWithStorageType(IStrategoTerm.MUTABLE)
+    // NOTE: startup of the interpreter can take a couple of seconds, so lets delay it as long as possible with lazy
+    lazy val interpreter = new HybridInterpreter(termFactory)
+    // the interface for invoking strategies with the HybridInterpreter is a bit different from the one on a Context object
+    val invokeStrategy = (strategyName: String, termArg: IStrategoTerm) => {
+      interpreter.setCurrent(termArg)
+      interpreter.invoke(strategyName)
+      ()
+    }
+    
+    run(println, strategoTerm, new TermFactory, invokeStrategy)
+  }
+  
+  /**
+   * Actual strategy code comes here...
+   * @param output  a function that takes any object and prints it 
+   * 								(e.g. via println() or to the Eclipse console) 
+   * @param inputTerm the input from the Editor or a given *.aterm file,
+   *                  parsed as a IStrategoTerm
+   * @param termFactory to create StrategoTerms yourself
+   * @param invokeStrategy a function that takes the name of a Stratego
+   *                       strategy to execute as String, and a StrategoTerm
+   *                       as argument to this strategy
+   *                       This can be useful, e.g. to execute NaBL strategies
+   *                       that give you the binding site of a construct's use etc.
+   * @return either None() if no file should be opened in the Spoofax editor afterwards
+   *         or a tuple (filename: String, contents: IStrategoTerm). Only this file
+   *         gets automatically written to disk by the Spoofax editor, all other aterm
+   *         files you want to create as part of your strategy must be written explicitly.
+   */
+  def run(output: Any => Unit,
+          inputTerm: IStrategoTerm,
+          termFactory: ITermFactory, 
+          invokeStrategy: (String, IStrategoTerm) => Unit): IStrategoAppl = {
+    output("Hello, World (as strategy or standalone)! Your input was: ")
+    output(inputTerm)
+    termFactory.makeAppl(termFactory.makeConstructor("None", 0))
+  }
+}
+```
 
-- Wrap IStrategoTerms into Scala case classes for nicer pattern matching
+Recompile the Scala project and verify that it can be called as a standalone Scala application via `Run As -> Scala Application` and as a strategy from the Spoofax editor (as before).
+
+## 4. Tips
+
+### 4.1. Spoofax/Stratego Sources
+
+When working with the Spoofax/Stratego classes, such as `TAFTermReader`, `HybridInterpreter`, or the various `IStrategoTerm` implementors, browsing the source code can be very helpful. One option is to use [codefinder.org](http://codefinder.org/). Additionally, you can add the sources to your eclipse projects. First, clone (or just download a zip using the github webinterface) the [Spoofax/Stratego repositories on github](https://github.com/metaborg). The relevant repositories are [metaborg/mb-rep](https://github.com/metaborg/mb-rep) (for the `IStrategoTerm`, `IStrategoString`, etc.) and [metaborg/strategoxt](https://github.com/metaborg/strategoxt). Once downloaded, merge their directories, zip them and then add the zip file in Eclipse under `SampleStrategy -> Properties -> Java Build Path -> Libraries -> strategoxt.jar -> Source attachment -> Edit...`.
+
+![Adding the metaborg sources to the Scala project](18.png)
+
+### 4.2. Working with the StrategoTerm API
+
+When working with `IStrategoTerm`s, one often needs to down-cast to the correct runtime type of a concerete `IStrategoTerm`, i.e. to access the contents of an `IStrategoString`. This is quite cumbersome in Scala, so we wrote some Scala `case class`es as counterparts to the Java `IStrategoTerm` classes. On those, pattern matching works fine. A sketch of it could look like:
+
+```Scala
+import org.spoofax.interpreter.terms.IStrategoAppl
+import org.spoofax.interpreter.terms.IStrategoInt
+import org.spoofax.interpreter.terms.IStrategoList
+import org.spoofax.interpreter.terms.IStrategoReal
+import org.spoofax.interpreter.terms.IStrategoString
+import org.spoofax.interpreter.terms.IStrategoTerm
+import org.spoofax.interpreter.terms.IStrategoTuple
+
+sealed trait StrategoTerm
+final case class StrategoInt(n: Int) extends StrategoTerm
+final case class StrategoReal(r: Double) extends StrategoTerm
+final case class StrategoString(s: String) extends StrategoTerm
+final case class StrategoAppl(name: String, children: StrategoTerm*) extends StrategoTerm
+final case class StrategoList(elements: Seq[StrategoTerm]) extends StrategoTerm
+final case class StrategoTuple(elements: StrategoTerm*) extends StrategoTerm
+
+object StrategoTerm {
+  /**
+   * Convert a Java IStrategoTerm to (home-grown) Scala StrategoTerm
+   */
+  def apply(input: IStrategoTerm): StrategoTerm = input match {
+    // non recursive cases
+    case integer: IStrategoInt   => StrategoInt(integer.intValue)
+    case real: IStrategoReal     => StrategoReal(real.realValue)
+    case string: IStrategoString => StrategoString(string.stringValue)
+
+    // recursive cases
+    case appl: IStrategoAppl => {
+      val children = appl.getAllSubterms map apply;
+      StrategoAppl(appl.getConstructor.getName, children: _*)
+    }
+    case list: IStrategoList   => StrategoList(list.getAllSubterms map apply)
+    case tuple: IStrategoTuple => StrategoTuple(tuple.getAllSubterms map apply: _*)
+
+    // Placeholder/Ref/Blob are additional term types, but they are never used by us
+
+    case t => throw RuntimeError(t)
+  }
+}
+```
