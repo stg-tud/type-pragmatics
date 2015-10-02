@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.backend.transformation
+package de.tu_darmstadt.veritas.backend.transformation.defs
 
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.veritas.Axioms
@@ -14,6 +14,8 @@ import de.tu_darmstadt.veritas.backend.veritas.MetaVar
 import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.TypingRule
+import de.tu_darmstadt.veritas.backend.transformation.TransformationError
+import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 
 /**
  * Precondition: The module has only a single Constructors()
