@@ -12,8 +12,7 @@ class EncodingComparisonStudy {
 
   var encodingStrategies: Map[String, Seq[Module] => Seq[PrettyPrintableFile]] = TreeMap(
     ("test-inline" -> (sm => {
-      //FunctionEqToAxiomsSimple(VarToApp0(sm))
-      InlineEverythingFP(NameEverything(FunctionEqToAxiomsSimple(VarToApp0(sm))))
+      FunctionEqToAxiomsSimple(VarToApp0(sm))
     })) //,
     //    ("test-fof" ->
     //      (sm => {
