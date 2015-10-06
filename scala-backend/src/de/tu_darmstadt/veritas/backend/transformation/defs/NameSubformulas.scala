@@ -408,7 +408,7 @@ object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with Coll
     path.head match {
       case FunctionExpApp(n, args) => {
         val vcpos = args.indexOf(vc)
-        val funcparamsorts = functypes(n)._1
+        val funcparamsorts = if (functypes.isDefinedAt(n)) functypes(n)._1 else pfunctypes(n)._1
         MetaVar(freshNames.freshName(funcparamsorts(vcpos).name))
       }
       case _ => super.newMetaVar(vc) //should not happen

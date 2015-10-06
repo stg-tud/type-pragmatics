@@ -83,11 +83,13 @@ trait CollectSortNames extends ModuleTransformation {
 trait CollectTypeInfo extends ModuleTransformation {
   var constypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   var functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  var pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   
   override def apply(m: Seq[Module]): Seq[Module] = {
     //make sure mutable state is initialized upon application
     constypes = Map()
     functypes = Map()
+    pfunctypes = Map()
     super.apply(m)
   }
 
@@ -104,23 +106,27 @@ trait CollectTypeInfo extends ModuleTransformation {
         Seq(Functions((trace(fdecl)(transFunctionDefs(_)))))
       }
       case pf @ PartialFunctions(fdecl) => {
-        (fdecl map { case c @ FunctionDef(FunctionSig(n, in, out), defs) => functypes.put(n, (in, out)) })
+        (fdecl map { case c @ FunctionDef(FunctionSig(n, in, out), defs) => pfunctypes.put(n, (in, out)) })
         Seq(PartialFunctions((trace(fdecl)(transFunctionDefs(_)))))
       }
       case l @ Local(defs) => {
         val oldconstypes = constypes
         val oldfunctypes = functypes
+        val oldpfunctypes = pfunctypes
         val res = Seq(Local(trace(defs)(transModuleDefs(_))))
         constypes = oldconstypes
         functypes = oldfunctypes
+        pfunctypes = oldpfunctypes
         res
       }
       case s @ Strategy(n, i, d) => {
         val oldconstypes = constypes
         val oldfunctypes = functypes
+        val oldpfunctypes = pfunctypes
         val res = Seq(Strategy(n, trace(i)(transModuleImport(_)), trace(d)(transModuleDefs(_))))
         constypes = oldconstypes
         functypes = oldfunctypes
+        pfunctypes = oldpfunctypes
         res
       }
       case m => super.transModuleDefs(m)
