@@ -21,14 +21,20 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       case Functions(fs) =>
         //generate one block with all the function signatures
         //then a list of axioms from all the function equations
+        //join axioms for one function together to one axiom block
         Seq(Functions(fs map { case FunctionDef(sig, _) => FunctionDef(sig, Seq()) })) ++
-          (fs flatMap { case FunctionDef(sig, feqs) => makeAxiomsEqs(feqs, sig.out, Seq()) })
+          Seq(joinAxioms((fs flatMap { case FunctionDef(sig, feqs) => makeAxiomsEqs(feqs, sig.out, Seq()) })))
       case PartialFunctions(fs) =>
         //generate one block with all the function signatures
         //then a list of axioms from all the function equations
+        //join axioms for one function together to one axiom block
         Seq(PartialFunctions(fs map { case FunctionDef(sig, _) => FunctionDef(sig, Seq()) })) ++
-          (fs flatMap { case FunctionDef(sig, feqs) => makeAxiomsEqs(feqs, sig.out, Seq()) })
+          Seq(joinAxioms((fs flatMap { case FunctionDef(sig, feqs) => makeAxiomsEqs(feqs, sig.out, Seq()) })))
     }
+
+  private def joinAxioms(axlist: Seq[Axioms]): Axioms = {
+    Axioms(for { Axioms(trseq) <- axlist; tr <- trseq } yield tr)
+  }
 
   private def makeAxiomsEqs(feqs: Seq[FunctionEq], restype: SortRef, prepats: Seq[Seq[FunctionPattern]]): Seq[Axioms] = {
     feqs match {
