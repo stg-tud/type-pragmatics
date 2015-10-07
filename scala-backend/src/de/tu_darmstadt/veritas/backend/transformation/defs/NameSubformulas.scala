@@ -14,11 +14,11 @@ trait CollectSubformulas extends ModuleTransformation {
   var generatedNames: Set[MetaVar] = Set()
 
   //collect the additional naming premises that are generated during traversal
-  var additionalPremises: Set[TypingRuleJudgment] = Set()
+  //var additionalPremises: Set[TypingRuleJudgment] = Set()
+  var additionalPremises: Map[FunctionExpMeta, MetaVar] = Map()
 
   //collect premises generated in exists/forall bodies!
-  var inneradditionalPremises: Set[TypingRuleJudgment] = Set()
-
+  var inneradditionalPremises: Map[FunctionExpMeta, MetaVar] = Map()
   /**
    * override to control which constructs get named subformulas
    *
@@ -38,14 +38,16 @@ trait CollectSubformulas extends ModuleTransformation {
   def newMetaVar(vc: VeritasConstruct): MetaVar = MetaVar(freshNames.freshName("VAR"))
 
   private def addAdditionalPremise(mv: MetaVar, mexp: FunctionExpMeta): Unit =
-    additionalPremises = additionalPremises + FunctionExpJudgment(FunctionExpEq(FunctionMeta(mv), mexp))
+    additionalPremises = additionalPremises + (mexp -> mv)
+
+  //FunctionExpJudgment(FunctionExpEq(FunctionMeta(mv), mexp))
 
   override def apply(m: Seq[Module]): Seq[Module] = {
     //make sure that any mutable state is initialized upon application!
     freshNames = new FreshNames
     generatedNames = Set()
-    additionalPremises = Set()
-    inneradditionalPremises = Set()
+    additionalPremises = Map()
+    inneradditionalPremises = Map()
     super.apply(m)
   }
 
@@ -53,7 +55,7 @@ trait CollectSubformulas extends ModuleTransformation {
     //the traversal of the other constructs will collect named subformulas as premises
     //and modify variable additionalPremises
     //reset additionalPremises & freshNames for each new typing rule that is traversed
-    additionalPremises = Set()
+    additionalPremises = Map()
     freshNames = new FreshNames
     generatedNames = Set()
     tr match {
@@ -67,7 +69,7 @@ trait CollectSubformulas extends ModuleTransformation {
     trj match {
       case e @ ExistsJudgment(vl, jl) => {
         val oldaddprems = additionalPremises
-        additionalPremises = Set()
+        additionalPremises = Map()
         val res = ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
         inneradditionalPremises = additionalPremises
         additionalPremises = oldaddprems
@@ -75,7 +77,7 @@ trait CollectSubformulas extends ModuleTransformation {
       }
       case e @ ForallJudgment(vl, jl) => {
         val oldaddprems = additionalPremises
-        additionalPremises = Set()
+        additionalPremises = Map()
         val res = ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
         inneradditionalPremises = additionalPremises
         additionalPremises = oldaddprems
@@ -90,7 +92,7 @@ trait CollectSubformulas extends ModuleTransformation {
     trj match {
       case e @ ExistsJudgment(vl, jl) => {
         val oldaddprems = additionalPremises
-        additionalPremises = Set()
+        additionalPremises = Map()
         val res = Seq(ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_))))
         inneradditionalPremises = additionalPremises
         additionalPremises = oldaddprems
@@ -98,7 +100,7 @@ trait CollectSubformulas extends ModuleTransformation {
       }
       case e @ ForallJudgment(vl, jl) => {
         val oldaddprems = additionalPremises
-        additionalPremises = Set()
+        additionalPremises = Map()
         val res = Seq(ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_))))
         inneradditionalPremises = additionalPremises
         additionalPremises = oldaddprems
@@ -107,18 +109,22 @@ trait CollectSubformulas extends ModuleTransformation {
       case t => super.transTypingRuleJudgments(t)
     }
 
-  protected def findExistingPremise(mexp: FunctionExpMeta): Option[FunctionMeta] = {
-    def traversePremises(prems: Seq[TypingRuleJudgment]): Option[FunctionMeta] =
-      prems match {
-        case Seq() => None
-        case p +: ps => p match {
-          case FunctionExpJudgment(FunctionExpEq(fm @ FunctionMeta(_), r)) if (r == mexp) => Some(fm)
-          case _ => traversePremises(ps)
-        }
-      }
-
-    traversePremises(additionalPremises.toSeq)
-  }
+  protected def findExistingPremise(mexp: FunctionExpMeta): Option[FunctionMeta] =
+    if (additionalPremises contains mexp)
+      Some(FunctionMeta(additionalPremises(mexp)))
+    else None
+  //  {
+  //    def traversePremises(prems: Seq[TypingRuleJudgment]): Option[FunctionMeta] =
+  //      prems match {
+  //        case Seq() => None
+  //        case p +: ps => p match {
+  //          case FunctionExpJudgment(FunctionExpEq(fm @ FunctionMeta(_), r)) if (r == mexp) => Some(fm)
+  //          case _ => traversePremises(ps)
+  //        }
+  //      }
+  //
+  //    traversePremises(additionalPremises.toSeq)
+  //  }
 
   private def checkNew(mexp: FunctionExpMeta): FunctionExpMeta =
     if (checkConstruct(mexp))
@@ -209,18 +215,23 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
    */
   def checkSubstitute(vc: VeritasConstruct): Boolean = true
 
+  private def printAdditionalPremises(ap: Map[FunctionExpMeta, MetaVar]): Seq[TypingRuleJudgment] =
+    for ((mexp, mv) <- ap.iterator.toSeq)
+      yield FunctionExpJudgment(FunctionExpEq(FunctionMeta(mv), mexp))
+
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     withSuper(super.transTypingRules(tr)) {
       case TypingRule(n, prems, conss) => {
         //the traversal of the other constructs will collect named subformulas as premises
         //and modify variable additionalPremises
-        Seq(TypingRule(n, additionalPremises.toSeq ++ prems, conss))
+        Seq(TypingRule(n, printAdditionalPremises(additionalPremises) ++ prems, conss))
       }
     }
   }
 
   private def makeOrImpl(jl: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
-    val premisesSeq = (inneradditionalPremises.toSeq map (a => NotJudgment(a))) map (s => Seq(s))
+    val premisesSeq =
+      (printAdditionalPremises(inneradditionalPremises) map (a => NotJudgment(a))) map (s => Seq(s))
     val orcases = premisesSeq :+ jl
     if (orcases.length > 1)
       Seq(OrJudgment(premisesSeq :+ jl))
@@ -379,8 +390,6 @@ object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with Coll
     //only rename in left-hand side of single equation in conclusion!
     val parent = path(0)
     val grandparent = path(1)
-    val grandgrandparent = path(2)
-    val grandgrandgrandparent = path(3)
 
     def sidecondition(params: Seq[FunctionExpMeta]): Boolean =
       (params contains vc) &&
@@ -390,16 +399,21 @@ object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with Coll
           case _                       => false
         })
 
-    grandgrandparent match {
-      case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpApp(f, args)))) if (args contains vc) => true
-      case _ => grandgrandgrandparent match {
-        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(f, args))))) if (args contains vc) => true
-        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(f, args), r)))) if (sidecondition(args)) => true
-        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(f, args), r)))) if (sidecondition(args)) => true
-        case _ => false
+    if (path isDefinedAt 2) {
+      val grandgrandparent = path(2)
+      grandgrandparent match {
+        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpApp(f, args)))) if (args contains vc) => true
+        case _ => if (path isDefinedAt 3) {
+          val grandgrandgrandparent = path(3)
+          grandgrandgrandparent match {
+            case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(f, args))))) if (args contains vc) => true
+            case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(f, args), r)))) if (sidecondition(args)) => true
+            case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(f, args), r)))) if (sidecondition(args)) => true
+            case _ => false
+          }
+        } else false
       }
-    }
-
+    } else false
   }
 
   override def checkSubstitute(vc: VeritasConstruct): Boolean = checkConstruct(vc)
