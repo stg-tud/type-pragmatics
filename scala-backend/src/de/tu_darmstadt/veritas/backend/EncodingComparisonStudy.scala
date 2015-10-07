@@ -12,7 +12,8 @@ class EncodingComparisonStudy {
 
   var encodingStrategies: Map[String, Seq[Module] => Seq[PrettyPrintableFile]] = TreeMap(
     ("test-inline" -> (sm => {
-      FunctionEqToAxiomsSimple(VarToApp0(sm))
+      val transformedModules = OldFunctionEqTransformation(AllFunctionInversionAxioms(MoveDeclsToFront(FunctionEqToAxiomsSimple(VarToApp0(sm)))))
+      transformedModules map ToTff.toTffFile
     })) //,
     //    ("test-fof" ->
     //      (sm => {
