@@ -376,7 +376,7 @@ object NameFunctionResultsOnly extends NameSubformulas {
     val grandgrandparent = path(2)
 
     grandgrandparent match {
-      case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(l, r)))) if (r == vc) => true
+      case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(_,_), r)))) if (r == vc) => true
       case _ => false
     }
   }
