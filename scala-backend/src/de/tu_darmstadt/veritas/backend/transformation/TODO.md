@@ -6,7 +6,7 @@
   check for constructor names yet!
 - a generic "JoinModuleDef[T <: ModuleDef]" transformation that collects all module defs of the same type in a single one (basically a generic version of JoinConstructors)
 - (DONE) Lemmas to Axioms/Goals
-- split Module into Modules with one goal per Module (also with Strategy blocks) (Daniel)
+- (DONE) split Module into Modules with one goal per Module (also with Strategy blocks) (Daniel)
 - rewrite function equations to Axioms
 - generate function inversion axioms
 - (DONE) Core TSSL -> fof transformation cleanup/check with ToTff
