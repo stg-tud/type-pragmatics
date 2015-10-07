@@ -2,7 +2,13 @@ package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
 import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
+import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 
+/**
+ * moves declarations of sorts, constructors, functions etc. to the front of the module 
+ * 
+ * assumes that the module does not contain anymore local or strategy blocks!
+ */
 object MoveDeclsToFront extends ModuleTransformation {
   var sortdecls: Seq[SortDef] = Seq()
   var consdecls: Seq[ConstructorDecl] = Seq()
@@ -35,6 +41,8 @@ object MoveDeclsToFront extends ModuleTransformation {
       case Constructors(cts)    => { consdecls ++= cts; Seq() }
       case Functions(fs)        => { funcdecls ++= (fs map (fd => fd.signature)); Seq() }
       case PartialFunctions(fs) => { pfuncdecls ++= (fs map (fd => fd.signature)); Seq() }
+      case Local(_) => throw TransformationError("Local-block not expected in transformation MoveDeclsToFront!")
+      case Strategy(_, _, _) => throw TransformationError("Strategy-block not expected in transformation MoveDeclsToFront!")
     }
 
 }
