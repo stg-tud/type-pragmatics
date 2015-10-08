@@ -4,11 +4,10 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
-
 trait Term extends PrettyPrintable
 
 abstract class Variable(name: String) extends Term with SimplePrettyPrintable {
-  override def prettyString = s"V$name" 
+  override def prettyString = s"V$name"
 }
 
 // NOTE adds the V to make it valid _U_ppercase variable name 
@@ -30,12 +29,13 @@ final case class Appl(function: FunSymbol, args: Seq[Term]) extends PlainTerm {
     if (!args.isEmpty) {
       writer.write("(")
       writer.write(args.head)
-      if (args.tail != Seq())
-        args.tail foreach {
+      args.tail foreach { a =>
+        {
           writer.write(", ")
-          writer.write(_)
+          writer.write(a)
         }
-      
+      }
+
       writer.write(")")
     }
   }
