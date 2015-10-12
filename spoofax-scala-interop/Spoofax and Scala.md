@@ -38,8 +38,6 @@ Now, create a Scala project by `File -> New -> Scala Project` in the same worksp
 
 ![Verify that Scala compilation and execution is working](07.png)
 
-\clearpage
-
 ## 3a. Running Scala strategies from Spoofax
 
 The first variant of interoperability between Spoofax and Scala is to execute strategies written in Scala on the AST we have seen earlier in `example.aterm` from inside the Spoofax editor. (This is useful when your Scala strategy is currently not in focus, but you are making changes to your SampleLanguage source files. However, when developing/debugging the Scala strategy, directly executing the Scala strategy on `aterm` files (see 3b.) might be preferred.)
@@ -314,19 +312,68 @@ object ScalaStrategy {
 
 Recompile the Scala project and verify that it can be called as a standalone Scala application via `Run As -> Scala Application` and as a strategy from the Spoofax editor (as before).
 
-## 4. Tips
+## 4. Working with Index and TaskEngine to get the (name-)analysis results
 
-### 4.1. Spoofax/Stratego Sources
+Before passing the AST to Stratego strategies (such as our Scala code), Spoofax performs name resolution analysis on the AST. You can see the results of that step by comparing the ```aterm``` files generated from ```Syntax -> Show abstract Syntax``` vs. ```Syntax -> Show analyzed Syntax```. The latter contains ```Annotations``` in the Stratego terms. They are Stratego Terms themselves and follow the term they are attached to in braces. For example in the following excerpt, you see that the ```Module``` name is annotated with a ```NaBL``` URL (see [the Name Binding Language metaborg website](http://metaborg.org/nabl/) for more info):
+
+Excerpt of ```example.analyzed.aterm```:
+```
+Module(
+  "example"{ Def(
+               URI(
+                 Language("SampleLang")
+               , [ID(NablNsModule(), "example", Unique("/workspace/SampleLang/test/example.sam/0"))]
+               )
+             )
+           }
+,
+   ...
+)
+```
+
+### 4.1. What is Index and Task Engine?
+
+With the help of this URL, Stratego (more specifically, the NaBL library) can link _def_ with _use_ sites. Naturally, the module code here is a Definition. An import of a different module would then be a use site. The annotations at NaBL use sites look like this (excerpt from a different Spoofax language and file):
+
+```
+Module(
+"TestImports"{ Def( URI( Language("OtherLang"),
+                         [ID(NablNsModule(), "backend.Imports", Unique("OtherLang/test/TestImports.otl/0"))]
+                        ))
+             }
+, [
+	Import("ImportedModule"{ Use( Result(3312) ) })
+]
+)
+```
+
+Note that the use site does not directly reference the URL but instead contains an integer wrapped in a ```Result``` term. Internally, NaBL uses the _Index_ and _Task Engine_ to map this ID back to a URL and ultimately the corresponding def site. Basically both index and task engine are maps from keys to values (see [the paper "A Language Independent Task Engine for
+Incremental Name and Type Analysis"](http://swerl.tudelft.nl/twiki/pub/Main/TechnicalReports/TUD-SERG-2013-014.pdf) for more info):
+
+- The task engine is basically used to postpone these analyses and perform them only when needed. It maps "task IDs" to Stratego terms, typically URLs that you can then feed into the index. The integer in the ```Result``` application above is such a task ID.
+- The index maps def and use (and other kinds of) terms to other Stratego terms. So, if you have a ```Module``` URL, you can query the index and get the AST of the defining file of that ```Module```.
+
+One could manually use the [```Index```](https://github.com/metaborg/mb-rep/blob/master/org.spoofax.interpreter.library.index/src/main/java/org/spoofax/interpreter/library/index/IIndex.java) and [```TaskEngine```](https://github.com/metaborg/runtime-libraries/blob/master/org.metaborg.runtime.task/src/main/java/org/metaborg/runtime/task/engine/ITaskEngine.java) Java classes to follow these indirections, but it is probably better to call the Stratego API of NaBL and let it do that itself.
+
+### 4.2. Calling the NaBL strategy from the Scala code
+
+
+
+## 5. Tips
+
+### 5.1. Spoofax/Stratego Sources
 
 When working with the Spoofax/Stratego classes, such as `TAFTermReader`, `HybridInterpreter`, or the various `IStrategoTerm` implementors, browsing the source code can be very helpful. One option is to use [codefinder.org](http://codefinder.org/). Additionally, you can add the sources to your eclipse projects. First, clone (or just download a zip using the github webinterface) the [Spoofax/Stratego repositories on github](https://github.com/metaborg). The relevant repositories are [metaborg/mb-rep](https://github.com/metaborg/mb-rep) (for the `IStrategoTerm`, `IStrategoString`, etc.) and [metaborg/strategoxt](https://github.com/metaborg/strategoxt). Once downloaded, merge their directories, zip them and then add the zip file in Eclipse under `SampleStrategy -> Properties -> Java Build Path -> Libraries -> strategoxt.jar -> Source attachment -> Edit...`.
 
 ![Adding the metaborg sources to the Scala project](18.png)
 
-### 4.2. Working with the StrategoTerm API
+### 5.2. Working with the StrategoTerm API
 
 When working with `IStrategoTerm`s, one often needs to down-cast to the correct runtime type of a concerete `IStrategoTerm`, i.e. to access the contents of an `IStrategoString`. This is quite cumbersome in Scala, so we wrote some Scala `case class`es as counterparts to the Java `IStrategoTerm` classes. On those, pattern matching works fine. A sketch of it could look like:
 
 ```Scala
+package mypackage
+
 import org.spoofax.interpreter.terms.IStrategoAppl
 import org.spoofax.interpreter.terms.IStrategoInt
 import org.spoofax.interpreter.terms.IStrategoList
@@ -335,7 +382,9 @@ import org.spoofax.interpreter.terms.IStrategoString
 import org.spoofax.interpreter.terms.IStrategoTerm
 import org.spoofax.interpreter.terms.IStrategoTuple
 
-sealed trait StrategoTerm
+sealed trait StrategoTerm {
+  var annotations: Seq[StrategoTerm] = Seq()
+}
 final case class StrategoInt(n: Int) extends StrategoTerm
 final case class StrategoReal(r: Double) extends StrategoTerm
 final case class StrategoString(s: String) extends StrategoTerm
@@ -347,23 +396,28 @@ object StrategoTerm {
   /**
    * Convert a Java IStrategoTerm to (home-grown) Scala StrategoTerm
    */
-  def apply(input: IStrategoTerm): StrategoTerm = input match {
-    // non recursive cases
-    case integer: IStrategoInt   => StrategoInt(integer.intValue)
-    case real: IStrategoReal     => StrategoReal(real.realValue)
-    case string: IStrategoString => StrategoString(string.stringValue)
-
-    // recursive cases
-    case appl: IStrategoAppl => {
-      val children = appl.getAllSubterms map apply;
-      StrategoAppl(appl.getConstructor.getName, children: _*)
+  def apply(input: IStrategoTerm): StrategoTerm = {
+    val result = input match {
+      // non recursive cases
+      case integer: IStrategoInt   => StrategoInt(integer.intValue)
+      case real: IStrategoReal     => StrategoReal(real.realValue)
+      case string: IStrategoString => StrategoString(string.stringValue)
+  
+      // recursive cases
+      case appl: IStrategoAppl => {
+        val children = appl.getAllSubterms map apply;
+        StrategoAppl(appl.getConstructor.getName, children: _*)
+      }
+      case list: IStrategoList   => StrategoList(list.getAllSubterms map apply)
+      case tuple: IStrategoTuple => StrategoTuple(tuple.getAllSubterms map apply: _*)
+  
+      // Placeholder/Ref/Blob are additional term types, but they are never used by us
+      case t => throw new RuntimeException("unexpected term: " + input.toString())
     }
-    case list: IStrategoList   => StrategoList(list.getAllSubterms map apply)
-    case tuple: IStrategoTuple => StrategoTuple(tuple.getAllSubterms map apply: _*)
-
-    // Placeholder/Ref/Blob are additional term types, but they are never used by us
-
-    case t => throw RuntimeError(t)
+    
+    // also convert the annotations
+    result.annotations = input.getAnnotations.getAllSubterms map apply
+    result
   }
 }
 ```

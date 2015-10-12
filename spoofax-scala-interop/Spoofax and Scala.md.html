@@ -39,9 +39,13 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li><a href="#a.3.-fixing-the-project-dependencies-and-build-order">3a.3. Fixing the project dependencies and build order</a></li>
 </ul></li>
 <li><a href="#b.-directly-running-the-scala-strategy-not-from-within-the-spoofax-editor">3b. Directly running the Scala strategy, not from within the Spoofax editor</a></li>
-<li><a href="#miscellaneous-tips">4. Miscellaneous Tips</a><ul>
-<li><a href="#spoofaxstratego-sources">4.1. Spoofax/Stratego Sources</a></li>
-<li><a href="#working-with-the-strategoterm-api">4.2. Working with the StrategoTerm API</a></li>
+<li><a href="#working-with-index-and-taskengine-to-get-the-name-analysis-results">4. Working with Index and TaskEngine to get the (name-)analysis results</a><ul>
+<li><a href="#what-is-index-and-task-engine">4.1. What is Index and Task Engine?</a></li>
+<li><a href="#calling-the-nabl-strategy-from-the-scala-code">4.2. Calling the NaBL strategy from the Scala code</a></li>
+</ul></li>
+<li><a href="#tips">5. Tips</a><ul>
+<li><a href="#spoofaxstratego-sources">5.1. Spoofax/Stratego Sources</a></li>
+<li><a href="#working-with-the-strategoterm-api">5.2. Working with the StrategoTerm API</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -91,7 +95,6 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <img src="07.png" alt="Verify that Scala compilation and execution is working" />
 <p class="caption">Verify that Scala compilation and execution is working</p>
 </div>
-<p></p>
 <h2 id="a.-running-scala-strategies-from-spoofax">3a. Running Scala strategies from Spoofax</h2>
 <p>The first variant of interoperability between Spoofax and Scala is to execute strategies written in Scala on the AST we have seen earlier in <code>example.aterm</code> from inside the Spoofax editor. (This is useful when your Scala strategy is currently not in focus, but you are making changes to your SampleLanguage source files. However, when developing/debugging the Scala strategy, directly executing the Scala strategy on <code>aterm</code> files (see 3b.) might be preferred.)</p>
 <h3 id="a.1.-setting-up-the-scala-strategy-project">3a.1. Setting up the Scala strategy project</h3>
@@ -335,16 +338,50 @@ code > span.er { color: #ff0000; font-weight: bold; }
   }
 }</code></pre>
 <p>Recompile the Scala project and verify that it can be called as a standalone Scala application via <code>Run As -&gt; Scala Application</code> and as a strategy from the Spoofax editor (as before).</p>
-<h2 id="miscellaneous-tips">4. Miscellaneous Tips</h2>
-<h3 id="spoofaxstratego-sources">4.1. Spoofax/Stratego Sources</h3>
+<h2 id="working-with-index-and-taskengine-to-get-the-name-analysis-results">4. Working with Index and TaskEngine to get the (name-)analysis results</h2>
+<p>Before passing the AST to Stratego strategies (such as our Scala code), Spoofax performs name resolution analysis on the AST. You can see the results of that step by comparing the <code>aterm</code> files generated from <code>Syntax -&gt; Show abstract Syntax</code> vs. <code>Syntax -&gt; Show analyzed Syntax</code>. The latter contains <code>Annotations</code> in the Stratego terms. They are Stratego Terms themselves and follow the term they are attached to in braces. For example in the following excerpt, you see that the <code>Module</code> name is annotated with a <code>NaBL</code> URL (see <a href="http://metaborg.org/nabl/">the Name Binding Language metaborg website</a> for more info):</p>
+<p>Excerpt of <code>example.analyzed.aterm</code>:</p>
+<pre><code>Module(
+  &quot;example&quot;{ Def(
+               URI(
+                 Language(&quot;SampleLang&quot;)
+               , [ID(NablNsModule(), &quot;example&quot;, Unique(&quot;/workspace/SampleLang/test/example.sam/0&quot;))]
+               )
+             )
+           }
+,
+   ...
+)</code></pre>
+<h3 id="what-is-index-and-task-engine">4.1. What is Index and Task Engine?</h3>
+<p>With the help of this URL, Stratego (more specifically, the NaBL library) can link <em>def</em> with <em>use</em> sites. Naturally, the module code here is a Definition. An import of a different module would then be a use site. The annotations at NaBL use sites look like this (excerpt from a different Spoofax language and file):</p>
+<pre><code>Module(
+&quot;TestImports&quot;{ Def( URI( Language(&quot;OtherLang&quot;),
+                         [ID(NablNsModule(), &quot;backend.Imports&quot;, Unique(&quot;OtherLang/test/TestImports.otl/0&quot;))]
+                        ))
+             }
+, [
+    Import(&quot;ImportedModule&quot;{ Use( Result(3312) ) })
+]
+)</code></pre>
+<p>Note that the use site does not directly reference the URL but instead contains an integer wrapped in a <code>Result</code> term. Internally, NaBL uses the <em>Index</em> and <em>Task Engine</em> to map this ID back to a URL and ultimately the corresponding def site. Basically both index and task engine are maps from keys to values (see <a href="http://swerl.tudelft.nl/twiki/pub/Main/TechnicalReports/TUD-SERG-2013-014.pdf">the paper &quot;A Language Independent Task Engine for Incremental Name and Type Analysis&quot;</a> for more info):</p>
+<ul>
+<li>The task engine is basically used to postpone these analyses and perform them only when needed. It maps &quot;task IDs&quot; to Stratego terms, typically URLs that you can then feed into the index. The integer in the <code>Result</code> application above is such a task ID.</li>
+<li>The index maps def and use (and other kinds of) terms to other Stratego terms. So, if you have a <code>Module</code> URL, you can query the index and get the AST of the defining file of that <code>Module</code>.</li>
+</ul>
+<p>One could manually use the <a href="https://github.com/metaborg/mb-rep/blob/master/org.spoofax.interpreter.library.index/src/main/java/org/spoofax/interpreter/library/index/IIndex.java"><code>Index</code></a> and <a href="https://github.com/metaborg/runtime-libraries/blob/master/org.metaborg.runtime.task/src/main/java/org/metaborg/runtime/task/engine/ITaskEngine.java"><code>TaskEngine</code></a> Java classes to follow these indirections, but it is probably better to call the Stratego API of NaBL and let it do that itself.</p>
+<h3 id="calling-the-nabl-strategy-from-the-scala-code">4.2. Calling the NaBL strategy from the Scala code</h3>
+<h2 id="tips">5. Tips</h2>
+<h3 id="spoofaxstratego-sources">5.1. Spoofax/Stratego Sources</h3>
 <p>When working with the Spoofax/Stratego classes, such as <code>TAFTermReader</code>, <code>HybridInterpreter</code>, or the various <code>IStrategoTerm</code> implementors, browsing the source code can be very helpful. One option is to use <a href="http://codefinder.org/">codefinder.org</a>. Additionally, you can add the sources to your eclipse projects. First, clone (or just download a zip using the github webinterface) the <a href="https://github.com/metaborg">Spoofax/Stratego repositories on github</a>. The relevant repositories are <a href="https://github.com/metaborg/mb-rep">metaborg/mb-rep</a> (for the <code>IStrategoTerm</code>, <code>IStrategoString</code>, etc.) and <a href="https://github.com/metaborg/strategoxt">metaborg/strategoxt</a>. Once downloaded, merge their directories, zip them and then add the zip file in Eclipse under <code>SampleStrategy -&gt; Properties -&gt; Java Build Path -&gt; Libraries -&gt; strategoxt.jar -&gt; Source attachment -&gt; Edit...</code>.</p>
 <div class="figure">
 <img src="18.png" alt="Adding the metaborg sources to the Scala project" />
 <p class="caption">Adding the metaborg sources to the Scala project</p>
 </div>
-<h3 id="working-with-the-strategoterm-api">4.2. Working with the StrategoTerm API</h3>
+<h3 id="working-with-the-strategoterm-api">5.2. Working with the StrategoTerm API</h3>
 <p>When working with <code>IStrategoTerm</code>s, one often needs to down-cast to the correct runtime type of a concerete <code>IStrategoTerm</code>, i.e. to access the contents of an <code>IStrategoString</code>. This is quite cumbersome in Scala, so we wrote some Scala <code>case class</code>es as counterparts to the Java <code>IStrategoTerm</code> classes. On those, pattern matching works fine. A sketch of it could look like:</p>
-<pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoAppl</span>
+<pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">package</span> mypackage
+
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoAppl</span>
 <span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoInt</span>
 <span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoList</span>
 <span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoReal</span>
@@ -352,7 +389,9 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTerm</span>
 <span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTuple</span>
 
-<span class="kw">sealed</span> <span class="kw">trait</span> StrategoTerm
+<span class="kw">sealed</span> <span class="kw">trait</span> StrategoTerm {
+  <span class="kw">var</span> annotations: Seq[StrategoTerm] = Seq()
+}
 <span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoInt</span>(n: Int) <span class="kw">extends</span> StrategoTerm
 <span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoReal</span>(r: Double) <span class="kw">extends</span> StrategoTerm
 <span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoString</span>(s: String) <span class="kw">extends</span> StrategoTerm
@@ -364,23 +403,28 @@ code > span.er { color: #ff0000; font-weight: bold; }
   <span class="co">/**</span>
 <span class="co">   * Convert a Java IStrategoTerm to (home-grown) Scala StrategoTerm</span>
 <span class="co">   */</span>
-  <span class="kw">def</span> <span class="fu">apply</span>(input: IStrategoTerm): StrategoTerm = input <span class="kw">match</span> {
-    <span class="co">// non recursive cases</span>
-    <span class="kw">case</span> integer: IStrategoInt   =&gt; <span class="fu">StrategoInt</span>(integer.<span class="fu">intValue</span>)
-    <span class="kw">case</span> real: IStrategoReal     =&gt; <span class="fu">StrategoReal</span>(real.<span class="fu">realValue</span>)
-    <span class="kw">case</span> string: IStrategoString =&gt; <span class="fu">StrategoString</span>(string.<span class="fu">stringValue</span>)
-
-    <span class="co">// recursive cases</span>
-    <span class="kw">case</span> appl: IStrategoAppl =&gt; {
-      <span class="kw">val</span> children = appl.<span class="fu">getAllSubterms</span> map apply;
-      <span class="fu">StrategoAppl</span>(appl.<span class="fu">getConstructor</span>.<span class="fu">getName</span>, children: _*)
+  <span class="kw">def</span> <span class="fu">apply</span>(input: IStrategoTerm): StrategoTerm = {
+    <span class="kw">val</span> result = input <span class="kw">match</span> {
+      <span class="co">// non recursive cases</span>
+      <span class="kw">case</span> integer: IStrategoInt   =&gt; <span class="fu">StrategoInt</span>(integer.<span class="fu">intValue</span>)
+      <span class="kw">case</span> real: IStrategoReal     =&gt; <span class="fu">StrategoReal</span>(real.<span class="fu">realValue</span>)
+      <span class="kw">case</span> string: IStrategoString =&gt; <span class="fu">StrategoString</span>(string.<span class="fu">stringValue</span>)
+  
+      <span class="co">// recursive cases</span>
+      <span class="kw">case</span> appl: IStrategoAppl =&gt; {
+        <span class="kw">val</span> children = appl.<span class="fu">getAllSubterms</span> map apply;
+        <span class="fu">StrategoAppl</span>(appl.<span class="fu">getConstructor</span>.<span class="fu">getName</span>, children: _*)
+      }
+      <span class="kw">case</span> list: IStrategoList   =&gt; <span class="fu">StrategoList</span>(list.<span class="fu">getAllSubterms</span> map apply)
+      <span class="kw">case</span> tuple: IStrategoTuple =&gt; <span class="fu">StrategoTuple</span>(tuple.<span class="fu">getAllSubterms</span> map apply: _*)
+  
+      <span class="co">// Placeholder/Ref/Blob are additional term types, but they are never used by us</span>
+      <span class="kw">case</span> t =&gt; <span class="kw">throw</span> <span class="kw">new</span> RuntimeException(<span class="st">&quot;unexpected term: &quot;</span> + input.<span class="fu">toString</span>())
     }
-    <span class="kw">case</span> list: IStrategoList   =&gt; <span class="fu">StrategoList</span>(list.<span class="fu">getAllSubterms</span> map apply)
-    <span class="kw">case</span> tuple: IStrategoTuple =&gt; <span class="fu">StrategoTuple</span>(tuple.<span class="fu">getAllSubterms</span> map apply: _*)
-
-    <span class="co">// Placeholder/Ref/Blob are additional term types, but they are never used by us</span>
-
-    <span class="kw">case</span> t =&gt; <span class="kw">throw</span> <span class="fu">RuntimeError</span>(t)
+    
+    <span class="co">// also convert the annotations</span>
+    result.<span class="fu">annotations</span> = input.<span class="fu">getAnnotations</span>.<span class="fu">getAllSubterms</span> map apply
+    result
   }
 }</code></pre>
 </body>

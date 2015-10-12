@@ -108,7 +108,7 @@ p.caption { /* Pandoc figure-style caption within div.figure */
 pre, code {
     font-family: Inconsolata, monospace;
     background-color: #fafafa;
-    font-size: 0.9rem;
+    font-size: 1em;
 }
 
 pre { /* Code blocks */
