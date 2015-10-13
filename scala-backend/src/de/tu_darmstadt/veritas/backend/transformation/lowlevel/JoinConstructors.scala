@@ -16,7 +16,7 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
  */
 object JoinConstructors extends ModuleTransformation {
   override def trans(input: Module): Seq[Module] = {
-    val (nonCtorsPrefix, rest) = input.body span (!_.isInstanceOf[Constructors])
+    val (nonCtorsPrefix, rest) = input.defs span (!_.isInstanceOf[Constructors])
     
     val collectedCtorDecls = collection.mutable.ListBuffer.empty[ConstructorDecl]
     val nonCtorsSuffix = collection.mutable.ListBuffer.empty[ModuleDef]
