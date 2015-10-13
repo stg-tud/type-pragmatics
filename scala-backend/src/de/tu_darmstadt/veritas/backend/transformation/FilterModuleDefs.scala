@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.backend.transformation
 import de.tu_darmstadt.veritas.backend.veritas.Goals
 import de.tu_darmstadt.veritas.backend.veritas.Local
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
+import de.tu_darmstadt.veritas.backend.veritas.GoalsWithStrategy
 
 trait FilterModuleDefs extends ModuleTransformation {
   /**
@@ -22,7 +23,7 @@ trait FilterModuleDefs extends ModuleTransformation {
 
 object FilterGoalsAndLocals extends FilterModuleDefs {
   override def filterPredicate(x: ModuleDef) = x match {
-    case _: Local | _: Goals => false
+    case _: Local | _: Goals | _:GoalsWithStrategy => false
     case _ => true
   }
 }
