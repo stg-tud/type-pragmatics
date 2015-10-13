@@ -12,7 +12,10 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
 sealed trait ModuleDef extends VeritasConstruct with PrettyPrintable
 
-case class Local(defs: Seq[ModuleDef]) extends ModuleDef {
+case class Local(defs: Seq[ModuleDef]) extends ModuleDef with ModuleDefHolder {
+  // from ModuleDefHolder
+  override def imports = Seq()
+  
   override val children = Seq(defs)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -87,7 +90,7 @@ case class Include(ruleNames: Seq[String]) extends ModuleDef {
 //Should that be allowed to occur? Currently, no errors are thrown if that happens!
 //Maybe introduce require-clauses?
 
-case class Strategy(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) extends ModuleDef {
+case class Strategy(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) extends ModuleDef with ModuleDefHolder {
   override val children = Seq(imports, defs)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
