@@ -1,0 +1,43 @@
+module encodingcompstudy.TStore
+
+import encodingcompstudy.Tables
+
+
+sorts
+	TStore TName OptTable
+	
+constructors
+	noTable : OptTable
+	someTable : Table -> OptTable
+
+function
+isSomeTable : OptTable -> Bool
+isSomeTable(noTable) = false
+isSomeTable(someTable(t)) = true
+
+partial function
+getSomeTable : OptTable -> Table
+getSomeTable(someTable(t)) = t
+	
+constructors
+	emptyStore : TStore
+	bindStore : TName Table TStore -> TStore
+	
+function
+lookupStore : TName TStore -> OptTable
+lookupStore(n, emptyStore) = noTable
+lookupStore(n, bindStore(m, t, TS)) = 
+	if (n == m)
+	then someTable(t)
+	else lookupStore(n, TS)
+	
+axioms
+~x == ~y
+bindStore(~x, ~Tx, bindStore(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-TStore-Duplicate
+bindStore(~x, ~Tx, ~C) |- ~e : ~T
+
+~x != ~y
+bindStore(~x, ~Tx, bindStore(~y, ~Ty, ~C)) |- ~e : ~T
+=========================================== T-TStore-Swap
+bindStore(~y, ~Ty, bindStore(~x, ~Tx, ~C)) |- ~e : ~T

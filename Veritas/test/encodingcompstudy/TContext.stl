@@ -1,0 +1,43 @@
+module encodingcompstudy.TContext
+
+import encodingcompstudy.Tables
+import encodingcompstudy.TStore
+
+sorts
+	TTContext OptTType
+	
+constructors
+	noTType : OptTType
+	someTType : TType -> OptTType
+
+function
+isSomeTType : OptTType -> Bool
+isSomeTType(noTType) = false
+isSomeTType(someTType(t)) = true
+
+partial function
+getSomeTType : OptTType -> TType
+getSomeTType(someTType(t)) = t
+	
+constructors
+	emptyContext : TTContext
+	bindContext : TName TType TTContext -> TTContext
+	
+function
+lookupContext : TName TTContext -> OptTType
+lookupContext(tn, emptyContext) = noTType
+lookupContext(tn, bindContext(tm, tt, TTC)) =
+	if (tn == tm)
+	then someTType(tt)
+	else lookupContext(tn, TTC) 
+	
+axioms
+~x == ~y
+bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e : ~T
+================================================ T-TTContext-Duplicate
+bindContext(~x, ~Tx, ~C) |- ~e : ~T
+
+~x != ~y
+bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e : ~T
+================================================ T-TTContext-Swap
+bindContext(~y, ~Ty, bindContext(~x, ~Tx, ~C)) |- ~e : ~T

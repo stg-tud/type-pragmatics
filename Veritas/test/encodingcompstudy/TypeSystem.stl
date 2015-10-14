@@ -1,0 +1,101 @@
+module encodingcompstudy.TypeSystem
+
+import encodingcompstudy.Tables
+import encodingcompstudy.TStore
+import encodingcompstudy.Syntax
+import encodingcompstudy.TContext
+
+function
+dropFirstColType : TType -> TType
+dropFirstColType(ttempty) = ttempty
+dropFirstColtType(ttcons(ct, tt)) = tt
+
+sorts
+	OptFType
+	
+constructors
+	noFType : OptFType
+	someFType : FType -> OptFType
+	
+function
+isSomeFType : OptFType -> Bool
+isSomeFType(noFType) = false
+isSomeFType(someFType(a)) = true
+
+partial function
+getSomeFType : OptFType -> FType
+getSomeFType(someFType(a)) = a
+	
+function
+findColType : AName TType -> OptFType
+findColType(an, ttempty) = noFType
+findColType(an, ttcons(ctype(a, ft), ttr)) =
+	if (an == a)
+	then someFType(ft)
+	else findColType(an, ttr)
+
+function
+projectType : AList TType -> OptTType
+projectType(aempty, tt) = someTType(ttempty)
+projectType(acons(a, alr), tt) =
+	let ft = findColType(a, tt) in
+		let tprest = projectType(alr, tt) in
+			if (isSomeTType(ft) && isSomeTType(tprest))
+			then someTType(ttcons(ctype(a, getSomeTType(ft)), getSomeTType(tprest)))
+			else noTType
+			
+function
+ctypeIn : AName FType TType -> Bool
+ctypeIn(a, ft, ttempty) = false
+ctypeIn(a, ft, ttcons(ctype(a2, ft2), ttr)) = ((a == a2) && (ft == ft2)) || ctypeIn(a, ft, ttr) 
+
+function
+checkPValidity : Pred TType -> Bool
+checkPValidity(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+checkPValidity(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+checkPValidity(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+
+ 
+axioms
+//a table value with a well-typed table is typable
+welltypedtable(~TT, table(~al, ~rt))
+====================================== T-Tvalue
+~TTC |- Tvalue(table(~al, ~rt)) : ~TT
+
+lookupContext(~tn, ~TTC) == someTType(~TT)
+=============================================== T-SelectAllFrom
+~TTC |- SelectAllFrom(Ref(~tn)) : ~TT
+
+lookupContext(~tn, ~TTC) == someTType(~TT1)
+projectType(~al, ~TT1) == someTType(~TT)
+================================================ T-SelectSomeFrom
+~TTC |- SelectSomeFrom(~al, Ref(~tn)) : ~TT
+
+lookupContext(~tn, ~TTC) == someTType(~TT)
+checkPValidity(~p, ~TT)
+================================================ T-SelectAllFromWhere
+~TTC |- SelectAllFromWhere(Ref(~tn), ~p) : ~TT
+
+lookupContext(~tn, ~TTC) == someTType(~TT1)
+checkPValidity(~p, ~TT1)
+projectType(~al, ~TT1) == someTType(~TT)
+================================================ T-SelectSomeFromWhere
+~TTC |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
+
+~TTC |- ~q1 : ~TT
+~TTC |- ~q2 : ~TT
+============================================ T-Union
+~TTC |- Union(~q1, ~q2) : ~TT
+
+~TTC |- ~q1 : ~TT
+~TTC |- ~q2 : ~TT
+============================================ T-Intersection
+~TTC |- Intersection(~q1, ~q2) : ~TT
+
+~TTC |- ~q1 : ~TT
+~TTC |- ~q2 : ~TT
+============================================ T-Difference
+~TTC |- Difference(~q1, ~q2) : ~TT
+
+
+

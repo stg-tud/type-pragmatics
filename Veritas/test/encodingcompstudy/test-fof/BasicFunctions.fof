@@ -1,6 +1,0 @@
-fof('isSome0', axiom, ![VOpt0] : (VOpt0 = vnone => !(visSome(VOpt0)))).
-fof('isSome1', axiom, ![VOpt0, Va] : (VOpt0 = vsome(Va) => visSome(VOpt0))).
-fof('getSome0', axiom, ![VOpt0, Va, VRESULT] : ((VOpt0 = vsome(Va) & VRESULT = Va) => vgetSome(VOpt0) = VRESULT)).
-fof('isSome-INV-1', axiom, ![Vopt] : (visSome(Vopt) => ?[Va] : (Vopt = vsome(Va) & vgetSome(Vopt) = Va))).
-fof('isSome-INV-2', axiom, ![VRESULT, Vb, Vopt, Va] : ((VRESULT = Vb & Vopt = vsome(Va) & vgetSome(Vopt) = VRESULT) => Va = VRESULT)).
-fof('g', conjecture, $true).
