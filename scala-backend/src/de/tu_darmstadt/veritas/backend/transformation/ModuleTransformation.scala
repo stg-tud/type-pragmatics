@@ -88,7 +88,7 @@ trait ModuleTransformation {
    *
    * naming convention: trans + <Name of constructs> (+ s, if the function can give back a sequence)
    */
-  def trans(m: Module): Seq[Module] = trace(m) { m => transModule(m.name, m.imports, m.body) }
+  def trans(m: Module): Seq[Module] = trace(m) { m => transModule(m.name, m.imports, m.defs) }
 
   def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] =
     Seq(Module(name, trace(is)(transModuleImport(_)), trace(mdefs)(transModuleDefs(_))))

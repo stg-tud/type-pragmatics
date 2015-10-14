@@ -28,6 +28,10 @@ goals
 =========== Goal-2
 ~e2 : ~T2
 
+axiom
+=========== axiom-after-strategy
+~eafterstrat : ~T
+
 strategy teststrategy {
 	goal
 	~estrat : ~T1
@@ -38,6 +42,10 @@ strategy teststrategy {
 	axiom
 	================ all-possible-in-strategy
 	~estrat : ~T
+	
+	hide-all
+	
+	include { axiom-after-strategy }
 	
 	local {
 		goal

@@ -21,7 +21,7 @@ object ToFof {
   def toFofFile(coreModule: Module): FofFile = coreModule match {
     case Module(name, Seq(), body) => {
       val goal = getOnlyGoal(coreModule)
-      val axioms = coreModule.body.collect { case Axioms(axioms) => axioms }.flatten
+      val axioms = coreModule.defs.collect { case Axioms(axioms) => axioms }.flatten
 
       val transformedAxioms = axioms map (typingRuleToFof(_, Axiom))
       val transformedGoal = typingRuleToFof(goal, Conjecture)
@@ -38,9 +38,9 @@ object ToFof {
    *  - there are elements that are not goals after a goal (not in scope!!)
    */
   private def getOnlyGoal(mod: Module): TypingRule = {
-    mod.body.last match {
+    mod.defs.last match {
       case Goals(goals, /* TODO */ timeout) if (goals.length == 1) => {
-        val allGoals = mod.body.collect { case g @ Goals(goals, _) => g }
+        val allGoals = mod.defs.collect { case g @ Goals(goals, _) => g }
         if (allGoals.length > 1)
           throw throw TransformationError(s"(Core TSSL) Module ${mod.name} contained more than one goal (several positions)")
         else

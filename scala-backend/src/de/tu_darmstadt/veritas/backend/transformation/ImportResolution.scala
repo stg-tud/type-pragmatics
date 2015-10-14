@@ -24,7 +24,7 @@ object ImportResolution {
     val recursivelyResolved = toRecursiveResolve.map(
       imp => Resolved(resolveRecursive(imp.moduleCode, already + mod.name)))
     
-    Module(mod.name, recursivelyResolved ++ wontResolve, mod.body)
+    Module(mod.name, recursivelyResolved ++ wontResolve, mod.defs)
   }
   
   /**
@@ -43,5 +43,5 @@ object ImportResolution {
   /**
    * Pulls all recursive imports to the top level import list
    */
-  def flattenResolvedImports(mod: Module) = Module(mod.name, collectResolvedImports(mod.imports), mod.body)
+  def flattenResolvedImports(mod: Module) = Module(mod.name, collectResolvedImports(mod.imports), mod.defs)
 }

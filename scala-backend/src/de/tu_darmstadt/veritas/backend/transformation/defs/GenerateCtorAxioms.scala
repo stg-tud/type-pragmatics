@@ -60,7 +60,7 @@ object GenerateCtorAxioms extends ModuleTransformation {
     }
 
   override protected def checkPrecondition(input: Module): Unit = {
-    if (input.body.filter(_.isInstanceOf[Constructors]).size > 1)
+    if (input.defs.filter(_.isInstanceOf[Constructors]).size > 1)
       throw TransformationError("Expected a Module() with a single Constructors() ModuleDef, got: " + input)
   }
 
