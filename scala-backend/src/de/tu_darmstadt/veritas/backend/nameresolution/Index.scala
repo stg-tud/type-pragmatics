@@ -11,9 +11,9 @@ import org.spoofax.terms.TermFactory
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 
 /** 
- * Wrapper around the Spoofax Java IIndex for better interop with Scala
+ * Wrapper around the Spoofax Java IIndex for for debugging/printing a persisted index.idx file
+ * (see PrintIndex object below)
  */
-@deprecated("Use NameResolution.getModuleDef instead, uses the real Stratego NaBL Code, not this hacky reimplemention", "29-07-2015")
 class Index private (spoofaxIndex: IIndex) extends Iterable[(StrategoTerm, StrategoTerm)] {
   // standard Map-like interface
   
@@ -32,10 +32,9 @@ class Index private (spoofaxIndex: IIndex) extends Iterable[(StrategoTerm, Strat
     spoofaxIndex.getAll.asScala.map(entry => (StrategoTerm(entry.key), StrategoTerm(entry.value))).iterator
   
   // for DEBUGGING
-  override def toString = this.iterator.mkString
+  override def toString = this.iterator.mkString("\n")
 }
 
-@deprecated("Use NameResolution.getModuleDef instead, uses the real Stratego NaBL Code, not this hacky reimplemention", "29-07-2015")
 object Index {
   /**
    * Convenience Ctor: read index from filename 
@@ -47,4 +46,8 @@ object Index {
    * Convenience Ctor: use the current Index (useful when executing from Spoofax)
    */
   def current(): Index = new Index(IndexManager.getInstance.getCurrent())
+}
+
+object PrintIndex extends App {
+  println(Index.fromFile("test/.cache/index.idx"))
 }

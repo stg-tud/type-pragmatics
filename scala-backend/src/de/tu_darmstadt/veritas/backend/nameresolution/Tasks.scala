@@ -13,9 +13,9 @@ import org.spoofax.terms.TermFactory
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 
 /**
- * Wrapper around the Spoofax Java ITaskEngine for better interop with Scala
+ * Wrapper around the Spoofax Java ITaskEngine for debugging/printing a persisted taskengine.idx file
+ * (see PrintTasks object below)
  */
-@deprecated("Use NameResolution.getModuleDef instead, uses the real Stratego NaBL Code, not this hacky reimplemention", "29-07-2015")
 class Tasks(spoofaxTaskEngine: ITaskEngine) extends Iterable[(Int, StrategoTerm)] {
   // standard Map-like interface
   
@@ -46,12 +46,11 @@ class Tasks(spoofaxTaskEngine: ITaskEngine) extends Iterable[(Int, StrategoTerm)
   }
   
   // for DEBUGGING
-  override def toString = this.iterator.mkString
+  override def toString = this.iterator.mkString("\n")
 }
 
 // NOTE originally, I wanted to have these just as normal ctors in the class, but Scala
 // does not allow any stmts (even val ...) before the this call...
-@deprecated("Use NameResolution.getModuleDef instead, uses the real Stratego NaBL Code, not this hacky reimplemention", "29-07-2015")
 object Tasks {
   /**
    * Convenience Ctor: read task engine from filename 
@@ -66,4 +65,8 @@ object Tasks {
    * Convenience Ctor: use the current task engine (useful when executing from Spoofax)
    */
   def current(): Tasks = new Tasks(TaskManager.getInstance().getCurrent())
+}
+
+object PrintTasks extends App {
+  println(Tasks.fromFile("test/.cache/taskengine.idx"))
 }
