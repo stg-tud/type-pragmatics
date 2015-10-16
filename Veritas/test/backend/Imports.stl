@@ -1,3 +1,11 @@
 module backend.Imports
 
-import backend.Goal
+import backend.RecursiveImports
+
+strategy samplestrat {
+  import backend.Ctors // status: resolved
+}
+
+axiom
+======= sampleaxiom
+~e : ~T
