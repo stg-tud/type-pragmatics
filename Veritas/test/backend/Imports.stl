@@ -3,7 +3,7 @@ module backend.Imports
 import backend.RecursiveImports
 
 strategy samplestrat {
-  import backend.Ctors // status: resolved
+  import backend.Ctors
 }
 
 axiom

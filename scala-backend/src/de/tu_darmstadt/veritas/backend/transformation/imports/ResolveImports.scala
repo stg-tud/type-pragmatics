@@ -7,6 +7,7 @@ import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.Resolved
 import de.tu_darmstadt.veritas.backend.veritas.Strategy
 import de.tu_darmstadt.veritas.backend.veritas.Unresolved
+import de.tu_darmstadt.veritas.backend.veritas.ModuleDefHolder
 
 /**
  * Recursively resolves the imports (but does not follow cyclic ones) in the given module.
@@ -20,55 +21,46 @@ import de.tu_darmstadt.veritas.backend.veritas.Unresolved
 object ResolveImports extends ModuleTransformation {
   override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] =
       withSuper(super.transModule(name, is, mdefs)) {
-        case mod: Module => Seq(resolveRecursiveModule(mod, Set.empty))
+        case mod: Module => {
+          // add this module to the "already resolved set"
+          val (resolvedImports, processedDefs) = resolveRecursive(mod, Set(mod.name))
+          Seq(Module(mod.name, resolvedImports, processedDefs))
+        }
       }
-  
-  private def resolveRecursiveModule(mod: Module, alreadyResolved_ : Set[String]): Module = {
+
+  /**
+   * Resolves the imports of the given Module/Strategy. Then goes into the resolved Modules and
+   * resolves their imports recursively. Also goes into all Strategy blocks and resolves their imports.
+   * 
+   * @param alreadyResolved keeps track of all Modules that are already resolved (i.e. for cycle detection)
+   * @return a pair of the now resolved (Imports, Defs). Defs because they contain Strategy blocks that have
+   * imports of their own.
+   */
+  private def resolveRecursive(mod: ModuleDefHolder, alreadyResolved : Set[String]): (Seq[Import], Seq[ModuleDef]) = {
     // resolve all top-level imports
     val resolvedTopLevelImports = mod.imports collect {
       case imp: Unresolved => imp.resolve()
       case imp: Resolved => imp
     }
     
-    // add this module to the "already resolved set"
-    val alreadyResolved = alreadyResolved_ + mod.name
-    
     // sort out all we wont recursively resolve (== have already)
     val (wontResolve, toRecursiveResolve) = resolvedTopLevelImports.partition(alreadyResolved contains _.moduleName)
 
     // recurse into the resolved imports
-    val recursivelyResolved = toRecursiveResolve.map(
-      imp => Resolved(resolveRecursiveModule(imp.moduleCode, alreadyResolved)))
+    val recursivelyResolved = toRecursiveResolve map ( imp => {
+      val (recursiveResolvedImports, recursiveResolvedDefs) = resolveRecursive(imp.moduleCode, alreadyResolved + imp.moduleName)
+      Resolved(Module(imp.moduleCode.name, recursiveResolvedImports, recursiveResolvedDefs))
+    })
     
     // resolve imports in the strategy blocks
     val defsWithResolvedImports = mod.defs map {
-      case s: Strategy => resolveRecursiveStrategy(s, alreadyResolved)
+      case strat: Strategy => {
+        val (recursiveResolvedImports, recursiveResolvedDefs) = resolveRecursive(strat, alreadyResolved)
+        Strategy(strat.name, recursiveResolvedImports, recursiveResolvedDefs)
+      }
       case other => other
     }
 
-    Module(mod.name, recursivelyResolved ++ wontResolve, defsWithResolvedImports)
-  }
-  
-  private def resolveRecursiveStrategy(strat: Strategy, alreadyResolved: Set[String]): Strategy = {
-    // resolve all top-level imports
-    val resolvedTopLevelImports = strat.imports collect {
-      case imp: Unresolved => imp.resolve()
-      case imp: Resolved => imp
-    }
-    
-    // sort out all we wont recursively resolve (== have already)
-    val (wontResolve, toRecursiveResolve) = resolvedTopLevelImports.partition(alreadyResolved contains _.moduleName)
-
-    // recurse into the resolved imports
-    val recursivelyResolved = toRecursiveResolve.map(
-      imp => Resolved(resolveRecursiveModule(imp.moduleCode, alreadyResolved)))
-    
-    // resolve imports in the strategy blocks
-    val defsWithResolvedImports = strat.defs map {
-      case s: Strategy => resolveRecursiveStrategy(s, alreadyResolved)
-      case other => other
-    }
-
-    Strategy(strat.name, recursivelyResolved ++ wontResolve, defsWithResolvedImports)
+    (recursivelyResolved ++ wontResolve, defsWithResolvedImports)
   }
 }
