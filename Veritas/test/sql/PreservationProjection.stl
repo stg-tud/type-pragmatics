@@ -286,31 +286,22 @@ strategy struc-induction-project-preservation {
 			a : AName
 			alrest : AList
 		
+		// proof not possible with timeout 300, when equations not inlined!
 		axiom
-		~al = alrest
+		//~al = alrest
 		welltypedtable(~TT, ~t)
-		isSome(project(~al, ~t))
-		isSome(projectType(~al, ~TT))
+		isSome(project(alrest, ~t))
+		isSome(projectType(alrest, ~TT))
 		===================================== Project-Preservation-acons-IH
-		~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
+		~TTC |- Tvalue(table(alrest, getSome(project(alrest, ~t)))) : getSome(projectType(alrest, ~TT))
 		
-		// axiom
-		// ~al = acons(a, alrest)
-		// welltypedtable(~TT, ~t)
-		// isSome(project(alrest, ~t))
-		// isSome(projectType(alrest, ~TT))
-		// ~TTC |- Tvalue(table(alrest, getSome(project(alrest, ~t)))) : getSome(projectType(alrest, ~TT))
-		// ======================================================================================== aux2
-		// ~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
-		
-		// proof not possible with timeout 300
-		goal 65
-		~al = acons(a, alrest)
+		goal 100
+		//~al = acons(a, alrest)
 		welltypedtable(~TT, ~t)
-		isSome(project(~al, ~t))
-		isSome(projectType(~al, ~TT))
+		isSome(project(acons(a, alrest), ~t))
+		isSome(projectType(acons(a, alrest), ~TT))
 		======================================================================================= Project-Preservation-acons
-		~TTC |- Tvalue(table(~al, getSome(project(~al, ~t)))) : getSome(projectType(~al, ~TT))
+		~TTC |- Tvalue(table(acons(a, alrest), getSome(project(acons(a, alrest), ~t)))) : getSome(projectType(acons(a, alrest), ~TT))
 	}
 	
 	//if induction successful, we proved Project-Preservation and can abbreviate (for now:)
