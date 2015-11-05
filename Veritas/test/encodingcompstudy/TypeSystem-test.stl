@@ -65,7 +65,7 @@ local {
 	
 }
 
-
+   
 local {
 	
 	constructors
@@ -101,8 +101,8 @@ local {
 	goal 
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
 	~ttc == bindContext(TN, ~tt, emptyContext)
-	=============================================================================== T-SelectSomeFrom-test1
-	~ttc |- SelectSomeFrom(acons(A3, aempty), Ref(TN)) : T3
+	===================================================================================== T-SelectSomeFrom-test1
+	~ttc |- SelectSomeFrom(acons(A3, aempty), Ref(TN)) : ttcons(ctype(A3, T3), ttempty)
 	
 }
 
@@ -193,7 +193,7 @@ local {
 	~p == VEquals(A1, x1)
 	~ttc == bindContext(TN, ~tt, emptyContext)
 	=============================================================================== T-SelectSomeFromWhere-test1
-	~ttc |- SelectAllFromWhere(acons(A3, aempty), Ref(TN), ~p) : T3
+	~ttc |- SelectAllFromWhere(acons(A3, aempty), Ref(TN), ~p) : ttcons(ctype(A3, T3), ttempty)
 	
 }
 
