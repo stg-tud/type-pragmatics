@@ -34,14 +34,14 @@ trait InferTypingJudgmentSignature extends ModuleTransformation with CollectType
       case FunctionExpApp(fn, args) => {
         val (in, out) = constypes.getOrElse(fn, functypes.getOrElse(fn, pfunctypes.getOrElse(fn, (Seq(), SortRef("")))))
         if (out.name == "") throw TransformationError(s"Function ${fn} was not declared!?")
-        if (toType == typableOcc)
+        if (args contains toType)
+          in(args.indexOf(toType))
+        else if (toType == typableOcc | toType.isInstanceOf[FunctionMeta]) 
+          //just assumes that meta variables that don't appear in argslist have to be from equations
+          //hence type variable with return type!
           out
-        else {
-          if (args contains toType)
-            in(args.indexOf(toType))
-          else
-            throw TransformationError(s"Could not type ${toType} agains ${typableOcc}")
-        }
+        else
+          throw TransformationError(s"Could not type ${toType} against ${typableOcc}")
       }
     }
   }
@@ -319,7 +319,7 @@ trait InferTypingJudgmentSimple extends ModuleTransformation with CollectTypeInf
           if (args contains toType)
             in(args.indexOf(toType))
           else
-            throw TransformationError(s"Could not type ${toType} agains ${typableOcc}")
+            throw TransformationError(s"Could not type ${toType} against ${typableOcc}")
         }
       }
     }
