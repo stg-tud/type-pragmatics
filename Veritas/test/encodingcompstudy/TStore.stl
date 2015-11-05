@@ -31,13 +31,3 @@ lookupStore(n, bindStore(m, t, TS)) =
 	then someTable(t)
 	else lookupStore(n, TS)
 	
-axioms
-~x == ~y
-bindStore(~x, ~Tx, bindStore(~y, ~Ty, ~C)) |- ~e : ~T
-=========================================== T-TStore-Duplicate
-bindStore(~x, ~Tx, ~C) |- ~e : ~T
-
-~x != ~y
-bindStore(~x, ~Tx, bindStore(~y, ~Ty, ~C)) |- ~e : ~T
-=========================================== T-TStore-Swap
-bindStore(~y, ~Ty, bindStore(~x, ~Tx, ~C)) |- ~e : ~T
