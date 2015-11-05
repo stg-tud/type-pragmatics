@@ -4,6 +4,7 @@ import de.tu_darmstadt.veritas.backend.veritas._
 import scala.collection.immutable.TreeMap
 import de.tu_darmstadt.veritas.backend.transformation._
 import de.tu_darmstadt.veritas.backend.transformation.defs._
+import de.tu_darmstadt.veritas.backend.transformation.imports._
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 import de.tu_darmstadt.veritas.backend.util.prettyprint._
 import de.tu_darmstadt.veritas.backend.fof.FofFile
@@ -11,22 +12,38 @@ import de.tu_darmstadt.veritas.backend.fof.FofFile
 class EncodingComparisonStudy {
 
   var encodingStrategies: Map[String, Seq[Module] => Seq[PrettyPrintableFile]] = TreeMap(
-    ("test-inline" -> (sm => {
-      TranslateTypingJudgmentToFunction(VarToApp0(sm))
-      //      val transformedModules = OldFunctionEqTransformation(AllFunctionInversionAxioms(FunctionEqToAxiomsSimple(VarToApp0(sm))))
-      //      transformedModules map ToTff.toTffFile
-    })) //,
-    //    ("test-fof" ->
-    //      (sm => {
-    //        val transformedModules = MoveDeclsToFront(OldFunctionEqTransformation(FunctionEqToAxiomsSimple(VarToApp0(sm))))
-    //        transformedModules map ToFof.toFofFile
-    //      })),
-    //    ("test-tff" ->
-    //      (sm => {
-    //        val transformedModules = MoveDeclsToFront(OldFunctionEqTransformation(FunctionEqToAxiomsSimple(VarToApp0(sm))))
-    //        transformedModules map ToTff.toTffFile
-    //      }))
-    )
+//    ("test-import" ->
+//      (sm => {
+//        val transformedModules =
+//          ReplaceImportsWithModuleDefs(ResolveImports(sm))
+//        transformedModules
+//      }))
+      ("test-complete" ->
+        (sm => {
+          val transformedModules = MoveDeclsToFront(
+            SplitModulesByGoal(
+              AllFunctionInversionAxioms(
+                TranslateTypingJudgmentSimpleToFunction(
+                  TranslateTypingJudgmentToFunction(
+                    FunctionEqToAxiomsSimple(
+                      GenerateCtorAxioms(
+                        JoinConstructors(
+                          DesugarLemmas(
+                            VarToApp0(
+                              ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))
+          transformedModules map ToFof.toFofFile
+        })) 
+        //    ("test-fof" ->
+        //      (sm => {
+        //        val transformedModules = MoveDeclsToFront(OldFunctionEqTransformation(FunctionEqToAxiomsSimple(VarToApp0(sm))))
+        //        transformedModules map ToFof.toFofFile
+        //      })),
+        //    ("test-tff" ->
+        //      (sm => {
+        //        val transformedModules = MoveDeclsToFront(OldFunctionEqTransformation(FunctionEqToAxiomsSimple(VarToApp0(sm))))
+        //        transformedModules map ToTff.toTffFile
+        //      }))
+        )
 
   val encodingnum = encodingStrategies.size
 
