@@ -1,4 +1,4 @@
-module encodingcompstudy.Tables-test.stl
+module encodingcompstudy.Tables-test
 
 import encodingcompstudy.Tables
 
