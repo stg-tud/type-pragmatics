@@ -90,11 +90,11 @@ case class Resolved(moduleCode: Module) extends Import {
 
 object Import {
   def from(term: StrategoTerm): Import = term match {
-    case StrategoAppl("Import", module@StrategoString(moduleName), annos) => {
+    case i@StrategoAppl("Import", module@StrategoString(moduleName), annos) => {
       val importAnnotations = annos match {
         case StrategoAppl("None") => Seq()
         case StrategoAppl("Some", StrategoAppl("ImportAnno", StrategoList(annos))) => annos map ImportAnnotation.from
-        case t => throw VeritasParseError("Import annotation is wrong, must be either None or Some(ImportAnno([...])), got: " + t)
+        case t => throw VeritasParseError("Import annotation is wrong, must be either None or Some(ImportAnno([...])), got: " + t + "\nin import: "+i)
       }
       
       val result: Import = module.getFirstAnnotation match {
@@ -102,7 +102,7 @@ object Import {
           => UnresolvedTaskId(moduleName, taskId)
         case Some(StrategoAppl("Use", urlTerm)) 
           => UnresolvedUri(VeritasModuleUri.fromNablDef(urlTerm))
-        case t => throw VeritasParseError("Import (NaBL) annotation is wrong. Must be a NaBL Use(...) with either task ID or module URL, got: " + t)
+        case t => throw VeritasParseError("Import (NaBL) annotation is wrong. Must be a NaBL Use(...) with either task ID or module URL, got: " + t + "\nin import: "+i+"\nConsider running Syntax -> Show Analyzed Syntax, this sometimes triggers the generation of NaBl annotations.")
       }
       result._importAnnotations = importAnnotations.distinct
       result
