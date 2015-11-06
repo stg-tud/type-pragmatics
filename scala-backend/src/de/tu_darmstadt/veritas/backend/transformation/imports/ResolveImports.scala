@@ -4,10 +4,10 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.veritas.Import
 import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
+import de.tu_darmstadt.veritas.backend.veritas.ModuleDefHolder
 import de.tu_darmstadt.veritas.backend.veritas.Resolved
 import de.tu_darmstadt.veritas.backend.veritas.Strategy
 import de.tu_darmstadt.veritas.backend.veritas.Unresolved
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDefHolder
 
 /**
  * Recursively resolves the imports (but does not follow cyclic ones) in the given module.
@@ -43,24 +43,31 @@ object ResolveImports extends ModuleTransformation {
       case imp: Resolved => imp
     }
     
-    // sort out all we wont recursively resolve (== have already)
-    val (wontResolve, toRecursiveResolve) = resolvedTopLevelImports.partition(alreadyResolved contains _.moduleName)
+    // remove duplicate imports
+    val resolvedTopLevelImportsUnique = resolvedTopLevelImports.distinct
 
+    // sort out all we wont resolve (== have already)
+    val (wontResolve, toRecursiveResolve) = resolvedTopLevelImportsUnique.partition(alreadyResolved contains _.moduleName)
+    
     // recurse into the resolved imports
     val recursivelyResolved = toRecursiveResolve map ( imp => {
-      val (recursiveResolvedImports, recursiveResolvedDefs) = resolveRecursive(imp.moduleCode, alreadyResolved + imp.moduleName)
+      // add all top-level import to the "already done" list (for recursive resolves), except our own import
+      val recursiveAlreadyResolved = alreadyResolved ++ toRecursiveResolve.map(_.moduleName).filterNot(_ == imp.moduleName)
+      val (recursiveResolvedImports, recursiveResolvedDefs) = resolveRecursive(imp.moduleCode, recursiveAlreadyResolved)
       Resolved(Module(imp.moduleCode.name, recursiveResolvedImports, recursiveResolvedDefs))
     })
     
     // resolve imports in the strategy blocks
     val defsWithResolvedImports = mod.defs map {
       case strat: Strategy => {
-        val (recursiveResolvedImports, recursiveResolvedDefs) = resolveRecursive(strat, alreadyResolved)
+        // do not re-resolve imports in strategies already resolved in the parent module
+        val recursiveAlreadyResolved = alreadyResolved ++ recursivelyResolved.map(_.moduleName)
+        val (recursiveResolvedImports, recursiveResolvedDefs) = resolveRecursive(strat, recursiveAlreadyResolved)
         Strategy(strat.name, recursiveResolvedImports, recursiveResolvedDefs)
       }
       case other => other
     }
 
-    (recursivelyResolved ++ wontResolve, defsWithResolvedImports)
+    (recursivelyResolved, defsWithResolvedImports)
   }
 }
