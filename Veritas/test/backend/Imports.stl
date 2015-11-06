@@ -1,9 +1,13 @@
 module backend.Imports
 
+// check that the import IN RecursiveImports is resolved and all elements put here
+import backend.RecursiveImports
+// check that this is not resolved again
 import backend.RecursiveImports
 
 strategy samplestrat {
-  import backend.Ctors
+	// and here also
+	import backend.RecursiveImports
 }
 
 axiom
