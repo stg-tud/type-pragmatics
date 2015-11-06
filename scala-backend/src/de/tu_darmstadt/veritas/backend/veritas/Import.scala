@@ -27,6 +27,15 @@ sealed trait Import extends VeritasConstruct with SimplePrettyPrintable {
     else importAnnotations.map(_.prettyString).mkString("{", ", ", "} ")
     
   /* abstract */ def moduleName: String
+  
+  /** Equality for imports means equal imported Module name (ignore all other fields, whether it
+   *  is resolved or not etc. 
+   */ 
+  override def equals(o: Any) = o match {
+    case that: Import => that.moduleName == this.moduleName 
+    case _ => false 
+  }
+  override def hashCode = this.moduleName.hashCode
 }
 
 sealed trait Unresolved extends Import {
