@@ -5,7 +5,6 @@ import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.Resolved
 import de.tu_darmstadt.veritas.backend.veritas.Strategy
-import de.tu_darmstadt.veritas.backend.util.Context
 
 /**
  * Replaces each import with all ModuleDefs in the imported Module (but filters out Goals and Local 
@@ -38,11 +37,8 @@ object ReplaceImportsWithModuleDefs extends ModuleTransformation {
    * recursively turns a list of imports into a list of ModuleDefs
    */
   private def imports2defs(imports: Seq[Import]): Seq[ModuleDef] = {
-    Context.debug("Imports to process: " + imports.map(_.moduleName).mkString(" , "))
-    
     imports flatMap {
       case Resolved(recursiveMod) => {
-        Context.debug("Found module: " + recursiveMod.name)
         val filteredModule = FilterGoalsAndLocals(Seq(recursiveMod)).head
         val recursiveDefs = imports2defs(filteredModule.imports)
         recursiveDefs ++ filteredModule.defs
