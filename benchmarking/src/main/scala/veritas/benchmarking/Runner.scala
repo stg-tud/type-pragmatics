@@ -21,7 +21,7 @@ case class Runner(config: Config) {
   def run(): Unit = {
     for (proverConfig <- config.proverConfigs) {
       for (file <- allFiles) {
-        val call = proverConfig.makeCall(file, config.timeout)
+        val call = proverConfig.makeCall(file, config.timeout, config.fullLogs)
         val (result, proctime) = Runner.exec(call, config.timeout, config.logExec, () => proverConfig.newResultProcessor(file, config.timeout))
         val tooltime = result.timeSeconds
         val time = tooltime match {

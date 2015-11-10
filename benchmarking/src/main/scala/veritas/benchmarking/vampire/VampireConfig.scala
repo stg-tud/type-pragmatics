@@ -13,7 +13,7 @@ case class VampireConfig(version: String,
   override val name = if (version == null) s"vampire" else s"vampire-$version"
   override val proverCommand = findBinaryInPath(name)
 
-  def makeCall(file: File, timeout: Int) = {
+  def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
     var call = Seq(proverCommand.getAbsolutePath)
 
     if (timeout > 0)
@@ -24,9 +24,12 @@ case class VampireConfig(version: String,
 
     call = call ++ Seq("--proof", "tptp")
     call = call ++ Seq("--output_axiom_names", "on")
-    call = call ++ Seq("--show_new", "on")
-    call = call ++ Seq("--show_active", "on")
-    call = call ++ Seq("--show_passive", "on")
+
+    if (fullLogs) {
+      call = call ++ Seq("--show_new", "on")
+      call = call ++ Seq("--show_active", "on")
+      call = call ++ Seq("--show_passive", "on")
+    }
 
     call = call :+ file.getAbsolutePath
     call
