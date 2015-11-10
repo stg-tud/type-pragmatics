@@ -23,7 +23,7 @@ object Parenthesized {
 
 final class Not private(val arg: FofUnitary) extends FofUnitary {
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    writer.write("!(")
+    writer.write("(~")
     writer.write(arg).write(")")
   } 
   override def toString = s"Not($arg)"
