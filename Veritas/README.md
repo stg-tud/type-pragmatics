@@ -12,12 +12,12 @@ You need:
 
 1. Java 7 or higher
 2. Eclipse Luna ("Eclipse IDE for Java Developers")
-3. First-Order Theorem Prover Vampire, at least Version 3.0
+3. First-Order Theorem Prover Vampire, at least Version 3.0 (official downloads of Vampire are currently disabled - you may obtain Vampire binaries by either contacting the authors of Vampire or by browsing the CASC webpages for the system sources: http://www.cs.miami.edu/~tptp/CASC/24/ and http://www.cs.miami.edu/~tptp/CASC/25/)
 
 Installation steps:
 
 1. Install latest version of the Spoofax Language Workbench (http://strategoxt.org/Spoofax) as Eclipse plugin: In Eclipse, choose "Help - Install New Software". Copy the following link to the nightly Spoofax build: http://download.spoofax.org/update/nightly , hit enter, mark everything, and install. (Note: The latest stable Spoofax version http://download.spoofax.org/update/stable should also work, but there may be more issues when running Veritas.) Restart Eclipse and adapt the eclipse.ini according to the warning you might get during the start-up. After modifying the eclipse.ini, restart Eclipse again.
-2. Make sure the Vampire binary is inside the PATH used by Eclipse. For example, create a symbolic link from /usr/bin to the Vampire binary.
+2. Copy your Vampire binary into the Veritas folder.
 3. Clone the Veritas folder on your desktop and import the Veritas project in your Eclipse with Spoofax.
 4. Build the Veritas project in Eclipse (make sure the build is successful before continuing with further steps).
 
