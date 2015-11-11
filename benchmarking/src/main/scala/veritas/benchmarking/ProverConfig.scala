@@ -23,9 +23,9 @@ trait ResultDetails {
    */
   def toHumanString: String
 }
-case class StringDetails(details: String) extends ResultDetails {
+case class StringDetails(details: String, meta: String = "") extends ResultDetails {
   override def toString = details
-  override def toHumanString = details
+  override def toHumanString = if (meta.isEmpty) details else meta
 }
 
 class ProverResult(
@@ -65,7 +65,9 @@ object ProverConfig {
 
   for (version <- Seq("3.0", "4.0")) {
     val c = VampireConfig(version)
+    val c_sat = VampireConfig(version, "vampire-sat", "casc_sat")
     _configs += c.name -> c
+    _configs += c_sat.name -> c_sat
   }
   _contributedOptions = _contributedOptions :+ VampireTraceAnalisisOptions
 

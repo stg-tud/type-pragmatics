@@ -6,12 +6,13 @@ import java.util.regex.Pattern
 import veritas.benchmarking._
 import veritas.benchmarking.util.GrowingArray
 
-case class VampireConfig(version: String,
+case class VampireConfig(version: String, confname: String = "vampire",
                          mode: String = "casc") extends ProverConfig {
   def isValid = proverCommand != null
 
-  override val name = if (version == null) s"vampire" else s"vampire-$version"
-  override val proverCommand = findBinaryInPath(name)
+  override val name = if (version == null) confname else s"$confname-$version"
+  override val proverCommand =
+    findBinaryInPath(if (version == null) s"vampire" else s"vampire-$version")
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
     var call = Seq(proverCommand.getAbsolutePath)
