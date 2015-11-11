@@ -63,10 +63,13 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
     f match {
       case FunctionEq(name, pats, ext) => {
         val notprepats = negatePrepats(pats, prepats)
-        //val notprepats = Seq()
-        for (sp <- collectIfLetPremises(ext)) yield {
-          sp ++ notprepats
-        }
+        val iflet = collectIfLetPremises(ext)
+        if (iflet.isEmpty)
+          Seq(notprepats)
+        else
+          for (sp <- collectIfLetPremises(ext)) yield {
+            sp ++ notprepats
+          }
       }
     }
 
@@ -79,19 +82,31 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       }
 
     val correspondingpats = prepats map (s => pats zip s)
-    (for {
-      sp <- correspondingpats
-      pp <- sp
-      if (relevantPattern(pp))
-    } yield negatePatternPart(pp)).flatten
+    val cases = for (sp <- correspondingpats) yield (for (pp <- sp if (relevantPattern(pp))) yield negatePatternPart(pp))
+
+    makeOrSeq(cases)
+  }
+
+  private def makeOrSeq(cases: Seq[Seq[Seq[TypingRuleJudgment]]]): Seq[TypingRuleJudgment] = {
+    (for (c <- cases) yield {
+      val filterempty = c filter (o => !o.isEmpty)
+      if (filterempty.length <= 1)
+        filterempty.flatten
+      else
+        Seq(OrJudgment(filterempty))
+    }).flatten
   }
 
   private def negatePatternPart(patpair: (FunctionPattern, FunctionPattern)): Seq[TypingRuleJudgment] =
     patpair match {
       case (FunctionPatVar(n), a @ FunctionPatApp(m, args2)) => {
         val fresha = makeFreshVars(a, new FreshNames)
-        Seq(ForallJudgment(collectVars(fresha),
-          Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar(n)), varsToMetaVars(patsToVars(fresha)))))))
+        val newvars = collectVars(fresha)
+        if (newvars.isEmpty)
+          Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar(n)), varsToMetaVars(patsToVars(fresha)))))
+        else
+          Seq(ForallJudgment(newvars,
+            Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar(n)), varsToMetaVars(patsToVars(fresha)))))))
       }
       case (FunctionPatApp(n, args1), FunctionPatApp(m, args2)) =>
         if (n == m)
