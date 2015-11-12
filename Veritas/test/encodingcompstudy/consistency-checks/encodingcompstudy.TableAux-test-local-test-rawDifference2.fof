@@ -1,0 +1,97 @@
+fof('EQ-ctype', axiom, ![VAName0, VAName1, VFType0, VFType1] : ((VAName0 = VAName1 & VFType0 = VFType1) <=> vctype(VAName0, VFType0) = vctype(VAName1, VFType1))).
+fof('EQ-aempty', axiom, $true).
+fof('EQ-acons', axiom, ![VAName0, VAName1, VAList0, VAList1] : ((VAName0 = VAName1 & VAList0 = VAList1) <=> vacons(VAName0, VAList0) = vacons(VAName1, VAList1))).
+fof('EQ-ttempty', axiom, $true).
+fof('EQ-ttcons', axiom, ![VCType0, VCType1, VTType0, VTType1] : ((VCType0 = VCType1 & VTType0 = VTType1) <=> vttcons(VCType0, VTType0) = vttcons(VCType1, VTType1))).
+fof('EQ-rtempty', axiom, $true).
+fof('EQ-rtcons', axiom, ![VFType0, VFType1, VRawType0, VRawType1] : ((VFType0 = VFType1 & VRawType0 = VRawType1) <=> vrtcons(VFType0, VRawType0) = vrtcons(VFType1, VRawType1))).
+fof('EQ-rempty', axiom, $true).
+fof('EQ-rcons', axiom, ![VFVal0, VFVal1, VRow0, VRow1] : ((VFVal0 = VFVal1 & VRow0 = VRow1) <=> vrcons(VFVal0, VRow0) = vrcons(VFVal1, VRow1))).
+fof('EQ-tempty', axiom, $true).
+fof('EQ-tcons', axiom, ![VRow0, VRow1, VRawTable0, VRawTable1] : ((VRow0 = VRow1 & VRawTable0 = VRawTable1) <=> vtcons(VRow0, VRawTable0) = vtcons(VRow1, VRawTable1))).
+fof('EQ-table', axiom, ![VAList0, VAList1, VRawTable0, VRawTable1] : ((VAList0 = VAList1 & VRawTable0 = VRawTable1) <=> vtable(VAList0, VRawTable0) = vtable(VAList1, VRawTable1))).
+fof('EQ-noRawTable', axiom, $true).
+fof('EQ-someRawTable', axiom, ![VRawTable0, VRawTable1] : (VRawTable0 = VRawTable1 <=> vsomeRawTable(VRawTable0) = vsomeRawTable(VRawTable1))).
+fof('DIFF-aempty-acons', axiom, ![VAName0, VAList0] : vaempty != vacons(VAName0, VAList0)).
+fof('DIFF-ttempty-ttcons', axiom, ![VCType0, VTType0] : vttempty != vttcons(VCType0, VTType0)).
+fof('DIFF-rtempty-rtcons', axiom, ![VFType0, VRawType0] : vrtempty != vrtcons(VFType0, VRawType0)).
+fof('DIFF-rempty-rcons', axiom, ![VFVal0, VRow0] : vrempty != vrcons(VFVal0, VRow0)).
+fof('DIFF-tempty-tcons', axiom, ![VRow0, VRawTable0] : vtempty != vtcons(VRow0, VRawTable0)).
+fof('DIFF-noRawTable-someRawTable', axiom, ![VRawTable0] : vnoRawTable != vsomeRawTable(VRawTable0)).
+fof('getRaw12', axiom, ![Val, Vrt] : vgetRaw(vtable(Val, Vrt)) = Vrt).
+fof('getRaw-INV', axiom, ![VTable0, VRESULT] : (vgetRaw(VTable0) = VRESULT => ?[Val, Vrt] : (VTable0 = vtable(Val, Vrt) & VRESULT = Vrt))).
+fof('getAL12', axiom, ![Val, Vrt] : vgetAL(vtable(Val, Vrt)) = Val).
+fof('getAL-INV', axiom, ![VTable0, VRESULT] : (vgetAL(VTable0) = VRESULT => ?[Val, Vrt] : (VTable0 = vtable(Val, Vrt) & VRESULT = Val))).
+fof('matchingAList36', axiom, vmatchingAList(vttempty, vaempty)).
+fof('matchingAList37', axiom, ![Va1, Va2, Val, Vf, Vtt] : (vmatchingAList(vttcons(vctype(Va1, Vf), Vtt), vacons(Va2, Val)) <=> (Va1 = Va2 & vmatchingAList(Vtt, Val)))).
+fof('matchingAList38', axiom, ![Vtt, Val] : (((Vtt != vttempty | Val != vaempty) & (![Va10, Vf0, Vtt0] : Vtt != vttcons(vctype(Va10, Vf0), Vtt0) | ![Va20, Val0] : Val != vacons(Va20, Val0))) => (~vmatchingAList(Vtt, Val)))).
+fof('matchingAList-true-INV', axiom, ![VTType0, VAList0] : (vmatchingAList(VTType0, VAList0) => ((VTType0 = vttempty & VAList0 = vaempty) | ?[Va1, Va2, Val, Vf, Vtt] : (VTType0 = vttcons(vctype(Va1, Vf), Vtt) & VAList0 = vacons(Va2, Val) & (Va1 = Va2 & vmatchingAList(Vtt, Val)))))).
+fof('matchingAList-false-INV', axiom, ![VTType0, VAList0] : ((~vmatchingAList(VTType0, VAList0)) => (?[Va1, Va2, Val, Vf, Vtt] : (VTType0 = vttcons(vctype(Va1, Vf), Vtt) & VAList0 = vacons(Va2, Val) & (~(Va1 = Va2 & vmatchingAList(Vtt, Val)))) | ?[Vtt, Val] : ((Vtt != vttempty | Val != vaempty) & (![Va10, Vf0, Vtt0] : Vtt != vttcons(vctype(Va10, Vf0), Vtt0) | ![Va20, Val0] : Val != vacons(Va20, Val0)) & VTType0 = Vtt & VAList0 = Val)))).
+fof('welltypedtable12', axiom, ![Vtt, Val, Vt] : (vwelltypedtable(Vtt, vtable(Val, Vt)) <=> (vmatchingAList(Vtt, Val) & vwelltypedRawtable(vrawType(Vtt), Vt)))).
+fof('welltypedtable-true-INV', axiom, ![VTType0, VTable0] : (vwelltypedtable(VTType0, VTable0) => ?[Vtt, Val, Vt] : (VTType0 = Vtt & VTable0 = vtable(Val, Vt) & (vmatchingAList(Vtt, Val) & vwelltypedRawtable(vrawType(Vtt), Vt))))).
+fof('welltypedtable-false-INV', axiom, ![VTType0, VTable0] : ((~vwelltypedtable(VTType0, VTable0)) => ?[Vtt, Val, Vt] : (VTType0 = Vtt & VTable0 = vtable(Val, Vt) & (~(vmatchingAList(Vtt, Val) & vwelltypedRawtable(vrawType(Vtt), Vt)))))).
+fof('rawType24', axiom, vrawType(vttempty) = vrtempty).
+fof('rawType25', axiom, ![Va, Vft, Vtt] : vrawType(vttcons(vctype(Va, Vft), Vtt)) = vrtcons(Vft, vrawType(Vtt))).
+fof('rawType-INV', axiom, ![VTType0, VRESULT] : (vrawType(VTType0) = VRESULT => ((VTType0 = vttempty & VRESULT = vrtempty) | ?[Va, Vft, Vtt] : (VTType0 = vttcons(vctype(Va, Vft), Vtt) & VRESULT = vrtcons(Vft, vrawType(Vtt)))))).
+fof('welltypedRawtable24', axiom, ![Vrt] : vwelltypedRawtable(Vrt, vtempty)).
+fof('welltypedRawtable25', axiom, ![Vrt, Vr, Vt] : (vwelltypedRawtable(Vrt, vtcons(Vr, Vt)) <=> (vwelltypedRow(Vrt, Vr) & vwelltypedRawtable(Vrt, Vt)))).
+fof('welltypedRawtable-true-INV', axiom, ![VRawType0, VRawTable0] : (vwelltypedRawtable(VRawType0, VRawTable0) => (?[Vrt] : (VRawType0 = Vrt & VRawTable0 = vtempty) | ?[Vrt, Vr, Vt] : (VRawType0 = Vrt & VRawTable0 = vtcons(Vr, Vt) & (vwelltypedRow(Vrt, Vr) & vwelltypedRawtable(Vrt, Vt)))))).
+fof('welltypedRawtable-false-INV', axiom, ![VRawType0, VRawTable0] : ((~vwelltypedRawtable(VRawType0, VRawTable0)) => ?[Vrt, Vr, Vt] : (VRawType0 = Vrt & VRawTable0 = vtcons(Vr, Vt) & (~(vwelltypedRow(Vrt, Vr) & vwelltypedRawtable(Vrt, Vt)))))).
+fof('welltypedRow36', axiom, vwelltypedRow(vrtempty, vrempty)).
+fof('welltypedRow37', axiom, ![Vft, Vrt, Vv, Vr] : (vwelltypedRow(vrtcons(Vft, Vrt), vrcons(Vv, Vr)) <=> (vfieldType(Vv) = Vft & vwelltypedRow(Vrt, Vr)))).
+fof('welltypedRow38', axiom, ![Vrt, Vr] : (((Vrt != vrtempty | Vr != vrempty) & (![Vft0, Vrt0] : Vrt != vrtcons(Vft0, Vrt0) | ![Vv0, Vr0] : Vr != vrcons(Vv0, Vr0))) => (~vwelltypedRow(Vrt, Vr)))).
+fof('welltypedRow-true-INV', axiom, ![VRawType0, VRow0] : (vwelltypedRow(VRawType0, VRow0) => ((VRawType0 = vrtempty & VRow0 = vrempty) | ?[Vft, Vrt, Vv, Vr] : (VRawType0 = vrtcons(Vft, Vrt) & VRow0 = vrcons(Vv, Vr) & (vfieldType(Vv) = Vft & vwelltypedRow(Vrt, Vr)))))).
+fof('welltypedRow-false-INV', axiom, ![VRawType0, VRow0] : ((~vwelltypedRow(VRawType0, VRow0)) => (?[Vft, Vrt, Vv, Vr] : (VRawType0 = vrtcons(Vft, Vrt) & VRow0 = vrcons(Vv, Vr) & (~(vfieldType(Vv) = Vft & vwelltypedRow(Vrt, Vr)))) | ?[Vrt, Vr] : ((Vrt != vrtempty | Vr != vrempty) & (![Vft0, Vrt0] : Vrt != vrtcons(Vft0, Vrt0) | ![Vv0, Vr0] : Vr != vrcons(Vv0, Vr0)) & VRawType0 = Vrt & VRow0 = Vr)))).
+fof('rowIn16', axiom, ![Vr1] : (~vrowIn(Vr1, vtempty))).
+fof('rowIn17', axiom, ![Vr1, Vr2, Vrt] : (vrowIn(Vr1, vtcons(Vr2, Vrt)) <=> (Vr1 = Vr2 | vrowIn(Vr1, Vrt)))).
+fof('rowIn-true-INV', axiom, ![VRow0, VRawTable0] : (vrowIn(VRow0, VRawTable0) => ?[Vr1, Vr2, Vrt] : (VRow0 = Vr1 & VRawTable0 = vtcons(Vr2, Vrt) & (Vr1 = Vr2 | vrowIn(Vr1, Vrt))))).
+fof('rowIn-false-INV', axiom, ![VRow0, VRawTable0] : ((~vrowIn(VRow0, VRawTable0)) => (?[Vr1] : (VRow0 = Vr1 & VRawTable0 = vtempty) | ?[Vr1, Vr2, Vrt] : (VRow0 = Vr1 & VRawTable0 = vtcons(Vr2, Vrt) & (~(Vr1 = Vr2 | vrowIn(Vr1, Vrt))))))).
+fof('projectFirstRaw24', axiom, vprojectFirstRaw(vtempty) = vtempty).
+fof('projectFirstRaw25', axiom, ![Vrt] : vprojectFirstRaw(vtcons(vrempty, Vrt)) = vtcons(vrempty, vprojectFirstRaw(Vrt))).
+fof('projectFirstRaw26', axiom, ![Vf, Vr, Vrt] : vprojectFirstRaw(vtcons(vrcons(Vf, Vr), Vrt)) = vtcons(vrcons(Vf, vrempty), vprojectFirstRaw(Vrt))).
+fof('projectFirstRaw-INV', axiom, ![VRawTable0, VRESULT] : (vprojectFirstRaw(VRawTable0) = VRESULT => ((VRawTable0 = vtempty & VRESULT = vtempty) | ?[Vrt] : (VRawTable0 = vtcons(vrempty, Vrt) & VRESULT = vtcons(vrempty, vprojectFirstRaw(Vrt))) | ?[Vf, Vr, Vrt] : (VRawTable0 = vtcons(vrcons(Vf, Vr), Vrt) & VRESULT = vtcons(vrcons(Vf, vrempty), vprojectFirstRaw(Vrt)))))).
+fof('dropFirstColRaw24', axiom, vdropFirstColRaw(vtempty) = vtempty).
+fof('dropFirstColRaw25', axiom, ![Vrt] : vdropFirstColRaw(vtcons(vrempty, Vrt)) = vtcons(vrempty, vdropFirstColRaw(Vrt))).
+fof('dropFirstColRaw26', axiom, ![Vf, Vr, Vrt] : vdropFirstColRaw(vtcons(vrcons(Vf, Vr), Vrt)) = vtcons(Vr, vdropFirstColRaw(Vrt))).
+fof('dropFirstColRaw-INV', axiom, ![VRawTable0, VRESULT] : (vdropFirstColRaw(VRawTable0) = VRESULT => ((VRawTable0 = vtempty & VRESULT = vtempty) | ?[Vrt] : (VRawTable0 = vtcons(vrempty, Vrt) & VRESULT = vtcons(vrempty, vdropFirstColRaw(Vrt))) | ?[Vf, Vr, Vrt] : (VRawTable0 = vtcons(vrcons(Vf, Vr), Vrt) & VRESULT = vtcons(Vr, vdropFirstColRaw(Vrt)))))).
+fof('isSomeRawTable16', axiom, (~visSomeRawTable(vnoRawTable))).
+fof('isSomeRawTable17', axiom, ![Vt] : visSomeRawTable(vsomeRawTable(Vt))).
+fof('isSomeRawTable-true-INV', axiom, ![VOptRawTable0] : (visSomeRawTable(VOptRawTable0) => ?[Vt] : VOptRawTable0 = vsomeRawTable(Vt))).
+fof('isSomeRawTable-false-INV', axiom, ![VOptRawTable0] : ((~visSomeRawTable(VOptRawTable0)) => VOptRawTable0 = vnoRawTable)).
+fof('getSomeRawTable8', axiom, ![Vt] : vgetSomeRawTable(vsomeRawTable(Vt)) = Vt).
+fof('attachColToFrontRaw32', axiom, vattachColToFrontRaw(vtempty, vtempty) = vsomeRawTable(vtempty)).
+fof('attachColToFrontRaw33', axiom, ![Vrt1, Vrest, Vr, Vf, Vrt2] : ((Vrest = vattachColToFrontRaw(Vrt1, Vrt2) & visSomeRawTable(Vrest)) => vattachColToFrontRaw(vtcons(vrcons(Vf, vrempty), Vrt1), vtcons(Vr, Vrt2)) = vsomeRawTable(vtcons(vrcons(Vf, Vr), vgetSomeRawTable(Vrest))))).
+fof('attachColToFrontRaw34', axiom, ![Vrt1, Vrest, Vr, Vf, Vrt2] : ((Vrest = vattachColToFrontRaw(Vrt1, Vrt2) & (~visSomeRawTable(Vrest))) => vattachColToFrontRaw(vtcons(vrcons(Vf, vrempty), Vrt1), vtcons(Vr, Vrt2)) = vnoRawTable)).
+fof('attachColToFrontRaw35', axiom, ![Vrt1, Vrt2] : (((Vrt1 != vtempty | Vrt2 != vtempty) & (![Vf0, Vrt10] : Vrt1 != vtcons(vrcons(Vf0, vrempty), Vrt10) | ![Vr0, Vrt20] : Vrt2 != vtcons(Vr0, Vrt20))) => vattachColToFrontRaw(Vrt1, Vrt2) = vnoRawTable)).
+fof('attachColToFrontRaw-INV', axiom, ![VRawTable0, VRawTable1, VRESULT] : (vattachColToFrontRaw(VRawTable0, VRawTable1) = VRESULT => ((VRawTable0 = vtempty & VRawTable1 = vtempty & VRESULT = vsomeRawTable(vtempty)) | ?[Vrt1, Vrest, Vr, Vf, Vrt2] : (Vrest = vattachColToFrontRaw(Vrt1, Vrt2) & visSomeRawTable(Vrest) & VRawTable0 = vtcons(vrcons(Vf, vrempty), Vrt1) & VRawTable1 = vtcons(Vr, Vrt2) & VRESULT = vsomeRawTable(vtcons(vrcons(Vf, Vr), vgetSomeRawTable(Vrest)))) | ?[Vrt1, Vrest, Vr, Vf, Vrt2] : (Vrest = vattachColToFrontRaw(Vrt1, Vrt2) & (~visSomeRawTable(Vrest)) & VRawTable0 = vtcons(vrcons(Vf, vrempty), Vrt1) & VRawTable1 = vtcons(Vr, Vrt2) & VRESULT = vnoRawTable) | ?[Vrt1, Vrt2] : ((Vrt1 != vtempty | Vrt2 != vtempty) & (![Vf0, Vrt10] : Vrt1 != vtcons(vrcons(Vf0, vrempty), Vrt10) | ![Vr0, Vrt20] : Vrt2 != vtcons(Vr0, Vrt20)) & VRawTable0 = Vrt1 & VRawTable1 = Vrt2 & VRESULT = vnoRawTable)))).
+fof('rawUnion32', axiom, ![Vrt2] : vrawUnion(vtempty, Vrt2) = Vrt2).
+fof('rawUnion33', axiom, ![Vrt1] : (Vrt1 != vtempty => vrawUnion(Vrt1, vtempty) = Vrt1)).
+fof('rawUnion34', axiom, ![Vurt1rt2, Vrt1, Vrt2, Vr1] : ((Vurt1rt2 = vrawUnion(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty) => vrawUnion(vtcons(Vr1, Vrt1), Vrt2) = vtcons(Vr1, Vurt1rt2))).
+fof('rawUnion35', axiom, ![Vurt1rt2, Vrt1, Vrt2, Vr1] : ((Vurt1rt2 = vrawUnion(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty) => vrawUnion(vtcons(Vr1, Vrt1), Vrt2) = Vurt1rt2)).
+fof('rawUnion-INV', axiom, ![VRawTable0, VRawTable1, VRESULT] : (vrawUnion(VRawTable0, VRawTable1) = VRESULT => (?[Vrt2] : (VRawTable0 = vtempty & VRawTable1 = Vrt2 & VRESULT = Vrt2) | ?[Vrt1] : (Vrt1 != vtempty & VRawTable0 = Vrt1 & VRawTable1 = vtempty & VRESULT = Vrt1) | ?[Vurt1rt2, Vrt1, Vrt2, Vr1] : (Vurt1rt2 = vrawUnion(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & VRawTable0 = vtcons(Vr1, Vrt1) & VRawTable1 = Vrt2 & VRESULT = vtcons(Vr1, Vurt1rt2)) | ?[Vurt1rt2, Vrt1, Vrt2, Vr1] : (Vurt1rt2 = vrawUnion(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & VRawTable0 = vtcons(Vr1, Vrt1) & VRawTable1 = Vrt2 & VRESULT = Vurt1rt2)))).
+fof('rawIntersection48', axiom, ![Vrt2] : vrawIntersection(vtempty, Vrt2) = vtempty).
+fof('rawIntersection49', axiom, ![Vrt1] : (Vrt1 != vtempty => vrawIntersection(Vrt1, vtempty) = vtempty)).
+fof('rawIntersection50', axiom, ![Vr1, Vrt2] : ((vrowIn(Vr1, Vrt2) & Vrt2 != vtempty) => vrawIntersection(vtcons(Vr1, vtempty), Vrt2) = vtcons(Vr1, vtempty))).
+fof('rawIntersection51', axiom, ![Vr1, Vrt2] : (((~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty) => vrawIntersection(vtcons(Vr1, vtempty), Vrt2) = vtempty)).
+fof('rawIntersection52', axiom, ![Vurt1rt2, Vrt1, Vrt2, Vr1] : ((Vurt1rt2 = vrawIntersection(Vrt1, Vrt2) & vrowIn(Vr1, Vrt2) & Vrt2 != vtempty & Vrt1 != vtempty) => vrawIntersection(vtcons(Vr1, Vrt1), Vrt2) = vtcons(Vr1, Vurt1rt2))).
+fof('rawIntersection53', axiom, ![Vurt1rt2, Vrt1, Vrt2, Vr1] : ((Vurt1rt2 = vrawIntersection(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & Vrt1 != vtempty) => vrawIntersection(vtcons(Vr1, Vrt1), Vrt2) = Vurt1rt2)).
+fof('rawIntersection-INV', axiom, ![VRawTable0, VRawTable1, VRESULT] : (vrawIntersection(VRawTable0, VRawTable1) = VRESULT => (?[Vrt2] : (VRawTable0 = vtempty & VRawTable1 = Vrt2 & VRESULT = vtempty) | ?[Vrt1] : (Vrt1 != vtempty & VRawTable0 = Vrt1 & VRawTable1 = vtempty & VRESULT = vtempty) | ?[Vr1, Vrt2] : (vrowIn(Vr1, Vrt2) & Vrt2 != vtempty & VRawTable0 = vtcons(Vr1, vtempty) & VRawTable1 = Vrt2 & VRESULT = vtcons(Vr1, vtempty)) | ?[Vr1, Vrt2] : ((~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & VRawTable0 = vtcons(Vr1, vtempty) & VRawTable1 = Vrt2 & VRESULT = vtempty) | ?[Vurt1rt2, Vrt1, Vrt2, Vr1] : (Vurt1rt2 = vrawIntersection(Vrt1, Vrt2) & vrowIn(Vr1, Vrt2) & Vrt2 != vtempty & Vrt1 != vtempty & VRawTable0 = vtcons(Vr1, Vrt1) & VRawTable1 = Vrt2 & VRESULT = vtcons(Vr1, Vurt1rt2)) | ?[Vurt1rt2, Vrt1, Vrt2, Vr1] : (Vurt1rt2 = vrawIntersection(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & Vrt1 != vtempty & VRawTable0 = vtcons(Vr1, Vrt1) & VRawTable1 = Vrt2 & VRESULT = Vurt1rt2)))).
+fof('rawDifference48', axiom, ![Vrt2] : vrawDifference(vtempty, Vrt2) = vtempty).
+fof('rawDifference49', axiom, ![Vrt1] : (Vrt1 != vtempty => vrawDifference(Vrt1, vtempty) = Vrt1)).
+fof('rawDifference50', axiom, ![Vr1, Vrt2] : (((~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty) => vrawDifference(vtcons(Vr1, vtempty), Vrt2) = vtcons(Vr1, vtempty))).
+fof('rawDifference51', axiom, ![Vr1, Vrt2] : (((~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty) => vrawDifference(vtcons(Vr1, vtempty), Vrt2) = vtempty)).
+fof('rawDifference52', axiom, ![Vdrt1rt2, Vrt1, Vrt2, Vr1] : ((Vdrt1rt2 = vrawDifference(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & Vrt1 != vtempty) => vrawDifference(vtcons(Vr1, Vrt1), Vrt2) = vtcons(Vr1, Vdrt1rt2))).
+fof('rawDifference53', axiom, ![Vdrt1rt2, Vrt1, Vrt2, Vr1] : ((Vdrt1rt2 = vrawDifference(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & Vrt1 != vtempty) => vrawDifference(vtcons(Vr1, Vrt1), Vrt2) = Vdrt1rt2)).
+fof('rawDifference-INV', axiom, ![VRawTable0, VRawTable1, VRESULT] : (vrawDifference(VRawTable0, VRawTable1) = VRESULT => (?[Vrt2] : (VRawTable0 = vtempty & VRawTable1 = Vrt2 & VRESULT = vtempty) | ?[Vrt1] : (Vrt1 != vtempty & VRawTable0 = Vrt1 & VRawTable1 = vtempty & VRESULT = Vrt1) | ?[Vr1, Vrt2] : ((~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & VRawTable0 = vtcons(Vr1, vtempty) & VRawTable1 = Vrt2 & VRESULT = vtcons(Vr1, vtempty)) | ?[Vr1, Vrt2] : ((~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & VRawTable0 = vtcons(Vr1, vtempty) & VRawTable1 = Vrt2 & VRESULT = vtempty) | ?[Vdrt1rt2, Vrt1, Vrt2, Vr1] : (Vdrt1rt2 = vrawDifference(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & Vrt1 != vtempty & VRawTable0 = vtcons(Vr1, Vrt1) & VRawTable1 = Vrt2 & VRESULT = vtcons(Vr1, Vdrt1rt2)) | ?[Vdrt1rt2, Vrt1, Vrt2, Vr1] : (Vdrt1rt2 = vrawDifference(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & Vrt1 != vtempty & VRawTable0 = vtcons(Vr1, Vrt1) & VRawTable1 = Vrt2 & VRESULT = Vdrt1rt2)))).
+fof('EQ-y1', axiom, $true).
+fof('EQ-y2', axiom, $true).
+fof('EQ-z1', axiom, $true).
+fof('EQ-z2', axiom, $true).
+fof('DIFF-y1-y2', axiom, vy1 != vy2).
+fof('DIFF-y1-z1', axiom, vy1 != vz1).
+fof('DIFF-y1-z2', axiom, vy1 != vz2).
+fof('DIFF-y2-z1', axiom, vy2 != vz1).
+fof('DIFF-y2-z2', axiom, vy2 != vz2).
+fof('DIFF-z1-z2', axiom, vz1 != vz2).
+fof('test-rawDifference2', axiom, ![Vprt, Vdrt] : ((Vprt = vtcons(vrcons(vy2, vrcons(vz2, vrempty)), vtempty) & Vdrt = vtcons(vrcons(vy1, vrcons(vz1, vrempty)), vtcons(vrcons(vy2, vrcons(vz1, vrempty)), vtcons(vrcons(vy1, vrcons(vz1, vrempty)), vtempty)))) => vrawDifference(Vprt, Vdrt) = Vprt)).
+fof('false-goal', conjecture, ($true => $false)).
