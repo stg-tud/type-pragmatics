@@ -98,7 +98,7 @@ case class Summary(config: Config) {
       var rows = Set(header)
       var rowNum = 1
       for ((file, res) <- files) {
-        val  detailsString = res.proverResult.details.toString
+        val  detailsString = res.proverResult.details.toHumanString
         val cells = Set[Cell](
           StringCell(0, res.proverConfig.name),
           NumericCell(1, config.timeout),

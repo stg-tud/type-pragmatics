@@ -107,6 +107,7 @@ case class VampireConfig(version: String, confname: String = "vampire",
 
     var proofBuilder: StringBuilder = _
     var proof: String = _
+    var lemmas: List[String] = List()
     var model: ResultDetails = _
     var satSplitting: Map[Int, Int] = _
 
@@ -162,6 +163,11 @@ case class VampireConfig(version: String, confname: String = "vampire",
       }
       else if (proofBuilder != null) {
         proofBuilder ++= s
+        val lemmaregex = """file\('.+',(.+)\)\)""".r.unanchored
+        s match {
+          case lemmaregex(lemmaname) => lemmas = List(lemmaname) ++ lemmas
+          case _ =>
+        }
       }
 
       // parse time
@@ -366,7 +372,7 @@ case class VampireConfig(version: String, confname: String = "vampire",
       if (status == null)
         new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses.finalizedArray, VampireConfig.this))
       else status match {
-        case Proved => new ProverResult(Proved, time, StringDetails(proof))
+        case Proved => new ProverResult(Proved, time, StringDetails(proof, lemmas.mkString("Used Lemmas: ", ", ", "")))
         case Disproved => new ProverResult(Disproved, time, model)
         case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireManyTraces(traces :+ VampireTrace(clauses.finalizedArray, VampireConfig.this)))
       }
