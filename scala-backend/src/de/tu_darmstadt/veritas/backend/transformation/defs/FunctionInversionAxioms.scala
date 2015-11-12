@@ -50,11 +50,11 @@ trait FunctionInversionAxioms extends ModuleTransformation with CollectTypeInfo 
     }
   }
 
-  override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = 
+  override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     withSuper(super.transModuleDefs(mdef)) {
       case as @ Axioms(tseq) if (isFunctionDef(tseq)) =>
         Seq(as, generateInversionAxiom(tseq))
-  }
+    }
 
   /**
    * assumption: if all axioms in a block start with a function name, then these axioms belong to
@@ -191,3 +191,8 @@ trait FunctionInversionAxioms extends ModuleTransformation with CollectTypeInfo 
 }
 
 object AllFunctionInversionAxioms extends FunctionInversionAxioms
+
+object TotalFunctionInversionAxioms extends FunctionInversionAxioms {
+  override def checkFunction(fn: String): Boolean =
+    !pfunctypes.isDefinedAt(fn)
+}
