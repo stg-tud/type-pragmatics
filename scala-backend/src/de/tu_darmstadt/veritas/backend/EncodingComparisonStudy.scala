@@ -12,12 +12,66 @@ import de.tu_darmstadt.veritas.backend.fof.FofFile
 class EncodingComparisonStudy {
 
   var encodingStrategies: Map[String, Seq[Module] => Seq[PrettyPrintableFile]] = TreeMap(
+    ("consistency-checks" ->
+      (sm => {
+        val transformedModules =
+          SetupConsistencyCheck(
+            MoveDeclsToFront(
+              SplitModulesByGoal(
+                LogicalTermOptimization(
+                  TotalFunctionInversionAxioms(
+                    TranslateTypingJudgmentSimpleToFunction(
+                      TranslateTypingJudgmentToFunction(
+                        FunctionEqToAxiomsSimple(
+                          GenerateCtorAxioms(
+                            DesugarLemmas(
+                              VarToApp0(
+                                JoinConstructors(
+                                  ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
+        transformedModules map ToFof.toFofFile
+      })),
+    ("inconsistencies-partial-functions" ->
+      (sm => {
+        val transformedModules =
+          SetupConsistencyCheck(
+            MoveDeclsToFront(
+              SplitModulesByGoal(
+                LogicalTermOptimization(
+                  AllFunctionInversionAxioms(
+                    TranslateTypingJudgmentSimpleToFunction(
+                      TranslateTypingJudgmentToFunction(
+                        FunctionEqToAxiomsSimple(
+                          GenerateCtorAxioms(
+                            DesugarLemmas(
+                              VarToApp0(
+                                JoinConstructors(
+                                  ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
+        transformedModules map ToFof.toFofFile
+      })),
+    ("inconsistencies-wrong-constant-encoding" ->
+      (sm => {
+        val transformedModules =
+          SetupConsistencyCheck(
+            MoveDeclsToFront(
+              SplitModulesByGoal(
+                LogicalTermOptimization(
+                  AllFunctionInversionAxioms(
+                    TranslateTypingJudgmentSimpleToFunction(
+                      TranslateTypingJudgmentToFunction(
+                        FunctionEqToAxiomsSimple(
+                          GenerateCtorAxioms(
+                            JoinConstructors(
+                              DesugarLemmas(
+                                VarToApp0(
+                                  ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
+        transformedModules map ToFof.toFofFile
+      })),
     ("test-complete" ->
       (sm => {
         val transformedModules = MoveDeclsToFront(
           SplitModulesByGoal(
             LogicalTermOptimization(
-              AllFunctionInversionAxioms(
+              TotalFunctionInversionAxioms(
                 TranslateTypingJudgmentSimpleToFunction(
                   TranslateTypingJudgmentToFunction(
                     FunctionEqToAxiomsSimple(
