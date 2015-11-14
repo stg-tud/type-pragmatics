@@ -102,7 +102,7 @@ case class Summary(config: Config) {
         val cells = Set[Cell](
           StringCell(0, res.proverConfig.name),
           NumericCell(1, config.timeout),
-          StringCell(2, file.getAbsolutePath),
+          StringCell(2, file.getName),
           NumericCell(3, res.timeSeconds * 1000.0),
           StringCell(4, res.proverResult.status.toString),
           StringCell(5, detailsString.replace("\n","\t").substring(0, Math.min(detailsString.length, 32767)))
