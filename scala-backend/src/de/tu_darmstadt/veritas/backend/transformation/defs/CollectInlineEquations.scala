@@ -272,6 +272,7 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
 
 object InlineEverythingOnce extends InlineSubformulas
 
+//fixpoint interation of InlineEverythingOnce
 object InlineEverythingFP extends ModuleTransformation {
   override def apply(m: Seq[Module]): Seq[Module] = {
     val newmd = InlineEverythingOnce(m)
