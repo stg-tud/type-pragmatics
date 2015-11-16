@@ -55,6 +55,18 @@ checkPValidity(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
 checkPValidity(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
 checkPValidity(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
 
+//axioms on behavior of table type context
+axioms
+~x == ~y
+bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e : ~T
+================================================ T-TTContext-Duplicate
+bindContext(~x, ~Tx, ~C) |- ~e : ~T
+
+~x != ~y
+bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e : ~T
+================================================ T-TTContext-Swap
+bindContext(~y, ~Ty, bindContext(~x, ~Tx, ~C)) |- ~e : ~T
+
  
 axioms
 //a table value with a well-typed table is typable

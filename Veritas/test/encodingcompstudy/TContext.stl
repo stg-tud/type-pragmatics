@@ -31,13 +31,3 @@ lookupContext(tn, bindContext(tm, tt, TTC)) =
 	then someTType(tt)
 	else lookupContext(tn, TTC) 
 	
-axioms
-~x == ~y
-bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e : ~T
-================================================ T-TTContext-Duplicate
-bindContext(~x, ~Tx, ~C) |- ~e : ~T
-
-~x != ~y
-bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e : ~T
-================================================ T-TTContext-Swap
-bindContext(~y, ~Ty, bindContext(~x, ~Tx, ~C)) |- ~e : ~T
