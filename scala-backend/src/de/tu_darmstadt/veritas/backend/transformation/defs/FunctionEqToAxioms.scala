@@ -14,7 +14,13 @@ import de.tu_darmstadt.veritas.backend.util.FreshNames
  * TODO Is it possible to generate a simple precondition with this requirement? Probably not...
  */
 trait FunctionEqToSimpleAxioms extends ModuleTransformation {
-  val fresh = new FreshNames
+  var fresh = new FreshNames
+  
+   override def apply(m: Seq[Module]): Seq[Module] = {
+    //make sure that any mutable state is initialized upon application!
+    fresh = new FreshNames
+    super.apply(m)
+  }
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     withSuper(super.transModuleDefs(mdef)) {
