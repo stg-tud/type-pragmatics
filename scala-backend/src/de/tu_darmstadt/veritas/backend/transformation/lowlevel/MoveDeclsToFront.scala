@@ -27,9 +27,9 @@ object MoveDeclsToFront extends ModuleTransformation {
   override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] = {
     val newimps = trace(is)(transModuleImport(_))
     val oldmdefs = trace(mdefs)(transModuleDefs(_))
-    val newmdefs = Seq(Sorts(sortdecls)) ++ Seq(Constructors(consdecls)) ++
-      Seq(Functions(funcdecls map (fs => FunctionDef(fs, Seq())))) ++
-      Seq(PartialFunctions(pfuncdecls map (fs => FunctionDef(fs, Seq())))) ++ oldmdefs
+    val newmdefs = Seq(Sorts(sortdecls.distinct)) ++ Seq(Constructors(consdecls.distinct)) ++
+      Seq(Functions(funcdecls.distinct map (fs => FunctionDef(fs, Seq())))) ++
+      Seq(PartialFunctions(pfuncdecls.distinct map (fs => FunctionDef(fs, Seq())))) ++ oldmdefs
 
     Seq(Module(name, newimps, newmdefs))
   }
