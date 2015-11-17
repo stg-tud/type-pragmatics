@@ -31,9 +31,9 @@ function
 isValue : Query -> Bool
 isValue(Tvalue(t)) = true
 isValue(SelectAllFrom(n)) = false
-isValue(SelectSomeFrom(al, tn)) = false
-isValue(SelectAllFromWhere(tn, p)) = false
-isValue(SelectSomeFromWhere(tt, tn, p)) = false
+isValue(SelectSomeFrom(al, tr)) = false
+isValue(SelectAllFromWhere(tr, p)) = false
+isValue(SelectSomeFromWhere(al, tr, p)) = false
 isValue(Union(q1, q2)) = false
 isValue(Intersection(sql1, sql2)) = false
 isValue(Difference(sql1, sql2)) = false

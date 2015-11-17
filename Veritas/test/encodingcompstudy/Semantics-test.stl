@@ -23,7 +23,7 @@ local {
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
-	~rt == ttcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
 	~t == table(~al, ~rt)
 	~ts == bindStore(TN, ~t, emptyStore)

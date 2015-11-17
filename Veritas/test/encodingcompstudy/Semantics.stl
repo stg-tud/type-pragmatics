@@ -100,9 +100,9 @@ select(table(al, tcons(r, rt)), pred) =
 	let rts = select(table(al, rt), pred) in
 		let rb = singleRowSelect(al, pred, r) in 
 			if (rb == isTrue)
-			then someTable(table(al, tcons(r, getRaw(rts))))
+			then someTable(table(al, tcons(r, getRaw(getSomeTable(rts)))))
 			else if (rb == isFalse)
-				then someTable(rts)
+				then rts
 				else noTable
 
 // definition: union removes duplicate rows
@@ -148,7 +148,7 @@ reduce(conf(SelectSomeFrom(al, Ref(tn)), ts)) =
 			then someConf(conf(Tvalue(table(al, getSomeRawTable(pt))), ts))
 			else noConf)
 		else noConf
-reduce(conf(SelectAllFromWhere(tn, p), ts)) =
+reduce(conf(SelectAllFromWhere(Ref(tn), p), ts)) =
 	let ltn = lookupStore(tn, ts) in
 		if (isSomeTable(ltn))
 		then (let st = select(getSomeTable(ltn), p) in
@@ -156,12 +156,12 @@ reduce(conf(SelectAllFromWhere(tn, p), ts)) =
 			then someConf(conf(Tvalue(getSomeTable(st)), ts))
 			else noConf)
 		else noConf
-reduce(conf(SelectSomeFromWhere(tt, tn, p), ts)) =
+reduce(conf(SelectSomeFromWhere(al, Ref(tn), p), ts)) =
 	let ltn = lookupStore(tn, ts) in
 		if (isSomeTable(ltn))
 		then (let st = select(getSomeTable(ltn), p) in
 			if (isSomeTable(st))
-			then (let pt = project(tt, getSomeTable(st)) in
+			then (let pt = project(al, getSomeTable(st)) in
 				if(isSomeRawTable(pt))
 				then someConf(conf(Tvalue(getSomeRawTable(pt)), ts))
 				else noConf)
@@ -174,13 +174,13 @@ reduce(conf(Union(Tvalue(t1), Tvalue(t2)), ts)) =
 		else noConf
 reduce(conf(Union(Tvalue(t), q2), ts)) =
 	let q2reduce = reduce(conf(q2, ts)) in
-		if (isSomeTable(q2reduce))
-		then someConf(conf(Union(Tvalue(t), getQuery(getSomeTable(q2reduce))), ts))
+		if (isSomeConf(q2reduce))
+		then someConf(conf(Union(Tvalue(t), getQuery(getSomeConf(q2reduce))), ts))
 		else noConf
 reduce(conf(Union(q1, q2), ts)) =
 	let q1reduce = reduce(conf(q1, ts)) in
 		if (isSomeConf(q1reduce))
-		then someConf(conf(Union(getQuery(getSomeTable(q1reduce)), q2), ts))
+		then someConf(conf(Union(getQuery(getSomeConf(q1reduce)), q2), ts))
 		else noConf
 reduce(conf(Intersection(Tvalue(t1), Tvalue(t2)), ts)) =
 	let tintersection = intersect(t1, t2) in
@@ -189,27 +189,27 @@ reduce(conf(Intersection(Tvalue(t1), Tvalue(t2)), ts)) =
 		else noConf
 reduce(conf(Intersection(Tvalue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
-		if (isSomeTable(sql2reduce))
-		then someConf(conf(Intersection(Tvalue(t), getQuery(getSomeTable(sql2reduce))), ts))
+		if (isSomeConf(sql2reduce))
+		then someConf(conf(Intersection(Tvalue(t), getQuery(getSomeConf(sql2reduce))), ts))
 		else noConf
 reduce(conf(Intersection(sql1, sql2), ts)) =
 	let sql1reduce = reduce(conf(sql1, ts)) in
-		if (isSomeTable(sql1reduce))
-		then someConf(conf(Intersection(getQuery(getSomeTable(sql1reduce)), sql2), ts))
+		if (isSomeConf(sql1reduce))
+		then someConf(conf(Intersection(getQuery(getSomeConf(sql1reduce)), sql2), ts))
 		else noConf
 reduce(conf(Difference(Tvalue(t1), Tvalue(t2)), ts)) =
 	let tdifference = difference(t1, t2) in
 		if (isSomeTable(tdifference))
-		then someTable(conf(Tvalue(getSomeTable(tdifference)), ts))
+		then someConf(conf(Tvalue(getSomeTable(tdifference)), ts))
 		else noConf
 reduce(conf(Difference(Tvalue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
-		if (isSomeTable(sql2reduce))
-		then someConf(conf(Difference(Tvalue(t), getQuery(getSomeTable(sql2reduce))), ts))
+		if (isSomeConf(sql2reduce))
+		then someConf(conf(Difference(Tvalue(t), getQuery(getSomeConf(sql2reduce))), ts))
 		else noConf
 reduce(conf(Difference(sql1, sql2), ts)) =
 	let sql1reduce = reduce(conf(sql1, ts)) in
-		if (isSomeTable(sql1reduce))
-		then someConf(conf(Difference(getQuery(getSomeTable(sql1reduce)), sql2), ts))
+		if (isSomeConf(sql1reduce))
+		then someConf(conf(Difference(getQuery(getSomeConf(sql1reduce)), sql2), ts))
 		else noConf
 	
