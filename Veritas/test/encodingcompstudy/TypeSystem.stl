@@ -5,11 +5,6 @@ import encodingcompstudy.TStore
 import encodingcompstudy.Syntax
 import encodingcompstudy.TContext
 
-function
-dropFirstColType : TType -> TType
-dropFirstColType(ttempty) = ttempty
-dropFirstColtType(ttcons(ct, tt)) = tt
-
 sorts
 	OptFType
 	
@@ -40,8 +35,8 @@ projectType(aempty, tt) = someTType(ttempty)
 projectType(acons(a, alr), tt) =
 	let ft = findColType(a, tt) in
 		let tprest = projectType(alr, tt) in
-			if (isSomeTType(ft) && isSomeTType(tprest))
-			then someTType(ttcons(ctype(a, getSomeTType(ft)), getSomeTType(tprest)))
+			if (isSomeFType(ft) && isSomeTType(tprest))
+			then someTType(ttcons(ctype(a, getSomeFType(ft)), getSomeTType(tprest)))
 			else noTType
 			
 function
