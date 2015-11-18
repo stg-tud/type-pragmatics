@@ -59,6 +59,7 @@ trait CollectInlineEquations extends ModuleTransformation {
       case e @ ExistsJudgment(vl, jl) => {
         val oldchosen = chosenSubstitutions
         //add substitutions for quantified variables with fresh names
+        //(capture-avoidance, simply rename all quantified variables in body)
         vl map { m => chosenSubstitutions + (m -> FunctionMeta(MetaVar(freshNames.freshName(m.name)))) }
         val res = ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
         chosenSubstitutions = oldchosen
@@ -67,6 +68,7 @@ trait CollectInlineEquations extends ModuleTransformation {
       case e @ ForallJudgment(vl, jl) => {
         val oldchosen = chosenSubstitutions
         //add substitutions for quantified variables with fresh names
+        //(capture-avoidance, simply rename all quantified variables in body)
         vl map { m => chosenSubstitutions + (m -> FunctionMeta(MetaVar(freshNames.freshName(m.name)))) }
         val res = ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
         chosenSubstitutions = oldchosen
@@ -74,6 +76,7 @@ trait CollectInlineEquations extends ModuleTransformation {
       }
       case OrJudgment(orc) => {
         //not sure if this works for nested ors...
+        // reset for each new Or
         orImplSubstitutions = Map()
         val res = OrJudgment(orc map (sor => {
           val oldchosen = chosenSubstitutions
@@ -272,7 +275,7 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
 
 object InlineEverythingOnce extends InlineSubformulas
 
-//fixpoint interation of InlineEverythingOnce
+//fixpoint iteration of InlineEverythingOnce
 object InlineEverythingFP extends ModuleTransformation {
   override def apply(m: Seq[Module]): Seq[Module] = {
     val newmd = InlineEverythingOnce(m)
