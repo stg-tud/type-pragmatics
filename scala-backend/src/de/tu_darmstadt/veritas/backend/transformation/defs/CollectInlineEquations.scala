@@ -338,7 +338,7 @@ object InlineEverythingFP extends ModuleTransformation {
 //first apply InlineEverythingOnce
 //at the end remove the premises that were used for substitution
 //from all implications (aka typing rules)
-object InlineEverythingAndRemomePrems extends ModuleTransformation {
+object InlineEverythingAndRemovePrems extends ModuleTransformation {
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     val newtr = InlineEverythingOnce.transTypingRules(tr)
     val RemPremInst = new RemoveUnusedPremises(InlineEverythingOnce.substitutedVars)
@@ -347,9 +347,9 @@ object InlineEverythingAndRemomePrems extends ModuleTransformation {
 }
 
 //fixpoint iteration of InlineEverythingAndRemomePrems
-object InlineEverythingAndRemomePremsFP extends ModuleTransformation {
+object InlineEverythingAndRemovePremsFP extends ModuleTransformation {
   override def apply(m: Seq[Module]): Seq[Module] = {
-    val newmd = InlineEverythingAndRemomePrems(m)
+    val newmd = InlineEverythingAndRemovePrems(m)
     if (newmd != m) apply(newmd)
     else newmd
   }

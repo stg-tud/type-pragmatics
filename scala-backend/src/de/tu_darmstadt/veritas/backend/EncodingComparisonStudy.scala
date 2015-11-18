@@ -54,9 +54,16 @@ case class Typing(vals: List[TypingValue]) extends StudyVariable {
  */
 trait SubformNamingValue extends StudyValue
 //no intermediate variables, inline all named subformulas
+//but keep inlined premises
 case object InlineEverything extends SubformNamingValue {
   override val valname = "InlineEverything"
   override def apply(m: Seq[Module]): Seq[Module] = InlineEverythingFP(m)
+}
+//no intermediate variables, inline all named subformulas
+//and remove the inlined premises completely
+case object InlineEverythingAndRemove extends SubformNamingValue {
+  override val valname = "InlineEverythingAndRemove"
+  override def apply(m: Seq[Module]): Seq[Module] = InlineEverythingAndRemovePremsFP(m)
 }
 //create names for all subformulas in an axiom/goal and add to premises
 case object NameEverything extends SubformNamingValue {
@@ -184,7 +191,8 @@ class EncodingComparisonStudy {
     ConsistencyCheck(List(Consistency, Proof)),
     GoalSplitting,
     LogicalOpt(List(Optimized, NotOptimized)),
-    SubformNaming(List(NoNamingChange, NameEverything, InlineEverything, NameParamsResults)),
+    SubformNaming(List(NoNamingChange, NameEverything, 
+        InlineEverything, InlineEverythingAndRemove, NameParamsResults)),
     Inversion(List(InversionTotal, NoInversion)),
     BasicEncodings)
 
