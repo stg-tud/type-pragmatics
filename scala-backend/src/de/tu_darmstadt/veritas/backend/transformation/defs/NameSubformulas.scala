@@ -376,7 +376,7 @@ object NameFunctionResultsOnly extends NameSubformulas {
     val grandgrandparent = path(2)
 
     grandgrandparent match {
-      case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(_,_), r)))) if (r == vc) => true
+      case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(_, _), r)))) if (r == vc) => true
       case _ => false
     }
   }
@@ -422,7 +422,9 @@ object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with Coll
     path.head match {
       case FunctionExpApp(n, args) => {
         val vcpos = args.indexOf(vc)
-        val funcparamsorts = if (functypes.isDefinedAt(n)) functypes(n)._1 else pfunctypes(n)._1
+        val funcparamsorts = if (functypes.isDefinedAt(n)) functypes(n)._1
+        else if (pfunctypes.isDefinedAt(n)) pfunctypes(n)._1 else
+          throw TransformationError(s"Function $n could not be found while trying to create a new metavar for its $vcpos. argument.")
         MetaVar(freshNames.freshName(funcparamsorts(vcpos).name))
       }
       case _ => super.newMetaVar(vc) //should not happen
