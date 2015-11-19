@@ -1,0 +1,1107 @@
+Module(
+  "encodingcompstudy.TypeSystem"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                                    )
+                                  )
+                                }
+, [ Import("encodingcompstudy.Tables"{Use(Result(66370))}, None())
+  , Import("encodingcompstudy.TStore"{Use(Result(71158))}, None())
+  , Import("encodingcompstudy.Syntax"{Use(Result(147870))}, None())
+  , Import("encodingcompstudy.TContext"{Use(Result(240358))}, None())
+  ]
+, [ Sorts([SortDef("OptFType"{ Def(
+                                 URI(
+                                   Language("Veritas")
+                                 , [ ID(NablNsSort(), "OptFType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                   , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                   ]
+                                 )
+                               )
+                             })])
+  , Constructors(
+      [ ConstructorDecl("noFType"{ Def(
+                                     URI(
+                                       Language("Veritas")
+                                     , [ ID(NablNsSymbol(), "noFType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                       , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                       ]
+                                     )
+                                   )
+                                 }, [], SortRef("OptFType"{Use(Result(241782))}))
+      , ConstructorDecl("someFType"{ Def(
+                                       URI(
+                                         Language("Veritas")
+                                       , [ ID(NablNsSymbol(), "someFType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                         , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                         ]
+                                       )
+                                     )
+                                   }, [SortRef("FType"{Use(Result(241682))})], SortRef("OptFType"{Use(Result(241782))}))
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("isSomeFType"{ Def(
+                                       URI(
+                                         Language("Veritas")
+                                       , [ ID(NablNsSymbol(), "isSomeFType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                         , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                         ]
+                                       )
+                                     )
+                                   }, [SortRef("OptFType"{Use(Result(241782))})], SortRef("Bool"{Use(Result(241108))}))
+        , [ FunctionEq("isSomeFType", [FunctionPatVar("noFType"{ Use(Result(268189))
+                                                               , Def(
+                                                                   URI(
+                                                                     Language("Veritas")
+                                                                   , [ ID(NablNsSymbol(), "noFType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                     , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0")
+                                                                     , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                     ]
+                                                                   )
+                                                                 )
+                                                               })], FunctionExpFalse()){ Scope(
+                                                                                           [ ( NablNsSymbol()
+                                                                                             , URI(
+                                                                                                 Language("Veritas")
+                                                                                               , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                                                                                               )
+                                                                                             )
+                                                                                           ]
+                                                                                         )
+                                                                                       }
+          , FunctionEq(
+              "isSomeFType"
+            , [FunctionPatApp("someFType"{Use(Result(268195))}, [FunctionPatVar("a"{ Use(Result(268193))
+                                                                                   , Def(
+                                                                                       URI(
+                                                                                         Language("Veritas")
+                                                                                       , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                         , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/1")
+                                                                                         , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                         ]
+                                                                                       )
+                                                                                     )
+                                                                                   })])]
+            , FunctionExpTrue()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/1"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , PartialFunctions(
+      [ FunctionDef(
+          FunctionSig("getSomeFType"{ Def(
+                                        URI(
+                                          Language("Veritas")
+                                        , [ ID(NablNsSymbol(), "getSomeFType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                          , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                          ]
+                                        )
+                                      )
+                                    }, [SortRef("OptFType"{Use(Result(241782))})], SortRef("FType"{Use(Result(241682))}))
+        , [ FunctionEq(
+              "getSomeFType"
+            , [FunctionPatApp("someFType"{Use(Result(268204))}, [FunctionPatVar("a"{ Use(Result(268202))
+                                                                                   , Def(
+                                                                                       URI(
+                                                                                         Language("Veritas")
+                                                                                       , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                         , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/2")
+                                                                                         , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                         ]
+                                                                                       )
+                                                                                     )
+                                                                                   })])]
+            , FunctionExpVar("a"{Use(Result(268202))})
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/2"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "findColType"{ Def(
+                             URI(
+                               Language("Veritas")
+                             , [ ID(NablNsSymbol(), "findColType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                               , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                               ]
+                             )
+                           )
+                         }
+          , [SortRef("AName"{Use(Result(238130))}), SortRef("TType"{Use(Result(238098))})]
+          , SortRef("OptFType"{Use(Result(241782))})
+          )
+        , [ FunctionEq(
+              "findColType"
+            , [FunctionPatVar("an"{ Use(Result(268213))
+                                  , Def(
+                                      URI(
+                                        Language("Veritas")
+                                      , [ ID(NablNsSymbol(), "an", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/3")
+                                        , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                        ]
+                                      )
+                                    )
+                                  }), FunctionPatVar("ttempty"{ Use(Result(268217))
+                                                              , Def(
+                                                                  URI(
+                                                                    Language("Veritas")
+                                                                  , [ ID(NablNsSymbol(), "ttempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                    , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/3")
+                                                                    , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                    ]
+                                                                  )
+                                                                )
+                                                              })]
+            , FunctionExpVar("noFType"{Use(Result(268219))})
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/3"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "findColType"
+            , [ FunctionPatVar("an"{ Use(Result(268223))
+                                   , Def(
+                                       URI(
+                                         Language("Veritas")
+                                       , [ ID(NablNsSymbol(), "an", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                         , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/4")
+                                         , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                         ]
+                                       )
+                                     )
+                                   })
+              , FunctionPatApp(
+                  "ttcons"{Use(Result(268237))}
+                , [FunctionPatApp("ctype"{Use(Result(268231))}, [FunctionPatVar("a"{ Use(Result(241122))
+                                                                                   , Def(
+                                                                                       URI(
+                                                                                         Language("Veritas")
+                                                                                       , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                         , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/4")
+                                                                                         , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                         ]
+                                                                                       )
+                                                                                     )
+                                                                                   }), FunctionPatVar("ft"{ Use(Result(268229))
+                                                                                                          , Def(
+                                                                                                              URI(
+                                                                                                                Language("Veritas")
+                                                                                                              , [ ID(NablNsSymbol(), "ft", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/4")
+                                                                                                                , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          })]), FunctionPatVar("ttr"{ Use(Result(268235))
+                                                                                                                                    , Def(
+                                                                                                                                        URI(
+                                                                                                                                          Language("Veritas")
+                                                                                                                                        , [ ID(NablNsSymbol(), "ttr", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                          , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/4")
+                                                                                                                                          , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                          ]
+                                                                                                                                        )
+                                                                                                                                      )
+                                                                                                                                    })]
+                )
+              ]
+            , FunctionExpIf(
+                FunctionExpEq(FunctionExpVar("an"{Use(Result(268223))}), FunctionExpVar("a"{Use(Result(241122))}))
+              , FunctionExpApp("someFType"{Use(Result(243487))}, [FunctionExpVar("ft"{Use(Result(268229))})])
+              , FunctionExpApp("findColType"{Use(Result(268245))}, [FunctionExpVar("an"{Use(Result(268223))}), FunctionExpVar("ttr"{Use(Result(268235))})])
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/4"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "projectType"{ Def(
+                             URI(
+                               Language("Veritas")
+                             , [ ID(NablNsSymbol(), "projectType", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                               , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                               ]
+                             )
+                           )
+                         }
+          , [SortRef("AList"{Use(Result(238184))}), SortRef("TType"{Use(Result(238098))})]
+          , SortRef("OptTType"{Use(Result(243874))})
+          )
+        , [ FunctionEq(
+              "projectType"
+            , [FunctionPatVar("aempty"{ Use(Result(268253))
+                                      , Def(
+                                          URI(
+                                            Language("Veritas")
+                                          , [ ID(NablNsSymbol(), "aempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                            , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/5")
+                                            , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                            ]
+                                          )
+                                        )
+                                      }), FunctionPatVar("tt"{ Use(Result(268257))
+                                                             , Def(
+                                                                 URI(
+                                                                   Language("Veritas")
+                                                                 , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                   , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/5")
+                                                                   , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                   ]
+                                                                 )
+                                                               )
+                                                             })]
+            , FunctionExpApp("someTType"{Use(Result(268260))}, [FunctionExpVar("ttempty"{Use(Result(241136))})])
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/5"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "projectType"
+            , [FunctionPatApp("acons"{Use(Result(268268))}, [FunctionPatVar("a"{ Use(Result(241150))
+                                                                               , Def(
+                                                                                   URI(
+                                                                                     Language("Veritas")
+                                                                                   , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                     , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/6")
+                                                                                     , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                     ]
+                                                                                   )
+                                                                                 )
+                                                                               }), FunctionPatVar("alr"{ Use(Result(268266))
+                                                                                                       , Def(
+                                                                                                           URI(
+                                                                                                             Language("Veritas")
+                                                                                                           , [ ID(NablNsSymbol(), "alr", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                             , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/6")
+                                                                                                             , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                             ]
+                                                                                                           )
+                                                                                                         )
+                                                                                                       })]), FunctionPatVar("tt"{ Use(Result(268272))
+                                                                                                                                , Def(
+                                                                                                                                    URI(
+                                                                                                                                      Language("Veritas")
+                                                                                                                                    , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                      , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/6")
+                                                                                                                                      , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                      ]
+                                                                                                                                    )
+                                                                                                                                  )
+                                                                                                                                })]
+            , FunctionExpLet(
+                "ft"{ Def(
+                        URI(
+                          Language("Veritas")
+                        , [ ID(NablNsSymbol(), "ft", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                          , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/6")
+                          , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                          ]
+                        )
+                      )
+                    }
+              , FunctionExpApp("findColType"{Use(Result(268283))}, [FunctionExpVar("a"{Use(Result(268279))}), FunctionExpVar("tt"{Use(Result(268281))})])
+              , FunctionExpLet(
+                  "tprest"{ Def(
+                              URI(
+                                Language("Veritas")
+                              , [ ID(NablNsSymbol(), "tprest", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                , ID(NablNsSymbol(), "ft", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/6")
+                                , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                ]
+                              )
+                            )
+                          }
+                , FunctionExpApp("projectType"{Use(Result(268295))}, [FunctionExpVar("alr"{Use(Result(268291))}), FunctionExpVar("tt"{Use(Result(268293))})])
+                , FunctionExpIf(
+                    FunctionExpAnd(
+                      FunctionExpApp("isSomeFType"{Use(Result(273139))}, [FunctionExpVar("ft"{Use(Result(268297))})])
+                    , FunctionExpApp("isSomeTType"{Use(Result(268299))}, [FunctionExpVar("tprest"{Use(Result(268301))})])
+                    )
+                  , FunctionExpApp(
+                      "someTType"{Use(Result(268315))}
+                    , [ FunctionExpApp(
+                          "ttcons"{Use(Result(268313))}
+                        , [ FunctionExpApp(
+                              "ctype"{Use(Result(268309))}
+                            , [FunctionExpVar("a"{Use(Result(268304))}), FunctionExpApp("getSomeFType"{Use(Result(273142))}, [FunctionExpVar("ft"{Use(Result(268297))})])]
+                            )
+                          , FunctionExpApp("getSomeTType"{Use(Result(268307))}, [FunctionExpVar("tprest"{Use(Result(268301))})])
+                          ]
+                        )
+                      ]
+                    )
+                  , FunctionExpVar("noTType"{Use(Result(268317))})
+                  )
+                )
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/6"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "ctypeIn"{ Def(
+                         URI(
+                           Language("Veritas")
+                         , [ ID(NablNsSymbol(), "ctypeIn", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                           , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                           ]
+                         )
+                       )
+                     }
+          , [SortRef("AName"{Use(Result(238130))}), SortRef("FType"{Use(Result(241682))}), SortRef("TType"{Use(Result(238098))})]
+          , SortRef("Bool"{Use(Result(241108))})
+          )
+        , [ FunctionEq(
+              "ctypeIn"
+            , [FunctionPatVar("a"{ Use(Result(268326))
+                                 , Def(
+                                     URI(
+                                       Language("Veritas")
+                                     , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                       , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/7")
+                                       , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                       ]
+                                     )
+                                   )
+                                 }), FunctionPatVar("ft"{ Use(Result(268330))
+                                                        , Def(
+                                                            URI(
+                                                              Language("Veritas")
+                                                            , [ ID(NablNsSymbol(), "ft", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                              , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/7")
+                                                              , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                              ]
+                                                            )
+                                                          )
+                                                        }), FunctionPatVar("ttempty"{ Use(Result(241189))
+                                                                                    , Def(
+                                                                                        URI(
+                                                                                          Language("Veritas")
+                                                                                        , [ ID(NablNsSymbol(), "ttempty", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                          , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/7")
+                                                                                          , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                          ]
+                                                                                        )
+                                                                                      )
+                                                                                    })]
+            , FunctionExpFalse()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/7"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "ctypeIn"
+            , [ FunctionPatVar("a"{ Use(Result(241199))
+                                  , Def(
+                                      URI(
+                                        Language("Veritas")
+                                      , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/8")
+                                        , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                        ]
+                                      )
+                                    )
+                                  })
+              , FunctionPatVar("ft"{ Use(Result(268338))
+                                   , Def(
+                                       URI(
+                                         Language("Veritas")
+                                       , [ ID(NablNsSymbol(), "ft", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                         , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/8")
+                                         , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                         ]
+                                       )
+                                     )
+                                   })
+              , FunctionPatApp(
+                  "ttcons"{Use(Result(268354))}
+                , [FunctionPatApp("ctype"{Use(Result(268348))}, [FunctionPatVar("a2"{ Use(Result(268342))
+                                                                                    , Def(
+                                                                                        URI(
+                                                                                          Language("Veritas")
+                                                                                        , [ ID(NablNsSymbol(), "a2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                          , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/8")
+                                                                                          , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                          ]
+                                                                                        )
+                                                                                      )
+                                                                                    }), FunctionPatVar("ft2"{ Use(Result(268346))
+                                                                                                            , Def(
+                                                                                                                URI(
+                                                                                                                  Language("Veritas")
+                                                                                                                , [ ID(NablNsSymbol(), "ft2", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                  , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/8")
+                                                                                                                  , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                  ]
+                                                                                                                )
+                                                                                                              )
+                                                                                                            })]), FunctionPatVar("ttr"{ Use(Result(268352))
+                                                                                                                                      , Def(
+                                                                                                                                          URI(
+                                                                                                                                            Language("Veritas")
+                                                                                                                                          , [ ID(NablNsSymbol(), "ttr", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                            , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/8")
+                                                                                                                                            , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                            ]
+                                                                                                                                          )
+                                                                                                                                        )
+                                                                                                                                      })]
+                )
+              ]
+            , FunctionExpOr(
+                FunctionExpAnd(
+                  FunctionExpEq(FunctionExpVar("a"{Use(Result(241199))}), FunctionExpVar("a2"{Use(Result(268342))}))
+                , FunctionExpEq(FunctionExpVar("ft"{Use(Result(268338))}), FunctionExpVar("ft2"{Use(Result(268346))}))
+                )
+              , FunctionExpApp(
+                  "ctypeIn"{Use(Result(268363))}
+                , [FunctionExpVar("a"{Use(Result(241199))}), FunctionExpVar("ft"{Use(Result(268338))}), FunctionExpVar("ttr"{Use(Result(268352))})]
+                )
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/8"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig(
+            "checkPValidity"{ Def(
+                                URI(
+                                  Language("Veritas")
+                                , [ ID(NablNsSymbol(), "checkPValidity", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                  , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                  ]
+                                )
+                              )
+                            }
+          , [SortRef("Pred"{Use(Result(244466))}), SortRef("TType"{Use(Result(238098))})]
+          , SortRef("Bool"{Use(Result(241108))})
+          )
+        , [ FunctionEq(
+              "checkPValidity"
+            , [FunctionPatApp("VEquals"{Use(Result(268375))}, [FunctionPatVar("a"{ Use(Result(244371))
+                                                                                 , Def(
+                                                                                     URI(
+                                                                                       Language("Veritas")
+                                                                                     , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                       , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/9")
+                                                                                       , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                       ]
+                                                                                     )
+                                                                                   )
+                                                                                 }), FunctionPatVar("fv"{ Use(Result(268373))
+                                                                                                        , Def(
+                                                                                                            URI(
+                                                                                                              Language("Veritas")
+                                                                                                            , [ ID(NablNsSymbol(), "fv", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                              , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/9")
+                                                                                                              , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                              ]
+                                                                                                            )
+                                                                                                          )
+                                                                                                        })]), FunctionPatVar("tt"{ Use(Result(268379))
+                                                                                                                                 , Def(
+                                                                                                                                     URI(
+                                                                                                                                       Language("Veritas")
+                                                                                                                                     , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                       , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/9")
+                                                                                                                                       , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                       ]
+                                                                                                                                     )
+                                                                                                                                   )
+                                                                                                                                 })]
+            , FunctionExpApp(
+                "ctypeIn"{Use(Result(268386))}
+              , [FunctionExpVar("a"{Use(Result(244371))}), FunctionExpApp("fieldType"{Use(Result(268383))}, [FunctionExpVar("fv"{Use(Result(268373))})]), FunctionExpVar("tt"{Use(Result(268379))})]
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/9"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "checkPValidity"
+            , [FunctionPatApp("VGreater"{Use(Result(268394))}, [FunctionPatVar("a"{ Use(Result(244396))
+                                                                                  , Def(
+                                                                                      URI(
+                                                                                        Language("Veritas")
+                                                                                      , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/10")
+                                                                                        , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                        ]
+                                                                                      )
+                                                                                    )
+                                                                                  }), FunctionPatVar("fv"{ Use(Result(268392))
+                                                                                                         , Def(
+                                                                                                             URI(
+                                                                                                               Language("Veritas")
+                                                                                                             , [ ID(NablNsSymbol(), "fv", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                               , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/10")
+                                                                                                               , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                               ]
+                                                                                                             )
+                                                                                                           )
+                                                                                                         })]), FunctionPatVar("tt"{ Use(Result(268398))
+                                                                                                                                  , Def(
+                                                                                                                                      URI(
+                                                                                                                                        Language("Veritas")
+                                                                                                                                      , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/10")
+                                                                                                                                        , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                        ]
+                                                                                                                                      )
+                                                                                                                                    )
+                                                                                                                                  })]
+            , FunctionExpApp(
+                "ctypeIn"{Use(Result(247589))}
+              , [FunctionExpVar("a"{Use(Result(244396))}), FunctionExpApp("fieldType"{Use(Result(268402))}, [FunctionExpVar("fv"{Use(Result(268392))})]), FunctionExpVar("tt"{Use(Result(268398))})]
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/10"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "checkPValidity"
+            , [FunctionPatApp("VSmaller"{Use(Result(268410))}, [FunctionPatVar("a"{ Use(Result(244421))
+                                                                                  , Def(
+                                                                                      URI(
+                                                                                        Language("Veritas")
+                                                                                      , [ ID(NablNsSymbol(), "a", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/11")
+                                                                                        , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                        ]
+                                                                                      )
+                                                                                    )
+                                                                                  }), FunctionPatVar("fv"{ Use(Result(247187))
+                                                                                                         , Def(
+                                                                                                             URI(
+                                                                                                               Language("Veritas")
+                                                                                                             , [ ID(NablNsSymbol(), "fv", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                               , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/11")
+                                                                                                               , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                               ]
+                                                                                                             )
+                                                                                                           )
+                                                                                                         })]), FunctionPatVar("tt"{ Use(Result(247193))
+                                                                                                                                  , Def(
+                                                                                                                                      URI(
+                                                                                                                                        Language("Veritas")
+                                                                                                                                      , [ ID(NablNsSymbol(), "tt", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                        , Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/11")
+                                                                                                                                        , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                                                        ]
+                                                                                                                                      )
+                                                                                                                                    )
+                                                                                                                                  })]
+            , FunctionExpApp(
+                "ctypeIn"{Use(Result(247200))}
+              , [FunctionExpVar("a"{Use(Result(244421))}), FunctionExpApp("fieldType"{Use(Result(247197))}, [FunctionExpVar("fv"{Use(Result(247187))})]), FunctionExpVar("tt"{Use(Result(247193))})]
+              )
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/11"), ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  , Axioms(
+      [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(FunctionExpEq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
+            , TypingJudgment(
+                FunctionExpApp(
+                  "bindContext"{Use(Result(264531))}
+                , [ FunctionMeta(Meta("x"))
+                  , FunctionMeta(Meta("Tx"))
+                  , FunctionExpApp(
+                      "bindContext"{Use(Result(264531))}
+                    , [FunctionMeta(Meta("y")), FunctionMeta(Meta("Ty")), FunctionMeta(Meta("C"))]
+                    )
+                  ]
+                )
+              , FunctionMeta(Meta("e"))
+              , FunctionMeta(Meta("T"))
+              )
+            )
+          )
+        , RuleName("================================================", "T-TTContext-Duplicate"{ Def(
+                                                                                                  URI(
+                                                                                                    Language("Veritas")
+                                                                                                  , [ ID(NablNsRule(), "T-TTContext-Duplicate", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                    , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
+                                                                                              })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionExpApp(
+                "bindContext"{Use(Result(264531))}
+              , [FunctionMeta(Meta("x")), FunctionMeta(Meta("Tx")), FunctionMeta(Meta("C"))]
+              )
+            , FunctionMeta(Meta("e"))
+            , FunctionMeta(Meta("T"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("x")), FunctionMeta(Meta("y"))))
+            , TypingJudgment(
+                FunctionExpApp(
+                  "bindContext"{Use(Result(264531))}
+                , [ FunctionMeta(Meta("x"))
+                  , FunctionMeta(Meta("Tx"))
+                  , FunctionExpApp(
+                      "bindContext"{Use(Result(264531))}
+                    , [FunctionMeta(Meta("y")), FunctionMeta(Meta("Ty")), FunctionMeta(Meta("C"))]
+                    )
+                  ]
+                )
+              , FunctionMeta(Meta("e"))
+              , FunctionMeta(Meta("T"))
+              )
+            )
+          )
+        , RuleName("================================================", "T-TTContext-Swap"{ Def(
+                                                                                             URI(
+                                                                                               Language("Veritas")
+                                                                                             , [ ID(NablNsRule(), "T-TTContext-Swap", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                               , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                               ]
+                                                                                             )
+                                                                                           )
+                                                                                         })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionExpApp(
+                "bindContext"{Use(Result(264531))}
+              , [ FunctionMeta(Meta("y"))
+                , FunctionMeta(Meta("Ty"))
+                , FunctionExpApp(
+                    "bindContext"{Use(Result(264531))}
+                  , [FunctionMeta(Meta("x")), FunctionMeta(Meta("Tx")), FunctionMeta(Meta("C"))]
+                  )
+                ]
+              )
+            , FunctionMeta(Meta("e"))
+            , FunctionMeta(Meta("T"))
+            )
+          )
+        )
+      ]
+    )
+  , Axioms(
+      [ TypingRule(
+          PremiseList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(238271))}
+              , [ FunctionMeta(Meta("TT"))
+                , FunctionExpApp(
+                    "table"{Use(Result(238269))}
+                  , [FunctionMeta(Meta("al")), FunctionMeta(Meta("rt"))]
+                  )
+                ]
+              )
+            )
+          )
+        , RuleName("======================================", "T-Tvalue"{ Def(
+                                                                           URI(
+                                                                             Language("Veritas")
+                                                                           , [ ID(NablNsRule(), "T-Tvalue", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                             , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                             ]
+                                                                           )
+                                                                         )
+                                                                       })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("TTC"))
+            , FunctionExpApp(
+                "Tvalue"{Use(Result(238276))}
+              , [FunctionExpApp(
+                   "table"{Use(Result(238269))}
+                 , [FunctionMeta(Meta("al")), FunctionMeta(Meta("rt"))]
+                 )]
+              )
+            , FunctionMeta(Meta("TT"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            FunctionExpJudgment(
+              FunctionExpEq(
+                FunctionExpApp(
+                  "lookupContext"{Use(Result(244179))}
+                , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
+                )
+              , FunctionExpApp("someTType"{Use(Result(244193))}, [FunctionMeta(Meta("TT"))])
+              )
+            )
+          )
+        , RuleName("===============================================", "T-SelectAllFrom"{ Def(
+                                                                                           URI(
+                                                                                             Language("Veritas")
+                                                                                           , [ ID(NablNsRule(), "T-SelectAllFrom", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                             , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                             ]
+                                                                                           )
+                                                                                         )
+                                                                                       })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("TTC"))
+            , FunctionExpApp(
+                "SelectAllFrom"{Use(Result(244209))}
+              , [FunctionExpApp("Ref"{Use(Result(238284))}, [FunctionMeta(Meta("tn"))])]
+              )
+            , FunctionMeta(Meta("TT"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp(
+                    "lookupContext"{Use(Result(244179))}
+                  , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
+                  )
+                , FunctionExpApp("someTType"{Use(Result(244193))}, [FunctionMeta(Meta("TT1"))])
+                )
+              )
+            , FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp(
+                    "projectType"{Use(Result(238290))}
+                  , [FunctionMeta(Meta("al")), FunctionMeta(Meta("TT1"))]
+                  )
+                , FunctionExpApp("someTType"{Use(Result(244193))}, [FunctionMeta(Meta("TT"))])
+                )
+              )
+            )
+          )
+        , RuleName("================================================", "T-SelectSomeFrom"{ Def(
+                                                                                             URI(
+                                                                                               Language("Veritas")
+                                                                                             , [ ID(NablNsRule(), "T-SelectSomeFrom", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                               , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                               ]
+                                                                                             )
+                                                                                           )
+                                                                                         })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("TTC"))
+            , FunctionExpApp(
+                "SelectSomeFrom"{Use(Result(244244))}
+              , [FunctionMeta(Meta("al")), FunctionExpApp("Ref"{Use(Result(238284))}, [FunctionMeta(Meta("tn"))])]
+              )
+            , FunctionMeta(Meta("TT"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp(
+                    "lookupContext"{Use(Result(244179))}
+                  , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
+                  )
+                , FunctionExpApp("someTType"{Use(Result(244193))}, [FunctionMeta(Meta("TT"))])
+                )
+              )
+            , FunctionExpJudgment(
+                FunctionExpApp(
+                  "checkPValidity"{Use(Result(247870))}
+                , [FunctionMeta(Meta("p")), FunctionMeta(Meta("TT"))]
+                )
+              )
+            )
+          )
+        , RuleName("================================================", "T-SelectAllFromWhere"{ Def(
+                                                                                                 URI(
+                                                                                                   Language("Veritas")
+                                                                                                 , [ ID(NablNsRule(), "T-SelectAllFromWhere", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                   , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                   ]
+                                                                                                 )
+                                                                                               )
+                                                                                             })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("TTC"))
+            , FunctionExpApp(
+                "SelectAllFromWhere"{Use(Result(244312))}
+              , [FunctionExpApp("Ref"{Use(Result(238284))}, [FunctionMeta(Meta("tn"))]), FunctionMeta(Meta("p"))]
+              )
+            , FunctionMeta(Meta("TT"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp(
+                    "lookupContext"{Use(Result(244179))}
+                  , [FunctionMeta(Meta("tn")), FunctionMeta(Meta("TTC"))]
+                  )
+                , FunctionExpApp("someTType"{Use(Result(244193))}, [FunctionMeta(Meta("TT1"))])
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpApp(
+                    "checkPValidity"{Use(Result(247870))}
+                  , [FunctionMeta(Meta("p")), FunctionMeta(Meta("TT1"))]
+                  )
+                )
+              , FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp(
+                      "projectType"{Use(Result(238290))}
+                    , [FunctionMeta(Meta("al")), FunctionMeta(Meta("TT1"))]
+                    )
+                  , FunctionExpApp("someTType"{Use(Result(244193))}, [FunctionMeta(Meta("TT"))])
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("================================================", "T-SelectSomeFromWhere"{ Def(
+                                                                                                  URI(
+                                                                                                    Language("Veritas")
+                                                                                                  , [ ID(NablNsRule(), "T-SelectSomeFromWhere", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                    , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
+                                                                                              })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("TTC"))
+            , FunctionExpApp(
+                "SelectSomeFromWhere"{Use(Result(247936))}
+              , [ FunctionMeta(Meta("al"))
+                , FunctionExpApp("Ref"{Use(Result(238284))}, [FunctionMeta(Meta("tn"))])
+                , FunctionMeta(Meta("p"))
+                ]
+              )
+            , FunctionMeta(Meta("TT"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            JudgementCons(
+              TypingJudgment(
+                FunctionMeta(Meta("TTC"))
+              , FunctionMeta(Meta("q1"))
+              , FunctionMeta(Meta("TT"))
+              )
+            , TypingJudgment(
+                FunctionMeta(Meta("TTC"))
+              , FunctionMeta(Meta("q2"))
+              , FunctionMeta(Meta("TT"))
+              )
+            )
+          )
+        , RuleName("============================================", "T-Union"{ Def(
+                                                                                URI(
+                                                                                  Language("Veritas")
+                                                                                , [ ID(NablNsRule(), "T-Union", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                  , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                  ]
+                                                                                )
+                                                                              )
+                                                                            })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("TTC"))
+            , FunctionExpApp(
+                "Union"{Use(Result(247896))}
+              , [FunctionMeta(Meta("q1")), FunctionMeta(Meta("q2"))]
+              )
+            , FunctionMeta(Meta("TT"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            JudgementCons(
+              TypingJudgment(
+                FunctionMeta(Meta("TTC"))
+              , FunctionMeta(Meta("q1"))
+              , FunctionMeta(Meta("TT"))
+              )
+            , TypingJudgment(
+                FunctionMeta(Meta("TTC"))
+              , FunctionMeta(Meta("q2"))
+              , FunctionMeta(Meta("TT"))
+              )
+            )
+          )
+        , RuleName("============================================", "T-Intersection"{ Def(
+                                                                                       URI(
+                                                                                         Language("Veritas")
+                                                                                       , [ ID(NablNsRule(), "T-Intersection", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                         , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                         ]
+                                                                                       )
+                                                                                     )
+                                                                                   })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("TTC"))
+            , FunctionExpApp(
+                "Intersection"{Use(Result(248263))}
+              , [FunctionMeta(Meta("q1")), FunctionMeta(Meta("q2"))]
+              )
+            , FunctionMeta(Meta("TT"))
+            )
+          )
+        )
+      , TypingRule(
+          PremiseList(
+            JudgementCons(
+              TypingJudgment(
+                FunctionMeta(Meta("TTC"))
+              , FunctionMeta(Meta("q1"))
+              , FunctionMeta(Meta("TT"))
+              )
+            , TypingJudgment(
+                FunctionMeta(Meta("TTC"))
+              , FunctionMeta(Meta("q2"))
+              , FunctionMeta(Meta("TT"))
+              )
+            )
+          )
+        , RuleName("============================================", "T-Difference"{ Def(
+                                                                                     URI(
+                                                                                       Language("Veritas")
+                                                                                     , [ ID(NablNsRule(), "T-Difference", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                       , ID(NablNsModule(), "encodingcompstudy.TypeSystem", Unique("/Users/sylvia/Documents/Dissertation/Implementation/type-pragmatics/Veritas/test/encodingcompstudy/TypeSystem.stl/0"))
+                                                                                       ]
+                                                                                     )
+                                                                                   )
+                                                                                 })
+        , ConsequenceList(
+            TypingJudgment(
+              FunctionMeta(Meta("TTC"))
+            , FunctionExpApp(
+                "Difference"{Use(Result(247904))}
+              , [FunctionMeta(Meta("q1")), FunctionMeta(Meta("q2"))]
+              )
+            , FunctionMeta(Meta("TT"))
+            )
+          )
+        )
+      ]
+    )
+  ]
+)
