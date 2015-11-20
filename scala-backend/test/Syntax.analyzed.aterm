@@ -1,0 +1,466 @@
+Module(
+  "encodingcompstudy.Syntax"{ Def(
+                                URI(
+                                  Language("Veritas")
+                                , [ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                                )
+                              )
+                            }
+, [Import("encodingcompstudy.Tables"{Use(Result(335113))}, None()), Import("encodingcompstudy.TStore"{Use(Result(335119))}, None())]
+, [ Sorts([SortDef("Pred"{ Def(
+                             URI(
+                               Language("Veritas")
+                             , [ ID(NablNsSort(), "Pred", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                               , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                               ]
+                             )
+                           )
+                         }), SortDef("Query"{ Def(
+                                                URI(
+                                                  Language("Veritas")
+                                                , [ ID(NablNsSort(), "Query", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                  , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                  ]
+                                                )
+                                              )
+                                            }), SortDef("TRef"{ Def(
+                                                                  URI(
+                                                                    Language("Veritas")
+                                                                  , [ ID(NablNsSort(), "TRef", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                    , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                    ]
+                                                                  )
+                                                                )
+                                                              })])
+  , Constructors(
+      [ ConstructorDecl(
+          "VEquals"{ Def(
+                       URI(
+                         Language("Veritas")
+                       , [ ID(NablNsSymbol(), "VEquals", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                         , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                         ]
+                       )
+                     )
+                   }
+        , [SortRef("AName"{Use(Result(338197))}), SortRef("FVal"{Use(Result(338199))})]
+        , SortRef("Pred"{Use(Result(338201))})
+        )
+      , ConstructorDecl(
+          "VGreater"{ Def(
+                        URI(
+                          Language("Veritas")
+                        , [ ID(NablNsSymbol(), "VGreater", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                          , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                          ]
+                        )
+                      )
+                    }
+        , [SortRef("AName"{Use(Result(338197))}), SortRef("FVal"{Use(Result(338199))})]
+        , SortRef("Pred"{Use(Result(338201))})
+        )
+      , ConstructorDecl(
+          "VSmaller"{ Def(
+                        URI(
+                          Language("Veritas")
+                        , [ ID(NablNsSymbol(), "VSmaller", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                          , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                          ]
+                        )
+                      )
+                    }
+        , [SortRef("AName"{Use(Result(338197))}), SortRef("FVal"{Use(Result(338199))})]
+        , SortRef("Pred"{Use(Result(338201))})
+        )
+      ]
+    )
+  , Constructors(
+      [ ConstructorDecl("Ref"{ Def(
+                                 URI(
+                                   Language("Veritas")
+                                 , [ ID(NablNsSymbol(), "Ref", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                   , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                   ]
+                                 )
+                               )
+                             }, [SortRef("TName"{Use(Result(338215))})], SortRef("TRef"{Use(Result(338217))}))
+      , ConstructorDecl("Tvalue"{ Def(
+                                    URI(
+                                      Language("Veritas")
+                                    , [ ID(NablNsSymbol(), "Tvalue", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                      , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                      ]
+                                    )
+                                  )
+                                }, [SortRef("Table"{Use(Result(338221))})], SortRef("Query"{Use(Result(338223))}))
+      , ConstructorDecl("SelectAllFrom"{ Def(
+                                           URI(
+                                             Language("Veritas")
+                                           , [ ID(NablNsSymbol(), "SelectAllFrom", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                             , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                             ]
+                                           )
+                                         )
+                                       }, [SortRef("TRef"{Use(Result(338217))})], SortRef("Query"{Use(Result(338223))}))
+      , ConstructorDecl(
+          "SelectSomeFrom"{ Def(
+                              URI(
+                                Language("Veritas")
+                              , [ ID(NablNsSymbol(), "SelectSomeFrom", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                ]
+                              )
+                            )
+                          }
+        , [SortRef("AList"{Use(Result(338231))}), SortRef("TRef"{Use(Result(338217))})]
+        , SortRef("Query"{Use(Result(338223))})
+        )
+      , ConstructorDecl(
+          "SelectAllFromWhere"{ Def(
+                                  URI(
+                                    Language("Veritas")
+                                  , [ ID(NablNsSymbol(), "SelectAllFromWhere", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                    , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                    ]
+                                  )
+                                )
+                              }
+        , [SortRef("TRef"{Use(Result(338217))}), SortRef("Pred"{Use(Result(338201))})]
+        , SortRef("Query"{Use(Result(338223))})
+        )
+      , ConstructorDecl(
+          "SelectSomeFromWhere"{ Def(
+                                   URI(
+                                     Language("Veritas")
+                                   , [ ID(NablNsSymbol(), "SelectSomeFromWhere", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                     , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                     ]
+                                   )
+                                 )
+                               }
+        , [SortRef("AList"{Use(Result(338231))}), SortRef("TRef"{Use(Result(338217))}), SortRef("Pred"{Use(Result(338201))})]
+        , SortRef("Query"{Use(Result(338223))})
+        )
+      , ConstructorDecl(
+          "Union"{ Def(
+                     URI(
+                       Language("Veritas")
+                     , [ ID(NablNsSymbol(), "Union", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                       , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                       ]
+                     )
+                   )
+                 }
+        , [SortRef("Query"{Use(Result(338223))}), SortRef("Query"{Use(Result(338223))})]
+        , SortRef("Query"{Use(Result(338223))})
+        )
+      , ConstructorDecl(
+          "Intersection"{ Def(
+                            URI(
+                              Language("Veritas")
+                            , [ ID(NablNsSymbol(), "Intersection", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                              , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                              ]
+                            )
+                          )
+                        }
+        , [SortRef("Query"{Use(Result(338223))}), SortRef("Query"{Use(Result(338223))})]
+        , SortRef("Query"{Use(Result(338223))})
+        )
+      , ConstructorDecl(
+          "Difference"{ Def(
+                          URI(
+                            Language("Veritas")
+                          , [ ID(NablNsSymbol(), "Difference", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                            , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                            ]
+                          )
+                        )
+                      }
+        , [SortRef("Query"{Use(Result(338223))}), SortRef("Query"{Use(Result(338223))})]
+        , SortRef("Query"{Use(Result(338223))})
+        )
+      ]
+    )
+  , Functions(
+      [ FunctionDef(
+          FunctionSig("isValue"{ Def(
+                                   URI(
+                                     Language("Veritas")
+                                   , [ ID(NablNsSymbol(), "isValue", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                     , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                     ]
+                                   )
+                                 )
+                               }, [SortRef("Query"{Use(Result(338223))})], SortRef("Bool"{Use(Result(338264))}))
+        , [ FunctionEq(
+              "isValue"
+            , [FunctionPatApp("Tvalue"{Use(Result(338277))}, [FunctionPatVar("t"{ Use(Result(338275))
+                                                                                , Def(
+                                                                                    URI(
+                                                                                      Language("Veritas")
+                                                                                    , [ ID(NablNsSymbol(), "t", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                      , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0")
+                                                                                      , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                      ]
+                                                                                    )
+                                                                                  )
+                                                                                })])]
+            , FunctionExpTrue()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"), ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp("SelectAllFrom"{Use(Result(338287))}, [FunctionPatVar("n"{ Use(Result(338285))
+                                                                                       , Def(
+                                                                                           URI(
+                                                                                             Language("Veritas")
+                                                                                           , [ ID(NablNsSymbol(), "n", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                             , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/1")
+                                                                                             , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                             ]
+                                                                                           )
+                                                                                         )
+                                                                                       })])]
+            , FunctionExpFalse()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/1"), ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp("SelectSomeFrom"{Use(Result(338301))}, [FunctionPatVar("al"{ Use(Result(338295))
+                                                                                         , Def(
+                                                                                             URI(
+                                                                                               Language("Veritas")
+                                                                                             , [ ID(NablNsSymbol(), "al", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                               , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/2")
+                                                                                               , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                               ]
+                                                                                             )
+                                                                                           )
+                                                                                         }), FunctionPatVar("tr"{ Use(Result(344631))
+                                                                                                                , Def(
+                                                                                                                    URI(
+                                                                                                                      Language("Veritas")
+                                                                                                                    , [ ID(NablNsSymbol(), "tr", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                                      , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/2")
+                                                                                                                      , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                                      ]
+                                                                                                                    )
+                                                                                                                  )
+                                                                                                                })])]
+            , FunctionExpFalse()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/2"), ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp("SelectAllFromWhere"{Use(Result(338315))}, [FunctionPatVar("tr"{ Use(Result(344635))
+                                                                                             , Def(
+                                                                                                 URI(
+                                                                                                   Language("Veritas")
+                                                                                                 , [ ID(NablNsSymbol(), "tr", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                   , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/3")
+                                                                                                   , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                   ]
+                                                                                                 )
+                                                                                               )
+                                                                                             }), FunctionPatVar("p"{ Use(Result(338313))
+                                                                                                                   , Def(
+                                                                                                                       URI(
+                                                                                                                         Language("Veritas")
+                                                                                                                       , [ ID(NablNsSymbol(), "p", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                                         , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/3")
+                                                                                                                         , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                                         ]
+                                                                                                                       )
+                                                                                                                     )
+                                                                                                                   })])]
+            , FunctionExpFalse()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/3"), ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp(
+                 "SelectSomeFromWhere"{Use(Result(338333))}
+               , [FunctionPatVar("al"{ Use(Result(344639))
+                                     , Def(
+                                         URI(
+                                           Language("Veritas")
+                                         , [ ID(NablNsSymbol(), "al", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                           , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/4")
+                                           , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                           ]
+                                         )
+                                       )
+                                     }), FunctionPatVar("tr"{ Use(Result(344643))
+                                                            , Def(
+                                                                URI(
+                                                                  Language("Veritas")
+                                                                , [ ID(NablNsSymbol(), "tr", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                  , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/4")
+                                                                  , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                  ]
+                                                                )
+                                                              )
+                                                            }), FunctionPatVar("p"{ Use(Result(338331))
+                                                                                  , Def(
+                                                                                      URI(
+                                                                                        Language("Veritas")
+                                                                                      , [ ID(NablNsSymbol(), "p", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                        , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/4")
+                                                                                        , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                        ]
+                                                                                      )
+                                                                                    )
+                                                                                  })]
+               )]
+            , FunctionExpFalse()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/4"), ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp("Union"{Use(Result(338347))}, [FunctionPatVar("q1"{ Use(Result(338341))
+                                                                                , Def(
+                                                                                    URI(
+                                                                                      Language("Veritas")
+                                                                                    , [ ID(NablNsSymbol(), "q1", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                      , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/5")
+                                                                                      , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                      ]
+                                                                                    )
+                                                                                  )
+                                                                                }), FunctionPatVar("q2"{ Use(Result(338345))
+                                                                                                       , Def(
+                                                                                                           URI(
+                                                                                                             Language("Veritas")
+                                                                                                           , [ ID(NablNsSymbol(), "q2", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                             , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/5")
+                                                                                                             , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                             ]
+                                                                                                           )
+                                                                                                         )
+                                                                                                       })])]
+            , FunctionExpFalse()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/5"), ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp("Intersection"{Use(Result(338361))}, [FunctionPatVar("sql1"{ Use(Result(338355))
+                                                                                         , Def(
+                                                                                             URI(
+                                                                                               Language("Veritas")
+                                                                                             , [ ID(NablNsSymbol(), "sql1", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                               , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/6")
+                                                                                               , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                               ]
+                                                                                             )
+                                                                                           )
+                                                                                         }), FunctionPatVar("sql2"{ Use(Result(338359))
+                                                                                                                  , Def(
+                                                                                                                      URI(
+                                                                                                                        Language("Veritas")
+                                                                                                                      , [ ID(NablNsSymbol(), "sql2", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                                        , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/6")
+                                                                                                                        , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                                        ]
+                                                                                                                      )
+                                                                                                                    )
+                                                                                                                  })])]
+            , FunctionExpFalse()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/6"), ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          , FunctionEq(
+              "isValue"
+            , [FunctionPatApp("Difference"{Use(Result(338375))}, [FunctionPatVar("sql1"{ Use(Result(338369))
+                                                                                       , Def(
+                                                                                           URI(
+                                                                                             Language("Veritas")
+                                                                                           , [ ID(NablNsSymbol(), "sql1", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                             , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/7")
+                                                                                             , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                             ]
+                                                                                           )
+                                                                                         )
+                                                                                       }), FunctionPatVar("sql2"{ Use(Result(338373))
+                                                                                                                , Def(
+                                                                                                                    URI(
+                                                                                                                      Language("Veritas")
+                                                                                                                    , [ ID(NablNsSymbol(), "sql2", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                                      , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/7")
+                                                                                                                      , ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))
+                                                                                                                      ]
+                                                                                                                    )
+                                                                                                                  )
+                                                                                                                })])]
+            , FunctionExpFalse()
+            ){ Scope(
+                 [ ( NablNsSymbol()
+                   , URI(
+                       Language("Veritas")
+                     , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/7"), ID(NablNsModule(), "encodingcompstudy.Syntax", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Syntax.stl/0"))]
+                     )
+                   )
+                 ]
+               )
+             }
+          ]
+        )
+      ]
+    )
+  ]
+)

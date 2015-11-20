@@ -1,0 +1,1509 @@
+Module(
+  "encodingcompstudy.Tables-test"{ Def(
+                                     URI(
+                                       Language("Veritas")
+                                     , [ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+                                     )
+                                   )
+                                 }
+, [Import("encodingcompstudy.Tables"{Use(Result(335113))}, None())]
+, [ Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , FunctionExpJudgment(FunctionExpEq(FunctionMeta(Meta("tt")), FunctionExpVar("ttempty"{Use(Result(340432))})))
+            )
+          )
+        , RuleName("============================================================================", "test1"{ Def(
+                                                                                                              URI(
+                                                                                                                Language("Veritas")
+                                                                                                              , [ ID(NablNsRule(), "test1", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0")
+                                                                                                                , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(340446))}
+              , [ FunctionMeta(Meta("tt"))
+                , FunctionExpApp(
+                    "table"{Use(Result(340444))}
+                  , [FunctionExpVar("aempty"{Use(Result(340436))}), FunctionExpApp("tcons"{Use(Result(340442))}, [FunctionExpVar("rempty"{Use(Result(340438))}), FunctionExpVar("tempty"{Use(Result(340440))})])]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y"))])
+                  , FunctionMeta(Meta("yt"))
+                  )
+                )
+              , FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionMeta(Meta("tt"))
+                  , FunctionExpApp(
+                      "ttcons"{Use(Result(340454))}
+                    , [ FunctionExpApp(
+                          "ctype"{Use(Result(340450))}
+                        , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                        )
+                      , FunctionExpApp(
+                          "ttcons"{Use(Result(340454))}
+                        , [ FunctionExpApp(
+                              "ctype"{Use(Result(340450))}
+                            , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                            )
+                          , FunctionExpVar("ttempty"{Use(Result(340432))})
+                          ]
+                        )
+                      ]
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("============================================================================", "test2"{ Def(
+                                                                                                              URI(
+                                                                                                                Language("Veritas")
+                                                                                                              , [ ID(NablNsRule(), "test2", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/1")
+                                                                                                                , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpNot(
+                FunctionExpApp(
+                  "welltypedtable"{Use(Result(340446))}
+                , [ FunctionMeta(Meta("tt"))
+                  , FunctionExpApp(
+                      "table"{Use(Result(340444))}
+                    , [ FunctionExpApp(
+                          "acons"{Use(Result(340460))}
+                        , [ FunctionMeta(Meta("a"))
+                          , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("b")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                          ]
+                        )
+                      , FunctionExpApp(
+                          "tcons"{Use(Result(340442))}
+                        , [ FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("x")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                          , FunctionExpVar("tempty"{Use(Result(340440))})
+                          ]
+                        )
+                      ]
+                    )
+                  ]
+                )
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/1"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y"))])
+                  , FunctionMeta(Meta("yt"))
+                  )
+                )
+              , FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionMeta(Meta("tt"))
+                  , FunctionExpApp(
+                      "ttcons"{Use(Result(340454))}
+                    , [ FunctionExpApp(
+                          "ctype"{Use(Result(340450))}
+                        , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                        )
+                      , FunctionExpApp(
+                          "ttcons"{Use(Result(340454))}
+                        , [ FunctionExpApp(
+                              "ctype"{Use(Result(340450))}
+                            , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                            )
+                          , FunctionExpVar("ttempty"{Use(Result(340432))})
+                          ]
+                        )
+                      ]
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("====================================================================================", "test3"{ Def(
+                                                                                                                      URI(
+                                                                                                                        Language("Veritas")
+                                                                                                                      , [ ID(NablNsRule(), "test3", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                        , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/2")
+                                                                                                                        , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                        ]
+                                                                                                                      )
+                                                                                                                    )
+                                                                                                                  })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(340446))}
+              , [ FunctionMeta(Meta("tt"))
+                , FunctionExpApp(
+                    "table"{Use(Result(340444))}
+                  , [ FunctionExpApp(
+                        "acons"{Use(Result(340460))}
+                      , [ FunctionMeta(Meta("a"))
+                        , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("b")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                        ]
+                      )
+                    , FunctionExpApp(
+                        "tcons"{Use(Result(340442))}
+                      , [ FunctionExpApp(
+                            "rcons"{Use(Result(340464))}
+                          , [ FunctionMeta(Meta("x"))
+                            , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("y")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                            ]
+                          )
+                        , FunctionExpVar("tempty"{Use(Result(340440))})
+                        ]
+                      )
+                    ]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/2"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x1"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x2"))])
+                  , FunctionMeta(Meta("xt"))
+                  )
+                )
+              , JudgementCons(
+                  FunctionExpJudgment(
+                    FunctionExpEq(
+                      FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y1"))])
+                    , FunctionMeta(Meta("yt"))
+                    )
+                  )
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y2"))])
+                      , FunctionMeta(Meta("yt"))
+                      )
+                    )
+                  , JudgementCons(
+                      FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionMeta(Meta("al"))
+                        , FunctionExpApp(
+                            "acons"{Use(Result(340460))}
+                          , [ FunctionMeta(Meta("a"))
+                            , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("b")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                            ]
+                          )
+                        )
+                      )
+                    , FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionMeta(Meta("tt"))
+                        , FunctionExpApp(
+                            "ttcons"{Use(Result(340454))}
+                          , [ FunctionExpApp(
+                                "ctype"{Use(Result(340450))}
+                              , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                              )
+                            , FunctionExpApp(
+                                "ttcons"{Use(Result(340454))}
+                              , [ FunctionExpApp(
+                                    "ctype"{Use(Result(340450))}
+                                  , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                                  )
+                                , FunctionExpVar("ttempty"{Use(Result(340432))})
+                                ]
+                              )
+                            ]
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("============================================================================", "test4"{ Def(
+                                                                                                              URI(
+                                                                                                                Language("Veritas")
+                                                                                                              , [ ID(NablNsRule(), "test4", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/3")
+                                                                                                                , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(340446))}
+              , [ FunctionMeta(Meta("tt"))
+                , FunctionExpApp(
+                    "table"{Use(Result(340444))}
+                  , [ FunctionMeta(Meta("al"))
+                    , FunctionExpApp(
+                        "tcons"{Use(Result(340442))}
+                      , [ FunctionExpApp(
+                            "rcons"{Use(Result(340464))}
+                          , [ FunctionMeta(Meta("x1"))
+                            , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("y1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                            ]
+                          )
+                        , FunctionExpApp(
+                            "tcons"{Use(Result(340442))}
+                          , [ FunctionExpApp(
+                                "rcons"{Use(Result(340464))}
+                              , [ FunctionMeta(Meta("x2"))
+                                , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("y2")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                ]
+                              )
+                            , FunctionExpVar("tempty"{Use(Result(340440))})
+                            ]
+                          )
+                        ]
+                      )
+                    ]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/3"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x1"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x2"))])
+                  , FunctionMeta(Meta("xt"))
+                  )
+                )
+              , JudgementCons(
+                  FunctionExpJudgment(
+                    FunctionExpEq(
+                      FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y1"))])
+                    , FunctionMeta(Meta("yt"))
+                    )
+                  )
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y2"))])
+                      , FunctionMeta(Meta("yt"))
+                      )
+                    )
+                  , JudgementCons(
+                      FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionMeta(Meta("al"))
+                        , FunctionExpApp(
+                            "acons"{Use(Result(340460))}
+                          , [ FunctionMeta(Meta("a"))
+                            , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("b")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                            ]
+                          )
+                        )
+                      )
+                    , FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionMeta(Meta("tt"))
+                        , FunctionExpApp(
+                            "ttcons"{Use(Result(340454))}
+                          , [ FunctionExpApp(
+                                "ctype"{Use(Result(340450))}
+                              , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                              )
+                            , FunctionExpApp(
+                                "ttcons"{Use(Result(340454))}
+                              , [ FunctionExpApp(
+                                    "ctype"{Use(Result(340450))}
+                                  , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                                  )
+                                , FunctionExpVar("ttempty"{Use(Result(340432))})
+                                ]
+                              )
+                            ]
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("============================================================================", "test5"{ Def(
+                                                                                                              URI(
+                                                                                                                Language("Veritas")
+                                                                                                              , [ ID(NablNsRule(), "test5", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/4")
+                                                                                                                , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpNot(
+                FunctionExpApp(
+                  "welltypedtable"{Use(Result(340446))}
+                , [ FunctionMeta(Meta("tt"))
+                  , FunctionExpApp(
+                      "table"{Use(Result(340444))}
+                    , [ FunctionMeta(Meta("al"))
+                      , FunctionExpApp(
+                          "tcons"{Use(Result(340442))}
+                        , [ FunctionExpApp(
+                              "rcons"{Use(Result(340464))}
+                            , [ FunctionMeta(Meta("x1"))
+                              , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("y1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                              ]
+                            )
+                          , FunctionExpApp(
+                              "tcons"{Use(Result(340442))}
+                            , [ FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("x2")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                              , FunctionExpVar("tempty"{Use(Result(340440))})
+                              ]
+                            )
+                          ]
+                        )
+                      ]
+                    )
+                  ]
+                )
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/4"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y"))])
+                  , FunctionMeta(Meta("yt"))
+                  )
+                )
+              , JudgementCons(
+                  FunctionExpJudgment(
+                    FunctionExpEq(
+                      FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z"))])
+                    , FunctionMeta(Meta("zt"))
+                    )
+                  )
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionMeta(Meta("al"))
+                      , FunctionExpApp(
+                          "acons"{Use(Result(340460))}
+                        , [ FunctionMeta(Meta("a"))
+                          , FunctionExpApp(
+                              "acons"{Use(Result(340460))}
+                            , [ FunctionMeta(Meta("b"))
+                              , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("c")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                              ]
+                            )
+                          ]
+                        )
+                      )
+                    )
+                  , FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionMeta(Meta("tt"))
+                      , FunctionExpApp(
+                          "ttcons"{Use(Result(340454))}
+                        , [ FunctionExpApp(
+                              "ctype"{Use(Result(340450))}
+                            , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                            )
+                          , FunctionExpApp(
+                              "ttcons"{Use(Result(340454))}
+                            , [ FunctionExpApp(
+                                  "ctype"{Use(Result(340450))}
+                                , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                                )
+                              , FunctionExpApp(
+                                  "ttcons"{Use(Result(340454))}
+                                , [ FunctionExpApp(
+                                      "ctype"{Use(Result(340450))}
+                                    , [FunctionMeta(Meta("c")), FunctionMeta(Meta("zt"))]
+                                    )
+                                  , FunctionExpVar("ttempty"{Use(Result(340432))})
+                                  ]
+                                )
+                              ]
+                            )
+                          ]
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("===============================================================================", "test6"{ Def(
+                                                                                                                 URI(
+                                                                                                                   Language("Veritas")
+                                                                                                                 , [ ID(NablNsRule(), "test6", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                   , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/5")
+                                                                                                                   , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                   ]
+                                                                                                                 )
+                                                                                                               )
+                                                                                                             })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(340446))}
+              , [ FunctionMeta(Meta("tt"))
+                , FunctionExpApp(
+                    "table"{Use(Result(340444))}
+                  , [ FunctionMeta(Meta("al"))
+                    , FunctionExpApp(
+                        "tcons"{Use(Result(340442))}
+                      , [ FunctionExpApp(
+                            "rcons"{Use(Result(340464))}
+                          , [ FunctionMeta(Meta("x"))
+                            , FunctionExpApp(
+                                "rcons"{Use(Result(340464))}
+                              , [ FunctionMeta(Meta("y"))
+                                , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                ]
+                              )
+                            ]
+                          )
+                        , FunctionExpVar("tempty"{Use(Result(340440))})
+                        ]
+                      )
+                    ]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/5"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y"))])
+                  , FunctionMeta(Meta("yt"))
+                  )
+                )
+              , JudgementCons(
+                  FunctionExpJudgment(FunctionExpNeq(FunctionMeta(Meta("xt")), FunctionMeta(Meta("yt"))))
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z"))])
+                      , FunctionMeta(Meta("zt"))
+                      )
+                    )
+                  , JudgementCons(
+                      FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionMeta(Meta("al"))
+                        , FunctionExpApp(
+                            "acons"{Use(Result(340460))}
+                          , [ FunctionMeta(Meta("a"))
+                            , FunctionExpApp(
+                                "acons"{Use(Result(340460))}
+                              , [ FunctionMeta(Meta("b"))
+                                , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("c")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                                ]
+                              )
+                            ]
+                          )
+                        )
+                      )
+                    , FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionMeta(Meta("tt"))
+                        , FunctionExpApp(
+                            "ttcons"{Use(Result(340454))}
+                          , [ FunctionExpApp(
+                                "ctype"{Use(Result(340450))}
+                              , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                              )
+                            , FunctionExpApp(
+                                "ttcons"{Use(Result(340454))}
+                              , [ FunctionExpApp(
+                                    "ctype"{Use(Result(340450))}
+                                  , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                                  )
+                                , FunctionExpApp(
+                                    "ttcons"{Use(Result(340454))}
+                                  , [ FunctionExpApp(
+                                        "ctype"{Use(Result(340450))}
+                                      , [FunctionMeta(Meta("c")), FunctionMeta(Meta("zt"))]
+                                      )
+                                    , FunctionExpVar("ttempty"{Use(Result(340432))})
+                                    ]
+                                  )
+                                ]
+                              )
+                            ]
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("================================================================================", "test7"{ Def(
+                                                                                                                  URI(
+                                                                                                                    Language("Veritas")
+                                                                                                                  , [ ID(NablNsRule(), "test7", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                    , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/6")
+                                                                                                                    , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                    ]
+                                                                                                                  )
+                                                                                                                )
+                                                                                                              })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpNot(
+                FunctionExpApp(
+                  "welltypedtable"{Use(Result(340446))}
+                , [ FunctionMeta(Meta("tt"))
+                  , FunctionExpApp(
+                      "table"{Use(Result(340444))}
+                    , [ FunctionMeta(Meta("al"))
+                      , FunctionExpApp(
+                          "tcons"{Use(Result(340442))}
+                        , [ FunctionExpApp(
+                              "rcons"{Use(Result(340464))}
+                            , [ FunctionMeta(Meta("x"))
+                              , FunctionExpApp(
+                                  "rcons"{Use(Result(340464))}
+                                , [ FunctionMeta(Meta("x"))
+                                  , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                  ]
+                                )
+                              ]
+                            )
+                          , FunctionExpVar("tempty"{Use(Result(340440))})
+                          ]
+                        )
+                      ]
+                    )
+                  ]
+                )
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/6"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x1"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x2"))])
+                  , FunctionMeta(Meta("xt"))
+                  )
+                )
+              , JudgementCons(
+                  FunctionExpJudgment(
+                    FunctionExpEq(
+                      FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y1"))])
+                    , FunctionMeta(Meta("yt"))
+                    )
+                  )
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y2"))])
+                      , FunctionMeta(Meta("yt"))
+                      )
+                    )
+                  , JudgementCons(
+                      FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z1"))])
+                        , FunctionMeta(Meta("zt"))
+                        )
+                      )
+                    , JudgementCons(
+                        FunctionExpJudgment(
+                          FunctionExpEq(
+                            FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z2"))])
+                          , FunctionMeta(Meta("zt"))
+                          )
+                        )
+                      , JudgementCons(
+                          FunctionExpJudgment(
+                            FunctionExpEq(
+                              FunctionMeta(Meta("al"))
+                            , FunctionExpApp(
+                                "acons"{Use(Result(340460))}
+                              , [ FunctionMeta(Meta("a"))
+                                , FunctionExpApp(
+                                    "acons"{Use(Result(340460))}
+                                  , [ FunctionMeta(Meta("b"))
+                                    , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("c")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        , FunctionExpJudgment(
+                            FunctionExpEq(
+                              FunctionMeta(Meta("tt"))
+                            , FunctionExpApp(
+                                "ttcons"{Use(Result(340454))}
+                              , [ FunctionExpApp(
+                                    "ctype"{Use(Result(340450))}
+                                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                                  )
+                                , FunctionExpApp(
+                                    "ttcons"{Use(Result(340454))}
+                                  , [ FunctionExpApp(
+                                        "ctype"{Use(Result(340450))}
+                                      , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                                      )
+                                    , FunctionExpApp(
+                                        "ttcons"{Use(Result(340454))}
+                                      , [ FunctionExpApp(
+                                            "ctype"{Use(Result(340450))}
+                                          , [FunctionMeta(Meta("c")), FunctionMeta(Meta("zt"))]
+                                          )
+                                        , FunctionExpVar("ttempty"{Use(Result(340432))})
+                                        ]
+                                      )
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("============================================================================", "test8"{ Def(
+                                                                                                              URI(
+                                                                                                                Language("Veritas")
+                                                                                                              , [ ID(NablNsRule(), "test8", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/7")
+                                                                                                                , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(340446))}
+              , [ FunctionMeta(Meta("tt"))
+                , FunctionExpApp(
+                    "table"{Use(Result(340444))}
+                  , [ FunctionMeta(Meta("al"))
+                    , FunctionExpApp(
+                        "tcons"{Use(Result(340442))}
+                      , [ FunctionExpApp(
+                            "rcons"{Use(Result(340464))}
+                          , [ FunctionMeta(Meta("x1"))
+                            , FunctionExpApp(
+                                "rcons"{Use(Result(340464))}
+                              , [ FunctionMeta(Meta("y2"))
+                                , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z2")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                ]
+                              )
+                            ]
+                          )
+                        , FunctionExpApp(
+                            "tcons"{Use(Result(340442))}
+                          , [ FunctionExpApp(
+                                "rcons"{Use(Result(340464))}
+                              , [ FunctionMeta(Meta("x2"))
+                                , FunctionExpApp(
+                                    "rcons"{Use(Result(340464))}
+                                  , [ FunctionMeta(Meta("y1"))
+                                    , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                    ]
+                                  )
+                                ]
+                              )
+                            , FunctionExpVar("tempty"{Use(Result(340440))})
+                            ]
+                          )
+                        ]
+                      )
+                    ]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/7"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x1"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x2"))])
+                  , FunctionMeta(Meta("xt"))
+                  )
+                )
+              , JudgementCons(
+                  FunctionExpJudgment(
+                    FunctionExpEq(
+                      FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y1"))])
+                    , FunctionMeta(Meta("yt"))
+                    )
+                  )
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y2"))])
+                      , FunctionMeta(Meta("yt"))
+                      )
+                    )
+                  , JudgementCons(
+                      FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z1"))])
+                        , FunctionMeta(Meta("zt"))
+                        )
+                      )
+                    , JudgementCons(
+                        FunctionExpJudgment(
+                          FunctionExpEq(
+                            FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z2"))])
+                          , FunctionMeta(Meta("zt"))
+                          )
+                        )
+                      , JudgementCons(
+                          FunctionExpJudgment(
+                            FunctionExpEq(
+                              FunctionMeta(Meta("al"))
+                            , FunctionExpApp(
+                                "acons"{Use(Result(340460))}
+                              , [ FunctionMeta(Meta("a"))
+                                , FunctionExpApp(
+                                    "acons"{Use(Result(340460))}
+                                  , [ FunctionMeta(Meta("b"))
+                                    , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("c")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        , FunctionExpJudgment(
+                            FunctionExpEq(
+                              FunctionMeta(Meta("tt"))
+                            , FunctionExpApp(
+                                "ttcons"{Use(Result(340454))}
+                              , [ FunctionExpApp(
+                                    "ctype"{Use(Result(340450))}
+                                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                                  )
+                                , FunctionExpApp(
+                                    "ttcons"{Use(Result(340454))}
+                                  , [ FunctionExpApp(
+                                        "ctype"{Use(Result(340450))}
+                                      , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                                      )
+                                    , FunctionExpApp(
+                                        "ttcons"{Use(Result(340454))}
+                                      , [ FunctionExpApp(
+                                            "ctype"{Use(Result(340450))}
+                                          , [FunctionMeta(Meta("c")), FunctionMeta(Meta("zt"))]
+                                          )
+                                        , FunctionExpVar("ttempty"{Use(Result(340432))})
+                                        ]
+                                      )
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("============================================================================", "test9"{ Def(
+                                                                                                              URI(
+                                                                                                                Language("Veritas")
+                                                                                                              , [ ID(NablNsRule(), "test9", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/8")
+                                                                                                                , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpNot(
+                FunctionExpApp(
+                  "welltypedtable"{Use(Result(340446))}
+                , [ FunctionMeta(Meta("tt"))
+                  , FunctionExpApp(
+                      "table"{Use(Result(340444))}
+                    , [ FunctionMeta(Meta("al"))
+                      , FunctionExpApp(
+                          "tcons"{Use(Result(340442))}
+                        , [ FunctionExpApp(
+                              "rcons"{Use(Result(340464))}
+                            , [ FunctionMeta(Meta("x1"))
+                              , FunctionExpApp(
+                                  "rcons"{Use(Result(340464))}
+                                , [ FunctionMeta(Meta("y2"))
+                                  , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z2")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                  ]
+                                )
+                              ]
+                            )
+                          , FunctionExpApp(
+                              "tcons"{Use(Result(340442))}
+                            , [ FunctionExpApp(
+                                  "rcons"{Use(Result(340464))}
+                                , [ FunctionMeta(Meta("x2"))
+                                  , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("y1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                  ]
+                                )
+                              , FunctionExpVar("tempty"{Use(Result(340440))})
+                              ]
+                            )
+                          ]
+                        )
+                      ]
+                    )
+                  ]
+                )
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/8"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x1"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x2"))])
+                  , FunctionMeta(Meta("xt"))
+                  )
+                )
+              , JudgementCons(
+                  FunctionExpJudgment(
+                    FunctionExpEq(
+                      FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y1"))])
+                    , FunctionMeta(Meta("yt"))
+                    )
+                  )
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y2"))])
+                      , FunctionMeta(Meta("yt"))
+                      )
+                    )
+                  , JudgementCons(
+                      FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z1"))])
+                        , FunctionMeta(Meta("zt"))
+                        )
+                      )
+                    , JudgementCons(
+                        FunctionExpJudgment(
+                          FunctionExpEq(
+                            FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z2"))])
+                          , FunctionMeta(Meta("zt"))
+                          )
+                        )
+                      , JudgementCons(
+                          FunctionExpJudgment(
+                            FunctionExpEq(
+                              FunctionMeta(Meta("al"))
+                            , FunctionExpApp(
+                                "acons"{Use(Result(340460))}
+                              , [ FunctionMeta(Meta("a"))
+                                , FunctionExpApp(
+                                    "acons"{Use(Result(340460))}
+                                  , [ FunctionMeta(Meta("b"))
+                                    , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("c")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        , FunctionExpJudgment(
+                            FunctionExpEq(
+                              FunctionMeta(Meta("tt"))
+                            , FunctionExpApp(
+                                "ttcons"{Use(Result(340454))}
+                              , [ FunctionExpApp(
+                                    "ctype"{Use(Result(340450))}
+                                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                                  )
+                                , FunctionExpApp(
+                                    "ttcons"{Use(Result(340454))}
+                                  , [ FunctionExpApp(
+                                        "ctype"{Use(Result(340450))}
+                                      , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                                      )
+                                    , FunctionExpApp(
+                                        "ttcons"{Use(Result(340454))}
+                                      , [ FunctionExpApp(
+                                            "ctype"{Use(Result(340450))}
+                                          , [FunctionMeta(Meta("c")), FunctionMeta(Meta("zt"))]
+                                          )
+                                        , FunctionExpVar("ttempty"{Use(Result(340432))})
+                                        ]
+                                      )
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("============================================================================", "test10"{ Def(
+                                                                                                               URI(
+                                                                                                                 Language("Veritas")
+                                                                                                               , [ ID(NablNsRule(), "test10", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                 , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/9")
+                                                                                                                 , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                 ]
+                                                                                                               )
+                                                                                                             )
+                                                                                                           })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(340446))}
+              , [ FunctionMeta(Meta("tt"))
+                , FunctionExpApp(
+                    "table"{Use(Result(340444))}
+                  , [ FunctionMeta(Meta("al"))
+                    , FunctionExpApp(
+                        "tcons"{Use(Result(340442))}
+                      , [ FunctionExpApp(
+                            "rcons"{Use(Result(340464))}
+                          , [ FunctionMeta(Meta("x1"))
+                            , FunctionExpApp(
+                                "rcons"{Use(Result(340464))}
+                              , [ FunctionMeta(Meta("y2"))
+                                , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z2")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                ]
+                              )
+                            ]
+                          )
+                        , FunctionExpApp(
+                            "tcons"{Use(Result(340442))}
+                          , [ FunctionExpApp(
+                                "rcons"{Use(Result(340464))}
+                              , [ FunctionMeta(Meta("x2"))
+                                , FunctionExpApp(
+                                    "rcons"{Use(Result(340464))}
+                                  , [ FunctionMeta(Meta("y1"))
+                                    , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                    ]
+                                  )
+                                ]
+                              )
+                            , FunctionExpApp(
+                                "tcons"{Use(Result(340442))}
+                              , [ FunctionExpApp(
+                                    "rcons"{Use(Result(340464))}
+                                  , [ FunctionMeta(Meta("x2"))
+                                    , FunctionExpApp(
+                                        "rcons"{Use(Result(340464))}
+                                      , [ FunctionMeta(Meta("y2"))
+                                        , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                        ]
+                                      )
+                                    ]
+                                  )
+                                , FunctionExpVar("tempty"{Use(Result(340440))})
+                                ]
+                              )
+                            ]
+                          )
+                        ]
+                      )
+                    ]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/9"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  , Goals(
+      None()
+    , [ TypingRule(
+          PremiseList(
+            JudgementCons(
+              FunctionExpJudgment(
+                FunctionExpEq(
+                  FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x1"))])
+                , FunctionMeta(Meta("xt"))
+                )
+              )
+            , JudgementCons(
+                FunctionExpJudgment(
+                  FunctionExpEq(
+                    FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("x2"))])
+                  , FunctionMeta(Meta("xt"))
+                  )
+                )
+              , JudgementCons(
+                  FunctionExpJudgment(
+                    FunctionExpEq(
+                      FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y1"))])
+                    , FunctionMeta(Meta("yt"))
+                    )
+                  )
+                , JudgementCons(
+                    FunctionExpJudgment(
+                      FunctionExpEq(
+                        FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("y2"))])
+                      , FunctionMeta(Meta("yt"))
+                      )
+                    )
+                  , JudgementCons(
+                      FunctionExpJudgment(
+                        FunctionExpEq(
+                          FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z1"))])
+                        , FunctionMeta(Meta("zt"))
+                        )
+                      )
+                    , JudgementCons(
+                        FunctionExpJudgment(
+                          FunctionExpEq(
+                            FunctionExpApp("fieldType"{Use(Result(340430))}, [FunctionMeta(Meta("z2"))])
+                          , FunctionMeta(Meta("zt"))
+                          )
+                        )
+                      , JudgementCons(
+                          FunctionExpJudgment(
+                            FunctionExpEq(
+                              FunctionMeta(Meta("al"))
+                            , FunctionExpApp(
+                                "acons"{Use(Result(340460))}
+                              , [ FunctionMeta(Meta("a"))
+                                , FunctionExpApp(
+                                    "acons"{Use(Result(340460))}
+                                  , [ FunctionMeta(Meta("b"))
+                                    , FunctionExpApp("acons"{Use(Result(340460))}, [FunctionMeta(Meta("c")), FunctionExpVar("aempty"{Use(Result(340436))})])
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        , FunctionExpJudgment(
+                            FunctionExpEq(
+                              FunctionMeta(Meta("tt"))
+                            , FunctionExpApp(
+                                "ttcons"{Use(Result(340454))}
+                              , [ FunctionExpApp(
+                                    "ctype"{Use(Result(340450))}
+                                  , [FunctionMeta(Meta("a")), FunctionMeta(Meta("xt"))]
+                                  )
+                                , FunctionExpApp(
+                                    "ttcons"{Use(Result(340454))}
+                                  , [ FunctionExpApp(
+                                        "ctype"{Use(Result(340450))}
+                                      , [FunctionMeta(Meta("b")), FunctionMeta(Meta("yt"))]
+                                      )
+                                    , FunctionExpApp(
+                                        "ttcons"{Use(Result(340454))}
+                                      , [ FunctionExpApp(
+                                            "ctype"{Use(Result(340450))}
+                                          , [FunctionMeta(Meta("c")), FunctionMeta(Meta("zt"))]
+                                          )
+                                        , FunctionExpVar("ttempty"{Use(Result(340432))})
+                                        ]
+                                      )
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        , RuleName("============================================================================", "test11"{ Def(
+                                                                                                               URI(
+                                                                                                                 Language("Veritas")
+                                                                                                               , [ ID(NablNsRule(), "test11", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                 , Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/10")
+                                                                                                                 , ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))
+                                                                                                                 ]
+                                                                                                               )
+                                                                                                             )
+                                                                                                           })
+        , ConsequenceList(
+            FunctionExpJudgment(
+              FunctionExpApp(
+                "welltypedtable"{Use(Result(340446))}
+              , [ FunctionMeta(Meta("tt"))
+                , FunctionExpApp(
+                    "table"{Use(Result(340444))}
+                  , [ FunctionMeta(Meta("al"))
+                    , FunctionExpApp(
+                        "tcons"{Use(Result(340442))}
+                      , [ FunctionExpApp(
+                            "rcons"{Use(Result(340464))}
+                          , [ FunctionMeta(Meta("x1"))
+                            , FunctionExpApp(
+                                "rcons"{Use(Result(340464))}
+                              , [ FunctionMeta(Meta("y2"))
+                                , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z2")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                ]
+                              )
+                            ]
+                          )
+                        , FunctionExpApp(
+                            "tcons"{Use(Result(340442))}
+                          , [ FunctionExpApp(
+                                "rcons"{Use(Result(340464))}
+                              , [ FunctionMeta(Meta("x2"))
+                                , FunctionExpApp(
+                                    "rcons"{Use(Result(340464))}
+                                  , [ FunctionMeta(Meta("y1"))
+                                    , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                    ]
+                                  )
+                                ]
+                              )
+                            , FunctionExpApp(
+                                "tcons"{Use(Result(340442))}
+                              , [ FunctionExpApp(
+                                    "rcons"{Use(Result(340464))}
+                                  , [ FunctionMeta(Meta("x2"))
+                                    , FunctionExpApp(
+                                        "rcons"{Use(Result(340464))}
+                                      , [ FunctionMeta(Meta("y2"))
+                                        , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                        ]
+                                      )
+                                    ]
+                                  )
+                                , FunctionExpApp(
+                                    "tcons"{Use(Result(340442))}
+                                  , [ FunctionExpApp(
+                                        "rcons"{Use(Result(340464))}
+                                      , [ FunctionMeta(Meta("x1"))
+                                        , FunctionExpApp(
+                                            "rcons"{Use(Result(340464))}
+                                          , [ FunctionMeta(Meta("y1"))
+                                            , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                            ]
+                                          )
+                                        ]
+                                      )
+                                    , FunctionExpApp(
+                                        "tcons"{Use(Result(340442))}
+                                      , [ FunctionExpApp(
+                                            "rcons"{Use(Result(340464))}
+                                          , [ FunctionMeta(Meta("x1"))
+                                            , FunctionExpApp(
+                                                "rcons"{Use(Result(340464))}
+                                              , [ FunctionMeta(Meta("y2"))
+                                                , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z1")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                                ]
+                                              )
+                                            ]
+                                          )
+                                        , FunctionExpApp(
+                                            "tcons"{Use(Result(340442))}
+                                          , [ FunctionExpApp(
+                                                "rcons"{Use(Result(340464))}
+                                              , [ FunctionMeta(Meta("x2"))
+                                                , FunctionExpApp(
+                                                    "rcons"{Use(Result(340464))}
+                                                  , [ FunctionMeta(Meta("y2"))
+                                                    , FunctionExpApp("rcons"{Use(Result(340464))}, [FunctionMeta(Meta("z2")), FunctionExpVar("rempty"{Use(Result(340438))})])
+                                                    ]
+                                                  )
+                                                ]
+                                              )
+                                            , FunctionExpVar("tempty"{Use(Result(340440))})
+                                            ]
+                                          )
+                                        ]
+                                      )
+                                    ]
+                                  )
+                                ]
+                              )
+                            ]
+                          )
+                        ]
+                      )
+                    ]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ){ Scope(
+         [ ( NablNsRule()
+           , URI(
+               Language("Veritas")
+             , [Anonymous("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/10"), ID(NablNsModule(), "encodingcompstudy.Tables-test", Unique("/Users/cygne/Documents/Softwaretechnik/type-pragmatics/Veritas/test/encodingcompstudy/Tables-test.stl/0"))]
+             )
+           )
+         ]
+       )
+     }
+  ]
+)
