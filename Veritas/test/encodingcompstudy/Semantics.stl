@@ -163,7 +163,7 @@ reduce(conf(SelectSomeFromWhere(al, Ref(tn), p), ts)) =
 			if (isSomeTable(st))
 			then (let pt = project(al, getSomeTable(st)) in
 				if(isSomeRawTable(pt))
-				then someConf(conf(Tvalue(getSomeRawTable(pt)), ts))
+				then someConf(conf(Tvalue(table(al, getSomeRawTable(pt))), ts))
 				else noConf)
 			else noConf)
 		else noConf

@@ -221,58 +221,42 @@ class EncodingComparisonStudy {
   }
 
   var encodingStrategies: Map[String, Seq[Module] => Seq[PrettyPrintableFile]] = TreeMap(
-    ("test" -> ((sm: Seq[Module]) => {
-      val transformedModules =
-        NameSubstituteFunctionDefParametersOnly(NameFunctionResultsOnly(
-          TotalFunctionInversionAxioms(
-            TranslateTypingJudgmentSimpleToFunction(
-              TranslateTypingJudgmentToFunction(
-                FunctionEqToAxiomsSimple(
-                  GenerateCtorAxioms(
-                    DesugarLemmas(
-                      VarToApp0(
-                        JoinConstructors(
-                          ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))
-      transformedModules
-
-    })))
-
-  //      ("inconsistencies-partial-functions" ->
-  //        ((sm: Seq[Module]) => {
-  //          val transformedModules =
-  //            SetupConsistencyCheck(
-  //              MoveDeclsToFront(
-  //                SplitModulesByGoal(
-  //                  LogicalTermOptimization(
-  //                    AllFunctionInversionAxioms(
-  //                      TranslateTypingJudgmentSimpleToFunction(
-  //                        TranslateTypingJudgmentToFunction(
-  //                          FunctionEqToAxiomsSimple(
-  //                            GenerateCtorAxioms(
-  //                              DesugarLemmas(
-  //                                VarToApp0(
-  //                                  JoinConstructors(
-  //                                    ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
-  //          transformedModules map ToFof.toFofFile
-  //        })),
-  //      ("inconsistencies-wrong-constant-encoding" ->
-  //        ((sm: Seq[Module]) => {
-  //          val transformedModules =
-  //            SetupConsistencyCheck(
-  //              MoveDeclsToFront(
-  //                SplitModulesByGoal(
-  //                  LogicalTermOptimization(
-  //                    AllFunctionInversionAxioms(
-  //                      TranslateTypingJudgmentSimpleToFunction(
-  //                        TranslateTypingJudgmentToFunction(
-  //                          FunctionEqToAxiomsSimple(
-  //                            GenerateCtorAxioms(
-  //                              JoinConstructors(
-  //                                DesugarLemmas(
-  //                                  VarToApp0(
-  //                                    ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
-  //          transformedModules map ToFof.toFofFile
-  //        }))) ++ buildStrategies()
+    ("inconsistencies-partial-functions" ->
+      ((sm: Seq[Module]) => {
+        val transformedModules =
+          SetupConsistencyCheck(
+            MoveDeclsToFront(
+              SplitModulesByGoal(
+                LogicalTermOptimization(
+                  AllFunctionInversionAxioms(
+                    TranslateTypingJudgmentSimpleToFunction(
+                      TranslateTypingJudgmentToFunction(
+                        FunctionEqToAxiomsSimple(
+                          GenerateCtorAxioms(
+                            DesugarLemmas(
+                              VarToApp0(
+                                JoinConstructors(
+                                  ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
+        transformedModules map ToFof.toFofFile
+      })),
+    ("inconsistencies-wrong-constant-encoding" ->
+      ((sm: Seq[Module]) => {
+        val transformedModules =
+          SetupConsistencyCheck(
+            MoveDeclsToFront(
+              SplitModulesByGoal(
+                LogicalTermOptimization(
+                  AllFunctionInversionAxioms(
+                    TranslateTypingJudgmentSimpleToFunction(
+                      TranslateTypingJudgmentToFunction(
+                        FunctionEqToAxiomsSimple(
+                          GenerateCtorAxioms(
+                            JoinConstructors(
+                              DesugarLemmas(
+                                VarToApp0(
+                                  ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
+        transformedModules map ToFof.toFofFile
+      }))) ++ buildStrategies()
 
   val encodingnum = encodingStrategies.size
 

@@ -104,5 +104,3 @@ projectType(~al, ~TT1) == someTType(~TT)
 ============================================ T-Difference
 ~TTC |- Difference(~q1, ~q2) : ~TT
 
-
-

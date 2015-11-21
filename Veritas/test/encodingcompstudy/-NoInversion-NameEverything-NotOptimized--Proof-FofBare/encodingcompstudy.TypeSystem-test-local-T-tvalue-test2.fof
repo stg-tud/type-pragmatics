@@ -1,0 +1,173 @@
+fof('EQ-ctype', axiom, ![VAName0, VVAR1, VFType0, VVAR0, VAName1, VFType1] : ((VVAR0 = vctype(VAName0, VFType0) & VVAR1 = vctype(VAName1, VFType1)) => ((VAName0 = VAName1 & VFType0 = VFType1) <=> VVAR0 = VVAR1))).
+fof('EQ-aempty', axiom, ![VVAR0] : (VVAR0 = vaempty => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-acons', axiom, ![VAList0, VAName0, VVAR1, VVAR0, VAName1, VAList1] : ((VVAR0 = vacons(VAName0, VAList0) & VVAR1 = vacons(VAName1, VAList1)) => ((VAName0 = VAName1 & VAList0 = VAList1) <=> VVAR0 = VVAR1))).
+fof('EQ-ttempty', axiom, ![VVAR0] : (VVAR0 = vttempty => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-ttcons', axiom, ![VTType0, VTType1, VCType0, VVAR1, VVAR0, VCType1] : ((VVAR0 = vttcons(VCType0, VTType0) & VVAR1 = vttcons(VCType1, VTType1)) => ((VCType0 = VCType1 & VTType0 = VTType1) <=> VVAR0 = VVAR1))).
+fof('EQ-rtempty', axiom, ![VVAR0] : (VVAR0 = vrtempty => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-rtcons', axiom, ![VRawType1, VRawType0, VVAR1, VFType0, VVAR0, VFType1] : ((VVAR0 = vrtcons(VFType0, VRawType0) & VVAR1 = vrtcons(VFType1, VRawType1)) => ((VFType0 = VFType1 & VRawType0 = VRawType1) <=> VVAR0 = VVAR1))).
+fof('EQ-rempty', axiom, ![VVAR0] : (VVAR0 = vrempty => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-rcons', axiom, ![VRow0, VFVal1, VVAR1, VVAR0, VFVal0, VRow1] : ((VVAR0 = vrcons(VFVal0, VRow0) & VVAR1 = vrcons(VFVal1, VRow1)) => ((VFVal0 = VFVal1 & VRow0 = VRow1) <=> VVAR0 = VVAR1))).
+fof('EQ-tempty', axiom, ![VVAR0] : (VVAR0 = vtempty => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-tcons', axiom, ![VRow0, VRawTable0, VRawTable1, VVAR1, VVAR0, VRow1] : ((VVAR0 = vtcons(VRow0, VRawTable0) & VVAR1 = vtcons(VRow1, VRawTable1)) => ((VRow0 = VRow1 & VRawTable0 = VRawTable1) <=> VVAR0 = VVAR1))).
+fof('EQ-table', axiom, ![VAList0, VRawTable0, VRawTable1, VVAR1, VVAR0, VAList1] : ((VVAR0 = vtable(VAList0, VRawTable0) & VVAR1 = vtable(VAList1, VRawTable1)) => ((VAList0 = VAList1 & VRawTable0 = VRawTable1) <=> VVAR0 = VVAR1))).
+fof('EQ-noTable', axiom, ![VVAR0] : (VVAR0 = vnoTable => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-someTable', axiom, ![VVAR0, VTable0, VVAR1, VTable1] : ((VVAR0 = vsomeTable(VTable0) & VVAR1 = vsomeTable(VTable1)) => (VTable0 = VTable1 <=> VVAR0 = VVAR1))).
+fof('EQ-emptyStore', axiom, ![VVAR0] : (VVAR0 = vemptyStore => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-bindStore', axiom, ![VTable1, VTStore1, VTName0, VTStore0, VVAR1, VVAR0, VTName1, VTable0] : ((VVAR0 = vbindStore(VTName0, VTable0, VTStore0) & VVAR1 = vbindStore(VTName1, VTable1, VTStore1)) => ((VTName0 = VTName1 & (VTable0 = VTable1 & VTStore0 = VTStore1)) <=> VVAR0 = VVAR1))).
+fof('EQ-VEquals', axiom, ![VAName0, VFVal1, VVAR1, VVAR0, VAName1, VFVal0] : ((VVAR0 = vVEquals(VAName0, VFVal0) & VVAR1 = vVEquals(VAName1, VFVal1)) => ((VAName0 = VAName1 & VFVal0 = VFVal1) <=> VVAR0 = VVAR1))).
+fof('EQ-VGreater', axiom, ![VAName0, VFVal1, VVAR1, VVAR0, VAName1, VFVal0] : ((VVAR0 = vVGreater(VAName0, VFVal0) & VVAR1 = vVGreater(VAName1, VFVal1)) => ((VAName0 = VAName1 & VFVal0 = VFVal1) <=> VVAR0 = VVAR1))).
+fof('EQ-VSmaller', axiom, ![VAName0, VFVal1, VVAR1, VVAR0, VAName1, VFVal0] : ((VVAR0 = vVSmaller(VAName0, VFVal0) & VVAR1 = vVSmaller(VAName1, VFVal1)) => ((VAName0 = VAName1 & VFVal0 = VFVal1) <=> VVAR0 = VVAR1))).
+fof('EQ-Ref', axiom, ![VVAR0, VTName0, VVAR1, VTName1] : ((VVAR0 = vRef(VTName0) & VVAR1 = vRef(VTName1)) => (VTName0 = VTName1 <=> VVAR0 = VVAR1))).
+fof('EQ-Tvalue', axiom, ![VVAR0, VTable0, VVAR1, VTable1] : ((VVAR0 = vTvalue(VTable0) & VVAR1 = vTvalue(VTable1)) => (VTable0 = VTable1 <=> VVAR0 = VVAR1))).
+fof('EQ-SelectAllFrom', axiom, ![VVAR0, VTRef0, VVAR1, VTRef1] : ((VVAR0 = vSelectAllFrom(VTRef0) & VVAR1 = vSelectAllFrom(VTRef1)) => (VTRef0 = VTRef1 <=> VVAR0 = VVAR1))).
+fof('EQ-SelectSomeFrom', axiom, ![VAList0, VVAR1, VVAR0, VAList1, VTRef1, VTRef0] : ((VVAR0 = vSelectSomeFrom(VAList0, VTRef0) & VVAR1 = vSelectSomeFrom(VAList1, VTRef1)) => ((VAList0 = VAList1 & VTRef0 = VTRef1) <=> VVAR0 = VVAR1))).
+fof('EQ-SelectAllFromWhere', axiom, ![VPred0, VPred1, VVAR1, VVAR0, VTRef1, VTRef0] : ((VVAR0 = vSelectAllFromWhere(VTRef0, VPred0) & VVAR1 = vSelectAllFromWhere(VTRef1, VPred1)) => ((VTRef0 = VTRef1 & VPred0 = VPred1) <=> VVAR0 = VVAR1))).
+fof('EQ-SelectSomeFromWhere', axiom, ![VAList0, VPred0, VPred1, VVAR1, VVAR0, VAList1, VTRef1, VTRef0] : ((VVAR0 = vSelectSomeFromWhere(VAList0, VTRef0, VPred0) & VVAR1 = vSelectSomeFromWhere(VAList1, VTRef1, VPred1)) => ((VAList0 = VAList1 & (VTRef0 = VTRef1 & VPred0 = VPred1)) <=> VVAR0 = VVAR1))).
+fof('EQ-Union', axiom, ![VQuery3, VQuery2, VQuery1, VVAR1, VVAR0, VQuery0] : ((VVAR0 = vUnion(VQuery0, VQuery1) & VVAR1 = vUnion(VQuery2, VQuery3)) => ((VQuery0 = VQuery2 & VQuery1 = VQuery3) <=> VVAR0 = VVAR1))).
+fof('EQ-Intersection', axiom, ![VQuery3, VQuery2, VQuery1, VVAR1, VVAR0, VQuery0] : ((VVAR0 = vIntersection(VQuery0, VQuery1) & VVAR1 = vIntersection(VQuery2, VQuery3)) => ((VQuery0 = VQuery2 & VQuery1 = VQuery3) <=> VVAR0 = VVAR1))).
+fof('EQ-Difference', axiom, ![VQuery3, VQuery2, VQuery1, VVAR1, VVAR0, VQuery0] : ((VVAR0 = vDifference(VQuery0, VQuery1) & VVAR1 = vDifference(VQuery2, VQuery3)) => ((VQuery0 = VQuery2 & VQuery1 = VQuery3) <=> VVAR0 = VVAR1))).
+fof('EQ-noTType', axiom, ![VVAR0] : (VVAR0 = vnoTType => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-someTType', axiom, ![VVAR0, VTType0, VVAR1, VTType1] : ((VVAR0 = vsomeTType(VTType0) & VVAR1 = vsomeTType(VTType1)) => (VTType0 = VTType1 <=> VVAR0 = VVAR1))).
+fof('EQ-emptyContext', axiom, ![VVAR0] : (VVAR0 = vemptyContext => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-bindContext', axiom, ![VTTContext0, VTTContext1, VTName0, VTType0, VTType1, VVAR1, VVAR0, VTName1] : ((VVAR0 = vbindContext(VTName0, VTType0, VTTContext0) & VVAR1 = vbindContext(VTName1, VTType1, VTTContext1)) => ((VTName0 = VTName1 & (VTType0 = VTType1 & VTTContext0 = VTTContext1)) <=> VVAR0 = VVAR1))).
+fof('EQ-noFType', axiom, ![VVAR0] : (VVAR0 = vnoFType => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-someFType', axiom, ![VVAR0, VFType0, VVAR1, VFType1] : ((VVAR0 = vsomeFType(VFType0) & VVAR1 = vsomeFType(VFType1)) => (VFType0 = VFType1 <=> VVAR0 = VVAR1))).
+fof('DIFF-aempty-acons', axiom, ![VVAR0, VVAR1, VAName0, VAList0] : ((VVAR0 = vaempty & VVAR1 = vacons(VAName0, VAList0)) => VVAR0 != VVAR1)).
+fof('DIFF-ttempty-ttcons', axiom, ![VVAR0, VVAR1, VCType0, VTType0] : ((VVAR0 = vttempty & VVAR1 = vttcons(VCType0, VTType0)) => VVAR0 != VVAR1)).
+fof('DIFF-rtempty-rtcons', axiom, ![VVAR0, VVAR1, VFType0, VRawType0] : ((VVAR0 = vrtempty & VVAR1 = vrtcons(VFType0, VRawType0)) => VVAR0 != VVAR1)).
+fof('DIFF-rempty-rcons', axiom, ![VVAR0, VVAR1, VFVal0, VRow0] : ((VVAR0 = vrempty & VVAR1 = vrcons(VFVal0, VRow0)) => VVAR0 != VVAR1)).
+fof('DIFF-tempty-tcons', axiom, ![VVAR0, VVAR1, VRow0, VRawTable0] : ((VVAR0 = vtempty & VVAR1 = vtcons(VRow0, VRawTable0)) => VVAR0 != VVAR1)).
+fof('DIFF-noTable-someTable', axiom, ![VVAR0, VVAR1, VTable0] : ((VVAR0 = vnoTable & VVAR1 = vsomeTable(VTable0)) => VVAR0 != VVAR1)).
+fof('DIFF-emptyStore-bindStore', axiom, ![VTName0, VTStore0, VVAR1, VVAR0, VTable0] : ((VVAR0 = vemptyStore & VVAR1 = vbindStore(VTName0, VTable0, VTStore0)) => VVAR0 != VVAR1)).
+fof('DIFF-VEquals-VGreater', axiom, ![VAName0, VFVal1, VVAR1, VVAR0, VAName1, VFVal0] : ((VVAR0 = vVEquals(VAName0, VFVal0) & VVAR1 = vVGreater(VAName1, VFVal1)) => VVAR0 != VVAR1)).
+fof('DIFF-VEquals-VSmaller', axiom, ![VAName0, VFVal1, VVAR1, VVAR0, VAName1, VFVal0] : ((VVAR0 = vVEquals(VAName0, VFVal0) & VVAR1 = vVSmaller(VAName1, VFVal1)) => VVAR0 != VVAR1)).
+fof('DIFF-VGreater-VSmaller', axiom, ![VAName0, VFVal1, VVAR1, VVAR0, VAName1, VFVal0] : ((VVAR0 = vVGreater(VAName0, VFVal0) & VVAR1 = vVSmaller(VAName1, VFVal1)) => VVAR0 != VVAR1)).
+fof('DIFF-Tvalue-SelectAllFrom', axiom, ![VVAR0, VTable0, VVAR1, VTRef0] : ((VVAR0 = vTvalue(VTable0) & VVAR1 = vSelectAllFrom(VTRef0)) => VVAR0 != VVAR1)).
+fof('DIFF-Tvalue-SelectSomeFrom', axiom, ![VAList0, VVAR1, VVAR0, VTable0, VTRef0] : ((VVAR0 = vTvalue(VTable0) & VVAR1 = vSelectSomeFrom(VAList0, VTRef0)) => VVAR0 != VVAR1)).
+fof('DIFF-Tvalue-SelectAllFromWhere', axiom, ![VPred0, VVAR1, VVAR0, VTable0, VTRef0] : ((VVAR0 = vTvalue(VTable0) & VVAR1 = vSelectAllFromWhere(VTRef0, VPred0)) => VVAR0 != VVAR1)).
+fof('DIFF-Tvalue-SelectSomeFromWhere', axiom, ![VAList0, VPred0, VVAR1, VVAR0, VTable0, VTRef0] : ((VVAR0 = vTvalue(VTable0) & VVAR1 = vSelectSomeFromWhere(VAList0, VTRef0, VPred0)) => VVAR0 != VVAR1)).
+fof('DIFF-Tvalue-Union', axiom, ![VQuery1, VVAR1, VVAR0, VTable0, VQuery0] : ((VVAR0 = vTvalue(VTable0) & VVAR1 = vUnion(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-Tvalue-Intersection', axiom, ![VQuery1, VVAR1, VVAR0, VTable0, VQuery0] : ((VVAR0 = vTvalue(VTable0) & VVAR1 = vIntersection(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-Tvalue-Difference', axiom, ![VQuery1, VVAR1, VVAR0, VTable0, VQuery0] : ((VVAR0 = vTvalue(VTable0) & VVAR1 = vDifference(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFrom-SelectSomeFrom', axiom, ![VAList0, VVAR1, VVAR0, VTRef1, VTRef0] : ((VVAR0 = vSelectAllFrom(VTRef0) & VVAR1 = vSelectSomeFrom(VAList0, VTRef1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFrom-SelectAllFromWhere', axiom, ![VPred0, VVAR1, VVAR0, VTRef1, VTRef0] : ((VVAR0 = vSelectAllFrom(VTRef0) & VVAR1 = vSelectAllFromWhere(VTRef1, VPred0)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFrom-SelectSomeFromWhere', axiom, ![VAList0, VPred0, VVAR1, VVAR0, VTRef1, VTRef0] : ((VVAR0 = vSelectAllFrom(VTRef0) & VVAR1 = vSelectSomeFromWhere(VAList0, VTRef1, VPred0)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFrom-Union', axiom, ![VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectAllFrom(VTRef0) & VVAR1 = vUnion(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFrom-Intersection', axiom, ![VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectAllFrom(VTRef0) & VVAR1 = vIntersection(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFrom-Difference', axiom, ![VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectAllFrom(VTRef0) & VVAR1 = vDifference(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectSomeFrom-SelectAllFromWhere', axiom, ![VAList0, VPred0, VVAR1, VVAR0, VTRef1, VTRef0] : ((VVAR0 = vSelectSomeFrom(VAList0, VTRef0) & VVAR1 = vSelectAllFromWhere(VTRef1, VPred0)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectSomeFrom-SelectSomeFromWhere', axiom, ![VAList0, VPred0, VVAR1, VVAR0, VAList1, VTRef1, VTRef0] : ((VVAR0 = vSelectSomeFrom(VAList0, VTRef0) & VVAR1 = vSelectSomeFromWhere(VAList1, VTRef1, VPred0)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectSomeFrom-Union', axiom, ![VAList0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectSomeFrom(VAList0, VTRef0) & VVAR1 = vUnion(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectSomeFrom-Intersection', axiom, ![VAList0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectSomeFrom(VAList0, VTRef0) & VVAR1 = vIntersection(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectSomeFrom-Difference', axiom, ![VAList0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectSomeFrom(VAList0, VTRef0) & VVAR1 = vDifference(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFromWhere-SelectSomeFromWhere', axiom, ![VAList0, VPred0, VPred1, VVAR1, VVAR0, VTRef1, VTRef0] : ((VVAR0 = vSelectAllFromWhere(VTRef0, VPred0) & VVAR1 = vSelectSomeFromWhere(VAList0, VTRef1, VPred1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFromWhere-Union', axiom, ![VPred0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectAllFromWhere(VTRef0, VPred0) & VVAR1 = vUnion(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFromWhere-Intersection', axiom, ![VPred0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectAllFromWhere(VTRef0, VPred0) & VVAR1 = vIntersection(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectAllFromWhere-Difference', axiom, ![VPred0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectAllFromWhere(VTRef0, VPred0) & VVAR1 = vDifference(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectSomeFromWhere-Union', axiom, ![VAList0, VPred0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectSomeFromWhere(VAList0, VTRef0, VPred0) & VVAR1 = vUnion(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectSomeFromWhere-Intersection', axiom, ![VAList0, VPred0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectSomeFromWhere(VAList0, VTRef0, VPred0) & VVAR1 = vIntersection(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-SelectSomeFromWhere-Difference', axiom, ![VAList0, VPred0, VQuery1, VVAR1, VVAR0, VQuery0, VTRef0] : ((VVAR0 = vSelectSomeFromWhere(VAList0, VTRef0, VPred0) & VVAR1 = vDifference(VQuery0, VQuery1)) => VVAR0 != VVAR1)).
+fof('DIFF-Union-Intersection', axiom, ![VQuery3, VQuery2, VQuery1, VVAR1, VVAR0, VQuery0] : ((VVAR0 = vUnion(VQuery0, VQuery1) & VVAR1 = vIntersection(VQuery2, VQuery3)) => VVAR0 != VVAR1)).
+fof('DIFF-Union-Difference', axiom, ![VQuery3, VQuery2, VQuery1, VVAR1, VVAR0, VQuery0] : ((VVAR0 = vUnion(VQuery0, VQuery1) & VVAR1 = vDifference(VQuery2, VQuery3)) => VVAR0 != VVAR1)).
+fof('DIFF-Intersection-Difference', axiom, ![VQuery3, VQuery2, VQuery1, VVAR1, VVAR0, VQuery0] : ((VVAR0 = vIntersection(VQuery0, VQuery1) & VVAR1 = vDifference(VQuery2, VQuery3)) => VVAR0 != VVAR1)).
+fof('DIFF-noTType-someTType', axiom, ![VVAR0, VVAR1, VTType0] : ((VVAR0 = vnoTType & VVAR1 = vsomeTType(VTType0)) => VVAR0 != VVAR1)).
+fof('DIFF-emptyContext-bindContext', axiom, ![VTTContext0, VTName0, VTType0, VVAR1, VVAR0] : ((VVAR0 = vemptyContext & VVAR1 = vbindContext(VTName0, VTType0, VTTContext0)) => VVAR0 != VVAR1)).
+fof('DIFF-noFType-someFType', axiom, ![VVAR0, VVAR1, VFType0] : ((VVAR0 = vnoFType & VVAR1 = vsomeFType(VFType0)) => VVAR0 != VVAR1)).
+fof('getRaw0', axiom, ![VVAR0, Val, Vrt, VVAR1] : ((VVAR0 = vtable(Val, Vrt) & VVAR1 = vgetRaw(VVAR0)) => VVAR1 = Vrt)).
+fof('getAL0', axiom, ![VVAR0, Val, Vrt, VVAR1] : ((VVAR0 = vtable(Val, Vrt) & VVAR1 = vgetAL(VVAR0)) => VVAR1 = Val)).
+fof('matchingAList0', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vttempty & VVAR1 = vaempty) => vmatchingAList(VVAR0, VVAR1))).
+fof('matchingAList1', axiom, ![Va1, Va2, VVAR2, VVAR1, Val, VVAR0, Vf, Vtt] : ((VVAR0 = vctype(Va1, Vf) & VVAR1 = vttcons(VVAR0, Vtt) & VVAR2 = vacons(Va2, Val)) => (vmatchingAList(VVAR1, VVAR2) <=> (Va1 = Va2 & vmatchingAList(Vtt, Val))))).
+fof('matchingAList2', axiom, ![VVAR0, VVAR1, Vtt, Val] : ((VVAR0 = vttempty & VVAR1 = vaempty & (Vtt != VVAR0 | Val != VVAR1) & (![Vf0, Vtt0, Va10, VVAR2, VVAR3] : ((~VVAR2 = vctype(Va10, Vf0)) | (~VVAR3 = vttcons(VVAR2, Vtt0)) | Vtt != VVAR3) | ![VVAR4, Va20, Val0] : ((~VVAR4 = vacons(Va20, Val0)) | Val != VVAR4))) => (~vmatchingAList(Vtt, Val)))).
+fof('welltypedtable0', axiom, ![Vt, VVAR1, Val, VVAR0, Vtt] : ((VVAR0 = vtable(Val, Vt) & VVAR1 = vrawType(Vtt)) => (vwelltypedtable(Vtt, VVAR0) <=> (vmatchingAList(Vtt, Val) & vwelltypedRawtable(VVAR1, Vt))))).
+fof('rawType0', axiom, ![VVAR0, VVAR1, VVAR2] : ((VVAR0 = vttempty & VVAR1 = vrawType(VVAR0) & VVAR2 = vrtempty) => VVAR1 = VVAR2)).
+fof('rawType1', axiom, ![Va, Vft, VVAR2, VVAR3, VVAR4, VVAR1, VVAR0, Vtt] : ((VVAR1 = vttcons(VVAR0, Vtt) & VVAR3 = vrawType(VVAR1) & VVAR2 = vrawType(Vtt) & VVAR0 = vctype(Va, Vft) & VVAR4 = vrtcons(Vft, VVAR2)) => VVAR3 = VVAR4)).
+fof('welltypedRawtable0', axiom, ![VVAR0, Vrt] : (VVAR0 = vtempty => vwelltypedRawtable(Vrt, VVAR0))).
+fof('welltypedRawtable1', axiom, ![VVAR0, Vr, Vt, Vrt] : (VVAR0 = vtcons(Vr, Vt) => (vwelltypedRawtable(Vrt, VVAR0) <=> (vwelltypedRow(Vrt, Vr) & vwelltypedRawtable(Vrt, Vt))))).
+fof('welltypedRow0', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vrtempty & VVAR1 = vrempty) => vwelltypedRow(VVAR0, VVAR1))).
+fof('welltypedRow1', axiom, ![Vv, Vrt, Vft, Vr, VVAR2, VVAR1, VVAR0] : ((VVAR0 = vrtcons(Vft, Vrt) & VVAR1 = vrcons(Vv, Vr) & VVAR2 = vfieldType(Vv)) => (vwelltypedRow(VVAR0, VVAR1) <=> (VVAR2 = Vft & vwelltypedRow(Vrt, Vr))))).
+fof('welltypedRow2', axiom, ![VVAR0, VVAR1, Vrt, Vr] : ((VVAR0 = vrtempty & VVAR1 = vrempty & (Vrt != VVAR0 | Vr != VVAR1) & (![VVAR2, Vft0, Vrt0] : ((~VVAR2 = vrtcons(Vft0, Vrt0)) | Vrt != VVAR2) | ![VVAR3, Vv0, Vr0] : ((~VVAR3 = vrcons(Vv0, Vr0)) | Vr != VVAR3))) => (~vwelltypedRow(Vrt, Vr)))).
+fof('isSomeTable0', axiom, ![VVAR0] : (VVAR0 = vnoTable => (~visSomeTable(VVAR0)))).
+fof('isSomeTable1', axiom, ![VVAR0, Vt] : (VVAR0 = vsomeTable(Vt) => visSomeTable(VVAR0))).
+fof('getSomeTable0', axiom, ![VVAR0, Vt, VVAR1] : ((VVAR0 = vsomeTable(Vt) & VVAR1 = vgetSomeTable(VVAR0)) => VVAR1 = Vt)).
+fof('lookupStore0', axiom, ![VVAR0, VVAR1, Vn, VVAR2] : ((VVAR0 = vemptyStore & VVAR1 = vlookupStore(Vn, VVAR0) & VVAR2 = vnoTable) => VVAR1 = VVAR2)).
+fof('lookupStore1', axiom, ![Vt, VTS, VVAR2, VVAR1, Vm, VVAR0, Vn] : ((VVAR0 = vbindStore(Vm, Vt, VTS) & VVAR1 = vlookupStore(Vn, VVAR0) & VVAR2 = vsomeTable(Vt) & Vn = Vm) => VVAR1 = VVAR2)).
+fof('lookupStore2', axiom, ![Vt, VTS, VVAR2, VVAR1, Vm, VVAR0, Vn] : ((VVAR0 = vbindStore(Vm, Vt, VTS) & VVAR1 = vlookupStore(Vn, VVAR0) & VVAR2 = vlookupStore(Vn, VTS) & Vn != Vm) => VVAR1 = VVAR2)).
+fof('isValue0', axiom, ![VVAR0, Vt] : (VVAR0 = vTvalue(Vt) => visValue(VVAR0))).
+fof('isValue1', axiom, ![VVAR0, Vn] : (VVAR0 = vSelectAllFrom(Vn) => (~visValue(VVAR0)))).
+fof('isValue2', axiom, ![VVAR0, Val, Vtr] : (VVAR0 = vSelectSomeFrom(Val, Vtr) => (~visValue(VVAR0)))).
+fof('isValue3', axiom, ![VVAR0, Vtr, Vp] : (VVAR0 = vSelectAllFromWhere(Vtr, Vp) => (~visValue(VVAR0)))).
+fof('isValue4', axiom, ![VVAR0, Val, Vtr, Vp] : (VVAR0 = vSelectSomeFromWhere(Val, Vtr, Vp) => (~visValue(VVAR0)))).
+fof('isValue5', axiom, ![VVAR0, Vq1, Vq2] : (VVAR0 = vUnion(Vq1, Vq2) => (~visValue(VVAR0)))).
+fof('isValue6', axiom, ![VVAR0, Vsql1, Vsql2] : (VVAR0 = vIntersection(Vsql1, Vsql2) => (~visValue(VVAR0)))).
+fof('isValue7', axiom, ![VVAR0, Vsql1, Vsql2] : (VVAR0 = vDifference(Vsql1, Vsql2) => (~visValue(VVAR0)))).
+fof('isSomeTType0', axiom, ![VVAR0] : (VVAR0 = vnoTType => (~visSomeTType(VVAR0)))).
+fof('isSomeTType1', axiom, ![VVAR0, Vt] : (VVAR0 = vsomeTType(Vt) => visSomeTType(VVAR0))).
+fof('getSomeTType0', axiom, ![VVAR0, Vt, VVAR1] : ((VVAR0 = vsomeTType(Vt) & VVAR1 = vgetSomeTType(VVAR0)) => VVAR1 = Vt)).
+fof('lookupContext0', axiom, ![VVAR0, VVAR1, Vtn, VVAR2] : ((VVAR0 = vemptyContext & VVAR1 = vlookupContext(Vtn, VVAR0) & VVAR2 = vnoTType) => VVAR1 = VVAR2)).
+fof('lookupContext1', axiom, ![Vtm, VVAR2, VVAR1, Vtn, VVAR0, VTTC, Vtt] : ((VVAR0 = vbindContext(Vtm, Vtt, VTTC) & VVAR1 = vlookupContext(Vtn, VVAR0) & VVAR2 = vsomeTType(Vtt) & Vtn = Vtm) => VVAR1 = VVAR2)).
+fof('lookupContext2', axiom, ![Vtm, VVAR2, VVAR1, Vtn, VVAR0, VTTC, Vtt] : ((VVAR0 = vbindContext(Vtm, Vtt, VTTC) & VVAR1 = vlookupContext(Vtn, VVAR0) & VVAR2 = vlookupContext(Vtn, VTTC) & Vtn != Vtm) => VVAR1 = VVAR2)).
+fof('isSomeFType0', axiom, ![VVAR0] : (VVAR0 = vnoFType => (~visSomeFType(VVAR0)))).
+fof('isSomeFType1', axiom, ![VVAR0, Va] : (VVAR0 = vsomeFType(Va) => visSomeFType(VVAR0))).
+fof('getSomeFType0', axiom, ![VVAR0, Va, VVAR1] : ((VVAR0 = vsomeFType(Va) & VVAR1 = vgetSomeFType(VVAR0)) => VVAR1 = Va)).
+fof('findColType0', axiom, ![VVAR0, VVAR1, Van, VVAR2] : ((VVAR0 = vttempty & VVAR1 = vfindColType(Van, VVAR0) & VVAR2 = vnoFType) => VVAR1 = VVAR2)).
+fof('findColType1', axiom, ![Va, Vttr, Vft, Van, VVAR2, VVAR3, VVAR1, VVAR0] : ((VVAR0 = vctype(Va, Vft) & VVAR1 = vttcons(VVAR0, Vttr) & VVAR2 = vfindColType(Van, VVAR1) & VVAR3 = vsomeFType(Vft) & Van = Va) => VVAR2 = VVAR3)).
+fof('findColType2', axiom, ![Va, Vttr, Vft, Van, VVAR2, VVAR3, VVAR1, VVAR0] : ((VVAR0 = vctype(Va, Vft) & VVAR1 = vttcons(VVAR0, Vttr) & VVAR2 = vfindColType(Van, VVAR1) & VVAR3 = vfindColType(Van, Vttr) & Van != Va) => VVAR2 = VVAR3)).
+fof('projectType0', axiom, ![VVAR2, VVAR3, VVAR1, VVAR0, Vtt] : ((VVAR0 = vaempty & VVAR1 = vttempty & VVAR2 = vprojectType(VVAR0, Vtt) & VVAR3 = vsomeTType(VVAR1)) => VVAR2 = VVAR3)).
+fof('projectType1', axiom, ![Va, VVAR5, VVAR7, Vft, VVAR2, VVAR3, VVAR4, VVAR1, VVAR6, VVAR8, VVAR0, Vtt, Valr, Vtprest] : ((VVAR5 = vgetSomeTType(Vtprest) & VVAR4 = vctype(Va, VVAR3) & VVAR2 = vacons(Va, Valr) & VVAR6 = vttcons(VVAR4, VVAR5) & VVAR8 = vsomeTType(VVAR6) & VVAR0 = vfindColType(Va, Vtt) & VVAR3 = vgetSomeFType(Vft) & VVAR1 = vprojectType(Valr, Vtt) & VVAR7 = vprojectType(VVAR2, Vtt) & Vft = VVAR0 & Vtprest = VVAR1 & (visSomeFType(Vft) & visSomeTType(Vtprest))) => VVAR7 = VVAR8)).
+fof('projectType2', axiom, ![Va, Vft, VVAR2, VVAR3, VVAR4, VVAR1, VVAR0, Vtt, Valr, Vtprest] : ((VVAR4 = vnoTType & VVAR2 = vacons(Va, Valr) & VVAR0 = vfindColType(Va, Vtt) & VVAR1 = vprojectType(Valr, Vtt) & VVAR3 = vprojectType(VVAR2, Vtt) & Vft = VVAR0 & Vtprest = VVAR1 & (~(visSomeFType(Vft) & visSomeTType(Vtprest)))) => VVAR3 = VVAR4)).
+fof('ctypeIn0', axiom, ![VVAR0, Va, Vft] : (VVAR0 = vttempty => (~vctypeIn(Va, Vft, VVAR0)))).
+fof('ctypeIn1', axiom, ![Va, Vft2, Vttr, Vft, Va2, VVAR1, VVAR0] : ((VVAR0 = vctype(Va2, Vft2) & VVAR1 = vttcons(VVAR0, Vttr)) => (vctypeIn(Va, Vft, VVAR1) <=> ((Va = Va2 & Vft = Vft2) | vctypeIn(Va, Vft, Vttr))))).
+fof('checkPValidity0', axiom, ![Va, Vfv, VVAR1, VVAR0, Vtt] : ((VVAR0 = vVEquals(Va, Vfv) & VVAR1 = vfieldType(Vfv)) => (vcheckPValidity(VVAR0, Vtt) <=> vctypeIn(Va, VVAR1, Vtt)))).
+fof('checkPValidity1', axiom, ![Va, Vfv, VVAR1, VVAR0, Vtt] : ((VVAR0 = vVGreater(Va, Vfv) & VVAR1 = vfieldType(Vfv)) => (vcheckPValidity(VVAR0, Vtt) <=> vctypeIn(Va, VVAR1, Vtt)))).
+fof('checkPValidity2', axiom, ![Va, Vfv, VVAR1, VVAR0, Vtt] : ((VVAR0 = vVSmaller(Va, Vfv) & VVAR1 = vfieldType(Vfv)) => (vcheckPValidity(VVAR0, Vtt) <=> vctypeIn(Va, VVAR1, Vtt)))).
+fof('T-TTContext-Duplicate', axiom, ![Vx, VTx, Vy, Ve, VC, VTy, VT, VVAR2, VVAR1, VVAR0] : ((VVAR0 = vbindContext(Vy, VTy, VC) & VVAR1 = vbindContext(Vx, VTx, VVAR0) & VVAR2 = vbindContext(Vx, VTx, VC) & Vx = Vy & vtcheck(VVAR1, Ve, VT)) => vtcheck(VVAR2, Ve, VT))).
+fof('T-TTContext-Swap', axiom, ![Vx, VTx, Vy, Ve, VC, VTy, VT, VVAR2, VVAR3, VVAR1, VVAR0] : ((VVAR0 = vbindContext(Vy, VTy, VC) & VVAR1 = vbindContext(Vx, VTx, VVAR0) & VVAR2 = vbindContext(Vx, VTx, VC) & VVAR3 = vbindContext(Vy, VTy, VVAR2) & Vx != Vy & vtcheck(VVAR1, Ve, VT)) => vtcheck(VVAR3, Ve, VT))).
+fof('T-Tvalue', axiom, ![Vrt, VTT, VVAR1, Val, VVAR0, VTTC] : ((VVAR0 = vtable(Val, Vrt) & VVAR1 = vTvalue(VVAR0) & vwelltypedtable(VTT, VVAR0)) => vtcheck(VTTC, VVAR1, VTT))).
+fof('T-SelectAllFrom', axiom, ![VTT, VVAR2, VVAR3, VVAR1, Vtn, VVAR0, VTTC] : ((VVAR0 = vlookupContext(Vtn, VTTC) & VVAR1 = vsomeTType(VTT) & VVAR2 = vRef(Vtn) & VVAR3 = vSelectAllFrom(VVAR2) & VVAR0 = VVAR1) => vtcheck(VTTC, VVAR3, VTT))).
+fof('T-SelectSomeFrom', axiom, ![VVAR5, VTT, VVAR2, VVAR3, VVAR4, VVAR1, Vtn, Val, VVAR0, VTT1, VTTC] : ((VVAR4 = vRef(Vtn) & VVAR1 = vsomeTType(VTT1) & VVAR5 = vSelectSomeFrom(Val, VVAR4) & VVAR2 = vprojectType(Val, VTT1) & VVAR3 = vsomeTType(VTT) & VVAR0 = vlookupContext(Vtn, VTTC) & VVAR0 = VVAR1 & VVAR2 = VVAR3) => vtcheck(VTTC, VVAR5, VTT))).
+fof('T-SelectAllFromWhere', axiom, ![Vp, VTT, VVAR2, VVAR3, VVAR1, Vtn, VVAR0, VTTC] : ((VVAR0 = vlookupContext(Vtn, VTTC) & VVAR1 = vsomeTType(VTT) & VVAR2 = vRef(Vtn) & VVAR3 = vSelectAllFromWhere(VVAR2, Vp) & VVAR0 = VVAR1 & vcheckPValidity(Vp, VTT)) => vtcheck(VTTC, VVAR3, VTT))).
+fof('T-SelectSomeFromWhere', axiom, ![Vp, VVAR5, VTT, VVAR2, VVAR3, VVAR4, VVAR1, Vtn, Val, VVAR0, VTT1, VTTC] : ((VVAR4 = vRef(Vtn) & VVAR1 = vsomeTType(VTT1) & VVAR2 = vprojectType(Val, VTT1) & VVAR3 = vsomeTType(VTT) & VVAR0 = vlookupContext(Vtn, VTTC) & VVAR5 = vSelectSomeFromWhere(Val, VVAR4, Vp) & VVAR0 = VVAR1 & vcheckPValidity(Vp, VTT1) & VVAR2 = VVAR3) => vtcheck(VTTC, VVAR5, VTT))).
+fof('T-Union', axiom, ![Vq1, VTT, VVAR0, VTTC, Vq2] : ((VVAR0 = vUnion(Vq1, Vq2) & vtcheck(VTTC, Vq1, VTT) & vtcheck(VTTC, Vq2, VTT)) => vtcheck(VTTC, VVAR0, VTT))).
+fof('T-Intersection', axiom, ![Vq1, VTT, VVAR0, VTTC, Vq2] : ((VVAR0 = vIntersection(Vq1, Vq2) & vtcheck(VTTC, Vq1, VTT) & vtcheck(VTTC, Vq2, VTT)) => vtcheck(VTTC, VVAR0, VTT))).
+fof('T-Difference', axiom, ![Vq1, VTT, VVAR0, VTTC, Vq2] : ((VVAR0 = vDifference(Vq1, Vq2) & vtcheck(VTTC, Vq1, VTT) & vtcheck(VTTC, Vq2, VTT)) => vtcheck(VTTC, VVAR0, VTT))).
+fof('EQ-x1', axiom, ![VVAR0] : (VVAR0 = vx1 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-x2', axiom, ![VVAR0] : (VVAR0 = vx2 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-y1', axiom, ![VVAR0] : (VVAR0 = vy1 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-y2', axiom, ![VVAR0] : (VVAR0 = vy2 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-z1', axiom, ![VVAR0] : (VVAR0 = vz1 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-z2', axiom, ![VVAR0] : (VVAR0 = vz2 => ($true <=> VVAR0 = VVAR0))).
+fof('DIFF-x1-x2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx1 & VVAR1 = vx2) => VVAR0 != VVAR1)).
+fof('DIFF-x1-y1', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx1 & VVAR1 = vy1) => VVAR0 != VVAR1)).
+fof('DIFF-x1-y2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx1 & VVAR1 = vy2) => VVAR0 != VVAR1)).
+fof('DIFF-x1-z1', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx1 & VVAR1 = vz1) => VVAR0 != VVAR1)).
+fof('DIFF-x1-z2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx1 & VVAR1 = vz2) => VVAR0 != VVAR1)).
+fof('DIFF-x2-y1', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx2 & VVAR1 = vy1) => VVAR0 != VVAR1)).
+fof('DIFF-x2-y2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx2 & VVAR1 = vy2) => VVAR0 != VVAR1)).
+fof('DIFF-x2-z1', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx2 & VVAR1 = vz1) => VVAR0 != VVAR1)).
+fof('DIFF-x2-z2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vx2 & VVAR1 = vz2) => VVAR0 != VVAR1)).
+fof('DIFF-y1-y2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vy1 & VVAR1 = vy2) => VVAR0 != VVAR1)).
+fof('DIFF-y1-z1', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vy1 & VVAR1 = vz1) => VVAR0 != VVAR1)).
+fof('DIFF-y1-z2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vy1 & VVAR1 = vz2) => VVAR0 != VVAR1)).
+fof('DIFF-y2-z1', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vy2 & VVAR1 = vz1) => VVAR0 != VVAR1)).
+fof('DIFF-y2-z2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vy2 & VVAR1 = vz2) => VVAR0 != VVAR1)).
+fof('DIFF-z1-z2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vz1 & VVAR1 = vz2) => VVAR0 != VVAR1)).
+fof('EQ-TN', axiom, ![VVAR0] : (VVAR0 = vTN => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-T1', axiom, ![VVAR0] : (VVAR0 = vT1 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-T2', axiom, ![VVAR0] : (VVAR0 = vT2 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-T3', axiom, ![VVAR0] : (VVAR0 = vT3 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-A1', axiom, ![VVAR0] : (VVAR0 = vA1 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-A2', axiom, ![VVAR0] : (VVAR0 = vA2 => ($true <=> VVAR0 = VVAR0))).
+fof('EQ-A3', axiom, ![VVAR0] : (VVAR0 = vA3 => ($true <=> VVAR0 = VVAR0))).
+fof('DIFF-T1-T2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vT1 & VVAR1 = vT2) => VVAR0 != VVAR1)).
+fof('DIFF-T1-T3', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vT1 & VVAR1 = vT3) => VVAR0 != VVAR1)).
+fof('DIFF-T2-T3', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vT2 & VVAR1 = vT3) => VVAR0 != VVAR1)).
+fof('DIFF-A1-A2', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vA1 & VVAR1 = vA2) => VVAR0 != VVAR1)).
+fof('DIFF-A1-A3', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vA1 & VVAR1 = vA3) => VVAR0 != VVAR1)).
+fof('DIFF-A2-A3', axiom, ![VVAR0, VVAR1] : ((VVAR0 = vA2 & VVAR1 = vA3) => VVAR0 != VVAR1)).
+fof('ftype-x1', axiom, ![VVAR0, VVAR1, VVAR2] : ((VVAR0 = vx1 & VVAR1 = vfieldType(VVAR0) & VVAR2 = vT1) => VVAR1 = VVAR2)).
+fof('ftype-x2', axiom, ![VVAR0, VVAR1, VVAR2] : ((VVAR0 = vx2 & VVAR1 = vfieldType(VVAR0) & VVAR2 = vT1) => VVAR1 = VVAR2)).
+fof('ftype-y1', axiom, ![VVAR0, VVAR1, VVAR2] : ((VVAR0 = vy1 & VVAR1 = vfieldType(VVAR0) & VVAR2 = vT2) => VVAR1 = VVAR2)).
+fof('ftype-y2', axiom, ![VVAR0, VVAR1, VVAR2] : ((VVAR0 = vy2 & VVAR1 = vfieldType(VVAR0) & VVAR2 = vT2) => VVAR1 = VVAR2)).
+fof('ftype-z1', axiom, ![VVAR0, VVAR1, VVAR2] : ((VVAR0 = vz1 & VVAR1 = vfieldType(VVAR0) & VVAR2 = vT3) => VVAR1 = VVAR2)).
+fof('ftype-z2', axiom, ![VVAR0, VVAR1, VVAR2] : ((VVAR0 = vz2 & VVAR1 = vfieldType(VVAR0) & VVAR2 = vT3) => VVAR1 = VVAR2)).
+fof('T-tvalue-test2', conjecture, ![VVAR26, VVAR25, VVAR34, VVAR17, VVAR21, VVAR32, VVAR14, VVAR22, VVAR33, Vrt, VVAR5, VVAR20, VVAR24, VVAR23, VVAR7, Vttc, VVAR13, VVAR11, VVAR2, VVAR15, VVAR3, VVAR27, VVAR10, VVAR4, VVAR1, VVAR6, VVAR8, VVAR30, Val, VVAR0, VVAR12, VVAR28, VVAR31, VVAR18, VVAR19, VVAR9, Vtt, VVAR29, VVAR16] : ((VVAR25 = vrcons(VVAR23, VVAR18) & VVAR2 = vA2 & VVAR6 = vacons(VVAR4, VVAR5) & VVAR19 = vy2 & VVAR24 = vy1 & VVAR16 = vttcons(VVAR14, VVAR15) & VVAR18 = vrempty & VVAR29 = vtempty & VVAR33 = vtable(Val, Vrt) & VVAR30 = vrcons(VVAR21, VVAR22) & VVAR11 = vttempty & VVAR23 = vz1 & VVAR0 = vA3 & VVAR3 = vacons(VVAR0, VVAR1) & VVAR34 = vTvalue(VVAR33) & VVAR15 = vttcons(VVAR12, VVAR13) & VVAR20 = vrcons(VVAR17, VVAR18) & VVAR27 = vrcons(VVAR24, VVAR25) & VVAR26 = vx2 & VVAR14 = vctype(VVAR4, VVAR7) & VVAR13 = vttcons(VVAR10, VVAR11) & VVAR1 = vaempty & VVAR28 = vrcons(VVAR26, VVAR27) & VVAR17 = vz2 & VVAR8 = vT2 & VVAR5 = vacons(VVAR2, VVAR3) & VVAR9 = vT3 & VVAR32 = vtcons(VVAR30, VVAR31) & VVAR10 = vctype(VVAR0, VVAR9) & VVAR21 = vx1 & VVAR12 = vctype(VVAR2, VVAR8) & VVAR22 = vrcons(VVAR19, VVAR20) & VVAR7 = vT1 & VVAR31 = vtcons(VVAR28, VVAR29) & VVAR4 = vA1 & Val = VVAR6 & Vtt = VVAR16 & Vrt = VVAR32) => vtcheck(Vttc, VVAR34, Vtt))).

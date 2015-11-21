@@ -225,7 +225,7 @@ trait TranslateTypingJudgment extends ModuleTransformation {
   var typingJudgmentFunctionDecl: Option[FunctionSig] = None
 
   class InferSignature extends InferTypingJudgmentSignature
-  val inferSignature = new InferSignature
+  var inferSignature = new InferSignature
 
   /**
    * set to true as soon as the typingJugdment was defined once in current scope
@@ -234,6 +234,11 @@ trait TranslateTypingJudgment extends ModuleTransformation {
   private var tjdeclared: Boolean = false
 
   override def apply(m: Seq[Module]): Seq[Module] = {
+    //make sure to reset state whenever a new module is called!
+    //(we assume we want a fresh tcheck declaration for in each module)
+    tjdeclared = false
+    typingJudgmentFunctionDecl = None
+    inferSignature = new InferSignature
     val inf = inferSignature(m)
     typingJudgmentFunctionDecl = inferSignature.typingJudgmentFunctionDecl
     inf flatMap trans
