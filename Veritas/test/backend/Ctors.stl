@@ -5,6 +5,9 @@ sorts  Typ
 constructors
   noInput : Typ
   withOneInput : Typ -> Typ
+  
+constructors
+  twoInputsTopLevel : Typ Typ -> Typ 
 
 local {
 	constructors
