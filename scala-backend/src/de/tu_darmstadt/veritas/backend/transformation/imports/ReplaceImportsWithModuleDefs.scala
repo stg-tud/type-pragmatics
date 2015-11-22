@@ -1,5 +1,8 @@
-package de.tu_darmstadt.veritas.backend.transformation
+package de.tu_darmstadt.veritas.backend.transformation.imports
 
+import de.tu_darmstadt.veritas.backend.transformation.FilterGoalsAndLocals
+import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
+import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.veritas.Import
 import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
