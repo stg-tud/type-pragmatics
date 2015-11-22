@@ -156,8 +156,7 @@ case object BasicEncodings extends StudyVariable {
             GenerateCtorAxioms(
               DesugarLemmas(
                 VarToApp0(
-                  JoinConstructors(
-                    ReplaceImportsWithModuleDefs(ResolveImports(m)))))))))
+                  ReplaceImportsWithModuleDefs(ResolveImports(m))))))))
 
   }
 
@@ -235,8 +234,7 @@ class EncodingComparisonStudy {
                           GenerateCtorAxioms(
                             DesugarLemmas(
                               VarToApp0(
-                                JoinConstructors(
-                                  ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
+                                ReplaceImportsWithModuleDefs(ResolveImports(sm)))))))))))))
         transformedModules map ToFof.toFofFile
       })),
     ("inconsistencies-wrong-constant-encoding" ->
@@ -251,10 +249,9 @@ class EncodingComparisonStudy {
                       TranslateTypingJudgmentToFunction(
                         FunctionEqToAxiomsSimple(
                           GenerateCtorAxioms(
-                            JoinConstructors(
-                              DesugarLemmas(
-                                VarToApp0(
-                                  ReplaceImportsWithModuleDefs(ResolveImports(sm))))))))))))))
+                            DesugarLemmas(
+                              VarToApp0(
+                                ReplaceImportsWithModuleDefs(ResolveImports(sm)))))))))))))
         transformedModules map ToFof.toFofFile
       }))) ++ buildStrategies()
 
