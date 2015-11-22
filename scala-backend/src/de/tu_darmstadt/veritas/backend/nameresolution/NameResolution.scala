@@ -10,6 +10,7 @@ import de.tu_darmstadt.veritas.backend.veritas.Resolved
 import de.tu_darmstadt.veritas.backend.veritas.Unresolved
 import de.tu_darmstadt.veritas.backend.veritas.VeritasParseError
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
+import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 
 object NameResolution {
   def getModuleDef(imp: Import): Option[Module] = imp match {
@@ -32,7 +33,7 @@ object NameResolution {
       // FIXME Why does the strategy give us back a Result(<taskid>) instead of the module code? When does this happen?
       // This is probably a BUG in Spoofax/Stratego/NaBL, since it also happens inside our fof-rewriting.str :/
       strategyResult match {
-        case Some(StrategoAppl("Result", _)) => {
+        case Some(StrategoAppl("Result", _)) | Some(StrategoList(Seq())) => {
           throw BackendError("Error during NameResolution: Expected a Module() code, given the import\n" 
               + imp + "\nbut got back a task ID from the Stratego nameresolution strategy: " + strategyResult.get
               + "\n\tThis error is not in out code, but probably a BUG in Spoofax/Stratego/NaBL, where the strategy get-module-ref"
