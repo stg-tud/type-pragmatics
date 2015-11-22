@@ -4,10 +4,8 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
-import de.tu_darmstadt.veritas.backend.stratego.StrategoInt
-import de.tu_darmstadt.veritas.backend.nameresolution.nabl.VeritasModuleUri
-import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
+import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 
 /**
  * The top-level structure of any Veritas file

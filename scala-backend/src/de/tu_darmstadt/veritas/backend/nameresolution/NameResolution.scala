@@ -18,7 +18,7 @@ object NameResolution {
     case imp: Unresolved => {
       // NOTE I added a rethrow with additional message here, because error message about "task delay ..." is very unintuitive
       val strategyResult = try {
-        Context.callStrategy("get-module-ref", imp.toNablUse)
+        Context.callStrategy("get-module-ref", imp.nablAnnotation)
       } catch {
         case e: InterpreterException => {
           throw BackendError("Error when executing a NaBL strategy during NameResolution."

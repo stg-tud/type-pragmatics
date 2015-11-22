@@ -1,17 +1,12 @@
 package de.tu_darmstadt.veritas.backend.veritas
 
-import de.tu_darmstadt.veritas.backend.nameresolution.nabl.VeritasModuleUri
-import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
-import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
-import de.tu_darmstadt.veritas.backend.stratego.StrategoInt
-import de.tu_darmstadt.veritas.backend.stratego.StrategoString
-import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
-import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
-import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
-import de.tu_darmstadt.veritas.backend.util.Context
-import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.backend.nameresolution.NameResolution
+import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
+import de.tu_darmstadt.veritas.backend.stratego.StrategoString
+import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
+import de.tu_darmstadt.veritas.backend.util.BackendError
+import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 
 /**
  * Imports of other Veritas modules. 
@@ -36,56 +31,27 @@ sealed trait Import extends VeritasConstruct with SimplePrettyPrintable {
     case _ => false 
   }
   override def hashCode = this.moduleName.hashCode
-}
 
-sealed trait Unresolved extends Import {
-  /* abstract */ def toNablUse: StrategoTerm
-  def resolve() = Resolved(NameResolution.getModuleDef(this)
-                            .getOrElse(throw BackendError(s"import $this could not be resolved")))
-}
-
-// an import is processed in multiple stages, which are (from top to bottom):
-case class UnresolvedTaskId(moduleName: String, taskId: Int) extends Unresolved {
   override val children = Seq()
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
     if (!newchildren.isEmpty) throw new ClassCastException
 
     //return myself
-    UnresolvedTaskId(moduleName, taskId)
+    this
   }
-
-  override def toNablUse = StrategoAppl("Use", StrategoAppl("Result", StrategoInt(taskId)))
-  override def prettyString = s"import $moduleName $importAnnotationsPretty// status: unresolved Task ID $taskId"
-}
-
-case class UnresolvedUri(moduleUri: VeritasModuleUri) extends Unresolved {
-  override val children = Seq()
-
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    UnresolvedUri(moduleUri)
-  }
-
-  override def moduleName = moduleUri.name
-  override def toNablUse = moduleUri.toNablProperty
-  override def prettyString = s"import $moduleName $importAnnotationsPretty// status: unresolved URI $moduleUri"
 }
 
 case class Resolved(moduleCode: Module) extends Import {
-  override val children = Seq()
-
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    Resolved(moduleCode)
-  }
-
   override def moduleName = moduleCode.name
   override def prettyString = s"import $moduleName $importAnnotationsPretty// status: resolved" 
+}
+
+case class Unresolved(moduleName: String, nablAnnotation: StrategoTerm) extends Import {
+  override def prettyString = s"import $moduleName $importAnnotationsPretty// status: unresolved, NaBL annotation: $nablAnnotation"
+
+  def resolve() = Resolved(NameResolution.getModuleDef(this)
+                            .getOrElse(throw BackendError(s"import $this could not be resolved")))
 }
 
 object Import {
@@ -98,10 +64,8 @@ object Import {
       }
       
       val result: Import = module.getFirstAnnotation match {
-        case Some(StrategoAppl("Use", StrategoAppl("Result", StrategoInt(taskId)))) 
-          => UnresolvedTaskId(moduleName, taskId)
-        case Some(StrategoAppl("Use", urlTerm)) 
-          => UnresolvedUri(VeritasModuleUri.fromNablDef(urlTerm))
+        case Some(nablAnnotation @ StrategoAppl("Use", _)) 
+          => Unresolved(moduleName, nablAnnotation)
         case t => throw VeritasParseError("Import (NaBL) annotation is wrong. Must be a NaBL Use(...) with either task ID or module URL, got: " + t + "\nin import: "+i+"\nConsider running Syntax -> Show Analyzed Syntax, this sometimes triggers the generation of NaBl annotations.")
       }
       result._importAnnotations = importAnnotations.distinct
