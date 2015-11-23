@@ -175,7 +175,8 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
    *
    */
   def checkSubstitute(vc: VeritasConstruct): Boolean = {
-    val relparent = if (vc.isInstanceOf[MetaVar]) path(2) else path(1)
+    //exclude meta variables on RHS of equations of the form m = ... m ....
+    val relparent = if (vc.isInstanceOf[MetaVar] && path.isDefinedAt(2)) path(2) else path(1)
     relparent match {
       case FunctionExpEq(FunctionMeta(m), r) if (chosenSubstitutions.isDefinedAt(m) && chosenSubstitutions(m) == r) => false
       case _ => true
