@@ -78,6 +78,8 @@ object Backend {
     var resseq: Seq[IStrategoTuple] = Seq()
     
     for (i <- (0 until study.encodingnum)) yield {
+      println(s"Starting generation for encoding ${study.encodingStrategies.head._1}")
+      
       val result = Try(run(ast))
       
       result match {
