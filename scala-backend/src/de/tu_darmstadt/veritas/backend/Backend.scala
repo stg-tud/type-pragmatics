@@ -78,6 +78,8 @@ object Backend {
     var resseq: Seq[IStrategoTuple] = Seq()
     
     for (i <- (0 until study.encodingnum)) yield {
+      println(s"Starting generation for encoding ${study.encodingStrategies.head._1}")
+      
       val result = Try(run(ast))
       
       result match {
@@ -112,7 +114,7 @@ object Backend {
    * Run backend as console application, with optional arguments for giving the ATerm and Index/Tasks
    */
   val DefaultATerm = "test/TableAux.noimports.aterm"
-  val DefaultIndexAndTaskenginePath = "test/"
+  val DefaultIndexAndTaskenginePath = "../Veritas/"
 
   def main(args: Array[String]) {
     val (aterm, indexAndTaskenginePath) = args match {

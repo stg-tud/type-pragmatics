@@ -279,6 +279,6 @@ class EncodingComparisonStudy {
 
   def moveToNextEncoding(): Unit =
     if (!encodingStrategies.isEmpty)
-      encodingStrategies -= encodingStrategies.head._1
+      encodingStrategies = encodingStrategies.tail
 
 }
