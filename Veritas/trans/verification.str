@@ -132,7 +132,7 @@ rules
 	    [goal] := <fof-trans <+ error(!"fof-trans failed: ")> ast-with-false;
 	    string := <pp-formula <+ pp-debug(pp-formula)> goal;
 	    <write-file> (filename, string);
-	    <try(call-vampire-sat(|"FALSE",time, project-path))> filename;
+	    <try(call-vampire-sat(|"FALSE", time, project-path))> filename;
     	<queue-analysis> path
     	
     check-consistency-folder-5 = check-consistency-folder(|"5")
@@ -213,7 +213,7 @@ rules
     		 Stream(out) := <fopen> (proof-file, "w");
     		 Stream(err) := <stderr-stream>;
 			 finally(
-				<call> (<concat-strings> [projectpath, "/", <vampire-command>], <conc>(<vampire-options(|time)>, [file]), ins, out, err),
+				<call> (<vampire-binary> projectpath, <conc>(<vampire-options(|time)>, [file]), ins, out, err),
 				<fclose> out;
 				<extract-vampire-info(|rule)> proof-file
 				)
@@ -229,7 +229,7 @@ rules
     		 Stream(out) := <fopen> (proof-file, "w");
     		 Stream(err) := <stderr-stream>;
 			 finally(
-				<call> (<concat-strings> [projectpath, "/", <vampire-command>], <conc>(<vampire-sat-options(|time)>, [file]), ins, out, err),
+				<call> (<vampire-binary> projectpath, <conc> (<vampire-sat-options(|time)>, [file]), ins, out, err),
 				<fclose> out;
 				<extract-vampire-sat-info(|rule)> proof-file
 				)
@@ -313,6 +313,13 @@ rules
 
 	
 	
+	vampire-binary : projectpath -> absolute-path
+	where
+		absolute-path := <concat-strings> [projectpath, "/", <vampire-command>];
+		<file-exists> absolute-path
+
+	vampire-binary : projectpath -> <vampire-command>
+
 	
 	vampire-command = !"vampire"
 	vampire-options(|time) =

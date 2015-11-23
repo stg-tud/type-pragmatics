@@ -112,7 +112,7 @@ object Backend {
    * Run backend as console application, with optional arguments for giving the ATerm and Index/Tasks
    */
   val DefaultATerm = "test/TableAux.noimports.aterm"
-  val DefaultIndexAndTaskenginePath = "test/"
+  val DefaultIndexAndTaskenginePath = "../Veritas/"
 
   def main(args: Array[String]) {
     val (aterm, indexAndTaskenginePath) = args match {
