@@ -65,14 +65,16 @@ trait FunctionInversionAxioms extends ModuleTransformation with CollectTypeInfo 
       case TypingRule(n, _, _) => n
     }
 
-    val func: Seq[String] = ((for { fn <- functypes.keys if (rulenames.forall { rn => rn.startsWith(fn) }) } yield fn) ++
-      (for { fn <- pfunctypes.keys if (rulenames.forall { rn => rn.startsWith(fn) }) } yield fn)).toSeq
+    if (!rulenames.isEmpty) {
+      val func: Seq[String] = ((for { fn <- functypes.keys if (rulenames.forall { rn => rn.startsWith(fn) }) } yield fn) ++
+        (for { fn <- pfunctypes.keys if (rulenames.forall { rn => rn.startsWith(fn) }) } yield fn)).toSeq
 
-    func match {
-      case Seq()                          => false
-      case Seq(fn) if (checkFunction(fn)) => { currfs = (fn, functypes.getOrElse(fn, pfunctypes(fn))); newMetaVars(); true }
-      case _                              => false
-    }
+      func match {
+        case Seq()                          => false
+        case Seq(fn) if (checkFunction(fn)) => { currfs = (fn, functypes.getOrElse(fn, pfunctypes(fn))); newMetaVars(); true }
+        case _                              => false
+      }
+    } else false
   }
 
   private def generateInversionAxiom(tseq: Seq[TypingRule]): Axioms = {
