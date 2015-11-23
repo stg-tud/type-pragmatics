@@ -10,8 +10,8 @@ object SetupConsistencyCheck extends ModuleTransformation {
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     withSuper(super.transModuleDefs(mdef)) {
-      case Goals(gs, t) => Seq(Axioms(trace(gs)(transTypingRules(_))),
-        Goals(Seq(TypingRule("false-goal", Seq(), Seq(FunctionExpJudgment(FunctionExpFalse)))), None))
+      // throw the actual goal away for a consistency check - shall only check axioms!
+      case Goals(gs, t) => Seq(Goals(Seq(TypingRule("false-goal", Seq(), Seq(FunctionExpJudgment(FunctionExpFalse)))), None))
     }
 
 }
