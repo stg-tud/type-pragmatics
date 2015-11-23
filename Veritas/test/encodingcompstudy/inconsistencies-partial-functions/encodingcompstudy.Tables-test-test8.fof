@@ -1,20 +1,20 @@
 fof('EQ-ctype', axiom, ![VAName0, VAName1, VFType0, VFType1] : ((VAName0 = VAName1 & VFType0 = VFType1) <=> vctype(VAName0, VFType0) = vctype(VAName1, VFType1))).
 fof('EQ-aempty', axiom, $true).
 fof('EQ-acons', axiom, ![VAName0, VAName1, VAList0, VAList1] : ((VAName0 = VAName1 & VAList0 = VAList1) <=> vacons(VAName0, VAList0) = vacons(VAName1, VAList1))).
+fof('DIFF-acons-aempty', axiom, ![VAName0, VAList0] : vacons(VAName0, VAList0) != vaempty).
 fof('EQ-ttempty', axiom, $true).
 fof('EQ-ttcons', axiom, ![VCType0, VCType1, VTType0, VTType1] : ((VCType0 = VCType1 & VTType0 = VTType1) <=> vttcons(VCType0, VTType0) = vttcons(VCType1, VTType1))).
+fof('DIFF-ttcons-ttempty', axiom, ![VCType0, VTType0] : vttcons(VCType0, VTType0) != vttempty).
 fof('EQ-rtempty', axiom, $true).
 fof('EQ-rtcons', axiom, ![VFType0, VFType1, VRawType0, VRawType1] : ((VFType0 = VFType1 & VRawType0 = VRawType1) <=> vrtcons(VFType0, VRawType0) = vrtcons(VFType1, VRawType1))).
+fof('DIFF-rtcons-rtempty', axiom, ![VFType0, VRawType0] : vrtcons(VFType0, VRawType0) != vrtempty).
 fof('EQ-rempty', axiom, $true).
 fof('EQ-rcons', axiom, ![VFVal0, VFVal1, VRow0, VRow1] : ((VFVal0 = VFVal1 & VRow0 = VRow1) <=> vrcons(VFVal0, VRow0) = vrcons(VFVal1, VRow1))).
+fof('DIFF-rcons-rempty', axiom, ![VFVal0, VRow0] : vrcons(VFVal0, VRow0) != vrempty).
 fof('EQ-tempty', axiom, $true).
 fof('EQ-tcons', axiom, ![VRow0, VRow1, VRawTable0, VRawTable1] : ((VRow0 = VRow1 & VRawTable0 = VRawTable1) <=> vtcons(VRow0, VRawTable0) = vtcons(VRow1, VRawTable1))).
+fof('DIFF-tcons-tempty', axiom, ![VRow0, VRawTable0] : vtcons(VRow0, VRawTable0) != vtempty).
 fof('EQ-table', axiom, ![VAList0, VAList1, VRawTable0, VRawTable1] : ((VAList0 = VAList1 & VRawTable0 = VRawTable1) <=> vtable(VAList0, VRawTable0) = vtable(VAList1, VRawTable1))).
-fof('DIFF-aempty-acons', axiom, ![VAName0, VAList0] : vaempty != vacons(VAName0, VAList0)).
-fof('DIFF-ttempty-ttcons', axiom, ![VCType0, VTType0] : vttempty != vttcons(VCType0, VTType0)).
-fof('DIFF-rtempty-rtcons', axiom, ![VFType0, VRawType0] : vrtempty != vrtcons(VFType0, VRawType0)).
-fof('DIFF-rempty-rcons', axiom, ![VFVal0, VRow0] : vrempty != vrcons(VFVal0, VRow0)).
-fof('DIFF-tempty-tcons', axiom, ![VRow0, VRawTable0] : vtempty != vtcons(VRow0, VRawTable0)).
 fof('getRaw0', axiom, ![Val, Vrt] : vgetRaw(vtable(Val, Vrt)) = Vrt).
 fof('getRaw-INV', axiom, ![VTable0, VRESULT] : (vgetRaw(VTable0) = VRESULT => ?[Val, Vrt] : (VTable0 = vtable(Val, Vrt) & VRESULT = Vrt))).
 fof('getAL0', axiom, ![Val, Vrt] : vgetAL(vtable(Val, Vrt)) = Val).
@@ -39,5 +39,4 @@ fof('welltypedRow1', axiom, ![Vft, Vrt, Vv, Vr] : (vwelltypedRow(vrtcons(Vft, Vr
 fof('welltypedRow2', axiom, ![Vrt, Vr] : (((Vrt != vrtempty | Vr != vrempty) & (![Vft0, Vrt0] : Vrt != vrtcons(Vft0, Vrt0) | ![Vv0, Vr0] : Vr != vrcons(Vv0, Vr0))) => (~vwelltypedRow(Vrt, Vr)))).
 fof('welltypedRow-true-INV', axiom, ![VRawType0, VRow0] : (vwelltypedRow(VRawType0, VRow0) => ((VRawType0 = vrtempty & VRow0 = vrempty) | ?[Vft, Vrt, Vv, Vr] : (VRawType0 = vrtcons(Vft, Vrt) & VRow0 = vrcons(Vv, Vr) & (vfieldType(Vv) = Vft & vwelltypedRow(Vrt, Vr)))))).
 fof('welltypedRow-false-INV', axiom, ![VRawType0, VRow0] : ((~vwelltypedRow(VRawType0, VRow0)) => (?[Vft, Vrt, Vv, Vr] : (VRawType0 = vrtcons(Vft, Vrt) & VRow0 = vrcons(Vv, Vr) & (~(vfieldType(Vv) = Vft & vwelltypedRow(Vrt, Vr)))) | ?[Vrt, Vr] : ((Vrt != vrtempty | Vr != vrempty) & (![Vft0, Vrt0] : Vrt != vrtcons(Vft0, Vrt0) | ![Vv0, Vr0] : Vr != vrcons(Vv0, Vr0)) & VRawType0 = Vrt & VRow0 = Vr)))).
-fof('test8', axiom, ![Vz1, Vy2, Vyt, Va, Vxt, Vz2, Vb, Vx1, Vc, Vzt, Vx2, Val, Vy1, Vtt] : ((vfieldType(Vx1) = Vxt & vfieldType(Vx2) = Vxt & vfieldType(Vy1) = Vyt & vfieldType(Vy2) = Vyt & vfieldType(Vz1) = Vzt & vfieldType(Vz2) = Vzt & Val = vacons(Va, vacons(Vb, vacons(Vc, vaempty))) & Vtt = vttcons(vctype(Va, Vxt), vttcons(vctype(Vb, Vyt), vttcons(vctype(Vc, Vzt), vttempty)))) => vwelltypedtable(Vtt, vtable(Val, vtcons(vrcons(Vx1, vrcons(Vy2, vrcons(Vz2, vrempty))), vtcons(vrcons(Vx2, vrcons(Vy1, vrcons(Vz1, vrempty))), vtempty)))))).
 fof('false-goal', conjecture, ($true => $false)).
