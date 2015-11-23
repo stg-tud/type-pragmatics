@@ -6,7 +6,7 @@ import java.util.regex.Pattern
 import veritas.benchmarking._
 import veritas.benchmarking.util.GrowingArray
 
-case class VampireConfig(version: String, confname: String = "vampire",
+case class VampireConfig(version: String, confname: String = "vampire-proof",
                          mode: String = "casc") extends ProverConfig {
   def isValid = proverCommand != null
 
