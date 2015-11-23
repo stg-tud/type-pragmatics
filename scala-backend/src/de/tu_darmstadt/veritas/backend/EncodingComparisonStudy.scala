@@ -11,40 +11,38 @@ import de.tu_darmstadt.veritas.backend.fof.FofFile
 
 // to change the study parameters, manipulate vals typeEncodings or studyConfiguration in EncodingComparisonStudy below
 
-trait StudyValue {
+trait ConcreteEncoding {
   val valname: String
   def apply(m: Seq[Module]): Seq[Module] = m
 }
-trait StudyVariable {
-  val studyvalues: List[StudyValue]
+trait EncodingAlternative {
+  val studyvalues: List[ConcreteEncoding]
 }
 
 /**
  * determine the final encoding of module
  */
-trait TypingValue extends StudyValue {
-  val valname: String
-  override def apply(m: Seq[Module]): Seq[Module] = m
+trait ConcreteTyping extends ConcreteEncoding {
   def finalEncoding(): Module => PrettyPrintableFile
 }
 
 //just fof, completely untyped
-case object FofBare extends TypingValue {
+case object FofBare extends ConcreteTyping {
   override val valname = "FofBare"
   override def finalEncoding(): Module => PrettyPrintableFile = ToFof.toFofFile
 }
 //fof with type guards (not yet implemented!)
-case object FofGuard extends TypingValue {
+case object FofGuard extends ConcreteTyping {
   override val valname = "FofGuard"
   override def finalEncoding(): Module => PrettyPrintableFile = ???
 }
 //tff encoding
-case object Tff extends TypingValue {
+case object Tff extends ConcreteTyping {
   override val valname = "Tff"
   override def finalEncoding(): Module => PrettyPrintableFile = ToTff.toTffFile
 }
 
-case class Typing(vals: List[TypingValue]) extends StudyVariable {
+case class Typing(vals: List[ConcreteTyping]) extends EncodingAlternative {
   override val studyvalues = vals
 }
 
@@ -52,7 +50,7 @@ case class Typing(vals: List[TypingValue]) extends StudyVariable {
  * determine whether subformulas in axioms/goals are inlined or named with an additional variable
  * (which adds an equation to the set of premises of axioms/goals)
  */
-trait SubformNamingValue extends StudyValue
+trait SubformNamingValue extends ConcreteEncoding
 //no intermediate variables, inline all named subformulas
 //but keep inlined premises
 case object InlineEverything extends SubformNamingValue {
@@ -80,14 +78,14 @@ case object NoNamingChange extends SubformNamingValue {
   override val valname = "NoNamingChange"
 }
 
-case class SubformNaming(vals: List[SubformNamingValue]) extends StudyVariable {
+case class SubformNaming(vals: List[SubformNamingValue]) extends EncodingAlternative {
   override val studyvalues = vals
 }
 
 /**
  *  determines whether logical optimizations take place prior to fof/tff encoding
  */
-trait LogicalOptValue extends StudyValue
+trait LogicalOptValue extends ConcreteEncoding
 //optimization takes place
 case object Optimized extends LogicalOptValue {
   override val valname = "Optimized"
@@ -98,32 +96,53 @@ case object NotOptimized extends LogicalOptValue {
   override val valname = "NotOptimized"
 }
 
-case class LogicalOpt(vals: List[LogicalOptValue]) extends StudyVariable {
+case class LogicalOpt(vals: List[LogicalOptValue]) extends EncodingAlternative {
   override val studyvalues = vals
 }
 
 /**
- * determines whether outcome file is for a consistency check (with false goal) or for a proof
+ * determine which different problems are encoded ("Fragestellungen")
  */
-trait ConsistencyValue extends StudyValue
-//file is set up for consistency check (with false goal)
-case object Consistency extends ConsistencyValue {
+trait ConcreteProblem extends ConcreteEncoding
+//all files are set up for consistency check (with false goal)
+case object ConsistencyAll extends ConcreteProblem {
   override val valname = "Consistency"
-  override def apply(m: Seq[Module]): Seq[Module] = SetupConsistencyCheck(m)
-}
-//file is not changed (goal left as is)
-case object Proof extends ConsistencyValue {
-  override val valname = "Proof"
+  override def apply(m: Seq[Module]): Seq[Module] = {
+    SplitModulesByGoal.setGoalFilter("")
+    SetupConsistencyCheck(
+      MoveDeclsToFront(
+        SplitModulesByGoal(m)))
+  }
 }
 
-case class ConsistencyCheck(vals: List[ConsistencyValue]) extends StudyVariable {
+//generate files for all goals whose name starts with "proof"
+case object Proof extends ConcreteProblem {
+  override val valname = "Proof"
+  override def apply(m: Seq[Module]): Seq[Module] = {
+    SplitModulesByGoal.setGoalFilter("proof")
+     MoveDeclsToFront(
+        SplitModulesByGoal(m))
+  }
+}
+
+//generate files for all goals whose name starts with "test"
+case object Test extends ConcreteProblem {
+  override val valname = "Test"
+  override def apply(m: Seq[Module]): Seq[Module] = {
+    SplitModulesByGoal.setGoalFilter("test")
+     MoveDeclsToFront(
+        SplitModulesByGoal(m))
+  }
+}
+
+case class Problems(vals: List[ConcreteProblem]) extends EncodingAlternative {
   override val studyvalues = vals
 }
 
 /**
  * determines whether and which inversion axioms are generated for functions/typing rules
  */
-trait InversionValue extends StudyValue
+trait InversionValue extends ConcreteEncoding
 //inversion axioms generated for all total functions
 case object InversionTotal extends InversionValue {
   override val valname = "InversionTotal"
@@ -139,15 +158,15 @@ case object InversionAll extends InversionValue {
   override def apply(m: Seq[Module]): Seq[Module] = AllFunctionInversionAxioms(m)
 }
 
-case class Inversion(vals: List[InversionValue]) extends StudyVariable {
+case class Inversion(vals: List[InversionValue]) extends EncodingAlternative {
   override val studyvalues = vals
 }
 
 // StudyVariables below are currently not variables at all, but a standard part of the transformation pipeline 
 // (should not be changed!)
 
-case object BasicEncodings extends StudyVariable {
-  case object Basics extends StudyValue {
+case object BasicEncodings extends EncodingAlternative {
+  case object Basics extends ConcreteEncoding {
     override val valname = "" //no name, because should not appear in filename
     override def apply(m: Seq[Module]): Seq[Module] =
       TranslateTypingJudgmentSimpleToFunction(
@@ -163,16 +182,6 @@ case object BasicEncodings extends StudyVariable {
   override val studyvalues = List(Basics)
 }
 
-case object GoalSplitting extends StudyVariable {
-  case object Splitting extends StudyValue {
-    override val valname = "" //no name, because should not appear in filename
-    override def apply(m: Seq[Module]): Seq[Module] =
-      MoveDeclsToFront(
-        SplitModulesByGoal(m))
-  }
-
-  override val studyvalues = List(Splitting)
-}
 
 class EncodingComparisonStudy {
 
@@ -185,10 +194,10 @@ class EncodingComparisonStudy {
    */
 
   val typeEncodings = Typing(List(FofBare, Tff))
+  
+  val consideredProblems = Problems(List(ConsistencyAll, Proof, Test))
 
-  val studyConfiguration: List[StudyVariable] = List(
-    ConsistencyCheck(List(Consistency, Proof)),
-    GoalSplitting,
+  val encodingAlternatives: List[EncodingAlternative] = List(
     LogicalOpt(List(Optimized, NotOptimized)),
     SubformNaming(List(NoNamingChange, NameEverything,
       InlineEverythingAndRemove, NameParamsResults)),
@@ -197,7 +206,7 @@ class EncodingComparisonStudy {
 
   def buildStrategies(): TreeMap[String, Seq[Module] => Seq[PrettyPrintableFile]] = {
 
-    def buildModuleTransformationsRec(restlist: List[StudyVariable]): List[(String, Seq[Module] => Seq[Module])] =
+    def buildModuleTransformationsRec(restlist: List[EncodingAlternative]): List[(String, Seq[Module] => Seq[Module])] =
       restlist match {
         case Nil            => List() //should not happen
         case headvar :: Nil => for (currStrategy <- headvar.studyvalues) yield (currStrategy.valname -> ((mseq: Seq[Module]) => currStrategy(mseq)))
@@ -208,7 +217,7 @@ class EncodingComparisonStudy {
           ((mseq: Seq[Module]) => currStrategy(transformation(mseq))))
       }
 
-    val transformationStrategies = buildModuleTransformationsRec(studyConfiguration)
+    val transformationStrategies = buildModuleTransformationsRec(consideredProblems +: encodingAlternatives)
 
     val stratlist: List[(String, Seq[Module] => Seq[PrettyPrintableFile])] = for {
       enc <- typeEncodings.studyvalues
