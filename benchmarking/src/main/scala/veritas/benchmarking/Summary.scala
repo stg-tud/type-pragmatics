@@ -87,13 +87,20 @@ case class Summary(config: Config) {
     for ((proverConfig, files) <- fileSummaries) {
 
       val header = Row(0) { Set(
-        StringCell(0, "Prover"),
-        StringCell(1, "Timeout"),
-        StringCell(2, "File"),
-        StringCell(3, "Time-ms"),
-        StringCell(4, "Status"),
-        StringCell(5, "Details")
+        StringCell(0, "Prover Config"),
+        StringCell(1, "Prover Timeout"),
+        StringCell(2, "Veritas Config"),
+        StringCell(3, "File"),
+        StringCell(4, "Time-ms"),
+        StringCell(5, "Status"),
+        StringCell(6, "Details")
       )}
+
+      def extractVeritasConfig(file: File): String = {
+        //does this work on Windows? it should
+        val pathParts = file.getAbsolutePath.split(File.separator)
+        pathParts(pathParts.length - 2) //get second last element
+      }
 
       var rows = Set(header)
       var rowNum = 1
@@ -102,10 +109,11 @@ case class Summary(config: Config) {
         val cells = Set[Cell](
           StringCell(0, res.proverConfig.name),
           NumericCell(1, config.timeout),
-          StringCell(2, file.getName),
-          NumericCell(3, res.timeSeconds * 1000.0),
-          StringCell(4, res.proverResult.status.toString),
-          StringCell(5, detailsString.replace("\n","\t").substring(0, Math.min(detailsString.length, 32767)))
+          StringCell(2, extractVeritasConfig(file)),
+          StringCell(3, file.getName),
+          NumericCell(4, res.timeSeconds * 1000.0),
+          StringCell(5, res.proverResult.status.toString),
+          StringCell(6, detailsString.replace("\n","\t").substring(0, Math.min(detailsString.length, 32767)))
         )
         rows += Row(rowNum) { cells }
         rowNum += 1
