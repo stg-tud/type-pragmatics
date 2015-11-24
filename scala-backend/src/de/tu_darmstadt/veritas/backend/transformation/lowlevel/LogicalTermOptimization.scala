@@ -24,6 +24,7 @@ object LogicalTermOptimization extends ModuleTransformation {
       case ForallJudgment(vl, Seq(f @ FunctionExpJudgment(FunctionExpFalse))) => f
       case NotJudgment(f @ FunctionExpJudgment(FunctionExpTrue))              => FunctionExpJudgment(FunctionExpFalse)
       case NotJudgment(f @ FunctionExpJudgment(FunctionExpFalse))             => FunctionExpJudgment(FunctionExpTrue)
+      case NotJudgment(NotJudgment(j))                                        => j
       case OrJudgment(orc) =>
         if (orc contains FunctionExpJudgment(FunctionExpFalse))
           FunctionExpJudgment(FunctionExpTrue)
@@ -38,6 +39,7 @@ object LogicalTermOptimization extends ModuleTransformation {
       case ForallJudgment(vl, Seq(f @ FunctionExpJudgment(FunctionExpFalse))) => Seq(f)
       case NotJudgment(f @ FunctionExpJudgment(FunctionExpTrue))              => Seq(FunctionExpJudgment(FunctionExpFalse))
       case NotJudgment(f @ FunctionExpJudgment(FunctionExpFalse))             => Seq(FunctionExpJudgment(FunctionExpTrue))
+      case NotJudgment(NotJudgment(j))                                        => Seq(j)
       case OrJudgment(orc) =>
         if (orc contains FunctionExpJudgment(FunctionExpFalse))
           Seq(FunctionExpJudgment(FunctionExpTrue))
