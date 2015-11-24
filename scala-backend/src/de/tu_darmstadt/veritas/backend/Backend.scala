@@ -72,14 +72,8 @@ object Backend {
     val problem = config(Problem).toString().toLowerCase
     val typing = config(FinalEncoding).toString().toLowerCase
     val variable = config(VariableEncoding).toString().toLowerCase
-    val simpl = config(LogicalSimplification) match { 
-      case LogicalSimplification.On =>  "simpl__"
-      case LogicalSimplification.Off => "nosimpl" 
-    }
-    val inv = config(InversionLemma) match { 
-      case InversionLemma.On =>  "inv__"
-      case InversionLemma.Off => "noinv" 
-    }
+    val simpl = config(LogicalSimplification).toString().toLowerCase
+    val inv = config(InversionLemma).toString().toLowerCase
     
     val outputFolder = s"$problem/$typing/$variable-$simpl-$inv"
     
