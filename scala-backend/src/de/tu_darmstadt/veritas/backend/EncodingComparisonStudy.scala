@@ -25,7 +25,7 @@ case object FofBare extends Typing {
 }
 //fof with type guards (not yet implemented!)
 case object FofGuard extends Typing {
-  override def finalEncoding(m: Module)(implicit config: Configuration) = ???
+  override def finalEncoding(m: Module)(implicit config: Configuration) = ToFof.toFofFile(m)
 }
 //tff encoding
 case object Tff extends Typing {
@@ -38,15 +38,22 @@ case class AlternativeTyping(select: Configuration => Typing) extends Typing {
 
 }
 
-// StudyVariables below are currently not variables at all, but a standard part of the transformation pipeline 
-// (should not be changed!)
+
+object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
+  case FinalEncoding.BareFOF =>
+    GenerateCtorAxioms
+  case FinalEncoding.GuardedFOF =>
+    SeqTrans(GenerateCtorAxioms, GenerateTypeGuards)
+  case FinalEncoding.TFF =>
+    Identity // TODO is this correct, or do we need GenerateCtorAxioms?
+})
 
 object BasicTrans extends SeqTrans(
   ResolveImports,
   ReplaceImportsWithModuleDefs,
   VarToApp0,
   DesugarLemmas,
-  Optional(GenerateCtorAxioms, ifConfig(FinalEncoding, FinalEncoding.BareFOF)),
+  ConstructorTrans,
   FunctionEqToAxiomsSimple,
   TranslateTypingJudgmentToFunction,
   TranslateTypingJudgmentSimpleToFunction)
