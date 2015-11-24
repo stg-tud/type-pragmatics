@@ -48,6 +48,7 @@ object Backend {
   private def writeFile(file: PrettyPrintableFile, outputfolder: String): String = {
     val pathname = s"$inputDirectory/$outputfolder/${file.filename}"
     val filehandler = new File(pathname)
+    Context.log(s"Writing file to ${filehandler.getAbsolutePath}...")
     if (!filehandler.getParentFile.exists())
       filehandler.getParentFile.mkdirs()
     filehandler.createNewFile()
@@ -121,13 +122,13 @@ object Backend {
    */
   def runAsStrategy(context: org.strategoxt.lang.Context, inputFromEditor: IStrategoTerm): IStrategoList = {
     // check and destructure input
-    val (inputDir, ast) = StrategoTerm(inputFromEditor) match {
-      case StrategoTuple(StrategoString(inputDir), ast) => (inputDir, ast)
+    val (projectPath, inputDir, ast) = StrategoTerm(inputFromEditor) match {
+      case StrategoTuple(StrategoString(projectPath), StrategoString(inputDir), ast) => (projectPath, inputDir, ast)
       case _ => throw new IllegalArgumentException("Illegal input to backend-strategy: " +
         "Argument must be a tuple: (input file directory, AST of file as Stratego term)")
     }
 
-    inputDirectory = inputDir
+    inputDirectory = s"$projectPath/$inputDir"
 
     Context.initStrategy(context)
 

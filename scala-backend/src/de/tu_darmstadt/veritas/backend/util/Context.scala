@@ -106,7 +106,7 @@ private class StandaloneContext(indexAndTaskenginePath: String) extends Context 
 private class StrategyContext(c: org.strategoxt.lang.Context) extends Context {
   override def debug(x: Any) = c.getIOAgent.printError(x.toString)
   
-  override def log(x: Any) = c.getIOAgent.getWriter(org.spoofax.interpreter.library.IOAgent.CONST_STDOUT)
+  override def log(x: Any) = c.getIOAgent.printError(x.toString)
   
   // just use the backend strategy's context to invoke other strategies
   override def callStrategy(strategyName: String, termArgument: StrategoTerm): Option[StrategoTerm]
