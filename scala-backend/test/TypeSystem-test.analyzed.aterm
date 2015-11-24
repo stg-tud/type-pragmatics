@@ -1491,7 +1491,7 @@ Module(
                 TypingJudgment(
                   FunctionMeta(Meta("ttc"))
                 , FunctionExpApp(
-                    "SelectAllFromWhere"{Use(Result(8968))}
+                    "SelectSomeFromWhere"{Use(Result(11226))}
                   , [ FunctionExpApp("acons"{Use(Result(8963))}, [FunctionExpVar("A3"{Use(Result(8936))}), FunctionExpVar("aempty"{Use(Result(8961))})])
                     , FunctionExpApp("Ref"{Use(Result(8966))}, [FunctionExpVar("TN"{Use(Result(8952))})])
                     , FunctionMeta(Meta("p"))
