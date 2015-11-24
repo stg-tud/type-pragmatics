@@ -1,26 +1,11 @@
 package de.tu_darmstadt.veritas.backend.transformation.defs
 
 import de.tu_darmstadt.veritas.backend.util.FreshNames
-import de.tu_darmstadt.veritas.backend.veritas.Axioms
-import de.tu_darmstadt.veritas.backend.veritas.Constructors
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpAnd
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpApp
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpBiImpl
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpEq
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment.wrap
-import de.tu_darmstadt.veritas.backend.veritas.FunctionMeta
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpNeq
-import de.tu_darmstadt.veritas.backend.veritas.MetaVar
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.TypingRule
+import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment._
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.veritas.Import
-import de.tu_darmstadt.veritas.backend.veritas.ConstructorDecl
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDefHolder
-import de.tu_darmstadt.veritas.backend.veritas.Local
-import de.tu_darmstadt.veritas.backend.veritas.Strategy
+import de.tu_darmstadt.veritas.backend.veritas.function._
 
 /**
  * For each Constructors() node, it generates a following Axioms() node, containing the EQ and DIFF

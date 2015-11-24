@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 
 /**
@@ -8,7 +9,7 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
  */
 object VarToApp0 extends ModuleTransformation with CollectConstructorNames {
   override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
-    withSuper(super.transFunctionExps(f)) {
+    withSuper[FunctionExp](super.transFunctionExps(f)) {
       case v @ FunctionExpVar(n) => if (consNames contains n) Seq(FunctionExpApp(n, Seq())) else Seq(v)
     }
 
@@ -18,7 +19,7 @@ object VarToApp0 extends ModuleTransformation with CollectConstructorNames {
     }
 
   override def transFunctionPatterns(p: FunctionPattern): Seq[FunctionPattern] =
-    withSuper(super.transFunctionPatterns(p)) {
+    withSuper[FunctionPattern](super.transFunctionPatterns(p)) {
       case p @ FunctionPatVar(n) => if (consNames contains n) Seq(FunctionPatApp(n, Seq())) else Seq(p)
     }
 }

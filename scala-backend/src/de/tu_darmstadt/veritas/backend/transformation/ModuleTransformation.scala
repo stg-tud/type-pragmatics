@@ -1,6 +1,9 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.Configuration
 
 /**
  * abstract transformation of a module
@@ -11,6 +14,8 @@ import de.tu_darmstadt.veritas.backend.veritas._
  *
  */
 trait ModuleTransformation {
+  var config: Configuration = _
+  
   var path: Seq[VeritasConstruct] = Seq()
 
   def testPath(p: VeritasConstruct => Boolean) = path.exists(p)
@@ -79,7 +84,12 @@ trait ModuleTransformation {
   /**
    * convenience method for applying the transformation to a sequence of modules in a row
    */
-  def apply(m: Seq[Module]): Seq[Module] = m flatMap trans
+  def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
+    this.config = config
+    val result = m flatMap trans
+    this.config = null
+    result
+  }
 
   /**
    * top-level transformation for a module
@@ -239,3 +249,5 @@ trait ModuleTransformation {
 //   */
 //  protected def checkPrecondition(input: Module): Unit = {}
 //}
+
+object Identity extends ModuleTransformation

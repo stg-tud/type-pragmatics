@@ -22,17 +22,28 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpApp
 import de.tu_darmstadt.veritas.backend.transformation.ToFof
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 import de.tu_darmstadt.veritas.backend.transformation.defs._
 import java.io.FileOutputStream
+import scala.util.control.NonFatal
+import de.tu_darmstadt.veritas.backend.Configuration._
 
 object Backend {
 
+  val fullVariability = FullVariability
+  val noGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.BareFOF, FinalEncoding.TFF)))
+  val onlyGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.GuardedFOF)))
+  
+  /**
+   * This variability model is used by the code below
+   */
+  val variabilityModel = noGuardedFOF
+  
+  
+  
   private var inputDirectory: String = "" //directory of input file
-  private var study = new EncodingComparisonStudy
 
   private def writeFile(file: PrettyPrintableFile, outputfolder: String): String = {
     val pathname = s"$inputDirectory/$outputfolder/${file.filename}"
@@ -54,41 +65,30 @@ object Backend {
    * runs a single encoding alternative for a given Stratego file
    */
   @throws[BackendError[_]]("and the appropriate subclasses on internal error at any stage")
-  private def runSingleEncoding(input: StrategoTerm): Seq[(String, PrettyPrintableFile)] = {
-    val mod = Module.from(input)
+  private def processSingleResult(config: Configuration, outputFiles: Seq[PrettyPrintableFile]): Seq[(String, PrettyPrintableFile)] = {
+    Context.log(s"Finished generation for configuration $config\n")
 
-    Context.log(s"Starting generation for encoding ${study.encodingStrategies.head._1}")
-
-    val result = Try {
-      study.currEncoding(mod)
+    val problem = config(Problem).toString().toLowerCase
+    val typing = config(FinalEncoding).toString().toLowerCase
+    val variable = config(VariableEncoding).toString().toLowerCase
+    val simpl = config(LogicalSimplification) match { 
+      case LogicalSimplification.On =>  "simpl__"
+      case LogicalSimplification.Off => "nosimpl" 
     }
-
-    result match {
-      case Failure(ex) => {
-        Context.log(s"FAILED: Generation for encoding ${study.encodingStrategies.head._1}: ")
-        Context.debug(ex)
-        // skip files that don't work 
-        Seq()
-      }
-
-      case Success((outputFolder, outputFiles)) => {
-
-        //write the files in the corresponding directory
-        //is it necessary to use the Stratego context when backend is called as a strategy
-        //when writing the files...?
-        outputFiles map { file =>
-          val pathname = writeFile(file, outputFolder)
-          (pathname, file)
-        }
-
-      }
-
+    val inv = config(InversionLemma) match { 
+      case InversionLemma.On =>  "inv__"
+      case InversionLemma.Off => "noinv" 
     }
-
-    // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
-    // the original file!
-    //Seq(Module(mod.name + "Out", mod.imports, mod.body))
-
+    
+    val outputFolder = s"$problem/$typing/$variable-$simpl-$inv"
+    
+    //write the files in the corresponding directory
+    //is it necessary to use the Stratego context when backend is called as a strategy
+    //when writing the files...?
+    outputFiles map { file =>
+      val pathname = writeFile(file, outputFolder)
+      (pathname, file)
+    }
   }
 
   /**
@@ -96,14 +96,24 @@ object Backend {
    * returns pairs of directory name of a file and the actual prettyPrintableFile
    */
   private def runAllEncodings(input: StrategoTerm): Seq[(String, PrettyPrintableFile)] = {
-    study = new EncodingComparisonStudy
+    val module = Module.from(input)
+    val comparison = new EncodingComparison(variabilityModel, module)
 
-    (for (i <- (0 until study.encodingnum)) yield {
-      val result = runSingleEncoding(input)
-      study.moveToNextEncoding()
-      result
-    }).flatten
-
+    var result: Seq[(String, PrettyPrintableFile)] = Seq()
+    val it = comparison.iterator
+    while (it.hasNext) {
+      val (config, files) = try {
+        it.next()
+      } catch {
+        case NonFatal(e) =>
+          Context.log(s"FAILED: Generation for configuration ${comparison.lastConfig}: ")
+          Context.debug(e)
+          (comparison.lastConfig, Seq())
+      }
+      result = result ++ processSingleResult(config, files)
+    }
+    
+    result
   }
 
   /**

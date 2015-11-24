@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.backend.transformation
 import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff._
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 /**

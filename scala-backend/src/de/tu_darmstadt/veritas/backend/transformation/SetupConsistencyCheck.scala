@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 
 /**
  * assumes that module is already in a state in which it could be translated to fof/tff

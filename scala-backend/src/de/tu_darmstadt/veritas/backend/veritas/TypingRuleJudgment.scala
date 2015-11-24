@@ -5,6 +5,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
+import de.tu_darmstadt.veritas.backend.veritas.function._
 
 sealed trait TypingRuleJudgment extends VeritasConstruct with PrettyPrintable
 

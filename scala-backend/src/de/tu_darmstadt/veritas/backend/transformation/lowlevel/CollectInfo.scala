@@ -1,13 +1,15 @@
 package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 import scala.collection.mutable.Map
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
+import de.tu_darmstadt.veritas.backend.Configuration
 
 trait CollectConstructorNames extends ModuleTransformation {
   var consNames: Set[String] = Set()
   
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure mutable state is initialized upon application
     consNames = Set()
     super.apply(m)
@@ -45,7 +47,7 @@ trait CollectConstructorNames extends ModuleTransformation {
 trait CollectSortNames extends ModuleTransformation {
   var sortNames: Set[String] = Set()
   
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure mutable state is initialized upon application
     sortNames = Set()
     super.apply(m)
@@ -85,7 +87,7 @@ trait CollectTypeInfo extends ModuleTransformation {
   var functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   var pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure mutable state is initialized upon application
     constypes = Map()
     functypes = Map()
