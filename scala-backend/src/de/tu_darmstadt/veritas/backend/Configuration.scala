@@ -1,10 +1,13 @@
 package de.tu_darmstadt.veritas.backend
 
 object Configuration {
-  
-  trait ConfigOption extends Enumeration 
+
   type ConfigParameter = ConfigOption
   type ConfigValue = Any
+
+  trait ConfigOption extends Enumeration with Iterable[ConfigValue] {
+    override def iterator = values.iterator
+  }
   
   object LogicalSimplification extends ConfigOption {
     val Off, On = Value
@@ -40,4 +43,20 @@ trait VariabilityModel extends Iterable[Configuration] {
   def contains(config: Configuration): Boolean
 }
 
+object FullVariability extends VariabilityModel {
+  override def contains(config: Configuration): Boolean = true
+  override def iterator = for(
+      simpl <- LogicalSimplification.iterator;
+      vars <- VariableEncoding.iterator;
+      inv <- InversionLemma.iterator;
+      fin <- FinalEncoding.iterator;
+      prob <- Problem.iterator
+    ) yield Configuration(Map(
+        LogicalSimplification -> simpl,
+        VariableEncoding -> vars,
+        InversionLemma -> inv,
+        FinalEncoding -> fin,
+        Problem -> prob
+      ))
+}
 

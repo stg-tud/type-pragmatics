@@ -88,15 +88,17 @@ object VariableTrans extends Alternative(selectConfig(VariableEncoding){
 })
 
 
-object EncodingTrans extends SeqTrans(
-    // determines whether logical optimizations take place prior to fof/tff encoding
-    Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
+object MainTrans extends SeqTrans(
+		// desugar Veritas constructs
+		BasicTrans,
+		// determines whether and which inversion axioms are generated for functions/typing rules
+		Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
     // variable inlining/extraction
     VariableTrans,    
-    // determines whether and which inversion axioms are generated for functions/typing rules
-    Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
-    // desugar Veritas constructs
-    BasicTrans
+    // determines whether logical optimizations take place prior to fof/tff encoding
+    Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
+    // select problem
+    ProblemTrans
 )
 
 object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding){
@@ -105,91 +107,46 @@ object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding){
   case FinalEncoding.TFF => Tff
 })
 
-class EncodingComparisonStudy {
-
-  /**
-   * general setup for encoding/selection variants
-   * - add or remove case objects from above from parameter list of study variables
-   * (variables without arguments should not be touched)
-   * - changing the order of the variables influences the order of the module transformations! (cannot be shuffled arbitrarily!!)
-   * (top strategies in list are applied last to input modules; last step is always one from typeEncodings)
-   */
-
-  def buildStrategies(): TreeMap[String, Seq[Module] => Seq[PrettyPrintableFile]] = {
-
-    def buildModuleTransformationsRec(restlist: List[EncodingAlternative]): List[(String, Seq[Module] => Seq[Module])] =
-      restlist match {
-        case Nil            => List() //should not happen
-        case headvar :: Nil => for (currStrategy <- headvar.studyvalues) yield (currStrategy.valname -> ((mseq: Seq[Module]) => currStrategy(mseq)))
-        case headvar :: restvars => for {
-          currStrategy <- headvar.studyvalues
-          (name, transformation) <- buildModuleTransformationsRec(restvars)
-        } yield (name + "-" + currStrategy.valname ->
-          ((mseq: Seq[Module]) => currStrategy(transformation(mseq))))
-      }
-
-    val transformationStrategies = buildModuleTransformationsRec(consideredProblems +: encodingAlternatives)
-
-    val stratlist: List[(String, Seq[Module] => Seq[PrettyPrintableFile])] = for {
-      enc <- typeEncodings.studyvalues
-      (name, transformation) <- transformationStrategies
-    } yield (name + "-" + enc.valname ->
-      ((mseq: Seq[Module]) => for (mod <- transformation(mseq)) yield enc.finalEncoding()(mod)))
-
-    TreeMap(stratlist: _*)
+case class EncodingComparison(vm: VariabilityModel, module: Module) extends Iterable[(Configuration, Seq[PrettyPrintableFile])] {
+  def iterator = vm.iterator.map { config =>
+    (config, MainTrans(Seq(module))(config))
   }
-
-  var encodingStrategies: Map[String, Seq[Module] => Seq[PrettyPrintableFile]] = TreeMap(
-    ("inconsistencies-partial-functions" ->
-      ((sm: Seq[Module]) => {
-        val transformedModules =
-          SetupConsistencyCheck(
-            MoveDeclsToFront(
-              SplitModulesByGoal(
-                LogicalTermOptimization(
-                  AllFunctionInversionAxioms(
-                    TranslateTypingJudgmentSimpleToFunction(
-                      TranslateTypingJudgmentToFunction(
-                        FunctionEqToAxiomsSimple(
-                          GenerateCtorAxioms(
-                            DesugarLemmas(
-                              VarToApp0(
-                                ReplaceImportsWithModuleDefs(ResolveImports(sm)))))))))))))
-        transformedModules map ToFof.toFofFile
-      })),
-    ("inconsistencies-wrong-constant-encoding" ->
-      ((sm: Seq[Module]) => {
-        val transformedModules =
-          SetupConsistencyCheck(
-            MoveDeclsToFront(
-              SplitModulesByGoal(
-                LogicalTermOptimization(
-                  AllFunctionInversionAxioms(
-                    TranslateTypingJudgmentSimpleToFunction(
-                      TranslateTypingJudgmentToFunction(
-                        FunctionEqToAxiomsSimple(
-                          GenerateCtorAxioms(
-                            DesugarLemmas(
-                              VarToApp0(
-                                ReplaceImportsWithModuleDefs(ResolveImports(sm)))))))))))))
-        transformedModules map ToFof.toFofFile
-      }))) ++ buildStrategies()
-
-  val encodingnum = encodingStrategies.size
-
-  def currEncoding(module: Module): (String, Seq[PrettyPrintableFile]) = {
-    if (encodingStrategies.isEmpty)
-      ("", Seq())
-    else {
-      val headstrat = encodingStrategies.head
-      val stratname = headstrat._1
-      val strat = headstrat._2
-      (stratname, strat(Seq(module)))
-    }
-  }
-
-  def moveToNextEncoding(): Unit =
-    if (!encodingStrategies.isEmpty)
-      encodingStrategies = encodingStrategies.tail
-
 }
+
+
+
+//  var encodingStrategies: Map[String, Seq[Module] => Seq[PrettyPrintableFile]] = TreeMap(
+//    ("inconsistencies-partial-functions" ->
+//      ((sm: Seq[Module]) => {
+//        val transformedModules =
+//          SetupConsistencyCheck(
+//            MoveDeclsToFront(
+//              SplitModulesByGoal(
+//                LogicalTermOptimization(
+//                  AllFunctionInversionAxioms(
+//                    TranslateTypingJudgmentSimpleToFunction(
+//                      TranslateTypingJudgmentToFunction(
+//                        FunctionEqToAxiomsSimple(
+//                          GenerateCtorAxioms(
+//                            DesugarLemmas(
+//                              VarToApp0(
+//                                ReplaceImportsWithModuleDefs(ResolveImports(sm)))))))))))))
+//        transformedModules map ToFof.toFofFile
+//      })),
+//    ("inconsistencies-wrong-constant-encoding" ->
+//      ((sm: Seq[Module]) => {
+//        val transformedModules =
+//          SetupConsistencyCheck(
+//            MoveDeclsToFront(
+//              SplitModulesByGoal(
+//                LogicalTermOptimization(
+//                  AllFunctionInversionAxioms(
+//                    TranslateTypingJudgmentSimpleToFunction(
+//                      TranslateTypingJudgmentToFunction(
+//                        FunctionEqToAxiomsSimple(
+//                          GenerateCtorAxioms(
+//                            DesugarLemmas(
+//                              VarToApp0(
+//                                ReplaceImportsWithModuleDefs(ResolveImports(sm)))))))))))))
+//        transformedModules map ToFof.toFofFile
+//      }))) ++ buildStrategies()
