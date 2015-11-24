@@ -14,6 +14,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
  */
 trait Context {
   def debug(x: Any): Unit
+  def log(x: Any): Unit
   def callStrategy(strategyName: String, termArgument: StrategoTerm): Option[StrategoTerm]
 }
 
@@ -37,6 +38,7 @@ object Context extends Context {
 
   // forward the methods to the concrete Context instance
   override def debug(x: Any) = ctx.debug(x)
+  override def log(x: Any) = ctx.log(x)
   override def callStrategy(strategyName: String, termArgument: StrategoTerm) = ctx.callStrategy(strategyName, termArgument)
 }
 
@@ -46,6 +48,8 @@ object Context extends Context {
 
 private class StandaloneContext(indexAndTaskenginePath: String) extends Context {
   override def debug(x: Any) = println(x)
+  
+  override def log(x: Any) = println(x)
   
   // use the HybridInterpreter (for the initialization, see below)
   override def callStrategy(strategyName: String, termArgument: StrategoTerm): Option[StrategoTerm] = {
@@ -101,7 +105,9 @@ private class StandaloneContext(indexAndTaskenginePath: String) extends Context 
 
 private class StrategyContext(c: org.strategoxt.lang.Context) extends Context {
   override def debug(x: Any) = c.getIOAgent.printError(x.toString)
-
+  
+  override def log(x: Any) = c.getIOAgent.getWriter(org.spoofax.interpreter.library.IOAgent.CONST_STDOUT)
+  
   // just use the backend strategy's context to invoke other strategies
   override def callStrategy(strategyName: String, termArgument: StrategoTerm): Option[StrategoTerm]
     = Some(StrategoTerm(c.invokeStrategy(strategyName, termArgument.toIStrategoTerm)))
