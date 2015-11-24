@@ -32,6 +32,17 @@ import de.tu_darmstadt.veritas.backend.Configuration._
 
 object Backend {
 
+  val fullVariability = FullVariability
+  val noGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.BareFOF, FinalEncoding.TFF)))
+  val onlyGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.GuardedFOF)))
+  
+  /**
+   * This variability model is used by the code below
+   */
+  val variabilityModel = noGuardedFOF
+  
+  
+  
   private var inputDirectory: String = "" //directory of input file
 
   private def writeFile(file: PrettyPrintableFile, outputfolder: String): String = {
@@ -86,7 +97,7 @@ object Backend {
    */
   private def runAllEncodings(input: StrategoTerm): Seq[(String, PrettyPrintableFile)] = {
     val module = Module.from(input)
-    val comparison = new EncodingComparison(FullVariability, module)
+    val comparison = new EncodingComparison(variabilityModel, module)
 
     var result: Seq[(String, PrettyPrintableFile)] = Seq()
     val it = comparison.iterator

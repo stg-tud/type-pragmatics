@@ -46,18 +46,33 @@ case class Configuration(m: Map[ConfigParameter, ConfigValue]) extends Variabili
   override def toString = s"Configuration($m)"
 }
 
-trait VariabilityModel extends Iterable[Configuration] {
-  def contains(config: Configuration): Boolean
-}
+trait VariabilityModel extends Iterable[Configuration]
 
 object FullVariability extends VariabilityModel {
-  override def contains(config: Configuration): Boolean = true
   override def iterator = for(
       simpl <- LogicalSimplification.iterator;
       vars <- VariableEncoding.iterator;
       inv <- InversionLemma.iterator;
       fin <- FinalEncoding.iterator;
       prob <- Problem.iterator
+    ) yield Configuration(Map(
+        LogicalSimplification -> simpl,
+        VariableEncoding -> vars,
+        InversionLemma -> inv,
+        FinalEncoding -> fin,
+        Problem -> prob
+      ))
+}
+
+case class PartialVariability(config: Map[ConfigParameter, Seq[ConfigValue]]) extends VariabilityModel {
+  private def test(p: ConfigParameter, v: ConfigValue) = config.get(p).map(_.contains(v)).getOrElse(true)
+  
+  override def iterator = for(
+      simpl <- LogicalSimplification.iterator if test(LogicalSimplification, simpl);
+      vars <- VariableEncoding.iterator if test(VariableEncoding, vars);
+      inv <- InversionLemma.iterator if test(InversionLemma, inv);
+      fin <- FinalEncoding.iterator if test(FinalEncoding, fin);
+      prob <- Problem.iterator if test(Problem, prob)
     ) yield Configuration(Map(
         LogicalSimplification -> simpl,
         VariableEncoding -> vars,
