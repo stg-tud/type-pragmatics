@@ -21,26 +21,22 @@ trait Typing {
 
 //just fof, completely untyped
 case object FofBare extends Typing {
-  override val valname = "FofBare"
   override def finalEncoding(m: Module)(implicit config: Configuration) = ToFof.toFofFile(m)
 }
 //fof with type guards (not yet implemented!)
 case object FofGuard extends Typing {
-  override val valname = "FofGuard"
   override def finalEncoding(m: Module)(implicit config: Configuration) = ???
 }
 //tff encoding
 case object Tff extends Typing {
-  override val valname = "Tff"
   override def finalEncoding(m: Module)(implicit config: Configuration) = ToTff.toTffFile(m)
 }
 
-case class AlternativeTyping(select: Configuration => Typing) {
+case class AlternativeTyping(select: Configuration => Typing) extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) =
     select(config).finalEncoding(m)
 
 }
-
 
 // StudyVariables below are currently not variables at all, but a standard part of the transformation pipeline 
 // (should not be changed!)
@@ -53,29 +49,28 @@ object BasicTrans extends SeqTrans(
   Optional(GenerateCtorAxioms, ifConfig(FinalEncoding, FinalEncoding.BareFOF)),
   FunctionEqToAxiomsSimple,
   TranslateTypingJudgmentToFunction,
-  TranslateTypingJudgmentSimpleToFunction
-)
+  TranslateTypingJudgmentSimpleToFunction)
 
 /**
  * determine which different problems are encoded ("Fragestellungen")
  */
-object ProblemTrans extends Alternative(selectConfig(Problem){
-  case Problem.Consistency =>   
+object ProblemTrans extends Alternative(selectConfig(Problem) {
+  case Problem.Consistency =>
     SplitModulesByGoal.setGoalFilter("")
-    SeqTrans(SetupConsistencyCheck, MoveDeclsToFront, SplitModulesByGoal)
+    SeqTrans(SplitModulesByGoal, MoveDeclsToFront, SetupConsistencyCheck)
   case Problem.Proof =>
     SplitModulesByGoal.setGoalFilter("proof")
-    SeqTrans(MoveDeclsToFront, SplitModulesByGoal)
+    SeqTrans(SplitModulesByGoal, MoveDeclsToFront)
   case Problem.Test =>
     SplitModulesByGoal.setGoalFilter("test")
-    SeqTrans(MoveDeclsToFront, SplitModulesByGoal)
+    SeqTrans(SplitModulesByGoal, MoveDeclsToFront)
 })
 
 /**
  * determine whether subformulas in axioms/goals are inlined or named with an additional variable
  * (which adds an equation to the set of premises of axioms/goals)
  */
-object VariableTrans extends Alternative(selectConfig(VariableEncoding){
+object VariableTrans extends Alternative(selectConfig(VariableEncoding) {
   // add InlineEverythingFP?
   case VariableEncoding.Unchanged =>
     Identity
@@ -84,32 +79,36 @@ object VariableTrans extends Alternative(selectConfig(VariableEncoding){
   case VariableEncoding.InlineEverything =>
     InlineEverythingAndRemovePremsFP
   case VariableEncoding.NameParamsAndResults =>
-    SeqTrans(NameSubstituteFunctionDefParametersOnly, NameFunctionResultsOnly)
+    SeqTrans(NameFunctionResultsOnly, NameSubstituteFunctionDefParametersOnly)
 })
 
-
 object MainTrans extends SeqTrans(
-		// desugar Veritas constructs
-		BasicTrans,
-		// determines whether and which inversion axioms are generated for functions/typing rules
-		Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
-    // variable inlining/extraction
-    VariableTrans,    
-    // determines whether logical optimizations take place prior to fof/tff encoding
-    Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
-    // select problem
-    ProblemTrans
-)
+  // desugar Veritas constructs
+  BasicTrans,
+  // determines whether and which inversion axioms are generated for functions/typing rules
+  Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
+  // variable inlining/extraction
+  VariableTrans,
+  // determines whether logical optimizations take place prior to fof/tff encoding
+  Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
+  // select problem
+  ProblemTrans)
 
-object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding){
-  case FinalEncoding.BareFOF => FofBare
+object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding) {
+  case FinalEncoding.BareFOF    => FofBare
   case FinalEncoding.GuardedFOF => FofGuard
-  case FinalEncoding.TFF => Tff
+  case FinalEncoding.TFF        => Tff
 })
 
 case class EncodingComparison(vm: VariabilityModel, module: Module) extends Iterable[(Configuration, Seq[PrettyPrintableFile])] {
+  private var _lastConfig: Configuration = _
+  def lastConfig = _lastConfig
+  
   def iterator = vm.iterator.map { config =>
-    (config, MainTrans(Seq(module))(config))
+    _lastConfig = config
+    val mods = MainTrans(Seq(module))(config)
+    val files = mods.map(m => TypingTrans.finalEncoding(m)(config))
+    (config, files)
   }
 }
 

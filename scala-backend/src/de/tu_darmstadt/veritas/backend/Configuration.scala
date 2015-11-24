@@ -1,5 +1,9 @@
 package de.tu_darmstadt.veritas.backend
 
+import Configuration._
+import scala.util.matching.Regex
+import scala.reflect.NameTransformer
+
 object Configuration {
 
   type ConfigParameter = ConfigOption
@@ -7,6 +11,9 @@ object Configuration {
 
   trait ConfigOption extends Enumeration with Iterable[ConfigValue] {
     override def iterator = values.iterator
+    override def toString =
+      ((getClass.getName stripSuffix NameTransformer.MODULE_SUFFIX_STRING split '.').last split
+         Regex.quote(NameTransformer.NAME_JOIN_STRING)).last
   }
   
   object LogicalSimplification extends ConfigOption {
@@ -32,11 +39,11 @@ object Configuration {
   def ifConfig(p: ConfigParameter, v: ConfigValue) = (cfg: Configuration) => cfg.m.get(p).map(_==v).getOrElse(false)
   def selectConfig[T](p: ConfigParameter)(select: ConfigValue => T) = (cfg: Configuration) => select(cfg.m(p))
 }
-
-import Configuration._
 case class Configuration(m: Map[ConfigParameter, ConfigValue]) extends VariabilityModel {
+  def apply(p: ConfigParameter) = m(p)
   def contains(other: Configuration) = this == other
   override def iterator = Iterator(this)
+  override def toString = s"Configuration($m)"
 }
 
 trait VariabilityModel extends Iterable[Configuration] {
