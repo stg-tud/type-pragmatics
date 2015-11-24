@@ -1,11 +1,13 @@
 package de.tu_darmstadt.veritas.backend.transformation.defs
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.CollectTypeInfo
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
+import de.tu_darmstadt.veritas.backend.Configuration
 
 /*
  * trait for collecting equations that can be inlined into other formulas
@@ -28,7 +30,7 @@ trait CollectInlineEquations extends ModuleTransformation {
    */
   def checkConstruct(vc: VeritasConstruct): Boolean = true
 
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure that any mutable state is initialized upon application!
     chosenSubstitutions = Map()
     orImplSubstitutions = Map()
@@ -236,7 +238,7 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
     }
 
   override def transFunctionExpMetas(f: FunctionExpMeta): Seq[FunctionExpMeta] =
-    withSuper(super.transFunctionExpMetas(f)) {
+    withSuper[FunctionExpMeta](super.transFunctionExpMetas(f)) {
       case fm @ FunctionMeta(m) if (checkSubstitute(fm) && chosenSubstitutions.isDefinedAt(m)) =>
         { substitutedVars = substitutedVars + m.name; transFunctionExpMetas(chosenSubstitutions(m)) }
     }
@@ -329,7 +331,7 @@ object InlineEverythingOnce extends InlineSubformulas
 
 //fixpoint iteration of InlineEverythingOnce
 object InlineEverythingFP extends ModuleTransformation {
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     val newmd = InlineEverythingOnce(m)
     if (newmd != m) apply(newmd)
     else newmd
@@ -349,7 +351,7 @@ object InlineEverythingAndRemovePrems extends ModuleTransformation {
 
 //fixpoint iteration of InlineEverythingAndRemomePrems
 object InlineEverythingAndRemovePremsFP extends ModuleTransformation {
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     val newmd = InlineEverythingAndRemovePrems(m)
     if (newmd != m) apply(newmd)
     else newmd

@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 
 /**
  * this trait is just a test trait for trying out things

@@ -9,6 +9,8 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.Context
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
+import de.tu_darmstadt.veritas.backend.veritas.function._
+
 
 sealed trait ModuleDef extends VeritasConstruct with PrettyPrintable
 

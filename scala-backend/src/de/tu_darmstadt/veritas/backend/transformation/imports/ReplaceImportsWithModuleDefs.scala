@@ -8,6 +8,7 @@ import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.Resolved
 import de.tu_darmstadt.veritas.backend.veritas.Strategy
+import de.tu_darmstadt.veritas.backend.Configuration
 
 /**
  * Replaces each import with all ModuleDefs in the imported Module (but filters out Goals and Local 
@@ -20,6 +21,7 @@ import de.tu_darmstadt.veritas.backend.veritas.Strategy
  * the ResolveImports transformation.
  */
 object ReplaceImportsWithModuleDefs extends ModuleTransformation {
+  
   override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] =
       withSuper(super.transModule(name, is, mdefs)) {
         case Module(name, imports, defs) => {
@@ -42,7 +44,7 @@ object ReplaceImportsWithModuleDefs extends ModuleTransformation {
   private def imports2defs(imports: Seq[Import]): Seq[ModuleDef] = {
     imports flatMap {
       case Resolved(recursiveMod) => {
-        val filteredModule = FilterGoalsAndLocals(Seq(recursiveMod)).head
+        val filteredModule = FilterGoalsAndLocals(Seq(recursiveMod))(config).head
         val recursiveDefs = imports2defs(filteredModule.imports)
         recursiveDefs ++ filteredModule.defs
       }

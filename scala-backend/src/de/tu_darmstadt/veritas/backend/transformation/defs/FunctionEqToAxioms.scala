@@ -5,6 +5,8 @@ import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
+import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.Configuration
 
 /**
  * generates axioms for function equations
@@ -16,7 +18,7 @@ import de.tu_darmstadt.veritas.backend.util.FreshNames
 trait FunctionEqToSimpleAxioms extends ModuleTransformation {
   var fresh = new FreshNames
   
-   override def apply(m: Seq[Module]): Seq[Module] = {
+   override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure that any mutable state is initialized upon application!
     fresh = new FreshNames
     super.apply(m)

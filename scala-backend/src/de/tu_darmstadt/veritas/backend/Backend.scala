@@ -19,7 +19,6 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpApp
 import de.tu_darmstadt.veritas.backend.transformation.ToFof
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel._

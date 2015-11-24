@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 
 object LogicalTermOptimization extends ModuleTransformation {
@@ -45,7 +46,7 @@ object LogicalTermOptimization extends ModuleTransformation {
     }
 
   override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
-    withSuper(super.transFunctionExps(f)) {
+    withSuper[FunctionExp](super.transFunctionExps(f)) {
       case FunctionExpEq(f1, f2) if (f1 == f2)                 => Seq(FunctionExpTrue)
       case FunctionExpNeq(f1, f2) if (f1 == f2)                => Seq(FunctionExpFalse)
       case FunctionExpBiImpl(l, r) if (l == r)                 => Seq(FunctionExpTrue)

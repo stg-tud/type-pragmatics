@@ -1,9 +1,11 @@
 package de.tu_darmstadt.veritas.backend.transformation.defs
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.CollectTypeInfo
+import de.tu_darmstadt.veritas.backend.Configuration
 
 /**
  * this trait tries to infer the signature of TypingJudgments from a Module
@@ -233,7 +235,7 @@ trait TranslateTypingJudgment extends ModuleTransformation {
    */
   private var tjdeclared: Boolean = false
 
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure to reset state whenever a new module is called!
     //(we assume we want a fresh tcheck declaration for in each module)
     tjdeclared = false
@@ -493,7 +495,7 @@ trait TranslateTypingJudgmentSimple extends ModuleTransformation {
    */
   private var tjdeclared: Boolean = false
 
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     val inf = inferSignature(m)
     typingJudgmentFunctionDecl = inferSignature.typingJudgmentFunctionDecl
     inf flatMap trans

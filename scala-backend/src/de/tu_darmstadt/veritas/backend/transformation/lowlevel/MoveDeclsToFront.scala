@@ -1,8 +1,10 @@
 package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
+import de.tu_darmstadt.veritas.backend.Configuration
 
 /**
  * moves declarations of sorts, constructors, functions etc. to the front of the module 
@@ -15,7 +17,7 @@ object MoveDeclsToFront extends ModuleTransformation {
   var funcdecls: Seq[FunctionSig] = Seq()
   var pfuncdecls: Seq[FunctionSig] = Seq()
 
-  override def apply(m: Seq[Module]): Seq[Module] = {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure mutable state is initialized upon application
     sortdecls = Seq()
     consdecls = Seq()
