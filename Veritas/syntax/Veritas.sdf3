@@ -276,19 +276,25 @@ ModuleDef.Local =
   	<ModuleDef*> 
 }>
  
-DataTypeConstructor =
+DataTypeClosedness.Sealed = <>
+DataTypeClosedness.Open = <open> 
+
+DataTypeConstructor = 
 ID {ast("DataTypeConstructor(<1>, [])")}
 
 DataTypeConstructor.DataTypeConstructor = 
 <<ID> ( <{SortRef ","}*> )>
- 
+
+ModuleDef = 
+<<DataTypeClosedness> data <ID>> {ast("DataType(<1>, <2>, [])")}
+
 ModuleDef.DataType = 
-<data <ID> = <{DataTypeConstructor "|"}+>>
- 
+<<DataTypeClosedness> data <ID> = <{DataTypeConstructor "|"}+>>
+
 ModuleDef.Sorts = 
 <sorts <SortDef*>
   
-> 
+>
 
 ModuleDef = 
 <sort <SortDef>

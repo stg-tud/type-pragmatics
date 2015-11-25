@@ -1,40 +1,45 @@
 module encodingcompstudy.Tables
 
-// explanation:
-// FType: type of a single field (underspecified)
-// AName: name of attribute (underspecified)
-// AList: list of attribute names
-// CType: type of a single column (pair AName, FType)
-// TType: type of a table (table schema) - list of CType
+// type of a single field (underspecified)
+open data FType
+// name of attribute (underspecified)
+open data AName
 
+// list of attribute names
+data AList =
+	aempty |
+	acons(AName, AList)
 
-sorts
-	FType AName AList CType TType RawType
-	
-constructors
-	ctype : AName FType -> CType
-	aempty : AList
-	acons : AName AList -> AList
-	ttempty : TType
-	ttcons : CType TType -> TType
-	rtempty : RawType
-	rtcons : FType RawType -> RawType
+// type of a single column (pair AName, FType)
+data CType =
+	ctype(AName, FType)
 
-//explanation:
-// FVal: Value for a field (underspecified)
-// Row: table row, list of field values (with at least one cell/field per construction!)
-// RawTable: table matrix (list of rows), without "header" (attribute list)
-// Table: full table with "header" (attribute list) 
-	
-sorts
-	FVal Row RawTable Table 
+// type of a table (table schema) - list of CType
+data TType =
+	ttempty |
+	ttcons(CType, TType)
 
-constructors
-	rempty : Row
-	rcons : FVal Row -> Row
-	tempty : RawTable
-	tcons : Row RawTable -> RawTable
-	table : AList RawTable -> Table
+data RawType =
+	rtempty |
+	rtcons(FType, RawType)
+
+// Value for a field (underspecified)
+open data FVal
+
+// table row, list of field values (with at least one cell/field per construction!)
+data Row = 
+	rempty |
+	rcons(FVal, Row)
+
+// table matrix (list of rows), without "header" (attribute list)
+data RawTable =
+	tempty |
+	tcons(Row, RawTable)
+
+// full table with "header" (attribute list) 
+data Table =
+	table(AList, RawTable)
+
 
 function
 getRaw : Table -> RawTable
