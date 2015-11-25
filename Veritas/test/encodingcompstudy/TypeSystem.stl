@@ -5,12 +5,9 @@ import encodingcompstudy.TStore
 import encodingcompstudy.Syntax
 import encodingcompstudy.TContext
 
-sorts
-	OptFType
-	
-constructors
-	noFType : OptFType
-	someFType : FType -> OptFType
+data OptFType =
+	noFType |
+	someFType(FType)
 	
 function
 isSomeFType : OptFType -> Bool

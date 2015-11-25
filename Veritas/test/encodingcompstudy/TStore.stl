@@ -3,12 +3,11 @@ module encodingcompstudy.TStore
 import encodingcompstudy.Tables
 
 
-sorts
-	TStore TName OptTable
+open data TName
 	
-constructors
-	noTable : OptTable
-	someTable : Table -> OptTable
+data OptTable =
+	noTable |
+	someTable(Table)
 
 function
 isSomeTable : OptTable -> Bool
@@ -19,10 +18,10 @@ partial function
 getSomeTable : OptTable -> Table
 getSomeTable(someTable(t)) = t
 	
-constructors
-	emptyStore : TStore
-	bindStore : TName Table TStore -> TStore
-	
+data TStore =
+	emptyStore |
+	bindStore(TName, Table, TStore)
+
 function
 lookupStore : TName TStore -> OptTable
 lookupStore(n, emptyStore) = noTable

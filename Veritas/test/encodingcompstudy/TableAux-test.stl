@@ -17,7 +17,7 @@ goal
 rowIn(~r, ~rt)
 
 local {
-	constructors
+	different consts
 		x1 : FVal
 		x2 : FVal
 	
@@ -31,7 +31,7 @@ local {
 
 local {
 	
-	constructors
+	different consts
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -50,7 +50,7 @@ local {
 
 local {
 	
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -120,7 +120,7 @@ goal
 attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
 
 local {
-	constructors
+	different consts
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -144,7 +144,7 @@ local {
 }
 
 local {
-	constructors
+	different consts
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -179,7 +179,7 @@ goal
 attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -238,7 +238,7 @@ goal
 rawUnion(~prt, ~drt) == ~rt
 
 local {
-	constructors 
+	different consts 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -276,7 +276,7 @@ rawUnion(~prt, ~drt) == ~rt
 
 local {
 	
-	constructors 
+	different consts 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -326,7 +326,7 @@ rawIntersection(~prt, ~drt) == tempty
 
 local {
 	
-	constructors 
+	different consts 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -358,7 +358,7 @@ rawIntersection(~prt, ~drt) == ~rt
 
 local {
 	
-	constructors 
+	different consts 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -389,7 +389,7 @@ rawDifference(~prt, ~drt) == tempty
 
 local {
 	
-	constructors 
+	different consts 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal
@@ -407,7 +407,7 @@ local {
 
 local {
 	
-	constructors 
+	different consts 
 		y1 : FVal
 		y2 : FVal
 		z1 : FVal

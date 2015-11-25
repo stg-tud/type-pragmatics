@@ -3,29 +3,27 @@ module encodingcompstudy.Syntax
 import encodingcompstudy.Tables
 import encodingcompstudy.TStore
 
-sorts
-	Pred Query TRef
-
 
 //predicates for where clauses of queries	
-constructors
-	VEquals : AName FVal -> Pred
-	VGreater : AName FVal -> Pred
-	VSmaller : AName FVal -> Pred
+data Pred =
+	VEquals(AName, FVal) |
+	VGreater(AName, FVal) |
+	VSmaller(AName, FVal)
 	
 	
 //query syntax
-constructors
-	Ref : TName -> TRef
-	
-	Tvalue : Table -> Query
-	SelectAllFrom : TRef -> Query
-	SelectSomeFrom : AList TRef -> Query
-	SelectAllFromWhere : TRef Pred -> Query
-	SelectSomeFromWhere : AList TRef Pred -> Query
-	Union : Query Query -> Query
-	Intersection : Query Query -> Query
-	Difference : Query Query -> Query
+data TRef =
+	Ref(TName)
+
+data Query =
+	Tvalue(Table) |
+	SelectAllFrom(TRef) |
+	SelectSomeFrom(AList, TRef) |
+	SelectAllFromWhere(TRef, Pred) |
+	SelectSomeFromWhere(AList, TRef, Pred) |
+	Union(Query, Query) |
+	Intersection(Query, Query) |
+	Difference(Query, Query)
 	
 function
 isValue : Query -> Bool

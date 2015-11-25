@@ -14,7 +14,7 @@ emptyContext |- Tvalue(table(aempty, tempty)) : ttempty
 
 local {
 	
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -22,7 +22,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 	
-	constructors
+	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
@@ -68,7 +68,7 @@ local {
    
 local {
 	
-	constructors
+	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
@@ -88,7 +88,7 @@ local {
 
 local {
 	
-	constructors
+	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
@@ -108,7 +108,7 @@ local {
 
 local {
 	
-	constructors
+	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
@@ -127,10 +127,10 @@ local {
 
 local {
 	
-	constructors 
+	different consts 
 		x1 : FVal
 	
-	constructors
+	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
@@ -151,10 +151,10 @@ local {
 
 local {
 	
-	constructors 
+	different consts 
 		z1 : FVal
 	
-	constructors
+	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
@@ -175,10 +175,10 @@ local {
 
 local {
 	
-	constructors 
+	different consts 
 		x1 : FVal
 	
-	constructors
+	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType

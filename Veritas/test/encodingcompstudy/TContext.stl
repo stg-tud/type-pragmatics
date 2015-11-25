@@ -3,12 +3,13 @@ module encodingcompstudy.TContext
 import encodingcompstudy.Tables
 import encodingcompstudy.TStore
 
-sorts
-	TTContext OptTType
-	
-constructors
-	noTType : OptTType
-	someTType : TType -> OptTType
+data TTContext =
+	emptyContext |
+	bindContext(TName, TType, TTContext)
+
+data OptTType =
+	noTType |
+	someTType(TType)
 
 function
 isSomeTType : OptTType -> Bool
@@ -19,9 +20,6 @@ partial function
 getSomeTType : OptTType -> TType
 getSomeTType(someTType(t)) = t
 	
-constructors
-	emptyContext : TTContext
-	bindContext : TName TType TTContext -> TTContext
 	
 function
 lookupContext : TName TTContext -> OptTType

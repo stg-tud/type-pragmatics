@@ -5,19 +5,18 @@ import encodingcompstudy.TableAux
 import encodingcompstudy.Syntax
 import encodingcompstudy.TStore
 
-sorts
-	Conf OptConf
 
-constructors
-	conf : Query TStore -> Conf
-	
+
+data Conf = 
+	conf(Query, TStore)
+
 function
 getQuery : Conf -> Query
 getQuery(conf(q, ts)) = q
 
-constructors
-	noConf : OptConf
-	someConf : Conf -> OptConf
+data OptConf =
+	noConf |
+	someConf(Conf)
 
 function
 isSomeConf : OptConf -> Bool
@@ -54,13 +53,10 @@ project(acons(a, alr), t) =
 			else noRawTable
 
 // Option variant for option boolean (3 answers: true, false, error)
-sorts
-	Opt3
-	
-constructors
-	error : Opt3
-	isTrue : Opt3
-	isFalse : Opt3
+data Opt3 = 
+	error |
+	isTrue |
+	isFalse 
 
 // fails if attribute - field type pair is not in table!
 // and is not defined if length of given AList and given Row does not match

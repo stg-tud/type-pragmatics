@@ -27,11 +27,9 @@ dropFirstColRaw(tempty) = tempty
 dropFirstColRaw(tcons(rempty, rt)) = tcons(rempty, dropFirstColRaw(rt))
 dropFirstColRaw(tcons(rcons(f, r), rt)) = tcons(r, dropFirstColRaw(rt)) 
 
-sorts OptRawTable
-
-constructors
-	noRawTable : OptRawTable
-	someRawTable : RawTable -> OptRawTable
+data OptRawTable =
+	noRawTable |
+	someRawTable(RawTable)
 
 function
 isSomeRawTable : OptRawTable -> Bool
