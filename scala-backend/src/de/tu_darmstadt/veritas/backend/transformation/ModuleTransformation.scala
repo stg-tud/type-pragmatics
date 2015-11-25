@@ -125,6 +125,7 @@ trait ModuleTransformation {
     case Functions(fs)                => Seq(Functions((trace(fs)(transFunctionDefs(_)))))
     case PartialFunctions(fs)         => Seq(PartialFunctions((trace(fs)(transFunctionDefs(_)))))
     case Consts(cts)                  => Seq(Consts(trace(cts)(transConstructorDecls(_, true))))
+    case DataType(open, name, cs)     => Seq(DataType(open, name, trace(cs)(transDataTypeConstructor(_, open, name))))
     // if default case is not covered, compiler shows a warning if the match is not exhaustive
     // look for these warnings when extending the Veritas language!
     //case s                            => throw TransformationError("Unsupported construct in transModuleDef: " + s)
@@ -221,6 +222,9 @@ trait ModuleTransformation {
   def transSortDefs(sd: SortDef): Seq[SortDef] = Seq(sd)
   def transConstructorDecls(cd: ConstructorDecl, const: Boolean): Seq[ConstructorDecl] = cd match {
     case ConstructorDecl(n, in, out) => Seq(ConstructorDecl(n, trace(in)(transSortRefs(_)), trace(out)(transSortRef(_))))
+  }
+  def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = d match {
+    case DataTypeConstructor(n, in) => Seq(DataTypeConstructor(n, trace(in)(transSortRefs(_))))
   }
 
   def transSortRef(sr: SortRef): SortRef = sr

@@ -151,7 +151,7 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
     inputs foreach (_.prettyPrint(this))
     this
   }
-
+  
   // NOTE have to add explicit input1 to disambiguate from writeln(String*) for empty varargs given
   def writeln[T <: PrettyPrintable](input1: T, inputs: T*): this.type = {
     write(input1).write(inputs: _*)

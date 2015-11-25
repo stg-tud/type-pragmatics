@@ -10,6 +10,8 @@ import de.tu_darmstadt.veritas.backend.util.Context
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
+import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 
 
 sealed trait ModuleDef extends VeritasConstruct with PrettyPrintable
@@ -339,6 +341,46 @@ case class Consts(consts: Seq[ConstructorDecl]) extends ModuleDef {
   }
 }
 
+case class DataType(open: Boolean, name: String, constrs: Seq[DataTypeConstructor]) extends ModuleDef {
+  override val children = Seq(constrs)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newctors: Seq[DataTypeConstructor] = newchildren(0) map {
+      case e: DataTypeConstructor => e
+      case _                      => throw new ClassCastException
+    }
+    DataType(open, name, newctors)
+  }
+
+  override def prettyPrint(writer: PrettyPrintWriter) = {
+    if (open)
+      writer.write("open ")
+    writer.write("data ")
+    writer.write(name)
+    if (!constrs.isEmpty) {
+      writer.write(" = ")
+      writer.indent()
+      constrs(0).prettyPrint(writer)
+      constrs.tail foreach {c =>
+        writer.writeln(",")
+        c.prettyPrint(writer)
+      }
+      writer.unindent()
+    }
+  }
+}
+
+object DataType {
+  def Openedness(term: StrategoTerm): Boolean = term match {
+    case StrategoAppl("Sealed") => false
+    case StrategoAppl("Open") => true
+    case t => throw VeritasParseError(t)
+  }
+}
+
 // TODO add relation, "single" function (?), functions, const, sort (?), ctor (?) etc.
 // FIXME RelationDef vs FunctionDef? Relations vs PartialFunctions?
 //case class PartialFunctions(partialFunctions: Seq[RelationDef]) extends ModuleDef
@@ -373,6 +415,7 @@ object ModuleDef {
     case StrategoAppl("Functions", StrategoList(funcDefs)) => Functions(funcDefs map FunctionDef.from)
     case StrategoAppl("PartialFunctions", StrategoList(funcDefs)) => PartialFunctions(funcDefs map FunctionDef.from)
     case StrategoAppl("Consts", StrategoList(consts)) => Consts(consts map ConstructorDecl.from)
+    case StrategoAppl("DataType", openedness, StrategoString(name), StrategoList(constrs)) => DataType(DataType.Openedness(openedness), name, constrs map DataTypeConstructor.from)
     case t => throw VeritasParseError(t)
   }
 }
