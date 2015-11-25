@@ -6,11 +6,11 @@ Module(
                                         )
                                       )
                                     }
-, [ Import("encodingcompstudy.Semantics"{Use(Result(6439))}, None())
-  , Import("encodingcompstudy.Tables"{Use(Result(1559))}, None())
+, [ Import("encodingcompstudy.Tables"{Use(Result(1559))}, None())
   , Import("encodingcompstudy.TableAux"{Use(Result(1561))}, None())
   , Import("encodingcompstudy.Syntax"{Use(Result(1555))}, None())
   , Import("encodingcompstudy.TStore"{Use(Result(1557))}, None())
+  , Import("encodingcompstudy.Semantics"{Use(Result(95812))}, None())
   ]
 , [ Local(
       [ Constructors(
