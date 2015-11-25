@@ -71,11 +71,11 @@ object ToTff {
       md match {
         case Axioms(axs)           => axiomlist ++= translateAxioms(axs)
         case Goals(gs, _)          => throw TransformationError("Found goal in Module which was not at last position!")
-        case Constructors(cs)      => addConstDecl(cs)
+        case DataType(open, name, cs) => addDataTypeConstructor(cs, name)
         case Consts(cs)            => addConstDecl(cs)
         case Sorts(s)              => addSortDef(s)
-        case Functions(fds)        => addConstDecl(getFunctionSigs(fds))
-        case PartialFunctions(fds) => addConstDecl(getFunctionSigs(fds))
+        case Functions(fds)        => addFunctionDefinition(fds)
+        case PartialFunctions(fds) => addFunctionDefinition(fds)
         case _                     => throw TransformationError("Unsupported top-level construct!")
 
       }
@@ -130,18 +130,15 @@ object ToTff {
    * otherwise returns a SymbolType
    *
    */
-  private def makeAtomicType(sr: SortRef): TffAtomicType =
-    sr match {
-      case SortRef(name) =>
-        if (SortDef.predefinedSorts contains name)
-          translatePredefinedType(name)
-        else {
-          val ts = makeTopLevelSymbol(name)
-          if (typedSymbols contains ts)
-            SymbolType(ts)
-          else
-            throw TransformationError(s"Encountered sort reference ${name}, which has not been defined yet!")
-        }
+  private def makeAtomicType(name: String): TffAtomicType =
+    if (SortDef.predefinedSorts contains name)
+      translatePredefinedType(name)
+    else {
+      val ts = makeTopLevelSymbol(name)
+      if (typedSymbols contains ts)
+        SymbolType(ts)
+      else
+        throw TransformationError(s"Encountered sort reference ${name}, which has not been defined yet!")
     }
 
   /**
@@ -149,11 +146,20 @@ object ToTff {
    *
    * throws an error if the referenced sorts are not present in sorts set
    */
-  private def addConstDecl(cs: Seq[ConstructorDecl]): Unit =
+  private def addConstDecl(cs: Seq[ConstDecl]): Unit =
     typedecllist ++=
-      (for (ConstructorDecl(name, in, out) <- cs) yield {
-        val outt = makeAtomicType(out)
-        val ints = in map makeAtomicType
+      (for (ConstDecl(name, out) <- cs) yield {
+        val outt = makeAtomicType(out.name)
+        val ts = TypedSymbol(name, outt)
+        addTSIfNew(ts)
+        TffAnnotated(s"${name}_type", Type, ts)
+      })
+
+  private def addDataTypeConstructor(cs: Seq[DataTypeConstructor], dataType: String): Unit =
+    typedecllist ++=
+      (for (DataTypeConstructor(name, in) <- cs) yield {
+        val outt = makeAtomicType(dataType)
+        val ints = in map (s => makeAtomicType(s.name))
         val t = if (ints.isEmpty) outt else
           TffMappingType(ints, outt)
         val ts = TypedSymbol(name, t)
@@ -162,14 +168,22 @@ object ToTff {
       })
 
   /**
-   * extracts function signatures from function definitions, if functions equations are empty
-   * transforms function signatures to constructor declarations
-   *
    * throws an error if the function equations are not empty (not supported by core modules!)
    */
-  private def getFunctionSigs(fds: Seq[FunctionDef]): Seq[ConstructorDecl] =
-    for (FunctionDef(FunctionSig(name, in, out), eqs) <- fds) yield if (eqs.isEmpty) ConstructorDecl(name, in, out) else
-      throw TransformationError(s"Function definition ${name} still contained untransformed function equations!")
+  private def addFunctionDefinition(cs: Seq[FunctionDef]): Unit =
+    typedecllist ++=
+      (for (FunctionDef(FunctionSig(name, in, out), eqs) <- cs) yield {
+        if (!eqs.isEmpty)
+          throw TransformationError(s"Function definition ${name} still contained untransformed function equations!")
+        
+        val outt = makeAtomicType(out.name)
+        val ints = in map (s => makeAtomicType(s.name))
+        val t = if (ints.isEmpty) outt else
+          TffMappingType(ints, outt)
+        val ts = TypedSymbol(name, t)
+        addTSIfNew(ts)
+        TffAnnotated(s"${name}_type", Type, ts)
+      })
 
   /**
    * translates axioms to Tff

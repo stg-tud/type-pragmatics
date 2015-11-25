@@ -34,7 +34,7 @@ trait CollectConstructorNames extends ModuleTransformation {
       case m => super.transModuleDefs(m)
     }
 
-  def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
+  override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
     withSuper(super.transDataTypeConstructor(d, open, dataType)) {
       case c @ DataTypeConstructor(n, in) => {
         consNames = consNames + n
@@ -83,7 +83,7 @@ trait CollectSortNames extends ModuleTransformation {
 }
 
 trait CollectTypeInfo extends ModuleTransformation {
-  var constypes: Map[String, (Seq[SortRef], String)] = Map()
+  var constypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   var functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   var pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   
@@ -95,10 +95,10 @@ trait CollectTypeInfo extends ModuleTransformation {
     super.apply(m)
   }
 
-  def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
+  override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
     withSuper(super.transDataTypeConstructor(d, open, dataType)) {
       case c @ DataTypeConstructor(n, in) => {
-        constypes.put(d.name, (d.in -> dataType))
+        constypes.put(d.name, (d.in -> SortRef(dataType)))
         Seq(c)
       }
     }
