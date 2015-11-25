@@ -62,13 +62,16 @@ object ToTff {
    *  adds the collected declarations to the appropriate collections of the object defined above
    */
   private def bodyToTff(body: Seq[ModuleDef]): Unit = {
+    body foreach {
+      case d: DataType => addDataType(d)
+      case _ =>
+    }
+    
     body.dropRight(1) foreach { md =>
       md match {
         case Axioms(axs)           => axiomlist ++= translateAxioms(axs)
         case Goals(gs, _)          => throw TransformationError("Found goal in Module which was not at last position!")
-        case d@DataType(open, name, cs) => 
-          addDataType(d)
-          addDataTypeConstructor(cs, name)
+        case d@DataType(open, name, cs) => addDataTypeConstructor(cs, name)
         case Consts(cs, _)         => addConstDecl(cs)
         case Sorts(s)              => addSortDef(s)
         case Functions(fds)        => addFunctionDefinition(fds)
