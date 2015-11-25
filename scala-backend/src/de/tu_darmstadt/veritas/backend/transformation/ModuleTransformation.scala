@@ -121,10 +121,9 @@ trait ModuleTransformation {
     case LemmasWithStrategy(s, gs, t) => Seq(LemmasWithStrategy(s, trace(gs)(transTypingRules(_)), t))
     case GoalsWithStrategy(s, gs, t)  => Seq(GoalsWithStrategy(s, trace(gs)(transTypingRules(_)), t))
     case Sorts(s)                     => Seq(Sorts(trace(s)(transSortDefs(_))))
-    case Constructors(cts)            => Seq(Constructors(trace(cts)(transConstructorDecls(_, false))))
     case Functions(fs)                => Seq(Functions((trace(fs)(transFunctionDefs(_)))))
     case PartialFunctions(fs)         => Seq(PartialFunctions((trace(fs)(transFunctionDefs(_)))))
-    case Consts(cts)                  => Seq(Consts(trace(cts)(transConstructorDecls(_, true))))
+    case Consts(cts)                  => Seq(Consts(trace(cts)(transConstDecl(_))))
     case DataType(open, name, cs)     => Seq(DataType(open, name, trace(cs)(transDataTypeConstructor(_, open, name))))
     // if default case is not covered, compiler shows a warning if the match is not exhaustive
     // look for these warnings when extending the Veritas language!
@@ -220,9 +219,11 @@ trait ModuleTransformation {
   }
 
   def transSortDefs(sd: SortDef): Seq[SortDef] = Seq(sd)
-  def transConstructorDecls(cd: ConstructorDecl, const: Boolean): Seq[ConstructorDecl] = cd match {
-    case ConstructorDecl(n, in, out) => Seq(ConstructorDecl(n, trace(in)(transSortRefs(_)), trace(out)(transSortRef(_))))
+  
+  def transConstDecl(d: ConstDecl): Seq[ConstDecl] = d match {
+    case ConstDecl(n, out) => Seq(ConstDecl(n, transSortRef(out)))
   }
+
   def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = d match {
     case DataTypeConstructor(n, in) => Seq(DataTypeConstructor(n, trace(in)(transSortRefs(_))))
   }

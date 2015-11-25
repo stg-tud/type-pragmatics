@@ -34,10 +34,10 @@ trait CollectConstructorNames extends ModuleTransformation {
       case m => super.transModuleDefs(m)
     }
 
-  override def transConstructorDecls(cd: ConstructorDecl, const: Boolean): Seq[ConstructorDecl] =
-    withSuper(super.transConstructorDecls(cd, const)) {
-      case c @ ConstructorDecl(n, in, out) => {
-        consNames = consNames + cd.name
+  def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
+    withSuper(super.transDataTypeConstructor(d, open, dataType)) {
+      case c @ DataTypeConstructor(n, in) => {
+        consNames = consNames + n
         Seq(c)
       }
     }
@@ -83,7 +83,7 @@ trait CollectSortNames extends ModuleTransformation {
 }
 
 trait CollectTypeInfo extends ModuleTransformation {
-  var constypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  var constypes: Map[String, (Seq[SortRef], String)] = Map()
   var functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   var pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   
@@ -95,14 +95,18 @@ trait CollectTypeInfo extends ModuleTransformation {
     super.apply(m)
   }
 
+  def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
+    withSuper(super.transDataTypeConstructor(d, open, dataType)) {
+      case c @ DataTypeConstructor(n, in) => {
+        constypes.put(d.name, (d.in -> dataType))
+        Seq(c)
+      }
+    }
+
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     //take scoping into account (local blocks and strategy blocks!)
     //reset consNames to previous value when "leaving" such a block during the traversal
     mdef match {
-      case cons @ Constructors(cdecl) => {
-        (cdecl map { case c @ ConstructorDecl(n, in, out) => constypes.put(n, (in, out)) })
-        Seq(Constructors(trace(cdecl)(transConstructorDecls(_, false))))
-      }
       case funcs @ Functions(fdecl) => {
         (fdecl map { case c @ FunctionDef(FunctionSig(n, in, out), defs) => functypes.put(n, (in, out)) })
         Seq(Functions((trace(fdecl)(transFunctionDefs(_)))))

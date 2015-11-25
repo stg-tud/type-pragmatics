@@ -252,28 +252,6 @@ case class Sorts(sorts: Seq[SortDef]) extends ModuleDef {
   }
 }
 
-case class Constructors(ctors: Seq[ConstructorDecl]) extends ModuleDef {
-  override val children = Seq(ctors)
-
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (newchildren.length != 1)
-      throw new ClassCastException
-
-    val newctors: Seq[ConstructorDecl] = newchildren(0) map {
-      case e: ConstructorDecl => e
-      case _                  => throw new ClassCastException
-    }
-    Constructors(newctors)
-  }
-
-  override def prettyPrint(writer: PrettyPrintWriter) = {
-    writer.write("constructors")
-    writer.indent()
-    ctors.dropRight(1) foreach (writer.writeln(_))
-    ctors.lastOption foreach (writer.write(_))
-    writer.unindent()
-  }
-}
 
 case class Functions(funcs: Seq[FunctionDef]) extends ModuleDef {
   override val children = Seq(funcs)
@@ -315,15 +293,15 @@ case class PartialFunctions(funcs: Seq[FunctionDef]) extends ModuleDef {
   }
 }
 
-case class Consts(consts: Seq[ConstructorDecl]) extends ModuleDef {
+case class Consts(consts: Seq[ConstDecl]) extends ModuleDef {
   override val children = Seq(consts)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
     if (newchildren.length != 1)
       throw new ClassCastException
 
-    val newctors: Seq[ConstructorDecl] = newchildren(0) map {
-      case e: ConstructorDecl => e
+    val newctors: Seq[ConstDecl] = newchildren(0) map {
+      case e: ConstDecl => e
       case _                  => throw new ClassCastException
     }
     Consts(newctors)
@@ -352,6 +330,7 @@ case class DataType(open: Boolean, name: String, constrs: Seq[DataTypeConstructo
       case e: DataTypeConstructor => e
       case _                      => throw new ClassCastException
     }
+    
     DataType(open, name, newctors)
   }
 
@@ -411,10 +390,9 @@ object ModuleDef {
     case StrategoAppl("LemmasWithStrategy", StrategoString(strategy), StrategoAppl("Some", StrategoString(timeout)), StrategoList(lemmas)) => LemmasWithStrategy(strategy, lemmas map TypingRule.from, Some(timeout.toInt))
     case StrategoAppl("Axioms", StrategoList(axioms)) => Axioms(axioms map TypingRule.from)
     case StrategoAppl("Sorts", StrategoList(sorts)) => Sorts(sorts map SortDef.from)
-    case StrategoAppl("Constructors", StrategoList(ctors)) => Constructors(ctors map ConstructorDecl.from)
     case StrategoAppl("Functions", StrategoList(funcDefs)) => Functions(funcDefs map FunctionDef.from)
     case StrategoAppl("PartialFunctions", StrategoList(funcDefs)) => PartialFunctions(funcDefs map FunctionDef.from)
-    case StrategoAppl("Consts", StrategoList(consts)) => Consts(consts map ConstructorDecl.from)
+    case StrategoAppl("Consts", StrategoList(consts)) => Consts(consts map ConstDecl.from)
     case StrategoAppl("DataType", openedness, StrategoString(name), StrategoList(constrs)) => DataType(DataType.Openedness(openedness), name, constrs map DataTypeConstructor.from)
     case t => throw VeritasParseError(t)
   }
