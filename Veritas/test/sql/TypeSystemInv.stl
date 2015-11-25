@@ -1,6 +1,5 @@
 module sql.TypeSystemInv
 
-import sql.BasicFunctions
 import sql.Syntax
 import sql.TypeSystem
 import sql.Tables
@@ -14,35 +13,33 @@ OR
 		~q = Tvalue(table(~al, ~rt))
 		welltypedtable(~TT, table(~al, ~rt))
 => exists ~tn
-		~q == Selectallfrom(Ref(~tn))
-		clookup(~tn, ~TTC) == some(~TT)
+		~q == SelectAllFrom(Ref(~tn))
+		lookupContext(~tn, ~TTC) == someTType(~TT)
 => exists ~tn, ~TT1, ~al
-		~q == Selectsomefrom(~al, Ref(~tn))
-		clookup(~tn, ~TTC) == some(~TT1)
-		projectType(~al, ~TT1) == some(~TT)	
-// => exists ~tn, ~p, ~rt
-// 		~sql == SelectAllFromWhere1(~tn, ~p)
-// 		lookup(~tn, ~TS) == some(table(~TT, ~rt))
-// 		welltypedtable(table(~TT, ~rt))
+		~q == SelectSomeFrom(~al, Ref(~tn))
+		lookupContext(~tn, ~TTC) == someTType(~TT1)
+		projectType(~al, ~TT1) == someTType(~TT)	
+// => exists ~tn, ~p
+// 		~q == SelectAllFromWhere(Ref(~tn), ~p)
+// 		lookupContext(~tn, ~TTC) == someTType(~TT)
 // 		checkPValidity(~p, ~TT)	
-// => exists ~tn, ~p, ~TT1, ~rt
-// 		~sql == SelectFromWhere1(~TT, ~tn, ~p)
-// 		lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-// 		welltypedtable(table(~TT1, ~rt))
+// => exists ~al, ~tn, ~p, ~TT1
+// 		~q == SelectSomeFromWhere(~al, Ref(~tn), ~p)
+// 		lookupContext(~tn, ~TTC) == someTType(~TT1)
 // 		checkPValidity(~p, ~TT1)
-// 		typePartOf(~TT, ~TT1)
+// 		projectType(~al, ~TT1) == someTType(~TT)
 // => exists ~q1, ~q2
 // 		~q == Union(~q1, ~q2)
 // 		~TTC |- ~q1 : ~TT
 // 		~TTC |- ~q2 : ~TT
-// => exists ~sql1, ~sql2
-// 		~sql == Intersection(~sql1, ~sql2)
-// 		~TS |- ~sql1 : ~TT
-// 		~TS |- ~sql2 : ~TT
-// => exists ~sql1, ~sql2
-// 		~sql == Difference(~sql1, ~sql2)
-// 		~TS |- ~sql1 : ~TT
-// 		~TS |- ~sql2 : ~TT
+// => exists ~q1, ~q2
+// 		~q == Intersection(~q1, ~q2)
+// 		~TTC |- ~q1 : ~TT
+// 		~TTC |- ~q2 : ~TT
+// => exists ~q1, ~q2
+// 		~q == Difference(~q1, ~q2)
+// 		~TTC |- ~q1 : ~TT
+// 		~TTC |- ~q2 : ~TT
 		
 //variant of inversion lemma in several different lemmas 
 //(seems to be helpful for progress proof)
@@ -54,37 +51,34 @@ welltypedtable(~TT, table(~al, ~rt))
 
 
 lemma
-~q == Selectallfrom(Ref(~tn))		
+~q == SelectAllFrom(Ref(~tn))	
 ~TTC |- ~q : ~TT
 ==================================================== T-inv-Selectallfrom		
-clookup(~tn, ~TTC) == some(~TT)
+lookupContext(~tn, ~TTC) == someTType(~TT)
 
 
 lemma
-~q == Selectsomefrom(~al, Ref(~tn))
+~q == SelectSomeFrom(~al, Ref(~tn))
 ~TTC |- ~q : ~TT
 ==================================================== T-inv-Selectsomefrom
 exists ~TT1
-	clookup(~tn, ~TTC) == some(~TT1)
-	projectType(~al, ~TT1) == some(~TT)	
+	lookupContext(~tn, ~TTC) == someTType(~TT1)
+	projectType(~al, ~TT1) == someTType(~TT)
 	
 		
-// ~sql == SelectAllFromWhere1(~tn, ~p)
-// ~TS |- ~sql : ~TT
-// ==================================================== T-inv-SelectAllFromWhere1
-// exists ~rt
-// 	lookup(~tn, ~TS) == some(table(~TT, ~rt))
-// 	welltypedtable(table(~TT, ~rt))
-// 	checkPValidity(~p, ~TT)	
+// ~q == SelectAllFromWhere(Ref(~tn), ~p)
+// ~TTC |- ~q : ~TT
+// ==================================================== T-inv-SelectAllFromWhere
+// lookupContext(~tn, ~TTC) == someTType(~TT)
+// checkPValidity(~p, ~TT)	
 // 		
-// ~sql == SelectFromWhere1(~TT, ~tn, ~p)
-// ~TS |- ~sql : ~TT
-// ==================================================== T-inv-SelectFromWhere1
-// exists ~rt, ~TT1
-// 	lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-// 	welltypedtable(table(~TT1, ~rt))
+// ~q == SelectSomeFromWhere(~al, Ref(~tn), ~p)
+// ~TTC |- ~q : ~TT
+// ==================================================== T-inv-SelectSomeFromWhere
+// exists ~TT1
+// 	lookupContext(~tn, ~TTC) == someTType(~TT1)
 // 	checkPValidity(~p, ~TT1)
-// 	typePartOf(~TT, ~TT1)
+// 	projectType(~al, ~TT1) == someTType(~TT)
 // 		
 
 // goal
@@ -94,22 +88,16 @@ exists ~TT1
 // ~TTC |- ~q1 : ~TT
 // ~TTC |- ~q2 : ~TT
 // 
-// axiom
-// ~q == Union(~q1, ~q2)
-// ~TTC |- ~q : ~TT
-// ==================================================== T-inv-Union		
-// ~TTC |- ~q1 : ~TT
-// ~TTC |- ~q2 : ~TT
 
 // 
-// ~sql == Intersection(~sql1, ~sql2)
-// ~TS |- ~sql : ~TT
+// ~q == Intersection(~q1, ~q2)
+// ~TTC |- ~q : ~TT
 // ==================================================== T-inv-Intersection
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
+// ~TTC |- ~q1 : ~TT
+// ~TTC |- ~q2 : ~TT
 // 
-// ~sql == Difference(~sql1, ~sql2)
-// ~TS |- ~sql : ~TT
+// ~q == Difference(~q1, ~q2)
+// ~TTC |- ~q : ~TT
 // ==================================================== T-inv-Difference
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
+// ~TTC |- ~q1 : ~TT
+// ~TTC |- ~q2 : ~TT

@@ -1,6 +1,5 @@
 module sql.Progress
 
-import sql.BasicFunctions
 import sql.Tables
 import sql.TStore
 import sql.Syntax
@@ -24,27 +23,27 @@ strategy induction-Progress {
 	StoreContextConsistent(~TS, ~TTC)
 	==================================== SQL-Progress-T-Tvalue
 	exists ~cout
-		reduce(~cin) = some(~cout)
+		reduce(~cin) = someConf(~cout)
 	
 	goal	
-	~q == Selectallfrom(Ref(~tn)) 
+	~q == SelectAllFrom(Ref(~tn)) 
 	~cin == conf(~q, ~TS)
 	!isValue(~q)
 	~TTC |- ~q : ~TT
 	StoreContextConsistent(~TS, ~TTC)
 	==================================== SQL-Progress-T-Selectallfrom
 	exists ~cout
-		reduce(~cin) = some(~cout)
+		reduce(~cin) = someConf(~cout)
 	
 	goal 130
-	~q == Selectsomefrom(~al, Ref(~tn)) 
+	~q == SelectSomeFrom(~al, Ref(~tn)) 
 	~cin == conf(~q, ~TS)
 	!isValue(~q)
 	~TTC |- ~q : ~TT
 	StoreContextConsistent(~TS, ~TTC)
 	==================================== SQL-Progress-T-Selectsomefrom
 	exists ~cout
-		reduce(~cin) = some(~cout)
+		reduce(~cin) = someConf(~cout)
 	
 // Verification succeeded, used lemmas: progress-projection, isSome1, lookup-aux, isSome-INV-2, T-inv-
 //  Selectsomefrom, reduce3, reduce4, reduce5.
@@ -52,23 +51,23 @@ strategy induction-Progress {
 // 	
 // //only application of correct case of inversion lemma is necessary	
 // // goal
-// // ~sql == SelectAllFromWhere1(~tn, ~p)
-// // ~cin == conf(~sql, ~TS)
-// // !isValue(~sql)
-// // ~TS |- ~sql : ~TT
-// // ==================================== SQL-Progress-T-SelectAllFromWhere1
+// // ~sql == SelectAllFromWhere(Ref(~tn), ~p)
+// // ~cin == conf(~q, ~TS)
+// // !isValue(~q)
+// // ~TTC |- ~q : ~TT
+// // ==================================== SQL-Progress-T-SelectAllFromWhere
 // // exists ~cout
-// // 	reduce(~cin) = some(~cout)
+// // 	reduce(~cin) = someConf(~cout)
 // 	
 // //only application of correct case of inversion lemma is necessary		
 // // goal
-// // ~sql == SelectFromWhere1(~TT, ~tn, ~p)
-// // ~cin == conf(~sql, ~TS)
-// // !isValue(~sql)
-// // ~TS |- ~sql : ~TT
-// // ======================================= SQL-Progress-T-SelectFromWhere1
+// // ~sql == SelectSomeFromWhere(~TT, Ref(~tn), ~p)
+// // ~cin == conf(~q, ~TS)
+// // !isValue(~q)
+// // ~TTC |- ~q : ~TT
+// // ======================================= SQL-Progress-T-SelectSomeFromWhere
 // // exists ~cout
-// // 	reduce(~cin) = some(~cout)
+// // 	reduce(~cin) = someConf(~cout)
 // 
 // 
 
@@ -119,7 +118,7 @@ strategy induction-Progress {
 // 		StoreContextConsistent(TS, TTC)
 // 		==================================== SQL-Progress-T-Union-1
 // 		exists ~cout
-// 			reduce(~cin) = some(~cout)
+// 			reduce(~cin) = someConf(~cout)
 // 	}
 // 		
 // 	axiom
@@ -130,7 +129,7 @@ strategy induction-Progress {
 // 	StoreContextConsistent(TS, TTC)
 // 	==================================== SQL-Progress-T-Union-1
 // 	exists ~cout
-// 		reduce(~cin) = some(~cout)
+// 		reduce(~cin) = someConf(~cout)
 // 			
 // 	local {
 // 		
@@ -141,7 +140,7 @@ strategy induction-Progress {
 // 		StoreContextConsistent(TS, TTC)
 // 		==================================== SQL-Progress-T-Union-IH2
 // 		exists ~cout
-// 			reduce(~cin) = some(~cout)
+// 			reduce(~cin) = someConf(~cout)
 // 	
 // 		goal
 // 		~q == Union(Tvalue(~t1), q2)
@@ -152,7 +151,7 @@ strategy induction-Progress {
 // 		StoreContextConsistent(TS, TTC)
 // 		==================================== SQL-Progress-T-Union-2
 // 		exists ~cout
-// 			reduce(~cin) = some(~cout)
+// 			reduce(~cin) = someConf(~cout)
 // 	}	
 // 	
 // 	axiom
@@ -164,7 +163,7 @@ strategy induction-Progress {
 // 	StoreContextConsistent(TS, TTC)
 // 	==================================== SQL-Progress-T-Union-2
 // 	exists ~cout
-// 		reduce(~cin) = some(~cout)
+// 		reduce(~cin) = someConf(~cout)
 // 	
 // 	local {
 // 		
@@ -175,7 +174,7 @@ strategy induction-Progress {
 // 		StoreContextConsistent(TS, TTC)
 // 		==================================== SQL-Progress-T-Union-IH1
 // 		exists ~cout
-// 			reduce(~cin) = some(~cout)
+// 			reduce(~cin) = someConf(~cout)
 // 			
 // 		goal
 // 		~q == Union(q1, q2)
@@ -186,7 +185,7 @@ strategy induction-Progress {
 // 		StoreContextConsistent(TS, TTC)
 // 		==================================== SQL-Progress-T-Union-3
 // 		exists ~cout
-// 			reduce(~cin) = some(~cout)
+// 			reduce(~cin) = someConf(~cout)
 // 	}
 // 		
 // 	axiom
@@ -198,7 +197,7 @@ strategy induction-Progress {
 // 	StoreContextConsistent(TS, TTC)
 // 	==================================== SQL-Progress-T-Union-3
 // 	exists ~cout
-// 		reduce(~cin) = some(~cout)
+// 		reduce(~cin) = someConf(~cout)
 // 		
 // 	goal
 // 	~q == Union(q1, q2)
@@ -208,74 +207,82 @@ strategy induction-Progress {
 // 	StoreContextConsistent(TS, TTC)
 // 	==================================== SQL-Progress-T-Union
 // 	exists ~cout
-// 		reduce(~cin) = some(~cout)
+// 		reduce(~cin) = someConf(~cout)
 // }
 
 // // 
 // // 
 // // local {
-// // 	consts sql1 : SQLExp
-// // 		sql2 : SQLExp
-// // 		TS : TStore
+// // 	consts q1 : Query
+// // 		q2 : Query
+// //       TS : TStore
+// // 		TTC : TTContext
 // // 		TT : TType
 // // 		
 // // 	axiom
-// // 	~cin == conf(sql1, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
+// // 	~cin == conf(q1, TS)
+// // 	!isValue(~q)
+// //   StoreContextConsistent(TS, TTC)
+// // 	TTC |- ~q : TT
 // // 	==================================== SQL-Progress-T-Intersection-IH1
 // // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
+// // 		reduce(~cin) = someConf(~cout)
 // // 		
 // // 	axiom
-// // 	~cin == conf(sql2, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
+// // 	~cin == conf(q2, TS)
+// // 	!isValue(~q)
+// //   StoreContextConsistent(TS, TTC)
+// // 	TTC |- ~q : TT
 // // 	==================================== SQL-Progress-T-Intersection-IH2
 // // 	exists ~cout
 // // 		reduce(~cin) = some(~cout)
 // // 	
 // // 	goal
-// // 	~sql == Intersection(sql1, sql2)
-// // 	~cin == conf(~sql, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
+// // 	~q == Intersection(q1, q2)
+// // 	~cin == conf(~q, TS)
+// // 	!isValue(~q)
+// //   StoreContextConsistent(TS, TTC)
+// // 	TTC |- ~q : TT
 // // 	==================================== SQL-Progress-T-Intersection
 // // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
+// // 		reduce(~cin) = someConf(~cout)
 // // }
 // // 
 // // 
 // // local {
-// // 	consts sql1 : SQLExp
-// // 		sql2 : SQLExp
+// // 	consts q1 : Query
+// // 		sql2 : Query
 // // 		TS : TStore
+// //       TTC : TTContext
 // // 		TT : TType
 // // 		
 // // 	axiom
-// // 	~cin == conf(sql1, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
+// // 	~cin == conf(q1, TS)
+// // 	!isValue(~q)
+// //   StoreContextConsistent(TS, TTC)
+// // 	TTC |- ~q : TT
 // // 	==================================== SQL-Progress-T-Difference-IH1
 // // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
+// // 		reduce(~cin) = someConf(~cout)
 // // 		
 // // 	axiom
-// // 	~cin == conf(sql2, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
+// // 	~cin == conf(q2, TS)
+// // 	!isValue(~q)
+// //   StoreContextConsistent(TS, TTC)
+// // 	TTC |- ~q : TT
 // // 	==================================== SQL-Progress-T-Difference-IH2
 // // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
+// // 		reduce(~cin) = someConf(~cout)
 // // 	
 // // 	goal
-// // 	~sql == Difference(sql1, sql2)
-// // 	~cin == conf(~sql, TS)
-// // 	!isValue(~sql)
-// // 	TS |- ~sql : TT
+// // 	~sql == Difference(q1, q2)
+// // 	~cin == conf(~q, TS)
+// // 	!isValue(~q)
+// //   StoreContextConsistent(TS, TTC)
+// // 	TS |- ~q : TT
 // // 	==================================== SQL-Progress-T-Difference
 // // 	exists ~cout
-// // 		reduce(~cin) = some(~cout)
+// // 		reduce(~cin) = someConf(~cout)
 // // }
 // 
 // 
@@ -287,7 +294,7 @@ strategy induction-Progress {
 	StoreContextConsistent(~TS, ~TTC)
 	==================================== SQL-Progress-ind
 	exists ~cout
-		reduce(~cin) = some(~cout)
+		reduce(~cin) = someConf(~cout)
 
 }
 
@@ -299,4 +306,4 @@ goal verify-with induction-Progress
 StoreContextConsistent(~TS, ~TTC)
 ==================================== SQL-Progress
 exists ~cout
-	reduce(~cin) = some(~cout)
+	reduce(~cin) = someConf(~cout)

@@ -1,6 +1,5 @@
 module sql.AuxLemmas
 
-import sql.BasicFunctions
 import sql.TStore
 import sql.TContext
 import sql.SoundnessAuxDefs
@@ -9,35 +8,35 @@ import sql.Tables
 
 //proof by simple induction over the structure of the table type context
 goal //trivial, premise wrong
-clookup(~tn, cempty) == some(~TT)
-StoreContextConsistent(~TS, cempty)
+lookupContext(~tn, emptyContext) == someTType(~TT)
+StoreContextConsistent(~TS, emptyContext)
 ============================================== lookup-aux-cempty
 exists ~t
-	lookup(~tn, ~TS) == some(~t)
+	lookupStore(~tn, ~TS) == someTable(~t)
 	
 local {
 	const TTR : TTContext
 	
 	axiom 
-	clookup(~tn, TTR) == some(~TT)
+	lookupContext(~tn, TTR) == someTType(~TT)
 	StoreContextConsistent(~TS, TTR)
 	============================================== lookup-aux-cbind-IH
 	exists ~t
-		lookup(~tn, ~TS) == some(~t)
+		lookupStore(~tn, ~TS) == someTable(~t)
 	
 	goal
-	clookup(~tn, cbind(~tm, ~tt, TTR)) == some(~TT)
-	StoreContextConsistent(~TS, cbind(~tm, ~tt, TTR))
+	lookupContext(~tn, bindContext(~tm, ~tt, TTR)) == someTType(~TT)
+	StoreContextConsistent(~TS, bindContext(~tm, ~tt, TTR))
 	==================================================== lookup-aux-cbind
 	exists ~t
-		lookup(~tn, ~TS) == some(~t)
+		lookupStore(~tn, ~TS) == someTable(~t)
 	
 } //qed lookup-aux
 
 
 axiom
-clookup(~tn, ~TTC) == some(~TT)
+lookupContext(~tn, ~TTC) == someTType(~TT)
 StoreContextConsistent(~TS, ~TTC)
 ============================================== lookup-aux
 exists ~t
-	lookup(~tn, ~TS) == some(~t)
+	lookupStore(~tn, ~TS) == someTable(~t)

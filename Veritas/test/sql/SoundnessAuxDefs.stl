@@ -1,6 +1,5 @@
 module sql.SoundnessAuxDefs
 
-import sql.BasicFunctions
 import sql.Tables
 import sql.TStore
 import sql.Syntax
@@ -12,8 +11,8 @@ import sql.TypeSystem
 // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
 function
 StoreContextConsistent : TStore TTContext -> Bool
-StoreContextConsistent(empty, cempty) = true
-StoreContextConsistent(bind(tn1, t, tsr), cbind(tn2, tt, ttcr)) = 
+StoreContextConsistent(emptyStore, emptyContext) = true
+StoreContextConsistent(bindStore(tn1, t, tsr), bindContext(tn2, tt, ttcr)) = 
 	((tn1 == tn2) && welltypedtable(tt, t))
 	&& StoreContextConsistent(tsr, ttcr)
 StoreContextConsistent(ts, ttc) = false 
@@ -23,11 +22,11 @@ strategy induction-StoreContext-Lookup-WT {
 	// by structural induction on ~TS and ~TTC
 	
 	goal
-	~TS = empty
-	~TTC = cempty
+	~TS = emptyStore
+	~TTC = emptyContext
 	StoreContextConsistent(~TS, ~TTC)
-	lookup(~tn, ~TS) = some(~t)
-	clookup(~tn, ~TTC) == some(~tt)
+	lookupStore(~tn, ~TS) = someTable(~t)
+	lookupContext(~tn, ~TTC) == someTType(~tt)
 	================================= StoreContext-Lookup-WT-1
 	welltypedtable(~tt, ~t)
 
@@ -38,11 +37,11 @@ strategy induction-StoreContext-Lookup-WT {
 			cttc : TTContext
 		
 		goal
-		~TS = empty
-		~TTC = cbind(ctn, ctt, cttc)
+		~TS = emptyStore
+		~TTC = bindContext(ctn, ctt, cttc)
 		StoreContextConsistent(~TS, ~TTC)
-		lookup(~tn, ~TS) = some(~t)
-		clookup(~tn, ~TTC) == some(~tt)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
 		================================= StoreContext-Lookup-WT-2
 		welltypedtable(~tt, ~t)
 	}
@@ -54,11 +53,11 @@ strategy induction-StoreContext-Lookup-WT {
 			cts : TStore
 		
 		goal
-		~TS = bind(ctn, ct, cts)
-		~TTC = cempty
+		~TS = bindContext(ctn, ct, cts)
+		~TTC = emptyContext
 		StoreContextConsistent(~TS, ~TTC)
-		lookup(~tn, ~TS) = some(~t)
-		clookup(~tn, ~TTC) == some(~tt)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
 		================================= StoreContext-Lookup-WT-3
 		welltypedtable(~tt, ~t)
 	}
@@ -76,17 +75,17 @@ strategy induction-StoreContext-Lookup-WT {
 		~TS = cts
 		~TTC = cttc
 		StoreContextConsistent(~TS, ~TTC)
-		lookup(~tn, ~TS) = some(~t)
-		clookup(~tn, ~TTC) == some(~tt)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
 		================================= StoreContext-Lookup-WT-4-IH
 		welltypedtable(~tt, ~t)
 		
 		goal
-		~TS = bind(ctn1, ct, cts)
-		~TTC = cbind(ctn2, ctt, cttc)
+		~TS = bindStore(ctn1, ct, cts)
+		~TTC = bindContext(ctn2, ctt, cttc)
 		StoreContextConsistent(~TS, ~TTC)
-		lookup(~tn, ~TS) = some(~t)
-		clookup(~tn, ~TTC) == some(~tt)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
 		================================= StoreContext-Lookup-WT-4
 		welltypedtable(~tt, ~t)
 	}
@@ -94,8 +93,8 @@ strategy induction-StoreContext-Lookup-WT {
 	hide-all
 	axiom
 	StoreContextConsistent(~TS, ~TTC)
-	lookup(~tn, ~TS) = some(~t)
-	clookup(~tn, ~TTC) == some(~tt)
+	lookupStore(~tn, ~TS) = someTable(~t)
+	lookupContext(~tn, ~TTC) == someTType(~tt)
 	================================= StoreContext-Lookup-WT-ind
 	welltypedtable(~tt, ~t)
 	
@@ -103,7 +102,7 @@ strategy induction-StoreContext-Lookup-WT {
 
 lemma verify-with induction-StoreContext-Lookup-WT
 StoreContextConsistent(~TS, ~TTC)
-lookup(~tn, ~TS) = some(~t)
-clookup(~tn, ~TTC) == some(~tt)
+lookupStore(~tn, ~TS) = someTable(~t)
+lookupContext(~tn, ~TTC) == someTType(~tt)
 ================================= StoreContext-Lookup-WT
 welltypedtable(~tt, ~t)
