@@ -1,17 +1,17 @@
 package de.tu_darmstadt.veritas.backend
 
-import java.io.PrintWriter
 import java.io.File
-import java.io.FileWriter
-import java.io.BufferedWriter
+import java.io.FileOutputStream
+import java.io.PrintWriter
+
 import scala.collection.JavaConverters.seqAsJavaListConverter
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import scala.util.control.NonFatal
+
 import org.spoofax.interpreter.terms.IStrategoList
 import org.spoofax.interpreter.terms.IStrategoTerm
 import org.spoofax.interpreter.terms.IStrategoTuple
-import de.tu_darmstadt.veritas.backend.nameresolution.NameResolution
+
+import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTuple
@@ -22,20 +22,19 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.transformation.ToFof
-import de.tu_darmstadt.veritas.backend.transformation.ToTff
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
-import de.tu_darmstadt.veritas.backend.transformation.defs._
-import java.io.FileOutputStream
-import scala.util.control.NonFatal
-import de.tu_darmstadt.veritas.backend.Configuration._
 
 object Backend {
 
   val fullVariability = FullVariability
   val noGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.BareFOF, FinalEncoding.TFF)))
   val onlyGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.GuardedFOF)))
-  
+  val singleTransformation = PartialVariability(
+      Map(FinalEncoding -> Seq(FinalEncoding.TFF),
+      (Problem -> Seq(Problem.Consistency)),
+      (InversionLemma -> Seq(InversionLemma.On)),
+      (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
+      (LogicalSimplification -> Seq(LogicalSimplification.On))))
+
   /**
    * This variability model is used by the code below
    */
@@ -163,6 +162,9 @@ object Backend {
 
     Context.initStandalone(indexAndTaskenginePath)
 
+    //use this to debug a single partial transformation....
+    //val resultFiles = Seq(("", (BasicTrans(Seq(Module.from(aterm)))(Configuration(Map()))).head))
+    
     val resultFiles = runAllEncodings(aterm) //writes files
 
     // write resulting files on console in addition
