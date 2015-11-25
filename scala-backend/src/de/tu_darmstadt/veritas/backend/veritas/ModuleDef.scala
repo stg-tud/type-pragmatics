@@ -329,6 +329,8 @@ object Consts {
 }
 
 case class DataType(open: Boolean, name: String, constrs: Seq[DataTypeConstructor]) extends ModuleDef {
+  require(!(DataType.predefinedTypes contains name), s"Cannot redefine predefined type $name")
+
   override val children = Seq(constrs)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -362,6 +364,8 @@ case class DataType(open: Boolean, name: String, constrs: Seq[DataTypeConstructo
 }
 
 object DataType {
+  val predefinedTypes: List[String] = List("Bool", "iType")
+
   def Openedness(term: StrategoTerm): Boolean = term match {
     case StrategoAppl("Sealed") => false
     case StrategoAppl("Open") => true

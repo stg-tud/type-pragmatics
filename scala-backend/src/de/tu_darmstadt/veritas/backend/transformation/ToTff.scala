@@ -50,13 +50,8 @@ object ToTff {
     
     veritasModule match {
       case Module(name, Seq(), body) => {
-        try {
-          bodyToTff(body)
-          constructFinalTff(name + ".tff")
-        } catch {
-          case TransformationError(s) => throw TransformationError(s"Failed to transform Module ${name} to TFF: " + s)
-          case e: Exception           => throw e
-        }
+        bodyToTff(body)
+        constructFinalTff(name + ".tff")
       }
       case Module(name, _, _) => throw TransformationError(s"Failed to transform Module ${name} to TFF: Module still contained imports!")
     }
@@ -71,7 +66,9 @@ object ToTff {
       md match {
         case Axioms(axs)           => axiomlist ++= translateAxioms(axs)
         case Goals(gs, _)          => throw TransformationError("Found goal in Module which was not at last position!")
-        case DataType(open, name, cs) => addDataTypeConstructor(cs, name)
+        case d@DataType(open, name, cs) => 
+          addDataType(d)
+          addDataTypeConstructor(cs, name)
         case Consts(cs, _)         => addConstDecl(cs)
         case Sorts(s)              => addSortDef(s)
         case Functions(fds)        => addFunctionDefinition(fds)
@@ -115,6 +112,21 @@ object ToTff {
         addTSIfNew(ts)
         TffAnnotated(s"${name}_type", Type, ts)
       })
+
+  /**
+   * collects newly discovered data types,
+   * adds top-level type declaration to typedecllist
+   *
+   * throws an error if the data type is already defined
+   */
+  private def addDataType(d: DataType): Unit =
+    typedecllist :+= {
+      // note: data types can never contain predefined sorts (ensured via "require")
+      // so blindly adding the DataType is ok
+      val ts = makeTopLevelSymbol(d.name)
+      addTSIfNew(ts)
+      TffAnnotated(s"${d.name}_type", Type, ts)
+    }
 
   private def translatePredefinedType(t: String): DefinedType =
     t match {
