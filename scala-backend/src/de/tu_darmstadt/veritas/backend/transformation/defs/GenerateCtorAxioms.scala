@@ -15,63 +15,50 @@ import de.tu_darmstadt.veritas.backend.veritas.function._
  * Module, multiple are fine now...
  */
 object GenerateCtorAxioms extends ModuleTransformation {
-  override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] =
-      withSuper(super.transModule(name, is, mdefs)) {
-        case mod: Module => Seq(Module(mod.name, mod.imports, generateEqAndDiffAxioms(mod.defs, Seq())))
-      }
   
-  private def generateEqAndDiffAxioms(defs: Seq[ModuleDef], _ctorsSoFar: Seq[ConstructorDecl]): Seq[ModuleDef] = {
-    var ctorsSoFar = _ctorsSoFar
-    defs.flatMap {
-      // handle Constructors further down the ModuleDef tree
-      case Local(localDefs) => Seq(Local(generateEqAndDiffAxioms(localDefs, ctorsSoFar)))
-      case Strategy(name, imports, strategyDefs) => Seq(Strategy(name, imports, generateEqAndDiffAxioms(strategyDefs, ctorsSoFar)))
-      
-      // foreach Constructors node you see, generate a following Axioms() node, containing EQ and DIFF axioms
-      case ctors @ Constructors(decls) if decls.nonEmpty => {
-        val generatedAxioms = decls.flatMap { decl => 
-          val args = decl.in map (_.name)
-          
-          /*
-           * generate one EQ axiom per ConstructorDecl
-           */
-          val eqAxiom = {
-            val freshNames = new FreshNames
-            val argsLeft = freshNames(args) map (MetaVar(_)) map (FunctionMeta(_))
-            val argsRight = freshNames(args) map (MetaVar(_)) map (FunctionMeta(_))
-  
-            // no premise, just a biimplication as conclusion
-            TypingRule("EQ-" + decl.name, Nil,
-              Seq(FunctionExpBiImpl(
-                FunctionExpAnd((argsLeft, argsRight).zipped map (FunctionExpEq(_, _))),
-                FunctionExpEq(FunctionExpApp(decl.name, argsLeft),
-                  FunctionExpApp(decl.name, argsRight)))))
-          }
-          
-          /*
-           * and one DIFF axiom PER other ConstructorDecl seen so far
-           * but only for those that have the same return type 
-           * (otherwise, they aren't equal anyway, no need for a DIFF axiom) 
-           */
-          val diffAxioms = ctorsSoFar.filter(_.out == decl.out).map { otherDecl =>
-            val freshNames = new FreshNames
-            val argsLeft = freshNames(args) map (MetaVar(_)) map (FunctionMeta(_))
-            val argsRight = freshNames(otherDecl.in map (_.name)) map (MetaVar(_)) map (FunctionMeta(_))
-  
-            TypingRule("DIFF-" + decl.name + "-" + otherDecl.name, Nil,
-              Seq(FunctionExpNeq(FunctionExpApp(decl.name, argsLeft),
-                FunctionExpApp(otherDecl.name, argsRight))))
-          }
-
-          // add the just processed ConstructorDecl to our "seen so far" list
-          ctorsSoFar +:= decl
-
-          eqAxiom +: diffAxioms
+  override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = {
+    withSuper(super.transModuleDefs(mdef)) {
+      case dt@DataType(open, name, constrs) =>
+        val eqAxioms = constrs map (makeEqAxiom(_))
+        if (open)
+          Seq(dt, Axioms(eqAxioms))
+        else {
+          val diffAxioms = makeDiffAxioms(constrs)
+          Seq(dt, Axioms(eqAxioms ++ diffAxioms))
         }
-        Seq(ctors, Axioms(generatedAxioms))        
-      }
-
-      case other => Seq(other)
     }
+  }
+
+  private def makeEqAxiom(c: DataTypeConstructor) = {
+    val freshNames = new FreshNames
+    val args = c.in map (_.name)
+    val argsLeft = freshNames(args) map (x => FunctionMeta(MetaVar(x)))
+    val argsRight = freshNames(args) map (x => FunctionMeta(MetaVar(x)))
+
+    // no premise, just a biimplication as conclusion
+    TypingRule("EQ-" + c.name, Nil,
+      Seq(FunctionExpBiImpl(
+        FunctionExpAnd((argsLeft, argsRight).zipped map (FunctionExpEq(_, _))),
+        FunctionExpEq(FunctionExpApp(c.name, argsLeft),
+          FunctionExpApp(c.name, argsRight)))))
+  }
+
+  
+  private def makeDiffAxioms(constrs: Seq[DataTypeConstructor]) = 
+    for (i <- 0 until constrs.size;
+         j <- i + 1 until constrs.size)
+      yield makeDiffAxiom(constrs(i), constrs(j))
+  
+  
+  private def makeDiffAxiom(c1: DataTypeConstructor, c2: DataTypeConstructor) = {
+    val freshNames = new FreshNames
+    val args1 = c1.in map (_.name)
+    val args2 = c2.in map (_.name)
+    val argsLeft = freshNames(args1) map (x => FunctionMeta(MetaVar(x)))
+    val argsRight = freshNames(args2) map (x => FunctionMeta(MetaVar(x)))
+
+    TypingRule("DIFF-" + c1.name + "-" + c2.name, Nil,
+      Seq(FunctionExpNeq(FunctionExpApp(c1.name, argsLeft),
+        FunctionExpApp(c2.name, argsRight))))
   }
 }
