@@ -54,6 +54,7 @@ object BasicTrans extends SeqTrans(
   VarToApp0,
   DesugarLemmas,
   ConstructorTrans,
+  GenerateDiffAxiomsForConsts,
   FunctionEqToAxiomsSimple,
   TranslateTypingJudgmentToFunction,
   TranslateTypingJudgmentSimpleToFunction)

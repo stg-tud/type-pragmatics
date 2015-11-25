@@ -38,7 +38,7 @@ object MoveDeclsToFront extends ModuleTransformation {
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     withSuper(super.transModuleDefs(mdef)) {
       case s@Sorts(_)             => { sortdecls :+= s; Seq() }
-      case cs@Consts(_)          => { consdecls :+= cs; Seq() }
+      case cs@Consts(_,_)          => { consdecls :+= cs; Seq() }
       case dt@DataType(_,_,_)   => { datatypes :+= dt; Seq() }
       case Functions(fs)        => { funcdecls :+= Functions(fs map (f => FunctionDef(f.signature, Seq()))); Seq() }
       case PartialFunctions(fs) => { pfuncdecls :+= PartialFunctions(fs map (f => FunctionDef(f.signature, Seq()))); Seq() }

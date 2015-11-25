@@ -294,8 +294,12 @@ ModuleDef =
   
 > {ast("Sorts([<1>])")}
 
+
+DifferentConsts.Any = <>
+DifferentConsts.Different = <different>
+
 ModuleDef.Consts = 
-<consts <ConstDecl*>
+<<DifferentConsts> consts <ConstDecl*>
 
 >
  
@@ -303,6 +307,7 @@ ModuleDef =
 <const <ConstDecl>
 
 > {ast("Consts([<1>])")}
+
   
 ModuleDef.Functions = 
 <functions 

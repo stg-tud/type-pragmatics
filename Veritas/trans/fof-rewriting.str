@@ -362,7 +362,7 @@ strategies
 			usedaxioms2 := <conc> (usedaxioms, cs-axioms, cs-diff-axioms); 
 			cons2 := <conc> (cons, cs);
 			others := <generate-fof-goals(|axioms2, usedaxioms2, cons2, limps, strats)> rest
-	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Consts(cs) | rest] -> others
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Consts(_,cs) | rest] -> others
 		where
 			cs-axioms := <map(scoped-constructor-axiom)> cs;
 			axioms2 := <conc> (axioms, cs-axioms); 
@@ -452,7 +452,7 @@ strategies
 		where <?Some(<elem(|ImportAnnoTypes())>)> annos
 	filter-import(|annos) : [x@DataType(_,_,_)|xs] -> [x|<filter-import(|annos)>xs]
 		where <?Some(<elem(|ImportAnnoTypes())>)> annos
-	filter-import(|annos) : [x@Consts(_)|xs] -> [x|<filter-import(|annos)>xs]
+	filter-import(|annos) : [x@Consts(_,_)|xs] -> [x|<filter-import(|annos)>xs]
 		where <?Some(<elem(|ImportAnnoTypes())>)> annos
 	filter-import(|annos) : [x@PartialFunctions(_)|xs] -> [x|<filter-import(|annos)>xs]
 		where <?Some(<elem(|ImportAnnoFunctions())>)> annos

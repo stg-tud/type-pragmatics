@@ -293,7 +293,7 @@ case class PartialFunctions(funcs: Seq[FunctionDef]) extends ModuleDef {
   }
 }
 
-case class Consts(consts: Seq[ConstDecl]) extends ModuleDef {
+case class Consts(consts: Seq[ConstDecl], different: Boolean) extends ModuleDef {
   override val children = Seq(consts)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -304,18 +304,27 @@ case class Consts(consts: Seq[ConstDecl]) extends ModuleDef {
       case e: ConstDecl => e
       case _                  => throw new ClassCastException
     }
-    Consts(newctors)
+    Consts(newctors, different)
   }
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    consts.dropRight(1) foreach { c =>
-      writer.write("const ");
-      writer.writeln(c)
+    if (different)
+      writer.write("different ")
+    writer.write("consts ")
+    writer.indent()
+    consts foreach { c =>
+      c.prettyPrint(writer)
+      writer.writeln()
     }
-    consts.lastOption foreach { c =>
-      writer.write("const ");
-      writer.write(c)
-    }
+    writer.unindent()
+  }
+}
+
+object Consts {
+  def Different(term: StrategoTerm) = term match {
+    case StrategoAppl("Any") => false
+    case StrategoAppl("Different") => true
+    case t => throw VeritasParseError(t)
   }
 }
 
@@ -392,7 +401,7 @@ object ModuleDef {
     case StrategoAppl("Sorts", StrategoList(sorts)) => Sorts(sorts map SortDef.from)
     case StrategoAppl("Functions", StrategoList(funcDefs)) => Functions(funcDefs map FunctionDef.from)
     case StrategoAppl("PartialFunctions", StrategoList(funcDefs)) => PartialFunctions(funcDefs map FunctionDef.from)
-    case StrategoAppl("Consts", StrategoList(consts)) => Consts(consts map ConstDecl.from)
+    case StrategoAppl("Consts", different, StrategoList(consts)) => Consts(consts map ConstDecl.from, Consts.Different(different))
     case StrategoAppl("DataType", openedness, StrategoString(name), StrategoList(constrs)) => DataType(DataType.Openedness(openedness), name, constrs map DataTypeConstructor.from)
     case t => throw VeritasParseError(t)
   }

@@ -7,7 +7,7 @@ import encodingcompstudy.TStore
 import encodingcompstudy.Semantics
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -15,7 +15,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -33,7 +33,7 @@ local {
 }
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -41,7 +41,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		A1 : AName
 		A2 : AName
 		A3 : AName
@@ -56,7 +56,7 @@ local {
 }
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -64,7 +64,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		A1 : AName
 		A2 : AName
 		A3 : AName
@@ -80,7 +80,7 @@ local {
 }
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -88,7 +88,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		A1 : AName
 		A2 : AName
 		A3 : AName
@@ -105,7 +105,7 @@ local {
 
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -113,7 +113,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -142,7 +142,7 @@ local {
 
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -150,7 +150,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		A1 : AName
 		A2 : AName
 		A3 : AName
@@ -166,7 +166,7 @@ local {
 }
 
 local {
-	constructors
+	different consts
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -174,7 +174,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -191,7 +191,7 @@ local {
 }
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -199,7 +199,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -229,7 +229,7 @@ local {
 
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -237,7 +237,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -269,7 +269,7 @@ local {
 
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -277,7 +277,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		TN : TName
 		A1 : AName
 		A2 : AName
@@ -316,7 +316,7 @@ local {
 
 
 local {
-	constructors 
+	different consts 
 		x1 : FVal
 		x2 : FVal
 		y1 : FVal
@@ -324,7 +324,7 @@ local {
 		z1 : FVal
 		z2 : FVal
 		
-	constructors
+	different consts
 		TN : TName
 		A1 : AName
 		A2 : AName
