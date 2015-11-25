@@ -1,10 +1,10 @@
 module encodingcompstudy.Semantics-test
 
-import encodingcompstudy.Semantics
 import encodingcompstudy.Tables
 import encodingcompstudy.TableAux
 import encodingcompstudy.Syntax
 import encodingcompstudy.TStore
+import encodingcompstudy.Semantics
 
 local {
 	constructors 

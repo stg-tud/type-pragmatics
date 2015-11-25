@@ -1,9 +1,9 @@
 module encodingcompstudy.Semantics
 
-import encodingcompstudy.Syntax
-import encodingcompstudy.TStore
 import encodingcompstudy.Tables
 import encodingcompstudy.TableAux
+import encodingcompstudy.Syntax
+import encodingcompstudy.TStore
 
 sorts
 	Conf OptConf
