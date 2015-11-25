@@ -307,7 +307,7 @@ final case class FunctionExpVar(name: String) extends FunctionExp with SimplePre
 
   override def prettyString = name
 
-  override def toString() = "name"
+  override def toString() = name
 }
 
 final case object FunctionExpTrue extends FunctionExp with SimplePrettyPrintable {

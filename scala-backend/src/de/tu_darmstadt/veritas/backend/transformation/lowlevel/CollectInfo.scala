@@ -34,8 +34,8 @@ trait CollectConstructorNames extends ModuleTransformation {
       case m => super.transModuleDefs(m)
     }
 
-  override def transConstructorDecls(cd: ConstructorDecl): Seq[ConstructorDecl] =
-    withSuper(super.transConstructorDecls(cd)) {
+  override def transConstructorDecls(cd: ConstructorDecl, const: Boolean): Seq[ConstructorDecl] =
+    withSuper(super.transConstructorDecls(cd, const)) {
       case c @ ConstructorDecl(n, in, out) => {
         consNames = consNames + cd.name
         Seq(c)
@@ -101,7 +101,7 @@ trait CollectTypeInfo extends ModuleTransformation {
     mdef match {
       case cons @ Constructors(cdecl) => {
         (cdecl map { case c @ ConstructorDecl(n, in, out) => constypes.put(n, (in, out)) })
-        Seq(Constructors(trace(cdecl)(transConstructorDecls(_))))
+        Seq(Constructors(trace(cdecl)(transConstructorDecls(_, false))))
       }
       case funcs @ Functions(fdecl) => {
         (fdecl map { case c @ FunctionDef(FunctionSig(n, in, out), defs) => functypes.put(n, (in, out)) })

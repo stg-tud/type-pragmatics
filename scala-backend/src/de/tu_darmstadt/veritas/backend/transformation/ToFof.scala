@@ -109,6 +109,6 @@ object ToFof {
     f match {
       case FunctionMeta(MetaVar(m)) => UntypedVariable(m)
       case FunctionExpApp(n, args)  => Appl(UntypedFunSymbol(n), args map functionExpMetaToFof)
-      case _                        => throw TransformationError("Encountered unexpected construct in functionExpMetaToTff: " + f)
+      case _                        => throw TransformationError("Encountered unexpected construct in functionExpMetaToFof: " + f)
     }
 }

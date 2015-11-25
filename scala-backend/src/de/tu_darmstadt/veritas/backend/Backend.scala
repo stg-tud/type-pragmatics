@@ -105,8 +105,8 @@ object Backend {
         it.next()
       } catch {
         case NonFatal(e) =>
-          Context.log(s"FAILED: Generation for configuration ${comparison.lastConfig}: ")
-          Context.debug(e)
+          Context.log(s"FAILED: Generation for configuration ${comparison.lastConfig}:")
+          Context.reportException(e.asInstanceOf[Exception])
           (comparison.lastConfig, Seq())
       }
       result = result ++ processSingleResult(config, files)
