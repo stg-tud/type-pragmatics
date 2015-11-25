@@ -17,8 +17,8 @@ import de.tu_darmstadt.veritas.backend.Configuration
  */
 trait FunctionEqToSimpleAxioms extends ModuleTransformation {
   var fresh = new FreshNames
-  
-   override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
+
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure that any mutable state is initialized upon application!
     fresh = new FreshNames
     super.apply(m)
@@ -165,8 +165,10 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
     try {
       val pos = varsToMetaVars(c).asInstanceOf[FunctionExp]
       val neg = pos match {
-        case FunctionExpEq(l, r) => FunctionExpNeq(l, r)
-        case e                   => FunctionExpNot(e)
+        case FunctionExpEq(l, r)  => FunctionExpNeq(l, r)
+        case FunctionExpNeq(l, r) => FunctionExpEq(l, r)
+        case FunctionExpNot(e)    => e
+        case e                    => FunctionExpNot(e)
       }
       (FunctionExpJudgment(pos), FunctionExpJudgment(neg))
     } catch {
