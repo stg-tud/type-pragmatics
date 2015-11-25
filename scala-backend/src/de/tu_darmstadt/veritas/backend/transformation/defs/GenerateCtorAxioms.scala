@@ -20,12 +20,8 @@ object GenerateCtorAxioms extends ModuleTransformation {
     withSuper(super.transModuleDefs(mdef)) {
       case dt@DataType(open, name, constrs) =>
         val eqAxioms = constrs map (makeEqAxiom(_))
-        if (open)
-          Seq(dt, Axioms(eqAxioms))
-        else {
-          val diffAxioms = makeDiffAxioms(constrs)
-          Seq(dt, Axioms(eqAxioms ++ diffAxioms))
-        }
+        val diffAxioms = makeDiffAxioms(constrs)
+        Seq(dt, Axioms(eqAxioms ++ diffAxioms))
     }
   }
 

@@ -36,12 +36,17 @@ trait CollectConstructorNames extends ModuleTransformation {
 
   override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
     withSuper(super.transDataTypeConstructor(d, open, dataType)) {
-      case c @ DataTypeConstructor(n, in) => {
+      case c@DataTypeConstructor(n, in) =>
         consNames = consNames + n
         Seq(c)
-      }
     }
 
+  override def transConstDecl(d: ConstDecl): Seq[ConstDecl] = 
+    withSuper(super.transConstDecl(d)) {
+      case c@ConstDecl(n, out) =>
+        consNames = consNames + n
+        Seq(c)
+    }
 }
 
 trait CollectSortNames extends ModuleTransformation {
@@ -97,12 +102,19 @@ trait CollectTypeInfo extends ModuleTransformation {
 
   override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
     withSuper(super.transDataTypeConstructor(d, open, dataType)) {
-      case c @ DataTypeConstructor(n, in) => {
-        constypes.put(d.name, (d.in -> SortRef(dataType)))
+      case c@DataTypeConstructor(n, in) => {
+        constypes.put(n, (d.in -> SortRef(dataType)))
         Seq(c)
       }
     }
 
+  override def transConstDecl(d: ConstDecl): Seq[ConstDecl] = 
+    withSuper(super.transConstDecl(d)) {
+      case c@ConstDecl(n, out) =>
+        constypes.put(n, (Seq() -> out))
+        Seq(c)
+    }
+  
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     //take scoping into account (local blocks and strategy blocks!)
     //reset consNames to previous value when "leaving" such a block during the traversal
