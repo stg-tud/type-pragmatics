@@ -54,6 +54,7 @@ object LogicalTermOptimization extends ModuleTransformation {
       case FunctionExpBiImpl(l, r) if (l == r)                 => Seq(FunctionExpTrue)
       case FunctionExpNot(FunctionExpFalse)                    => Seq(FunctionExpTrue)
       case FunctionExpNot(FunctionExpTrue)                     => Seq(FunctionExpFalse)
+      case FunctionExpNot(FunctionExpNot(e))                   => Seq(e)
       case FunctionExpAnd(_, FunctionExpFalse)                 => Seq(FunctionExpFalse)
       case FunctionExpAnd(FunctionExpFalse, _)                 => Seq(FunctionExpFalse)
       case FunctionExpAnd(l, FunctionExpTrue)                  => Seq(transFunctionExp(l))
@@ -78,6 +79,7 @@ object LogicalTermOptimization extends ModuleTransformation {
       case FunctionExpBiImpl(l, r) if (l == r)                 => FunctionExpTrue
       case FunctionExpNot(FunctionExpFalse)                    => FunctionExpTrue
       case FunctionExpNot(FunctionExpTrue)                     => FunctionExpFalse
+      case FunctionExpNot(FunctionExpNot(e))                   => e
       case FunctionExpAnd(_, FunctionExpFalse)                 => FunctionExpFalse
       case FunctionExpAnd(FunctionExpFalse, _)                 => FunctionExpFalse
       case FunctionExpAnd(l, FunctionExpTrue)                  => transFunctionExp(l)
