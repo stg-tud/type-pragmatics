@@ -28,6 +28,7 @@ object Backend {
   val fullVariability = FullVariability
   val noGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.BareFOF, FinalEncoding.TFF)))
   val onlyGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.GuardedFOF)))
+
   val singleTransformation = PartialVariability(
       Map(FinalEncoding -> Seq(FinalEncoding.TFF),
       (Problem -> Seq(Problem.Consistency)),
@@ -35,10 +36,13 @@ object Backend {
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
+  val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.Unchanged, InversionLemma -> InversionLemma.On, Problem -> Problem.Test))
+  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.Unchanged, InversionLemma -> InversionLemma.On, Problem -> Problem.Test))
+ 
   /**
    * This variability model is used by the code below
    */
-  val variabilityModel = noGuardedFOF
+  val variabilityModel = onlyTFFTest
   
   
   
