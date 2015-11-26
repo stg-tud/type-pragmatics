@@ -33,8 +33,8 @@ object ToTff {
    */
   private var goal: Option[TffAnnotated] = None
 
-  
-  def typedSymbols = CollectTypes.typedSymbols
+  private var types: CollectTypes = _
+  def typedSymbols = types.typedSymbols
 
   /**
    * top-level function for translating a Module to a TffFile
@@ -44,7 +44,8 @@ object ToTff {
     axiomlist = Seq()
     goal = None
     
-    CollectTypes.apply(Seq(veritasModule))
+    types = new CollectTypes
+    types.apply(Seq(veritasModule))
     
     veritasModule match {
       case Module(name, Seq(), body) => {
@@ -138,7 +139,7 @@ object ToTff {
   private def addConstDecl(cs: Seq[ConstDecl]): Unit =
     typedecllist ++=
       (for (ConstDecl(name, out) <- cs) yield {
-        val outt = CollectTypes.makeAtomicType(out.name)
+        val outt = types.makeAtomicType(out.name)
         val ts = TypedSymbol(name, outt)
         TffAnnotated(s"${name}_type", Type, ts)
       })
@@ -146,8 +147,8 @@ object ToTff {
   private def addDataTypeConstructor(cs: Seq[DataTypeConstructor], dataType: String): Unit =
     typedecllist ++=
       (for (DataTypeConstructor(name, in) <- cs) yield {
-        val outt = CollectTypes.makeAtomicType(dataType)
-        val ints = in map (s => CollectTypes.makeAtomicType(s.name))
+        val outt = types.makeAtomicType(dataType)
+        val ints = in map (s => types.makeAtomicType(s.name))
         val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
         val ts = TypedSymbol(name, t)
         TffAnnotated(s"${name}_type", Type, ts)
@@ -162,8 +163,8 @@ object ToTff {
         if (!eqs.isEmpty)
           throw TransformationError(s"Function definition ${name} still contained untransformed function equations!")
         
-        val outt = CollectTypes.makeAtomicType(out.name)
-        val ints = in map (s => CollectTypes.makeAtomicType(s.name))
+        val outt = types.makeAtomicType(out.name)
+        val ints = in map (s => types.makeAtomicType(s.name))
         val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
         val ts = TypedSymbol(name, t)
         TffAnnotated(s"${name}_type", Type, ts)
@@ -189,7 +190,7 @@ object ToTff {
     }
 
   def makeVarlist(vars: Seq[MetaVar], jdgs: Seq[TypingRuleJudgment]): Seq[Variable] = {
-    val map = CollectTypes.inferMetavarTypes(vars, jdgs)
+    val map = types.inferMetavarTypes(vars, jdgs)
     for (v <- vars)
       yield TypedVariable(v.name, map(v))
   }
