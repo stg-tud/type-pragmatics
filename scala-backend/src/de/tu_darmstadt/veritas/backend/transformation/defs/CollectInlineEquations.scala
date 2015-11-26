@@ -18,10 +18,6 @@ trait CollectInlineEquations extends ModuleTransformation {
   var chosenSubstitutions: Map[MetaVar, FunctionExpMeta] = Map()
   var freshNames = new FreshNames
 
-  //collect premises that could be premises of an implication
-  //represented with an or
-  var orImplSubstitutions: Map[MetaVar, FunctionExpMeta] = Map()
-
   /**
    * override to control which equations can be chosen for being inlined
    *
@@ -33,7 +29,6 @@ trait CollectInlineEquations extends ModuleTransformation {
   override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     //make sure that any mutable state is initialized upon application!
     chosenSubstitutions = Map()
-    orImplSubstitutions = Map()
     freshNames = new FreshNames
     super.apply(m)
   }
@@ -43,7 +38,6 @@ trait CollectInlineEquations extends ModuleTransformation {
     //and modify variable chosenSubstitutions
     //reset chosenSubstitutions & freshNames for each new typing rule that is traversed
     chosenSubstitutions = Map()
-    orImplSubstitutions = Map()
     freshNames = new FreshNames
     tr match {
       case t @ TypingRule(n, prems, conss) => super.transTypingRules(t)
@@ -77,9 +71,9 @@ trait CollectInlineEquations extends ModuleTransformation {
         res
       }
       case OrJudgment(orc) => {
-        //not sure if this works for nested ors...
-        // reset for each new Or
-        orImplSubstitutions = Map()
+        //only substitute within or cases - TODO: is substitution within a case ok?
+        //do not attempt substitution between or cases for now
+        //unsure how to do this such that it is always correct
         val res = OrJudgment(orc map (sor => {
           val oldchosen = chosenSubstitutions
           val res = trace(sor)(transTypingRuleJudgments(_))
@@ -91,10 +85,6 @@ trait CollectInlineEquations extends ModuleTransformation {
       case NotJudgment(jdg) => {
         val oldchosen = chosenSubstitutions
         val res = NotJudgment(trace(jdg)(transTypingRuleJudgment(_)))
-        //add substitutions that were found in not judgments
-        //possibly overwriting substitutions from before...!
-        //(premises of an implication)
-        orImplSubstitutions = chosenSubstitutions ++ orImplSubstitutions
         chosenSubstitutions = oldchosen
         res
       }
@@ -126,12 +116,12 @@ trait CollectInlineEquations extends ModuleTransformation {
         Seq(res)
       }
       case OrJudgment(orc) => {
-        //not sure if this works for nested ors...
-        orImplSubstitutions = Map()
+        //only substitute within or cases - TODO: is substitution within a case ok?
+        //do not attempt substitution between or cases for now
+        //unsure how to do this such that it is always correct
         val res = OrJudgment(orc map (sor => {
           val oldchosen = chosenSubstitutions
           val res = trace(sor)(transTypingRuleJudgments(_))
-          orImplSubstitutions = chosenSubstitutions ++ orImplSubstitutions
           chosenSubstitutions = oldchosen
           res
         }))
@@ -140,10 +130,6 @@ trait CollectInlineEquations extends ModuleTransformation {
       case NotJudgment(jdg) => {
         val oldchosen = chosenSubstitutions
         val res = NotJudgment(trace(jdg)(transTypingRuleJudgment(_)))
-        //add substitutions that were found in not judgments
-        //possibly overwriting substitutions from before...!
-        //(premises of an implication)
-        orImplSubstitutions = chosenSubstitutions ++ orImplSubstitutions
         chosenSubstitutions = oldchosen
         Seq(res)
       }
@@ -184,32 +170,6 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
       case _ => true
     }
   }
-
-  // inside ors, apply substitution that is given by orImplSubstitutions!
-  // this ensures that substitution within Ors that represent implications works as desired
-  override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
-    withSuper(super.transTypingRuleJudgment(trj)) {
-      case OrJudgment(orc) => {
-        val oldchosen = chosenSubstitutions
-        chosenSubstitutions = orImplSubstitutions
-        val substitutedCases = orc map (s => s flatMap transTypingRuleJudgments)
-        chosenSubstitutions = oldchosen
-        OrJudgment(substitutedCases)
-      }
-    }
-
-  // inside ors, apply substitution that is given by orImplSubstitutions!
-  // this ensures that substitution within Ors that represent implications works as desired
-  override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
-    withSuper(super.transTypingRuleJudgments(trj)) {
-      case OrJudgment(orc) => {
-        val oldchosen = chosenSubstitutions
-        chosenSubstitutions = orImplSubstitutions
-        val substitutedCases = orc map (s => s flatMap transTypingRuleJudgments)
-        chosenSubstitutions = oldchosen
-        Seq(OrJudgment(substitutedCases))
-      }
-    }
 
   //substitute meta vars with meta vars in quantified varlists
   //add variables that were used to substitutedVars
@@ -293,37 +253,7 @@ class RemoveUnusedPremises(substitutedVars: Set[String]) extends ModuleTransform
           Seq(ForallJudgment(vl filter (allFV contains _), jl))
         }
       }
-      case OrJudgment(orc) => removeFromOrImpl(orc)
-      case n @ NotJudgment(j) => {
-        j match {
-          case f @ FunctionExpJudgment(eq @ FunctionExpEq(_, _)) if (removeNamingPremise(eq)) => Seq()
-          case _ => Seq(n)
-        }
-      }
     }
-
-  private def removeFromOrImpl(ors: Seq[Seq[TypingRuleJudgment]]): Seq[TypingRuleJudgment] = {
-    val concs = ors filterNot (s => (s.size == 1) && s.head.isInstanceOf[NotJudgment])
-    if (concs.isEmpty)
-      Seq(OrJudgment(ors))
-    else {
-      val prems = ors filter (s => (s.size == 1) && s.head.isInstanceOf[NotJudgment])
-      //remove implication premises that are marked as substitution equations
-      val newprems = prems filterNot {
-        case Seq(NotJudgment(FunctionExpJudgment(eq @ FunctionExpEq(_, _)))) if (removeNamingPremise(eq)) => true
-        case _ => false
-      }
-
-      // traverse remaining cases
-      val restors = (newprems ++ concs) map (s => s flatMap transTypingRuleJudgments)
-      if (restors.size == 0)
-        Seq()
-      else if (restors.size == 1)
-        restors.head
-      else Seq(OrJudgment(restors))
-    }
-  }
-
 }
 
 //does not remove equality premises used for substitution!
