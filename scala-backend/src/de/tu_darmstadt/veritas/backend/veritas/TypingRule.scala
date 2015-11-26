@@ -61,7 +61,7 @@ object TypingRule {
   // We always use Judgment (AE) in the Backend, but parsing must obviously be compatible with Veritas.sdf3
   def unpackJudgmentCons(term: StrategoTerm): Seq[StrategoTerm] = term match {
     case StrategoAppl("JudgementCons", head, rest) => head +: unpackJudgmentCons(rest)
-    case elem @ StrategoAppl(_, _*)                => List(elem)
+    case elem @ StrategoAppl(_, _*)                => Seq(elem)
     case t                                         => throw VeritasParseError(t)
   }
 }

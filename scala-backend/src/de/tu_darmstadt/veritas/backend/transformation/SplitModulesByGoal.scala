@@ -55,7 +55,7 @@ object SplitModulesByGoal extends ModuleTransformation {
     if (!holder.imports.isEmpty)
       throw new TransformationError("Imports must be processed (== removed and their elements included in the ModuleDefs) before this transformation, got: " + holder)
 
-    var generatedSubmodules = List.empty[Module]
+    var generatedSubmodules = Seq[Module]()
 
     // iterate from front to back, keep track of: 
     // (all, active or not) ModuleDefs

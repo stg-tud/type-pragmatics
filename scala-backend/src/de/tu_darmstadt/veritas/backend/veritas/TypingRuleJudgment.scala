@@ -268,7 +268,7 @@ object TypingRuleJudgment {
 
   def unpackOrCaseList(term: StrategoTerm): Seq[StrategoTerm] = term match {
     case StrategoAppl("OrCons", head, rest) => head +: unpackOrCaseList(rest)
-    case StrategoAppl("OrEnd", elem)        => List(elem)
+    case StrategoAppl("OrEnd", elem)        => Seq(elem)
     case t                                  => throw VeritasParseError("expected Or cases (OrCons/OrEnd), got: " + t)
   }
 }

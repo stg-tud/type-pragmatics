@@ -71,7 +71,7 @@ object ToTff {
       md match {
         case Axioms(axs)           => axiomlist ++= translateAxioms(axs)
         case Goals(gs, _)          => throw TransformationError("Found goal in Module which was not at last position!")
-        case d@DataType(open, name, cs) => addDataTypeConstructor(cs, name)
+        case DataType(_, name, cs) => addDataTypeConstructor(cs, name)
         case Consts(cs, _)         => addConstDecl(cs)
         case Sorts(s)              => addSortDef(s)
         case Functions(fds)        => addFunctionDefinition(fds)
