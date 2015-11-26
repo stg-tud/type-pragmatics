@@ -5,6 +5,7 @@ import de.tu_darmstadt.veritas.backend.tff._
 import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
+import de.tu_darmstadt.veritas.backend.Configuration
 
 /**
  * Transforms Core TSSL (Veritas) Modules to TFF syntax
@@ -32,21 +33,18 @@ object ToTff {
    */
   private var goal: Option[TffAnnotated] = None
 
-  /**
-   * collects user-defined atomic types
-   * (sorts and simple types, already translated to typed symbols)
-   */
-  private var typedSymbols: Set[TypedSymbol] = Set()
+  
+  def typedSymbols = CollectTypes.typedSymbols
 
   /**
    * top-level function for translating a Module to a TffFile
    */
-  def toTffFile(veritasModule: Module): TffFile = {
+  def toTffFile(veritasModule: Module)(implicit config: Configuration): TffFile = {
     //make sure every mutable state is initialized when applying this!
-    typedecllist = Seq()
     axiomlist = Seq()
     goal = None
-    typedSymbols = Set()
+    
+    CollectTypes.apply(Seq(veritasModule))
     
     veritasModule match {
       case Module(name, Seq(), body) => {
@@ -91,14 +89,10 @@ object ToTff {
   /**
    * create a top-level typed symbol
    */
-  private def makeTopLevelSymbol(name: String): TypedSymbol =
-    TypedSymbol(name, DefinedType("tType"))
-
-  private def addTSIfNew(ts: TypedSymbol): Unit =
-    if (typedSymbols contains ts)
-      throw TransformationError(s"Sort, Constructor, or function ${ts.name} has been defined twice!")
-    else
-      typedSymbols += ts
+  private def getTopLevelSymbol(name: String): TypedSymbol = typedSymbols.get(name) match {
+    case Some(ts) => ts
+    case None => throw TransformationError(s"Could find type of symbol $name")
+  }
 
   /**
    * collects newly discovered sorts in sorts variable,
@@ -111,8 +105,7 @@ object ToTff {
       (for (SortDef(name) <- sds) yield {
         // note: SortDefs can never contain predefined sorts (ensured via "require")
         // so blindly adding the SortDef is ok
-        val ts = makeTopLevelSymbol(name)
-        addTSIfNew(ts)
+        val ts = getTopLevelSymbol(name)
         TffAnnotated(s"${name}_type", Type, ts)
       })
 
@@ -126,8 +119,7 @@ object ToTff {
     typedecllist :+= {
       // note: data types can never contain predefined sorts (ensured via "require")
       // so blindly adding the DataType is ok
-      val ts = makeTopLevelSymbol(d.name)
-      addTSIfNew(ts)
+      val ts = getTopLevelSymbol(d.name)
       TffAnnotated(s"${d.name}_type", Type, ts)
     }
 
@@ -139,24 +131,6 @@ object ToTff {
     }
 
   /**
-   * transforms a SortRef into a type for Tff
-   * Case 1) predefined type, returns a DefinedType
-   * Case 2) type is not predefined - checks whether type was already defined and throws an error if not!
-   * otherwise returns a SymbolType
-   *
-   */
-  private def makeAtomicType(name: String): TffAtomicType =
-    if (SortDef.predefinedSorts contains name)
-      translatePredefinedType(name)
-    else {
-      val ts = makeTopLevelSymbol(name)
-      if (typedSymbols contains ts)
-        SymbolType(ts)
-      else
-        throw TransformationError(s"Encountered sort reference ${name}, which has not been defined yet!")
-    }
-
-  /**
    * adds a top-level type declaration to typedecllist
    *
    * throws an error if the referenced sorts are not present in sorts set
@@ -164,21 +138,18 @@ object ToTff {
   private def addConstDecl(cs: Seq[ConstDecl]): Unit =
     typedecllist ++=
       (for (ConstDecl(name, out) <- cs) yield {
-        val outt = makeAtomicType(out.name)
+        val outt = CollectTypes.makeAtomicType(out.name)
         val ts = TypedSymbol(name, outt)
-        addTSIfNew(ts)
         TffAnnotated(s"${name}_type", Type, ts)
       })
 
   private def addDataTypeConstructor(cs: Seq[DataTypeConstructor], dataType: String): Unit =
     typedecllist ++=
       (for (DataTypeConstructor(name, in) <- cs) yield {
-        val outt = makeAtomicType(dataType)
-        val ints = in map (s => makeAtomicType(s.name))
-        val t = if (ints.isEmpty) outt else
-          TffMappingType(ints, outt)
+        val outt = CollectTypes.makeAtomicType(dataType)
+        val ints = in map (s => CollectTypes.makeAtomicType(s.name))
+        val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
         val ts = TypedSymbol(name, t)
-        addTSIfNew(ts)
         TffAnnotated(s"${name}_type", Type, ts)
       })
 
@@ -191,12 +162,10 @@ object ToTff {
         if (!eqs.isEmpty)
           throw TransformationError(s"Function definition ${name} still contained untransformed function equations!")
         
-        val outt = makeAtomicType(out.name)
-        val ints = in map (s => makeAtomicType(s.name))
-        val t = if (ints.isEmpty) outt else
-          TffMappingType(ints, outt)
+        val outt = CollectTypes.makeAtomicType(out.name)
+        val ints = in map (s => CollectTypes.makeAtomicType(s.name))
+        val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
         val ts = TypedSymbol(name, t)
-        addTSIfNew(ts)
         TffAnnotated(s"${name}_type", Type, ts)
       })
 
@@ -219,19 +188,27 @@ object ToTff {
         TffAnnotated(name, Conjecture, typingRuleToTff(prems, conseqs))
     }
 
+  def makeVarlist(vars: Seq[MetaVar], jdgs: Seq[TypingRuleJudgment]): Seq[Variable] = {
+    val map = CollectTypes.inferMetavarTypes(vars, jdgs)
+    for (v <- vars)
+      yield TypedVariable(v.name, map(v))
+  }
+  
   /**
    * translates typing rules (= implications) to Tff
    * TODO: universal quantification over all free variables!!
    */
   private def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) = {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs)
-    val transformedprems = prems map jdgtoTff
+		val vars = makeVarlist(quantifiedVars.toSeq, prems ++ conseqs)
+
+		val transformedprems = prems map jdgtoTff
 
     if (transformedprems == Seq(True))
-      ForAll(makeVarlist(quantifiedVars.toSeq, prems ++ conseqs), Parenthesized(And(conseqs map jdgtoTff)))
+      ForAll(vars, Parenthesized(And(conseqs map jdgtoTff)))
     else
-      ForAll(makeVarlist(quantifiedVars.toSeq, prems ++ conseqs), Parenthesized(
-        (Impl(Parenthesized(And(transformedprems)), Parenthesized(And(conseqs map jdgtoTff))))))
+      ForAll(vars, Parenthesized(
+        Impl(Parenthesized(And(transformedprems)), Parenthesized(And(conseqs map jdgtoTff)))))
   }
 
   /**
@@ -277,130 +254,6 @@ object ToTff {
       case FunctionExpApp(n, args)  => Appl(UntypedFunSymbol(n), args map functionExpMetaToTff)
       case _                        => throw TransformationError("Encountered unexpected construct in functionExpMetaToTff.")
     }
-
-  /**
-   * finds constructs in given sequence of TypingRuleJudgment that have the
-   * given MetaVar m as direct child and are one of
-   * - function applications (Appl)
-   * - equalities/inequalities with the m on one side and a function application on the other side
-   *
-   */
-  private def findTypableOccurrences(m: MetaVar)(jdglist: Seq[TypingRuleJudgment]): Set[FunctionExp] = {
-    def containsMetaVar(args: Seq[FunctionExpMeta]): Boolean = args exists
-      {
-        case FunctionMeta(m0) => m == m0
-        case _                => false
-      }
-
-    def searchFunctionExp(e: FunctionExpMeta): Set[FunctionExp] = {
-      e match {
-        // base cases just return empty set, all listed explicitly just in case!  
-        case FunctionMeta(m)   => Set()
-        case FunctionExpVar(n) => Set()
-        case FunctionExpTrue   => Set()
-        case FunctionExpFalse  => Set()
-        case FunctionExpNot(f) => searchFunctionExp(f)
-        case fe @ FunctionExpEq(FunctionMeta(mx), r @ FunctionExpApp(n, args)) =>
-          if (mx == m) Set(fe) else searchFunctionExp(r)
-        case fe @ FunctionExpEq(l @ FunctionExpApp(n, args), r @ FunctionMeta(mx)) =>
-          if (mx == m) Set(FunctionExpEq(r, l)) else searchFunctionExp(l)
-        case FunctionExpEq(f1, f2) => searchFunctionExp(f1) ++ searchFunctionExp(f2)
-        case fe @ FunctionExpNeq(FunctionMeta(mx), r @ FunctionExpApp(n, args)) =>
-          if (mx == m) Set(fe) else searchFunctionExp(r)
-        case fe @ FunctionExpNeq(l @ FunctionExpApp(n, args), r @ FunctionMeta(mx)) =>
-          if (mx == m) Set(FunctionExpNeq(r, l)) else searchFunctionExp(l)
-        case FunctionExpNeq(f1, f2)  => searchFunctionExp(f1) ++ searchFunctionExp(f2)
-        case FunctionExpAnd(l, r)    => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpOr(l, r)     => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpBiImpl(l, r) => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpIf(c, t, e)  => searchFunctionExp(c) ++ searchFunctionExp(t) ++ searchFunctionExp(e)
-        case FunctionExpLet(n, e, i) => searchFunctionExp(e) ++ searchFunctionExp(i)
-        case fe @ FunctionExpApp(fn, args) => {
-          val afe = (args flatMap searchFunctionExp).toSet
-          if (containsMetaVar(args)) afe ++ Set(fe) else afe
-        }
-        // this should never happen
-        case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, found a function expression that is not covered by the code!")
-      }
-    }
-    (for (jdg <- jdglist) yield {
-      jdg match {
-        case FunctionExpJudgment(f)   => searchFunctionExp(f)
-        case ExistsJudgment(vl, jdgl) => findTypableOccurrences(m)(jdgl)
-        case ForallJudgment(vl, jdgl) => findTypableOccurrences(m)(jdgl)
-        case NotJudgment(jdg)         => findTypableOccurrences(m)(Seq(jdg))
-        case OrJudgment(jdgll)        => jdgll flatMap findTypableOccurrences(m)
-        case _                        => throw TransformationError(s"While trying to type meta variable ${m.name}, encountered a construct in an axiom, premise, or conclusion that is not supported by core modules!")
-      }
-    }).flatten.toSet
-  }
-
-  /**
-   * given a FunctionExp such as the ones found by findTypableOccurrences,
-   * tries to determine the type of the given MetaVar m
-   *
-   * TODO: Currently, this function is "nice": if it cannot type the given FunctionExp, it just returns none, no error is thrown.
-   * Thinks about whether this function should rather throw errors if it cannot type sth.
-   */
-  private def typeOcc(m: MetaVar, occ: FunctionExp): Option[TffAtomicType] = {
-
-    def getMetaVarPos(args: Seq[FunctionExpMeta]): Seq[Int] =
-      for (i <- args.indices if (args(i) == FunctionMeta(m))) yield i
-
-    def retrieveType(n: String): TffTopLevelType = {
-      val types = typedSymbols filter { case TypedSymbol(v, t) => v == n }
-      if (types.size == 1) types.head.tfftype
-      else throw TransformationError(s"Type for constructor or function ${n} not found or found more than once!")
-    }
-
-    def getReturnType(t: TffTopLevelType): Option[TffAtomicType] =
-      t match {
-        case TffMappingType(_, restype) => Some(restype)
-        case st @ SymbolType(t)         => Some(st)
-        case _                          => None
-      }
-
-    def getArgType(t: TffTopLevelType, args: Seq[FunctionExpMeta]): Option[TffAtomicType] =
-      t match {
-        case TffMappingType(arglist, _) => {
-          val poslist = getMetaVarPos(args)
-          val typeset = (for (p <- poslist) yield arglist(p)).toSet
-          if (typeset.size == 1) Some(typeset.head) else None
-        }
-        case _ => None
-      }
-
-    occ match {
-      case FunctionExpEq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(retrieveType(n))
-      case FunctionExpNeq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(retrieveType(n))
-      case FunctionExpApp(fn, args) => getArgType(retrieveType(fn), args)
-      case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, an untypable FunctionExp was marked as typable.")
-    }
-  }
-
-  /**
-   * create a list of MetaVars for a quantifier
-   * tries to infer the type of each MetaVar to create a TypedVariable
-   * if that is not possible (e.g. due to ambiguity) leaves variables untyped
-   */
-  private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = {
-    val typesPerFV = for (fv <- vars.toList) yield {
-      val typelist = for {
-        occ <- findTypableOccurrences(fv)(jdglist)
-        val t = typeOcc(fv, occ)
-        if (t != None)
-      } yield t.get
-      fv -> typelist.toSet //remove duplicate occurrences of found types; ideally, only one occurrence should be left!
-    }
-
-    for ((m, tl) <- typesPerFV) yield {
-      tl.size match {
-        case 0 => throw TransformationError(s"Trying to type meta variable ${m.name} yielded no possible type!") //has to be an error case, untyped variables will not be supported by e.g. Vampire!
-        case 1 => TypedVariable(m.name, tl.head)
-        case _ => throw TransformationError(s"Trying to type meta variable ${m.name} yielded several possible types!")
-      }
-    }
-  }
 
   /**
    * assembles the final TffFile from the individual collections defined above
