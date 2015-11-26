@@ -364,7 +364,9 @@ case class DataType(open: Boolean, name: String, constrs: Seq[DataTypeConstructo
 }
 
 object DataType {
-  val predefinedTypes: List[String] = List("Bool", "iType")
+  val Bool = "Bool"
+  val iType = "iType"
+  val predefinedTypes: List[String] = List(Bool, iType)
 
   def Openedness(term: StrategoTerm): Boolean = term match {
     case StrategoAppl("Sealed") => false

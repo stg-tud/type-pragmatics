@@ -26,12 +26,13 @@ object GenerateTypeGuards extends ModuleTransformation {
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = {
     withSuper(super.transModuleDefs(mdef)) {
       case dt@DataType(open, name, constrs) =>
+        val guardFunctions = Functions(Seq(FunctionDef(makeGuardSignature(name), Seq())))
         val guardAxioms = constrs map (makeGuardAxiom(_, name))
         if (open)
-          Seq(dt, Axioms(guardAxioms))
+          Seq(dt, guardFunctions, Axioms(guardAxioms))
         else {
           val domAxiom = makeDomainAxiom(name, constrs)
-          Seq(dt, Axioms(guardAxioms :+ domAxiom))
+          Seq(dt, guardFunctions, Axioms(guardAxioms :+ domAxiom))
         }
     }
   }
@@ -41,6 +42,10 @@ object GenerateTypeGuards extends ModuleTransformation {
   private def guardCall(sort: String, arg: FunctionExpMeta): FunctionExpApp = 
     FunctionExpApp(guard(sort), Seq(arg))
   
+  private def makeGuardSignature(dataType: String): FunctionSig = {
+    FunctionSig(guard(dataType), Seq(SortRef(dataType)), SortRef(DataType.Bool))
+  }
+    
   private def makeGuardAxiom(cd: DataTypeConstructor, dataType: String): TypingRule = {
     val fresh = new FreshNames
     val vars = cd.in.map(sort => FunctionMeta(MetaVar(fresh.freshName(sort.name))))

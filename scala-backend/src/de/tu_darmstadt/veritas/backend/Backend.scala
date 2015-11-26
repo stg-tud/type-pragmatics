@@ -37,12 +37,12 @@ object Backend {
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
   val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.Unchanged, InversionLemma -> InversionLemma.Off, Problem -> Problem.Consistency))
-  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.Unchanged, InversionLemma -> InversionLemma.Off, Problem -> Problem.Consistency))
+  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.NameParamsAndResults, InversionLemma -> InversionLemma.Off, Problem -> Problem.Consistency))
   
   /**
    * This variability model is used by the code below
    */
-  val variabilityModel = onlyTFFTest
+  val variabilityModel = onlyGuardedFOFTest
   
   
   

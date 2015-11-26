@@ -435,9 +435,10 @@ object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with Coll
     path.head match {
       case FunctionExpApp(n, args) => {
         val vcpos = args.indexOf(vc)
-        val funcparamsorts = if (functypes.isDefinedAt(n)) functypes(n)._1
-        else if (pfunctypes.isDefinedAt(n)) pfunctypes(n)._1 else
-          throw TransformationError(s"Function $n could not be found while trying to create a new metavar for its $vcpos. argument.")
+        val funcparamsorts = 
+          if (functypes.isDefinedAt(n)) functypes(n)._1
+          else if (pfunctypes.isDefinedAt(n)) pfunctypes(n)._1 
+          else throw TransformationError(s"Function $n could not be found while trying to create a new metavar for its $vcpos. argument.")
         MetaVar(freshNames.freshName(funcparamsorts(vcpos).name))
       }
       case _ => super.newMetaVar(vc) //should not happen
