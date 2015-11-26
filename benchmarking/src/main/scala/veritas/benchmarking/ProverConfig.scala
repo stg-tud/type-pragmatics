@@ -39,6 +39,8 @@ trait ProverConfig {
 
   val name: String
   val proverCommand: File
+  val acceptedFileFormats: Set[String]
+
 
   def findBinaryInPath(command: String): File = {
     for (p <- System.getenv("PATH").split(File.pathSeparator);
