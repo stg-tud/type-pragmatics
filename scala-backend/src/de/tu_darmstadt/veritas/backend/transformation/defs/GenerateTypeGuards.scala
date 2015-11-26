@@ -37,9 +37,9 @@ object GenerateTypeGuards extends ModuleTransformation {
     }
   }
 
-  private def guard(name: String): String = "guard-" + name
+  def guard(name: String): String = "guard-" + name
   
-  private def guardCall(sort: String, arg: FunctionExpMeta): FunctionExpApp = 
+  def guardCall(sort: String, arg: FunctionExpMeta): FunctionExpApp = 
     FunctionExpApp(guard(sort), Seq(arg))
   
   private def makeGuardSignature(dataType: String): FunctionSig = {

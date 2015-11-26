@@ -7,6 +7,8 @@ import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
+import de.tu_darmstadt.veritas.backend.tff.TffAtomicType
 
 /**
  * For each SortDef we generate a type guard and for each ConstructorDecl we generate an axiom for the guard.
@@ -23,64 +25,26 @@ import de.tu_darmstadt.veritas.backend.Configuration
  */
 object InsertTypeGuardsForMetavars extends ModuleTransformation {
 
-  override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = {
-    withSuper(super.transModuleDefs(mdef)) {
-      case dt@DataType(open, name, constrs) =>
-        val guardFunctions = Functions(Seq(FunctionDef(makeGuardSignature(name), Seq())))
-        val guardAxioms = constrs map (makeGuardAxiom(_, name))
-        if (open)
-          Seq(dt, guardFunctions, Axioms(guardAxioms))
-        else {
-          val domAxiom = makeDomainAxiom(name, constrs)
-          Seq(dt, guardFunctions, Axioms(guardAxioms :+ domAxiom))
-        }
-    }
+  private var types: CollectTypes = _
+
+  override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] = {
+    // collect types for current module
+    types = new CollectTypes
+    types.apply(Seq(Module(name, is, mdefs)))(config)
+    
+    super.transModule(name, is, mdefs)
   }
 
-  private def guard(name: String): String = "guard-" + name
-  
-  private def guardCall(sort: String, arg: FunctionExpMeta): FunctionExpApp = 
-    FunctionExpApp(guard(sort), Seq(arg))
-  
-  private def makeGuardSignature(dataType: String): FunctionSig = {
-    FunctionSig(guard(dataType), Seq(SortRef(dataType)), SortRef(DataType.Bool))
-  }
-    
-  private def makeGuardAxiom(cd: DataTypeConstructor, dataType: String): TypingRule = {
-    val fresh = new FreshNames
-    val vars = cd.in.map(sort => FunctionMeta(MetaVar(fresh.freshName(sort.name))))
-    
-    // all vars are well-typed
-    val premises = cd.in.zip(vars).map { case (sort, v) =>
-      FunctionExpJudgment(guardCall(sort.name, v))
+  override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
+    withSuper(super.transTypingRules(tr)) {
+      case tr@TypingRule(n, prems, conss) =>
+        val varmap = types.inferMetavarTypes(tr)
+        val guards = varmap map (kv => makeGuardPremise(kv._1, kv._2))
+        Seq(TypingRule(n, guards.toSeq ++ prems, conss))
     }
-    
-    // the constructor call yields something well-typed
-    val consCall = FunctionExpApp(cd.name, vars)
-    val consequence = FunctionExpJudgment(guardCall(dataType, consCall))
-    
-    val name = s"guard-$dataType-${cd.name}"
-    val rule = TypingRule(name, premises, Seq(consequence))
-    rule
   }
-  
-  private def makeDomainAxiom(dataType: String, constrs: Seq[DataTypeConstructor]): TypingRule = {
-    val name = s"guard-dom-$dataType"
-    val v = FunctionMeta(MetaVar("X"))
-    
-    // all v. guard(v) => (v=c1(...) | ... | v=cn(...))
-    // for n=0, simplifies to all v. not guard(v)
-    TypingRule(
-        name, 
-        Seq(FunctionExpJudgment(guardCall(dataType, v))), 
-        Seq(OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, v))))))
-  }
-  
-  private def makeEqConsFormula(cd: DataTypeConstructor, v: FunctionMeta): TypingRuleJudgment = {
-    val fresh = new FreshNames
-    val vars = cd.in.map(sort => MetaVar(fresh.freshName(sort.name)))
-    
-    val eq = FunctionExpEq(v, FunctionExpApp(cd.name, vars map (FunctionMeta(_))))
-    ExistsJudgment(vars, Seq(FunctionExpJudgment(eq)))
-  }
+ 
+  private def makeGuardPremise(v: MetaVar, t: TffAtomicType): TypingRuleJudgment =
+    FunctionExpJudgment(
+        GenerateTypeGuards.guardCall(t.typename, FunctionMeta(v)))
 }

@@ -42,7 +42,7 @@ object Backend {
   /**
    * This variability model is used by the code below
    */
-  val variabilityModel = onlyTFFTest
+  val variabilityModel = onlyGuardedFOFTest
   
   
   

@@ -15,7 +15,7 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
  * - section with n axioms, where typing judgments were already transformed to some typed function! (can be empty)
  * - exactly one goal! (which must not be followed by other axioms, constructors etc, which would be out of scope!)
  */
-class CollectTypes() extends ModuleTransformation {
+class CollectTypes extends ModuleTransformation {
 
   /**
    * collects user-defined atomic types

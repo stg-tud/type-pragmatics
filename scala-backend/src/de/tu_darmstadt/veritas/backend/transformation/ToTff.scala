@@ -34,7 +34,6 @@ object ToTff {
   private var goal: Option[TffAnnotated] = None
 
   private var types: CollectTypes = _
-  def typedSymbols = types.typedSymbols
 
   /**
    * top-level function for translating a Module to a TffFile
@@ -90,7 +89,7 @@ object ToTff {
   /**
    * create a top-level typed symbol
    */
-  private def getTopLevelSymbol(name: String): TypedSymbol = typedSymbols.get(name) match {
+  private def getTopLevelSymbol(name: String): TypedSymbol = types.typedSymbols.get(name) match {
     case Some(ts) => ts
     case None => throw TransformationError(s"Could find type of symbol $name")
   }
