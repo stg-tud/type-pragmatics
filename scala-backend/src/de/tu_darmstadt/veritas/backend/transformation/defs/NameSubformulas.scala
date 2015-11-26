@@ -26,8 +26,16 @@ trait CollectSubformulas extends ModuleTransformation {
    *
    * can use information from path variable, for example
    * parameter vc is the construct itself
+   *
+   * default: name everything BUT meta variables!
+   *
    */
-  def checkConstruct(vc: VeritasConstruct): Boolean = true
+  def checkConstruct(vc: VeritasConstruct): Boolean =
+    vc match {
+      case FunctionMeta(_) => false
+      case MetaVar(_)      => false
+      case _               => true
+    }
 
   /**
    * gets subformula for which a meta variable is to be generated
@@ -340,81 +348,84 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
 
 }
 
-object NameEverything extends NameSubformulas
+/**
+ * also name MetaVars - probably not useful, does not work with type inference!
+ */
+object NameEverything extends NameSubformulas {
+  override def checkConstruct(vc: VeritasConstruct): Boolean = true
+}
 
 object NameEverythingSubstituteNothing extends NameSubformulas {
+  override def checkConstruct(vc: VeritasConstruct): Boolean = true
+
   override def checkSubstitute(vc: VeritasConstruct): Boolean = false
 }
 
 /**
  * excludes all meta variables from being named
  */
-object NameEverythingButMetaVars extends NameSubformulas {
-  override def checkConstruct(vc: VeritasConstruct): Boolean =
-    vc match {
-      case FunctionMeta(_) => false
-      case MetaVar(_)      => false
-      case _               => true
-    }
-}
+object NameEverythingButMetaVars extends NameSubformulas
 
 object NameEverythingButMetaVarsSubstituteNothing extends NameSubformulas {
-  override def checkConstruct(vc: VeritasConstruct): Boolean =
-    vc match {
-      case FunctionMeta(_) => false
-      case MetaVar(_)      => false
-      case _               => true
-    }
 
   override def checkSubstitute(vc: VeritasConstruct): Boolean = false
 }
 
 /**
  * names for non-boolean function results only (RESULT-variable)
+ * do not name meta-variables again!
  */
 object NameFunctionResultsOnly extends NameSubformulas {
   override def checkConstruct(vc: VeritasConstruct): Boolean = {
-    //only rename right-hand side of single equation in conclusion
-    val grandgrandparent = path(2)
+    if (super.checkConstruct(vc)) {
+      //only rename right-hand side of single equation in conclusion
+      val grandgrandparent = path(2)
 
-    grandgrandparent match {
-      case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(_, _), r)))) if (r == vc) => true
-      case _ => false
-    }
+      grandgrandparent match {
+        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(_, _), r)))) if (r == vc) => true
+        case _ => false
+      }
+    } else
+      false
   }
 
   override def newMetaVar(parent: VeritasConstruct): MetaVar = MetaVar("RESULT")
 
 }
 
+/**
+ * name function arguments that are not meta-variables!
+ */
 object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with CollectTypeInfo {
   override def checkConstruct(vc: VeritasConstruct): Boolean = {
-    //only rename in left-hand side of single equation in conclusion!
-    val parent = path(0)
-    val grandparent = path(1)
+    if (super.checkConstruct(vc)) {
+      //only rename in left-hand side of single equation in conclusion!
+      val parent = path(0)
+      val grandparent = path(1)
 
-    def sidecondition(params: Seq[FunctionExpMeta]): Boolean =
-      (params contains vc) &&
-        (grandparent match {
-          case FunctionExpEq(l, r)     => !(parent == r)
-          case FunctionExpBiImpl(l, r) => !(parent == r)
-          case _                       => false
-        })
+      def sidecondition(params: Seq[FunctionExpMeta]): Boolean =
+        (params contains vc) &&
+          (grandparent match {
+            case FunctionExpEq(l, r)     => !(parent == r)
+            case FunctionExpBiImpl(l, r) => !(parent == r)
+            case _                       => false
+          })
 
-    if (path isDefinedAt 2) {
-      val grandgrandparent = path(2)
-      grandgrandparent match {
-        case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpApp(f, args)))) if (args contains vc) => true
-        case _ => if (path isDefinedAt 3) {
-          val grandgrandgrandparent = path(3)
-          grandgrandgrandparent match {
-            case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(f, args))))) if (args contains vc) => true
-            case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(f, args), r)))) if (sidecondition(args)) => true
-            case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(f, args), r)))) if (sidecondition(args)) => true
-            case _ => false
-          }
-        } else false
-      }
+      if (path isDefinedAt 2) {
+        val grandgrandparent = path(2)
+        grandgrandparent match {
+          case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpApp(f, args)))) if (args contains vc) => true
+          case _ => if (path isDefinedAt 3) {
+            val grandgrandgrandparent = path(3)
+            grandgrandgrandparent match {
+              case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(f, args))))) if (args contains vc) => true
+              case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(f, args), r)))) if (sidecondition(args)) => true
+              case TypingRule(n, prems, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(f, args), r)))) if (sidecondition(args)) => true
+              case _ => false
+            }
+          } else false
+        }
+      } else false
     } else false
   }
 
@@ -434,11 +445,11 @@ object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with Coll
 
 }
 
-object OldFunctionEqTransformation extends ModuleTransformation {
-  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
-    NameSubstituteFunctionDefParametersOnly(NameFunctionResultsOnly(m))
-  }
-}
+//object OldFunctionEqTransformation extends ModuleTransformation {
+//  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
+//    NameSubstituteFunctionDefParametersOnly(NameFunctionResultsOnly(m))
+//  }
+//}
 
 
 
