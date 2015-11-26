@@ -355,8 +355,7 @@ object ToTff {
    * if that is not possible (e.g. due to ambiguity) leaves variables untyped
    */
   private def makeVarlist(vars: Seq[MetaVar], jdglist: Seq[TypingRuleJudgment]): Seq[Variable] = {
-    val freeVars = FreeVariables.freeVariables(jdglist)
-    val typesPerFV = for (fv <- freeVars.toList) yield {
+    val typesPerFV = for (fv <- vars.toList) yield {
       val typelist = for {
         occ <- findTypableOccurrences(fv)(jdglist)
         val t = typeOcc(fv, occ)
@@ -367,7 +366,7 @@ object ToTff {
 
     for ((m, tl) <- typesPerFV) yield {
       tl.size match {
-        case 0 => UntypedVariable(m.name) //TODO work out whether this is a good idea, or whether it should rather be an error case!!
+        case 0 => throw TransformationError(s"Trying to type meta variable ${m.name} yielded no possible type!") //has to be an error case, untyped variables will not be supported by e.g. Vampire!
         case 1 => TypedVariable(m.name, tl.head)
         case _ => throw TransformationError(s"Trying to type meta variable ${m.name} yielded several possible types!")
       }
