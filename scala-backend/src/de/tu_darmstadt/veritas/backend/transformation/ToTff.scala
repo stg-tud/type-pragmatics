@@ -26,6 +26,12 @@ object ToTff {
   private var typedecllist: Seq[TffAnnotated] = Seq()
 
   /**
+   * collects user-defined atomic types
+   * (sorts and simple types, already translated to typed symbols)
+   */
+  private var typedSymbols: Map[String, TypedSymbol] = Map()
+
+  /**
    * list for collecting the axioms in the module
    */
   private var axiomlist: Seq[TffAnnotated] = Seq()
@@ -42,11 +48,22 @@ object ToTff {
    */
   def toTffFile(veritasModule: Module)(implicit config: Configuration): TffFile = {
     //make sure every mutable state is initialized when applying this!
+    typedecllist = Seq()
     axiomlist = Seq()
     goal = None
     
     types = new CollectTypesClass
     types.apply(Seq(veritasModule))
+    
+    typedSymbols = Map()
+    for (d <- types.dataTypes)
+      addDataType(d)
+    for ((con, (in, out)) <- types.constrTypes)
+      addSymbol(con, in, out)
+    for ((con, (in, out)) <- types.functypes)
+      addSymbol(con, in, out)
+    for ((con, (in, out)) <- types.pfunctypes)
+      addSymbol(con, in, out)
     
     veritasModule match {
       case Module(name, Seq(), body) => {
@@ -57,25 +74,57 @@ object ToTff {
     }
   }
 
+    /**
+   * create a top-level typed symbol
+   */
+  private def makeTopLevelSymbol(name: String): TypedSymbol =
+    TypedSymbol(name, DefinedType("tType"))
+
+  private def addTSIfNew(ts: TypedSymbol): Unit =
+    if (typedSymbols.contains(ts.name))
+      throw TransformationError(s"Sort, Constructor, or function ${ts.name} has been defined twice!")
+    else
+      typedSymbols += ts.name -> ts
+
+  private def translatePredefinedType(t: String): DefinedType =
+    t match {
+      case "Bool" => DefinedType("o")
+      case "iType" => DefinedType("i")
+      case n => DefinedType(n)
+    }
+
+  /**
+   * transforms a SortRef into a type for Tff
+   * Case 1) predefined type, returns a DefinedType
+   * Case 2) type is not predefined - checks whether type was already defined and throws an error if not!
+   * otherwise returns a SymbolType
+   *
+   */
+  def getAtomicType(name: String): TffAtomicType =
+    if (SortDef.predefinedSorts contains name)
+      translatePredefinedType(name)
+    else {
+      val ts = makeTopLevelSymbol(name)
+      typedSymbols.get(name) match {
+        case Some(ts) => SymbolType(ts)
+        case None => throw TransformationError(s"Encountered sort reference ${name}, which has not been defined yet!")
+      }
+    }
+  
   /**
    *  translate a Module body (sequence of ModuleDefs) to TffAnnotated
    *  adds the collected declarations to the appropriate collections of the object defined above
    */
   private def bodyToTff(body: Seq[ModuleDef]): Unit = {
-    body foreach {
-      case d: DataType => addDataType(d)
-      case _ =>
-    }
-    
     body.dropRight(1) foreach { md =>
       md match {
         case Axioms(axs)           => axiomlist ++= translateAxioms(axs)
         case Goals(gs, _)          => throw TransformationError("Found goal in Module which was not at last position!")
-        case DataType(_, name, cs) => addDataTypeConstructor(cs, name)
-        case Consts(cs, _)         => addConstDecl(cs)
-        case Sorts(s)              => addSortDef(s)
-        case Functions(fds)        => addFunctionDefinition(fds)
-        case PartialFunctions(fds) => addFunctionDefinition(fds)
+        case DataType(_, name, cs) => {}
+        case Consts(cs, _)         => {}
+        case Sorts(s)              => {}
+        case Functions(fds)        => {}
+        case PartialFunctions(fds) => {}
         case _                     => throw TransformationError("Unsupported top-level construct!")
 
       }
@@ -89,87 +138,30 @@ object ToTff {
   }
 
   /**
-   * create a top-level typed symbol
-   */
-  private def getTopLevelSymbol(name: String): TypedSymbol = types.typedSymbols.get(name) match {
-    case Some(ts) => ts
-    case None => throw TransformationError(s"Could find type of symbol $name")
-  }
-
-  /**
-   * collects newly discovered sorts in sorts variable,
-   * adds top-level type declaration to typedecllist
-   *
-   * throws an error if the sort is already defined
-   */
-  private def addSortDef(sds: Seq[SortDef]): Unit =
-    typedecllist ++=
-      (for (SortDef(name) <- sds) yield {
-        // note: SortDefs can never contain predefined sorts (ensured via "require")
-        // so blindly adding the SortDef is ok
-        val ts = getTopLevelSymbol(name)
-        TffAnnotated(s"${name}_type", Type, ts)
-      })
-
-  /**
    * collects newly discovered data types,
    * adds top-level type declaration to typedecllist
    *
    * throws an error if the data type is already defined
    */
-  private def addDataType(d: DataType): Unit =
+  private def addDataType(d: String): Unit =
     typedecllist :+= {
       // note: data types can never contain predefined sorts (ensured via "require")
       // so blindly adding the DataType is ok
-      val ts = getTopLevelSymbol(d.name)
-      TffAnnotated(s"${d.name}_type", Type, ts)
+      val ts = makeTopLevelSymbol(d)
+      addTSIfNew(ts)
+      TffAnnotated(s"${d}_type", Type, ts)
     }
 
-  private def translatePredefinedType(t: String): DefinedType =
-    t match {
-      case "Bool"  => DefinedType("o")
-      case "iType" => DefinedType("i")
-      case n       => DefinedType(n)
-    }
-
-  /**
-   * adds a top-level type declaration to typedecllist
-   *
-   * throws an error if the referenced sorts are not present in sorts set
-   */
-  private def addConstDecl(cs: Seq[ConstDecl]): Unit =
-    typedecllist ++=
-      (for (ConstDecl(name, out) <- cs) yield {
-        val outt = types.makeAtomicType(out.name)
-        val ts = TypedSymbol(name, outt)
-        TffAnnotated(s"${name}_type", Type, ts)
-      })
-
-  private def addDataTypeConstructor(cs: Seq[DataTypeConstructor], dataType: String): Unit =
-    typedecllist ++=
-      (for (DataTypeConstructor(name, in) <- cs) yield {
-        val outt = types.makeAtomicType(dataType)
-        val ints = in map (s => types.makeAtomicType(s.name))
+  private def addSymbol(name: String, in: Seq[SortRef], out: SortRef): Unit =
+    typedecllist :+= {
+        val outt = getAtomicType(out.name)
+        val ints = in map (s => getAtomicType(s.name))
         val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
         val ts = TypedSymbol(name, t)
+        addTSIfNew(ts)
         TffAnnotated(s"${name}_type", Type, ts)
-      })
+      }
 
-  /**
-   * throws an error if the function equations are not empty (not supported by core modules!)
-   */
-  private def addFunctionDefinition(cs: Seq[FunctionDef]): Unit =
-    typedecllist ++=
-      (for (FunctionDef(FunctionSig(name, in, out), eqs) <- cs) yield {
-        if (!eqs.isEmpty)
-          throw TransformationError(s"Function definition ${name} still contained untransformed function equations!")
-        
-        val outt = types.makeAtomicType(out.name)
-        val ints = in map (s => types.makeAtomicType(s.name))
-        val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
-        val ts = TypedSymbol(name, t)
-        TffAnnotated(s"${name}_type", Type, ts)
-      })
 
   /**
    * translates axioms to Tff
@@ -193,7 +185,7 @@ object ToTff {
   def makeVarlist(vars: Seq[MetaVar], jdgs: Seq[TypingRuleJudgment]): Seq[Variable] = {
     val map = types.inferMetavarTypes(vars, jdgs)
     for (v <- vars)
-      yield TypedVariable(v.name, map(v))
+      yield TypedVariable(v.name, getAtomicType(map(v).name))
   }
   
   /**

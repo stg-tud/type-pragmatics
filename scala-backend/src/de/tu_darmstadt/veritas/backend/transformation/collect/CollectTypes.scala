@@ -9,85 +9,62 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 
 trait CollectTypes extends ModuleTransformation {
+  var _dataTypes: Set[String] = _
   // constrTypes: datatype constructors and constants
-  var _constrTypes: Map[String, (Seq[SortRef], SortRef)] = Map()
-  var _functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
-  var _pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  var _constrTypes: Map[String, (Seq[SortRef], SortRef)] = _
+  var _functypes: Map[String, (Seq[SortRef], SortRef)] = _
+  var _pfunctypes: Map[String, (Seq[SortRef], SortRef)] = _
 
-  /**
-   * collects user-defined atomic types
-   * (sorts and simple types, already translated to typed symbols)
-   */
-  private var _typedSymbols: Map[String, TypedSymbol] = Map()
-  
+  def dataTypes = _dataTypes
   def constrTypes = _constrTypes
   def functypes = _functypes
   def pfunctypes = _pfunctypes
-  def typedSymbols = _typedSymbols
 
   /**
    * top-level function for translating a Module to a TffFile
    */
   override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] = {
+    _dataTypes = Set()
     _constrTypes = Map()
     _functypes = Map()
     _pfunctypes = Map()
-    _typedSymbols = Map()
     super.transModule(name, is, mdefs)
   }
 
+  def symbolType(name: String) = constrTypes.get(name) match {
+    case Some(t) => Some(t)
+    case None => functypes.get(name) match {
+      case Some(t) => Some(t)
+      case None => pfunctypes.get(name)
+    }
+  }
+  
   /**
    * Make sure that type symbols are properly scoped by local and strategy blocks
    */
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = mdef match {
     case d: DataType => 
-      addDataType(d)
+      _dataTypes += d.name
       super.transModuleDefs(d)
-    case Functions(fdecl) =>
-      fdecl map { case FunctionDef(FunctionSig(n, in, out), defs) => _functypes += (n -> (in, out)) }
-      super.transModuleDefs(mdef)
-    case PartialFunctions(fdecl) =>
-      fdecl map { case FunctionDef(FunctionSig(n, in, out), defs) => _pfunctypes += (n -> (in, out)) }
-      super.transModuleDefs(mdef)
     case Local(_) | Strategy(_,_,_) => 
-      val oldTypedSymbols = _typedSymbols
+      val oldDataTypes = _dataTypes
       val oldconstypes = _constrTypes
       val oldfunctypes = _functypes
       val oldpfunctypes = _pfunctypes
       val res = super.transModuleDefs(mdef)
+      _dataTypes = oldDataTypes
       _constrTypes = oldconstypes
       _functypes = oldfunctypes
       _pfunctypes = oldpfunctypes
-      _typedSymbols = oldTypedSymbols
       res
     case _ => 
       super.transModuleDefs(mdef)
-  }
-
-  /**
-   * collects newly discovered data types,
-   * adds top-level type declaration to typedecllist
-   *
-   * throws an error if the data type is already defined
-   */
-  private def addDataType(d: DataType): DataType = {
-    // note: data types can never contain predefined sorts (ensured via "require")
-    // so blindly adding the DataType is ok
-    val ts = makeTopLevelSymbol(d.name)
-    addTSIfNew(ts)
-    d
   }
 
   override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = {
     withSuper(super.transDataTypeConstructor(d, open, dataType)) {
       case d =>
         _constrTypes += (d.name -> (d.in -> SortRef(dataType)))
-        val outt = makeAtomicType(dataType)
-        val ints = d.in map (s => makeAtomicType(s.name))
-        val t = if (ints.isEmpty) outt else
-          TffMappingType(ints, outt)
-        val ts = TypedSymbol(d.name, t)
-        addTSIfNew(ts)
         Seq(d)
     }
   }
@@ -96,9 +73,6 @@ trait CollectTypes extends ModuleTransformation {
     withSuper(super.transConstDecl(d)) {
       case d =>
         _constrTypes += (d.name -> (Seq() -> d.out))
-        val outt = makeAtomicType(d.out.name)
-        val ts = TypedSymbol(d.name, outt)
-        addTSIfNew(ts)
         Seq(d)
     }
   }
@@ -106,19 +80,14 @@ trait CollectTypes extends ModuleTransformation {
   override def transSortDefs(sd: SortDef): Seq[SortDef] =
     withSuper(super.transSortDefs(sd)) {
       case sd =>
-        val ts = makeTopLevelSymbol(sd.name)
-        addTSIfNew(ts)
+        _dataTypes += sd.name
         Seq(sd)
     }
 
   override def transFunctionSig(sig: FunctionSig): FunctionSig =
     withSuper(super.transFunctionSig(sig)) {
       case sig =>
-        val outt = makeAtomicType(sig.out.name)
-        val ints = sig.in map (s => makeAtomicType(s.name))
-        val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
-        val ts = TypedSymbol(sig.name, t)
-        addTSIfNew(ts)
+        _functypes += (sig.name -> (sig.in, sig.out))
         sig
     }
 
@@ -128,50 +97,13 @@ trait CollectTypes extends ModuleTransformation {
         Seq(tr)
     }
 
-  /**
-   * create a top-level typed symbol
-   */
-  private def makeTopLevelSymbol(name: String): TypedSymbol =
-    TypedSymbol(name, DefinedType("tType"))
-
-  private def addTSIfNew(ts: TypedSymbol): Unit =
-    if (_typedSymbols.contains(ts.name))
-      throw TransformationError(s"Sort, Constructor, or function ${ts.name} has been defined twice!")
-    else
-      _typedSymbols += ts.name -> ts
-
-  private def translatePredefinedType(t: String): DefinedType =
-    t match {
-      case "Bool" => DefinedType("o")
-      case "iType" => DefinedType("i")
-      case n => DefinedType(n)
-    }
-
-  /**
-   * transforms a SortRef into a type for Tff
-   * Case 1) predefined type, returns a DefinedType
-   * Case 2) type is not predefined - checks whether type was already defined and throws an error if not!
-   * otherwise returns a SymbolType
-   *
-   */
-  def makeAtomicType(name: String): TffAtomicType =
-    if (SortDef.predefinedSorts contains name)
-      translatePredefinedType(name)
-    else {
-      val ts = makeTopLevelSymbol(name)
-      _typedSymbols.get(name) match {
-        case Some(ts) => SymbolType(ts)
-        case None => throw TransformationError(s"Encountered sort reference ${name}, which has not been defined yet!")
-      }
-    }
-
-  def inferMetavarTypes(tr: TypingRule): Map[MetaVar, TffAtomicType] = {
+  def inferMetavarTypes(tr: TypingRule): Map[MetaVar, SortRef] = {
     val jdgs = tr.premises ++ tr.consequences
     val vars = FreeVariables.freeVariables(jdgs)
     inferMetavarTypes(vars, jdgs)
   }
 
-  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Map[MetaVar, TffAtomicType] = {
+  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Map[MetaVar, SortRef] = {
     Map() ++ (for (v <- vars) yield {
       val occurrences = findTypableOccurrences(v, jdgs)
       val typelist = occurrences flatMap (typeOcc(v, _))
@@ -183,7 +115,7 @@ trait CollectTypes extends ModuleTransformation {
       }
     })
   }
-
+  
   /**
    * finds constructs in given sequence of TypingRuleJudgment that have the
    * given MetaVar m as direct child and are one of
@@ -245,32 +177,32 @@ trait CollectTypes extends ModuleTransformation {
    * given a FunctionExp such as the ones found by findTypableOccurrences,
    * tries to determine the type of the given MetaVar m
    */
-  private def typeOcc(m: MetaVar, occ: FunctionExp): Option[TffAtomicType] = {
+  private def typeOcc(m: MetaVar, occ: FunctionExp): Option[SortRef] = {
 
     def getMetaVarPos(args: Seq[FunctionExpMeta]): Seq[Int] =
       for (i <- args.indices if (args(i) == FunctionMeta(m))) yield i
 
-    def getReturnType(t: TffTopLevelType): Option[TffAtomicType] =
-      t match {
-        case TffMappingType(_, restype) => Some(restype)
-        case st @ SymbolType(t) => Some(st)
-        case _ => None
-      }
+    def getReturnType(f: String): Option[SortRef] = {
+      symbolType(f) map (_._2)
+    }
 
-    def getArgType(t: TffTopLevelType, args: Seq[FunctionExpMeta]): Option[TffAtomicType] =
-      t match {
-        case TffMappingType(arglist, _) => {
+    def getArgType(fn: String, args: Seq[FunctionExpMeta]): Option[SortRef] = {
+      symbolType(fn) match {
+        case None => None
+        case Some(t) =>
           val poslist = getMetaVarPos(args)
-          val typeset = (for (p <- poslist) yield arglist(p)).toSet
-          if (typeset.size == 1) Some(typeset.head) else None
-        }
-        case _ => None
+          val typeset = (poslist map (p => t._1(p))).toSet
+          if (typeset.size == 1)
+            Some(typeset.head) 
+          else 
+            None            
       }
+    }
 
     occ match {
-      case FunctionExpEq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(_typedSymbols(n).tfftype)
-      case FunctionExpNeq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(_typedSymbols(n).tfftype)
-      case FunctionExpApp(fn, args) => getArgType(_typedSymbols(fn).tfftype, args)
+      case FunctionExpEq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(n)
+      case FunctionExpNeq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(n)
+      case FunctionExpApp(fn, args) => getArgType(fn, args)
       case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, an untypable FunctionExp was marked as typable.")
     }
   }

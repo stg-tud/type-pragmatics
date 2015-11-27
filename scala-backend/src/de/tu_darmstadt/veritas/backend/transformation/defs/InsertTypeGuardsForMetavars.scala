@@ -45,7 +45,7 @@ object InsertTypeGuardsForMetavars extends ModuleTransformation {
     }
   }
  
-  private def makeGuardPremise(v: MetaVar, t: TffAtomicType): TypingRuleJudgment =
+  private def makeGuardPremise(v: MetaVar, t: SortRef): TypingRuleJudgment =
     FunctionExpJudgment(
-        GenerateTypeGuards.guardCall(t.typename, FunctionMeta(v)))
+        GenerateTypeGuards.guardCall(t.name, FunctionMeta(v)))
 }
