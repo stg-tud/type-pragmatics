@@ -9,11 +9,11 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 
 trait CollectTypes extends ModuleTransformation {
-  var _dataTypes: Set[String] = _
+  private var _dataTypes: Set[String] = Set()
   // constrTypes: datatype constructors and constants
-  var _constrTypes: Map[String, (Seq[SortRef], SortRef)] = _
-  var _functypes: Map[String, (Seq[SortRef], SortRef)] = _
-  var _pfunctypes: Map[String, (Seq[SortRef], SortRef)] = _
+  private var _constrTypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  private var _functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  private var _pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
 
   def dataTypes = _dataTypes
   def constrTypes = _constrTypes

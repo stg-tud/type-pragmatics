@@ -5,7 +5,8 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 
-case class MetaVar(name: String) extends VeritasConstruct with SimplePrettyPrintable {
+class MetaVar(_name: String) extends VeritasConstruct with SimplePrettyPrintable {
+  val name = _name
   override val children = Seq()
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -20,6 +21,9 @@ case class MetaVar(name: String) extends VeritasConstruct with SimplePrettyPrint
 }
 
 object MetaVar {
+  def apply(name: String) = new MetaVar(name)
+  def unapply(v: MetaVar) = Some(v.name)
+  
   def from(term: StrategoTerm): MetaVar = term match {
     case StrategoAppl("Meta", StrategoString(varname)) => MetaVar(varname)
     case t => throw VeritasParseError("expected Meta() var, got: " + t)
