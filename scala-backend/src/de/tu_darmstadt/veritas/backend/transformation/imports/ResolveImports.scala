@@ -61,7 +61,6 @@ object ResolveImports extends ModuleTransformation {
       if (!done.contains(m.name)) {
         if (m.imports.isEmpty) {
           done += m.name
-          println(s"resolved ${m.name}")
           result ++= m.defs
         }
         else {
