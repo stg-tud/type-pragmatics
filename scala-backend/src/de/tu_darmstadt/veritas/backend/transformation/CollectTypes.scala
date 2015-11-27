@@ -209,7 +209,7 @@ class CollectTypes extends ModuleTransformation {
           if (containsMetaVar(args)) afe ++ Set(fe) else afe
         }
         // this should never happen
-        case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, found a function expression that is not covered by the code!")
+        case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, found a function expression $e that is not covered by the code!")
       }
     }
     (for (jdg <- jdglist) yield {
