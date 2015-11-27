@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
-import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 
 /**
  * generates inversion axioms for functions and partial functions

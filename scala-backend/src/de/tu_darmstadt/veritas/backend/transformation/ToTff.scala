@@ -6,6 +6,8 @@ import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 
 /**
  * Transforms Core TSSL (Veritas) Modules to TFF syntax

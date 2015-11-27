@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 
 trait CollectSubformulas extends ModuleTransformation {
   var freshNames = new FreshNames

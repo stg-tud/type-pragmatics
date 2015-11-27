@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectConstructorNames
 
 /**
  * (blindly) desugars FunctionPatVar and FunctionExpVar to FunctionPatApp/FunctionExpApp with zero arguments

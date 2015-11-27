@@ -5,8 +5,8 @@ import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
-import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 
 /**
  * this trait tries to infer the signature of TypingJudgments from a Module

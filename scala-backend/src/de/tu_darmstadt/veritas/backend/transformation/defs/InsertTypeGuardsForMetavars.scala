@@ -7,9 +7,9 @@ import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 import de.tu_darmstadt.veritas.backend.tff.TffAtomicType
-import de.tu_darmstadt.veritas.backend.transformation.CollectTypesClass
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
 
 /**
  * For each SortDef we generate a type guard and for each ConstructorDecl we generate an axiom for the guard.
