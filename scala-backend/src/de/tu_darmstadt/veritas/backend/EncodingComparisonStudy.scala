@@ -32,6 +32,7 @@ case object Tff extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) = ToTff.toTffFile(m)
 }
 
+
 case class AlternativeTyping(select: Configuration => Typing) extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) =
     select(config).finalEncoding(m)
@@ -50,7 +51,6 @@ object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
 
 object BasicTrans extends SeqTrans(
   ResolveImports,
-  ReplaceImportsWithModuleDefs,
   VarToApp0,
   DesugarLemmas,
   ConstructorTrans,
