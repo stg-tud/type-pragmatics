@@ -3,11 +3,11 @@ package de.tu_darmstadt.veritas.backend.transformation.defs
 import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel.CollectTypeInfo
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
 
 trait CollectSubformulas extends ModuleTransformation {
   var freshNames = new FreshNames
@@ -396,7 +396,7 @@ object NameFunctionResultsOnly extends NameSubformulas {
 /**
  * name function arguments that are not meta-variables!
  */
-object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with CollectTypeInfo {
+object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with CollectTypes {
   override def checkConstruct(vc: VeritasConstruct): Boolean = {
     if (super.checkConstruct(vc)) {
       //only rename in left-hand side of single equation in conclusion!

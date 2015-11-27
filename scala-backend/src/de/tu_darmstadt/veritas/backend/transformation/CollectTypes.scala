@@ -6,33 +6,31 @@ import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
-/**
- * Transforms Core TSSL (Veritas) Modules to TFF syntax
- *
- * Structure of Core Modules
- * - no imports
- * - section with "symbol declarations" (constructor decls, const decls, function sigs...) (can be empty)
- * - section with n axioms, where typing judgments were already transformed to some typed function! (can be empty)
- * - exactly one goal! (which must not be followed by other axioms, constructors etc, which would be out of scope!)
- */
-class CollectTypes extends ModuleTransformation {
+trait CollectTypes extends ModuleTransformation {
+  // constrTypes: datatype constructors and constants
+  var _constrTypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  var _functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  var _pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
 
   /**
    * collects user-defined atomic types
    * (sorts and simple types, already translated to typed symbols)
    */
   private var _typedSymbols: Map[String, TypedSymbol] = Map()
+  
+  def constrTypes = _constrTypes
+  def functypes = _functypes
+  def pfunctypes = _pfunctypes
   def typedSymbols = _typedSymbols
 
   /**
    * top-level function for translating a Module to a TffFile
    */
   override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] = {
+    _constrTypes = Map()
+    _functypes = Map()
+    _pfunctypes = Map()
     _typedSymbols = Map()
-    mdefs foreach {
-      case d: DataType => addDataType(d)
-      case _ =>
-    }
     super.transModule(name, is, mdefs)
   }
 
@@ -40,14 +38,29 @@ class CollectTypes extends ModuleTransformation {
    * Make sure that type symbols are properly scoped by local and strategy blocks
    */
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = mdef match {
-      case Local(_) | Strategy(_,_,_) => 
-        val oldTypedSymbols = _typedSymbols
-        val res = super.transModuleDefs(mdef)
-        _typedSymbols = oldTypedSymbols
-        res
-      case _ => 
-        super.transModuleDefs(mdef)
-    }
+    case d: DataType => 
+      addDataType(d)
+      super.transModuleDefs(d)
+    case Functions(fdecl) =>
+      fdecl map { case FunctionDef(FunctionSig(n, in, out), defs) => _functypes += (n -> (in, out)) }
+      super.transModuleDefs(mdef)
+    case PartialFunctions(fdecl) =>
+      fdecl map { case FunctionDef(FunctionSig(n, in, out), defs) => _pfunctypes += (n -> (in, out)) }
+      super.transModuleDefs(mdef)
+    case Local(_) | Strategy(_,_,_) => 
+      val oldTypedSymbols = _typedSymbols
+      val oldconstypes = _constrTypes
+      val oldfunctypes = _functypes
+      val oldpfunctypes = _pfunctypes
+      val res = super.transModuleDefs(mdef)
+      _constrTypes = oldconstypes
+      _functypes = oldfunctypes
+      _pfunctypes = oldpfunctypes
+      _typedSymbols = oldTypedSymbols
+      res
+    case _ => 
+      super.transModuleDefs(mdef)
+  }
 
   /**
    * collects newly discovered data types,
@@ -66,6 +79,7 @@ class CollectTypes extends ModuleTransformation {
   override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = {
     withSuper(super.transDataTypeConstructor(d, open, dataType)) {
       case d =>
+        _constrTypes += (d.name -> (d.in -> SortRef(dataType)))
         val outt = makeAtomicType(dataType)
         val ints = d.in map (s => makeAtomicType(s.name))
         val t = if (ints.isEmpty) outt else
@@ -79,6 +93,7 @@ class CollectTypes extends ModuleTransformation {
   override def transConstDecl(d: ConstDecl): Seq[ConstDecl] = {
     withSuper(super.transConstDecl(d)) {
       case d =>
+        _constrTypes += (d.name -> (Seq() -> d.out))
         val outt = makeAtomicType(d.out.name)
         val ts = TypedSymbol(d.name, outt)
         addTSIfNew(ts)
@@ -258,3 +273,5 @@ class CollectTypes extends ModuleTransformation {
     }
   }
 }
+
+class CollectTypesClass extends CollectTypes

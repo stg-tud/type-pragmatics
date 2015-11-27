@@ -43,7 +43,7 @@ object ToTff {
     axiomlist = Seq()
     goal = None
     
-    types = new CollectTypes
+    types = new CollectTypesClass
     types.apply(Seq(veritasModule))
     
     veritasModule match {

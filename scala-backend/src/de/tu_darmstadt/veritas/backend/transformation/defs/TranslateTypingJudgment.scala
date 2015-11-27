@@ -4,8 +4,9 @@ import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel.CollectTypeInfo
 import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
 
 /**
  * this trait tries to infer the signature of TypingJudgments from a Module
@@ -14,7 +15,7 @@ import de.tu_darmstadt.veritas.backend.Configuration
  * assumes that within a module, typing judgments are always used with the same types
  *
  */
-trait InferTypingJudgmentSignature extends ModuleTransformation with CollectTypeInfo {
+trait InferTypingJudgmentSignature extends CollectTypes {
 
   private var t1: Option[SortRef] = None
   private var t2: Option[SortRef] = None
@@ -34,7 +35,7 @@ trait InferTypingJudgmentSignature extends ModuleTransformation with CollectType
   private def typeTypableOccurrence(toType: FunctionExpMeta, typableOcc: FunctionExpApp): SortRef = {
     typableOcc match {
       case FunctionExpApp(fn, args) => {
-        val (in, out) = constypes.getOrElse(fn, functypes.getOrElse(fn, pfunctypes.getOrElse(fn, (Seq(), SortRef("")))))
+        val (in, out) = constrTypes.getOrElse(fn, functypes.getOrElse(fn, pfunctypes.getOrElse(fn, (Seq(), SortRef("")))))
         if (out.name == "") throw TransformationError(s"Function ${fn} was not declared!?")
         if (args contains toType)
           in(args.indexOf(toType))
@@ -299,7 +300,7 @@ trait TranslateTypingJudgment extends ModuleTransformation {
 object TranslateTypingJudgmentToFunction extends TranslateTypingJudgment
 
 //below version of above trait for translating TypingJudgmentSimple (which has just two arguments)
-trait InferTypingJudgmentSimple extends ModuleTransformation with CollectTypeInfo {
+trait InferTypingJudgmentSimple extends CollectTypes {
 
   protected var t1: Option[SortRef] = None
   protected var t2: Option[SortRef] = None
@@ -318,7 +319,7 @@ trait InferTypingJudgmentSimple extends ModuleTransformation with CollectTypeInf
   private def typeTypableOccurrence(toType: FunctionExpMeta, typableOcc: FunctionExpApp): SortRef = {
     typableOcc match {
       case FunctionExpApp(fn, args) => {
-        val (in, out) = constypes.getOrElse(fn, functypes.getOrElse(fn, pfunctypes.getOrElse(fn, (Seq(), SortRef("")))))
+        val (in, out) = constrTypes.getOrElse(fn, functypes.getOrElse(fn, pfunctypes.getOrElse(fn, (Seq(), SortRef("")))))
         if (out.name == "") throw TransformationError(s"Function ${fn} was not declared!?")
         if (toType == typableOcc)
           out

@@ -76,7 +76,7 @@ object LogicalTermOptimization extends ModuleTransformation {
     }
   
   override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
-    withSuper[FunctionExp](super.transFunctionExps(f)){case e => Seq(expressionOptimization(e))} 
+    withSuper[FunctionExp](super.transFunctionExps(f)){case e if expressionOptimization.isDefinedAt(e) => Seq(expressionOptimization(e))} 
 
   override def transFunctionExp(f: FunctionExp): FunctionExp =
     withSuper(super.transFunctionExp(f))(expressionOptimization)

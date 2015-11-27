@@ -9,6 +9,7 @@ import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.transformation.CollectTypes
 import de.tu_darmstadt.veritas.backend.tff.TffAtomicType
+import de.tu_darmstadt.veritas.backend.transformation.CollectTypesClass
 
 /**
  * For each SortDef we generate a type guard and for each ConstructorDecl we generate an axiom for the guard.
@@ -29,7 +30,7 @@ object InsertTypeGuardsForMetavars extends ModuleTransformation {
 
   override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] = {
     // collect types for current module
-    types = new CollectTypes
+    types = new CollectTypesClass
     types.apply(Seq(Module(name, is, mdefs)))(config)
     
     super.transModule(name, is, mdefs)
