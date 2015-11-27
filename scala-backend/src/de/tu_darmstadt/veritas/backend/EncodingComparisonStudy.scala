@@ -64,14 +64,11 @@ object BasicTrans extends SeqTrans(
  */
 object ProblemTrans extends Alternative(selectConfig(Problem) {
   case Problem.Consistency =>
-    SplitModulesByGoal.setGoalFilter("")
-    SeqTrans(SplitModulesByGoal, MoveDeclsToFront, SetupConsistencyCheck)
+    SeqTrans(SplitModulesByGoal(""), MoveDeclsToFront, SetupConsistencyCheck)
   case Problem.Proof =>
-    SplitModulesByGoal.setGoalFilter("proof")
-    SeqTrans(SplitModulesByGoal, MoveDeclsToFront)
+    SeqTrans(SplitModulesByGoal("proof"), MoveDeclsToFront)
   case Problem.Test =>
-    SplitModulesByGoal.setGoalFilter("test")
-    SeqTrans(SplitModulesByGoal, MoveDeclsToFront)
+    SeqTrans(SplitModulesByGoal("test"), MoveDeclsToFront)
 })
 
 /**

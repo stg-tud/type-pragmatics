@@ -28,11 +28,8 @@ import de.tu_darmstadt.veritas.backend.veritas.TypingRule
  *  - Lemmas/LemmasWithStrategy are already desugared (to Axioms+Goals)
  *  - all Imports are already resolved (it is one self-contained Module without any imports)
  */
-object SplitModulesByGoal extends ModuleTransformation {
+case class SplitModulesByGoal(filterGoals: String = "") extends ModuleTransformation {
   private var submoduleNameGenerator = new FreshNames(false)
-  private var filterGoals: String = ""
-
-  def setGoalFilter(newFilter: String) = { filterGoals = newFilter }
 
   override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] =
     withSuper(super.transModule(name, is, mdefs)) {
