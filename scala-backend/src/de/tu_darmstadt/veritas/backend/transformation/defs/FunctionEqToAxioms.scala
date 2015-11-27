@@ -189,7 +189,8 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
   private def makeConclusions(f: FunctionEq, restype: SortRef): Seq[TypingRuleJudgment] =
     f match {
       case FunctionEq(name, pats, ext) => {
-        val left = FunctionExpApp(name, (pats map patsToVars) map varsToMetaVars)
+        val patExps = pats map (p => varsToMetaVars(patsToVars(p)))
+        val left = FunctionExpApp(name, patExps)
         val seprights = separateRights(ext)
         val rights = seprights map varsToMetaVars
 
@@ -198,7 +199,7 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
             //this should work because we assume that function equations for functions with 
             //return type Bool cannot have just a variable at the right-hand side....
             for (right <- rights) yield {
-              FunctionExpJudgment(optimizeBiImpl(FunctionExpBiImpl(left, right.asInstanceOf[FunctionExp])))
+              FunctionExpJudgment(FunctionExpBiImpl(left, right.asInstanceOf[FunctionExp]))
             }
           } catch {
             case c: ClassCastException => throw TransformationError(s"Function ${name} has a variable on right-hand side of an equation, not supported for functions with return type Boolean!")
@@ -208,17 +209,7 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
           for (right <- rights) yield {
             FunctionExpJudgment(FunctionExpEq(left, right))
           }
-
       }
-    }
-
-  private def optimizeBiImpl(bimpl: FunctionExpBiImpl): FunctionExp =
-    bimpl match {
-      case FunctionExpBiImpl(FunctionExpTrue, r)  => r
-      case FunctionExpBiImpl(l, FunctionExpTrue)  => l
-      case FunctionExpBiImpl(FunctionExpFalse, r) => FunctionExpNot(r)
-      case FunctionExpBiImpl(l, FunctionExpFalse) => FunctionExpNot(l)
-      case b                                      => b
     }
 
   /**

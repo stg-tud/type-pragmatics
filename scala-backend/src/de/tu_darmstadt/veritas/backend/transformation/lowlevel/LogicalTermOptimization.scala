@@ -47,35 +47,13 @@ object LogicalTermOptimization extends ModuleTransformation {
         else Seq(OrJudgment(orc filterNot (_ == FunctionExpJudgment(FunctionExpTrue))))
     }
 
-  override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
-    withSuper[FunctionExp](super.transFunctionExps(f)) {
-      case FunctionExpEq(f1, f2) if (f1 == f2)                 => Seq(FunctionExpTrue)
-      case FunctionExpNeq(f1, f2) if (f1 == f2)                => Seq(FunctionExpFalse)
-      case FunctionExpBiImpl(l, r) if (l == r)                 => Seq(FunctionExpTrue)
-      case FunctionExpNot(FunctionExpFalse)                    => Seq(FunctionExpTrue)
-      case FunctionExpNot(FunctionExpTrue)                     => Seq(FunctionExpFalse)
-      case FunctionExpNot(FunctionExpNot(e))                   => Seq(e)
-      case FunctionExpAnd(_, FunctionExpFalse)                 => Seq(FunctionExpFalse)
-      case FunctionExpAnd(FunctionExpFalse, _)                 => Seq(FunctionExpFalse)
-      case FunctionExpAnd(l, FunctionExpTrue)                  => Seq(transFunctionExp(l))
-      case FunctionExpAnd(FunctionExpTrue, r)                  => Seq(transFunctionExp(r))
-      case FunctionExpAnd(l, r) if (l == r)                    => Seq(transFunctionExp(l))
-      case FunctionExpOr(_, FunctionExpTrue)                   => Seq(FunctionExpTrue)
-      case FunctionExpOr(FunctionExpTrue, _)                   => Seq(FunctionExpTrue)
-      case FunctionExpOr(l, FunctionExpFalse)                  => Seq(transFunctionExp(l))
-      case FunctionExpOr(FunctionExpFalse, r)                  => Seq(transFunctionExp(r))
-      case FunctionExpOr(l, r) if (l == r)                     => Seq(transFunctionExp(l))
-      case FunctionExpIf(FunctionExpTrue, t, e)                => Seq(transFunctionExpMeta(t).asInstanceOf[FunctionExp])
-      case FunctionExpIf(FunctionExpFalse, t, e)               => Seq(transFunctionExpMeta(e).asInstanceOf[FunctionExp])
-      case FunctionExpIf(c, t, e) if (t == e)                  => Seq(transFunctionExpMeta(t).asInstanceOf[FunctionExp])
-      case FunctionExpIf(c, FunctionExpTrue, FunctionExpFalse) => Seq(transFunctionExpMeta(c).asInstanceOf[FunctionExp])
-      case FunctionExpIf(c, FunctionExpFalse, FunctionExpTrue) => Seq(FunctionExpNot(transFunctionExpMeta(c).asInstanceOf[FunctionExp]))
-    }
-
-  override def transFunctionExp(f: FunctionExp): FunctionExp =
-    withSuper(super.transFunctionExp(f)) {
+  val expressionOptimization: PartialFunction[FunctionExp, FunctionExp] = {
       case FunctionExpEq(f1, f2) if (f1 == f2)                 => FunctionExpTrue
       case FunctionExpNeq(f1, f2) if (f1 == f2)                => FunctionExpFalse
+      case FunctionExpBiImpl(FunctionExpTrue, r)  => transFunctionExp(r)
+      case FunctionExpBiImpl(l, FunctionExpTrue)  => transFunctionExp(l)
+      case FunctionExpBiImpl(FunctionExpFalse, r) => transFunctionExp(FunctionExpNot(r))
+      case FunctionExpBiImpl(l, FunctionExpFalse) => transFunctionExp(FunctionExpNot(l))
       case FunctionExpBiImpl(l, r) if (l == r)                 => FunctionExpTrue
       case FunctionExpNot(FunctionExpFalse)                    => FunctionExpTrue
       case FunctionExpNot(FunctionExpTrue)                     => FunctionExpFalse
@@ -96,5 +74,11 @@ object LogicalTermOptimization extends ModuleTransformation {
       case FunctionExpIf(c, FunctionExpTrue, FunctionExpFalse) => transFunctionExpMeta(c).asInstanceOf[FunctionExp]
       case FunctionExpIf(c, FunctionExpFalse, FunctionExpTrue) => FunctionExpNot(transFunctionExpMeta(c).asInstanceOf[FunctionExp])
     }
+  
+  override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
+    withSuper[FunctionExp](super.transFunctionExps(f)){case e => Seq(expressionOptimization(e))} 
+
+  override def transFunctionExp(f: FunctionExp): FunctionExp =
+    withSuper(super.transFunctionExp(f))(expressionOptimization)
 
 }
