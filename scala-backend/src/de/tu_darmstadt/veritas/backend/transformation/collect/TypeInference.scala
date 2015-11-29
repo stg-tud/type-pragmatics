@@ -6,6 +6,18 @@ import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.veritas._
 import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.util.FreeVariables
+
+trait Typeable {
+  var typ: Option[TypeInference.Type] = None
+  def sortType: SortRef = SortRef(typ.get.asInstanceOf[Sort].name)
+  def mappingType: (Seq[SortRef], SortRef) = {
+    val ft = typ.get.asInstanceOf[Function]
+    val ins = ft.in map (i => SortRef(i.asInstanceOf[Sort].name))
+    val out = SortRef(ft.out.asInstanceOf[Sort].name)
+    (ins, out)
+  }
+}
 
 object TypeInference {
   type USubst = Map[UVar, Type]
@@ -24,6 +36,7 @@ object TypeInference {
   }
   case class Sort(name: String) extends Type {
     def unify(t: Type, s: USubst) = t match {
+      case t: UVar => t.unify(this, s)
       case Sort(`name`) => Some(Map())
       case _ => None
     }
@@ -31,6 +44,7 @@ object TypeInference {
   }
   case class Function(in: Seq[Type], out: Type) extends Type {
     def unify(t: Type, s: USubst): Option[USubst] = t match {
+      case t: UVar => t.unify(this, s)
       case Function(in2, out2) => 
         var currents = s
         var res: USubst = Map()
@@ -59,12 +73,57 @@ object TypeInference {
 }
 
 
+/**
+ * Implements type inference for Veritas specifications.
+ * Relies on trait `Typeable` that allows the storage of typing information in
+ * AST nodes (e.g., MetaVar, FunctionExpVar, FunctionExpLet).
+ * 
+ * TODO: Support function definitions and modules as entry points to type inference.
+ */
 class TypeInference(symbolType: String => Option[(Seq[SortRef],SortRef)]) {
+  
+  def inferMetavarTypes(tr: TypingRule): Seq[MetaVar] = {
+    val jdgs = tr.premises ++ tr.consequences
+    val vars = FreeVariables.freeVariables(jdgs).toSeq
+    inferMetavarTypes(vars, jdgs)
+    vars
+  }
+  
+  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Unit = {
+    vars foreach (_.typ = None)
+    jdgs foreach (checkJudgment(_))
+    
+    vars foreach { v => 
+      if (v.typ == None)
+        throw TypeError(s"Could not infer type of metavariable ${v.name}, no candidate found.")
+    }
+    
+    val solveRes = solveConstraints()
+    if (solveRes._2.nonEmpty)
+      throw TypeError(s"Could not solve the following constraints: ${solveRes._2}")
+
+    val subst = solveRes._1
+    typeables foreach (v => v.typ = v.typ.map(_.subst(subst))) // apply subst if `v` has a type
+    
+    var res = Map[MetaVar, SortRef]()
+    vars foreach { v =>
+      v.typ.get match {
+        case Sort(t) => res += v -> SortRef(t)
+        case t: UVar => throw TypeError(s"Could not infer concrete type of metavariable $v: $t.")
+        case t => throw TypeError(s"Found complex type for metavariable $v: $t")
+      }
+    }
+    res
+  }
+  
+  
+  
   private val fresh = new FreshNames
   
   private var cons = Seq[Constraint]()
-  def constraints = cons
-  
+  private def constraints = cons
+
+  private var typeables = Seq[Typeable]()  
   private var metacontext = Map[MetaVar, Type]()
   private var varcontext = Map[String, Type]()
   
@@ -83,8 +142,25 @@ class TypeInference(symbolType: String => Option[(Seq[SortRef],SortRef)]) {
     val oldvarcontext = varcontext
     varcontext += (v -> t)
     val res = f
-    varcontext = oldvarcontext
+    oldvarcontext.get(v) match {
+      case None => varcontext -= v
+      case Some(t) => varcontext += (v -> t)
+    }
     res
+  }
+  
+  def withScope(vl: Seq[MetaVar])(f: =>Unit) {
+    val oldmetacontext = metacontext
+    metacontext --= vl
+    f
+    vl foreach { v =>
+      v.typ = metacontext.get(v)
+      typeables :+= v
+      oldmetacontext.get(v) match {
+        case None => metacontext -= v
+        case Some(t) => metacontext += (v -> t)
+      }
+    }
   }
   
   def freshType(v: MetaVar): Type = {
@@ -93,48 +169,15 @@ class TypeInference(symbolType: String => Option[(Seq[SortRef],SortRef)]) {
     t
   }
   
-  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Map[MetaVar, SortRef] = {
-    jdgs foreach (checkJudgment(_))
-    
-    vars foreach { v => 
-      if (!metacontext.contains(v))
-        throw TypeError(s"Could not infer type of metavariable ${v.name}, no candidate found.")
-    }
-    
-    val solveRes = solveConstraints()
-    if (solveRes._2.nonEmpty)
-      throw TypeError(s"Could not solve the following constraints: ${solveRes._2}")
-    
-    var res = Map[MetaVar, SortRef]()
-    vars foreach { v =>
-      metacontext(v).subst(solveRes._1) match {
-        case Sort(t) => res += v -> SortRef(t)
-        case t => throw TypeError(s"Found complex type for metavariable $v: $t")
-      }
-    }
-    res
-  }
-  
   def checkJudgment(jdg: TypingRuleJudgment): Unit = jdg match {
     case FunctionExpJudgment(f) => checkExpBool(f)
-    case ExistsJudgment(vl, jdgl) => checkJudgmentScope(vl, jdgl)
-    case ForallJudgment(vl, jdgl) => checkJudgmentScope(vl, jdgl)
+    case ExistsJudgment(vl, jdgl) => withScope(vl){jdgl foreach (checkJudgment(_))}
+    case ForallJudgment(vl, jdgl) => withScope(vl){jdgl foreach (checkJudgment(_))}
     case NotJudgment(jdg) => checkJudgment(jdg)
     case OrJudgment(jdgll) => jdgll foreach (jdgl => jdgl foreach (checkJudgment(_)))
     case ReduceJudgment(e1, e2) => checkExp(e1); checkExp(e2)
     case TypingJudgment(e1, e2 ,e3) => checkExp(e1); checkExp(e2); checkExp(e3)
     case TypingJudgmentSimple(e1, e2) => checkExp(e1); checkExp(e2)
-  }
-  
-  def checkJudgmentScope(vl: Seq[MetaVar], jdgl: Seq[TypingRuleJudgment]) {
-    val oldvlbindings = vl map (v => v -> metacontext.get(v))
-    metacontext --= vl
-    jdgl foreach (checkJudgment(_))
-    metacontext --= vl
-    oldvlbindings foreach {
-      case (v, Some(t)) => metacontext += v -> t
-      case _ => {}
-    }
   }
   
   /**
@@ -151,13 +194,19 @@ class TypeInference(symbolType: String => Option[(Seq[SortRef],SortRef)]) {
   
   def checkExp(e: FunctionExpMeta): Type = e match {
     case FunctionMeta(v) =>
-      metacontext.get(v) match {
+      val t = metacontext.get(v) match {
         case Some(t) => t
         case None => freshType(v)
       }
-    case FunctionExpVar(n) =>
+      v.typ = Some(t)
+      typeables :+= v
+      t
+    case v@FunctionExpVar(n) =>
       varcontext.get(n) match {
-        case Some(t) => t
+        case Some(t) => 
+          v.typ = Some(t)
+          typeables :+= v
+          t
         case None => throw TypeError(s"Cannot find type of variable symbol $n")
       }
     case FunctionExpNot(e) => 
@@ -186,8 +235,10 @@ class TypeInference(symbolType: String => Option[(Seq[SortRef],SortRef)]) {
       val ty = checkExp(t)
       typeIs(ty, checkExp(e))
       ty
-    case FunctionExpLet(n, e, i)  => 
+    case v@FunctionExpLet(n, e, i)  => 
       val te = checkExp(e)
+      typeables :+= v
+      v.typ = Some(te)
       withType(n, te) {(
         checkExp(i))
       }
@@ -214,7 +265,7 @@ class TypeInference(symbolType: String => Option[(Seq[SortRef],SortRef)]) {
     cons foreach {
       case Eq(t1, t2) => 
         t1.unify(t2, subst) match {
-          case Some(ures) => subst ++= ures
+          case Some(ures) => subst = (subst mapValues(_.subst(ures))) ++ ures
           case None => unsolved :+= Eq(t1,t2)
         }
     }

@@ -8,6 +8,9 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
+import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
+import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
 
 sealed trait FunctionExpMeta extends VeritasConstruct with PrettyPrintable
 
@@ -216,7 +219,8 @@ final case class FunctionExpIf(cond: FunctionExpMeta, thenE: FunctionExpMeta, el
   override def toString() = s"if (${cond}) then (${thenE}) else (${elseE})"
 }
 
-final case class FunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: FunctionExpMeta) extends FunctionExp {
+final case class FunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: FunctionExpMeta) extends FunctionExp
+  with Typeable/*type of bound variable*/ {
   override val children = Seq(Seq(namedExpr), Seq(in))
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -295,9 +299,9 @@ object FunctionMeta {
   implicit def wrap(metavar: MetaVar): FunctionMeta = FunctionMeta(metavar)
 }
 
-final case class FunctionExpVar(name: String) extends FunctionExp with SimplePrettyPrintable {
+final case class FunctionExpVar(name: String) extends FunctionExp with SimplePrettyPrintable with Typeable {
   override val children = Seq()
-
+  
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
     if (!newchildren.isEmpty) throw new ClassCastException
 

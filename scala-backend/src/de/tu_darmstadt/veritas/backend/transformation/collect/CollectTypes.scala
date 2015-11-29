@@ -97,115 +97,11 @@ trait CollectTypes extends ModuleTransformation {
         Seq(tr)
     }
 
-  def inferMetavarTypes(tr: TypingRule): Map[MetaVar, SortRef] = {
-    val jdgs = tr.premises ++ tr.consequences
-    val vars = FreeVariables.freeVariables(jdgs)
-    inferMetavarTypes(vars, jdgs)
-  }
+  def inferMetavarTypes(tr: TypingRule) = 
+    new TypeInference(symbolType).inferMetavarTypes(tr)
 
-  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Map[MetaVar, SortRef] = {
-    Map() ++ (for (v <- vars) yield {
-      val occurrences = findTypableOccurrences(v, jdgs)
-      val typelist = occurrences flatMap (typeOcc(v, _))
-      val typeset = typelist.toSet //remove duplicate occurrences of found types; ideally, only one occurrence should be left!
-      typeset.size match {
-        case 0 => throw TransformationError(s"Could not infer type of metavariable ${v.name}, no candidate found.") //has to be an error case, untyped variables will not be supported by e.g. Vampire!
-        case 1 => (v -> typeset.head)
-        case _ => throw TransformationError(s"Could not infer type of metavariable ${v.name}, multiple candidates found $typeset")
-      }
-    })
-  }
-  
-  /**
-   * finds constructs in given sequence of TypingRuleJudgment that have the
-   * given MetaVar m as direct child and are one of
-   * - function applications (Appl)
-   * - equalities/inequalities with the m on one side and a function application on the other side
-   *
-   */
-  private def findTypableOccurrences(m: MetaVar, jdglist: Seq[TypingRuleJudgment]): Set[FunctionExp] = {
-    def containsMetaVar(args: Seq[FunctionExpMeta]): Boolean = args exists
-      {
-        case FunctionMeta(m0) => m == m0
-        case _ => false
-      }
-
-    def searchFunctionExp(e: FunctionExpMeta): Set[FunctionExp] = {
-      e match {
-        // base cases just return empty set, all listed explicitly just in case!  
-        case FunctionMeta(m) => Set()
-        case FunctionExpVar(n) => Set()
-        case FunctionExpTrue => Set()
-        case FunctionExpFalse => Set()
-        case FunctionExpNot(f) => searchFunctionExp(f)
-        case fe @ FunctionExpEq(FunctionMeta(mx), r @ FunctionExpApp(n, args)) =>
-          if (mx == m) Set(fe) else searchFunctionExp(r)
-        case fe @ FunctionExpEq(l @ FunctionExpApp(n, args), r @ FunctionMeta(mx)) =>
-          if (mx == m) Set(FunctionExpEq(r, l)) else searchFunctionExp(l)
-        case FunctionExpEq(f1, f2) => searchFunctionExp(f1) ++ searchFunctionExp(f2)
-        case fe @ FunctionExpNeq(FunctionMeta(mx), r @ FunctionExpApp(n, args)) =>
-          if (mx == m) Set(fe) else searchFunctionExp(r)
-        case fe @ FunctionExpNeq(l @ FunctionExpApp(n, args), r @ FunctionMeta(mx)) =>
-          if (mx == m) Set(FunctionExpNeq(r, l)) else searchFunctionExp(l)
-        case FunctionExpNeq(f1, f2) => searchFunctionExp(f1) ++ searchFunctionExp(f2)
-        case FunctionExpAnd(l, r) => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpOr(l, r) => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpBiImpl(l, r) => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpIf(c, t, e) => searchFunctionExp(c) ++ searchFunctionExp(t) ++ searchFunctionExp(e)
-        case FunctionExpLet(n, e, i) => searchFunctionExp(e) ++ searchFunctionExp(i)
-        case fe @ FunctionExpApp(fn, args) => {
-          val afe = (args flatMap searchFunctionExp).toSet
-          if (containsMetaVar(args)) afe ++ Set(fe) else afe
-        }
-        // this should never happen
-        case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, found a function expression $e that is not covered by the code!")
-      }
-    }
-    (for (jdg <- jdglist) yield {
-      jdg match {
-        case FunctionExpJudgment(f) => searchFunctionExp(f)
-        case ExistsJudgment(vl, jdgl) => findTypableOccurrences(m, jdgl)
-        case ForallJudgment(vl, jdgl) => findTypableOccurrences(m, jdgl)
-        case NotJudgment(jdg) => findTypableOccurrences(m, Seq(jdg))
-        case OrJudgment(jdgll) => jdgll flatMap (findTypableOccurrences(m, _))
-        case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, encountered a construct in an axiom, premise, or conclusion that is not supported by core modules!")
-      }
-    }).flatten.toSet
-  }
-
-  /**
-   * given a FunctionExp such as the ones found by findTypableOccurrences,
-   * tries to determine the type of the given MetaVar m
-   */
-  private def typeOcc(m: MetaVar, occ: FunctionExp): Option[SortRef] = {
-
-    def getMetaVarPos(args: Seq[FunctionExpMeta]): Seq[Int] =
-      for (i <- args.indices if (args(i) == FunctionMeta(m))) yield i
-
-    def getReturnType(f: String): Option[SortRef] = {
-      symbolType(f) map (_._2)
-    }
-
-    def getArgType(fn: String, args: Seq[FunctionExpMeta]): Option[SortRef] = {
-      symbolType(fn) match {
-        case None => None
-        case Some(t) =>
-          val poslist = getMetaVarPos(args)
-          val typeset = (poslist map (p => t._1(p))).toSet
-          if (typeset.size == 1)
-            Some(typeset.head) 
-          else 
-            None            
-      }
-    }
-
-    occ match {
-      case FunctionExpEq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(n)
-      case FunctionExpNeq(FunctionMeta(mx @ _), FunctionExpApp(n, _)) if (mx == m) => getReturnType(n)
-      case FunctionExpApp(fn, args) => getArgType(fn, args)
-      case _ => throw TransformationError(s"While trying to type meta variable ${m.name}, an untypable FunctionExp was marked as typable.")
-    }
-  }
+  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]) = 
+    new TypeInference(symbolType).inferMetavarTypes(vars, jdgs)
 }
 
 class CollectTypesClass extends CollectTypes

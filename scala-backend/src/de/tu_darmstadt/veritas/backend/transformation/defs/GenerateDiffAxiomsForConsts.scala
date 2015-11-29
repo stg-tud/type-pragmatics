@@ -26,7 +26,8 @@ object GenerateDiffAxiomsForConsts extends ModuleTransformation {
 
   private def makeDiffAxioms(constrs: Seq[ConstDecl]) = 
     for (i <- 0 until constrs.size;
-         j <- i + 1 until constrs.size)
+         j <- i + 1 until constrs.size 
+           if constrs(i).out == constrs(j).out) // avoid diff axioms for consts of incompatible types
       yield makeDiffAxiom(constrs(i), constrs(j))
   
   
