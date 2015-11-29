@@ -24,22 +24,12 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
  *
  * Also works with Local/Strategy blocks.
  */
-object InsertTypeGuardsForMetavars extends ModuleTransformation {
-
-  private var types: CollectTypes = _
-
-  override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] = {
-    // collect types for current module
-    types = new CollectTypesClass
-    types.apply(Seq(Module(name, is, mdefs)))(config)
-    
-    super.transModule(name, is, mdefs)
-  }
+object InsertTypeGuardsForMetavars extends ModuleTransformation with CollectTypes {
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     withSuper(super.transTypingRules(tr)) {
       case tr@TypingRule(n, prems, conss) =>
-        val vars = types.inferMetavarTypes(tr)
+        val vars = inferMetavarTypes(tr)
         val guards = vars map (v => makeGuardPremise(v))
         Seq(TypingRule(n, guards.toSeq ++ prems, conss))
     }
