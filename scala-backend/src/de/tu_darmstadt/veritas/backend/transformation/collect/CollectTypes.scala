@@ -20,17 +20,6 @@ trait CollectTypes extends ModuleTransformation {
   def functypes = _functypes
   def pfunctypes = _pfunctypes
 
-  /**
-   * top-level function for translating a Module to a TffFile
-   */
-  override def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] = {
-    _dataTypes = Set()
-    _constrTypes = Map()
-    _functypes = Map()
-    _pfunctypes = Map()
-    super.transModule(name, is, mdefs)
-  }
-
   def symbolType(name: String) = constrTypes.get(name) match {
     case Some(t) => Some(t)
     case None => functypes.get(name) match {
@@ -39,6 +28,21 @@ trait CollectTypes extends ModuleTransformation {
     }
   }
   
+
+  /**
+   * top-level function for translating a Module to a TffFile
+   */
+  override def transModule(name: String, _is: Seq[Import], _mdefs: Seq[ModuleDef]): Seq[Module] = {
+    _dataTypes = Set()
+    _constrTypes = Map()
+    _functypes = Map()
+    _pfunctypes = Map()
+    
+    val is = trace(_is)(transModuleImport(_))
+    val mdefs = transModuleTypedDefs(_mdefs)
+    Seq(Module(name, is, mdefs))
+  }
+
   /**
    * Make sure that type symbols are properly scoped by local and strategy blocks
    */
@@ -46,21 +50,53 @@ trait CollectTypes extends ModuleTransformation {
     case d: DataType => 
       _dataTypes += d.name
       super.transModuleDefs(d)
-    case Local(_) | Strategy(_,_,_) => 
+      
+    case Local(defs) =>
       val oldDataTypes = _dataTypes
       val oldconstypes = _constrTypes
       val oldfunctypes = _functypes
       val oldpfunctypes = _pfunctypes
-      val res = super.transModuleDefs(mdef)
+      val res = transModuleTypedDefs(defs)
       _dataTypes = oldDataTypes
       _constrTypes = oldconstypes
       _functypes = oldfunctypes
       _pfunctypes = oldpfunctypes
-      res
+      Seq(Local(res))
+
+    case Strategy(name,is,defs) => 
+      val oldDataTypes = _dataTypes
+      val oldconstypes = _constrTypes
+      val oldfunctypes = _functypes
+      val oldpfunctypes = _pfunctypes
+      val res = transModuleTypedDefs(defs)
+      _dataTypes = oldDataTypes
+      _constrTypes = oldconstypes
+      _functypes = oldfunctypes
+      _pfunctypes = oldpfunctypes
+      Seq(Strategy(name, is, res))
+      
     case _ => 
       super.transModuleDefs(mdef)
   }
 
+  /**
+   * Visit type declarations first.
+   */
+  def transModuleTypedDefs(mdefs: Seq[ModuleDef]): Seq[ModuleDef] = {
+    val mdefsTyped = mdefs map { mdef => mdef match {
+      case DataType(_,_,_)
+         | Functions(_)
+         | PartialFunctions(_)
+         | Sorts(_)
+        => Left(transModuleDefs(mdef)) // Left = done in first phase
+      case other => Right(Seq(other))  // Right = to be done in second phase
+    }}
+    mdefsTyped flatMap {
+      case Left(seq) => seq
+      case Right(Seq(mdef)) => transModuleDefs(mdef)
+    }
+  }
+  
   override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = {
     withSuper(super.transDataTypeConstructor(d, open, dataType)) {
       case d =>
