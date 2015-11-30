@@ -9,7 +9,7 @@ import encodingcompstudy.TypeSystem
 
 goal
 
-======================================================== T-Tvalue-test1
+======================================================== test-T-Tvalue-1
 emptyContext |- Tvalue(table(aempty, tempty)) : ttempty
 
 local {
@@ -60,7 +60,7 @@ local {
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
 	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
-	=============================================================================== T-tvalue-test2
+	=============================================================================== test-T-tvalue-2
 	~ttc |- Tvalue(table(~al, ~rt)) : ~tt
 	
 }
@@ -81,7 +81,7 @@ local {
 	goal 
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
 	~ttc == bindContext(TN, ~tt, emptyContext)
-	=============================================================================== T-SelectAllFrom-test
+	=============================================================================== test-T-SelectAllFrom
 	~ttc |- SelectAllFrom(Ref(TN)) : ~tt
 	
 }
@@ -101,7 +101,7 @@ local {
 	goal 
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
 	~ttc == bindContext(TN, ~tt, emptyContext)
-	===================================================================================== T-SelectSomeFrom-test1
+	===================================================================================== test-T-SelectSomeFrom1
 	~ttc |- SelectSomeFrom(acons(A3, aempty), Ref(TN)) : ttcons(ctype(A3, T3), ttempty)
 	
 }
@@ -120,7 +120,7 @@ local {
 	goal 
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
 	~ttc == bindContext(TN, ~tt, emptyContext)
-	=============================================================================== T-SelectSomeFrom-test2
+	=============================================================================== test-T-SelectSomeFrom2
 	~ttc |- SelectSomeFrom(acons(A3, acons(A1, aempty)), Ref(TN)) : ttcons(ctype(A3, T3), ttcons(ctype(A1, T1), ttempty))
 	
 }
@@ -144,7 +144,7 @@ local {
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
 	~p == VEquals(A3, x1)
 	~ttc == bindContext(TN, ~tt, emptyContext)
-	=============================================================================== T-SelectAllFromWhere-test1
+	=============================================================================== test-T-SelectAllFromWhere1
 	~ttc |- SelectAllFromWhere(Ref(TN), ~p) : ~tt
 	
 }
@@ -168,7 +168,7 @@ local {
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
 	~p == VEquals(A3, z1)
 	~ttc == bindContext(TN, ~tt, emptyContext)
-	=============================================================================== T-SelectAllFromWhere-test1
+	=============================================================================== test-T-SelectAllFromWhere1
 	~ttc |- SelectAllFromWhere(Ref(TN), ~p) : ~tt
 	
 }
@@ -192,7 +192,7 @@ local {
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
 	~p == VEquals(A1, x1)
 	~ttc == bindContext(TN, ~tt, emptyContext)
-	=============================================================================== T-SelectSomeFromWhere-test1
+	=============================================================================== test-T-SelectSomeFromWhere1
 	~ttc |- SelectSomeFromWhere(acons(A3, aempty), Ref(TN), ~p) : ttcons(ctype(A3, T3), ttempty)
 	
 }
