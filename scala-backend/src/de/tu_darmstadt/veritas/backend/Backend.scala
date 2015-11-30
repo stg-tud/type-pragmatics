@@ -42,7 +42,7 @@ object Backend {
   /**
    * This variability model is used by the code below
    */
-  val variabilityModel = fullVariability
+  val variabilityModel = onlyConsistency
 
   private var inputDirectory: String = "" //directory of input file
 
@@ -213,8 +213,11 @@ object Backend {
     
     val resultFiles = runAllEncodings(aterm) //writes files
 
-    // write resulting files on console in addition
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
+    outputPrettyPrinter.writeln()
+    outputPrettyPrinter.writeln("Finished all generation")
+
+    // write resulting files on console in addition
     if (resultFiles.size < 100)
       for ((fullname, outputFiles) <- resultFiles) {
         // print a filename header, then the contents
@@ -222,6 +225,6 @@ object Backend {
         outputPrettyPrinter.indent().write(outputFiles).unindent()
         outputPrettyPrinter.writeln()
       }
-    outputPrettyPrinter.flush()
+    outputPrettyPrinter.close()
   }
 }
