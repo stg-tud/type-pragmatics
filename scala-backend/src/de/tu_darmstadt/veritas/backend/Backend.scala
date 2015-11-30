@@ -30,22 +30,20 @@ object Backend {
   val onlyGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.GuardedFOF)))
 
   val singleTransformation = PartialVariability(
-      Map(FinalEncoding -> Seq(FinalEncoding.TFF),
-      (Problem -> Seq(Problem.Consistency)),
+    Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
+      (Problem -> Seq(Problem.Test)),
       (InversionLemma -> Seq(InversionLemma.On)),
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
   val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.InlineEverything, InversionLemma -> InversionLemma.On, Problem -> Problem.Consistency))
   val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.NameParamsAndResults, InversionLemma -> InversionLemma.Off, Problem -> Problem.Consistency))
-  
+
   /**
    * This variability model is used by the code below
    */
   val variabilityModel = onlyTFFTest
-  
-  
-  
+
   private var inputDirectory: String = "" //directory of input file
 
   private def writeFile(file: PrettyPrintableFile, outputfolder: String): String = {
@@ -66,7 +64,7 @@ object Backend {
   }
 
   /**
-   * runs a single encoding alternative for a given Stratego file
+   * processes results of a single encoding alternative for a given Stratego file, writes result files
    */
   @throws[BackendError[_]]("and the appropriate subclasses on internal error at any stage")
   private def processSingleResult(config: Configuration, outputFiles: Seq[PrettyPrintableFile]): Seq[(String, PrettyPrintableFile)] = {
@@ -77,9 +75,9 @@ object Backend {
     val variable = config(VariableEncoding).toString().toLowerCase
     val simpl = config(LogicalSimplification).toString().toLowerCase
     val inv = config(InversionLemma).toString().toLowerCase
-    
+
     val outputFolder = s"$problem/$typing/$variable-$simpl-$inv"
-    
+
     //write the files in the corresponding directory
     //is it necessary to use the Stratego context when backend is called as a strategy
     //when writing the files...?
@@ -110,7 +108,7 @@ object Backend {
       }
       result = result ++ processSingleResult(config, files)
     }
-    
+
     result
   }
 
@@ -122,7 +120,7 @@ object Backend {
     val (projectPath, inputDir, ast) = StrategoTerm(inputFromEditor) match {
       case StrategoTuple(StrategoString(projectPath), StrategoString(inputDir), ast) => (projectPath, inputDir, ast)
       case _ => throw new IllegalArgumentException("Illegal input to backend-strategy: " +
-        "Argument must be a tuple: (input file directory, AST of file as Stratego term)")
+        "Argument must be a triple: (project path (Veritas), input file directory, AST of file as Stratego term)")
     }
 
     inputDirectory = s"$projectPath/$inputDir"
@@ -147,6 +145,50 @@ object Backend {
     else
       context.getFactory.makeList(resseq.asJava)
   }
+  
+  /**
+   * function for debugging:
+   * 
+   * apply a single partial transformation chain on a module, without writing files
+   * for debugging intermediate steps
+   * 
+   * customize conf and CustomPartialChain below for debugging
+   */
+  def debugTransformation(aterm: StrategoTerm): Seq[(String, PrettyPrintableFile)] = {
+    
+    import de.tu_darmstadt.veritas.backend.transformation._
+    import de.tu_darmstadt.veritas.backend.transformation.defs._
+    import de.tu_darmstadt.veritas.backend.transformation.imports._
+    import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
+
+    val conf = Configuration(Map(
+      FinalEncoding -> FinalEncoding.TFF,
+      LogicalSimplification -> LogicalSimplification.On,
+      VariableEncoding -> VariableEncoding.InlineEverything,
+      InversionLemma -> InversionLemma.On,
+      Problem -> Problem.Test))
+      
+    val modules = Seq(Module.from(aterm))
+
+    object CustomPartialChain extends SeqTrans(
+      // desugar Veritas constructs
+      BasicTrans,
+      // determines whether and which inversion axioms are generated for functions/typing rules
+      Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
+      // variable inlining/extraction
+      VariableTrans ,
+      // insert type guards for quantified metavariables
+      //Optional(InsertTypeGuardsForMetavars, ifConfig(FinalEncoding, FinalEncoding.GuardedFOF)),
+      // determines whether logical optimizations take place prior to fof/tff encoding
+      Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On))//,
+      // select problem
+      //ProblemTrans
+      )
+
+    val transformationChain = { sm: Seq[Module] => CustomPartialChain(sm)(conf) }
+    val resultingModSeq = transformationChain(modules)
+    resultingModSeq map {m => ("", m)}
+  }
 
   /**
    * Run backend as console application, with optional arguments for giving the ATerm and Index/Tasks
@@ -166,8 +208,8 @@ object Backend {
 
     Context.initStandalone(indexAndTaskenginePath)
 
-    //use this to debug a single partial transformation....
-    //val resultFiles = Seq(("", (BasicTrans(Seq(Module.from(aterm)))(Configuration(Map()))).head))
+    //use line below for debugging single partial transformation chains
+    //val resultFiles = debugTransformation(aterm) 
     
     val resultFiles = runAllEncodings(aterm) //writes files
 
