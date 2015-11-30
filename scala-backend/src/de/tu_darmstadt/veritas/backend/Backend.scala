@@ -42,7 +42,7 @@ object Backend {
   /**
    * This variability model is used by the code below
    */
-  val variabilityModel = onlyTFFTest
+  val variabilityModel = fullVariability
 
   private var inputDirectory: String = "" //directory of input file
 
@@ -215,12 +215,13 @@ object Backend {
 
     // write resulting files on console in addition
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-    for ((fullname, outputFiles) <- resultFiles) {
-      // print a filename header, then the contents
-      outputPrettyPrinter.write("File '", outputFiles.filename, "':")
-      outputPrettyPrinter.indent().write(outputFiles).unindent()
-      outputPrettyPrinter.writeln()
-    }
+    if (resultFiles.size < 100)
+      for ((fullname, outputFiles) <- resultFiles) {
+        // print a filename header, then the contents
+        outputPrettyPrinter.write("File '", outputFiles.filename, "':")
+        outputPrettyPrinter.indent().write(outputFiles).unindent()
+        outputPrettyPrinter.writeln()
+      }
     outputPrettyPrinter.flush()
   }
 }
