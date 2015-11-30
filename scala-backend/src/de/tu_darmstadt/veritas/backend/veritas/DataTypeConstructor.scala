@@ -23,15 +23,16 @@ case class DataTypeConstructor(name: String, in: Seq[SortRef]) extends VeritasCo
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(name, "(")
-    if (!in.isEmpty)
+    if (!in.isEmpty) {
       writer.write(in.head)
-    in.tail foreach { s =>
-      writer.write(", ")
-      writer.write(s)
+      in.tail foreach { s =>
+        writer.write(", ")
+        writer.write(s)
+      }
     }
     writer.write(")")
   }
-  
+
   override def toString() = s"$name(${in.mkString(", ")})"
 }
 
