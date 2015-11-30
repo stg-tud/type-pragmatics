@@ -11,27 +11,18 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 import de.tu_darmstadt.veritas.backend.tff.TffAtomicType
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
 
-/**
- * For each SortDef we generate a type guard and for each ConstructorDecl we generate an axiom for the guard.
- *
- * cons D : T
- * ==>
- * axiom $T(D)
- *
- * cons E : T * U -> V
- * ==>
- * axiom $T(x), $U(y) <-> $V(E(x,y))
- *
- * Also works with Local/Strategy blocks.
- */
 object InsertTypeGuardsForMetavars extends ModuleTransformation with CollectTypes {
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     withSuper(super.transTypingRules(tr)) {
       case tr@TypingRule(n, prems, conss) =>
-        val vars = inferMetavarTypes(tr)
-        val guards = vars map (v => makeGuardPremise(v))
-        Seq(TypingRule(n, guards.toSeq ++ prems, conss))
+        if (n.startsWith(GenerateTypeGuards.ruleprefix))
+          Seq(tr)
+        else {
+          val vars = inferMetavarTypes(tr)
+          val guards = vars map (v => makeGuardPremise(v))
+          Seq(TypingRule(n, guards.toSeq ++ prems, conss))
+        }
     }
   }
  
