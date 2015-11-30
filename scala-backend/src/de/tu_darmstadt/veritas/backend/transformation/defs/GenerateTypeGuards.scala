@@ -23,6 +23,8 @@ import de.tu_darmstadt.veritas.backend.Configuration
  */
 object GenerateTypeGuards extends ModuleTransformation {
 
+  val ruleprefix = "guard$"
+    
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = {
     withSuper(super.transModuleDefs(mdef)) {
       case dt@DataType(open, name, constrs) =>
@@ -37,7 +39,7 @@ object GenerateTypeGuards extends ModuleTransformation {
     }
   }
 
-  def guard(name: String): String = "guard-" + name
+  def guard(name: String): String = "guard" + name
   
   def guardCall(sort: String, arg: FunctionExpMeta): FunctionExpApp = 
     FunctionExpApp(guard(sort), Seq(arg))
@@ -59,13 +61,13 @@ object GenerateTypeGuards extends ModuleTransformation {
     val consCall = FunctionExpApp(cd.name, vars)
     val consequence = FunctionExpJudgment(guardCall(dataType, consCall))
     
-    val name = s"guard-$dataType-${cd.name}"
+    val name = s"$ruleprefix-$dataType-${cd.name}"
     val rule = TypingRule(name, premises, Seq(consequence))
     rule
   }
   
   private def makeDomainAxiom(dataType: String, constrs: Seq[DataTypeConstructor]): TypingRule = {
-    val name = s"guard-dom-$dataType"
+    val name = s"$ruleprefix-dom-$dataType"
     val v = FunctionMeta(MetaVar("X"))
     
     // all v. guard(v) => (v=c1(...) | ... | v=cn(...))
