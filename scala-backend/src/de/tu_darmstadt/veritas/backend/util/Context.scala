@@ -8,6 +8,7 @@ import org.strategoxt.HybridInterpreter
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import org.spoofax.interpreter.library.IOAgent
 import java.io.PrintStream
+import java.io.PrintWriter
 
 /**
  * Functionality that depends on whether the Backend is run as standalone (like commandline 
@@ -109,7 +110,10 @@ private class StandaloneContext(indexAndTaskenginePath: String) extends Context 
 }
 
 private class StrategyContext(c: org.strategoxt.lang.Context) extends Context {
-  override def reportException(e: Exception) = e.printStackTrace(c.getIOAgent.getWriter(IOAgent.CONST_STDERR).asInstanceOf[PrintStream])
+	val writer = c.getIOAgent.getWriter(IOAgent.CONST_STDERR)
+	val pw = new PrintWriter(writer)
+
+	override def reportException(e: Exception) = e.printStackTrace(pw)
   
   override def debug(x: Any) = c.getIOAgent.printError(x.toString)
   
