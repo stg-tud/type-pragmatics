@@ -53,16 +53,19 @@ object GenerateTypeGuards extends ModuleTransformation {
     val vars = cd.in.map(sort => FunctionMeta(MetaVar(fresh.freshName(sort.name))))
     
     // all vars are well-typed
-    val premises = cd.in.zip(vars).map { case (sort, v) =>
-      FunctionExpJudgment(guardCall(sort.name, v))
+    val argGuards = cd.in.zip(vars).map { case (sort, v) =>
+      guardCall(sort.name, v)
     }
+    val argCond = FunctionExpAnd(argGuards)
     
     // the constructor call yields something well-typed
     val consCall = FunctionExpApp(cd.name, vars)
-    val consequence = FunctionExpJudgment(guardCall(dataType, consCall))
+    val consCond = guardCall(dataType, consCall)
+    
+    val consequence = FunctionExpJudgment(FunctionExpBiImpl(argCond, consCond))
     
     val name = s"$ruleprefix-$dataType-${cd.name}"
-    val rule = TypingRule(name, premises, Seq(consequence))
+    val rule = TypingRule(name, Seq(), Seq(consequence))
     rule
   }
   
@@ -82,12 +85,8 @@ object GenerateTypeGuards extends ModuleTransformation {
     val fresh = new FreshNames
     val vars = cd.in.map(sort => MetaVar(fresh.freshName(sort.name)))
     
-    val argGuards: Seq[FunctionExp] = cd.in.zip(vars).map {case (sort, v) =>
-      guardCall(sort.name, FunctionMeta(v))
-    }
-    
     val eq = FunctionExpEq(v, FunctionExpApp(cd.name, vars map (FunctionMeta(_))))
     
-    ExistsJudgment(vars, Seq(FunctionExpJudgment(FunctionExpAnd(argGuards :+ eq))))
+    ExistsJudgment(vars, Seq(FunctionExpJudgment(eq)))
   }
 }
