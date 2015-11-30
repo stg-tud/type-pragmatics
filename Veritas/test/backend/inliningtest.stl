@@ -1,0 +1,25 @@
+module backend.inliningtest
+
+sorts Var Cons
+
+constructor
+C : Var -> Cons
+
+function
+p : Cons -> Bool
+
+goal
+p(~e)
+=========== test
+~e == C(~x) 
+
+goal 
+~e == C(~x)
+=========== test2
+p(~e)
+
+goal
+~d == ~e 
+~e == C(~x)
+=========== test3
+p(~d)
