@@ -19,7 +19,8 @@ object Main extends App {
                      logInconclusive: Boolean = false,
                      logSummary: Boolean = false,
                      logCSV: File = null,
-                     logXLS: File = null
+                     logXLS: File = null,
+                     logXLSOverview: File = null
                      ) {
     def ensureDefaultOptions: Config = {
       if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null && logXLS == null)
@@ -79,6 +80,9 @@ object Main extends App {
     opt[File]("logxls") action { (f, config) =>
       config.copy(logXLS = f)
     } text (s"log prover results to XLS file")
+    opt[File]("logoverviewxls") action { (f, config) =>
+      config.copy(logXLSOverview = f)
+    } text (s"log overview of prover results to XLS file")
 
     arg[File]("<proof goal file>...") unbounded() validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
@@ -106,5 +110,7 @@ object Main extends App {
         }
       if (config.logXLS != null)
         summary.makeXLS.safeToFile(config.logXLS.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+      if (config.logXLSOverview != null)
+        summary.makeXLSOverview.safeToFile(config.logXLSOverview.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
   }
 }

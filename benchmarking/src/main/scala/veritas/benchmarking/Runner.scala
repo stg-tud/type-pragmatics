@@ -34,7 +34,7 @@ case class Runner(config: Config) {
               t
           }
 
-          summary += file -> FileSummary(proverConfig, result, time)
+          summary += file -> FileSummary(file.getAbsolutePath, proverConfig, result, time)
         }
       }
     }
