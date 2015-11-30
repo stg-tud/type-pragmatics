@@ -8,6 +8,7 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 
 /**
  * Transforms Core TSSL (Veritas) Modules to TFF syntax
@@ -167,10 +168,8 @@ object ToTff {
    * translates axioms to Tff
    */
   private def translateAxioms(axs: Seq[TypingRule]): Seq[TffAnnotated] =
-    for (a <- axs)
-      yield a match {
-      case TypingRule(name, prems, conseqs) =>
-        TffAnnotated(name, Axiom, typingRuleToTff(prems, conseqs))
+    axs map {
+      case TypingRule(name, prems, conseqs) => TffAnnotated(name, Axiom, typingRuleToTff(prems, conseqs))
     }
 
   /**
@@ -183,9 +182,8 @@ object ToTff {
     }
 
   def makeVarlist(vars: Seq[MetaVar], jdgs: Seq[TypingRuleJudgment]): Seq[Variable] = {
-    val map = types.inferMetavarTypes(vars, jdgs)
     for (v <- vars)
-      yield TypedVariable(v.name, getAtomicType(map(v).name))
+      yield TypedVariable(v.name, getAtomicType(v.sortType.name))
   }
   
   /**
@@ -194,7 +192,9 @@ object ToTff {
    */
   private def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) = {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs)
-		val vars = makeVarlist(quantifiedVars.toSeq, prems ++ conseqs)
+    val jdgs = prems ++ conseqs
+    types.inferMetavarTypes(quantifiedVars, jdgs)
+		val vars = makeVarlist(quantifiedVars.toSeq, jdgs)
 
 		val transformedprems = prems map jdgtoTff
 
