@@ -26,7 +26,6 @@ trait PrettyPrintable {
   def toPrettyString(): String = {
     val prettyPrinter = new PrettyPrintWriter(new StringWriter())
     prettyPrint(prettyPrinter)
-    prettyPrinter.flush()
     val resString = prettyPrinter.toString()
     prettyPrinter.close()
     resString
