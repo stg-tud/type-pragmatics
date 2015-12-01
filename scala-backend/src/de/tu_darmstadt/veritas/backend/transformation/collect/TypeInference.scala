@@ -28,10 +28,12 @@ object TypeInference {
   }
   case class UVar(name: String) extends Type {
     def unify(t: Type, s: USubst) =
-      s.get(this) match {
-        case Some(t1) => t1.unify(t, s)
-        case None => Some(Map(this -> t.subst(s)))
-      }
+      if (t == this) Some(s)
+      else
+        s.get(this) match {
+          case Some(t1) => t1.unify(t, s)
+          case None     => Some(Map(this -> t.subst(s)))
+        }
     def subst(s: USubst) = s.getOrElse(this, this)
   }
   case class Sort(name: String) extends Type {
