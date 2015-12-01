@@ -5,6 +5,9 @@ import veritas.benchmarking.Main.Config
 
 import scala.collection.immutable.{Iterable, IndexedSeq, ListMap}
 
+
+case class VeritasConfig(typing: String, transformations: String)
+
 /**
   *
   * @param filePath absolute path of the file for which the result was produced
@@ -15,10 +18,14 @@ import scala.collection.immutable.{Iterable, IndexedSeq, ListMap}
   */
 case class FileSummary(filePath: String, proverConfig: ProverConfig, proverResult: ProverResult, timeSeconds: Double) {
 
-  val veritasConfig: String = {
+  val veritasConfig: VeritasConfig = {
     //does this work on Windows? it should
     val pathParts = filePath.split(File.separator)
-    pathParts(pathParts.length - 2) //get second last element
+    //assemble configuration from last two parts of path
+    val typing = pathParts(pathParts.length - 3)
+    val transformations = pathParts(pathParts.length - 2)
+
+    new VeritasConfig(typing, transformations)
   }
 
 }
@@ -107,11 +114,12 @@ case class Summary(config: Config) {
         Set(
           StringCell(0, "Prover Config"),
           StringCell(1, "Prover Timeout"),
-          StringCell(2, "Veritas Config"),
-          StringCell(3, "File"),
-          StringCell(4, "Time-ms"),
-          StringCell(5, "Status"),
-          StringCell(6, "Details")
+          StringCell(2, "Veritas Config, Typing"),
+          StringCell(3, "Veritas Config, Transformation"),
+          StringCell(4, "File"),
+          StringCell(5, "Time-ms"),
+          StringCell(6, "Status"),
+          StringCell(7, "Details")
         )
       }
 
@@ -122,11 +130,12 @@ case class Summary(config: Config) {
         val cells = Set[Cell](
           StringCell(0, res.proverConfig.name),
           NumericCell(1, config.timeout),
-          StringCell(2, res.veritasConfig),
-          StringCell(3, file.getName),
-          NumericCell(4, res.timeSeconds * 1000.0),
-          StringCell(5, res.proverResult.status.toString),
-          StringCell(6, detailsString.replace("\n", "\t").substring(0, Math.min(detailsString.length, 32767)))
+          StringCell(2, res.veritasConfig.typing),
+          StringCell(3, res.veritasConfig.transformations),
+          StringCell(4, file.getName),
+          NumericCell(5, res.timeSeconds * 1000.0),
+          StringCell(6, res.proverResult.status.toString),
+          StringCell(7, detailsString.replace("\n", "\t").substring(0, Math.min(detailsString.length, 32767)))
         )
         rows += Row(rowNum) {
           cells
@@ -148,25 +157,27 @@ case class Summary(config: Config) {
   def makeXLSOverview: Workbook = {
     import info.folone.scala.poi._
     val contractedFileSummaries: ListMap[ProverConfig, List[FileSummary]]
-      = fileSummaries map { case (pc, fsmap) => (pc, fsmap.values.toList) }
+    = fileSummaries map { case (pc, fsmap) => (pc, fsmap.values.toList) }
 
     // val overviewData decides which overview data is computed
-    val overviewData: List[DataAnalysis] = List(new successfulPerVC(contractedFileSummaries))
+    val overviewData: List[DataAnalysis] = List(
+      new SuccessfulPerVC(config, contractedFileSummaries),
+      new TotalPerVC(config, contractedFileSummaries),
+      new SuccessfulRatePerVC(config, contractedFileSummaries),
+      new AverageTimePerVC(config, contractedFileSummaries))
     val overviewColTitles = overviewData map (_.datatitle)
 
     println(s"creating overview of file summaries: ${fileSummaries.size}")
     println(s"overview contains: ${overviewColTitles.mkString(", ")}")
 
     val startcolindex = AnalysisHeader.headerlength //index at which data elements start after left header
-    val colindices = (startcolindex to overviewColTitles.length - 1 + startcolindex)
+    val colindices = (startcolindex to (overviewColTitles.length - 1 + startcolindex))
     val indicestitles = colindices zip overviewColTitles
 
-    //group different overview values (results) together, passing the necessary cell indices
+    //group different overview values (results) for the same prover/Veritas configuration together, passing the necessary cell indices
     val resultsAsSeqs =
-      (for {index <- colindices
-            datacol <- overviewData
-      } yield {
-        datacol.getAnalysisResultsCells(index).toSeq
+      (for (index <- colindices) yield {
+        overviewData(index - startcolindex).getAnalysisResultsCells(index)
       }).flatten
 
     val groupedResults = resultsAsSeqs.groupBy(_._1) mapValues (_.map(_._2).toSet)
@@ -175,11 +186,8 @@ case class Summary(config: Config) {
     //create XLS sheet:
     //header row:
     val header = Row(0) {
-      Set[Cell](
-        StringCell(0, "Prover Config"),
-        StringCell(1, "Veritas Config")
-      ) ++
-        (colindices map { case (n, s) => StringCell(n, s) }).toSet
+      AnalysisHeader.getAnalysisHeaderCells() ++
+        (indicestitles map { case (n, s) => StringCell(n, s) }).toSet
     }
 
     var rows = Set(header)
