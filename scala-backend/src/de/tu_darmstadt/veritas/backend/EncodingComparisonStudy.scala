@@ -9,6 +9,7 @@ import de.tu_darmstadt.veritas.backend.transformation.imports._
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 import de.tu_darmstadt.veritas.backend.util.prettyprint._
 import de.tu_darmstadt.veritas.backend.fof.FofFile
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel.FilterGoalModules
 
 // to change the study parameters, manipulate vals typeEncodings or studyConfiguration in EncodingComparisonStudy below
 
@@ -32,13 +33,11 @@ case object Tff extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) = ToTff.toTffFile(m)
 }
 
-
 case class AlternativeTyping(select: Configuration => Typing) extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) =
     select(config).finalEncoding(m)
 
 }
-
 
 object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF =>
@@ -50,6 +49,7 @@ object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
 })
 
 object BasicTrans extends SeqTrans(
+  FilterGoalModules, //optimization: only interested in modules with goals!
   ResolveImports,
   VarToApp0,
   DesugarLemmas,
@@ -99,7 +99,7 @@ object MainTrans extends SeqTrans(
   // determines whether logical optimizations take place prior to fof/tff encoding
   Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
   // select problem
-  ProblemTrans)
+  ProblemTrans) 
 
 object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF    => FofBare
@@ -110,7 +110,7 @@ object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding) {
 case class EncodingComparison(vm: VariabilityModel, module: Module) extends Iterable[(Configuration, Seq[PrettyPrintableFile])] {
   private var _lastConfig: Configuration = _
   def lastConfig = _lastConfig
-  
+
   def iterator = vm.iterator.map { config =>
     _lastConfig = config
     val mods = MainTrans(Seq(module))(config)
