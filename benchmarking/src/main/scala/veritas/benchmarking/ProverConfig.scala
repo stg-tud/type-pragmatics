@@ -32,7 +32,8 @@ trait ResultDetails {
 case class StringDetails(details: String, lemmas: List[String] = List()) extends ResultDetails {
   override def toString = details
   override def toList = lemmas
-  override def toHumanString = if (lemmas.isEmpty) details else lemmas.mkString("Used Lemmas: ", ", ", "")
+  override def toHumanString = if (lemmas.isEmpty) details else
+    s"Used Lemmas: ${lemmas.length} ${lemmas.mkString(" - ", ", ", "")}"
 }
 
 class ProverResult(
