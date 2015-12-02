@@ -21,7 +21,6 @@ tff('OptConf_type', type, vOptConf: $tType).
 tff('rempty_type', type, vrempty: vRow).
 tff('acons_type', type, vacons: (vAName * vAList) > vAList).
 tff('VGreater_type', type, vVGreater: (vAName * vFVal) > vPred).
-tff('TN_type', type, vTN: vTName).
 tff('VEquals_type', type, vVEquals: (vAName * vFVal) > vPred).
 tff('noConf_type', type, vnoConf: vOptConf).
 tff('someConf_type', type, vsomeConf: vConf > vOptConf).
@@ -279,6 +278,4 @@ tff('DIFF-z1-z2', axiom, vz1 != vz2).
 tff('DIFF-A1-A2', axiom, vA1 != vA2).
 tff('DIFF-A1-A3', axiom, vA1 != vA3).
 tff('DIFF-A2-A3', axiom, vA2 != vA3).
-tff('rawIntersection-aux', axiom, ![Vrt1: vRawTable, Vrt2: vRawTable] : ((Vrt1 = vtcons(vrcons(vx1, vrcons(vy2, vrcons(vz2, vrempty))), vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz1, vrempty))), vtempty)) & Vrt2 = vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz2, vrempty))), vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz2, vrempty))), vtempty))) => vrawIntersection(Vrt1, Vrt2) = vtempty)).
-tff('rawIntersection-INV', axiom, ![VRawTable0: vRawTable, VRawTable1: vRawTable, VRESULT: vRawTable] : (vrawIntersection(VRawTable0, VRawTable1) = VRESULT => ?[Vrt1: vRawTable, Vrt2: vRawTable] : (Vrt1 = vtcons(vrcons(vx1, vrcons(vy2, vrcons(vz2, vrempty))), vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz1, vrempty))), vtempty)) & Vrt2 = vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz2, vrempty))), vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz2, vrempty))), vtempty)) & VRawTable0 = Vrt1 & VRawTable1 = Vrt2 & VRESULT = vtempty))).
-tff('test-intersection1', conjecture, ![Vt: vTable, Vrt1: vRawTable, Vq: vQuery, Vt1: vTable, Vt2: vTable, Val: vAList, Vts: vTStore, Vrt2: vRawTable] : ((Val = vacons(vA1, vacons(vA2, vacons(vA3, vaempty))) & Vrt1 = vtcons(vrcons(vx1, vrcons(vy2, vrcons(vz2, vrempty))), vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz1, vrempty))), vtempty)) & Vrt2 = vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz2, vrempty))), vtcons(vrcons(vx2, vrcons(vy1, vrcons(vz2, vrempty))), vtempty)) & Vt1 = vtable(Val, Vrt1) & Vt2 = vtable(Val, Vrt2) & Vts = vbindStore(vTN, Vt, vemptyStore) & Vq = vIntersection(vTvalue(Vt1), vTvalue(Vt2)) & Vt = vtable(Val, vtempty)) => vreduce(vconf(Vq, Vts)) = vsomeConf(vconf(vTvalue(Vt), Vts)))).
+tff('test-projection0', conjecture, ![Val: vAList, Vrt: vRawTable, Vt: vTable, Vtresult: vRawTable] : ((Val = vacons(vA1, vacons(vA2, vacons(vA3, vaempty))) & Vrt = vtcons(vrcons(vx1, vrcons(vy2, vrcons(vz2, vrempty))), vtempty) & Vt = vtable(Val, Vrt) & Vtresult = vtcons(vrcons(vx1, vrempty), vtempty)) => vproject(vacons(vA1, vaempty), Vt) = vsomeRawTable(Vtresult))).
