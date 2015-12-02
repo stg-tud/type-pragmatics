@@ -1,38 +1,38 @@
 fof('guard$-AList-aempty', axiom, vguardAList(vaempty)).
-fof('guard$-AList-acons', axiom, ![VAName0, VAList0] : ((vguardAName(VAName0) & vguardAList(VAList0)) => vguardAList(vacons(VAName0, VAList0)))).
-fof('guard$-dom-AList', axiom, ![VX] : (vguardAList(VX) => (VX = vaempty | ?[VAName0, VAList0] : (vguardAName(VAName0) & (vguardAList(VAList0) & VX = vacons(VAName0, VAList0)))))).
+fof('guard$-AList-acons', axiom, ![VAName0, VAList0] : ((vguardAName(VAName0) & vguardAList(VAList0)) <=> vguardAList(vacons(VAName0, VAList0)))).
+fof('guard$-dom-AList', axiom, ![VX] : (vguardAList(VX) => (VX = vaempty | ?[VAName0, VAList0] : VX = vacons(VAName0, VAList0)))).
 fof('EQ-aempty', axiom, $true).
 fof('EQ-acons', axiom, ![VAName0, VAName1, VAList0, VAList1] : ((vguardAName(VAName0) & vguardAName(VAName1) & vguardAList(VAList0) & vguardAList(VAList1)) => ((VAName0 = VAName1 & VAList0 = VAList1) <=> vacons(VAName0, VAList0) = vacons(VAName1, VAList1)))).
 fof('DIFF-aempty-acons', axiom, ![VAName0, VAList0] : ((vguardAName(VAName0) & vguardAList(VAList0)) => vaempty != vacons(VAName0, VAList0))).
-fof('guard$-CType-ctype', axiom, ![VAName0, VFType0] : ((vguardAName(VAName0) & vguardFType(VFType0)) => vguardCType(vctype(VAName0, VFType0)))).
-fof('guard$-dom-CType', axiom, ![VX] : (vguardCType(VX) => ?[VAName0, VFType0] : (vguardAName(VAName0) & (vguardFType(VFType0) & VX = vctype(VAName0, VFType0))))).
+fof('guard$-CType-ctype', axiom, ![VAName0, VFType0] : ((vguardAName(VAName0) & vguardFType(VFType0)) <=> vguardCType(vctype(VAName0, VFType0)))).
+fof('guard$-dom-CType', axiom, ![VX] : (vguardCType(VX) => ?[VAName0, VFType0] : VX = vctype(VAName0, VFType0))).
 fof('EQ-ctype', axiom, ![VAName0, VAName1, VFType0, VFType1] : ((vguardAName(VAName0) & vguardAName(VAName1) & vguardFType(VFType0) & vguardFType(VFType1)) => ((VAName0 = VAName1 & VFType0 = VFType1) <=> vctype(VAName0, VFType0) = vctype(VAName1, VFType1)))).
 fof('guard$-TType-ttempty', axiom, vguardTType(vttempty)).
-fof('guard$-TType-ttcons', axiom, ![VCType0, VTType0] : ((vguardCType(VCType0) & vguardTType(VTType0)) => vguardTType(vttcons(VCType0, VTType0)))).
-fof('guard$-dom-TType', axiom, ![VX] : (vguardTType(VX) => (VX = vttempty | ?[VCType0, VTType0] : (vguardCType(VCType0) & (vguardTType(VTType0) & VX = vttcons(VCType0, VTType0)))))).
+fof('guard$-TType-ttcons', axiom, ![VCType0, VTType0] : ((vguardCType(VCType0) & vguardTType(VTType0)) <=> vguardTType(vttcons(VCType0, VTType0)))).
+fof('guard$-dom-TType', axiom, ![VX] : (vguardTType(VX) => (VX = vttempty | ?[VCType0, VTType0] : VX = vttcons(VCType0, VTType0)))).
 fof('EQ-ttempty', axiom, $true).
 fof('EQ-ttcons', axiom, ![VCType0, VCType1, VTType0, VTType1] : ((vguardCType(VCType0) & vguardCType(VCType1) & vguardTType(VTType0) & vguardTType(VTType1)) => ((VCType0 = VCType1 & VTType0 = VTType1) <=> vttcons(VCType0, VTType0) = vttcons(VCType1, VTType1)))).
 fof('DIFF-ttempty-ttcons', axiom, ![VCType0, VTType0] : ((vguardCType(VCType0) & vguardTType(VTType0)) => vttempty != vttcons(VCType0, VTType0))).
 fof('guard$-RawType-rtempty', axiom, vguardRawType(vrtempty)).
-fof('guard$-RawType-rtcons', axiom, ![VFType0, VRawType0] : ((vguardFType(VFType0) & vguardRawType(VRawType0)) => vguardRawType(vrtcons(VFType0, VRawType0)))).
-fof('guard$-dom-RawType', axiom, ![VX] : (vguardRawType(VX) => (VX = vrtempty | ?[VFType0, VRawType0] : (vguardFType(VFType0) & (vguardRawType(VRawType0) & VX = vrtcons(VFType0, VRawType0)))))).
+fof('guard$-RawType-rtcons', axiom, ![VFType0, VRawType0] : ((vguardFType(VFType0) & vguardRawType(VRawType0)) <=> vguardRawType(vrtcons(VFType0, VRawType0)))).
+fof('guard$-dom-RawType', axiom, ![VX] : (vguardRawType(VX) => (VX = vrtempty | ?[VFType0, VRawType0] : VX = vrtcons(VFType0, VRawType0)))).
 fof('EQ-rtempty', axiom, $true).
 fof('EQ-rtcons', axiom, ![VFType0, VFType1, VRawType0, VRawType1] : ((vguardFType(VFType0) & vguardFType(VFType1) & vguardRawType(VRawType0) & vguardRawType(VRawType1)) => ((VFType0 = VFType1 & VRawType0 = VRawType1) <=> vrtcons(VFType0, VRawType0) = vrtcons(VFType1, VRawType1)))).
 fof('DIFF-rtempty-rtcons', axiom, ![VFType0, VRawType0] : ((vguardFType(VFType0) & vguardRawType(VRawType0)) => vrtempty != vrtcons(VFType0, VRawType0))).
 fof('guard$-Row-rempty', axiom, vguardRow(vrempty)).
-fof('guard$-Row-rcons', axiom, ![VFVal0, VRow0] : ((vguardFVal(VFVal0) & vguardRow(VRow0)) => vguardRow(vrcons(VFVal0, VRow0)))).
-fof('guard$-dom-Row', axiom, ![VX] : (vguardRow(VX) => (VX = vrempty | ?[VFVal0, VRow0] : (vguardFVal(VFVal0) & (vguardRow(VRow0) & VX = vrcons(VFVal0, VRow0)))))).
+fof('guard$-Row-rcons', axiom, ![VFVal0, VRow0] : ((vguardFVal(VFVal0) & vguardRow(VRow0)) <=> vguardRow(vrcons(VFVal0, VRow0)))).
+fof('guard$-dom-Row', axiom, ![VX] : (vguardRow(VX) => (VX = vrempty | ?[VFVal0, VRow0] : VX = vrcons(VFVal0, VRow0)))).
 fof('EQ-rempty', axiom, $true).
 fof('EQ-rcons', axiom, ![VFVal0, VFVal1, VRow0, VRow1] : ((vguardFVal(VFVal0) & vguardFVal(VFVal1) & vguardRow(VRow0) & vguardRow(VRow1)) => ((VFVal0 = VFVal1 & VRow0 = VRow1) <=> vrcons(VFVal0, VRow0) = vrcons(VFVal1, VRow1)))).
 fof('DIFF-rempty-rcons', axiom, ![VFVal0, VRow0] : ((vguardFVal(VFVal0) & vguardRow(VRow0)) => vrempty != vrcons(VFVal0, VRow0))).
 fof('guard$-RawTable-tempty', axiom, vguardRawTable(vtempty)).
-fof('guard$-RawTable-tcons', axiom, ![VRow0, VRawTable0] : ((vguardRow(VRow0) & vguardRawTable(VRawTable0)) => vguardRawTable(vtcons(VRow0, VRawTable0)))).
-fof('guard$-dom-RawTable', axiom, ![VX] : (vguardRawTable(VX) => (VX = vtempty | ?[VRow0, VRawTable0] : (vguardRow(VRow0) & (vguardRawTable(VRawTable0) & VX = vtcons(VRow0, VRawTable0)))))).
+fof('guard$-RawTable-tcons', axiom, ![VRow0, VRawTable0] : ((vguardRow(VRow0) & vguardRawTable(VRawTable0)) <=> vguardRawTable(vtcons(VRow0, VRawTable0)))).
+fof('guard$-dom-RawTable', axiom, ![VX] : (vguardRawTable(VX) => (VX = vtempty | ?[VRow0, VRawTable0] : VX = vtcons(VRow0, VRawTable0)))).
 fof('EQ-tempty', axiom, $true).
 fof('EQ-tcons', axiom, ![VRow0, VRow1, VRawTable0, VRawTable1] : ((vguardRow(VRow0) & vguardRow(VRow1) & vguardRawTable(VRawTable0) & vguardRawTable(VRawTable1)) => ((VRow0 = VRow1 & VRawTable0 = VRawTable1) <=> vtcons(VRow0, VRawTable0) = vtcons(VRow1, VRawTable1)))).
 fof('DIFF-tempty-tcons', axiom, ![VRow0, VRawTable0] : ((vguardRow(VRow0) & vguardRawTable(VRawTable0)) => vtempty != vtcons(VRow0, VRawTable0))).
-fof('guard$-Table-table', axiom, ![VAList0, VRawTable0] : ((vguardAList(VAList0) & vguardRawTable(VRawTable0)) => vguardTable(vtable(VAList0, VRawTable0)))).
-fof('guard$-dom-Table', axiom, ![VX] : (vguardTable(VX) => ?[VAList0, VRawTable0] : (vguardAList(VAList0) & (vguardRawTable(VRawTable0) & VX = vtable(VAList0, VRawTable0))))).
+fof('guard$-Table-table', axiom, ![VAList0, VRawTable0] : ((vguardAList(VAList0) & vguardRawTable(VRawTable0)) <=> vguardTable(vtable(VAList0, VRawTable0)))).
+fof('guard$-dom-Table', axiom, ![VX] : (vguardTable(VX) => ?[VAList0, VRawTable0] : VX = vtable(VAList0, VRawTable0))).
 fof('EQ-table', axiom, ![VAList0, VAList1, VRawTable0, VRawTable1] : ((vguardAList(VAList0) & vguardAList(VAList1) & vguardRawTable(VRawTable0) & vguardRawTable(VRawTable1)) => ((VAList0 = VAList1 & VRawTable0 = VRawTable1) <=> vtable(VAList0, VRawTable0) = vtable(VAList1, VRawTable1)))).
 fof('getRaw0', axiom, ![Val, Vrt] : ((vguardAList(Val) & vguardRawTable(Vrt)) => vgetRaw(vtable(Val, Vrt)) = Vrt)).
 fof('getAL0', axiom, ![Val, Vrt] : ((vguardAList(Val) & vguardRawTable(Vrt)) => vgetAL(vtable(Val, Vrt)) = Val)).
@@ -57,8 +57,8 @@ fof('welltypedRow2', axiom, ![Vrt, Vr] : ((vguardRawType(Vrt) & vguardRow(Vr) & 
 fof('welltypedRow-true-INV', axiom, ![VRawType0, VRow0] : ((vguardRawType(VRawType0) & vguardRow(VRow0) & vwelltypedRow(VRawType0, VRow0)) => ((VRawType0 = vrtempty & VRow0 = vrempty & $true) | ?[Vft, Vrt, Vv, Vr] : (VRawType0 = vrtcons(Vft, Vrt) & VRow0 = vrcons(Vv, Vr) & (vfieldType(Vv) = Vft & vwelltypedRow(Vrt, Vr))) | ?[Vrt, Vr] : ((Vrt != vrtempty | Vr != vrempty) & (![Vft0, Vrt0] : Vrt != vrtcons(Vft0, Vrt0) | ![Vv0, Vr0] : Vr != vrcons(Vv0, Vr0)) & VRawType0 = Vrt & VRow0 = Vr & $false)))).
 fof('welltypedRow-false-INV', axiom, ![VRawType0, VRow0] : ((vguardRawType(VRawType0) & vguardRow(VRow0) & (~vwelltypedRow(VRawType0, VRow0))) => ((VRawType0 = vrtempty & VRow0 = vrempty & $false) | ?[Vft, Vrt, Vv, Vr] : (VRawType0 = vrtcons(Vft, Vrt) & VRow0 = vrcons(Vv, Vr) & (~(vfieldType(Vv) = Vft & vwelltypedRow(Vrt, Vr)))) | ?[Vrt, Vr] : ((Vrt != vrtempty | Vr != vrempty) & (![Vft0, Vrt0] : Vrt != vrtcons(Vft0, Vrt0) | ![Vv0, Vr0] : Vr != vrcons(Vv0, Vr0)) & VRawType0 = Vrt & VRow0 = Vr & $true)))).
 fof('guard$-OptTable-noTable', axiom, vguardOptTable(vnoTable)).
-fof('guard$-OptTable-someTable', axiom, ![VTable0] : (vguardTable(VTable0) => vguardOptTable(vsomeTable(VTable0)))).
-fof('guard$-dom-OptTable', axiom, ![VX] : (vguardOptTable(VX) => (VX = vnoTable | ?[VTable0] : (vguardTable(VTable0) & VX = vsomeTable(VTable0))))).
+fof('guard$-OptTable-someTable', axiom, ![VTable0] : (vguardTable(VTable0) <=> vguardOptTable(vsomeTable(VTable0)))).
+fof('guard$-dom-OptTable', axiom, ![VX] : (vguardOptTable(VX) => (VX = vnoTable | ?[VTable0] : VX = vsomeTable(VTable0)))).
 fof('EQ-noTable', axiom, $true).
 fof('EQ-someTable', axiom, ![VTable0, VTable1] : ((vguardTable(VTable0) & vguardTable(VTable1)) => (VTable0 = VTable1 <=> vsomeTable(VTable0) = vsomeTable(VTable1)))).
 fof('DIFF-noTable-someTable', axiom, ![VTable0] : (vguardTable(VTable0) => vnoTable != vsomeTable(VTable0))).
@@ -68,8 +68,8 @@ fof('isSomeTable-true-INV', axiom, ![VOptTable0] : ((vguardOptTable(VOptTable0) 
 fof('isSomeTable-false-INV', axiom, ![VOptTable0] : ((vguardOptTable(VOptTable0) & (~visSomeTable(VOptTable0))) => ((VOptTable0 = vnoTable & $true) | ?[Vt] : (VOptTable0 = vsomeTable(Vt) & $false)))).
 fof('getSomeTable0', axiom, ![Vt] : (vguardTable(Vt) => vgetSomeTable(vsomeTable(Vt)) = Vt)).
 fof('guard$-TStore-emptyStore', axiom, vguardTStore(vemptyStore)).
-fof('guard$-TStore-bindStore', axiom, ![VTName0, VTable0, VTStore0] : ((vguardTName(VTName0) & vguardTable(VTable0) & vguardTStore(VTStore0)) => vguardTStore(vbindStore(VTName0, VTable0, VTStore0)))).
-fof('guard$-dom-TStore', axiom, ![VX] : (vguardTStore(VX) => (VX = vemptyStore | ?[VTName0, VTable0, VTStore0] : (vguardTName(VTName0) & (vguardTable(VTable0) & (vguardTStore(VTStore0) & VX = vbindStore(VTName0, VTable0, VTStore0))))))).
+fof('guard$-TStore-bindStore', axiom, ![VTName0, VTable0, VTStore0] : ((vguardTName(VTName0) & (vguardTable(VTable0) & vguardTStore(VTStore0))) <=> vguardTStore(vbindStore(VTName0, VTable0, VTStore0)))).
+fof('guard$-dom-TStore', axiom, ![VX] : (vguardTStore(VX) => (VX = vemptyStore | ?[VTName0, VTable0, VTStore0] : VX = vbindStore(VTName0, VTable0, VTStore0)))).
 fof('EQ-emptyStore', axiom, $true).
 fof('EQ-bindStore', axiom, ![VTable1, VTStore1, VTName0, VTStore0, VTName1, VTable0] : ((vguardTable(VTable1) & vguardTStore(VTStore1) & vguardTName(VTName0) & vguardTStore(VTStore0) & vguardTName(VTName1) & vguardTable(VTable0)) => ((VTName0 = VTName1 & (VTable0 = VTable1 & VTStore0 = VTStore1)) <=> vbindStore(VTName0, VTable0, VTStore0) = vbindStore(VTName1, VTable1, VTStore1)))).
 fof('DIFF-emptyStore-bindStore', axiom, ![VTName0, VTable0, VTStore0] : ((vguardTName(VTName0) & vguardTable(VTable0) & vguardTStore(VTStore0)) => vemptyStore != vbindStore(VTName0, VTable0, VTStore0))).
@@ -77,28 +77,28 @@ fof('lookupStore0', axiom, ![Vn] : (vguardTName(Vn) => vlookupStore(Vn, vemptySt
 fof('lookupStore1', axiom, ![Vn, Vm, Vt, VTS] : ((vguardTName(Vn) & vguardTName(Vm) & vguardTable(Vt) & vguardTStore(VTS) & Vn = Vm) => vlookupStore(Vn, vbindStore(Vm, Vt, VTS)) = vsomeTable(Vt))).
 fof('lookupStore2', axiom, ![Vn, Vm, Vt, VTS] : ((vguardTName(Vn) & vguardTName(Vm) & vguardTable(Vt) & vguardTStore(VTS) & Vn != Vm) => vlookupStore(Vn, vbindStore(Vm, Vt, VTS)) = vlookupStore(Vn, VTS))).
 fof('lookupStore-INV', axiom, ![VTName0, VTStore0, VRESULT] : ((vguardTName(VTName0) & vguardTStore(VTStore0) & vguardOptTable(VRESULT) & vlookupStore(VTName0, VTStore0) = VRESULT) => (?[Vn] : (VTName0 = Vn & VTStore0 = vemptyStore & VRESULT = vnoTable) | ?[Vn, Vm, Vt, VTS] : (Vn = Vm & VTName0 = Vn & VTStore0 = vbindStore(Vm, Vt, VTS) & VRESULT = vsomeTable(Vt)) | ?[Vn, Vm, Vt, VTS] : (Vn != Vm & VTName0 = Vn & VTStore0 = vbindStore(Vm, Vt, VTS) & VRESULT = vlookupStore(Vn, VTS))))).
-fof('guard$-Pred-VEquals', axiom, ![VAName0, VFVal0] : ((vguardAName(VAName0) & vguardFVal(VFVal0)) => vguardPred(vVEquals(VAName0, VFVal0)))).
-fof('guard$-Pred-VGreater', axiom, ![VAName0, VFVal0] : ((vguardAName(VAName0) & vguardFVal(VFVal0)) => vguardPred(vVGreater(VAName0, VFVal0)))).
-fof('guard$-Pred-VSmaller', axiom, ![VAName0, VFVal0] : ((vguardAName(VAName0) & vguardFVal(VFVal0)) => vguardPred(vVSmaller(VAName0, VFVal0)))).
-fof('guard$-dom-Pred', axiom, ![VX] : (vguardPred(VX) => (?[VAName0, VFVal0] : (vguardAName(VAName0) & (vguardFVal(VFVal0) & VX = vVEquals(VAName0, VFVal0))) | ?[VAName0, VFVal0] : (vguardAName(VAName0) & (vguardFVal(VFVal0) & VX = vVGreater(VAName0, VFVal0))) | ?[VAName0, VFVal0] : (vguardAName(VAName0) & (vguardFVal(VFVal0) & VX = vVSmaller(VAName0, VFVal0)))))).
+fof('guard$-Pred-VEquals', axiom, ![VAName0, VFVal0] : ((vguardAName(VAName0) & vguardFVal(VFVal0)) <=> vguardPred(vVEquals(VAName0, VFVal0)))).
+fof('guard$-Pred-VGreater', axiom, ![VAName0, VFVal0] : ((vguardAName(VAName0) & vguardFVal(VFVal0)) <=> vguardPred(vVGreater(VAName0, VFVal0)))).
+fof('guard$-Pred-VSmaller', axiom, ![VAName0, VFVal0] : ((vguardAName(VAName0) & vguardFVal(VFVal0)) <=> vguardPred(vVSmaller(VAName0, VFVal0)))).
+fof('guard$-dom-Pred', axiom, ![VX] : (vguardPred(VX) => (?[VAName0, VFVal0] : VX = vVEquals(VAName0, VFVal0) | ?[VAName0, VFVal0] : VX = vVGreater(VAName0, VFVal0) | ?[VAName0, VFVal0] : VX = vVSmaller(VAName0, VFVal0)))).
 fof('EQ-VEquals', axiom, ![VAName0, VAName1, VFVal0, VFVal1] : ((vguardAName(VAName0) & vguardAName(VAName1) & vguardFVal(VFVal0) & vguardFVal(VFVal1)) => ((VAName0 = VAName1 & VFVal0 = VFVal1) <=> vVEquals(VAName0, VFVal0) = vVEquals(VAName1, VFVal1)))).
 fof('EQ-VGreater', axiom, ![VAName0, VAName1, VFVal0, VFVal1] : ((vguardAName(VAName0) & vguardAName(VAName1) & vguardFVal(VFVal0) & vguardFVal(VFVal1)) => ((VAName0 = VAName1 & VFVal0 = VFVal1) <=> vVGreater(VAName0, VFVal0) = vVGreater(VAName1, VFVal1)))).
 fof('EQ-VSmaller', axiom, ![VAName0, VAName1, VFVal0, VFVal1] : ((vguardAName(VAName0) & vguardAName(VAName1) & vguardFVal(VFVal0) & vguardFVal(VFVal1)) => ((VAName0 = VAName1 & VFVal0 = VFVal1) <=> vVSmaller(VAName0, VFVal0) = vVSmaller(VAName1, VFVal1)))).
 fof('DIFF-VEquals-VGreater', axiom, ![VAName0, VFVal0, VAName1, VFVal1] : ((vguardAName(VAName0) & vguardFVal(VFVal0) & vguardAName(VAName1) & vguardFVal(VFVal1)) => vVEquals(VAName0, VFVal0) != vVGreater(VAName1, VFVal1))).
 fof('DIFF-VEquals-VSmaller', axiom, ![VAName0, VFVal0, VAName1, VFVal1] : ((vguardAName(VAName0) & vguardFVal(VFVal0) & vguardAName(VAName1) & vguardFVal(VFVal1)) => vVEquals(VAName0, VFVal0) != vVSmaller(VAName1, VFVal1))).
 fof('DIFF-VGreater-VSmaller', axiom, ![VAName0, VFVal0, VAName1, VFVal1] : ((vguardAName(VAName0) & vguardFVal(VFVal0) & vguardAName(VAName1) & vguardFVal(VFVal1)) => vVGreater(VAName0, VFVal0) != vVSmaller(VAName1, VFVal1))).
-fof('guard$-TRef-Ref', axiom, ![VTName0] : (vguardTName(VTName0) => vguardTRef(vRef(VTName0)))).
-fof('guard$-dom-TRef', axiom, ![VX] : (vguardTRef(VX) => ?[VTName0] : (vguardTName(VTName0) & VX = vRef(VTName0)))).
+fof('guard$-TRef-Ref', axiom, ![VTName0] : (vguardTName(VTName0) <=> vguardTRef(vRef(VTName0)))).
+fof('guard$-dom-TRef', axiom, ![VX] : (vguardTRef(VX) => ?[VTName0] : VX = vRef(VTName0))).
 fof('EQ-Ref', axiom, ![VTName0, VTName1] : ((vguardTName(VTName0) & vguardTName(VTName1)) => (VTName0 = VTName1 <=> vRef(VTName0) = vRef(VTName1)))).
-fof('guard$-Query-Tvalue', axiom, ![VTable0] : (vguardTable(VTable0) => vguardQuery(vTvalue(VTable0)))).
-fof('guard$-Query-SelectAllFrom', axiom, ![VTRef0] : (vguardTRef(VTRef0) => vguardQuery(vSelectAllFrom(VTRef0)))).
-fof('guard$-Query-SelectSomeFrom', axiom, ![VAList0, VTRef0] : ((vguardAList(VAList0) & vguardTRef(VTRef0)) => vguardQuery(vSelectSomeFrom(VAList0, VTRef0)))).
-fof('guard$-Query-SelectAllFromWhere', axiom, ![VTRef0, VPred0] : ((vguardTRef(VTRef0) & vguardPred(VPred0)) => vguardQuery(vSelectAllFromWhere(VTRef0, VPred0)))).
-fof('guard$-Query-SelectSomeFromWhere', axiom, ![VAList0, VTRef0, VPred0] : ((vguardAList(VAList0) & vguardTRef(VTRef0) & vguardPred(VPred0)) => vguardQuery(vSelectSomeFromWhere(VAList0, VTRef0, VPred0)))).
-fof('guard$-Query-Union', axiom, ![VQuery0, VQuery1] : ((vguardQuery(VQuery0) & vguardQuery(VQuery1)) => vguardQuery(vUnion(VQuery0, VQuery1)))).
-fof('guard$-Query-Intersection', axiom, ![VQuery0, VQuery1] : ((vguardQuery(VQuery0) & vguardQuery(VQuery1)) => vguardQuery(vIntersection(VQuery0, VQuery1)))).
-fof('guard$-Query-Difference', axiom, ![VQuery0, VQuery1] : ((vguardQuery(VQuery0) & vguardQuery(VQuery1)) => vguardQuery(vDifference(VQuery0, VQuery1)))).
-fof('guard$-dom-Query', axiom, ![VX] : (vguardQuery(VX) => (?[VTable0] : (vguardTable(VTable0) & VX = vTvalue(VTable0)) | ?[VTRef0] : (vguardTRef(VTRef0) & VX = vSelectAllFrom(VTRef0)) | ?[VAList0, VTRef0] : (vguardAList(VAList0) & (vguardTRef(VTRef0) & VX = vSelectSomeFrom(VAList0, VTRef0))) | ?[VTRef0, VPred0] : (vguardTRef(VTRef0) & (vguardPred(VPred0) & VX = vSelectAllFromWhere(VTRef0, VPred0))) | ?[VAList0, VTRef0, VPred0] : (vguardAList(VAList0) & (vguardTRef(VTRef0) & (vguardPred(VPred0) & VX = vSelectSomeFromWhere(VAList0, VTRef0, VPred0)))) | ?[VQuery0, VQuery1] : (vguardQuery(VQuery0) & (vguardQuery(VQuery1) & VX = vUnion(VQuery0, VQuery1))) | ?[VQuery0, VQuery1] : (vguardQuery(VQuery0) & (vguardQuery(VQuery1) & VX = vIntersection(VQuery0, VQuery1))) | ?[VQuery0, VQuery1] : (vguardQuery(VQuery0) & (vguardQuery(VQuery1) & VX = vDifference(VQuery0, VQuery1)))))).
+fof('guard$-Query-Tvalue', axiom, ![VTable0] : (vguardTable(VTable0) <=> vguardQuery(vTvalue(VTable0)))).
+fof('guard$-Query-SelectAllFrom', axiom, ![VTRef0] : (vguardTRef(VTRef0) <=> vguardQuery(vSelectAllFrom(VTRef0)))).
+fof('guard$-Query-SelectSomeFrom', axiom, ![VAList0, VTRef0] : ((vguardAList(VAList0) & vguardTRef(VTRef0)) <=> vguardQuery(vSelectSomeFrom(VAList0, VTRef0)))).
+fof('guard$-Query-SelectAllFromWhere', axiom, ![VTRef0, VPred0] : ((vguardTRef(VTRef0) & vguardPred(VPred0)) <=> vguardQuery(vSelectAllFromWhere(VTRef0, VPred0)))).
+fof('guard$-Query-SelectSomeFromWhere', axiom, ![VAList0, VTRef0, VPred0] : ((vguardAList(VAList0) & (vguardTRef(VTRef0) & vguardPred(VPred0))) <=> vguardQuery(vSelectSomeFromWhere(VAList0, VTRef0, VPred0)))).
+fof('guard$-Query-Union', axiom, ![VQuery0, VQuery1] : ((vguardQuery(VQuery0) & vguardQuery(VQuery1)) <=> vguardQuery(vUnion(VQuery0, VQuery1)))).
+fof('guard$-Query-Intersection', axiom, ![VQuery0, VQuery1] : ((vguardQuery(VQuery0) & vguardQuery(VQuery1)) <=> vguardQuery(vIntersection(VQuery0, VQuery1)))).
+fof('guard$-Query-Difference', axiom, ![VQuery0, VQuery1] : ((vguardQuery(VQuery0) & vguardQuery(VQuery1)) <=> vguardQuery(vDifference(VQuery0, VQuery1)))).
+fof('guard$-dom-Query', axiom, ![VX] : (vguardQuery(VX) => (?[VTable0] : VX = vTvalue(VTable0) | ?[VTRef0] : VX = vSelectAllFrom(VTRef0) | ?[VAList0, VTRef0] : VX = vSelectSomeFrom(VAList0, VTRef0) | ?[VTRef0, VPred0] : VX = vSelectAllFromWhere(VTRef0, VPred0) | ?[VAList0, VTRef0, VPred0] : VX = vSelectSomeFromWhere(VAList0, VTRef0, VPred0) | ?[VQuery0, VQuery1] : VX = vUnion(VQuery0, VQuery1) | ?[VQuery0, VQuery1] : VX = vIntersection(VQuery0, VQuery1) | ?[VQuery0, VQuery1] : VX = vDifference(VQuery0, VQuery1)))).
 fof('EQ-Tvalue', axiom, ![VTable0, VTable1] : ((vguardTable(VTable0) & vguardTable(VTable1)) => (VTable0 = VTable1 <=> vTvalue(VTable0) = vTvalue(VTable1)))).
 fof('EQ-SelectAllFrom', axiom, ![VTRef0, VTRef1] : ((vguardTRef(VTRef0) & vguardTRef(VTRef1)) => (VTRef0 = VTRef1 <=> vSelectAllFrom(VTRef0) = vSelectAllFrom(VTRef1)))).
 fof('EQ-SelectSomeFrom', axiom, ![VAList0, VAList1, VTRef0, VTRef1] : ((vguardAList(VAList0) & vguardAList(VAList1) & vguardTRef(VTRef0) & vguardTRef(VTRef1)) => ((VAList0 = VAList1 & VTRef0 = VTRef1) <=> vSelectSomeFrom(VAList0, VTRef0) = vSelectSomeFrom(VAList1, VTRef1)))).
@@ -157,8 +157,8 @@ fof('dropFirstColRaw1', axiom, ![Vrt] : (vguardRawTable(Vrt) => vdropFirstColRaw
 fof('dropFirstColRaw2', axiom, ![Vf, Vr, Vrt] : ((vguardFVal(Vf) & vguardRow(Vr) & vguardRawTable(Vrt)) => vdropFirstColRaw(vtcons(vrcons(Vf, Vr), Vrt)) = vtcons(Vr, vdropFirstColRaw(Vrt)))).
 fof('dropFirstColRaw-INV', axiom, ![VRawTable0, VRESULT] : ((vguardRawTable(VRawTable0) & vguardRawTable(VRESULT) & vdropFirstColRaw(VRawTable0) = VRESULT) => ((VRawTable0 = vtempty & VRESULT = vtempty) | ?[Vrt] : (VRawTable0 = vtcons(vrempty, Vrt) & VRESULT = vtcons(vrempty, vdropFirstColRaw(Vrt))) | ?[Vf, Vr, Vrt] : (VRawTable0 = vtcons(vrcons(Vf, Vr), Vrt) & VRESULT = vtcons(Vr, vdropFirstColRaw(Vrt)))))).
 fof('guard$-OptRawTable-noRawTable', axiom, vguardOptRawTable(vnoRawTable)).
-fof('guard$-OptRawTable-someRawTable', axiom, ![VRawTable0] : (vguardRawTable(VRawTable0) => vguardOptRawTable(vsomeRawTable(VRawTable0)))).
-fof('guard$-dom-OptRawTable', axiom, ![VX] : (vguardOptRawTable(VX) => (VX = vnoRawTable | ?[VRawTable0] : (vguardRawTable(VRawTable0) & VX = vsomeRawTable(VRawTable0))))).
+fof('guard$-OptRawTable-someRawTable', axiom, ![VRawTable0] : (vguardRawTable(VRawTable0) <=> vguardOptRawTable(vsomeRawTable(VRawTable0)))).
+fof('guard$-dom-OptRawTable', axiom, ![VX] : (vguardOptRawTable(VX) => (VX = vnoRawTable | ?[VRawTable0] : VX = vsomeRawTable(VRawTable0)))).
 fof('EQ-noRawTable', axiom, $true).
 fof('EQ-someRawTable', axiom, ![VRawTable0, VRawTable1] : ((vguardRawTable(VRawTable0) & vguardRawTable(VRawTable1)) => (VRawTable0 = VRawTable1 <=> vsomeRawTable(VRawTable0) = vsomeRawTable(VRawTable1)))).
 fof('DIFF-noRawTable-someRawTable', axiom, ![VRawTable0] : (vguardRawTable(VRawTable0) => vnoRawTable != vsomeRawTable(VRawTable0))).
@@ -191,13 +191,13 @@ fof('rawDifference3', axiom, ![Vr1, Vrt2] : ((vguardRow(Vr1) & vguardRawTable(Vr
 fof('rawDifference4', axiom, ![Vdrt1rt2, Vrt1, Vrt2, Vr1] : ((vguardRawTable(Vdrt1rt2) & vguardRawTable(Vrt1) & vguardRawTable(Vrt2) & vguardRow(Vr1) & Vdrt1rt2 = vrawDifference(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & Vrt1 != vtempty) => vrawDifference(vtcons(Vr1, Vrt1), Vrt2) = vtcons(Vr1, Vdrt1rt2))).
 fof('rawDifference5', axiom, ![Vdrt1rt2, Vrt1, Vrt2, Vr1] : ((vguardRawTable(Vdrt1rt2) & vguardRawTable(Vrt1) & vguardRawTable(Vrt2) & vguardRow(Vr1) & Vdrt1rt2 = vrawDifference(Vrt1, Vrt2) & vrowIn(Vr1, Vrt2) & Vrt2 != vtempty & Vrt1 != vtempty) => vrawDifference(vtcons(Vr1, Vrt1), Vrt2) = Vdrt1rt2)).
 fof('rawDifference-INV', axiom, ![VRawTable0, VRawTable1, VRESULT] : ((vguardRawTable(VRawTable0) & vguardRawTable(VRawTable1) & vguardRawTable(VRESULT) & vrawDifference(VRawTable0, VRawTable1) = VRESULT) => (?[Vrt2] : (VRawTable0 = vtempty & VRawTable1 = Vrt2 & VRESULT = vtempty) | ?[Vrt1] : (Vrt1 != vtempty & VRawTable0 = Vrt1 & VRawTable1 = vtempty & VRESULT = Vrt1) | ?[Vr1, Vrt2] : ((~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & VRawTable0 = vtcons(Vr1, vtempty) & VRawTable1 = Vrt2 & VRESULT = vtcons(Vr1, vtempty)) | ?[Vr1, Vrt2] : (vrowIn(Vr1, Vrt2) & Vrt2 != vtempty & VRawTable0 = vtcons(Vr1, vtempty) & VRawTable1 = Vrt2 & VRESULT = vtempty) | ?[Vdrt1rt2, Vrt1, Vrt2, Vr1] : (Vdrt1rt2 = vrawDifference(Vrt1, Vrt2) & (~vrowIn(Vr1, Vrt2)) & Vrt2 != vtempty & Vrt1 != vtempty & VRawTable0 = vtcons(Vr1, Vrt1) & VRawTable1 = Vrt2 & VRESULT = vtcons(Vr1, Vdrt1rt2)) | ?[Vdrt1rt2, Vrt1, Vrt2, Vr1] : (Vdrt1rt2 = vrawDifference(Vrt1, Vrt2) & vrowIn(Vr1, Vrt2) & Vrt2 != vtempty & Vrt1 != vtempty & VRawTable0 = vtcons(Vr1, Vrt1) & VRawTable1 = Vrt2 & VRESULT = Vdrt1rt2)))).
-fof('guard$-Conf-conf', axiom, ![VQuery0, VTStore0] : ((vguardQuery(VQuery0) & vguardTStore(VTStore0)) => vguardConf(vconf(VQuery0, VTStore0)))).
-fof('guard$-dom-Conf', axiom, ![VX] : (vguardConf(VX) => ?[VQuery0, VTStore0] : (vguardQuery(VQuery0) & (vguardTStore(VTStore0) & VX = vconf(VQuery0, VTStore0))))).
+fof('guard$-Conf-conf', axiom, ![VQuery0, VTStore0] : ((vguardQuery(VQuery0) & vguardTStore(VTStore0)) <=> vguardConf(vconf(VQuery0, VTStore0)))).
+fof('guard$-dom-Conf', axiom, ![VX] : (vguardConf(VX) => ?[VQuery0, VTStore0] : VX = vconf(VQuery0, VTStore0))).
 fof('EQ-conf', axiom, ![VQuery0, VQuery1, VTStore0, VTStore1] : ((vguardQuery(VQuery0) & vguardQuery(VQuery1) & vguardTStore(VTStore0) & vguardTStore(VTStore1)) => ((VQuery0 = VQuery1 & VTStore0 = VTStore1) <=> vconf(VQuery0, VTStore0) = vconf(VQuery1, VTStore1)))).
 fof('getQuery0', axiom, ![Vq, Vts] : ((vguardQuery(Vq) & vguardTStore(Vts)) => vgetQuery(vconf(Vq, Vts)) = Vq)).
 fof('guard$-OptConf-noConf', axiom, vguardOptConf(vnoConf)).
-fof('guard$-OptConf-someConf', axiom, ![VConf0] : (vguardConf(VConf0) => vguardOptConf(vsomeConf(VConf0)))).
-fof('guard$-dom-OptConf', axiom, ![VX] : (vguardOptConf(VX) => (VX = vnoConf | ?[VConf0] : (vguardConf(VConf0) & VX = vsomeConf(VConf0))))).
+fof('guard$-OptConf-someConf', axiom, ![VConf0] : (vguardConf(VConf0) <=> vguardOptConf(vsomeConf(VConf0)))).
+fof('guard$-dom-OptConf', axiom, ![VX] : (vguardOptConf(VX) => (VX = vnoConf | ?[VConf0] : VX = vsomeConf(VConf0)))).
 fof('EQ-noConf', axiom, $true).
 fof('EQ-someConf', axiom, ![VConf0, VConf1] : ((vguardConf(VConf0) & vguardConf(VConf1)) => (VConf0 = VConf1 <=> vsomeConf(VConf0) = vsomeConf(VConf1)))).
 fof('DIFF-noConf-someConf', axiom, ![VConf0] : (vguardConf(VConf0) => vnoConf != vsomeConf(VConf0))).
