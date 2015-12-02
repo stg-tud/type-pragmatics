@@ -164,7 +164,8 @@ case class Summary(config: Config) {
       new SuccessfulPerVC(config, contractedFileSummaries),
       new TotalPerVC(config, contractedFileSummaries),
       new SuccessfulRatePerVC(config, contractedFileSummaries),
-      new AverageTimePerVC(config, contractedFileSummaries))
+      new AverageTimePerVC(config, contractedFileSummaries),
+      new AvgDeviationFromMinimalUsedLemmas(config, contractedFileSummaries))
     val overviewColTitles = overviewData map (_.datatitle)
 
     println(s"creating overview of file summaries: ${fileSummaries.size}")

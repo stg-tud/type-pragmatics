@@ -373,7 +373,7 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
       if (status == null)
         new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses.finalizedArray, VampireConfig.this))
       else status match {
-        case Proved => new ProverResult(Proved, time, StringDetails(proof, lemmas.mkString("Used Lemmas: ", ", ", "")))
+        case Proved => new ProverResult(Proved, time, StringDetails(proof, lemmas))
         case Disproved => new ProverResult(Disproved, time, model)
         case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireManyTraces(traces :+ VampireTrace(clauses.finalizedArray, VampireConfig.this)))
       }

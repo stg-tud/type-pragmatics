@@ -1,6 +1,8 @@
 package veritas.benchmarking
 
 
+import java.io.File
+
 import veritas.benchmarking.Main.Config
 
 import scala.collection.immutable.ListMap
@@ -106,9 +108,8 @@ class SuccessfulRatePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, 
 
   override val datatitle = "Rate of successful proofs"
 
-  //rounds rate to one digit after comma
   def calcSuccessRate(ah: AnalysisHeader): Double =
-   successfulFilesPerConfig(ah) / totalFilesPerConfig(ah)
+    (successfulFilesPerConfig(ah).toDouble / totalFilesPerConfig(ah).toDouble) * 100
 
   override def resultToString(ah: AnalysisHeader): String =
     s"${calcSuccessRate(ah)}"
@@ -139,4 +140,41 @@ class AverageTimePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, Lis
 
 }
 
-//calculate minimal number of used lemmas
+//calculate minimal number of used lemmas per goal
+class AvgDeviationFromMinimalUsedLemmas(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
+  extends SuccessfulPerVC(bconfig, fileSummaries) {
+
+  override val datatitle = "Average deviation from minimum number of used lemmas per goals"
+
+  def getFileName(fs: FileSummary) = fs.filePath.split(File.separator).last
+
+  def getNumUsedLemmas(fs: FileSummary) = fs.proverResult.details.toList.length
+
+  //only count successful proofs
+  val usedLemmasPerFilePerConfig: Map[AnalysisHeader, List[(String, Int)]] =
+    applyPerConfig(lfs => (lfs filter provedtest) map (fs => (getFileName(fs), getNumUsedLemmas(fs))))
+
+  val minimalUsedLemmasPerFile: Map[String, Int] = {
+    val groupedByFilename = usedLemmasPerFilePerConfig.values.flatten.groupBy(_._1) mapValues (_.map(_._2).toList)
+    groupedByFilename mapValues (li => li.min)
+  }
+
+  val deviationPerFilePerConfig: Map[AnalysisHeader, List[(String, Int)]] =
+    for ((ah, li) <- usedLemmasPerFilePerConfig) yield
+      ah ->
+        (for ((s, i) <- li) yield
+          (s, i - minimalUsedLemmasPerFile(s)))
+
+  val avgDeviationPerConfig: Map[AnalysisHeader, Double] =
+    for ((ah, li) <- deviationPerFilePerConfig) yield
+      ah -> ((li map (_._2)).sum.toDouble / successfulFilesPerConfig(ah).toDouble)
+
+
+  override def resultToString(ah: AnalysisHeader): String = s"${avgDeviationPerConfig(ah)}"
+
+  override def resultToCell(index: Int, ah: AnalysisHeader): Cell =
+    NumericCell(index, avgDeviationPerConfig(ah))
+
+
+
+}

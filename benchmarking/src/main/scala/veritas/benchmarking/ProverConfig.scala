@@ -19,13 +19,20 @@ trait ResultDetails {
   def toString: String
 
   /**
+    *
+    * @return details as list (e.g. used lemmas)
+    */
+  def toList: List[String] = List()
+
+  /**
    * @return human-readable summary of details as string
    */
   def toHumanString: String
 }
-case class StringDetails(details: String, meta: String = "") extends ResultDetails {
+case class StringDetails(details: String, lemmas: List[String] = List()) extends ResultDetails {
   override def toString = details
-  override def toHumanString = if (meta.isEmpty) details else meta
+  override def toList = lemmas
+  override def toHumanString = if (lemmas.isEmpty) details else lemmas.mkString("Used Lemmas: ", ", ", "")
 }
 
 class ProverResult(
