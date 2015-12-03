@@ -5,6 +5,7 @@ import java.io.File
 import scopt.OptionParser
 import veritas.benchmarking.vampire.{VampireTraceAnalisisOptions, VampireTraceAnalisis, VampireConfig}
 import veritas.benchmarking.princess.PrincessConfig
+import veritas.benchmarking.eprover.EproverConfig
 
 import scala.sys.process.ProcessLogger
 
@@ -89,6 +90,7 @@ object ProverConfig {
   }
 
   _configs += "princess" -> PrincessConfig()
+  _configs += "eprover" -> EproverConfig()
 
   _contributedOptions = _contributedOptions :+ VampireTraceAnalisisOptions
 
