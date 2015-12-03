@@ -69,7 +69,7 @@ case class PrincessConfig()
       case e: Exception => println(s"Error ${e.getMessage} in $s")
         throw e
     }
-    
+
     override def buffer[T](f: => T) = f // no setup or teardown
     override def err(s: => String) = try {
         println(s)

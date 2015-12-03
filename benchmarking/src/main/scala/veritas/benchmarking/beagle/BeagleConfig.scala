@@ -10,7 +10,7 @@ case class BeagleConfig()
   def isValid = proverCommand != null
 
   override val name = s"beagle"
-  override val proverCommand = findBinaryInPath(s"java.exe")
+  override val proverCommand = findBinaryInPath(s"java")
 
   val jar = findFileInPath("beagle.jar")
 

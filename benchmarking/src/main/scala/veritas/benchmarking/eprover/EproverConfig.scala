@@ -10,7 +10,7 @@ case class EproverConfig()
   def isValid = proverCommand != null
 
   override val name = s"eprover"
-  override val proverCommand = findBinaryInPath(s"eprover.exe")
+  override val proverCommand = findBinaryInPath(s"eprover")
 
   override val acceptedFileFormats = Set(".fof")
 
