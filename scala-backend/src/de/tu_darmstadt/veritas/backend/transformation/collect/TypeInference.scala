@@ -29,19 +29,17 @@ object TypeInference {
   }
   case class UVar(name: String) extends Type {
     def unify(t: Type, s: USubst) =
-      if (t == this) Some(s)
-      else
-        s.get(this) match {
-          case Some(t1) => t1.unify(t, s)
-          case None =>
-            val st = t.subst(s)
-            if (this == st)
-              Some(s)
-            else if (st.occurs(this))
-              None
-            else
-              Some(Map(this -> st))
-        }
+      s.get(this) match {
+        case Some(t1) => t1.unify(t, s)
+        case None =>
+          val st = t.subst(s)
+          if (this == st)
+            Some(s)
+          else if (st.occurs(this))
+            None
+          else
+            Some(Map(this -> st))
+      }
     def subst(s: USubst) = s.getOrElse(this, this)
     def occurs(t: Type) = this == t
   }
@@ -180,14 +178,14 @@ class TypeInference(symbolType: String => Option[(Seq[SortRef], SortRef)]) {
   }
 
   def checkJudgment(jdg: TypingRuleJudgment): Unit = jdg match {
-    case FunctionExpJudgment(f)       => checkExpBool(f)
-    case ExistsJudgment(vl, jdgl)     => withScope(vl) { jdgl foreach (checkJudgment(_)) }
-    case ForallJudgment(vl, jdgl)     => withScope(vl) { jdgl foreach (checkJudgment(_)) }
-    case NotJudgment(jdg)             => checkJudgment(jdg)
-    case OrJudgment(jdgll)            => jdgll foreach (jdgl => jdgl foreach (checkJudgment(_)))
-    case ReduceJudgment(e1, e2)       =>
+    case FunctionExpJudgment(f)   => checkExpBool(f)
+    case ExistsJudgment(vl, jdgl) => withScope(vl) { jdgl foreach (checkJudgment(_)) }
+    case ForallJudgment(vl, jdgl) => withScope(vl) { jdgl foreach (checkJudgment(_)) }
+    case NotJudgment(jdg)         => checkJudgment(jdg)
+    case OrJudgment(jdgll)        => jdgll foreach (jdgl => jdgl foreach (checkJudgment(_)))
+    case ReduceJudgment(e1, e2) =>
       checkExp(e1); checkExp(e2)
-    case TypingJudgment(e1, e2, e3)   =>
+    case TypingJudgment(e1, e2, e3) =>
       checkExp(e1); checkExp(e2); checkExp(e3)
     case TypingJudgmentSimple(e1, e2) => checkExp(e1); checkExp(e2)
   }
