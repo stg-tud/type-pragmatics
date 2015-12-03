@@ -42,7 +42,7 @@ object Backend {
   /**
    * This variability model is used by the code below
    */
-  val variabilityModel = onlyConsistency
+  val variabilityModel = fullVariability //runs about 20 minutes
 
   private var inputDirectory: String = "" //directory of input file
 
@@ -180,9 +180,9 @@ object Backend {
       // insert type guards for quantified metavariables
       //Optional(InsertTypeGuardsForMetavars, ifConfig(FinalEncoding, FinalEncoding.GuardedFOF)),
       // determines whether logical optimizations take place prior to fof/tff encoding
-      Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On))//,
+      Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
       // select problem
-      //ProblemTrans
+      ProblemTrans
       )
 
     val transformationChain = { sm: Seq[Module] => CustomPartialChain(sm)(conf) }
@@ -209,9 +209,9 @@ object Backend {
     Context.initStandalone(indexAndTaskenginePath)
 
     //use line below for debugging single partial transformation chains
-    //val resultFiles = debugTransformation(aterm) 
+    val resultFiles = debugTransformation(aterm) 
     
-    val resultFiles = runAllEncodings(aterm) //writes files
+    //val resultFiles = runAllEncodings(aterm) //writes files
 
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
     outputPrettyPrinter.writeln()
