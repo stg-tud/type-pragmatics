@@ -19,8 +19,11 @@ case class VeritasConfig(typing: String, transformations: String)
 case class FileSummary(filePath: String, proverConfig: ProverConfig, proverResult: ProverResult, timeSeconds: Double) {
 
   val veritasConfig: VeritasConfig = {
-    //does this work on Windows? it should
-    val pathParts = filePath.split(File.separator)
+    // split takes regular expression, \-separator (windows systems) needs to be escaped.
+    val fileSeparator =
+      if(File.separator == "\\") "\\\\"
+      else File.separator
+    val pathParts = filePath.split(fileSeparator)
     //assemble configuration from last two parts of path
     val typing = pathParts(pathParts.length - 3)
     val transformations = pathParts(pathParts.length - 2)

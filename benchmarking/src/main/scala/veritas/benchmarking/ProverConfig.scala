@@ -4,6 +4,8 @@ import java.io.File
 
 import scopt.OptionParser
 import veritas.benchmarking.vampire.{VampireTraceAnalisisOptions, VampireTraceAnalisis, VampireConfig}
+import veritas.benchmarking.princess.PrincessConfig
+import veritas.benchmarking.eprover.EproverConfig
 
 import scala.sys.process.ProcessLogger
 
@@ -49,10 +51,17 @@ trait ProverConfig {
   val proverCommand: File
   val acceptedFileFormats: Set[String]
 
-
+  // todo: automatically append .exe under windows systems
   def findBinaryInPath(command: String): File = {
     for (p <- System.getenv("PATH").split(File.pathSeparator);
          f = new File(p, command) if f.exists() && f.canExecute)
+      return f
+    null
+  }
+
+  def findFileInPath(command: String) : File = {
+    for (p <- System.getenv("PATH").split(File.pathSeparator);
+         f = new File(p, command) if f.exists())
       return f
     null
   }
@@ -79,6 +88,10 @@ object ProverConfig {
     _configs += c.name -> c
     _configs += c_sat.name -> c_sat
   }
+
+  _configs += "princess" -> PrincessConfig()
+  _configs += "eprover" -> EproverConfig()
+
   _contributedOptions = _contributedOptions :+ VampireTraceAnalisisOptions
 
   _configs filter (kv => if (kv._2.isValid) true else {println(s"** Removing invalid configuration ${kv._1}"); false})
