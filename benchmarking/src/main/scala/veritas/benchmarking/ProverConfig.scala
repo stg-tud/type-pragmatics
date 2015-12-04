@@ -3,6 +3,7 @@ package veritas.benchmarking
 import java.io.File
 
 import scopt.OptionParser
+import veritas.benchmarking.beagle.BeagleConfig
 import veritas.benchmarking.vampire.{VampireTraceAnalisisOptions, VampireTraceAnalisis, VampireConfig}
 import veritas.benchmarking.princess.PrincessConfig
 import veritas.benchmarking.eprover.EproverConfig
@@ -91,6 +92,7 @@ object ProverConfig {
 
   _configs += "princess" -> PrincessConfig()
   _configs += "eprover" -> EproverConfig()
+  //_configs += "eprover" -> BeagleConfig() //doesn't work yet
 
   _contributedOptions = _contributedOptions :+ VampireTraceAnalisisOptions
 
