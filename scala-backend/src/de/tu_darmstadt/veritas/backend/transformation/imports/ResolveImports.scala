@@ -26,8 +26,9 @@ object ResolveImports extends ModuleTransformation {
       }
 
   private def resolve(mod: Module): Module = {
-    val importedDefs = resolve(Seq(Resolved(mod)))
-        
+    //val importedDefs = resolve(Seq(Resolved(mod)))
+    val importedDefs = resolve(mod.imports) 
+    
     val resolvedBodyDefs = mod.defs map {
       case Strategy(name, imps, defs) =>
         val importedDefs = resolve(imps)
