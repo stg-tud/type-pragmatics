@@ -13,6 +13,7 @@ import de.tu_darmstadt.veritas.backend.veritas.Unresolved
 import de.tu_darmstadt.veritas.backend.veritas.Strategy
 import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.backend.veritas.Strategy
+import de.tu_darmstadt.veritas.backend.transformation.FilterGoalsAndLocals
 
 /**
  * Recursively resolves imports and inlines the bodies of imported modules. Also handles imports within Strategy blocks.
@@ -56,8 +57,8 @@ object ResolveImports extends ModuleTransformation {
     while (!todo.isEmpty) {
       val imp = pop()
 		  val m = imp match {
-  		  case imp: Unresolved => imp.resolve.moduleCode
-  		  case imp: Resolved => imp.moduleCode
+  		  case imp: Unresolved => (FilterGoalsAndLocals.trans(imp.resolve.moduleCode)).head
+  		  case imp: Resolved => (FilterGoalsAndLocals.trans(imp.moduleCode)).head
       }
       if (!done.contains(m.name)) {
         if (m.imports.isEmpty) {
