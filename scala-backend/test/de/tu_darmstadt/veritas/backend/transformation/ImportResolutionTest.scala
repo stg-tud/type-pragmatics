@@ -17,6 +17,7 @@ import de.tu_darmstadt.veritas.backend.veritas.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.veritas.Resolved
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.Functions
+import de.tu_darmstadt.veritas.backend.veritas.Local
 
 class ImportResolutionTest extends FunSuite {
 
@@ -48,9 +49,24 @@ class ImportResolutionTest extends FunSuite {
 
   }
 
-  test("No goal Import") {
+  test("No import of goals") {
     val impdef = genTestFunctionSig("f")
     val imp = Resolved(Module("ImportMe", Seq(), Seq(impdef, Goals(Seq(genTrueRule("donotimportme")), None))))
+
+    val mod = Module("test", Seq(imp), Seq(Goals(Seq(genTrueRule("test")), None)))
+
+    val resmod = Module("test", Seq(), Seq(impdef, Goals(Seq(genTrueRule("test")), None)))
+
+    val res = ResolveImports(Seq(mod))(Backend.onlyTFFTest)
+
+    assert(res.head == resmod)
+
+  }
+  
+  
+   test("No import of locals") {
+    val impdef = genTestFunctionSig("f")
+    val imp = Resolved(Module("ImportMe", Seq(), Seq(impdef, Local(Seq(Goals(Seq(genTrueRule("donotimportme")), None))))))
 
     val mod = Module("test", Seq(imp), Seq(Goals(Seq(genTrueRule("test")), None)))
 
@@ -137,7 +153,4 @@ class ImportResolutionTest extends FunSuite {
 
     assert(res.head == resmod)
   }
-  
-
-
 }
