@@ -42,16 +42,6 @@ case class Summary(config: Config) {
       case None => fileSummaries += proverConfig -> ListMap(fileResult)
       case Some(results) => fileSummaries += proverConfig -> (results + fileResult)
     }
-
-    val file = fileResult._1
-    val res = fileResult._2
-    val status = res.proverResult.status
-    val logDetail = config.logProof && status == Proved || config.logDisproof && status == Disproved || config.logInconclusive && status.isInstanceOf[Inconclusive]
-
-    if (config.logPerFile || logDetail)
-      println(s"Prover ${res.proverConfig.name} finished $file in ${res.timeSeconds.formatted("%.3f")} seconds: ${res.proverResult.status}")
-    if (logDetail)
-      print(res.proverResult.details.toHumanString)
   }
 
   def +=(file: File, fileResult: FileSummary): Unit = {

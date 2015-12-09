@@ -20,8 +20,9 @@ object Main extends App {
                      logSummary: Boolean = false,
                      logCSV: File = null,
                      logXLS: File = null,
-                     logXLSOverview: File = null
-                     ) {
+                     logXLSOverview: File = null,
+                     parallelism: Int = 0
+                   ) {
     def ensureDefaultOptions: Config = {
       if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null && logXLS == null)
         copy(logPerFile = true, logSummary = true)
@@ -83,6 +84,10 @@ object Main extends App {
     opt[File]("logoverviewxls") action { (f, config) =>
       config.copy(logXLSOverview = f)
     } text (s"log overview of prover results to XLS file")
+    opt[Int]("par") action { (f, config) =>
+      config.copy(parallelism = f)
+    } text (s"set parallelism level: 0 = no parallelism at all, " +
+      s"1 = system's parallelism level, greater 1 = custom parallelism level")
 
     arg[File]("<proof goal file>...") unbounded() validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
@@ -106,7 +111,8 @@ object Main extends App {
         print(summary.makeSummary)
       if (config.logCSV != null)
         new PrintWriter(config.logCSV) {
-          write(summary.makeCSV); close
+          write(summary.makeCSV);
+          close
         }
       if (config.logXLS != null)
         summary.makeXLS.safeToFile(config.logXLS.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
