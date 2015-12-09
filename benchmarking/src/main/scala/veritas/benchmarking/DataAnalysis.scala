@@ -109,7 +109,13 @@ class SuccessfulRatePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, 
   override val datatitle = "Rate of successful proofs"
 
   def calcSuccessRate(ah: AnalysisHeader): Double =
-    (successfulFilesPerConfig(ah).toDouble / totalFilesPerConfig(ah).toDouble) * 100
+    if (successfulFilesPerConfig(ah) > 0) 0
+    else
+      try {
+        (successfulFilesPerConfig(ah).toDouble / totalFilesPerConfig(ah).toDouble) * 100
+      } catch {
+        case e: ArithmeticException => 0 //yield default value if division went wrong
+      }
 
   override def resultToString(ah: AnalysisHeader): String =
     s"${calcSuccessRate(ah)}"
@@ -129,7 +135,13 @@ class AverageTimePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, Lis
     applyPerConfig2((ah, lfs) => {
       val filterProved = lfs filter provedtest
       val ts = filterProved map (fs => fs.timeSeconds)
-      ts.sum / successfulFilesPerConfig(ah)
+      if (ts.isEmpty) 0
+      else
+        try {
+          ts.sum / successfulFilesPerConfig(ah)
+        } catch {
+          case e: ArithmeticException => 0 //yield default value if division went wrong
+        }
     })
 
 
@@ -166,15 +178,23 @@ class AvgDeviationFromMinimalUsedLemmas(bconfig: Config, fileSummaries: ListMap[
           (s, i - minimalUsedLemmasPerFile(s)))
 
   val avgDeviationPerConfig: Map[AnalysisHeader, Double] =
-    for ((ah, li) <- deviationPerFilePerConfig) yield
-      ah -> ((li map (_._2)).sum.toDouble / successfulFilesPerConfig(ah).toDouble)
+    for ((ah, li) <- deviationPerFilePerConfig) yield {
+      if (li.isEmpty) (ah -> 0.toDouble)
+      else {
+        val avgPerConf = try {
+          (li map (_._2)).sum.toDouble / successfulFilesPerConfig(ah).toDouble
+        } catch {
+          case e: ArithmeticException => 0 //yield default value if division went wrong
+        }
+        ah -> avgPerConf
+      }
+    }
 
-
-  override def resultToString(ah: AnalysisHeader): String = s"${avgDeviationPerConfig(ah)}"
+  override def resultToString(ah: AnalysisHeader): String = s"${
+    avgDeviationPerConfig(ah)
+  }"
 
   override def resultToCell(index: Int, ah: AnalysisHeader): Cell =
     NumericCell(index, avgDeviationPerConfig(ah))
-
-
 
 }
