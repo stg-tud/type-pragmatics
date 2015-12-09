@@ -1,10 +1,13 @@
 package veritas.benchmarking
 
 import java.io.File
+import java.util.concurrent.Executors
 
 import veritas.benchmarking.Main.Config
 
-import scala.collection.parallel.{ForkJoinTaskSupport, ParSeq}
+import scala.collection.parallel.{ExecutionContextTaskSupport, ThreadPoolTaskSupport, ForkJoinTaskSupport, ParSeq}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 
 case class Runner(config: Config) {
 
@@ -54,6 +57,7 @@ case class Runner(config: Config) {
     }
   }
 
+
   def run(): Unit = {
     val joblist = for {proverConfig <- config.proverConfigs
                        file <- allFiles
@@ -61,38 +65,32 @@ case class Runner(config: Config) {
       yield (proverConfig, file)
 
 
+    val estimatedDuration = Duration(joblist.length * config.timeout, "seconds")
+
+
     // set up parallel calls to provers (careful, resources may differ significantly from sequential case!)
     if (config.parallelism > 0) {
-      val jobnumber = if (config.parallelism == 1) {
-        try {
-          val syspar = sys.props("par")
-          syspar.toInt
-        } catch {
-          case e: SecurityException => {
-            println("No permissions to read system's parallelism level - defaulting to level 1!");
-            config.parallelism
-          }
-          case e: NumberFormatException => {
-            println("Reading system's parallelism level did not yield a number - " +
-              "maybe no permissions to read system's parallelism level? Defaulting to level 1!");
-            config.parallelism
-          }
-        }
-      } else config.parallelism
+      val parnum = if (config.parallelism == 1)
+      //get number of available system CPUs, substract 1 just in case
+        Runtime.getRuntime().availableProcessors() - 1
+      else config.parallelism
 
-      println(s"Executing $jobnumber proof jobs at a time!")
+      println(s"Will execute ${joblist.length} jobs, executing $parnum at a time!")
+      println(s"Estimated worst case duration: ${estimatedDuration/parnum}")
 
       val parjoblist = joblist.par
-      parjoblist.tasksupport = new ForkJoinTaskSupport(
-        new scala.concurrent.forkjoin.ForkJoinPool(jobnumber))
+      val threadPool = Executors.newFixedThreadPool(parnum)
+      parjoblist.tasksupport =
+        new ExecutionContextTaskSupport(ExecutionContext.fromExecutor(threadPool))
 
       val summarylist = parjoblist.map { case (pc, file) => callProverAndLog(pc, file) }
       for (fs <- summarylist.toList) {
         summary += fs
       }
-
+      threadPool.shutdown() //without this line, the worker threads stay alive!
       //set up sequential execution!
     } else {
+      println(s"Will execute ${joblist.length} jobs sequentially!")
       val summarylist = joblist map { case (pc, file) => callProverAndLog(pc, file) }
       for (fs <- summarylist) {
         summary += fs

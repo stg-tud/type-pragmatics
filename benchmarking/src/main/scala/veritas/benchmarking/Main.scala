@@ -87,7 +87,7 @@ object Main extends App {
     opt[Int]("par") action { (f, config) =>
       config.copy(parallelism = f)
     } text (s"set parallelism level: 0 = no parallelism at all, " +
-      s"1 = system's parallelism level, greater 1 = custom parallelism level")
+      s"1 = number of system cores - 1, greater 1 = custom parallelism level")
 
     arg[File]("<proof goal file>...") unbounded() validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
