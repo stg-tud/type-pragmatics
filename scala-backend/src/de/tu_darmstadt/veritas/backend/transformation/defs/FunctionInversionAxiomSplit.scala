@@ -78,10 +78,10 @@ trait FunctionInversionAxiomSplit extends ModuleTransformation {
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     withSuper(super.transModuleDefs(mdef)) {
-      case as @ Axioms(tseq) => Seq(as, Axioms(tseq flatMap { t =>
+      case Axioms(tseq) => Seq(Axioms(tseq flatMap { t =>
         {
           if (isInversionLemma(t))
-            transformInversionAxiom(t)
+            t +: transformInversionAxiom(t)
           else
             Seq(t)
         }
