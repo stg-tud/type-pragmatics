@@ -1,13 +1,15 @@
 package veritas.benchmarking
 
 import java.io.File
+import java.util.{Date, Calendar}
 import java.util.concurrent.Executors
 
 import veritas.benchmarking.Main.Config
 
-import scala.collection.parallel.{ExecutionContextTaskSupport, ThreadPoolTaskSupport, ForkJoinTaskSupport, ParSeq}
+import scala.collection.parallel.ExecutionContextTaskSupport
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
+
 
 case class Runner(config: Config) {
 
@@ -57,13 +59,19 @@ case class Runner(config: Config) {
     }
   }
 
+  private def calcFinishTime(d: Duration): String = {
+    val cal = Calendar.getInstance()
+    cal.setTime(new Date())
+    cal.add(Calendar.SECOND, d.toSeconds.toInt)
+    cal.getTime.toString
+  }
+
 
   def run(): Unit = {
     val joblist = for {proverConfig <- config.proverConfigs
                        file <- allFiles
                        if (proverConfig.acceptedFileFormats.exists(s => file.getName().endsWith(s)))}
       yield (proverConfig, file)
-
 
     val estimatedDuration = Duration(joblist.length * config.timeout, "seconds")
 
@@ -75,8 +83,9 @@ case class Runner(config: Config) {
         Runtime.getRuntime().availableProcessors() - 1
       else config.parallelism
 
-      println(s"Will execute ${joblist.length} jobs, executing $parnum at a time!")
-      println(s"Estimated worst case duration: ${estimatedDuration/parnum}")
+      println(s"Will execute ${joblist.length} jobs, executing $parnum at a time.")
+      println(s"Estimated worst case duration: ${estimatedDuration / parnum}, " +
+        s"i.e. would be finished on ${calcFinishTime(estimatedDuration / parnum)}")
 
       val parjoblist = joblist.par
       val threadPool = Executors.newFixedThreadPool(parnum)
@@ -90,7 +99,9 @@ case class Runner(config: Config) {
       threadPool.shutdown() //without this line, the worker threads stay alive!
       //set up sequential execution!
     } else {
-      println(s"Will execute ${joblist.length} jobs sequentially!")
+      println(s"Will execute ${joblist.length} jobs sequentially.")
+      println(s"Estimated worst case duration: ${estimatedDuration}, " +
+        s"i.e. would be finished on ${calcFinishTime(estimatedDuration)}")
       val summarylist = joblist map { case (pc, file) => callProverAndLog(pc, file) }
       for (fs <- summarylist) {
         summary += fs
