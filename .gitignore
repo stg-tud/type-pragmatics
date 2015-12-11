@@ -13,3 +13,7 @@ Veritas/vampire
 scala-backend/.cache-main
 scala-backend/.cache-tests
 target
+benchmarking/.jenv-vars
+Veritas/test/encodingcompstudy/consistency
+Veritas/test/encodingcompstudy/test
+*.xls
