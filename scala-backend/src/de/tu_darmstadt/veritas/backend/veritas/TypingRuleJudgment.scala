@@ -243,7 +243,7 @@ case class OrJudgment(orCases: Seq[Seq[TypingRuleJudgment]]) extends TypingRuleJ
     }
   }
   
-  override def toString() = s"Or \n ${orCases.mkString("=> " , "\n", "")}"
+  override def toString() = s"Or \n ${orCases.mkString("(=> " , "\n => ", " )")}"
 }
 
 object TypingRuleJudgment {
