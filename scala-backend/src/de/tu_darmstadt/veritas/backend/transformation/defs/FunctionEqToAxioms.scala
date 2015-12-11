@@ -82,6 +82,14 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
     }
 
   private def negatePrepats(pats: Seq[FunctionPattern], prepats: Seq[Seq[FunctionPattern]]): Seq[TypingRuleJudgment] = {
+    def matchingPattern(patpair: (FunctionPattern, FunctionPattern)): Boolean =
+      patpair match {
+        case (FunctionPatVar(n), FunctionPatApp(m, args2)) => true
+        case (FunctionPatApp(n, args1), FunctionPatApp(m, args2)) => n == m && args1.length == args2.length
+        case (FunctionPatVar(n), FunctionPatVar(m)) => true
+        case _ => false
+      }
+    
     def relevantPattern(patpair: (FunctionPattern, FunctionPattern)): Boolean =
       patpair match {
         case (FunctionPatVar(n), FunctionPatApp(m, args2)) => true
@@ -90,12 +98,20 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       }
 
     val correspondingpats = prepats map (s => pats zip s)
-    val cases = for (sp <- correspondingpats) yield (for (pp <- sp if (relevantPattern(pp))) yield negatePatternPart(pp))
 
-    makeOrSeq(cases)
+    //only negate patterns for a function equation if ALL patterns of pats match its patterns
+    // example: 
+    // f(0, succ(0)) = x
+    // f(succ(n), n) = y -> do not produce negated prepat n != succ(0) 
+    val cases = for (sp <- correspondingpats) yield if (sp exists (pp => !matchingPattern(pp)))
+      Seq()
+    else
+      (for (pp <- sp if (relevantPattern(pp))) yield negatePatternPart(pp))
+
+    makeOrSeqs(cases)
   }
 
-  private def makeOrSeq(cases: Seq[Seq[Seq[TypingRuleJudgment]]]): Seq[TypingRuleJudgment] = {
+  private def makeOrSeqs(cases: Seq[Seq[Seq[TypingRuleJudgment]]]): Seq[TypingRuleJudgment] = {
     (for (c <- cases) yield {
       val filterempty = c filter (o => !o.isEmpty)
       if (filterempty.length <= 1)
