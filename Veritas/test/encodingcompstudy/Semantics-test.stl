@@ -247,13 +247,13 @@ local {
 	lemma
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
 	~r == rcons(x1, rcons(y2, rcons(z2, rempty)))
-	=============================================================================== singleRow-aux1
+	=============================================================================== aux-singleRow-1
 	singleRowSelect(~al, VEquals(A1, x1), ~r) == isTrue
 	
 	lemma
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
 	~r == rcons(x2, rcons(y1, rcons(z1, rempty)))
-	=============================================================================== singleRow-aux2
+	=============================================================================== aux-singleRow-2
 	singleRowSelect(~al, VEquals(A1, x1), ~r) == isFalse
 	
 
@@ -292,7 +292,7 @@ local {
 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))))
-	===================================================== rawUnion-aux
+	===================================================== aux-rawUnion
 	rawUnion(~rt1, ~rt2) == ~rtresult
 	
 	goal
@@ -336,7 +336,7 @@ local {
 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
 	~rt2 == tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))
-	===================================================== rawIntersection-aux
+	===================================================== aux-rawIntersection
 	rawIntersection(~rt1, ~rt2) == tempty
 	
 	goal
