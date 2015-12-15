@@ -18,8 +18,7 @@ trait FunctionInversionAxiomSplit extends ModuleTransformation {
 
   private def removeUsedVariables(varlist: Seq[MetaVar], term: TypingRuleJudgment): Seq[MetaVar] = {
     val usedVariables = collectVariablesInExpression(term)
-    //varlist filter { x => !occursIn(term.children)(x) }
-    varlist filter { x => !usedVariables.contains(x) }
+    varlist filter { x => !usedVariables.exists { y => x.name == y} }
   }
 
   private def splitOrCase(orcase: Seq[TypingRuleJudgment], parameters: Seq[String]): (Seq[TypingRuleJudgment], Seq[TypingRuleJudgment]) = {
@@ -34,7 +33,9 @@ trait FunctionInversionAxiomSplit extends ModuleTransformation {
       orcase match {
         case Seq(ExistsJudgment(varlist, judgeList)) => {
           val (newPremises, consequences) = splitOrCase(judgeList, parameters)
-          val leftOverVariables = newPremises.foldLeft(varlist)((newVarList, premise) => removeUsedVariables(newVarList, premise))
+          val leftOverVariables = newPremises.foldLeft(varlist)((newVarList, premise) => {
+            removeUsedVariables(newVarList, premise)
+          })
           //val leftOverVariables = removeUsedVariables(varlist, newPremises.head)
 
           (newPremises, Seq(ExistsJudgment(leftOverVariables, consequences)))
