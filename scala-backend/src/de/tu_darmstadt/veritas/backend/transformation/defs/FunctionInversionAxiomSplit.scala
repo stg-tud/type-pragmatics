@@ -16,34 +16,26 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
  */
 trait FunctionInversionAxiomSplit extends ModuleTransformation {
 
-  private def nameOf(metaVar: MetaVar) =
-    metaVar match {
-      case MetaVar(name) => name
-    }
+  private def removeUsedVariables(varlist: Seq[MetaVar], term: TypingRuleJudgment): Seq[MetaVar] = {
+    val usedVariables = collectVariablesInExpression(term)
+    //varlist filter { x => !occursIn(term.children)(x) }
+    varlist filter { x => !usedVariables.contains(x) }
+  }
 
-  private def occursIn(term: Seq[Seq[VeritasConstruct]])(metaVar: MetaVar): Boolean = {
-    term exists { y =>
-      y exists { x =>
-        x match {
-          case FunctionMeta(MetaVar(name)) => name == nameOf(metaVar)
-          case e => occursIn(e.children)(metaVar)
+  private def splitOrCase(orcase: Seq[TypingRuleJudgment], parameters: Seq[String]): (Seq[TypingRuleJudgment], Seq[TypingRuleJudgment]) = {
+    if (orcase.length > 1) {
+      orcase partition { judgement =>
+        {
+          val occuringVariables = collectVariablesInExpression(judgement)
+          !occuringVariables.exists { v => parameters.contains(v) }
         }
       }
-    }
-  }
-
-  private def removeUsedVariables(varlist: Seq[MetaVar], term: TypingRuleJudgment): Seq[MetaVar] = {
-    varlist filter {x => !occursIn(term.children)(x)}
-  }
-
-  private def splitOrCase(orcase: Seq[TypingRuleJudgment]): (Seq[TypingRuleJudgment], Seq[TypingRuleJudgment]) = {
-    if (orcase.length > 1) {
-      (Seq(orcase.last), orcase.dropRight(1))
     } else {
       orcase match {
         case Seq(ExistsJudgment(varlist, judgeList)) => {
-          val (newPremises, consequences) = splitOrCase(judgeList)
-          val leftOverVariables = removeUsedVariables(varlist, newPremises.head)
+          val (newPremises, consequences) = splitOrCase(judgeList, parameters)
+          val leftOverVariables = newPremises.foldLeft(varlist)((newVarList, premise) => removeUsedVariables(newVarList, premise))
+          //val leftOverVariables = removeUsedVariables(varlist, newPremises.head)
 
           (newPremises, Seq(ExistsJudgment(leftOverVariables, consequences)))
         }
@@ -54,12 +46,40 @@ trait FunctionInversionAxiomSplit extends ModuleTransformation {
 
   private def splitOrCases(orcases: Seq[Seq[TypingRuleJudgment]]): Seq[(Seq[TypingRuleJudgment], Seq[TypingRuleJudgment])] = ???
 
+  private def collectVariablesInExpression(exp: VeritasConstruct): Seq[String] = {
+    exp.children flatMap { y =>
+      y flatMap { x =>
+        x match {
+          case MetaVar(name) => Seq(name)
+          case e             => collectVariablesInExpression(e)
+        }
+      }
+    }
+  }
+
+  private def findFunctionParameterNames(f1: FunctionExpMeta) = f1 match {
+    case FunctionExpApp(_, parameterList) => parameterList flatMap collectVariablesInExpression
+  }
+  private def findResultVariableName(f2: FunctionExpMeta) = f2 match {
+    case FunctionMeta(MetaVar(name)) => name
+  }
+
+  private def variableNames(premises: Seq[TypingRuleJudgment]): (String, Seq[String]) = {
+    premises match {
+      case Seq(FunctionExpJudgment(FunctionExpEq(f1, f2))) => {
+        val resultVariable = findResultVariableName(f2)
+        val functionParameters = findFunctionParameterNames(f1)
+        (resultVariable, functionParameters)
+      }
+    }
+  }
+
   private def createInversionAxioms(name: String, premises: Seq[TypingRuleJudgment], orcases: Seq[Seq[TypingRuleJudgment]]) = {
     var counter = 0
-
+    val (result, parameters) = variableNames(premises)
     orcases map { x =>
       {
-        val (newPremises, newConsequences) = splitOrCase(x)
+        val (newPremises, newConsequences) = splitOrCase(x, parameters)
         counter += 1
         TypingRule(name + counter, premises ++ newPremises, newConsequences)
       }
