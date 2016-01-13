@@ -72,7 +72,6 @@ case class PrincessConfig()
 
     override def buffer[T](f: => T) = f // no setup or teardown
     override def err(s: => String) = try {
-        println(s)
       if (s.contains("ms")) {
         time = tryExtractTimeSeconds(s)
       }
