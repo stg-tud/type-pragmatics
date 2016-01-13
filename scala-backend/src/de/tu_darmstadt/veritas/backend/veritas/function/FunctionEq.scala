@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.backend.veritas
+package de.tu_darmstadt.veritas.backend.veritas.function
 
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
@@ -6,6 +6,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
+import de.tu_darmstadt.veritas.backend.veritas._
 
 case class FunctionEq(functionName: String, patterns: Seq[FunctionPattern], right: FunctionExp) extends VeritasConstruct with PrettyPrintable {
   override val children = Seq(patterns, Seq(right))
@@ -37,6 +38,8 @@ case class FunctionEq(functionName: String, patterns: Seq[FunctionPattern], righ
     writer.write(") = ")
     writer.indentOptional().write(right).unindent()
   }
+  
+  override def toString() = s"${functionName}(${patterns.mkString(",")}) = ${right}"
 }
 
 object FunctionEq {

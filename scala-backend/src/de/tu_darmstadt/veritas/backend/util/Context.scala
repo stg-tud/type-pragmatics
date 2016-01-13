@@ -5,15 +5,19 @@ import org.spoofax.interpreter.library.index.primitives.IndexLibrary
 import org.spoofax.interpreter.terms.IStrategoTerm
 import org.spoofax.terms.TermFactory
 import org.strategoxt.HybridInterpreter
-
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
+import org.spoofax.interpreter.library.IOAgent
+import java.io.PrintStream
+import java.io.PrintWriter
 
 /**
  * Functionality that depends on whether the Backend is run as standalone (like commandline 
  * application) or from Spoofax (called as Java strategy) is bundled here
  */
 trait Context {
+  def reportException(e: Exception): Unit
   def debug(x: Any): Unit
+  def log(x: Any): Unit
   def callStrategy(strategyName: String, termArgument: StrategoTerm): Option[StrategoTerm]
 }
 
@@ -36,7 +40,9 @@ object Context extends Context {
   }
 
   // forward the methods to the concrete Context instance
+  override def reportException(e: Exception) = ctx.reportException(e)
   override def debug(x: Any) = ctx.debug(x)
+  override def log(x: Any) = ctx.log(x)
   override def callStrategy(strategyName: String, termArgument: StrategoTerm) = ctx.callStrategy(strategyName, termArgument)
 }
 
@@ -45,7 +51,11 @@ object Context extends Context {
  */
 
 private class StandaloneContext(indexAndTaskenginePath: String) extends Context {
+  override def reportException(e: Exception) = e.printStackTrace(System.err)
+  
   override def debug(x: Any) = println(x)
+  
+  override def log(x: Any) = println(x)
   
   // use the HybridInterpreter (for the initialization, see below)
   override def callStrategy(strategyName: String, termArgument: StrategoTerm): Option[StrategoTerm] = {
@@ -100,8 +110,15 @@ private class StandaloneContext(indexAndTaskenginePath: String) extends Context 
 }
 
 private class StrategyContext(c: org.strategoxt.lang.Context) extends Context {
-  override def debug(x: Any) = c.getIOAgent.printError(x.toString)
+	val writer = c.getIOAgent.getWriter(IOAgent.CONST_STDERR)
+	val pw = new PrintWriter(writer)
 
+	override def reportException(e: Exception) = e.printStackTrace(pw)
+  
+  override def debug(x: Any) = c.getIOAgent.printError(x.toString)
+  
+  override def log(x: Any) = c.getIOAgent.printError(x.toString)
+  
   // just use the backend strategy's context to invoke other strategies
   override def callStrategy(strategyName: String, termArgument: StrategoTerm): Option[StrategoTerm]
     = Some(StrategoTerm(c.invokeStrategy(strategyName, termArgument.toIStrategoTerm)))

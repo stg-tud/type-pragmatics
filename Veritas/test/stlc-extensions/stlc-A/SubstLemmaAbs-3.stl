@@ -1,0 +1,84 @@
+module stlca.SubstLemmaAbs3
+
+import stlca.TypeBase
+import stlca.Context {names}
+import stlca.Syntax
+import stlca.Subst
+import stlca.Gensym
+import stlca.AlphaEquivalence
+
+local {
+	const eabs : Exp
+	
+	axiom
+	~e2 == abs(~y, ~S, ~e1)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	//auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-unequal-var-3
+	~x != ~fresh
+	
+	//another auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-free-2
+	!isFreeVar(~fresh, ~e1)
+		
+	axiom //not needed
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+	
+	lemma
+	!isFreeVar(~y, eabs)
+	gensym(app(app(~e, eabs), var(~x))) == ~y
+	======================================== T-apply-alpha-equiv
+	alphaEquivalent(abs(~z, ~S, eabs), abs(~y, ~S, subst(~z, var(~y), eabs)))
+	
+	// hide{subst-INV, T-true, T-false, T-Zero, T-var, T-succ, T-pred, 
+	// 	T-isZero, T-abs, T-app, T-inv, 
+	// 	lookup0, lookup1, lookup2, lookup-INV}
+
+	goal
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-3
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}

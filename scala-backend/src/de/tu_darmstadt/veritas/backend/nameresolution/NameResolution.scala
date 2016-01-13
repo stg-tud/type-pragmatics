@@ -10,6 +10,7 @@ import de.tu_darmstadt.veritas.backend.veritas.Resolved
 import de.tu_darmstadt.veritas.backend.veritas.Unresolved
 import de.tu_darmstadt.veritas.backend.veritas.VeritasParseError
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
+import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 
 object NameResolution {
   def getModuleDef(imp: Import): Option[Module] = imp match {
@@ -17,7 +18,7 @@ object NameResolution {
     case imp: Unresolved => {
       // NOTE I added a rethrow with additional message here, because error message about "task delay ..." is very unintuitive
       val strategyResult = try {
-        Context.callStrategy("get-module-ref", imp.toNablUse)
+        Context.callStrategy("get-module-ref", imp.nablAnnotation)
       } catch {
         case e: InterpreterException => {
           throw BackendError("Error when executing a NaBL strategy during NameResolution."
@@ -29,12 +30,18 @@ object NameResolution {
         }
       }
       
-      // FIXME Why does the strategy give us back a Result(<taskid>) instead of the module code? When does this happen? Whats the behavior per spec of get-module-ref?
-      // Example test case: import of SoundnessAuxDefs.stl in sql/ProgressProjection.stl
+      // FIXME Why does the strategy give us back a Result(<taskid>) instead of the module code? When does this happen?
+      // This is probably a BUG in Spoofax/Stratego/NaBL, since it also happens inside our fof-rewriting.str :/
       strategyResult match {
-        case Some(StrategoAppl("Result", _)) => {
+        case Some(StrategoAppl("Result", _)) | Some(StrategoList(Seq())) => {
           throw BackendError("Error during NameResolution: Expected a Module() code, given the import\n" 
-              + imp + "\nbut got back from the Stratego nameresolution strategy: " + strategyResult.get)
+              + imp + "\nbut got back a task ID from the Stratego nameresolution strategy: " + strategyResult.get
+              + "\n\tThis error is not in out code, but probably a BUG in Spoofax/Stratego/NaBL, where the strategy get-module-ref"
+              + "\n\treturns this invalid result. I (Daniel) assume it is the same (or related) BUG to the Spoofax editor problems with some"
+              + "\n\timports, where sometimes imported modules cannot be \"clicked on\"."
+              + "\n\tWORKAROUND: To solve the import problem here (and also in the Editor), manually open the imported Module file"
+              + "\n\tand invoke the Backend on that one. After opening all imported Modules manually in the editor, Spoofax seems"
+              + "\n\tto have found the module-ref...")
         }
         case _ => ;
       }

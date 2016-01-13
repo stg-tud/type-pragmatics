@@ -1,0 +1,97 @@
+module stlca.SubstLemma
+
+import stlca.Syntax
+import stlca.Context
+import stlca.TypeBase
+import stlca.Gensym
+import stlca.AlphaEquivalence
+import stlca.Subst
+import stlca.SubstLemmaAux.SubstLemmaAux
+
+goal
+~e2 == var(~y)
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-var
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+goal
+~e2 == True
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-true
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+goal
+~e2 == False
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-false
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+goal
+~e2 == Zero
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-zero
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+local {
+	const esucc : Exp
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- esucc : ~T2
+	================================ T-subst-IH-succ
+	~C |- subst(~x, ~e, esucc) : ~T2
+	
+	goal
+	~e2 == succ(esucc)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	============================== T-subst-succ
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+local {
+	const epred : Exp
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- epred : ~T2
+	================================ T-subst-IH-pred
+	~C |- subst(~x, ~e, epred) : ~T2
+	
+	goal
+	~e2 == pred(epred)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	============================== T-subst-pred
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+local {
+	const eisZero : Exp
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eisZero : ~T2
+	================================ T-subst-IH-isZero
+	~C |- subst(~x, ~e, eisZero) : ~T2
+	
+	goal
+	~e2 == isZero(eisZero)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	============================== T-subst-isZero
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+// substitution lemma becomes an axiom after the proof
+axiom
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+

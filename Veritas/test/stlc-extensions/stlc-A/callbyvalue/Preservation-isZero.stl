@@ -1,0 +1,60 @@
+module stlca.callbyvalue.PreservationisZero
+
+import stlca.Syntax
+import stlca.Subst {names}
+import stlca.SubstLemma
+import stlca.callbyvalue.Reduction
+import stlca.TypeBase
+import stlca.Context
+
+local {
+	const e1 : Exp
+	
+	axiom
+	~ein == e1	 
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-pred-IH
+	~C |- ~eout : ~T
+
+	lemma
+	~ein == isZero(e1)
+	e1 == Zero
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	======================= T-Preservation-T-isZero-1
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == isZero(e1)
+	reduce(~ein) = someExp(~eout)
+	isValue(e1)
+	~C |- ~ein : ~T
+	================ T-Preservation-T-isZero-2
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == isZero(e1)
+	reduce(~ein) = someExp(~eout)
+	!isValue(e1)
+	reduce(e1) = someExp(~ered)
+	~C |- ~ein : ~T
+	================ T-Preservation-T-isZero-3
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == isZero(e1)
+	reduce(~ein) = someExp(~eout)
+	!isValue(e1)
+	reduce(e1) = noExp
+	~C |- ~ein : ~T
+	================ T-Preservation-T-isZero-4
+	~C |- ~eout : ~T
+	
+	goal
+	~ein == isZero(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	======================= T-Preservation-T-isZero
+	~C |- ~eout : ~T
+}

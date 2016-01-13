@@ -1,0 +1,6 @@
+module backend.NextOnEmptyIteratorBugFunctionInversion
+
+sorts Typ
+
+functions
+predicate: Typ -> Bool

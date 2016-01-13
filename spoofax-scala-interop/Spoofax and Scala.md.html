@@ -1,0 +1,721 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<div id="TOC">
+<ul>
+<li><a href="#using-scala-strategies-in-spoofax">Using Scala strategies in Spoofax</a><ul>
+<li><a href="#setting-up-the-ide-scala-ide-with-spoofax-plugin">1. Setting up the IDE: Scala IDE with Spoofax plugin</a></li>
+<li><a href="#creating-a-spoofax-and-a-scala-project">2. Creating a Spoofax and a Scala project</a></li>
+<li><a href="#a.-running-scala-strategies-from-spoofax">3a. Running Scala strategies from Spoofax</a><ul>
+<li><a href="#a.1.-setting-up-the-scala-strategy-project">3a.1. Setting up the Scala strategy project</a></li>
+<li><a href="#a.2.-setting-up-the-spoofax-project">3a.2. Setting up the Spoofax project</a></li>
+<li><a href="#a.3.-fixing-the-project-dependencies-and-build-order">3a.3. Fixing the project dependencies and build order</a></li>
+</ul></li>
+<li><a href="#b.-directly-running-the-scala-strategy-not-from-within-the-spoofax-editor">3b. Directly running the Scala strategy, not from within the Spoofax editor</a></li>
+<li><a href="#working-with-index-and-taskengine-to-get-the-name-analysis-results">4. Working with Index and TaskEngine to get the (name-)analysis results</a><ul>
+<li><a href="#what-is-index-and-task-engine">4.1. What is Index and Task Engine?</a></li>
+<li><a href="#index-and-tasks-setup-and-persistance">4.2. Index and Tasks setup and persistance</a></li>
+<li><a href="#calling-the-nabl-strategy-from-the-scala-code-within-spoofax">4.3. Calling the NaBL strategy from the Scala code (within Spoofax)</a></li>
+<li><a href="#calling-the-nabl-strategy-from-the-scala-code-standalone">4.4. Calling the NaBL strategy from the Scala code (standalone)</a></li>
+</ul></li>
+<li><a href="#tips">5. Tips</a><ul>
+<li><a href="#spoofaxstratego-sources">5.1. Spoofax/Stratego Sources</a></li>
+<li><a href="#working-with-the-strategoterm-api">5.2. Working with the StrategoTerm API</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="using-scala-strategies-in-spoofax">Using Scala strategies in Spoofax</h1>
+<h2 id="setting-up-the-ide-scala-ide-with-spoofax-plugin">1. Setting up the IDE: Scala IDE with Spoofax plugin</h2>
+<p>One way of installing Spoofax and the Scala plugin in eclipse is downloading the Eclipse IDE for Java Developers (<a href="http://www.eclipse.org/downloads/packages/eclipse-ide-java-developers/marsr">currently Mars (4.5)</a>) and then adding both plugins through <code>Help -&gt; Install New Software...</code>. However, the Scala IDE offers better autocompletion, some additional interface elements and, according to the <a href="http://scala-ide.org/download/sdk.html">website</a>, better performance. So we used it instead of vanilla Eclipse as a basis for installing the Spoofax plugin.</p>
+<p>The steps are as follows:</p>
+<ul>
+<li>Install the <a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">JDK 7 or higher</a>. The 64 bit version is recommended, since Spoofax warns you when not run with the server VM configuration (see below). The <code>--server</code> option seems to be only available in the 64 bit version.</li>
+<li>Download and unzip the Scala IDE from <a href="http://scala-ide.org/download/sdk.html">above</a> (already includes Scala 2.11, so no need to install it manually beforehand). Make sure to download the 64 bit version.</li>
+<li>Launch the Scala IDE, open <code>Help -&gt; Install New Software...</code>, and <code>Add...</code> the Spoofax nightly repository. (Stable should work fine, it is just that we used nightly.) As per the <a href="http://metaborg.org/download/">Spoofax website</a> the repo URL is <code>http://download.spoofax.org/update/nightly/</code>. Select <code>Spoofax Core</code> and proceed with the installation.</li>
+</ul>
+<div class="figure">
+<img src="01.png" alt="Installing Spoofax Core from Scala IDE" />
+<p class="caption">Installing Spoofax Core from Scala IDE</p>
+</div>
+<ul>
+<li>When you launch Scala IDE for the first time with Spoofax included, you might get the following warning (see the <a href="http://metaborg.org/download/#eclipseini">eclipse.ini section on the Spoofax website</a> for more details). In order to fix it, add the following lines to the <code>eclipse.ini</code> in the Scala IDE's installation directory. (Note that some of the options might already be present due to the Scala IDE default configuration, just replace them.)</li>
+</ul>
+<pre><code>-Xss8m
+-Xms256m
+-Xmx1024m
+-XX:MaxPermSize=256m
+-server
+-Djava.net.preferIPv4Stack=true</code></pre>
+<div class="figure">
+<img src="02b.png" alt="One possible Spoofax configuration warning" />
+<p class="caption">One possible Spoofax configuration warning</p>
+</div>
+<h2 id="creating-a-spoofax-and-a-scala-project">2. Creating a Spoofax and a Scala project</h2>
+<p>After the restart of Eclipse, no warning should show and we are ready to create a new Spoofax editor project by <code>File -&gt; New -&gt; Project... -&gt; Other -&gt; Spoofax editor project</code> (or use an existing one). The compilation should start automatically and after some time give you an open editor tab with an example file in your language (here: <code>test/example.sam</code>). You can verfiy that the Spoofax editor is working, when the <code>Syntax -&gt; Show abstract syntax</code> button below the menubar is present and gives you the AST of your <code>example.sam</code> module in an <code>example.aterm</code> file.</p>
+<div class="figure">
+<img src="03.png" alt="Creating a sample Spoofax editor project" />
+<p class="caption">Creating a sample Spoofax editor project</p>
+</div>
+<div class="figure">
+<img src="05.png" alt="Opened example.sam with Spoofax editor buttons Syntax, Analysis, and Generation" />
+<p class="caption">Opened <code>example.sam</code> with Spoofax editor buttons <code>Syntax</code>, <code>Analysis</code>, and <code>Generation</code></p>
+</div>
+<div class="figure">
+<img src="06.png" alt="Generated AST in example.aterm" />
+<p class="caption">Generated AST in <code>example.aterm</code></p>
+</div>
+<p>Now, create a Scala project by <code>File -&gt; New -&gt; Scala Project</code> in the same workspace. Add and run a main class to verify the Scala IDE part is also working.</p>
+<div class="figure">
+<img src="07.png" alt="Verify that Scala compilation and execution is working" />
+<p class="caption">Verify that Scala compilation and execution is working</p>
+</div>
+<h2 id="a.-running-scala-strategies-from-spoofax">3a. Running Scala strategies from Spoofax</h2>
+<p>The first variant of interoperability between Spoofax and Scala is to execute strategies written in Scala on the AST we have seen earlier in <code>example.aterm</code> from inside the Spoofax editor. (This is useful when your Scala strategy is currently not in focus, but you are making changes to your SampleLanguage source files. However, when developing/debugging the Scala strategy, directly executing the Scala strategy on <code>aterm</code> files (see 3b.) might be preferred.)</p>
+<h3 id="a.1.-setting-up-the-scala-strategy-project">3a.1. Setting up the Scala strategy project</h3>
+<p>Let us write a trivial Scala strategy that conforms with Spoofax' Java strategy ínterface. First, add the Stratego Java classes to the build path, such that the relevent classes are available. For that, go to the Scala project's <code>Properties -&gt; Java Build Path -&gt; Libraries -&gt; Add JARs...</code> and select the <code>strategoxt.jar</code> inside the Spoofax project's <code>utils</code> subdirectory (here: <code>SampleLang/utils/</code>).</p>
+<div class="figure">
+<img src="08.png" alt="Add the StrategoXT jar to the Scala strategy&#39;s build path" />
+<p class="caption">Add the StrategoXT jar to the Scala strategy's build path</p>
+</div>
+<p>As we want most of our code to be in Scala, but the Stratego interface requires us to create a static variable (which we can't in Scala), we write a very light wrapper around our actual Strategy. So we create two source files in some <code>mypackage</code> subdirectory in the Scala project:</p>
+<p><code>scala_strategy_0_0.java</code> (lowercase is mandatory, also see the comment for the <code>_0_0</code> suffix.):</p>
+<pre class="sourceCode java"><code class="sourceCode java"><span class="kw">package mypackage;</span>
+
+<span class="kw">import org.spoofax.interpreter.terms.IStrategoTerm;</span>
+<span class="kw">import org.strategoxt.lang.Context;</span>
+<span class="kw">import org.strategoxt.lang.Strategy;</span>
+
+<span class="co">/**</span>
+<span class="co"> * Java interface of the Scala strategy, such that it can be used from </span>
+<span class="co"> * Stratego as an external strategy. </span>
+<span class="co"> * </span>
+<span class="co"> * NOTE: Apparently, the Java strategy name uses these &quot;_args1_args2&quot; </span>
+<span class="co"> * suffixes for name mangling, more specifically for signifying the </span>
+<span class="co"> * number of term/strategy arguments.</span>
+<span class="co"> */</span>
+<span class="kw">public</span> <span class="kw">class</span> scala_strategy_0_0 <span class="kw">extends</span> Strategy {
+    <span class="kw">public</span> <span class="dt">static</span> scala_strategy_0_0 instance = <span class="kw">new</span> <span class="fu">scala_strategy_0_0</span>();
+
+    <span class="fu">@Override</span>
+    <span class="kw">public</span> IStrategoTerm <span class="fu">invoke</span>(Context context, IStrategoTerm current) {
+        <span class="kw">return</span> ScalaStrategy$.<span class="fu">MODULE</span>$.<span class="fu">runAsStrategy</span>(context, current);
+    }
+}</code></pre>
+<p>And <code>ScalaStrategy.scala</code>:</p>
+<pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">package</span> mypackage
+
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoAppl</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTerm</span>
+<span class="kw">import</span> org.<span class="fu">strategoxt</span>.<span class="fu">lang</span>.<span class="fu">Context</span>
+
+<span class="kw">object</span> ScalaStrategy {
+  <span class="kw">def</span> <span class="fu">runAsStrategy</span>(context: Context, inputFromEditor: IStrategoTerm): IStrategoAppl = {
+    <span class="co">// output to the Spoofax console is handled via Context.getIOAgent.printError</span>
+    context.<span class="fu">getIOAgent</span>.<span class="fu">printError</span>(<span class="st">&quot;Hello, World! Your input was: &quot;</span>)
+    context.<span class="fu">getIOAgent</span>.<span class="fu">printError</span>(inputFromEditor.<span class="fu">toString</span>)    
+    <span class="co">// you return a tuple for the file you want to show in the editor</span>
+    <span class="co">// tuple: (filename as IStrategoString, contents as IStrategoString)</span>
+    <span class="co">// trivial strategy: don&#39;t output any files == None()</span>
+    context.<span class="fu">getFactory</span>.<span class="fu">makeAppl</span>(context.<span class="fu">getFactory</span>.<span class="fu">makeConstructor</span>(<span class="st">&quot;None&quot;</span>, <span class="dv">0</span>))
+  }
+}</code></pre>
+<p>We will include the compiled strategy as a jar file into the Spoofax editor project. For that, create a new Ant build file (or really any other build system that can give you a jar file) <code>build.xml</code> with:</p>
+<pre class="sourceCode xml"><code class="sourceCode xml"><span class="kw">&lt;?xml</span> version=&quot;1.0&quot; <span class="kw">?&gt;</span>
+<span class="kw">&lt;project</span><span class="ot"> default=</span><span class="st">&quot;create-jar&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;target</span><span class="ot"> name=</span><span class="st">&quot;create-jar&quot;</span><span class="kw">&gt;</span>
+        <span class="kw">&lt;jar</span><span class="ot"> jarfile=</span><span class="st">&quot;scala-strategy.jar&quot;</span><span class="ot"> basedir=</span><span class="st">&quot;bin&quot;</span><span class="ot"> includes=</span><span class="st">&quot;**&quot;</span> <span class="kw">/&gt;</span>
+    <span class="kw">&lt;/target&gt;</span>
+    <span class="kw">&lt;target</span><span class="ot"> name=</span><span class="st">&quot;clean-jar&quot;</span><span class="kw">&gt;</span>
+        <span class="kw">&lt;delete</span><span class="ot"> file=</span><span class="st">&quot;scala-strategy.jar&quot;</span> <span class="kw">/&gt;</span>
+    <span class="kw">&lt;/target&gt;</span>
+<span class="kw">&lt;/project&gt;</span></code></pre>
+<p>Run the <code>build.xml</code> as an Ant build, you should now have a <code>scala-strategy.jar</code> in your Scala project.</p>
+<div class="figure">
+<img src="09.png" alt="The Scala strategy project directory after successful compilation" />
+<p class="caption">The Scala strategy project directory after successful compilation</p>
+</div>
+<h3 id="a.2.-setting-up-the-spoofax-project">3a.2. Setting up the Spoofax project</h3>
+<p>To make the strategy we just created available to Spoofax, we need to add the Scala project to the Spoofax project's build path. Go the the Spoofax project's <code>Properties -&gt; Java Build Path -&gt; Projects -&gt; Add...</code> and add the Scala project.</p>
+<p>However, the actual build process of the Spoofax editor component does not use Eclipse's builder, but the <code>build.main.xml</code>. Hence, the previous point did only fix Java errors in the Eclipse editor, but did not add the Jar to the build. We do this by adding the following line to <code>SampleLang/build.main.xml</code>, preferrably before the comment <code>&lt;!-- Optional: external .def and .jar locations --&gt;</code>:</p>
+<pre class="sourceCode xml"><code class="sourceCode xml"><span class="kw">&lt;property</span><span class="ot"> name=</span><span class="st">&quot;externaljar&quot;</span><span class="ot"> value=</span><span class="st">&quot;../SampleStrategy/scala-strategy.jar&quot;</span><span class="kw">/&gt;</span></code></pre>
+<p>This copies the Jar at every build from <code>ScalaStrategy/</code> to <code>SampleLang/include/</code>. Additionally, we need to add this jar and the Scala library to the classpath during execution of the Spoofax editor. We do so by adding the following lines to <code>SampleLang/editor/SampleLang.main.esv</code>.</p>
+<pre><code>  provider:      include/scala-strategy.jar
+  provider:      include/scala-library.jar</code></pre>
+<p>and copying (and renaming) the <code>scala-library.jar</code> to <code>SampleLang/include/scala-library.jar</code>. You can find the version of the Scala library your Scala IDE uses in its installation directory under e.g. <code>scala-SDK-4.2.0-vfinal-2.11-win32.win32.x86_64/eclipse/plugins/org.scala-lang.scala-library_2.11.7.v20150622-112736-1fbce4612c.jar</code>.</p>
+<p>Also, you need to register the Java strategy class in the <code>SampleLang/editor/java/SampleLang/strategies/InteropRegisterer.java</code> file. In our case, this file should be edited to look like this:</p>
+<pre class="sourceCode java"><code class="sourceCode java"><span class="kw">package SampleLang.strategies;</span>
+
+<span class="kw">import mypackage.scala_strategy_0_0;</span>
+
+<span class="kw">import org.strategoxt.lang.JavaInteropRegisterer;</span>
+<span class="kw">import org.strategoxt.lang.Strategy;</span>
+
+<span class="co">/**</span>
+<span class="co"> * Helper class for </span><span class="kw">{@link scala_strategy_0_0}</span><span class="co">.</span>
+<span class="co"> */</span>
+<span class="kw">public</span> <span class="kw">class</span> InteropRegisterer <span class="kw">extends</span> JavaInteropRegisterer {
+
+  <span class="kw">public</span> <span class="fu">InteropRegisterer</span>() {
+    <span class="kw">super</span>(<span class="kw">new</span> Strategy[] { scala_strategy_0_0.<span class="fu">instance</span> });
+  }
+}</code></pre>
+<p>Also, one needs to declare the strategy to Stratego by adding the following lines to <code>SampleLang/trans/generate.str</code>:</p>
+<pre><code>strategies
+  // NOTE how the name here is mangled, i.e. underscores in the Java class name
+  // become minus, and the suffix goes away.
+  external scala-strategy(|)</code></pre>
+<p>Finally, we add a button to invoke the Scala strategy from the editor by adding the following lines to the <code>SampleLang/editor/SampleLang-Menus.esv</code>:</p>
+<pre><code>menu: &quot;Scala Strategy&quot;
+  action: &quot;Invoke Strategy&quot;        = scala-strategy (openeditor)</code></pre>
+<div class="figure">
+<img src="10.png" alt="All the necessary changes again in one image" />
+<p class="caption">All the necessary changes again in one image</p>
+</div>
+<p>You can verify that your strategy can in fact be called after all these changes by building the Spoofax editor project via <code>Project -&gt; Build Project</code> (You need to disable <code>Build Automatically</code> to manually trigger the build.) When finished, open the <code>SampleLang/test/example.sam</code> and click the now available <code>Scala Strategy</code> button. It should print &quot;Hello, World!&quot; along with a <code>toString()</code> representation of your input Stratego term:</p>
+<div class="figure">
+<img src="11.png" alt="Calling a Scala strategy from a Spoofax button, finally working :)" />
+<p class="caption">Calling a Scala strategy from a Spoofax button, finally working :)</p>
+</div>
+<h3 id="a.3.-fixing-the-project-dependencies-and-build-order">3a.3. Fixing the project dependencies and build order</h3>
+<p>Currently, whenever you change any file in the Spoofax or Scala project, a full build of both projects is triggered. To fix this and speed up build time a little, you need to first uncheck <code>Build Automatically</code> under <code>Project -&gt; Build Project</code>.</p>
+<p>Also, currently the Spoofax project is always built before the Scala project, because we referenced the <code>strategoxt.jar</code> in the latter. Since this jar file should never change anyway, you can right click on <code>SampleStrategy/build.xml</code> (the Ant file building the <code>scala-strategy.jar</code>), go to <code>Run As -&gt; External Tools Configurations...</code>, select the <code>SampleStrategy build.xml</code> and uncheck <code>Build before launch</code> in the <code>Build</code> tab.</p>
+<div class="figure">
+<img src="12.png" alt="Disabling the build of the Spoofax project before the Scala one" />
+<p class="caption">Disabling the build of the Spoofax project before the Scala one</p>
+</div>
+<p>So far, when we made changes to the Scala strategy, we need to build the Scala project, then manually run the <code>SampleStrategy/build.xml</code> to get a jar and then manually build the Spoofax project. To simplify this a little, you can go to the <code>SampleStrategy</code>'s <code>Properties -&gt; Builders</code> and <code>Import...</code> the <code>build.xml</code> launch configuration. (It was created for us when we first ran the <code>build.xml</code> as an Ant script.)</p>
+<div class="figure">
+<img src="13.png" alt="Adding the Ant build.xml as a builder to the Scala project" />
+<p class="caption">Adding the Ant <code>build.xml</code> as a builder to the Scala project</p>
+</div>
+<p>Finally, we add a new Ant target to the <code>SampleLang/build.main.xml</code> file that only reloads the editor component with the new <code>scala-strategy.jar</code> file and does not recompile all the other Spoofax components of the project. To do so, add the following lines below (!) the <code>&lt;import file=&quot;build.generated.xml&quot;/&gt;</code> line in the <code>SampleLang/build.main.xml</code>:</p>
+<pre class="sourceCode xml"><code class="sourceCode xml"><span class="co">&lt;!-- used for building inside of Eclipse --&gt;</span>
+<span class="kw">&lt;import</span><span class="ot"> file=</span><span class="st">&quot;build.generated.xml&quot;</span><span class="kw">/&gt;</span> <span class="co">&lt;!-- &lt;- below this line! --&gt;</span>
+
+<span class="co">&lt;!-- target for only reloading jars/editor (when updating only an external java strategy) --&gt;</span>
+<span class="co">&lt;!-- NOTE: the called ant targets (e.g. refresh or sdf2imp.eclipse.load) need many</span>
+<span class="co">    environment variables set. You need to ensure that (e.g. but not only!) eclipse.running</span>
+<span class="co">    is set to true in the Builder. --&gt;</span>
+<span class="kw">&lt;target</span><span class="ot"> name=</span><span class="st">&quot;reload-jars&quot;</span><span class="ot"> depends=</span><span class="st">&quot;copy-jar,refresh,sdf2imp.eclipse.load&quot;</span> <span class="kw">/&gt;</span></code></pre>
+<p>Now go back to the <code>SampleStrategy -&gt; Properties -&gt; Builders</code> and create a <code>New...</code> build configuration. In the upcoming dialog, choose <code>Ant Builder</code> type. In the new dialog, go the the <code>Main</code> tab and click <code>Browse Workspace...</code> to chose a <code>Buildfile</code>. Select the <code>SampleLang/build.main.xml</code>. Next, go to the <code>Targets</code> tab and <code>Set Targets...</code> for the <code>After a &quot;Clean&quot;</code> and <code>Manual Build</code>. For the former, uncheck all targets. For the latter, check only the <code>reload-jars</code> target and uncheck everything else.</p>
+<div class="figure">
+<img src="14.png" alt="Adding a new Ant builder to the Scala project, that uses the reload-jars target (1)" />
+<p class="caption">Adding a new Ant builder to the Scala project, that uses the <code>reload-jars</code> target (1)</p>
+</div>
+<div class="figure">
+<img src="15.png" alt="Adding a new Ant builder to the Scala project, that uses the reload-jars target (2)" />
+<p class="caption">Adding a new Ant builder to the Scala project, that uses the <code>reload-jars</code> target (2)</p>
+</div>
+<div class="figure">
+<img src="16.png" alt="Adding a new Ant builder to the Scala project, that uses the reload-jars target (3)" />
+<p class="caption">Adding a new Ant builder to the Scala project, that uses the <code>reload-jars</code> target (3)</p>
+</div>
+<p>The final <code>Builders</code> configuration of the Scala project should look like this:</p>
+<div class="figure">
+<img src="17.png" alt="Final Builders configuration of the Scala project" />
+<p class="caption">Final <code>Builders</code> configuration of the Scala project</p>
+</div>
+<p>You can verify that it is working, by changing the output in the Scala code and manually build the strategy project. It should first compile the Scala source file, build the jar and then reload the Spoofax editor. When you now click on <code>Invoke Strategy</code> the new output should get shown.</p>
+<h2 id="b.-directly-running-the-scala-strategy-not-from-within-the-spoofax-editor">3b. Directly running the Scala strategy, not from within the Spoofax editor</h2>
+<p>As we have seen, to update Spoofax with the changes made to the Scala strategy, we need to reload or recompile the editor component everytime there are changes. To speed up the develop-run cycle, it might be worth to set up your strategy, such that it can be directly run from the commandline on your <code>aterm</code> files. This way, you can make changes to the strategy and directly test on some files, without the waiting time of recompiling/reloading the Spoofax editor component.</p>
+<p>As any standalone application, our Scala strategy needs a <code>main</code> method. In it, we either take a filename as the first commandline argument or use a default <code>aterm</code> file. Then, we parse the file using the <code>TAFTermReader</code> class from Spoofax. (Note, how we need to be cautious with CRLF (Windows) line endings.) Once the <code>aterm</code> file is parsed to an <code>IStrategoTerm</code>, we can work on it as if it came from the Spoofax editor. Thus, we extract our strategy code into a <code>run()</code> method that can be called either form <code>main()</code> or from our previous <code>runAsStrategy()</code>. The full code is listed below:</p>
+<pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">package</span> mypackage
+
+<span class="kw">import</span> java.<span class="fu">io</span>.<span class="fu">ByteArrayInputStream</span>
+<span class="kw">import</span> java.<span class="fu">nio</span>.<span class="fu">charset</span>.<span class="fu">StandardCharsets</span>
+
+<span class="kw">import</span> scala.<span class="fu">io</span>.<span class="fu">Source</span>
+
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoAppl</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTerm</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTuple</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">ITermFactory</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">terms</span>.<span class="fu">TermFactory</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">terms</span>.<span class="fu">io</span>.<span class="fu">TAFTermReader</span>
+<span class="kw">import</span> org.<span class="fu">strategoxt</span>.<span class="fu">HybridInterpreter</span>
+<span class="kw">import</span> org.<span class="fu">strategoxt</span>.<span class="fu">lang</span>.<span class="fu">Context</span>
+
+<span class="kw">object</span> ScalaStrategy {
+  <span class="co">/*</span>
+<span class="co">   * 3a) run from Spoofax editor as strategy</span>
+<span class="co">   */</span>
+  <span class="kw">def</span> <span class="fu">runAsStrategy</span>(context: Context, inputFromEditor: IStrategoTerm): IStrategoAppl = {
+    <span class="co">// the third sub-term of the 5-tuple input is the AST</span>
+    <span class="kw">val</span> inputAst = inputFromEditor <span class="kw">match</span> {
+      <span class="kw">case</span> inputAsTuple: IStrategoTuple =&gt; inputAsTuple.<span class="fu">getAllSubterms</span>.<span class="fu">apply</span>(<span class="dv">2</span>) 
+    }
+    
+    <span class="fu">run</span>(x =&gt; context.<span class="fu">getIOAgent</span>.<span class="fu">printError</span>(x.<span class="fu">toString</span>), 
+        inputAst, 
+        context.<span class="fu">getFactory</span>, 
+        context.<span class="fu">invokeStrategy</span>)
+  }
+  
+  <span class="co">/*</span>
+<span class="co">   * 3b) run standalone as Scala program</span>
+<span class="co">   */</span>
+  <span class="kw">def</span> <span class="fu">main</span>(args: Array[String]) {
+    <span class="kw">val</span> atermFilename = args <span class="kw">match</span> {
+      <span class="kw">case</span> Array(atermFilename) =&gt; atermFilename
+      <span class="co">// default aterm file</span>
+      <span class="kw">case</span> _ =&gt; <span class="st">&quot;../SampleLang/test/example.analyzed.aterm&quot;</span>
+    }
+    <span class="kw">val</span> atermFile = Source.<span class="fu">fromFile</span>(atermFilename)
+    
+    <span class="co">/* </span>
+<span class="co">     * StrategoXT throws ParseError on input files with CRLF line endings</span>
+<span class="co">     * WORKAROUND explicitly replace all line endings with LF (these are handled in TAFTermReader, line 291)</span>
+<span class="co">     */</span>
+    <span class="co">// NOTE source.mkString will use CRLF on Windows, so we need mkString(&quot;\n&quot;)</span>
+    <span class="kw">val</span> atermFileLinuxEndings = <span class="kw">new</span> ByteArrayInputStream(atermFile.<span class="fu">getLines</span>()
+                                                                  .<span class="fu">mkString</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+                                                                  .<span class="fu">getBytes</span>(StandardCharsets.<span class="fu">UTF_8</span>))
+    
+    <span class="co">// try to parse that input file as a IStrategoTerm, may throw an exception</span>
+    <span class="kw">val</span> strategoTerm = <span class="kw">new</span> <span class="fu">TAFTermReader</span>(<span class="kw">new</span> <span class="fu">TermFactory</span>()).<span class="fu">parseFromStream</span>(atermFileLinuxEndings)
+    
+    <span class="co">/*</span>
+<span class="co">     * Prepare the arguments for the run() function</span>
+<span class="co">     */</span>
+    <span class="co">// NOTE: we need MUTABLE TermFactory when you want to use Index/TaskEngine</span>
+    <span class="kw">val</span> termFactory = <span class="kw">new</span> <span class="fu">TermFactory</span>().<span class="fu">getFactoryWithStorageType</span>(IStrategoTerm.<span class="fu">MUTABLE</span>)
+    <span class="co">// NOTE: startup of the interpreter can take a couple of seconds, so lets delay it as long as possible with lazy</span>
+    <span class="kw">lazy</span> <span class="kw">val</span> interpreter = <span class="kw">new</span> <span class="fu">HybridInterpreter</span>(termFactory)
+    <span class="co">// the interface for invoking strategies with the HybridInterpreter is a bit different from the one on a Context object</span>
+    <span class="kw">val</span> invokeStrategy = (strategyName: String, termArg: IStrategoTerm) =&gt; {
+      interpreter.<span class="fu">setCurrent</span>(termArg)
+      interpreter.<span class="fu">invoke</span>(strategyName)
+      <span class="co">// the result of the strategy</span>
+      interpreter.<span class="fu">current</span>
+    }
+    
+    <span class="fu">run</span>(println, strategoTerm, <span class="kw">new</span> TermFactory, invokeStrategy)
+  }
+  
+  <span class="co">/**</span>
+<span class="co">   * Actual strategy code comes here...</span>
+<span class="co">   * </span><span class="kw">@param output </span><span class="co"> a function that takes any object and prints it </span>
+<span class="co">   *                                (e.g. via println() or to the Eclipse console) </span>
+<span class="co">   * </span><span class="kw">@param inputTerm </span><span class="co">the input from the Editor or a given *.aterm file,</span>
+<span class="co">   *                  parsed as a IStrategoTerm</span>
+<span class="co">   * </span><span class="kw">@param termFactory </span><span class="co">to create StrategoTerms yourself</span>
+<span class="co">   * </span><span class="kw">@param invokeStrategy </span><span class="co">a function that takes the name of a Stratego</span>
+<span class="co">   *                       strategy to execute as String, and a StrategoTerm</span>
+<span class="co">   *                       as argument to this strategy</span>
+<span class="co">   *                       This can be useful, e.g. to execute NaBL strategies</span>
+<span class="co">   *                       that give you the binding site of a construct&#39;s use etc.</span>
+<span class="co">   * </span><span class="kw">@return </span><span class="co">either None() if no file should be opened in the Spoofax editor afterwards</span>
+<span class="co">   *         or a tuple (filename: String, contents: IStrategoTerm). Only this file</span>
+<span class="co">   *         gets automatically written to disk by the Spoofax editor, all other aterm</span>
+<span class="co">   *         files you want to create as part of your strategy must be written explicitly.</span>
+<span class="co">   */</span>
+  <span class="kw">def</span> <span class="fu">run</span>(output: Any =&gt; Unit,
+          inputTerm: IStrategoTerm,
+          termFactory: ITermFactory, 
+          invokeStrategy: (String, IStrategoTerm) =&gt; IStrategoTerm): IStrategoAppl = {
+    <span class="fu">output</span>(<span class="st">&quot;Hello, World (as strategy or standalone)! Your input was: &quot;</span>)
+    <span class="fu">output</span>(inputTerm)
+    
+    termFactory.<span class="fu">makeAppl</span>(termFactory.<span class="fu">makeConstructor</span>(<span class="st">&quot;None&quot;</span>, <span class="dv">0</span>))
+  }
+}</code></pre>
+<p>Recompile the Scala project and verify that it can be called as a standalone Scala application via <code>Run As -&gt; Scala Application</code> and as a strategy from the Spoofax editor (as before).</p>
+<h2 id="working-with-index-and-taskengine-to-get-the-name-analysis-results">4. Working with Index and TaskEngine to get the (name-)analysis results</h2>
+<p>Before passing the AST to Stratego strategies (such as our Scala code), Spoofax performs name resolution analysis on the AST. You can see the results of that step by comparing the <code>aterm</code> files generated from <code>Syntax -&gt; Show abstract Syntax</code> vs. <code>Syntax -&gt; Show analyzed Syntax</code>. The latter contains <code>Annotations</code> in the Stratego terms. They are Stratego Terms themselves and follow the term they are attached to in braces. For example in the following excerpt, you see that the <code>Module</code> name is annotated with a <code>NaBL</code> URL (see <a href="http://metaborg.org/nabl/">the Name Binding Language metaborg website</a> for more info):</p>
+<p>Excerpt of <code>example.analyzed.aterm</code>:</p>
+<pre><code>Module(
+  &quot;example&quot;{ Def(
+               URI(
+                 Language(&quot;SampleLang&quot;)
+               , [ID(NablNsModule(), &quot;example&quot;, Unique(&quot;/workspace/SampleLang/test/example.sam/0&quot;))]
+               )
+             )
+           }
+,
+   ...
+)</code></pre>
+<h3 id="what-is-index-and-task-engine">4.1. What is Index and Task Engine?</h3>
+<p>With the help of this URL, Stratego (more specifically, the NaBL library) can link <em>def</em> with <em>use</em> sites. Naturally, the module code here is a Definition. An import of a different module would then be a use site. The annotations at NaBL use sites look like this (excerpt from a different Spoofax language and file):</p>
+<pre><code>Module(
+&quot;TestImports&quot;{ Def( URI( Language(&quot;OtherLang&quot;),
+                         [ID(NablNsModule(), &quot;backend.Imports&quot;, Unique(&quot;OtherLang/test/TestImports.otl/0&quot;))]
+                        ))
+             }
+, [
+    Import(&quot;ImportedModule&quot;{ Use( Result(3312) ) })
+]
+)</code></pre>
+<p>Note that the use site does not directly reference the URL but instead contains an integer wrapped in a <code>Result</code> term. Internally, NaBL uses the <em>Index</em> and <em>Task Engine</em> to map this ID back to a URL and ultimately the corresponding def site. Basically both index and task engine are maps from keys to values (see <a href="http://swerl.tudelft.nl/twiki/pub/Main/TechnicalReports/TUD-SERG-2013-014.pdf">the paper &quot;A Language Independent Task Engine for Incremental Name and Type Analysis&quot;</a> for more info):</p>
+<ul>
+<li>The task engine is basically used to postpone these analyses and perform them only when needed. It maps &quot;task IDs&quot; to Stratego terms, typically URLs that you can then feed into the index. The integer in the <code>Result</code> application above is such a task ID.</li>
+<li>The index maps def and use (and other kinds of) terms to other Stratego terms. So, if you have a <code>Module</code> URL, you can query the index and get the AST of the defining file of that <code>Module</code>.</li>
+</ul>
+<p>One could manually use the <a href="https://github.com/metaborg/mb-rep/blob/master/org.spoofax.interpreter.library.index/src/main/java/org/spoofax/interpreter/library/index/IIndex.java"><code>Index</code></a> and <a href="https://github.com/metaborg/runtime-libraries/blob/master/org.metaborg.runtime.task/src/main/java/org/metaborg/runtime/task/engine/ITaskEngine.java"><code>TaskEngine</code></a> Java classes to follow these indirections, but it is probably better to call the Stratego API of NaBL and let it do that itself.</p>
+<h3 id="index-and-tasks-setup-and-persistance">4.2. Index and Tasks setup and persistance</h3>
+<p>Before we can use the index or task engine from within any strategy, including our scala code, we always need to call two setup routines beforehand. To automatically call these before launching our strategy code, we need to change the <code>SampleLang/trans/generate.str</code>. Add the following lines under <code>rules</code>:</p>
+<pre><code>...other code...
+
+rules
+
+    call-scala-strategy: (selected, position, ast, path, project-path) -&gt; result
+    with
+        index-setup(|&lt;language&gt;, project-path);
+        task-setup(|project-path);
+        result := &lt;scala-strategy&gt; (selected, position, ast, path, project-path)
+
+    index-and-task-persist : (selected, position, ast, path, project-path) -&gt; None()
+    with
+        index-setup(|&lt;language&gt;, project-path); index-persist;
+        task-setup(|project-path); task-persist
+
+    ...other code...</code></pre>
+<p>Also, instead of calling the Scala strategy directly, the button we added earlier now needs to call the <code>call-scala-strategy</code> wrapper. To do so, change the <code>SampleLang/editor/SampleLang-Menus.esv</code> to look like this:</p>
+<pre><code>module SampleLang-Menus
+
+menus
+  
+  menu: &quot;Scala Strategy&quot;
+    action: &quot;Invoke Strategy&quot;        = call-scala-strategy (openeditor)
+    action: &quot;Persist Index and Tasks&quot; = index-and-task-persist
+
+...other code...</code></pre>
+<p>Note that we added a second button <code>Persist Index and Tasks</code>. As the name suggests, it stores the index and tasks in a textfile. We will use this in 4.4, when we want to access analysis results from our standalone Scala application. There we need to unserialize the index and tasks manually. The persisted index is stored in <code>SampleLang/.cache/index.idx</code>, the tasks in <code>SampleLang/.cache/taskengine.idx</code>.</p>
+<h3 id="calling-the-nabl-strategy-from-the-scala-code-within-spoofax">4.3. Calling the NaBL strategy from the Scala code (within Spoofax)</h3>
+<p>The NaBL strategies can be found in <code>SampleLang/lib/runtime/nabl/</code> and your language specific NaBL strategies (that were autogenerated from the <code>SampleLang/trans/names.nab</code>) in <code>SampleLang/trans/names.str</code>. You can call any of those strategies via the <code>invokeStrategy(String, IStrategoTerm): IStrategoTerm</code> function we defined earlier. For an example of some NaBL queries executed from inside our strategy, consult the following excerpt of our <code>run()</code> function:</p>
+<pre class="sourceCode scala"><code class="sourceCode scala">...
+
+<span class="kw">def</span> <span class="fu">run</span>(output: Any =&gt; Unit,
+        inputTerm: IStrategoTerm,
+        termFactory: ITermFactory, 
+        invokeStrategy: (String, IStrategoTerm) =&gt; IStrategoTerm): IStrategoAppl = {
+  <span class="fu">output</span>(<span class="st">&quot;Hello, World (as strategy or standalone)! Your input was: &quot;</span>)
+  <span class="fu">output</span>(inputTerm)
+  
+  <span class="co">/*</span>
+<span class="co">   * some use cases of NaBl/Stratego interaction below:</span>
+<span class="co">   */</span>
+  
+  <span class="co">// use the nabl-get-name strategy from the trans/names.str file</span>
+  <span class="kw">val</span> moduleName = <span class="fu">invokeStrategy</span>(<span class="st">&quot;nabl-get-name&quot;</span>, inputTerm)
+  <span class="fu">output</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">Name of the Module (as IStrategoTerm): &quot;</span> + moduleName)
+  
+  <span class="co">// get NaBL use site of &quot;Entity URL&quot; inside &quot;Entity User&quot;</span>
+  <span class="kw">val</span> urlTypeAsString = <span class="fu">StrategoTerm</span>(inputTerm) <span class="kw">match</span> {
+    <span class="kw">case</span> <span class="fu">StrategoAppl</span>(<span class="st">&quot;Module&quot;</span>, <span class="fu">StrategoString</span>(<span class="st">&quot;example&quot;</span>), <span class="fu">StrategoList</span>(Seq(<span class="fu">StrategoAppl</span>(<span class="st">&quot;Entity&quot;</span>, <span class="fu">StrategoString</span>(<span class="st">&quot;User&quot;</span>), 
+        <span class="fu">StrategoList</span>(Seq(_, <span class="co">// name</span>
+                         _, <span class="co">// password</span>
+                         <span class="fu">StrategoAppl</span>(<span class="st">&quot;Property&quot;</span>, _, <span class="fu">StrategoAppl</span>(<span class="st">&quot;Type&quot;</span>, urlTypeAsString))))
+      ),
+      _, <span class="co">// entity &quot;BlogPosting&quot;,</span>
+      _) <span class="co">// entity &quot;URL&quot;</span>
+    )) =&gt; urlTypeAsString
+  }
+  <span class="kw">val</span> nablUseAnnotation = urlTypeAsString.<span class="fu">annotations</span>.<span class="fu">head</span>.<span class="fu">originalTerm</span>.<span class="fu">get</span>
+  <span class="fu">output</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">Annotation of the homepage property URL type is: &quot;</span>)
+  <span class="fu">output</span>(nablUseAnnotation)
+    
+  <span class="co">// output all def sites associated with this name/URI</span>
+  <span class="kw">val</span> defUriLookupInput = urlTypeAsString.<span class="fu">originalTerm</span>.<span class="fu">get</span>
+  <span class="kw">val</span> defUriLookupResult = <span class="fu">invokeStrategy</span>(<span class="st">&quot;nabl-get-all-definitions&quot;</span>, defUriLookupInput)
+  <span class="fu">output</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">NaBL lookup with input: &quot;</span> + defUriLookupInput)
+  <span class="fu">output</span>(<span class="st">&quot;Lookup result: &quot;</span>)
+  <span class="fu">output</span>(defUriLookupResult)
+  
+  termFactory.<span class="fu">makeAppl</span>(termFactory.<span class="fu">makeConstructor</span>(<span class="st">&quot;None&quot;</span>, <span class="dv">0</span>))
+}</code></pre>
+<h3 id="calling-the-nabl-strategy-from-the-scala-code-standalone">4.4. Calling the NaBL strategy from the Scala code (standalone)</h3>
+<p>When you try to execute this <code>run</code> function without further changes from our Standalone application, that is from the <code>main</code> method, you likely will get an error such as</p>
+<pre><code>Exception in thread &quot;main&quot; org.spoofax.interpreter.core.UndefinedStrategyException: Definition &#39;nabl-get-name&#39; not found
+    at org.spoofax.interpreter.core.Interpreter.invoke(Interpreter.java:79)
+    at org.strategoxt.HybridInterpreter.invoke(HybridInterpreter.java:442)
+    at mypackage.ScalaStrategy$$anonfun$1.apply(ScalaStrategy.scala:66)
+    at mypackage.ScalaStrategy$$anonfun$1.apply(ScalaStrategy.scala:64)
+    at mypackage.ScalaStrategy$.run(ScalaStrategy.scala:103)
+    at mypackage.ScalaStrategy$.main(ScalaStrategy.scala:71)
+    at mypackage.ScalaStrategy.main(ScalaStrategy.scala)</code></pre>
+<p>This is, because the NaBl strategies are not loaded by default into the <code>HybridInterpreter</code>, which we use to execute strategies. For that, we first need to compile the <code>SampleLang/trans/names.str</code> file to a <code>ctree</code> file. You can do so by adding an Ant target as the following to your existing <code>SampleStrategy/build.xml</code> and executing it:</p>
+<pre class="sourceCode xml"><code class="sourceCode xml">    <span class="co">&lt;!-- compiles ../SampleLang/trans/names.str to names.ctree (for Stratego Interpreter) --&gt;</span>
+    <span class="kw">&lt;target</span><span class="ot"> name=</span><span class="st">&quot;names.ctree&quot;</span><span class="kw">&gt;</span>
+        <span class="kw">&lt;java</span><span class="ot"> jar=</span><span class="st">&quot;../SampleLang/utils/strategoxt.jar&quot;</span><span class="ot"> fork=</span><span class="st">&quot;true&quot;</span><span class="ot"> dir=</span><span class="st">&quot;../SampleLang/trans&quot;</span> <span class="kw">&gt;</span>
+            <span class="co">&lt;!-- more stack space, otherwise it gave a StackOverflow for me --&gt;</span>
+            <span class="kw">&lt;jvmarg</span><span class="ot"> value=</span><span class="st">&quot;-Xss15m&quot;</span> <span class="kw">/&gt;</span>
+            <span class="kw">&lt;arg</span><span class="ot"> line=</span><span class="st">&quot;-i names.str&quot;</span> <span class="kw">/&gt;</span>
+            <span class="kw">&lt;arg</span><span class="ot"> line=</span><span class="st">&quot;-I ../&quot;</span> <span class="kw">/&gt;</span> <span class="co">&lt;!-- includes --&gt;</span>
+            <span class="kw">&lt;arg</span><span class="ot"> line=</span><span class="st">&quot;-I ../lib&quot;</span> <span class="kw">/&gt;</span>
+            <span class="kw">&lt;arg</span><span class="ot"> line=</span><span class="st">&quot;--library&quot;</span> <span class="kw">/&gt;</span> <span class="co">&lt;!-- input is not an application, but produce a lib --&gt;</span>
+            <span class="kw">&lt;arg</span><span class="ot"> line=</span><span class="st">&quot;-F&quot;</span> <span class="kw">/&gt;</span> <span class="co">&lt;!-- stop after frontend, creates *.ctree, not *.java files --&gt;</span>
+            <span class="kw">&lt;arg</span><span class="ot"> line=</span><span class="st">&quot;-o names.ctree&quot;</span> <span class="kw">/&gt;</span>
+        <span class="kw">&lt;/java&gt;</span>
+    <span class="kw">&lt;/target&gt;</span></code></pre>
+<p>After running this target (this may take a while), you should have a <code>SampleLang/trans/names.ctree</code> file. We can now load this ctree file and the necessary index and task engine dependencies in the interpreter by editing the line <code>lazy val interpreter = new HybridInterpreter(termFactory)</code> to look like this:</p>
+<pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">lazy</span> <span class="kw">val</span> interpreter = {
+  <span class="kw">val</span> interp = <span class="kw">new</span> <span class="fu">HybridInterpreter</span>(termFactory)
+  interp.<span class="fu">load</span>(<span class="st">&quot;../SampleLang/trans/names.ctree&quot;</span>)
+  
+  <span class="co">// also init Index</span>
+  interp.<span class="fu">addOperatorRegistry</span>(<span class="kw">new</span> <span class="fu">IndexLibrary</span>())
+  <span class="kw">val</span> language = interp.<span class="fu">getFactory</span>.<span class="fu">makeString</span>(<span class="st">&quot;Veritas&quot;</span>)
+  <span class="co">// note automatically look in the .cache/ subdirectory of your project path for index and taskengine</span>
+  <span class="kw">val</span> projectPath = interp.<span class="fu">getFactory</span>.<span class="fu">makeString</span>(<span class="st">&quot;../SampleLang/&quot;</span>)
+  interp.<span class="fu">setCurrent</span>(interp.<span class="fu">getFactory</span>.<span class="fu">makeTuple</span>(language, projectPath))
+  <span class="kw">if</span> (!interp.<span class="fu">invoke</span>(<span class="st">&quot;index-setup&quot;</span>)) <span class="kw">throw</span> <span class="kw">new</span> RuntimeException(<span class="st">&quot;index-setup failed&quot;</span>)
+  
+  <span class="co">// and TaskEngine</span>
+  interp.<span class="fu">addOperatorRegistry</span>(<span class="kw">new</span> <span class="fu">TaskLibrary</span>())
+  interp.<span class="fu">setCurrent</span>(projectPath)
+  <span class="kw">if</span> (!interp.<span class="fu">invoke</span>(<span class="st">&quot;task-setup&quot;</span>)) <span class="kw">throw</span> <span class="kw">new</span> RuntimeException(<span class="st">&quot;task-setup failed&quot;</span>)
+  
+  interp
+}</code></pre>
+<p>The final working Scala strategy (using persisted name analysis results when in standalone) looks like this:</p>
+<pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">package</span> mypackage
+
+<span class="kw">import</span> java.<span class="fu">io</span>.<span class="fu">ByteArrayInputStream</span>
+<span class="kw">import</span> java.<span class="fu">nio</span>.<span class="fu">charset</span>.<span class="fu">StandardCharsets</span>
+<span class="kw">import</span> scala.<span class="fu">io</span>.<span class="fu">Source</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoAppl</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTerm</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTuple</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">ITermFactory</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">terms</span>.<span class="fu">TermFactory</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">terms</span>.<span class="fu">io</span>.<span class="fu">TAFTermReader</span>
+<span class="kw">import</span> org.<span class="fu">strategoxt</span>.<span class="fu">HybridInterpreter</span>
+<span class="kw">import</span> org.<span class="fu">strategoxt</span>.<span class="fu">lang</span>.<span class="fu">Context</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">library</span>.<span class="fu">index</span>.<span class="fu">primitives</span>.<span class="fu">IndexLibrary</span>
+<span class="kw">import</span> org.<span class="fu">metaborg</span>.<span class="fu">runtime</span>.<span class="fu">task</span>.<span class="fu">primitives</span>.<span class="fu">TaskLibrary</span>
+
+<span class="kw">object</span> ScalaStrategy {
+  <span class="co">/*</span>
+<span class="co">   * 3a) run from Spoofax editor as strategy</span>
+<span class="co">   */</span>
+  <span class="kw">def</span> <span class="fu">runAsStrategy</span>(context: Context, inputFromEditor: IStrategoTerm): IStrategoAppl = {
+    <span class="co">// the third sub-term of the 5-tuple input is the AST</span>
+    <span class="kw">val</span> inputAst = inputFromEditor <span class="kw">match</span> {
+      <span class="kw">case</span> inputAsTuple: IStrategoTuple =&gt; inputAsTuple.<span class="fu">getAllSubterms</span>.<span class="fu">apply</span>(<span class="dv">2</span>) 
+    }
+    
+    <span class="fu">run</span>(x =&gt; context.<span class="fu">getIOAgent</span>.<span class="fu">printError</span>(x.<span class="fu">toString</span>), 
+        inputAst, 
+        context.<span class="fu">getFactory</span>, 
+        context.<span class="fu">invokeStrategy</span>)
+  }
+  
+  <span class="co">/*</span>
+<span class="co">   * 3b) run standalone as Scala program</span>
+<span class="co">   */</span>
+  <span class="kw">def</span> <span class="fu">main</span>(args: Array[String]) {
+    <span class="kw">val</span> atermFilename = args <span class="kw">match</span> {
+      <span class="kw">case</span> Array(atermFilename) =&gt; atermFilename
+      <span class="co">// default aterm file</span>
+      <span class="kw">case</span> _ =&gt; <span class="st">&quot;../SampleLang/test/example.analyzed.aterm&quot;</span>
+    }
+    <span class="kw">val</span> atermFile = Source.<span class="fu">fromFile</span>(atermFilename)
+    
+    <span class="co">/* </span>
+<span class="co">     * StrategoXT throws ParseError on input files with CRLF line endings</span>
+<span class="co">     * WORKAROUND explicitly replace all line endings with LF (these are handled in TAFTermReader, line 291)</span>
+<span class="co">     */</span>
+    <span class="co">// NOTE source.mkString will use CRLF on Windows, so we need mkString(&quot;\n&quot;)</span>
+    <span class="kw">val</span> atermFileLinuxEndings = <span class="kw">new</span> ByteArrayInputStream(atermFile.<span class="fu">getLines</span>()
+                                                                  .<span class="fu">mkString</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+                                                                  .<span class="fu">getBytes</span>(StandardCharsets.<span class="fu">UTF_8</span>))
+    
+    <span class="co">// try to parse that input file as a IStrategoTerm, may throw an exception</span>
+    <span class="kw">val</span> strategoTerm = <span class="kw">new</span> <span class="fu">TAFTermReader</span>(<span class="kw">new</span> <span class="fu">TermFactory</span>()).<span class="fu">parseFromStream</span>(atermFileLinuxEndings)
+    
+    <span class="co">/*</span>
+<span class="co">     * Prepare the arguments for the run() function</span>
+<span class="co">     */</span>
+    <span class="co">// NOTE: we need MUTABLE TermFactory when you want to use Index/TaskEngine</span>
+    <span class="kw">val</span> termFactory = <span class="kw">new</span> <span class="fu">TermFactory</span>().<span class="fu">getFactoryWithStorageType</span>(IStrategoTerm.<span class="fu">MUTABLE</span>)
+    <span class="co">// NOTE: startup of the interpreter can take a couple of seconds, so lets delay it as long as possible with lazy</span>
+    <span class="kw">lazy</span> <span class="kw">val</span> interpreter = {
+      <span class="kw">val</span> interp = <span class="kw">new</span> <span class="fu">HybridInterpreter</span>(termFactory)
+      interp.<span class="fu">load</span>(<span class="st">&quot;../SampleLang/trans/names.ctree&quot;</span>)
+      
+      <span class="co">// also init Index</span>
+      interp.<span class="fu">addOperatorRegistry</span>(<span class="kw">new</span> <span class="fu">IndexLibrary</span>())
+      <span class="kw">val</span> language = interp.<span class="fu">getFactory</span>.<span class="fu">makeString</span>(<span class="st">&quot;Veritas&quot;</span>)
+      <span class="co">// note automatically look in the .cache/ subdirectory of your project path for index and taskengine</span>
+      <span class="kw">val</span> projectPath = interp.<span class="fu">getFactory</span>.<span class="fu">makeString</span>(<span class="st">&quot;../SampleLang/&quot;</span>)
+      interp.<span class="fu">setCurrent</span>(interp.<span class="fu">getFactory</span>.<span class="fu">makeTuple</span>(language, projectPath))
+      <span class="kw">if</span> (!interp.<span class="fu">invoke</span>(<span class="st">&quot;index-setup&quot;</span>)) <span class="kw">throw</span> <span class="kw">new</span> RuntimeException(<span class="st">&quot;index-setup failed&quot;</span>)
+      
+      <span class="co">// and TaskEngine</span>
+      interp.<span class="fu">addOperatorRegistry</span>(<span class="kw">new</span> <span class="fu">TaskLibrary</span>())
+      interp.<span class="fu">setCurrent</span>(projectPath)
+      <span class="kw">if</span> (!interp.<span class="fu">invoke</span>(<span class="st">&quot;task-setup&quot;</span>)) <span class="kw">throw</span> <span class="kw">new</span> RuntimeException(<span class="st">&quot;task-setup failed&quot;</span>)
+      
+      interp
+    }
+    <span class="co">// the interface for invoking strategies with the HybridInterpreter is a bit different from the one on a Context object</span>
+    <span class="kw">val</span> invokeStrategy = (strategyName: String, termArg: IStrategoTerm) =&gt; {
+      interpreter.<span class="fu">setCurrent</span>(termArg)
+      interpreter.<span class="fu">invoke</span>(strategyName)
+      <span class="co">// the result of the strategy</span>
+      interpreter.<span class="fu">current</span>
+    }
+    
+    <span class="fu">run</span>(println, strategoTerm, <span class="kw">new</span> TermFactory, invokeStrategy)
+  }
+  
+  <span class="co">/**</span>
+<span class="co">   * Actual strategy code comes here...</span>
+<span class="co">   * </span><span class="kw">@param output </span><span class="co"> a function that takes any object and prints it </span>
+<span class="co">   *                                (e.g. via println() or to the Eclipse console) </span>
+<span class="co">   * </span><span class="kw">@param inputTerm </span><span class="co">the input from the Editor or a given *.aterm file,</span>
+<span class="co">   *                  parsed as a IStrategoTerm</span>
+<span class="co">   * </span><span class="kw">@param termFactory </span><span class="co">to create StrategoTerms yourself</span>
+<span class="co">   * </span><span class="kw">@param invokeStrategy </span><span class="co">a function that takes the name of a Stratego</span>
+<span class="co">   *                       strategy to execute as String, and a StrategoTerm</span>
+<span class="co">   *                       as argument to this strategy</span>
+<span class="co">   *                       This can be useful, e.g. to execute NaBL strategies</span>
+<span class="co">   *                       that give you the binding site of a construct&#39;s use etc.</span>
+<span class="co">   * </span><span class="kw">@return </span><span class="co">either None() if no file should be opened in the Spoofax editor afterwards</span>
+<span class="co">   *         or a tuple (filename: String, contents: IStrategoTerm). Only this file</span>
+<span class="co">   *         gets automatically written to disk by the Spoofax editor, all other aterm</span>
+<span class="co">   *         files you want to create as part of your strategy must be written explicitly.</span>
+<span class="co">   */</span>
+  <span class="kw">def</span> <span class="fu">run</span>(output: Any =&gt; Unit,
+          inputTerm: IStrategoTerm,
+          termFactory: ITermFactory, 
+          invokeStrategy: (String, IStrategoTerm) =&gt; IStrategoTerm): IStrategoAppl = {
+    <span class="fu">output</span>(<span class="st">&quot;Hello, World (as strategy or standalone)! Your input was: &quot;</span>)
+    <span class="fu">output</span>(inputTerm)
+    
+    <span class="co">/*</span>
+<span class="co">     * some use cases of NaBl/Stratego interaction below:</span>
+<span class="co">     */</span>
+    
+    <span class="co">// use the nabl-get-name strategy from the trans/names.str file</span>
+    <span class="kw">val</span> moduleName = <span class="fu">invokeStrategy</span>(<span class="st">&quot;nabl-get-name&quot;</span>, inputTerm)
+    <span class="fu">output</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">Name of the Module (as IStrategoTerm): &quot;</span> + moduleName)
+    
+    <span class="co">// get NaBL use site of &quot;Entity URL&quot; inside &quot;Entity User&quot;</span>
+    <span class="kw">val</span> urlTypeAsString = <span class="fu">StrategoTerm</span>(inputTerm) <span class="kw">match</span> {
+      <span class="kw">case</span> <span class="fu">StrategoAppl</span>(<span class="st">&quot;Module&quot;</span>, <span class="fu">StrategoString</span>(<span class="st">&quot;example&quot;</span>), <span class="fu">StrategoList</span>(Seq(<span class="fu">StrategoAppl</span>(<span class="st">&quot;Entity&quot;</span>, <span class="fu">StrategoString</span>(<span class="st">&quot;User&quot;</span>), 
+          <span class="fu">StrategoList</span>(Seq(_, <span class="co">// name</span>
+                           _, <span class="co">// password</span>
+                           <span class="fu">StrategoAppl</span>(<span class="st">&quot;Property&quot;</span>, _, <span class="fu">StrategoAppl</span>(<span class="st">&quot;Type&quot;</span>, urlTypeAsString))))
+        ),
+        _, <span class="co">// entity &quot;BlogPosting&quot;,</span>
+        _) <span class="co">// entity &quot;URL&quot;</span>
+      )) =&gt; urlTypeAsString
+    }
+    <span class="kw">val</span> nablUseAnnotation = urlTypeAsString.<span class="fu">annotations</span>.<span class="fu">head</span>.<span class="fu">originalTerm</span>.<span class="fu">get</span>
+    <span class="fu">output</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">Annotation of the homepage property URL type is: &quot;</span>)
+    <span class="fu">output</span>(nablUseAnnotation)
+    
+    <span class="co">// output all def sites associated with this name/URI</span>
+    <span class="kw">val</span> defUriLookupInput = urlTypeAsString.<span class="fu">originalTerm</span>.<span class="fu">get</span>
+    <span class="kw">val</span> defUriLookupResult = <span class="fu">invokeStrategy</span>(<span class="st">&quot;nabl-get-all-definitions&quot;</span>, defUriLookupInput)
+    <span class="fu">output</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">NaBL lookup with input: &quot;</span> + defUriLookupInput)
+    <span class="fu">output</span>(<span class="st">&quot;Lookup result: &quot;</span>)
+    <span class="fu">output</span>(defUriLookupResult)
+    
+    termFactory.<span class="fu">makeAppl</span>(termFactory.<span class="fu">makeConstructor</span>(<span class="st">&quot;None&quot;</span>, <span class="dv">0</span>))
+  }
+}</code></pre>
+<p>and outputs the follwing when run on the <code>SampleLang/test/example.sam</code>:</p>
+<pre><code>Hello, World (as strategy or standalone)! Your input was: 
+Module(&quot;example&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},[Entity(&quot;User&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsEntity,&quot;User&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},[Property(&quot;name&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsProperty,&quot;name&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsEntity,&quot;User&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},Type(&quot;String&quot;{Use(Result(330))})),Property(&quot;password&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsProperty,&quot;password&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsEntity,&quot;User&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},Type(&quot;String&quot;{Use(Result(330))})),Property(&quot;homepage&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsProperty,&quot;homepage&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsEntity,&quot;User&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},Type(&quot;URL&quot;{Use(Result(338))}))]),Entity(&quot;BlogPosting&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsEntity,&quot;BlogPosting&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},[Property(&quot;poster&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsProperty,&quot;poster&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsEntity,&quot;BlogPosting&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},Type(&quot;User&quot;{Use(Result(346))})),Property(&quot;body&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsProperty,&quot;body&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsEntity,&quot;BlogPosting&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},Type(&quot;String&quot;{Use(Result(330))}))]),Entity(&quot;URL&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsEntity,&quot;URL&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},[Property(&quot;location&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsProperty,&quot;location&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsEntity,&quot;URL&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))},Type(&quot;String&quot;{Use(Result(330))}))])])
+
+Name of the Module (as IStrategoTerm): &quot;example&quot;{Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))}
+
+Annotation of the homepage property URL type is: 
+Use(Result(338))
+
+NaBL lookup with input: &quot;URL&quot;{Use(Result(338))}
+Lookup result: 
+[Def(URI(Language(&quot;SampleLang&quot;),[ID(NablNsEntity,&quot;URL&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;)),ID(NablNsModule,&quot;example&quot;,Unique(&quot;D:/Studium/HiWi Veritas/Readme Spoofax-Scala Interop Testworkspace und -Eclipse/workspace/SampleLang/test/example.sam/0&quot;))]))]</code></pre>
+<h2 id="tips">5. Tips</h2>
+<h3 id="spoofaxstratego-sources">5.1. Spoofax/Stratego Sources</h3>
+<p>When working with the Spoofax/Stratego classes, such as <code>TAFTermReader</code>, <code>HybridInterpreter</code>, or the various <code>IStrategoTerm</code> implementors, browsing the source code can be very helpful. One option is to use <a href="http://codefinder.org/">codefinder.org</a>. Additionally, you can add the sources to your eclipse projects. First, clone (or just download a zip using the github webinterface) the <a href="https://github.com/metaborg">Spoofax/Stratego repositories on github</a>. The relevant repositories are <a href="https://github.com/metaborg/mb-rep">metaborg/mb-rep</a> (for the <code>IStrategoTerm</code>, <code>IStrategoString</code>, etc.) and <a href="https://github.com/metaborg/strategoxt">metaborg/strategoxt</a>. Once downloaded, merge their directories, zip them and then add the zip file in Eclipse under <code>SampleStrategy -&gt; Properties -&gt; Java Build Path -&gt; Libraries -&gt; strategoxt.jar -&gt; Source attachment -&gt; Edit...</code>.</p>
+<div class="figure">
+<img src="18.png" alt="Adding the metaborg sources to the Scala project" />
+<p class="caption">Adding the metaborg sources to the Scala project</p>
+</div>
+<h3 id="working-with-the-strategoterm-api">5.2. Working with the StrategoTerm API</h3>
+<p>When working with <code>IStrategoTerm</code>s, one often needs to down-cast to the correct runtime type of a concerete <code>IStrategoTerm</code>, i.e. to access the contents of an <code>IStrategoString</code>. This is quite cumbersome in Scala, so we wrote some Scala <code>case class</code>es as counterparts to the Java <code>IStrategoTerm</code> classes. On those, pattern matching works fine. A sketch of it could look like:</p>
+<pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">package</span> mypackage
+
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoAppl</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoInt</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoList</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoReal</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoString</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTerm</span>
+<span class="kw">import</span> org.<span class="fu">spoofax</span>.<span class="fu">interpreter</span>.<span class="fu">terms</span>.<span class="fu">IStrategoTuple</span>
+
+<span class="kw">sealed</span> <span class="kw">trait</span> StrategoTerm {
+  <span class="kw">var</span> annotations: Seq[StrategoTerm] = Seq()
+  <span class="kw">var</span> originalTerm: Option[IStrategoTerm] = None
+}
+<span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoInt</span>(n: Int) <span class="kw">extends</span> StrategoTerm
+<span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoReal</span>(r: Double) <span class="kw">extends</span> StrategoTerm
+<span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoString</span>(s: String) <span class="kw">extends</span> StrategoTerm
+<span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoAppl</span>(name: String, children: StrategoTerm*) <span class="kw">extends</span> StrategoTerm
+<span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoList</span>(elements: Seq[StrategoTerm]) <span class="kw">extends</span> StrategoTerm
+<span class="kw">final</span> <span class="kw">case</span> <span class="kw">class</span> <span class="fu">StrategoTuple</span>(elements: StrategoTerm*) <span class="kw">extends</span> StrategoTerm
+
+<span class="kw">object</span> StrategoTerm {
+  <span class="co">/**</span>
+<span class="co">   * Convert a Java IStrategoTerm to (home-grown) Scala StrategoTerm</span>
+<span class="co">   */</span>
+  <span class="kw">def</span> <span class="fu">apply</span>(input: IStrategoTerm): StrategoTerm = {
+    <span class="kw">val</span> result = input <span class="kw">match</span> {
+      <span class="co">// non recursive cases</span>
+      <span class="kw">case</span> integer: IStrategoInt   =&gt; <span class="fu">StrategoInt</span>(integer.<span class="fu">intValue</span>)
+      <span class="kw">case</span> real: IStrategoReal     =&gt; <span class="fu">StrategoReal</span>(real.<span class="fu">realValue</span>)
+      <span class="kw">case</span> string: IStrategoString =&gt; <span class="fu">StrategoString</span>(string.<span class="fu">stringValue</span>)
+  
+      <span class="co">// recursive cases</span>
+      <span class="kw">case</span> appl: IStrategoAppl =&gt; {
+        <span class="kw">val</span> children = appl.<span class="fu">getAllSubterms</span> map apply;
+        <span class="fu">StrategoAppl</span>(appl.<span class="fu">getConstructor</span>.<span class="fu">getName</span>, children: _*)
+      }
+      <span class="kw">case</span> list: IStrategoList   =&gt; <span class="fu">StrategoList</span>(list.<span class="fu">getAllSubterms</span> map apply)
+      <span class="kw">case</span> tuple: IStrategoTuple =&gt; <span class="fu">StrategoTuple</span>(tuple.<span class="fu">getAllSubterms</span> map apply: _*)
+  
+      <span class="co">// Placeholder/Ref/Blob are additional term types, but they are never used by us</span>
+      <span class="kw">case</span> t =&gt; <span class="kw">throw</span> <span class="kw">new</span> RuntimeException(<span class="st">&quot;unexpected term: &quot;</span> + input.<span class="fu">toString</span>())
+    }
+    
+    <span class="co">// also convert the annotations</span>
+    result.<span class="fu">annotations</span> = input.<span class="fu">getAnnotations</span>.<span class="fu">getAllSubterms</span> map apply
+    <span class="co">// and remember the original (Java) IStrategoTerm, useful to interact with Stratego code</span>
+    result.<span class="fu">originalTerm</span> = Some(input)
+    
+    result
+  }
+}</code></pre>
+</body>
+</html>

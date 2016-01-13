@@ -1,0 +1,63 @@
+module stlca.Syntax
+
+sorts
+  Var Exp Typ
+
+constructors
+  var : Var -> Exp
+  abs : Var Typ Exp -> Exp
+  app : Exp Exp -> Exp
+  succ : Exp -> Exp
+  pred : Exp -> Exp
+  isZero : Exp -> Exp
+  True : Exp
+  False : Exp
+  Zero : Exp
+  
+function
+isNum : Exp -> Bool
+isNum(Zero) = true
+isNum(succ(e)) = isNum(e)
+isNum(e) = false
+
+function
+isValue : Exp -> Bool
+isValue(True) = true
+isValue(False) = true
+isValue(Zero) = true
+isValue(succ(e)) = isNum(e)
+isValue(pred(e)) = false
+isValue(isZero(e)) = false
+isValue(abs(x, S, e)) = true
+isValue(var(x)) = false
+isValue(app(e1, e2)) = false
+
+function
+isFreeVar : Var Exp -> Bool
+isFreeVar(v, True)         = false
+isFreeVar(v, False)        = false
+isFreeVar(v, Zero)         = false
+isFreeVar(v, succ(e))      = isFreeVar(v, e)
+isFreeVar(v, pred(e))      = isFreeVar(v, e)
+isFreeVar(v, isZero(e))    = isFreeVar(v, e)
+isFreeVar(v, var(x))       = x == v
+isFreeVar(v, abs(x, T, e)) = ((x != v) && (isFreeVar(v, e)))  
+isFreeVar(v, app(e1, e2))  = (isFreeVar(v, e1) || isFreeVar(v, e2))
+
+// axiom
+// isFreeVar(~v, ~e)
+// ================= isFreeVar-inv
+// OR
+// => exists ~x
+//      ~e = var(~x)
+//      ~x = ~v
+// => exists ~x, ~T, ~e1
+//      ~e = abs(~x, ~T, ~e1)
+//      ~x != ~v
+//      isFreeVar(~v, ~e1)
+// => exists ~e1, ~e2
+//      ~e = app(~e1, ~e2)
+//      isFreeVar(~v, ~e1)
+// => exists ~e1, ~e2
+//      ~e = app(~e1, ~e2)
+//      isFreeVar(~v, ~e2)

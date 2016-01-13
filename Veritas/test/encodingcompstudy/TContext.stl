@@ -1,0 +1,30 @@
+module encodingcompstudy.TContext
+
+import encodingcompstudy.Tables
+import encodingcompstudy.TStore
+
+data TTContext =
+	emptyContext |
+	bindContext(TName, TType, TTContext)
+
+data OptTType =
+	noTType |
+	someTType(TType)
+
+function
+isSomeTType : OptTType -> Bool
+isSomeTType(noTType) = false
+isSomeTType(someTType(t)) = true
+
+partial function
+getSomeTType : OptTType -> TType
+getSomeTType(someTType(t)) = t
+	
+	
+function
+lookupContext : TName TTContext -> OptTType
+lookupContext(tn, emptyContext) = noTType
+lookupContext(tn, bindContext(tm, tt, TTC)) =
+	if (tn == tm)
+	then someTType(tt)
+	else lookupContext(tn, TTC)

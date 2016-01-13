@@ -7,18 +7,22 @@ import de.tu_darmstadt.veritas.backend.fof.FunSymbol
 
 trait TffTopLevelType extends SimplePrettyPrintable
 
-trait TffAtomicType extends TffTopLevelType
+trait TffAtomicType extends TffTopLevelType {
+  def typename: String
+}
 
 /*
  * For types with dollars, including the predefined ones ($oType, $o ....) 
  */
 final case class DefinedType(name: String) extends TffAtomicType {
-  override def prettyString = "$" + name
+	override def typename = "$" + name
+  override def prettyString = typename
 }
 
 // this currently only supports types without arguments!!
 final case class SymbolType(name: TypedSymbol) extends TffAtomicType {
-  override def prettyString = name.toUntyped.prettyString
+  override def typename = name.toUntyped.prettyString
+  override def prettyString = typename
 }
 
 

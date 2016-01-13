@@ -1,0 +1,195 @@
+module stlcR.SubstLemma
+
+import stlcR.Syntax
+import stlcR.Context
+import stlcR.Types
+import stlcR.Gensym
+import stlcR.AlphaEquivalence
+import stlcR.Subst
+import stlcR.SubstLemmaAux
+
+goal
+~e2 == var(~y)
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-var
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+local {
+	consts
+	    e1 : Exp
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e1 : ~T2
+	============================== T-subst-fix-IH
+	~C |- subst(~x, ~e, e1) : ~T2
+	
+	goal
+	~e2 == fix(e1)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	============================== T-subst-fix
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axioms
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e1 : ~T2
+	============================== T-subst-IH-app1
+	~C |- subst(~x, ~e, e1) : ~T2
+	
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- e2 : ~T2
+	============================== T-subst-IH-app2
+	~C |- subst(~x, ~e, e2) : ~T2
+	
+	goal
+	~e3 == app(e1, e2)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e3 : ~T2
+	====================================== T-subst-app
+	~C |- subst(~x, ~e, ~e3) : ~T2
+}
+
+goal
+~e2 == abs(~y, ~S, ~e1)
+~x == ~y
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+=========================================== T-subst-abs-1
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+
+
+local {
+	const eabs : Exp
+	
+	//Lemma must be used locally only here! Proof is in SubstLemmaAux.stl
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+	
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	bind(~x, ~T, ~C) |- ~e2 : arrow(~S, ~T2)
+	========================================= T-subst-eabs-type
+	bind(~y, ~S, bind(~x, ~T, ~C)) |- eabs : ~T2
+	
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : arrow(~S, ~T2)
+	============================================ T-subst-abs-2-type-decomposition
+	~C |- abs(~y, ~S, subst(~x, ~e, eabs)) : arrow(~S, ~T2)
+	
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	bind(~x, ~T, ~C) |- ~e2 : ~A
+	============================= T-abs-type-extraction
+	exists ~T2
+	    ~A == arrow(~S, ~T2)
+	
+	goal
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+
+
+local {
+	const eabs : Exp
+	
+	axiom
+	~e2 == abs(~y, ~S, ~e1)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	//auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-unequal-var-3
+	~x != ~fresh
+
+	//another auxiliary lemma which is needed in this case, but can also be proven
+	lemma
+	~fresh == gensym(app(app(~e, ~e1), var(~x)))
+	============================================= fresh-free-2
+	!isFreeVar(~fresh, ~e1)
+		
+	axiom //not needed
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+
+	goal
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-3
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+
+// substitution lemma becomes an axiom after the proof
+axiom
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+

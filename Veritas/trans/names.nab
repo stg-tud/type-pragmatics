@@ -31,13 +31,13 @@ binding rules
 
 	SortDef(s):
 		defines Sort s
-	DataType(s, _):
+	DataType(_, s, _):
 		defines Sort s
 	
 	SortRef(s):
 		refers to Sort s
 	
-	ConstructorDecl(c, _, _):
+	ConstDecl(c, _):
 		defines Symbol c
 	DataTypeConstructor(c, _):
 		defines Symbol c

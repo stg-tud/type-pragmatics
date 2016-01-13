@@ -1,33 +1,66 @@
 module sql.TypeSystem
 
-import sql.BasicFunctions
 import sql.Tables
 import sql.TStore
 import sql.Syntax
 import sql.TContext
 
-function
-dropFirstColType : TType -> TType
-dropFirstColType(ttempty) = ttempty
-dropFirstColtType(ttcons(ct, tt)) = tt
+sorts
+	OptFType
+	
+constructors
+	noFType : OptFType
+	someFType : FType -> OptFType
 	
 function
-findColType : AName TType -> Opt // Opt[FType]
-findColType(an, ttempty) = none
+isSomeFType : OptFType -> Bool
+isSomeFType(noFType) = false
+isSomeFType(someFType(a)) = true
+
+partial function
+getSomeFType : OptFType -> FType
+getSomeFType(someFType(a)) = a
+	
+function
+findColType : AName TType -> OptFType
+findColType(an, ttempty) = noFType
 findColType(an, ttcons(ctype(a, ft), ttr)) =
 	if (an == a)
-	then some(ft)
+	then someFType(ft)
 	else findColType(an, ttr)
 
 function
-projectType : AList TType -> Opt // Opt[TType]
-projectType(aempty, tt) = some(ttempty)
+projectType : AList TType -> OptTType
+projectType(aempty, tt) = someTType(ttempty)
 projectType(acons(a, alr), tt) =
 	let ft = findColType(a, tt) in
 		let tprest = projectType(alr, tt) in
-			if (isSome(ft) && isSome(tprest))
-			then some(ttcons(ctype(a, getSome(ft)), getSome(tprest)))
-			else none
+			if (isSomeFType(ft) && isSomeTType(tprest))
+			then someTType(ttcons(ctype(a, getSomeFType(ft)), getSomeTType(tprest)))
+			else noTType
+			
+// function
+// ctypeIn : AName FType TType -> Bool
+// ctypeIn(a, ft, ttempty) = false
+// ctypeIn(a, ft, ttcons(ctype(a2, ft2), ttr)) = ((a == a2) && (ft == ft2)) || ctypeIn(a, ft, ttr) 
+
+// function
+// checkPValidity : Pred TType -> Bool
+// checkPValidity(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+// checkPValidity(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+// checkPValidity(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+
+//axioms on behavior of table type context
+axioms
+~x == ~y
+bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e : ~T
+================================================ T-TTContext-Duplicate
+bindContext(~x, ~Tx, ~C) |- ~e : ~T
+
+~x != ~y
+bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e : ~T
+================================================ T-TTContext-Swap
+bindContext(~y, ~Ty, bindContext(~x, ~Tx, ~C)) |- ~e : ~T
 
  
 axioms
@@ -36,42 +69,38 @@ welltypedtable(~TT, table(~al, ~rt))
 ====================================== T-Tvalue
 ~TTC |- Tvalue(table(~al, ~rt)) : ~TT
 
-clookup(~tn, ~TTC) == some(~TT)
-=============================================== T-Selectallfrom
-~TTC |- Selectallfrom(Ref(~tn)) : ~TT
+lookupContext(~tn, ~TTC) == someTType(~TT)
+=============================================== T-SelectAllFrom
+~TTC |- SelectAllFrom(Ref(~tn)) : ~TT
 
-clookup(~tn, ~TTC) == some(~TT1)
-projectType(~al, ~TT1) == some(~TT)
-================================================ T-Selectsomefrom
-~TTC |- Selectsomefrom(~al, Ref(~tn)) : ~TT
+lookupContext(~tn, ~TTC) == someTType(~TT1)
+projectType(~al, ~TT1) == someTType(~TT)
+================================================ T-SelectSomeFrom
+~TTC |- SelectSomeFrom(~al, Ref(~tn)) : ~TT
 
-// lookup(~tn, ~TS) == some(table(~TT, ~rt))
-// welltypedtable(table(~TT, ~rt))
+// lookupContext(~tn, ~TTC) == someTType(~TT)
 // checkPValidity(~p, ~TT)
-// ================================================ T-SelectAllFromWhere1
-// ~TS |- SelectAllFromWhere1(~tn, ~p) : ~TT
+// ================================================ T-SelectAllFromWhere
+// ~TTC |- SelectAllFromWhere(Ref(~tn), ~p) : ~TT
 // 
-// lookup(~tn, ~TS) == some(table(~TT1, ~rt))
-// welltypedtable(table(~TT1, ~rt))
+// lookupContext(~tn, ~TTC) == someTType(~TT1)
 // checkPValidity(~p, ~TT1)
-// typePartOf(~TT, ~TT1)
-// ================================================ T-SelectFromWhere1
-// ~TS |- SelectFromWhere1(~TT, ~tn, ~p) : ~TT
+// projectType(~al, ~TT1) == someTType(~TT)
+// ================================================ T-SelectSomeFromWhere
+// ~TTC |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
 // 
 // ~TTC |- ~q1 : ~TT
 // ~TTC |- ~q2 : ~TT
 // ============================================ T-Union
 // ~TTC |- Union(~q1, ~q2) : ~TT
 // 
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
+// ~TTC |- ~q1 : ~TT
+// ~TTC |- ~q2 : ~TT
 // ============================================ T-Intersection
-// ~TS |- Intersection(~sql1, ~sql2) : ~TT
+// ~TTC |- Intersection(~q1, ~q2) : ~TT
 // 
-// ~TS |- ~sql1 : ~TT
-// ~TS |- ~sql2 : ~TT
+// ~TTC |- ~q1 : ~TT
+// ~TTC |- ~q2 : ~TT
 // ============================================ T-Difference
-// ~TS |- Difference(~sql1, ~sql2) : ~TT
-
-
+// ~TTC |- Difference(~q1, ~q2) : ~TT
 

@@ -1,0 +1,130 @@
+module encodingcompstudy.Tables-test
+
+import encodingcompstudy.Tables
+
+//a few tests for well-typedness
+goal
+fieldType(~x) == ~xt
+~tt == ttempty
+============================================================================ test1
+welltypedtable(~tt, table(aempty, tcons(rempty, tempty)))
+
+goal
+fieldType(~x) == ~xt
+fieldType(~y) == ~yt
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttempty))
+============================================================================ test2
+!welltypedtable(~tt, table(acons(~a, acons(~b, aempty)), tcons(rcons(~x, rempty), tempty)))
+
+goal
+fieldType(~x) == ~xt
+fieldType(~y) == ~yt
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttempty))
+==================================================================================== test3
+welltypedtable(~tt, table(acons(~a, acons(~b, aempty)), tcons(rcons(~x, rcons(~y, rempty)), tempty)))
+
+ 
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+~al == acons(~a, acons(~b, aempty))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttempty))
+============================================================================ test4
+welltypedtable(~tt, table(~al, tcons(rcons(~x1, rcons(~y1, rempty)), 
+	tcons(rcons(~x2, rcons(~y2, rempty)), tempty))))
+	
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+~al == acons(~a, acons(~b, aempty))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttempty))
+============================================================================ test5
+!welltypedtable(~tt, table(~al, tcons(rcons(~x1, rcons(~y1, rempty)), 
+	tcons(rcons(~x2, rempty), tempty))))
+
+
+goal
+fieldType(~x) == ~xt
+fieldType(~y) == ~yt
+fieldType(~z) == ~zt
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
+=============================================================================== test6
+welltypedtable(~tt, table(~al, tcons(rcons(~x, rcons(~y, rcons(~z, rempty))), tempty)))
+
+
+goal
+fieldType(~x) == ~xt
+fieldType(~y) == ~yt
+~xt != ~yt 
+fieldType(~z) == ~zt
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
+================================================================================ test7
+!welltypedtable(~tt, table(~al, tcons(rcons(~x, rcons(~x, rcons(~z, rempty))), tempty)))
+
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+fieldType(~z1) == ~zt
+fieldType(~z2) == ~zt
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
+============================================================================ test8
+welltypedtable(~tt, table(~al, 
+	tcons(rcons(~x1, rcons(~y2, rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), tempty))))
+	
+	
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+fieldType(~z1) == ~zt
+fieldType(~z2) == ~zt
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
+============================================================================ test9
+!welltypedtable(~tt, table(~al, 
+	tcons(rcons(~x1, rcons(~y2, rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rempty)), tempty))))
+	
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+fieldType(~z1) == ~zt
+fieldType(~z2) == ~zt
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
+============================================================================ test10
+welltypedtable(~tt, table(~al, 
+	tcons(rcons(~x1, rcons(~y2, rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), tempty)))))
+	
+goal
+fieldType(~x1) == ~xt
+fieldType(~x2) == ~xt
+fieldType(~y1) == ~yt
+fieldType(~y2) == ~yt
+fieldType(~z1) == ~zt
+fieldType(~z2) == ~zt
+~al == acons(~a, acons(~b, acons(~c, aempty)))
+~tt == ttcons(ctype(~a, ~xt), ttcons(ctype(~b, ~yt), ttcons(ctype(~c, ~zt), ttempty)))
+============================================================================ test11
+welltypedtable(~tt, table(~al, 
+	tcons(rcons(~x1, rcons(~y2, rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), 
+	tcons(rcons(~x1, rcons(~y1, rcons(~z1, rempty))),
+	tcons(rcons(~x1, rcons(~y2, rcons(~z1, rempty))),
+	tcons(rcons(~x2, rcons(~y2, rcons(~z2, rempty))), tempty))))))))

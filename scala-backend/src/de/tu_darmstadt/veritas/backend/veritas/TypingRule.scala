@@ -37,6 +37,8 @@ case class TypingRule(name: String, premises: Seq[TypingRuleJudgment], consequen
     consequences.dropRight(1) foreach (writer.writeln(_))
     consequences.lastOption foreach (writer.write(_))
   }
+  
+  override def toString() = s"${premises.mkString("\n")}\n=== ${name}\n${consequences.mkString("\n")}"
 }
 
 object TypingRule {
@@ -59,7 +61,7 @@ object TypingRule {
   // We always use Judgment (AE) in the Backend, but parsing must obviously be compatible with Veritas.sdf3
   def unpackJudgmentCons(term: StrategoTerm): Seq[StrategoTerm] = term match {
     case StrategoAppl("JudgementCons", head, rest) => head +: unpackJudgmentCons(rest)
-    case elem @ StrategoAppl(_, _*)                => List(elem)
+    case elem @ StrategoAppl(_, _*)                => Seq(elem)
     case t                                         => throw VeritasParseError(t)
   }
 }

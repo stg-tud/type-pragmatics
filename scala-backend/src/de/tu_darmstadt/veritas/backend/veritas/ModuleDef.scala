@@ -9,10 +9,17 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.Context
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
+import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
+import de.tu_darmstadt.veritas.backend.stratego.StrategoList
+
 
 sealed trait ModuleDef extends VeritasConstruct with PrettyPrintable
 
-case class Local(defs: Seq[ModuleDef]) extends ModuleDef {
+case class Local(defs: Seq[ModuleDef]) extends ModuleDef with ModuleDefHolder {
+  // from ModuleDefHolder
+  override def imports = Seq()
+  
   override val children = Seq(defs)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -33,6 +40,8 @@ case class Local(defs: Seq[ModuleDef]) extends ModuleDef {
     defs.lastOption foreach (writer.writeln(_))
     writer.unindent().write("}")
   }
+  
+  override def toString() = s"local(${defs.mkString("\n")})"
 }
 
 case object HideAll extends ModuleDef with SimplePrettyPrintable {
@@ -85,7 +94,7 @@ case class Include(ruleNames: Seq[String]) extends ModuleDef {
 //Should that be allowed to occur? Currently, no errors are thrown if that happens!
 //Maybe introduce require-clauses?
 
-case class Strategy(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) extends ModuleDef {
+case class Strategy(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) extends ModuleDef with ModuleDefHolder {
   override val children = Seq(imports, defs)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -243,28 +252,6 @@ case class Sorts(sorts: Seq[SortDef]) extends ModuleDef {
   }
 }
 
-case class Constructors(ctors: Seq[ConstructorDecl]) extends ModuleDef {
-  override val children = Seq(ctors)
-
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (newchildren.length != 1)
-      throw new ClassCastException
-
-    val newctors: Seq[ConstructorDecl] = newchildren(0) map {
-      case e: ConstructorDecl => e
-      case _                  => throw new ClassCastException
-    }
-    Constructors(newctors)
-  }
-
-  override def prettyPrint(writer: PrettyPrintWriter) = {
-    writer.write("constructors")
-    writer.indent()
-    ctors.dropRight(1) foreach (writer.writeln(_))
-    ctors.lastOption foreach (writer.write(_))
-    writer.unindent()
-  }
-}
 
 case class Functions(funcs: Seq[FunctionDef]) extends ModuleDef {
   override val children = Seq(funcs)
@@ -306,29 +293,85 @@ case class PartialFunctions(funcs: Seq[FunctionDef]) extends ModuleDef {
   }
 }
 
-case class Consts(consts: Seq[ConstructorDecl]) extends ModuleDef {
+case class Consts(consts: Seq[ConstDecl], different: Boolean) extends ModuleDef {
   override val children = Seq(consts)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
     if (newchildren.length != 1)
       throw new ClassCastException
 
-    val newctors: Seq[ConstructorDecl] = newchildren(0) map {
-      case e: ConstructorDecl => e
+    val newctors: Seq[ConstDecl] = newchildren(0) map {
+      case e: ConstDecl => e
       case _                  => throw new ClassCastException
     }
-    Consts(newctors)
+    Consts(newctors, different)
   }
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
-    consts.dropRight(1) foreach { c =>
-      writer.write("const ");
-      writer.writeln(c)
+    if (different)
+      writer.write("different ")
+    writer.write("consts ")
+    writer.indent()
+    consts foreach { c =>
+      c.prettyPrint(writer)
+      writer.writeln()
     }
-    consts.lastOption foreach { c =>
-      writer.write("const ");
-      writer.write(c)
+    writer.unindent()
+  }
+}
+
+object Consts {
+  def Different(term: StrategoTerm) = term match {
+    case StrategoAppl("Any") => false
+    case StrategoAppl("Different") => true
+    case t => throw VeritasParseError(t)
+  }
+}
+
+case class DataType(open: Boolean, name: String, constrs: Seq[DataTypeConstructor]) extends ModuleDef {
+  require(!(DataType.predefinedTypes contains name), s"Cannot redefine predefined type $name")
+
+  override val children = Seq(constrs)
+
+  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
+    if (newchildren.length != 1)
+      throw new ClassCastException
+
+    val newctors: Seq[DataTypeConstructor] = newchildren(0) map {
+      case e: DataTypeConstructor => e
+      case _                      => throw new ClassCastException
     }
+    
+    DataType(open, name, newctors)
+  }
+
+  override def prettyPrint(writer: PrettyPrintWriter) = {
+    if (open)
+      writer.write("open ")
+    writer.write("data ")
+    writer.write(name)
+    if (!constrs.isEmpty) {
+      writer.write(" = ")
+      writer.indent()
+      constrs(0).prettyPrint(writer)
+      constrs.tail foreach {c =>
+        writer.writeln(",")
+        c.prettyPrint(writer)
+      }
+      writer.unindent()
+    }
+  }
+}
+
+object DataType {
+  val Bool = "Bool"
+  val iType = "iType"
+  val predefinedTypes: List[String] = List(Bool, iType)
+
+  def Openedness(term: StrategoTerm): Boolean = term match {
+    case StrategoAppl("Sealed") => false
+    case StrategoAppl("Open") => true
+    case t => throw VeritasParseError(t)
   }
 }
 
@@ -362,10 +405,10 @@ object ModuleDef {
     case StrategoAppl("LemmasWithStrategy", StrategoString(strategy), StrategoAppl("Some", StrategoString(timeout)), StrategoList(lemmas)) => LemmasWithStrategy(strategy, lemmas map TypingRule.from, Some(timeout.toInt))
     case StrategoAppl("Axioms", StrategoList(axioms)) => Axioms(axioms map TypingRule.from)
     case StrategoAppl("Sorts", StrategoList(sorts)) => Sorts(sorts map SortDef.from)
-    case StrategoAppl("Constructors", StrategoList(ctors)) => Constructors(ctors map ConstructorDecl.from)
     case StrategoAppl("Functions", StrategoList(funcDefs)) => Functions(funcDefs map FunctionDef.from)
     case StrategoAppl("PartialFunctions", StrategoList(funcDefs)) => PartialFunctions(funcDefs map FunctionDef.from)
-    case StrategoAppl("Consts", StrategoList(consts)) => Consts(consts map ConstructorDecl.from)
+    case StrategoAppl("Consts", different, StrategoList(consts)) => Consts(consts map ConstDecl.from, Consts.Different(different))
+    case StrategoAppl("DataType", openedness, StrategoString(name), StrategoList(constrs)) => DataType(DataType.Openedness(openedness), name, constrs map DataTypeConstructor.from)
     case t => throw VeritasParseError(t)
   }
 }

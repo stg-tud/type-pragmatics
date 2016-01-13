@@ -15,6 +15,7 @@ imports
   
 strategies
 
+  // Argument: Absolute path of project	
   // Argument: Directory of current stl file in editor
   // Argument: its AST
   // Returns: List of tuples, one tuple per output FOF file
@@ -31,13 +32,22 @@ rules // Incremental code generation of project using compilation library.
   with
   	// uncomment this only if you want to always store the Index/Tasks on disk, i.e.
   	// because the loading from the Java objects in the Backend doesnt work
-	//index-and-task-persist;
-	index-setup(|<language>, project-path);
-	task-setup(|project-path);
-    files := <backend-strategy <+ error(!"backend strategy failed: ")> (<dirname> path, ast);
-    <map(write-file)> files;
+	index-and-task-persist;
+	// index-setup(|<language>, project-path);
+	// task-setup(|project-path);
+    files := <backend-strategy <+ error(!"backend strategy failed: ")> (project-path, <dirname> path, ast);
+    // backend writes files itself - TODO: does this work with Spoofax?
+    // <map(\(fn, c) -> <dirname; try(mkdir)> fn\)> files;
+    // <map(write-file)> files;
     result := <if <?[]> files then !None() else !<Hd> files end> ()
-
+    
+  invoke-backend-folder : 
+		(selected, position, ast, path, project-path) -> result
+	where
+		pastlist := <get-analyzed-files-folder(|path, project-path)>;
+		singleres := <map(\(p, anast) -> <invoke-backend> (selected, position, anast, p, project-path)\)> pastlist;
+		result := <if <?[]> singleres then !None() else !<Hd> singleres end> ()
+		
   index-and-task-persist : (selected, position, ast, path, project-path) -> None()
   with
   	index-setup(|<language>, project-path); index-persist;

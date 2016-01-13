@@ -1,3 +1,15 @@
 module backend.Imports
 
-import backend.Goal
+// check that the import IN RecursiveImports is resolved and all elements put here
+import backend.RecursiveImports
+// check that this is not resolved again
+import backend.RecursiveImports
+
+strategy samplestrat {
+	// and here also
+	import backend.RecursiveImports
+}
+
+axiom
+======= sampleaxiom
+~e : ~T

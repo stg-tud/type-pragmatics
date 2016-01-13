@@ -1,0 +1,71 @@
+module backend.SplitModulesByGoals
+
+axioms
+=========== all-possible
+~e : ~T
+
+goals
+~e1 : ~T1
+~T1 = ~T2 
+=========== Goal-1
+~e1 : ~T2
+
+local {
+	axioms
+	============ all-possible-locally
+	~elocal : ~T
+	
+	goals
+	~elocal1 : ~T1
+	~T1 = ~T2 
+	=========== Goal-locally
+	~elocal1 : ~T2
+}
+
+goals
+~e2 : ~T1
+~T1 = ~T2 
+=========== Goal-2
+~e2 : ~T2
+
+axiom
+=========== axiom-after-strategy
+~eafterstrat : ~T
+
+strategy teststrategy {
+	goal
+	~estrat : ~T1
+	~T1 = ~T2
+	=============== Goal-in-strategy
+	~estrat : ~T2
+	
+	axiom
+	================ all-possible-in-strategy
+	~estrat : ~T
+	
+	hide-all
+	
+	include { axiom-after-strategy }
+	
+	local {
+		goal
+		~estratlocal : ~T1
+		~T1 = ~T2
+		============== Goal-in-strategy-recursive-local
+		~estratlocal : ~T2
+	}
+}
+
+local {
+	goals
+	~elocal2 : ~T1
+	~T1 = ~T2 
+	=========== Goal-locally
+	~elocal2 : ~T2
+}
+
+goal verify-with teststrategy
+~egoalstrat : ~T1
+~T1 = ~T2
+============== Goal-using-strategy
+~egoalstrat : ~T2

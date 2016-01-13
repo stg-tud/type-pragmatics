@@ -1,31 +1,33 @@
 module sql.TStore
 
-import sql.BasicFunctions
 import sql.Tables
 
 
 sorts
-	TStore TName
+	TStore TName OptTable
 	
 constructors
-	empty : TStore
-	bind : TName Table TStore -> TStore
+	noTable : OptTable
+	someTable : Table -> OptTable
+
+function
+isSomeTable : OptTable -> Bool
+isSomeTable(noTable) = false
+isSomeTable(someTable(t)) = true
+
+partial function
+getSomeTable : OptTable -> Table
+getSomeTable(someTable(t)) = t
+	
+constructors
+	emptyStore : TStore
+	bindStore : TName Table TStore -> TStore
 	
 function
-lookup : TName TStore -> Opt
-lookup(n, empty) = none
-lookup(n, bind(m, t, TS)) = 
+lookupStore : TName TStore -> OptTable
+lookupStore(n, emptyStore) = noTable
+lookupStore(n, bindStore(m, t, TS)) = 
 	if (n == m)
-	then some(t)
-	else lookup(n, TS)
+	then someTable(t)
+	else lookupStore(n, TS)
 	
-axioms
-~x == ~y
-bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
-=========================================== T-TStore-Duplicate
-bind(~x, ~Tx, ~C) |- ~e : ~T
-
-~x != ~y
-bind(~x, ~Tx, bind(~y, ~Ty, ~C)) |- ~e : ~T
-=========================================== T-TStore-Swap
-bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T

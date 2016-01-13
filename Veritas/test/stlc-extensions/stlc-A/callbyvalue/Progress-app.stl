@@ -1,0 +1,85 @@
+module stlca.callbyvalue.ProgressApp
+
+import stlca.Syntax
+import stlca.Context
+import stlca.callbyvalue.Reduction
+import stlca.TypeBase
+import stlca.Subst
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom	 
+	~ein == e1
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app-IH1
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+
+	axiom // NEEDED! (as expected)
+	~ein == e2	 
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app-IH2
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+	
+	// necessary to prove app-parameter-is-abs
+	lemma
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	=================== app-parameter-type
+	exists ~S
+		empty |- e1 : arrow(~S, ~T)
+
+	
+	lemma
+	empty |- e1 : ~T
+	isValue(e1)
+	=========== T-value-INV
+	OR
+	=> exists ~x, ~S, ~e
+	    e1 == abs(~x, ~S, ~e)
+	=> e1 == True
+	=> e1 == False
+	=> e1 == Zero
+	=> exists ~e
+	    e1 == succ(~e)
+	    isNum(~e)
+	
+	lemma
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	isValue(e1)
+	=========== T-e1-is-not-succ
+	e1 != succ(~e)
+	
+	lemma
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	isValue(e1)
+	================== app-parameter-is-abs
+	exists ~x, ~S, ~e
+	    e1 == abs(~x, ~S, ~e)	
+
+	lemma
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	reduce(e1) == noExp
+	================== app-parameter-is-value
+	isValue(e1)
+
+	
+	goal
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+}

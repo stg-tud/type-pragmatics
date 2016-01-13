@@ -1,0 +1,182 @@
+module stlcB.callbyvalue.Preservation
+
+import stlcB.Syntax
+import stlcB.Subst {names}
+import stlcB.SubstLemma
+import stlcB.callbyvalue.Reduction
+import stlcB.Types
+import stlcB.Context {names}
+
+// Prove type preservation by induction on recursive structure of reduction relation
+// Each derived rule represents one induction case.
+
+goal
+~ein == var(~x)
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation-T-var
+~C |- ~eout : ~T
+
+goal
+~ein == True
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation-T-true
+~C |- ~eout : ~T
+
+goal
+~ein == False
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation-T-false
+~C |- ~eout : ~T
+
+//Verification succeeded, used lemmas: reduce0, DIFF-noExp-someExp.
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom
+	~ein == e1	 
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-abs-IH
+	~C |- ~eout : ~T
+
+	goal
+	~ein == abs(~x, ~S, e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-abs
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-IH1
+	~C |- ~eout : ~T
+
+	axiom // NEEDED (as expected!)
+	~ein == e2
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-IH2
+	~C |- ~eout : ~T
+
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = someExp(~e2red)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-1
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	e1 == abs(~x, ~S, ~eabs)
+	~C |- ~ein : ~T
+	======================== app-parameter-1-type
+	~C |- e1 : arrow(~S, ~T)
+
+	lemma
+	e1 == abs(~x, ~S, ~eabs)
+	~C |- e1 : arrow(~S, ~T)
+	======================== app-parameter-subtype
+	bind(~x, ~S, ~C) |- ~eabs : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = noExp
+	isValue(e2)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-2
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = noExp
+	!isValue(e2)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-3
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 != abs(~x, ~S, ~eabs)
+	reduce(e1) = someExp(~e1red)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-4
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 != abs(~x, ~S, ~eabs)
+	reduce(e1) = noExp
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-5
+	~C |- ~eout : ~T
+
+	goal
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+	   c : Exp
+	   e1 : Exp
+	   e2 : Exp
+	   
+	axiom
+	~ein == c
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	============================== T-Preservation-T-if-IH1
+	~C |- ~eout : ~T
+	
+	axiom
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	============================== T-Preservation-T-if-IH2
+	~C |- ~eout : ~T
+	
+	axiom
+	~ein == e2
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	============================== T-Preservation-T-if-IH3
+	~C |- ~eout : ~T
+	
+	goal
+	~ein == ifExp(c, e1, e2)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	============================== T-Preservation-T-if
+	~C |- ~eout : ~T
+	
+}
+
+axiom
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation
+~C |- ~eout : ~T

@@ -1,0 +1,30 @@
+module stlca.TypeProofs.TStrongapp
+
+import stlca.TypeBase
+import stlca.Context
+import stlca.Syntax
+
+// proof only possible in own file without additional axioms
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+
+	axioms 
+	!isFreeVar(~x, e1app)
+	bind(~x, ~S, ~C) |- e1app : ~T
+	=========================== T-Strong-app-IH1
+	~C |- e1app : ~T
+	
+	!isFreeVar(~x, e2app)
+	bind(~x, ~S, ~C) |- e2app : ~T
+	=========================== T-Strong-app-IH2
+	~C |- e2app : ~T
+	
+	goal
+	~e == app(e1app, e2app)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-app
+	~C |- ~e : ~T
+}

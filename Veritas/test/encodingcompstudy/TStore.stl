@@ -1,0 +1,32 @@
+module encodingcompstudy.TStore
+
+import encodingcompstudy.Tables
+
+
+open data TName
+	
+data OptTable =
+	noTable |
+	someTable(Table)
+
+function
+isSomeTable : OptTable -> Bool
+isSomeTable(noTable) = false
+isSomeTable(someTable(t)) = true
+
+partial function
+getSomeTable : OptTable -> Table
+getSomeTable(someTable(t)) = t
+	
+data TStore =
+	emptyStore |
+	bindStore(TName, Table, TStore)
+
+function
+lookupStore : TName TStore -> OptTable
+lookupStore(n, emptyStore) = noTable
+lookupStore(n, bindStore(m, t, TS)) = 
+	if (n == m)
+	then someTable(t)
+	else lookupStore(n, TS)
+	

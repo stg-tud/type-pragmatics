@@ -1,0 +1,7 @@
+module stlcB.AlphaEquivalence
+
+import stlcB.Syntax
+import stlcB.Subst
+
+function
+alphaEquivalent : Exp Exp -> Bool

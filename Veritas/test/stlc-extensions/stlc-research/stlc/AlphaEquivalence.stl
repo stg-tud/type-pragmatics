@@ -1,0 +1,7 @@
+module stlc2.AlphaEquivalence
+
+import stlc2.Syntax
+import stlc2.Subst
+
+function
+alphaEquivalent : Exp Exp -> Bool

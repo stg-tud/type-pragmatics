@@ -1,0 +1,604 @@
+module stlcS2.Types
+
+import stlcS2.Syntax
+import stlcS2.Context
+import stlcS2.Subst //{ names }
+import stlcS2.AlphaEquivalence
+
+constructors
+	arrow : Typ Typ -> Typ
+	sum : Typ Typ -> Typ
+
+
+axioms
+
+lookup(~x, ~C) == someType(~T)
+============================== T-var
+~C |- var(~x) : ~T
+
+bind(~x, ~S, ~C) |- ~e : ~T
+===================================== T-abs
+~C |- abs(~x, ~S, ~e) : arrow(~S, ~T)
+
+~C |- ~e1 : arrow(~S, ~T)
+~C |- ~e2 : ~S
+========================= T-app
+~C |- app(~e1, ~e2) : ~T
+
+~C |- ~e : ~T1
+============================================ T-inl
+~C |- inl(~e, sum(~T1, ~T2)) : sum(~T1, ~T2)
+
+~C |- ~e : ~T2
+============================================ T-inr
+~C |- inr(~e, sum(~T1, ~T2)) : sum(~T1, ~T2)
+
+~C |- ~e : sum(~T1, ~T2)
+bind(~x1, ~T1, ~C) |- ~t1 : ~T
+bind(~x2, ~T2, ~C) |- ~t2 : ~T
+======================================= T-case
+~C |- case(~e, ~x1, ~t1, ~x2, ~t2) : ~T
+
+~C |- ~e : ~T
+=============================== T-inv
+OR
+=> exists ~x
+     ~e == var(~x)
+     lookup(~x, ~C) == someType(~T)
+=> exists ~x, ~e2, ~T1, ~T2
+     ~e == abs(~x, ~T1, ~e2)
+     ~T == arrow(~T1, ~T2)
+     bind(~x, ~T1, ~C) |- ~e2 : ~T2
+=> exists ~e1, ~e2, ~S
+     ~e == app(~e1, ~e2)
+     ~C |- ~e1 : arrow(~S, ~T)
+     ~C |- ~e2 : ~S
+=> exists ~t, ~T1, ~T2
+     ~e == inl(~t, sum(~T1, ~T2))
+     ~T == sum(~T1, ~T2)
+     ~C |- ~t : ~T1
+=> exists ~t, ~T1, ~T2
+     ~e == inr(~t, sum(~T1, ~T2))
+     ~T == sum(~T1, ~T2)
+     ~C |- ~t : ~T2
+=> exists ~e1, ~x1, ~t1, ~x2, ~t2, ~T1, ~T2
+    ~e == case(~e1, ~x1, ~t1, ~x2, ~t2)
+    ~C |- ~e1 : sum(~T1, ~T2)
+    bind(~x1, ~T1, ~C) |- ~t1 : ~T
+    bind(~x2, ~T2, ~C) |- ~t2 : ~T
+    
+lemma
+~C |- var(~x) : ~T
+============================== T-inv-var
+lookup(~x, ~C) == someType(~T)
+
+lemma
+~C |- abs(~x, ~T1, ~e) : ~T
+========================== T-inv-abs
+exists ~T2
+    ~T == arrow(~T1, ~T2)
+    bind(~x, ~T1, ~C) |- ~e : ~T2
+
+lemma
+~C |- app(~e1, ~e2) : ~T
+======================== T-inv-app
+exists ~S
+    ~C |- ~e1 : arrow(~S, ~T)
+    ~C |- ~e2 : ~S
+
+lemma
+~C |- inl(~e, ~T1) : ~T1
+======================= T-inv-inl
+exists ~T3, ~T4
+  ~T1 == sum(~T3, ~T4)
+  ~C |- ~e : ~T3
+  
+lemma
+~C |- inr(~e, ~T1) : ~T1
+======================= T-inv-inr
+exists ~T3, ~T4
+  ~T1 == sum(~T3, ~T4)
+  ~C |- ~e : ~T4
+  
+lemma
+~C |- inl(~e, ~T1) : ~T2
+======================= T-inv-inl-type
+~T1 == ~T2
+	  
+lemma
+~C |- inr(~e, ~T1) : ~T2
+======================= T-inv-inr-type
+~T1 == ~T2
+
+lemma
+~C |- case(~e1, ~x1, ~t1, ~x2, ~t2) : ~T
+======================================== T-inv-case
+exists ~T1, ~T2
+    ~C |- ~e1 : sum(~T1, ~T2)
+    bind(~x1, ~T1, ~C) |- ~t1 : ~T
+    bind(~x2, ~T2, ~C) |- ~t2 : ~T
+    
+
+//Auxiliary lemmas for on contexts
+
+//Proof by structural induction 
+
+//proof for Weakening without using T-Weak-FreeVar
+local {
+//	hide { T-inv, T-inv-app, T-inv-abs, T-inv-inr, T-inv-inr-type, T-inv-inl, T-inv-inl-type, T-inv-case }
+
+	// goal
+	// lookup(~x, ~C) == noType
+	// ~C |- var(~y) : ~T
+	// ================================ T-Weak-var
+	// bind(~x, ~S, ~C) |- var(~y) : ~T
+	
+	goal
+	~e == var(~y)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-var
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+local {
+//	hide { T-inv, T-inv-app, T-inv-inr, T-inv-inr-type, T-inv-inl, T-inv-inl-type, T-inv-var, T-inv-case }
+
+	const eabs : Exp
+
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+	
+	// goal
+	// ~x != ~y
+	// lookup(~x, ~C) == noType
+	// ~C |- abs(~y, ~S1, eabs) : ~T
+	// =========================================== T-Weak-abs-1
+	// bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+	
+	goal
+	~e == abs(~y, ~S1, eabs)
+	~x != ~y
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================================== T-Weak-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+//	hide { T-inv, T-inv-app, T-inv-inr, T-inv-inr-type, T-inv-inl, T-inv-inl-type, T-inv-var, T-inv-case }
+
+	const eabs : Exp
+	
+	axiom
+	~x != ~y
+	lookup(~x, ~C) == noType
+	~C |- abs(~y, ~S1, ~e1) : ~T
+	======================================== T-Weak-abs-1
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, ~e1) : ~T
+	
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+
+ 	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+
+	//NOT needed!
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+
+	// goal
+	// ~x == ~y
+	// lookup(~x, ~C) == noType
+	// ~C |- abs(~y, ~S1, eabs) : ~T
+	// =========================================== T-Weak-abs-2
+	// bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+	
+	goal
+	~e == abs(~y, ~S1, eabs)
+	~x == ~y
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================================== T-Weak-abs-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-abs, T-inv-inr, T-inv-inr-type, T-inv-inl, T-inv-inl-type, T-inv-var, T-inv-case }
+
+	consts
+		e1app : Exp
+		e2app : Exp
+		
+	axioms
+	lookup(~x, ~C) == noType
+	~C |- e1app : ~T
+	=========================== T-Weak-app-IH1
+	bind(~x, ~S, ~C) |- e1app : ~T
+	
+	lookup(~x, ~C) == noType
+	~C |- e2app : ~T
+	=========================== T-Weak-app-IH2
+	bind(~x, ~S, ~C) |- e2app : ~T
+	
+	
+	// goal
+	// ~e == app(e1app, e2app)
+	// lookup(~x, ~C) == noType
+	// ~C |- app(e1app, e2app) : ~T
+	// ========================================== T-Weak-app
+	// bind(~x, ~S, ~C) |- app(e1app, e2app) : ~T
+	
+	goal
+	~e == app(e1app, e2app)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	========================================== T-Weak-app
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-abs, T-inv-app, T-inv-inr, T-inv-inr-type, T-inv-var, T-inv-case }
+
+	consts
+	    e1 : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- e1 : ~T
+	=========================== T-Weak-inl-IH
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	goal
+	~e == inl(e1, ~T1)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-inl
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-abs, T-inv-app, T-inv-inl, T-inv-inl-type, T-inv-var, T-inv-case }
+	consts
+	    e1 : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- e1 : ~T
+	=========================== T-Weak-inr-IH
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	goal
+	~e == inr(e1, ~T1)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-inr
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-abs, T-inv-app, T-inv-inl, T-inv-inr, T-inv-var, T-inv-inl-type, T-inv-inr-type }
+	consts
+	    e1 : Exp
+	    t1 : Exp
+	    t2 : Exp
+	    
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- e1 : ~T
+	=========================== T-Weak-case-IH1
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- t1 : ~T
+	=========================== T-Weak-case-IH2
+	bind(~x, ~S, ~C) |- t1 : ~T
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- t2 : ~T
+	=========================== T-Weak-case-IH3
+	bind(~x, ~S, ~C) |- t2 : ~T
+    
+    // necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+	
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	!isFreeVar(~y, ~t1)
+	====================================================================== alpha-equiv-subst-case-1
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~x2, ~t2))
+
+	!isFreeVar(~y, ~t2)
+	====================================================================== alpha-equiv-subst-case-2
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~x1, ~t1, ~y, subst(~x2, var(~y), ~t2)))
+	
+	lemma
+	!isFreeVar(~y, ~t1)
+	!isFreeVar(~y, ~t2)
+	=================== alpha-equiv-subst-case-3
+	alphaEquivalent(case(~e, ~x1, ~t1, ~x2, ~t2), case(~e, ~y, subst(~x1, var(~y), ~t1), ~y, subst(~x2, var(~y), ~t2)))
+    
+    
+	// goal
+	// ~x != ~x1
+	// ~x != ~x2
+	// lookup(~x, ~C) == noType
+	// ~C |- case(e1, ~x1, t1, ~x2, t2) : ~T
+	// ================================ T-Weak-case-1
+	// bind(~x, ~S, ~C) |- case(e1, ~x1, t1, ~x2, t2) : ~T
+	
+	goal
+	~e == case(e1, ~x1, t1, ~x2, t2) 
+	~x != ~x1
+	~x != ~x2
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	~x != ~x1
+	~x != ~x2
+	lookup(~x, ~C) == noType
+	~C |- case(~e1, ~x1, ~t1, ~x2, ~t2) : ~T
+	================================ T-Weak-case-1
+	bind(~x, ~S, ~C) |- case(~e1, ~x1, ~t1, ~x2, ~t2) : ~T
+
+	// goal
+	// ~x == ~x1
+	// ~x != ~x2
+	// lookup(~x, ~C) == noType
+	// ~C |- case(e1, ~x1, t1, ~x2, t2) : ~T
+	// ================================ T-Weak-case-2
+	// bind(~x, ~S, ~C) |- case(e1, ~x1, t1, ~x2, t2) : ~T
+	
+	goal
+	~e == case(e1, ~x1, t1, ~x2, t2) 
+	~x == ~x1
+	~x != ~x2
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	// goal
+	// ~x != ~x1
+	// ~x == ~x2
+	// lookup(~x, ~C) == noType
+	// ~C |- case(e1, ~x1, t1, ~x2, t2) : ~T
+	// ================================ T-Weak-case-3
+	// bind(~x, ~S, ~C) |- case(e1, ~x1, t1, ~x2, t2) : ~T
+	
+	goal
+	~e == case(e1, ~x1, t1, ~x2, t2) 
+	~x != ~x1
+	~x == ~x2
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-3
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	// goal
+	// ~x == ~x1
+	// ~x == ~x2
+	// lookup(~x, ~C) == noType
+	// ~C |- case(e1, ~x1, t1, ~x2, t2) : ~T
+	// ================================ T-Weak-case-4
+	// bind(~x, ~S, ~C) |- case(e1, ~x1, t1, ~x2, t2) : ~T
+	
+	goal
+	~e == case(e1, ~x1, t1, ~x2, t2) 
+	~x == ~x1
+	~x == ~x2
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	================================ T-Weak-case-4
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+axiom
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
+
+
+
+//Proof by structural induction, Strenghthening
+local {
+	//hide { T-inv, T-inv-app, T-inv-abs, T-inv-inr, T-inv-inr-type, T-inv-inl, T-inv-inl-type, T-inv-case }
+
+	// goal
+	// !isFreeVar(~x, var(~y))
+	// bind(~x, ~S, ~C) |- var(~y) : ~T
+	// ================================= T-Strong-var
+	// ~C |- var(~y) : ~T
+	
+	goal
+	~e == var(~y)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	================================= T-Strong-var
+	~C |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-app, T-inv-inr, T-inv-inr-type, T-inv-inl, T-inv-inl-type, T-inv-var, T-inv-case }
+
+	const eabs : Exp
+	
+	axiom
+	!isFreeVar(~x, eabs)
+	bind(~x, ~S, ~C) |- eabs : ~T
+	=========================== T-Strong-abs-IH
+	~C |- eabs : ~T
+
+	// goal
+	// !isFreeVar(~x, abs(~y, ~S1, eabs))
+	// bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+	// =========================================== T-Strong-abs
+	// ~C |- abs(~y, ~S1, eabs) : ~T
+	
+	goal
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================================== T-Strong-abs
+	~C |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-abs, T-inv-inr, T-inv-inr-type, T-inv-inl, T-inv-inl-type, T-inv-var, T-inv-case }
+
+	consts
+		e1app : Exp
+		e2app : Exp
+
+	axioms 
+	!isFreeVar(~x, e1app)
+	bind(~x, ~S, ~C) |- e1app : ~T
+	=========================== T-Strong-app-IH1
+	~C |- e1app : ~T
+	
+	!isFreeVar(~x, e2app)
+	bind(~x, ~S, ~C) |- e2app : ~T
+	=========================== T-Strong-app-IH2
+	~C |- e2app : ~T
+	
+	// goal
+	// !isFreeVar(~x, app(e1app, e2app))
+	// bind(~x, ~S, ~C) |- app(e1app, e2app) : ~T
+	// =========================================== T-Strong-app
+	// ~C |- app(e1app, e2app) : ~T
+	
+	goal
+	~e == app(e1app, e2app)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================================== T-Strong-app
+	~C |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-app, T-inv-abs, T-inv-inr, T-inv-inr-type, T-inv-var, T-inv-case }
+
+	consts
+	   e1 : Exp
+	
+	axioms
+	!isFreeVar(~x, e1)
+	bind(~x, ~S, ~C) |- e1 : ~T
+	=========================== T-Strong-inr-inl-IH
+	~C |- e1 : ~T
+	
+	goal
+	~e == inl(e1, ~T1)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-inl
+	~C |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-app, T-inv-abs, T-inv-inl, T-inv-inl-type, T-inv-var, T-inv-case }
+
+	consts
+	   e1 : Exp
+	
+	axioms
+	!isFreeVar(~x, e1)
+	bind(~x, ~S, ~C) |- e1 : ~T
+	=========================== T-Strong-inr-inl-IH
+	~C |- e1 : ~T
+	
+	goal
+	~e == inr(e1, ~T1)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-inr
+	~C |- ~e : ~T
+}
+
+local {
+	//hide { T-inv, T-inv-app, T-inv-abs, T-inv-inr, T-inv-inr-type, T-inv-inl, T-inv-inl-type, T-inv-var }
+
+	consts
+	    e1 : Exp
+	    t1 : Exp
+	    t2 : Exp
+	    
+	axiom
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- e1 : ~T
+	=========================== T-Strong-case-IH1
+	~C |- e1 : ~T
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- t1 : ~T
+	=========================== T-Strong-case-IH2
+	~C |- t1 : ~T
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- t2 : ~T
+	=========================== T-Strong-case-IH3
+	~C |- t2 : ~T
+	
+	goal
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-case
+	~C |- ~e : ~T
+}
+
+axiom
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong
+~C |- ~e : ~T

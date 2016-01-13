@@ -1,0 +1,132 @@
+/* adopted from: https://gist.github.com/ryangray/1882525 */
+
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+html {
+    font-family: 'Open Sans', Calibri, Arial, sans-serif; /* Sans-serif headers */
+    font-size: 11pt;
+}
+
+body {
+    padding: 0 1em 3em 0.8em;
+}
+
+/* ---- Front Matter ---- */
+
+/* Pandoc header DIV. Contains .title, .author and .date. Comes before div#TOC. 
+   Only appears if one of those three are in the document.
+*/
+
+div#header, header {
+    /* Put border on bottom. Separates it from TOC or body that comes after it. */
+    border-bottom: 1px solid #aaa;
+    margin-bottom: 0.5em;
+}
+
+.title /* Pandoc title header (h1.title) */
+    {
+    text-align: center;
+    }
+
+/* ---- Headers and sections ---- */
+
+@import url(https://fonts.googleapis.com/css?family=Titillium+Web:400,300);
+h1, h2, h3, h4, h5, h6 {
+    font-family: Titillium, Calibri, Arial, sans-serif; /* Sans-serif headers */
+    font-weight: 300;
+}
+
+h1 {
+    font-size: 2.2rem;
+}
+h2 {
+    font-size: 1.8rem;
+}
+h3 {
+    font-size: 1.4rem;
+}
+h4 {
+    font-size: 1.2rem
+}
+
+/* Pandoc table of contents DIV when using the --toc option.
+   NOTE: this doesn't support Pandoc's --id-prefix option for #TOC and #header. 
+   Probably would need to use div[id$='TOC'] and div[id$='header'] as selectors.
+*/
+
+#TOC {
+    font-family: Titillium, Calibri, Arial, sans-serif; /* Sans-serif headers */
+    font-weight: 300;
+    font-size: 1.2rem;
+    /* Put border on bottom to separate it from body. */
+    border-bottom: 1px solid #aaa;
+    margin-bottom: 0.5em;
+}
+
+#TOC > ul {
+    padding: 0;
+    list-style: none;
+}
+
+#TOC > ul > :first-child > a {
+    font-size: 1.4rem;
+}
+
+#TOC > ul > li > ul {
+    margin-top: 0.2em;
+}
+
+a, a:hover {
+    text-decoration: none;
+}
+
+/* ---- Images ---- */
+
+img {
+    /* Let it be inline left/right where it wants to be, but verticality make 
+       it in the middle to look nicer, but opinions differ, and if in a multi-line 
+       paragraph, it might not be so great. 
+    */
+    vertical-align: middle;
+    max-width:100%;
+}
+
+div.figure { /* Pandoc figure-style image */
+    /* Center the image and caption */
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    font-style: italic;
+}
+
+p.caption { /* Pandoc figure-style caption within div.figure */
+    /* Inherits div.figure props by default */
+}
+
+/* ---- Code blocks and spans ---- */
+
+@import url(https://fonts.googleapis.com/css?family=Inconsolata);
+pre, code {
+    font-family: Inconsolata, monospace;
+    background-color: #fafafa;
+    font-size: 1em;
+}
+
+pre { /* Code blocks */
+    padding: 0.5em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-left:  0.5em;
+    margin-right: 0.5em;
+}
+
+p > code, li > code {
+    padding: 0.1em 0.3em;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    white-space: pre-wrap;
+}
+
+/* other stuff */
+p + ul {
+    margin-top: -0.7em;
+}

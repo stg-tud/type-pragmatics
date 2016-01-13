@@ -1,0 +1,16 @@
+fof('EQ-empty', axiom, (((vempty=vempty) => $true) & ($true => (vempty=vempty)))).
+fof('EQ-bind', axiom, (![VVar0,VTyp0,VCtx0,VVar1,VTyp1,VCtx1] : (((vbind(VVar0,VTyp0,VCtx0)=vbind(VVar1,VTyp1,VCtx1)) => ((VVar0=VVar1) & ((VTyp0=VTyp1) & (VCtx0=VCtx1)))) & (((VVar0=VVar1) & ((VTyp0=VTyp1) & (VCtx0=VCtx1))) => (vbind(VVar0,VTyp0,VCtx0)=vbind(VVar1,VTyp1,VCtx1)))))).
+fof('EQ-noType', axiom, (((vnoType=vnoType) => $true) & ($true => (vnoType=vnoType)))).
+fof('EQ-someType', axiom, (![VTyp0,VTyp1] : (((vsomeType(VTyp0)=vsomeType(VTyp1)) => (VTyp0=VTyp1)) & ((VTyp0=VTyp1) => (vsomeType(VTyp0)=vsomeType(VTyp1)))))).
+fof('DIFF-empty-bind', axiom, (![VVar0,VTyp0,VCtx0] : (vempty!=vbind(VVar0,VTyp0,VCtx0)))).
+fof('DIFF-noType-someType', axiom, (![VTyp0] : (vnoType!=vsomeType(VTyp0)))).
+fof('isSomeType0', axiom, (![VOptTyp0] : ((VOptTyp0=vnoType) => (~visSomeType(VOptTyp0))))).
+fof('isSomeType1', axiom, (![Ve,VOptTyp0] : ((VOptTyp0=vsomeType(Ve)) => visSomeType(VOptTyp0)))).
+fof('getSomeType0', axiom, (![VOptTyp0,RESULT,Ve] : ((VOptTyp0=vsomeType(Ve)) => ((RESULT=vgetSomeType(VOptTyp0)) => (RESULT=Ve))))).
+fof('lookup0', axiom, (![Vx,VVar0,VCtx0,RESULT] : (((VVar0=Vx) & (VCtx0=vempty)) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vnoType))))).
+fof('lookup1', axiom, (![VC,Vx,Vy,VVar0,VCtx0,RESULT,VTy] : (((VVar0=Vx) & (VCtx0=vbind(Vy,VTy,VC))) => ((Vx=Vy) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vsomeType(VTy))))))).
+fof('lookup2', axiom, (![VTy,Vy,VVar0,VCtx0,RESULT,Vx,VC] : (((VVar0=Vx) & (VCtx0=vbind(Vy,VTy,VC))) => ((~(Vx=Vy)) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vlookup(Vx,VC))))))).
+fof('lookup-INV', axiom, (![VVar0,VCtx0,RESULT] : ((lookup(VVar0,VCtx0)=RESULT) => ((?[Vx] : ((VVar0=Vx) & ((VCtx0=vempty) & (RESULT=vnoType)))) | ((?[VC,Vx,Vy,VTy] : ((VVar0=Vx) & ((VCtx0=vbind(Vy,VTy,VC)) & ((Vx=Vy) & (RESULT=vsomeType(VTy)))))) | (?[VTy,Vy,Vx,VC] : ((VVar0=Vx) & ((VCtx0=vbind(Vy,VTy,VC)) & ((~(Vx=Vy)) & (RESULT=vlookup(Vx,VC))))))))))).
+fof('T-Context-Duplicate', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vx,VTx,VC),Ve,VT)))).
+fof('T-Context-Swap', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx!=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vy,VTy,vbind(Vx,VTx,VC)),Ve,VT)))).
+fof('FALSE', conjecture, $false).

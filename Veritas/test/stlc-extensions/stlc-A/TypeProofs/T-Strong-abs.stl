@@ -1,0 +1,23 @@
+module stlca.TypeProofs.TStrongabs
+
+import stlca.TypeBase
+import stlca.Context
+import stlca.Syntax
+
+// proof only possible in own file without additional axioms
+local {
+	const eabs : Exp
+	
+	axiom
+	!isFreeVar(~x, eabs)
+	bind(~x, ~S, ~C) |- eabs : ~T
+	=========================== T-Strong-abs-IH
+	~C |- eabs : ~T
+
+	goal
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-abs
+	~C |- ~e : ~T
+}

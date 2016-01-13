@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.backend.veritas
+package de.tu_darmstadt.veritas.backend.veritas.function
 
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
@@ -6,6 +6,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
+import de.tu_darmstadt.veritas.backend.veritas._
 
 case class FunctionSig(name: String, in: Seq[SortRef], out: SortRef) extends VeritasConstruct with PrettyPrintable {
   override val children = Seq(in, Seq(out))
@@ -31,6 +32,8 @@ case class FunctionSig(name: String, in: Seq[SortRef], out: SortRef) extends Ver
     if (!in.isEmpty) writer.write("-> ")
     writer.write(out)
   }
+  
+  override def toString() = s"${name} : ${in.mkString(" ")} -> ${out}"
 }
 
 object FunctionSig {

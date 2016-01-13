@@ -4,19 +4,17 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
-import de.tu_darmstadt.veritas.backend.stratego.StrategoInt
-import de.tu_darmstadt.veritas.backend.nameresolution.nabl.VeritasModuleUri
-import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
+import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 
 /**
  * The top-level structure of any Veritas file
  */
-case class Module(name: String, imports: Seq[Import], body: Seq[ModuleDef]) extends VeritasConstruct with PrettyPrintableFile {
-  override val children = Seq(imports, body)
+case class Module(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) extends ModuleDefHolder with VeritasConstruct with PrettyPrintableFile {
+  override val children = Seq(imports, defs)
 
   def fold(name: String => String, imports: Seq[Import] => Seq[Import], body: Seq[ModuleDef] => Seq[ModuleDef]) =
-    Module(name(this.name), imports(this.imports), body(this.body))
+    Module(name(this.name), imports(this.imports), body(this.defs))
   
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
     if (newchildren.length != 2)
@@ -42,10 +40,10 @@ case class Module(name: String, imports: Seq[Import], body: Seq[ModuleDef]) exte
 
     imports foreach (writer.writeln(_))
 
-    if (!imports.isEmpty && !body.isEmpty) writer.writeln()
+    if (!imports.isEmpty && !defs.isEmpty) writer.writeln()
 
-    body.dropRight(1) foreach (writer.writeln(_).writeln())
-    body.lastOption foreach (writer.writeln(_))
+    defs.dropRight(1) foreach (writer.writeln(_).writeln())
+    defs.lastOption foreach (writer.writeln(_))
   }
 }
 

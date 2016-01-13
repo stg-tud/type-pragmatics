@@ -1,13 +1,17 @@
 package de.tu_darmstadt.veritas.backend
 
+import java.io.File
+import java.io.FileOutputStream
 import java.io.PrintWriter
+
 import scala.collection.JavaConverters.seqAsJavaListConverter
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import scala.util.control.NonFatal
+
 import org.spoofax.interpreter.terms.IStrategoList
 import org.spoofax.interpreter.terms.IStrategoTerm
-import de.tu_darmstadt.veritas.backend.nameresolution.NameResolution
+import org.spoofax.interpreter.terms.IStrategoTuple
+
+import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTuple
@@ -18,38 +22,94 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpApp
-import de.tu_darmstadt.veritas.backend.transformation.ToFof
-import de.tu_darmstadt.veritas.backend.transformation.ToTff
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel.DesugarLemmas
 
 object Backend {
-  
+
+  val fullVariability = FullVariability
+  val noGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.BareFOF, FinalEncoding.TFF)))
+  val onlyGuardedFOF = PartialVariability(Map(FinalEncoding -> Seq(FinalEncoding.GuardedFOF)))
+
+  val singleTransformation = PartialVariability(
+    Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
+      (Problem -> Seq(Problem.Test)),
+      (InversionLemma -> Seq(InversionLemma.On)),
+      (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
+      (LogicalSimplification -> Seq(LogicalSimplification.On))))
+
+  val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.InlineEverything, InversionLemma -> InversionLemma.On, Problem -> Problem.Consistency))
+  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.NameParamsAndResults, InversionLemma -> InversionLemma.Off, Problem -> Problem.Consistency))
+
+  /**
+   * This variability model is used by the code below
+   */
+  val variabilityModel = fullVariability //runs about 20 minutes
+
+  private var inputDirectory: String = "" //directory of input file
+
+  private def writeFile(file: PrettyPrintableFile, outputfolder: String): String = {
+    val pathname = s"$inputDirectory/$outputfolder/${file.filename}"
+    val filehandler = new File(pathname)
+    Context.log(s"Writing file to ${filehandler.getAbsolutePath}...")
+    if (!filehandler.getParentFile.exists())
+      filehandler.getParentFile.mkdirs()
+    filehandler.createNewFile()
+    val bw = new FileOutputStream(filehandler);
+    try {
+      bw.write(file.toPrettyString().getBytes())
+    } finally {
+      bw.close()
+    }
+
+    pathname
+  }
+
+  /**
+   * processes results of a single encoding alternative for a given Stratego file, writes result files
+   */
   @throws[BackendError[_]]("and the appropriate subclasses on internal error at any stage")
-  private def run(input: StrategoTerm): Seq[PrettyPrintableFile] = {
-    val mod = Module.from(input)
+  private def processSingleResult(config: Configuration, outputFiles: Seq[PrettyPrintableFile]): Seq[(String, PrettyPrintableFile)] = {
+    Context.log(s"Finished generation for configuration $config\n")
 
-//    debug("Imported modules:")
-//    val res = for {
-//      imp <- mod.imports
-//      resolved <- NameResolution.getModuleDef(imp)
-//    } {
-//      debug(resolved)
-//      resolved
-//    }
+    val problem = config(Problem).toString().toLowerCase
+    val typing = config(FinalEncoding).toString().toLowerCase
+    val variable = config(VariableEncoding).toString().toLowerCase
+    val simpl = config(LogicalSimplification).toString().toLowerCase
+    val inv = config(InversionLemma).toString().toLowerCase
 
-//    Seq()
-    
-//    ToFof.toFofFiles(mod)
+    val outputFolder = s"$problem/$typing/$variable-$simpl-$inv"
 
-//    Seq(PrettyPrintableFile("debug.out", "just a test"))
+    //write the files in the corresponding directory
+    //is it necessary to use the Stratego context when backend is called as a strategy
+    //when writing the files...?
+    outputFiles map { file =>
+      val pathname = writeFile(file, outputFolder)
+      (pathname, file)
+    }
+  }
 
-    // NOTE without the "Out", calling the Strategy from Spoofax fails, because it would overwrite
-    // the original file!
-    //Seq(Module(mod.name + "Out", mod.imports, mod.body))
-    val transformedModule = DesugarLemmas(VarToApp0(Seq(mod)))
-    Seq(ToFof.toFofFile(transformedModule(0)), ToTff.toTffFile(transformedModule(0)))
+  /**
+   * run all encoding alternatives for a single given Stratego file
+   * returns pairs of directory name of a file and the actual prettyPrintableFile
+   */
+  private def runAllEncodings(input: StrategoTerm): Seq[(String, PrettyPrintableFile)] = {
+    val module = Module.from(input)
+    val comparison = new EncodingComparison(variabilityModel, module)
+
+    var result: Seq[(String, PrettyPrintableFile)] = Seq()
+    val it = comparison.iterator
+    while (it.hasNext) {
+      val (config, files) = try {
+        it.next()
+      } catch {
+        case NonFatal(e) =>
+          Context.log(s"FAILED: Generation for configuration ${comparison.lastConfig}:")
+          Context.reportException(e.asInstanceOf[Exception])
+          (comparison.lastConfig, Seq())
+      }
+      result = result ++ processSingleResult(config, files)
+    }
+
+    result
   }
 
   /**
@@ -57,63 +117,114 @@ object Backend {
    */
   def runAsStrategy(context: org.strategoxt.lang.Context, inputFromEditor: IStrategoTerm): IStrategoList = {
     // check and destructure input
-    val (inputDirectory, ast) = StrategoTerm(inputFromEditor) match {
-      case StrategoTuple(StrategoString(inputDirectory), ast) => (inputDirectory, ast)
-      case _ => throw new IllegalArgumentException("Illegal input to backend-strategy: " + 
-                "Argument must be a tuple: (input file directory, AST of file as Stratego term)")
+    val (projectPath, inputDir, ast) = StrategoTerm(inputFromEditor) match {
+      case StrategoTuple(StrategoString(projectPath), StrategoString(inputDir), ast) => (projectPath, inputDir, ast)
+      case _ => throw new IllegalArgumentException("Illegal input to backend-strategy: " +
+        "Argument must be a triple: (project path (Veritas), input file directory, AST of file as Stratego term)")
     }
-    
-    Context.initStrategy(context)
-    
-    // NOTE we need to capture exceptions with Try, so we can print the full stack trace below
-    // (otherwise Stratego will silence the stack trace...)
-    val backendResult = Try(run(ast))
-    
-    backendResult match {
-      case Failure(ex) => {
-        context.getIOAgent.printError(stacktraceToString(ex))
-        // return empty list on failure
-        context.getFactory.makeList()
-      }
-      
-      case Success(outputFiles) => {
-        val scalaSeq = for {
-          outputFile <- outputFiles
-          // map files to IStrategoTuples with (filename, contents)
-          filename = context.getFactory.makeString(inputDirectory + "/" + outputFile.filename)
-          content = context.getFactory.makeString(outputFile.toPrettyString)
-        } yield context.getFactory.makeTuple(filename, content)
-        // convert Scala Seq to Spoofax IStrategoList
-        context.getFactory.makeList(scalaSeq.asJava)
-      }
-    }
-  }
 
+    inputDirectory = s"$projectPath/$inputDir"
+
+    Context.initStrategy(context)
+
+    val resultFiles = runAllEncodings(ast) //writes files
+
+    // generate return value that is expected by caller of runAsStrategy
+    var resseq: Seq[IStrategoTuple] = Seq()
+
+    for ((fullname, file) <- resultFiles) {
+      val strategoFilename = context.getFactory.makeString(fullname)
+      val strategoContent = context.getFactory.makeString(file.toPrettyString)
+      val strategoTuple = context.getFactory.makeTuple(strategoFilename, strategoContent)
+      resseq = resseq :+ strategoTuple
+    }
+
+    if (resseq.isEmpty)
+      // return empty list on failure
+      context.getFactory.makeList()
+    else
+      context.getFactory.makeList(resseq.asJava)
+  }
+  
+  /**
+   * function for debugging:
+   * 
+   * apply a single partial transformation chain on a module, without writing files
+   * for debugging intermediate steps
+   * 
+   * customize conf and CustomPartialChain below for debugging
+   */
+  def debugTransformation(aterm: StrategoTerm): Seq[(String, PrettyPrintableFile)] = {
+    
+    import de.tu_darmstadt.veritas.backend.transformation._
+    import de.tu_darmstadt.veritas.backend.transformation.defs._
+    import de.tu_darmstadt.veritas.backend.transformation.imports._
+    import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
+
+    val conf = Configuration(Map(
+      FinalEncoding -> FinalEncoding.TFF,
+      LogicalSimplification -> LogicalSimplification.On,
+      VariableEncoding -> VariableEncoding.InlineEverything,
+      InversionLemma -> InversionLemma.On,
+      Problem -> Problem.Test))
+      
+    val modules = Seq(Module.from(aterm))
+
+    object CustomPartialChain extends SeqTrans(
+      // desugar Veritas constructs
+      BasicTrans,
+      // determines whether and which inversion axioms are generated for functions/typing rules
+      Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
+      // variable inlining/extraction
+      VariableTrans ,
+      // insert type guards for quantified metavariables
+      //Optional(InsertTypeGuardsForMetavars, ifConfig(FinalEncoding, FinalEncoding.GuardedFOF)),
+      // determines whether logical optimizations take place prior to fof/tff encoding
+      Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
+      // select problem
+      ProblemTrans
+      )
+
+    val transformationChain = { sm: Seq[Module] => CustomPartialChain(sm)(conf) }
+    val resultingModSeq = transformationChain(modules)
+    resultingModSeq map {m => ("", m)}
+  }
 
   /**
    * Run backend as console application, with optional arguments for giving the ATerm and Index/Tasks
    */
-  val DefaultATerm = "test/TableAux.noimports.aterm"
-  val DefaultIndexAndTaskenginePath = "test/"
-  
+  val DefaultATerm = "test/Semantics-test.analyzed.aterm"
+  val DefaultIndexAndTaskenginePath = "../Veritas/"
+
   def main(args: Array[String]) {
     val (aterm, indexAndTaskenginePath) = args match {
-      case Array() => (StrategoTerm.fromATermFile(DefaultATerm), DefaultIndexAndTaskenginePath)
-      case Array(atermFilename) => (StrategoTerm.fromATermFile(atermFilename), DefaultIndexAndTaskenginePath)
-      case Array(atermFilename, indexAndTaskenginePath) 
-        => (StrategoTerm.fromATermFile(atermFilename), indexAndTaskenginePath)
+      case Array()                                      => (StrategoTerm.fromATermFile(DefaultATerm), DefaultIndexAndTaskenginePath)
+      case Array(atermFilename)                         => (StrategoTerm.fromATermFile(atermFilename), DefaultIndexAndTaskenginePath)
+      case Array(atermFilename, indexAndTaskenginePath) => (StrategoTerm.fromATermFile(atermFilename), indexAndTaskenginePath)
     }
-    
+
+    //set default directory for output files
+    inputDirectory = "test"
+
     Context.initStandalone(indexAndTaskenginePath)
+
+    //use line below for debugging single partial transformation chains
+    val resultFiles = debugTransformation(aterm) 
     
-    // call the strategy on the IStrategoTerm
+    //val resultFiles = runAllEncodings(aterm) //writes files
+
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-    for (outputFiles <- run(aterm)) {
-      // print a filename header, then the contents
-      outputPrettyPrinter.write("File '", outputFiles.filename, "':")
-      outputPrettyPrinter.indent().write(outputFiles).unindent()
-      outputPrettyPrinter.writeln()
-    }
-    outputPrettyPrinter.flush()
+    outputPrettyPrinter.writeln()
+    outputPrettyPrinter.writeln("Finished all generation")
+
+    // write resulting files on console in addition
+    if (resultFiles.size < 100)
+      for ((fullname, outputFiles) <- resultFiles) {
+        // print a filename header, then the contents
+        outputPrettyPrinter.write("File '", outputFiles.filename, "':")
+        outputPrettyPrinter.indent().write(outputFiles).unindent()
+        outputPrettyPrinter.writeln()
+      }
+    outputPrettyPrinter.close()
   }
 }

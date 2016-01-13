@@ -1,0 +1,357 @@
+module sql.Semantics-test
+
+import sql.Semantics
+import sql.Tables
+import sql.TableAux
+import sql.Syntax
+import sql.TStore
+
+local {
+	constructors 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	constructors
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+
+	goal
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~t == table(~al, ~rt)
+	~ts == bindStore(TN, ~t, emptyStore)
+	~q == SelectAllFrom(Ref(TN))
+	========================================================== test-Selectallfrom
+	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~t), ~ts))
+}
+
+local {
+	constructors 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	constructors
+		A1 : AName
+		A2 : AName
+		A3 : AName
+
+	goal
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), tempty)
+	~t == table(~al, ~rt)
+	~tresult == tcons(rcons(x1, rempty), tempty)
+	=================================================================================== test-projection0
+	project(acons(A1, aempty), ~t) == someRawTable(~tresult)
+}
+
+local {
+	constructors 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	constructors
+		A1 : AName
+		A2 : AName
+		A3 : AName
+
+	goal
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == tcons(rcons(x1, rempty), tcons(rcons(x2, rempty), tempty))
+	=================================================================================== test-projection1
+	project(acons(A1, aempty), ~t) == someRawTable(~tresult)
+}
+
+local {
+	constructors 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	constructors
+		A1 : AName
+		A2 : AName
+		A3 : AName
+
+	goal
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), tempty)
+	~t == table(~al, ~rt)
+	~tresult == tcons(rcons(y2, rempty), tempty)
+	=================================================================================== test-projection2
+	project(acons(A2, aempty), ~t) == someRawTable(~tresult)
+}
+
+
+
+local {
+	constructors 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	constructors
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName	
+
+	axiom
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == tcons(rcons(x1, rempty), tcons(rcons(x2, rempty), tempty))
+	=================================================================================== test-projection1
+	project(acons(A1, aempty), ~t) == someRawTable(~tresult)
+
+	goal
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~t == table(~al, ~rt)
+	~ts == bindStore(TN, ~t, emptyStore)
+	~q == SelectSomeFrom(acons(A1, aempty), Ref(TN))
+	~tresult == table(acons(A1, aempty), tcons(rcons(x1, rempty), tcons(rcons(x2, rempty), tempty)))
+	================================================================================================== test-Selectsomefrom
+	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~tresult), ~ts))
+}
+
+
+local {
+	constructors 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	constructors
+		A1 : AName
+		A2 : AName
+		A3 : AName
+
+	goal
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == tcons(rcons(y2, rempty), tcons(rcons(y1, rempty), tempty))
+	=================================================================================== test-projection2-1
+	project(acons(A2, aempty), ~t) == someRawTable(~tresult)
+}
+
+local {
+	constructors
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	constructors
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+
+	goal
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt ==	tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+			tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == tcons(rcons(y2, rcons(x1, rempty)), tcons(rcons(y1, rcons(x2, rempty)), tempty))
+	============================================================================================= test-projection3
+	project(acons(A2, acons(A1, aempty)), ~t) == someRawTable(~tresult)
+}
+
+local {
+	constructors 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	constructors
+		TN : TName
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	axiom
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~t == table(~al, ~rt)
+	~tresult == tcons(rcons(y2, rcons(x1, rempty)), tcons(rcons(y1, rcons(x2, rempty)), tempty))
+	============================================================================================= test-projection3
+	project(acons(A2, acons(A1, aempty)), ~t) == someRawTable(~tresult)
+
+	goal
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~t == table(~al, ~rt)
+	~ts == bindStore(TN, ~t, emptyStore)
+	~q == SelectSomeFrom(acons(A2, acons(A1, aempty)), Ref(TN))
+	~tresult == table(acons(A2, acons(A1, aempty)), 
+		tcons(rcons(y2, rcons(x1, rempty)), tcons(rcons(y1, rcons(x2, rempty)), tempty)))
+	======================================================================================= test-Selectsomefrom-2
+	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~tresult), ~ts))
+}
+
+
+// local {
+// 	constructors 
+// 		x1 : FVal
+// 		x2 : FVal
+// 		y1 : FVal
+// 		y2 : FVal
+// 		z1 : FVal
+// 		z2 : FVal
+// 		
+// 	constructors
+// 		TN : TName
+// 		A1 : AName
+// 		A2 : AName
+// 		A3 : AName
+// 
+// 
+// 	lemma
+// 	~al == acons(A1, acons(A2, acons(A3, aempty)))
+// 	~r == rcons(x1, rcons(y2, rcons(z2, rempty)))
+// 	=============================================================================== singleRow-aux1
+// 	singleRowSelect(~al, VEquals(A1, x1), ~r) == isTrue
+// 	
+// 	lemma
+// 	~al == acons(A1, acons(A2, acons(A3, aempty)))
+// 	~r == rcons(x2, rcons(y1, rcons(z1, rempty)))
+// 	=============================================================================== singleRow-aux2
+// 	singleRowSelect(~al, VEquals(A1, x1), ~r) == isFalse
+// 	
+// 
+// 	goal
+// 	~al == acons(A1, acons(A2, acons(A3, aempty)))
+// 	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+// 	~t == table(~al, ~rt)
+// 	~tresult == table(~al, tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), tempty))
+// 	=================================================================================== test-selection1
+// 	select(~t, VEquals(A1, x1)) == someTable(~tresult)
+// }
+
+
+// local {
+// 	constructors 
+// 		x1 : FVal
+// 		x2 : FVal
+// 		y1 : FVal
+// 		y2 : FVal
+// 		z1 : FVal
+// 		z2 : FVal
+// 		
+// 	constructors
+// 		TN : TName
+// 		A1 : AName
+// 		A2 : AName
+// 		A3 : AName
+// 	
+// 	lemma
+// 	~rt1 == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+// 	~rt2 == tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))
+// 	~rtresult == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))))
+// 	===================================================== rawUnion-aux
+// 	rawUnion(~rt1, ~rt2) == ~rtresult
+// 	
+// 	goal
+// 	~al == acons(A1, acons(A2, acons(A3, aempty)))
+// 	~rt1 == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+// 	~rt2 == tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))
+// 	~rtresult == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))))
+// 	~t1 == table(~al, ~rt1)
+// 	~t2 == table(~al, ~rt2)
+// 	~ts == bindStore(TN, ~t, emptyStore)
+// 	~q == Union(Tvalue(~t1), Tvalue(~t2))
+// 	~t == table(~al, ~rtresult)
+// 	============================================================================== test-union1
+// 	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~t), ~ts))
+// }
+
+
+// local {
+// 	constructors 
+// 		x1 : FVal
+// 		x2 : FVal
+// 		y1 : FVal
+// 		y2 : FVal
+// 		z1 : FVal
+// 		z2 : FVal
+// 		
+// 	constructors
+// 		TN : TName
+// 		A1 : AName
+// 		A2 : AName
+// 		A3 : AName
+// 
+// 	
+// 	axiom
+// 	~rt1 == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+// 	~rt2 == tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))
+// 	===================================================== rawIntersection-aux
+// 	rawIntersection(~rt1, ~rt2) == tempty
+// 	
+// 	goal
+// 	~al == acons(A1, acons(A2, acons(A3, aempty)))
+// 	~rt1 == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+// 	~rt2 == tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), 
+// 		tcons(rcons(x2, rcons(y1, rcons(z2, rempty))), tempty))
+// 	~t1 == table(~al, ~rt1)
+// 	~t2 == table(~al, ~rt2)
+// 	~ts == bindStore(TN, ~t, emptyStore)
+// 	~q == Intersection(Tvalue(~t1), Tvalue(~t2))
+// 	~t == table(~al, tempty)
+// 	============================================================================== test-intersection1
+// 	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~t), ~ts))
+// }
+
+

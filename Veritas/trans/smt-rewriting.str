@@ -60,7 +60,7 @@ rules
 			cs-diff-asserts := <map(formula-to-assert)> cs-diff-formulas;
 			cons2 := <conc> (cons, cs);
 			others := <generate-smt-goals(|cons2)> rest
-	generate-smt-goals(|cons) : [Consts(cs) | rest] -> <conc> (cs-decls, cs-defines, cs-asserts, others)
+	generate-smt-goals(|cons) : [Consts(_,cs) | rest] -> <conc> (cs-decls, cs-defines, cs-asserts, others)
 		where
 			cs-decls := <map(constructor-to-fun-decl)> cs;
 			cs-formulas := <map(scoped-constructor-axiom)> cs;

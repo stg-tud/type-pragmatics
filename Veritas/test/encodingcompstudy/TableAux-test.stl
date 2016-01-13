@@ -1,0 +1,426 @@
+module encodingcompstudy.TableAux-test
+
+import encodingcompstudy.Tables
+import encodingcompstudy.TableAux
+
+
+//some tests of the raw table functions
+goal
+~rt = tcons(rcons(~x1, rcons(~y2, rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), 
+	tcons(rcons(~x1, rcons(~y1, rcons(~z1, rempty))),
+	tcons(rcons(~x1, rcons(~y2, rcons(~z1, rempty))),
+	tcons(rcons(~x2, rcons(~y2, rcons(~z2, rempty))), tempty))))))
+~r = rcons(~x1, rcons(~y2, rcons(~z1, rempty)))
+========================================================== test-rowIn
+rowIn(~r, ~rt)
+
+local {
+	different consts
+		x1 : FVal
+		x2 : FVal
+	
+	goal 
+	~rt == tcons(rcons(x1, rcons(x2, rempty)), tempty)
+	~r == rcons(x1, rcons(x1, rempty))
+	========================================= test-notrowIn0
+	!rowIn(~r, ~rt)
+	
+}
+
+local {
+	
+	different consts
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+
+	goal
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	~r == rcons(x1, rcons(y2, rcons(z1, rempty)))
+	========================================================== test-notrowIn1
+	!rowIn(~r, ~rt)
+}
+
+
+local {
+	
+	different consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+
+	goal
+	~rt == tcons(rcons(x1, rcons(y2,  rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
+		tcons(rcons(x2, rcons(y2, rcons(z1, rempty))), 
+		tcons(rcons(x1, rcons(y1, rcons(z1, rempty))),
+		tcons(rcons(x2, rcons(y2, rcons(z2, rempty))), tempty)))))
+	~r == rcons(x1, rcons(y2, rcons(z1, rempty)))
+	========================================================== test-notrowIn2
+	!rowIn(~r, ~rt)
+}
+
+
+goal
+~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), 
+	tcons(rcons(~x1, rcons(~y1, rcons(~z1, rempty))),
+	tcons(rcons(~x1, rcons(~y2, rcons(~z1, rempty))),
+	tcons(rcons(~x2, rcons(~y2, rcons(~z2, rempty))), tempty))))))
+~prt = tcons( rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x1, rempty),
+	tcons(rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty), tempty))))))
+========================================================== test-projectFirstRaw
+projectFirstRaw(~rt) == ~prt
+
+goal
+~prt = tcons( rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x1, rempty),
+	tcons(rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty), tempty))))))
+==================================== test-projectFirstRaw1
+projectFirstRaw(~prt) == ~prt
+
+goal
+~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), 
+	tcons(rcons(~x1, rcons(~y1, rcons(~z1, rempty))),
+	tcons(rcons(~x1, rcons(~y2, rcons(~z1, rempty))),
+	tcons(rcons(~x2, rcons(~y2, rcons(~z2, rempty))), tempty))))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z2, rempty)), tempty))))))
+========================================================== test-dropFirstColRaw
+dropFirstColRaw(~rt) == ~drt
+
+goal
+~prt = tcons(rcons(~x1, rempty), tempty)
+~drt = tcons(rcons(~x2, rempty), tempty)
+~rt = tcons(rcons(~x1, rcons(~x2, rempty)), tempty)
+==================================================== test-attachColToFrontRaw0
+attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
+
+local {
+	different consts
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	axiom
+	~prt = tcons(rcons(x1, rempty), tempty)
+	~drt = tcons(rcons(x2, rempty), tempty)
+	~rt = tcons(rcons(x1, rcons(x2, rempty)), tempty)
+	==================================================== test-attachColToFrontRaw0
+	attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
+
+	goal 100
+	~prt = tcons(rcons(x1, rempty), tcons(rcons(x1, rempty), tempty))
+	~drt = tcons(rcons(x2, rempty), tcons(rcons(x2, rempty), tempty))
+	~rt = tcons(rcons(x1, rcons(x2, rempty)), tcons(rcons(x1, rcons(x2, rempty)), tempty))
+	========================================================================== test-attachColToFrontRaw0-1
+	attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
+}
+
+local {
+	different consts
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	goal
+	~prt = tcons(rcons(x1, rempty),
+		tcons(rcons(x2, rempty), tempty))
+	~drt = tcons(rcons(y2,  rcons(z2, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty))
+	~rt = tcons(rcons(x1, rcons(y2,   rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	============================================================== test-attachColToFrontRaw1
+	attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
+		
+}
+
+
+goal
+~prt = tcons( rcons(~x1, rempty),
+	tcons(rcons(~x2, rempty),
+	tcons(rcons(~x2, rempty), tempty)))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)), tempty)))
+~rt = tcons(rcons(~x1, rcons(~y2,   rcons(~z2, rempty))), 
+	tcons(rcons(~x2, rcons(~y1, rcons(~z1, rempty))), 
+	tcons(rcons(~x2, rcons(~y2, rcons(~z1, rempty))), tempty)))
+========================================================== test-attachColToFrontRaw3
+attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
+
+local {
+	different consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	goal
+	~prt = tcons(rcons(x1, rempty),
+		tcons(rcons(x2, rempty),
+		tcons(rcons(x2, rempty),
+		tcons(rcons(x1, rempty), tempty))))
+	~drt = tcons(rcons(y2,  rcons(z2, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty))))
+	~rt = tcons(rcons(x1, rcons(y2,   rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), 
+		tcons(rcons(x2, rcons(y2, rcons(z1, rempty))), 
+		tcons(rcons(x1, rcons(y1, rcons(z1, rempty))), tempty))))
+	=================================================================== test-attachColToFrontRaw4
+	attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
+}
+
+
+goal
+~prt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~rt = tcons(rcons(~y2,   rcons(~z2, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), 
+	tcons(rcons(~y2, rcons(~z1, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+========================================================== test-rawUnion1
+rawUnion(~prt, ~drt) == ~rt
+
+goal
+~prt = tcons(rcons(~y2, rcons(~z2, rempty)), tempty)
+~drt = tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty)))
+~rt = tcons(rcons(~y2, rcons(~z2, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), 
+	tcons(rcons(~y2, rcons(~z1, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~z1 != ~z2
+~z1 != ~y1
+~z1 != ~y2
+~y1 != ~y2
+========================================================== test-rawUnion2-1
+rawUnion(~prt, ~drt) == ~rt
+
+local {
+	different consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	goal 85
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	~rt = tcons(rcons(y2,   rcons(z2, rempty)), 
+		tcons(rcons(y1, rcons(z1, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), 
+		tcons(rcons(y1, rcons(z1, rempty)), tempty))))
+	========================================================== test-rawUnion2-2
+	rawUnion(~prt, ~drt) == ~rt
+}
+
+goal
+~prt = tcons(rcons(~y2, rcons(~z2, rempty)), 
+	tcons(rcons(~y2, rcons(~z1, rempty)), tempty))
+~drt = tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty)))
+~rt = tcons(rcons(~y2, rcons(~z2, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), 
+	tcons(rcons(~y2, rcons(~z1, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~z1 != ~z2
+~z1 != ~y1
+~z1 != ~y2
+~y1 != ~y2
+========================================================== test-rawUnion3-1
+rawUnion(~prt, ~drt) == ~rt
+
+local {
+	
+	different consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+	
+	goal 1
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), tempty))
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	~rt = tcons(rcons(y2,   rcons(z2, rempty)), 
+		tcons(rcons(y1, rcons(z1, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), 
+		tcons(rcons(y1, rcons(z1, rempty)), tempty))))
+	========================================================== test-rawUnion3-2
+	rawUnion(~prt, ~drt) == ~rt
+}
+
+goal
+~prt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~rt = tcons(rcons(~y2,   rcons(~z2, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), 
+	tcons(rcons(~y2, rcons(~z1, rempty)), 
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+========================================================== test-rawIntersection1
+rawIntersection(~prt, ~drt) == ~rt
+
+goal
+~prt = tcons(rcons(~y2, rcons(~z2, rempty)), tempty)
+~drt = tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty)))
+~z1 != ~z2
+~z1 != ~y1
+~z1 != ~y2
+~y1 != ~y2
+========================================================== test-rawIntersection2-1
+rawIntersection(~prt, ~drt) == tempty
+
+local {
+	
+	different consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	goal 86
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	========================================================== test-rawIntersection2-2
+	rawIntersection(~prt, ~drt) == tempty
+}
+
+goal
+~prt = tcons(rcons(~y2, rcons(~z2, rempty)), 
+	tcons(rcons(~y2, rcons(~z1, rempty)), tempty))
+~drt = tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty)))
+~rt = tcons(rcons(~y2, rcons(~z1, rempty)), tempty)
+~z1 != ~z2
+~z1 != ~y1
+~z1 != ~y2
+~y1 != ~y2
+========================================================== test-rawIntersection3-1
+rawIntersection(~prt, ~drt) == ~rt
+
+
+local {
+	
+	different consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+
+	goal 85
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), tempty))
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	~rt = tcons(rcons(y2,   rcons(z1, rempty)), tempty)
+	========================================================== test-rawIntersection3-2
+	rawIntersection(~prt, ~drt) == ~rt
+}
+
+goal
+~prt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+~drt = tcons(rcons(~y2,  rcons(~z2, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)),
+	tcons(rcons(~y2, rcons(~z1, rempty)),
+	tcons(rcons(~y1, rcons(~z1, rempty)), tempty))))
+========================================================== test-rawDifference1
+rawDifference(~prt, ~drt) == tempty
+
+local {
+	
+	different consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+		
+	goal 85
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	========================================================== test-rawDifference2
+	rawDifference(~prt, ~drt) == ~prt
+}
+
+
+local {
+	
+	different consts 
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+
+	goal 1
+	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
+		tcons(rcons(y2, rcons(z1, rempty)), tempty))
+	~drt = tcons(rcons(y1,  rcons(z1, rempty)),
+		tcons(rcons(y2, rcons(z1, rempty)),
+		tcons(rcons(y1, rcons(z1, rempty)), tempty)))
+	~rt = tcons(rcons(y2,   rcons(z2, rempty)), tempty)
+	========================================================== test-rawDifference3
+	rawDifference(~prt, ~drt) == ~rt
+}
+

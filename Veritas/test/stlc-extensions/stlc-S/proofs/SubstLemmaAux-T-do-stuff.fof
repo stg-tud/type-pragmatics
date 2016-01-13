@@ -1,0 +1,4 @@
+
+fof('T-use-gensym', axiom, (![Vy,Ve,Vt1,Vx] : ((vp(Ve) & (vp(Vt1) & vp(Vy))) => (?[Vy] : ((~visFreeVar(Vy,Ve)) & ((~visFreeVar(Vy,Vt1)) & (Vx!=Vy))))))).
+fof('T-use-alpha-equiv', axiom, (![Vt1,Vx,Ve,Vy] : ((vp(Ve) & (vp(Vt1) & (vp(Vy) & ((~visFreeVar(Vy,Ve)) & ((~visFreeVar(Vy,Vt1)) & (Vx!=Vy)))))) => valphaEquivalent(Ve,Vy)))).
+fof('T-do-stuff', conjecture, (![Vt1,Ve,Vy] : ((vp(Ve) & (vp(Vt1) & vp(Vy))) => valphaEquivalent(Ve,Vy)))).

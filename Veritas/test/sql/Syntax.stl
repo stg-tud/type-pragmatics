@@ -5,53 +5,35 @@ import sql.TStore
 
 sorts
 	Pred Query TRef
-	
+
+
+//predicates for where clauses of queries	
 // constructors
-// 	VEquals : AName FVar -> SQLPred
-// 	//AEquals : AName AName -> SQLPred
-// 	VGreater : AName FVar -> SQLPred
-// 	//AGreater : AName AName -> SQLPred
-// 	VSmaller : AName FVar -> SQLPred
-// 	//ASmaller : AName AName -> SQLPred
+// 	VEquals : AName FVal -> Pred
+// 	VGreater : AName FVal -> Pred
+// 	VSmaller : AName FVal -> Pred
 	
 	
+//query syntax
 constructors
 	Ref : TName -> TRef
 	
 	Tvalue : Table -> Query
-	Selectallfrom : TRef -> Query
-	Selectsomefrom : AList TRef -> Query
-	//SelectFrom2 : TType TName TName -> SQLExp
-	//SelectAllFromWhere1 : TName SQLPred -> SQLExp
-	//SelectFromWhere1 : TType TName SQLPred -> SQLExp
-	//SelectFromWhere2 : TType TName TName SQLPred -> SQLExp
-	//Union : Query Query -> Query
-	//Intersection : SQLExp SQLExp -> SQLExp
-	//Difference : SQLExp SQLExp -> SQLExp
+	SelectAllFrom : TRef -> Query
+	SelectSomeFrom : AList TRef -> Query
+	// SelectAllFromWhere : TRef Pred -> Query
+	// SelectSomeFromWhere : AList TRef Pred -> Query
+	// Union : Query Query -> Query
+	// Intersection : Query Query -> Query
+	// Difference : Query Query -> Query
 	
 function
 isValue : Query -> Bool
 isValue(Tvalue(t)) = true
-isValue(Selectallfrom(n)) = false
-isValue(Selectsomefrom(al, tn)) = false
-//isValue(SelectFrom2(tt, tn1, tn2)) = false
-// isValue(SelectAllFromWhere1(tn, p)) = false
-// isValue(SelectFromWhere1(tt, tn, p)) = false
-//isValue(SelectFromWhere2(tt, tn1, tn2, p)) = false
-//isValue(Union(q1, q2)) = false
+isValue(SelectAllFrom(n)) = false
+isValue(SelectSomeFrom(al, tr)) = false
+// isValue(SelectAllFromWhere(tr, p)) = false
+// isValue(SelectSomeFromWhere(al, tr, p)) = false
+// isValue(Union(q1, q2)) = false
 // isValue(Intersection(sql1, sql2)) = false
 // isValue(Difference(sql1, sql2)) = false
-
-axiom
-isValue(~sql)
-====================== isValue-INV
-exists ~t
-	~sql == Tvalue(~t)
-
-
-//checks whether a given predicate is valid for a given table typwe
-// function
-// checkPValidity : SQLPred TType -> Bool
-// checkPValidity(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
-// checkPValidity(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
-// checkPValidity(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)

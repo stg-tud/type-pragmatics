@@ -5,9 +5,14 @@ sorts  Typ
 constructors
   noInput : Typ
   withOneInput : Typ -> Typ
-
+  
 constructors
-  withTwoInputs : Typ Typ -> Typ
+  twoInputsTopLevel : Typ Typ -> Typ 
+
+local {
+	constructors
+	  withTwoInputs : Typ Typ -> Typ
+}
 
 goal
 true

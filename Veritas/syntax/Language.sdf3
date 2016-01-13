@@ -71,7 +71,7 @@ context-free restrictions
 
 lexical syntax
 
-  MIDPart = [a-zA-Z] [a-zA-Z0-9]* 
+  MIDPart = [a-zA-Z] [a-zA-Z0-9\-]* 
   MID = MIDPart 
   MID = MIDPart "." MID 
   QID = MIDPart "." ID 

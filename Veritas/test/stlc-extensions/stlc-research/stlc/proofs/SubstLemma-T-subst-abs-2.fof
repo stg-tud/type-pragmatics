@@ -1,0 +1,12 @@
+
+fof('isFreeVar7', axiom, (![VT,VVar0,VExp0,Vx,Vv,Ve] : (((VVar0=Vv) & (VExp0=vabs(Vx,VT,Ve))) => ((((Vx!=Vv) & visFreeVar(Vv,Ve)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => ((Vx!=Vv) & visFreeVar(Vv,Ve))))))).
+fof('T-Context-Duplicate', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vx,VTx,VC),Ve,VT)))).
+fof('T-Context-Swap', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx!=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vy,VTy,vbind(Vx,VTx,VC)),Ve,VT)))).
+fof('subst11', axiom, (![VVar0,VExp0,VExp1,RESULT,Vy,VT,Vx,Ve,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vabs(Vy,VT,Ve1)))) => (((~(Vx=Vy)) & (~visFreeVar(Vy,Ve))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vabs(Vy,VT,vsubst(Vx,Ve,Ve1)))))))).
+fof('T-abs', axiom, (![VC,Vx,Ve,VS,VT] : (vtcheck(vbind(Vx,VS,VC),Ve,VT) => vtcheck(VC,vabs(Vx,VS,Ve),varrow(VS,VT))))).
+fof('T-inv-abs', axiom, (![VT,Vx,VT1,VC,Ve] : (vtcheck(VC,vabs(Vx,VT1,Ve),VT) => (?[VT2] : ((VT=varrow(VT1,VT2)) & vtcheck(vbind(Vx,VT1,VC),Ve,VT2)))))).
+fof('T-Strong', axiom, (![Vx,VS,VC,Ve,VT] : (((~visFreeVar(Vx,Ve)) & vtcheck(vbind(Vx,VS,VC),Ve,VT)) => vtcheck(VC,Ve,VT)))).
+fof('EQ-eabs', axiom, (((veabs=veabs) => $true) & ($true => (veabs=veabs)))).
+fof('T-Weak-FreeVar', axiom, (![Vx,VS,VC,Ve,VT] : (((~visFreeVar(Vx,Ve)) & vtcheck(VC,Ve,VT)) => vtcheck(vbind(Vx,VS,VC),Ve,VT)))).
+fof('T-subst-IH-abs', axiom, (![VT,VC,Vx,Ve,VT2] : ((vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),veabs,VT2)) => vtcheck(VC,vsubst(Vx,Ve,veabs),VT2)))).
+fof('T-subst-abs-2', conjecture, (![VT,VC,Vx,Ve,Vy,VS,VT2] : (((Vx!=Vy) & ((~visFreeVar(Vy,Ve)) & (vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),vabs(Vy,VS,veabs),VT2)))) => vtcheck(VC,vsubst(Vx,Ve,vabs(Vy,VS,veabs)),VT2)))).

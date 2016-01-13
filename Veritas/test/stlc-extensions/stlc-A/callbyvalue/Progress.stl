@@ -1,0 +1,90 @@
+module stlca.callbyvalue.Progress
+
+import stlca.Syntax
+import stlca.Context
+import stlca.callbyvalue.Reduction
+import stlca.TypeBase
+
+// Prove by induction on typing relation. Cases: T-var, T-abs, T-app, T-true, T-false, T-zero, T-succ
+
+goal
+~ein == var(~x)
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-var
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+	
+goal
+~ein == True
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-true
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+
+goal
+~ein == False
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-false
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+
+goal
+~ein == Zero
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-zero
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+
+
+local {
+	const e1 : Exp
+	
+	axiom
+	~ein == e1
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	===================== T-Progress-T-isZero-IH
+	exists ~eout
+	    reduce(~ein) == someExp(~eout)
+	    
+	goal
+	~ein == isZero(e1)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	===================== T-Progress-T-isZero
+	exists ~eout
+	    reduce(~ein) == someExp(~eout)
+}
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom
+	~ein == e1	 
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-abs-IH
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+
+	goal
+	~ein == abs(~x, ~S, e1)
+	~Tin == arrow(~T1, ~T2)
+	empty |- ~ein : ~Tin
+	!isValue(~ein)
+	=========================== T-Progress-T-abs
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+}
+
+axiom
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress
+exists ~eout
+	reduce(~ein) == someExp(~eout)

@@ -6,14 +6,16 @@ import java.util.regex.Pattern
 import veritas.benchmarking._
 import veritas.benchmarking.util.GrowingArray
 
-case class VampireConfig(version: String,
+case class VampireConfig(version: String, confname: String = "vampire-proof",
                          mode: String = "casc") extends ProverConfig {
   def isValid = proverCommand != null
 
-  override val name = if (version == null) s"vampire" else s"vampire-$version"
-  override val proverCommand = findBinaryInPath(name)
+  override val name = if (version == null) confname else s"$confname-$version"
+  override val proverCommand =
+    findBinaryInPath(if (version == null) s"vampire" else s"vampire-$version")
+  override val acceptedFileFormats = Set(".fof", ".tff")
 
-  def makeCall(file: File, timeout: Int) = {
+  def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
     var call = Seq(proverCommand.getAbsolutePath)
 
     if (timeout > 0)
@@ -24,9 +26,12 @@ case class VampireConfig(version: String,
 
     call = call ++ Seq("--proof", "tptp")
     call = call ++ Seq("--output_axiom_names", "on")
-    call = call ++ Seq("--show_new", "on")
-    call = call ++ Seq("--show_active", "on")
-    call = call ++ Seq("--show_passive", "on")
+
+    if (fullLogs) {
+      call = call ++ Seq("--show_new", "on")
+      call = call ++ Seq("--show_active", "on")
+      call = call ++ Seq("--show_passive", "on")
+    }
 
     call = call :+ file.getAbsolutePath
     call
@@ -103,6 +108,7 @@ case class VampireConfig(version: String,
 
     var proofBuilder: StringBuilder = _
     var proof: String = _
+    var lemmas: List[String] = List()
     var model: ResultDetails = _
     var satSplitting: Map[Int, Int] = _
 
@@ -158,6 +164,11 @@ case class VampireConfig(version: String,
       }
       else if (proofBuilder != null) {
         proofBuilder ++= s
+        val lemmaregex = """file\('.+',(.+)\)\)""".r.unanchored
+        s match {
+          case lemmaregex(lemmaname) => lemmas = List(lemmaname) ++ lemmas
+          case _ =>
+        }
       }
 
       // parse time
@@ -362,7 +373,7 @@ case class VampireConfig(version: String,
       if (status == null)
         new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses.finalizedArray, VampireConfig.this))
       else status match {
-        case Proved => new ProverResult(Proved, time, StringDetails(proof))
+        case Proved => new ProverResult(Proved, time, StringDetails(proof, lemmas))
         case Disproved => new ProverResult(Disproved, time, model)
         case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireManyTraces(traces :+ VampireTrace(clauses.finalizedArray, VampireConfig.this)))
       }

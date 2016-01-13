@@ -1,0 +1,11 @@
+
+fof('isFreeVar3', axiom, (![VVar0,VExp0,Vv,Ve] : (((VVar0=Vv) & (VExp0=vsucc(Ve))) => ((visFreeVar(Vv,Ve) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => visFreeVar(Vv,Ve)))))).
+fof('T-Context-Duplicate', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vx,VTx,VC),Ve,VT)))).
+fof('T-Context-Swap', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx!=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vy,VTy,vbind(Vx,VTx,VC)),Ve,VT)))).
+fof('subst3', axiom, (![VVar0,VExp0,VExp1,RESULT,Vx,Ve,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vsucc(Ve1)))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vsucc(vsubst(Vx,Ve,Ve1))))))).
+fof('T-succ', axiom, (![VC,Ve] : (vtcheck(VC,Ve,vNum) => vtcheck(VC,vsucc(Ve),vNum)))).
+fof('T-inv-succ', axiom, (![VT,VC,Ve] : (vtcheck(VC,vsucc(Ve),VT) => ((VT=vNum) & vtcheck(VC,Ve,vNum))))).
+fof('T-Strong', axiom, (![Vx,VS,VC,Ve,VT] : (((~visFreeVar(Vx,Ve)) & vtcheck(vbind(Vx,VS,VC),Ve,VT)) => vtcheck(VC,Ve,VT)))).
+fof('EQ-esucc', axiom, (((vesucc=vesucc) => $true) & ($true => (vesucc=vesucc)))).
+fof('T-subst-IH-succ', axiom, (![VT,VC,Vx,Ve,VT2] : ((vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),vesucc,VT2)) => vtcheck(VC,vsubst(Vx,Ve,vesucc),VT2)))).
+fof('T-subst-succ', conjecture, (![VT,VC,Vx,Ve,VT2] : ((vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),vsucc(vesucc),VT2)) => vtcheck(VC,vsubst(Vx,Ve,vsucc(vesucc)),VT2)))).

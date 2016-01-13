@@ -1,0 +1,107 @@
+module stlcS.callbyvalue.Reduction
+
+import stlcS.Syntax
+import stlcS.Subst
+
+sorts
+	OptExp
+
+constructors
+	noExp : OptExp
+	someExp : Exp -> OptExp
+
+function
+isSomeExp : OptExp -> Bool
+isSomeExp(noExp) = false
+isSomeExp(someExp(e)) = true
+
+partial function
+getSomeExp : OptExp -> Exp
+getSomeExp(someExp(e)) = e
+
+function
+reduce : Exp -> OptExp
+reduce(var(x)) = noExp
+reduce(abs(x, S, e)) = noExp
+reduce(app(abs(x, S, e1), e2)) = let e2red = reduce(e2) in
+	if isSomeExp(e2red)
+	then someExp(app(abs(x, S, e1), getSomeExp(e2red)))
+	else 
+		if isValue(e2)
+		then someExp(subst(x, e2, e1))
+		else noExp
+reduce(app(e1, e2)) = let e1red = reduce(e1) in
+	if isSomeExp(e1red)
+	then someExp(app(getSomeExp(e1red), e2))
+	else noExp
+reduce(case(inl(v, T), x1, t1, x2, t2)) =
+	if isValue(v)
+	then someExp(subst(x1, v, t1))
+	else let vred = reduce(v) in
+		if isSomeExp(vred)
+		then someExp(case(inl(getSomeExp(vred), T), x1, t1, x2, t2))
+		else noExp
+reduce(case(inr(v, T), x1, t1, x2, t2)) =
+	if isValue(v)
+	then someExp(subst(x2, v, t2))
+	else let vred = reduce(v) in
+		if isSomeExp(vred)
+		then someExp(case(inr(getSomeExp(vred), T), x1, t1, x2, t2))
+		else noExp
+reduce(inl(e, T)) = let ered = reduce(e) in
+	if isSomeExp(ered)
+	then someExp(inl(getSomeExp(ered), T))
+	else noExp
+reduce(inr(e, T)) = let ered = reduce(e) in
+	if isSomeExp(ered)
+	then someExp(inr(getSomeExp(ered), T))
+	else noExp
+reduce(case(e, x1, t1, x2, t2)) = let ered = reduce(e) in
+	if isSomeExp(e)
+	then someExp(case(getSomeExp(e), x1, t1, x2, t2))
+	else noExp
+
+local {
+	hide-all
+	include { reduce0, reduce1, reduce2, reduce3, reduce4,
+	          reduce5, reduce6, reduce7, reduce8, reduce9,
+	          reduce10, reduce11, reduce12, reduce13, reduce14,
+	          reduce15, reduce16, reduce17, reduce18, reduce19,
+	          reduce-INV }
+	lemma // could be derived from return type of `reduce`
+	reduce(~e) == ~res
+	========================== reduce-CODOM
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+		~res == someExp(~e2)
+}
+
+
+// axiom
+// reduce(~e) == ~res
+// ========================== reduce-Inv
+// OR
+// => exists ~x
+// 	~e == var(~x)
+// 	~res == noExp
+// => exists ~x, ~S, ~e1
+// 	~e == abs(~x, ~S, ~e1)
+// 	~res == noExp
+// => exists ~x, ~S, ~e1, ~e2
+// 	~e == app(abs(~x, ~S, ~e1), ~e2)
+// 	~res == someExp(subst(~x, ~e2, ~e1))
+// => exists ~e1, ~e2, ~e1Red
+// 	~e == app(~e1, ~e2)
+// 	forall ~x, ~S, ~e11, ~e22
+// 		~e != app(abs(~x, ~S, ~e11), ~e22)
+// 	~e1Red == reduce(~e1)
+// 	isSomeExp(~e1Red)
+// 	~res == someExp(app(getSomeExp(~e1Red), ~e2))
+// => exists ~e1, ~e2, ~e1Red
+// 	~e == app(~e1, ~e2)
+// 	forall ~x, ~S, ~e11, ~e22
+// 		~e != app(abs(~x, ~S, ~e11), ~e22)
+// 	~e1Red == reduce(~e1)
+// 	!isSomeExp(~e1Red)
+// 	~res == noExp

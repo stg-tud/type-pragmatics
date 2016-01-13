@@ -1,0 +1,37 @@
+module encodingcompstudy.Syntax
+
+import encodingcompstudy.Tables
+import encodingcompstudy.TStore
+
+
+//predicates for where clauses of queries	
+data Pred =
+	VEquals(AName, FVal) |
+	VGreater(AName, FVal) |
+	VSmaller(AName, FVal)
+	
+	
+//query syntax
+data TRef =
+	Ref(TName)
+
+data Query =
+	Tvalue(Table) |
+	SelectAllFrom(TRef) |
+	SelectSomeFrom(AList, TRef) |
+	SelectAllFromWhere(TRef, Pred) |
+	SelectSomeFromWhere(AList, TRef, Pred) |
+	Union(Query, Query) |
+	Intersection(Query, Query) |
+	Difference(Query, Query)
+	
+function
+isValue : Query -> Bool
+isValue(Tvalue(t)) = true
+isValue(SelectAllFrom(n)) = false
+isValue(SelectSomeFrom(al, tr)) = false
+isValue(SelectAllFromWhere(tr, p)) = false
+isValue(SelectSomeFromWhere(al, tr, p)) = false
+isValue(Union(q1, q2)) = false
+isValue(Intersection(sql1, sql2)) = false
+isValue(Difference(sql1, sql2)) = false

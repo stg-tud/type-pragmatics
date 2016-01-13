@@ -1,0 +1,222 @@
+module stlca.Types
+
+import stlca.Syntax
+import stlca.Context
+import stlca.TypeBase
+import stlca.Subst
+import stlca.AlphaEquivalence
+
+//Auxiliary lemmas for on contexts
+
+//Proof by structural induction 
+
+//proof for Weakening without using T-Weak-FreeVar
+
+goal
+~e == True
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak-true
+bind(~x, ~S, ~C) |- ~e : ~T
+
+goal
+~e == False
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak-false
+bind(~x, ~S, ~C) |- ~e : ~T
+
+goal
+~e == True
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak-zero
+bind(~x, ~S, ~C) |- ~e : ~T
+
+local {
+	const esucc : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- esucc : ~T
+	============================== T-Weak-succ-IH
+	bind(~x, ~S, ~C) |- esucc : ~T
+	
+	goal
+	~e == succ(esucc)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-succ
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	const epred : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- epred : ~T
+	============================== T-Weak-pred-IH
+	bind(~x, ~S, ~C) |- epred : ~T
+	
+	goal
+	~e == pred(epred)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-pred
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	const eisZero : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eisZero : ~T
+	============================== T-Weak-isZero-IH
+	bind(~x, ~S, ~C) |- eisZero : ~T
+	
+	goal
+	~e == isZero(eisZero)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-isZero
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	const eabs : Exp
+ 	
+ 	// proof in T-Weak-abs-1.stl
+ 	axiom
+	~x != ~y
+	~e == abs(~y, ~S1, ~e1)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	============================= T-Weak-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+
+ 	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+
+	//NOT needed!
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+
+	goal
+	~x == ~y
+	~e == abs(~y, ~S1, eabs)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	============================ T-Weak-abs-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+		
+	axioms
+	lookup(~x, ~C) == noType
+	~C |- e1app : ~T
+	=========================== T-Weak-app-IH1
+	bind(~x, ~S, ~C) |- e1app : ~T
+	
+	lookup(~x, ~C) == noType
+	~C |- e2app : ~T
+	=========================== T-Weak-app-IH2
+	bind(~x, ~S, ~C) |- e2app : ~T
+	
+	
+	goal
+	~e == app(e1app, e2app)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-app
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+
+axiom
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
+
+
+
+//Proof by structural induction, Strenghthening
+
+goal
+~e == True
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong-true
+~C |- ~e : ~T
+
+goal
+~e == False
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong-false
+~C |- ~e : ~T
+
+goal
+~e == Zero
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong-zero
+~C |- ~e : ~T
+
+local {
+	const eisZero : Exp
+	
+	axiom
+	!isFreeVar(~x, eisZero)
+	bind(~x, ~S, ~C) |- eisZero : ~T
+	=========================== T-Strong-isZero-IH
+	~C |- eisZero : ~T
+
+	goal
+	~e == isZero(eisZero)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-isZero
+	~C |- ~e : ~T
+}
+
+// see also: folder TypeProofs
+
+axiom
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong
+~C |- ~e : ~T

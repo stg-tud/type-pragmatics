@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.backend.transformation
 import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
@@ -21,7 +22,7 @@ object ToFof {
   def toFofFile(coreModule: Module): FofFile = coreModule match {
     case Module(name, Seq(), body) => {
       val goal = getOnlyGoal(coreModule)
-      val axioms = coreModule.body.collect { case Axioms(axioms) => axioms }.flatten
+      val axioms = coreModule.defs.collect { case Axioms(axioms) => axioms }.flatten
 
       val transformedAxioms = axioms map (typingRuleToFof(_, Axiom))
       val transformedGoal = typingRuleToFof(goal, Conjecture)
@@ -38,9 +39,9 @@ object ToFof {
    *  - there are elements that are not goals after a goal (not in scope!!)
    */
   private def getOnlyGoal(mod: Module): TypingRule = {
-    mod.body.last match {
+    mod.defs.last match {
       case Goals(goals, /* TODO */ timeout) if (goals.length == 1) => {
-        val allGoals = mod.body.collect { case g @ Goals(goals, _) => g }
+        val allGoals = mod.defs.collect { case g @ Goals(goals, _) => g }
         if (allGoals.length > 1)
           throw throw TransformationError(s"(Core TSSL) Module ${mod.name} contained more than one goal (several positions)")
         else
@@ -56,8 +57,13 @@ object ToFof {
 
   private def typingRuleToFof(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]): Fof = {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs) map toUntypedVar
-    ForAll(quantifiedVars.toSeq, Parenthesized(
-      Impl(Parenthesized(And(prems map jdgToFof)), Parenthesized(And(conseqs map jdgToFof)))))
+    val transformedprems = prems map jdgToFof
+
+    if (transformedprems == Seq(True))
+      ForAll(quantifiedVars.toSeq, Parenthesized(And(conseqs map jdgToFof)))
+    else
+      ForAll(quantifiedVars.toSeq, Parenthesized(
+        Impl(Parenthesized(And(transformedprems)), Parenthesized(And(conseqs map jdgToFof)))))
   }
 
   /**
@@ -81,16 +87,16 @@ object ToFof {
    */
   private def functionExpToFof(f: FunctionExp): FofUnitary =
     f match {
-      case FunctionExpNot(f)            => Not(functionExpToFof(f))
-      case FunctionExpEq(f1, f2)        => Eq(functionExpMetaToFof(f1), functionExpMetaToFof(f2))
-      case FunctionExpNeq(f1, f2)       => NeqEq(functionExpMetaToFof(f1), functionExpMetaToFof(f2))
-      case FunctionExpAnd(l, r)         => Parenthesized(And(Seq(functionExpToFof(l), functionExpToFof(r))))
-      case FunctionExpOr(l, r)          => Parenthesized(Or(Seq(functionExpToFof(l), functionExpToFof(r))))
-      case FunctionExpBiImpl(l, r)      => Parenthesized(BiImpl(functionExpToFof(l), functionExpToFof(r)))
-      case FunctionExpApp(n, args @ _*) => Appl(UntypedFunSymbol(n), (args map functionExpMetaToFof): _*)
-      case FunctionExpTrue              => True
-      case FunctionExpFalse             => False
-      case _                            => throw TransformationError("Encountered unsupported (not Core) function expression while translating (e.g. if or let expression): " + f)
+      case FunctionExpNot(f)       => Not(functionExpToFof(f))
+      case FunctionExpEq(f1, f2)   => Eq(functionExpMetaToFof(f1), functionExpMetaToFof(f2))
+      case FunctionExpNeq(f1, f2)  => NeqEq(functionExpMetaToFof(f1), functionExpMetaToFof(f2))
+      case FunctionExpAnd(l, r)    => Parenthesized(And(Seq(functionExpToFof(l), functionExpToFof(r))))
+      case FunctionExpOr(l, r)     => Parenthesized(Or(Seq(functionExpToFof(l), functionExpToFof(r))))
+      case FunctionExpBiImpl(l, r) => Parenthesized(BiImpl(functionExpToFof(l), functionExpToFof(r)))
+      case FunctionExpApp(n, args) => Appl(UntypedFunSymbol(n), args map functionExpMetaToFof)
+      case FunctionExpTrue         => True
+      case FunctionExpFalse        => False
+      case _                       => throw TransformationError("Encountered unsupported (not Core) function expression while translating (e.g. if or let expression): " + f)
     }
 
   /**
@@ -101,8 +107,8 @@ object ToFof {
     // FunctionMeta and FunctionExpApp (Appl is both a Term and a FofUnitary!)
     // therefore, encountering any other FunctionExpMeta must result in an error!
     f match {
-      case FunctionMeta(MetaVar(m))     => UntypedVariable(m)
-      case FunctionExpApp(n, args @ _*) => Appl(UntypedFunSymbol(n), (args map functionExpMetaToFof): _*)
-      case _                            => throw TransformationError("Encountered unexpected construct in functionExpMetaToTff: " + f)
+      case FunctionMeta(MetaVar(m)) => UntypedVariable(m)
+      case FunctionExpApp(n, args)  => Appl(UntypedFunSymbol(n), args map functionExpMetaToFof)
+      case _                        => throw TransformationError("Encountered unexpected construct in functionExpMetaToFof: " + f)
     }
 }

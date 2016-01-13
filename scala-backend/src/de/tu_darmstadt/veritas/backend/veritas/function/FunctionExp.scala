@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.backend.veritas
+package de.tu_darmstadt.veritas.backend.veritas.function
 
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
@@ -7,6 +7,10 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
+import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
+import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
+import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
 
 sealed trait FunctionExpMeta extends VeritasConstruct with PrettyPrintable
 
@@ -30,6 +34,8 @@ final case class FunctionExpNot(f: FunctionExp) extends FunctionExp {
     writer.write("!")
     writer.write(f)
   }
+
+  override def toString() = s"!(${f})"
 }
 
 final case class FunctionExpEq(f1: FunctionExpMeta, f2: FunctionExpMeta) extends FunctionExp {
@@ -56,6 +62,8 @@ final case class FunctionExpEq(f1: FunctionExpMeta, f2: FunctionExpMeta) extends
     writer.write(f1).write(" == ")
     writer.write(f2).write(")")
   }
+
+  override def toString() = s"(${f1}) == (${f2})"
 }
 
 final case class FunctionExpNeq(f1: FunctionExpMeta, f2: FunctionExpMeta) extends FunctionExp {
@@ -81,6 +89,8 @@ final case class FunctionExpNeq(f1: FunctionExpMeta, f2: FunctionExpMeta) extend
     writer.write(f1).write(" != ")
     writer.write(f2).write(")")
   }
+
+  override def toString() = s"(${f1}) != (${f2})"
 }
 
 final case class FunctionExpAnd(left: FunctionExp, right: FunctionExp) extends FunctionExp {
@@ -106,6 +116,8 @@ final case class FunctionExpAnd(left: FunctionExp, right: FunctionExp) extends F
     writer.write(left).write(" && ")
     writer.write(right).write(")")
   }
+
+  override def toString() = s"(${left}) && (${right})"
 }
 
 /**
@@ -142,6 +154,8 @@ final case class FunctionExpOr(left: FunctionExp, right: FunctionExp) extends Fu
     writer.write(left).write(" || ")
     writer.write(right).write(")")
   }
+
+  override def toString() = s"(${left}) || (${right})"
 }
 
 final case class FunctionExpBiImpl(left: FunctionExp, right: FunctionExp) extends FunctionExp {
@@ -167,6 +181,8 @@ final case class FunctionExpBiImpl(left: FunctionExp, right: FunctionExp) extend
     writer.write(left).write(" <=> ")
     writer.write(right).write(")")
   }
+
+  override def toString() = s"(${left}) <=> (${right})"
 }
 
 final case class FunctionExpIf(cond: FunctionExpMeta, thenE: FunctionExpMeta, elseE: FunctionExpMeta) extends FunctionExp {
@@ -199,9 +215,12 @@ final case class FunctionExpIf(cond: FunctionExpMeta, thenE: FunctionExpMeta, el
     writer.write("else ")
     writer.write(elseE)
   }
+
+  override def toString() = s"if (${cond}) then (${thenE}) else (${elseE})"
 }
 
-final case class FunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: FunctionExpMeta) extends FunctionExp {
+final case class FunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: FunctionExpMeta) extends FunctionExp
+  with Typeable/*type of bound variable*/ {
   override val children = Seq(Seq(namedExpr), Seq(in))
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -223,9 +242,11 @@ final case class FunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: Fu
     writer.write("let ", name, " = ").write(namedExpr).write(" in ")
     writer.indentOptional().write(in).unindent()
   }
+
+  override def toString() = s"let ${name} = (${namedExpr}) in (${in})"
 }
 
-final case class FunctionExpApp(functionName: String, args: FunctionExpMeta*) extends FunctionExp {
+final case class FunctionExpApp(functionName: String, args: Seq[FunctionExpMeta]) extends FunctionExp {
   override val children = Seq(args)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -236,7 +257,7 @@ final case class FunctionExpApp(functionName: String, args: FunctionExpMeta*) ex
       case e: FunctionExpMeta => e
       case _                  => throw new ClassCastException
     }
-    FunctionExpApp(functionName, newargs: _*)
+    FunctionExpApp(functionName, newargs)
   }
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -248,6 +269,8 @@ final case class FunctionExpApp(functionName: String, args: FunctionExpMeta*) ex
     args.lastOption foreach (writer.write(_))
     writer.write(")")
   }
+
+  override def toString() = s"${functionName}(${args.mkString(",")})"
 }
 
 final case class FunctionMeta(metavar: MetaVar) extends FunctionExpMeta with SimplePrettyPrintable {
@@ -265,6 +288,8 @@ final case class FunctionMeta(metavar: MetaVar) extends FunctionExpMeta with Sim
   }
 
   override def prettyString = metavar.toPrettyString
+
+  override def toString() = s"~${metavar.name}"
 }
 
 /**
@@ -274,9 +299,9 @@ object FunctionMeta {
   implicit def wrap(metavar: MetaVar): FunctionMeta = FunctionMeta(metavar)
 }
 
-final case class FunctionExpVar(name: String) extends FunctionExp with SimplePrettyPrintable {
+final case class FunctionExpVar(name: String) extends FunctionExp with SimplePrettyPrintable with Typeable {
   override val children = Seq()
-
+  
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
     if (!newchildren.isEmpty) throw new ClassCastException
 
@@ -285,6 +310,8 @@ final case class FunctionExpVar(name: String) extends FunctionExp with SimplePre
   }
 
   override def prettyString = name
+
+  override def toString() = name
 }
 
 final case object FunctionExpTrue extends FunctionExp with SimplePrettyPrintable {
@@ -298,6 +325,7 @@ final case object FunctionExpTrue extends FunctionExp with SimplePrettyPrintable
   }
 
   override val prettyString = "true"
+  override def toString() = "true"
 }
 
 final case object FunctionExpFalse extends FunctionExp with SimplePrettyPrintable {
@@ -311,6 +339,7 @@ final case object FunctionExpFalse extends FunctionExp with SimplePrettyPrintabl
   }
 
   override val prettyString = "false"
+  override def toString() = "false"
 }
 
 object FunctionExpMeta {
@@ -330,7 +359,7 @@ object FunctionExp {
     case StrategoAppl("FunctionExpBiImpl", f1, f2) => FunctionExpBiImpl(FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpIf", cond, f1, f2) => FunctionExpIf(FunctionExpMeta.from(cond), FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
     case StrategoAppl("FunctionExpLet", StrategoString(name), namedExpr, in) => FunctionExpLet(name, FunctionExpMeta.from(namedExpr), FunctionExpMeta.from(in))
-    case StrategoAppl("FunctionExpApp", StrategoString(func), StrategoList(args)) => FunctionExpApp(func, (args map FunctionExpMeta.from): _*)
+    case StrategoAppl("FunctionExpApp", StrategoString(func), StrategoList(args)) => FunctionExpApp(func, args map FunctionExpMeta.from)
     case StrategoAppl("FunctionExpVar", StrategoString(name)) => FunctionExpVar(name)
     case StrategoAppl("FunctionExpTrue") => FunctionExpTrue
     case StrategoAppl("FunctionExpFalse") => FunctionExpFalse

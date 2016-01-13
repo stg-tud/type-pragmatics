@@ -8,3 +8,12 @@ Veritas/test/stlc/tptp-stlc
 
 benchmarking/**/target
 benchmarking/.idea
+Veritas/vampire
+.recommenders
+scala-backend/.cache-main
+scala-backend/.cache-tests
+target
+benchmarking/.jenv-vars
+Veritas/test/encodingcompstudy/consistency
+Veritas/test/encodingcompstudy/test
+*.xls

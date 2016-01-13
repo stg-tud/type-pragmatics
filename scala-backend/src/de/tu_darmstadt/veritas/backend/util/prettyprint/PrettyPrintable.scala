@@ -15,19 +15,20 @@ trait PrettyPrintable {
    * a substructure of this and [[PrettyPrintWriter.unindent()]] afterwards.
    */
   /* abstract */ def prettyPrint(writer: PrettyPrintWriter): Unit
-  
+
   /**
    * NOTE do not use this inside a prettyPrint() body to obtain the pretty printed String
    * of a substructure, rather call substructure.prettyPrint(writer) or the convenience method
    * [[writer.write[T <: PrettyPrintable](T)]]
    * WHY? Because toPrettyString generates the String by creating a new StringWriter internally,
-   * instead you could just use whatever Writer your current pretty printer is internally using! 
+   * instead you could just use whatever Writer your current pretty printer is internally using!
    */
   def toPrettyString(): String = {
     val prettyPrinter = new PrettyPrintWriter(new StringWriter())
     prettyPrint(prettyPrinter)
-    prettyPrinter.flush()
-    prettyPrinter.toString()
+    val resString = prettyPrinter.toString()
+    prettyPrinter.close()
+    resString
   }
 }
 

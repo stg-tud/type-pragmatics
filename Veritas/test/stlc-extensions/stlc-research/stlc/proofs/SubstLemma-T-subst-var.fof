@@ -1,0 +1,14 @@
+
+fof('isFreeVar6', axiom, (![VVar0,VExp0,Vx,Vv] : (((VVar0=Vv) & (VExp0=vvar(Vx))) => (((Vx=Vv) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (Vx=Vv)))))).
+fof('getSomeType0', axiom, (![VOptTyp0,RESULT,Ve] : ((VOptTyp0=vsomeType(Ve)) => ((RESULT=vgetSomeType(VOptTyp0)) => (RESULT=Ve))))).
+fof('lookup0', axiom, (![Vx,VVar0,VCtx0,RESULT] : (((VVar0=Vx) & (VCtx0=vempty)) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vnoType))))).
+fof('lookup1', axiom, (![VC,Vx,Vy,VVar0,VCtx0,RESULT,VTy] : (((VVar0=Vx) & (VCtx0=vbind(Vy,VTy,VC))) => ((Vx=Vy) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vsomeType(VTy))))))).
+fof('lookup2', axiom, (![VTy,Vy,VVar0,VCtx0,RESULT,Vx,VC] : (((VVar0=Vx) & (VCtx0=vbind(Vy,VTy,VC))) => ((~(Vx=Vy)) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vlookup(Vx,VC))))))).
+fof('T-Context-Duplicate', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vx,VTx,VC),Ve,VT)))).
+fof('T-Context-Swap', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx!=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vy,VTy,vbind(Vx,VTx,VC)),Ve,VT)))).
+fof('subst6', axiom, (![Vx,Vy,VVar0,VExp0,VExp1,RESULT,Ve] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vvar(Vy)))) => ((Vx=Vy) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=Ve)))))).
+fof('subst7', axiom, (![Ve,Vx,VVar0,VExp0,VExp1,RESULT,Vy] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vvar(Vy)))) => ((~(Vx=Vy)) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vvar(Vy))))))).
+fof('T-var', axiom, (![VC,Vx,VT] : ((vlookup(Vx,VC)=vsomeType(VT)) => vtcheck(VC,vvar(Vx),VT)))).
+fof('T-inv-var', axiom, (![Vx,VC,VT] : (vtcheck(VC,vvar(Vx),VT) => (vlookup(Vx,VC)=vsomeType(VT))))).
+fof('T-Strong', axiom, (![Vx,VS,VC,Ve,VT] : (((~visFreeVar(Vx,Ve)) & vtcheck(vbind(Vx,VS,VC),Ve,VT)) => vtcheck(VC,Ve,VT)))).
+fof('T-subst-var', conjecture, (![VT,VC,Vx,Ve,Vy,VT2] : ((vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),vvar(Vy),VT2)) => vtcheck(VC,vsubst(Vx,Ve,vvar(Vy)),VT2)))).

@@ -1,6 +1,5 @@
 module sql.Preservation
 
-import sql.BasicFunctions
 import sql.Syntax
 import sql.Semantics
 import sql.TContext
@@ -19,7 +18,7 @@ strategy induction-Preservation {
 	~qi == Tvalue(~t)
 	~cin == conf(~qi, ~TS)
 	~cout == conf(~qo, ~TS)
-	reduce(~cin) = some(~cout)
+	reduce(~cin) = someConf(~cout)
 	~TTC |- ~qi : ~TT
 	StoreContextConsistent(~TS, ~TTC)
 	=================================== SQL-Preservation-T-Tvalue
@@ -27,10 +26,10 @@ strategy induction-Preservation {
 
 
 	goal 
-	~qi == Selectallfrom(Ref(~tn))
+	~qi == SelectAllFrom(Ref(~tn))
 	~cin == conf(~qi, ~TS)
 	~cout == conf(~qo, ~TS)
-	reduce(~cin) = some(~cout)
+	reduce(~cin) = someConf(~cout)
 	~TTC |- ~qi : ~TT
 	StoreContextConsistent(~TS, ~TTC)
 	=================================== SQL-Preservation-T-Selectallfrom
@@ -41,10 +40,10 @@ strategy induction-Preservation {
 	//  isValue-INV.
 
 	goal 40
-	~qi == Selectsomefrom(~al, Ref(~tn))
+	~qi == SelectSomeFrom(~al, Ref(~tn))
 	~cin == conf(~qi, ~TS)
 	~cout == conf(~qo, ~TS)
-	reduce(~cin) = some(~cout)
+	reduce(~cin) = someConf(~cout)
 	~TTC |- ~qi : ~TT
 	StoreContextConsistent(~TS, ~TTC)
 	=================================== SQL-Preservation-T-Selectsomefrom
@@ -57,23 +56,24 @@ strategy induction-Preservation {
 
 // 
 // // goal 
-// // ~sqli == SelectAllFromWhere1(~tn, ~p)
-// // ~cin == conf(~sqli, ~TS)
-// // ~cout == conf(~sqlo, ~TS)
+// // ~sqli == SelectAllFromWhere(Ref(~tn), ~p)
+// // ~cin == conf(~qi, ~TS)
+// // ~cout == conf(~qo, ~TS)
 // // reduce(~cin) = some(~cout)
-// // ~TS |- ~sqli : ~TT
+// // ~TTC |- ~qi : ~TT
+// // StoreContextConsistent(~TS, ~TTC)
 // // ================================ SQL-Preservation-T-SelectAllFromWhere1
-// // ~TS |- ~sqlo : ~TT
+// // ~TTC |- ~qo : ~TT
 // 
 // 
 // // goal 
-// // ~sqli == SelectFromWhere1(~TT, ~tn, ~p)
-// // ~cin == conf(~sqli, ~TS)
-// // ~cout == conf(~sqlo, ~TS)
-// // reduce(~cin) = some(~cout)
-// // ~TS |- ~sqli : ~TT
+// // ~sqli == SelectSomeFromWhere(~al, Ref(~tn), ~p)
+// // ~cin == conf(~qi, ~TS)
+// // ~cout == conf(~qo, ~TS)
+// // reduce(~cin) = someConf(~cout)
+// // ~TTC |- ~qi : ~TT
 // // ================================ SQL-Preservation-T-SelectFromWhere1
-// // ~TS |- ~sqlo : ~TT
+// // ~TTC |- ~qo : ~TT
 // 
 // local {
 // 	consts q1 : Query
@@ -88,28 +88,28 @@ strategy induction-Preservation {
 // 		~TTC |- Tvalue(~t1) : ~TT
 // 		~TTC |- Tvalue(~t2) : ~TT
 // 		================================================ Union-type-aux
-// 		~TTC |- Tvalue(getSome(Union(~t1, ~t2))) : ~TT
+// 		~TTC |- Tvalue(union(~t1, ~t2)) : ~TT
 // 		
 // 		goal
 // 		~qi == Union(Tvalue(~t1), Tvalue(~t2))
 // 		~cin == conf(~qi, TS)
 // 		~cout == conf(~qo, TS)
-// 		reduce(~cin) = some(~cout)
+// 		reduce(~cin) = someConf(~cout)
 // 		TTC |- ~qi : TT
 // 		StoreContextConsistent(~TS, ~TTC)
 // 		========================================== SQL-Preservation-T-Union-1
-// 		TS |- ~qo : TT
+// 		TTC |- ~qo : TT
 // 	}	
 // 		
 // 	axiom 
 // 	~qi == Union(Tvalue(~t1), Tvalue(~t2))
 // 	~cin == conf(~qi, TS)
 // 	~cout == conf(~qo, TS)
-// 	reduce(~cin) = some(~cout)
+// 	reduce(~cin) = someConf(~cout)
 // 	TTC |- ~qi : TT
 // 	StoreContextConsistent(~TS, ~TTC)
 // 	========================================== SQL-Preservation-T-Union-1
-// 	TS |- ~qo : TT	
+// 	TTC |- ~qo : TT	
 // 	
 // 	local {
 // 
@@ -118,33 +118,33 @@ strategy induction-Preservation {
 // 		forall ~t2 q2 != Tvalue(~t2)
 // 		~cin == conf(~qi, TS)
 // 		~cout == conf(~qo, TS)
-// 		reduce(~cin) = some(~cout)
+// 		reduce(~cin) = someConf(~cout)
 // 		TTC |- ~qi : TT
 // 		StoreContextConsistent(~TS, ~TTC)
 // 		====================================== sql2-Progress
 // 		exists ~cout
-// 			reduce(q2, TS) == some(~cout)
+// 			reduce(q2, TS) == someConf(~cout)
 // 		
 // 		axiom 
-// 		~sqli == q2
+// 		~qi == q2
 // 		~cin == conf(~qi, TS)
 // 		~cout == conf(~qo, TS)
-// 		reduce(~cin) = some(~cout)
+// 		reduce(~cin) = someConf(~cout)
 // 		TTC |- ~qi : TT
 // 		StoreContextConsistent(~TS, ~TTC)
 // 		================================ SQL-Preservation-T-Union-IH2
-// 		TS |- ~qo : TT
+// 		TTC |- ~qo : TT
 // 		
 // 		// goal 
 // 		// ~qi == Union(Tvalue(~t1), q2)
 // 		// forall ~t2 q2 != Tvalue(~t2)
 // 		// ~cin == conf(~qi, TS)
 // 		// ~cout == conf(~qo, TS)
-// 		// reduce(~cin) = some(~cout)
+// 		// reduce(~cin) = someConf(~cout)
 // 		// TTC |- ~qi : TT
 // 		// StoreContextConsistent(~TS, ~TTC)
 // 		// ========================================== SQL-Preservation-T-Union-2
-// 		// TS |- ~qo : TT	
+// 		// TTC |- ~qo : TT	
 // 	}
 // 	
 // 	axiom 
@@ -152,11 +152,11 @@ strategy induction-Preservation {
 // 	forall ~t2 q2 != Tvalue(~t2)
 // 	~cin == conf(~qi, TS)
 // 	~cout == conf(~qo, TS)
-// 	reduce(~cin) = some(~cout)
+// 	reduce(~cin) = someConf(~cout)
 // 	TTC |- ~qi : TT
 // 	StoreContextConsistent(~TS, ~TTC)
 // 	========================================== SQL-Preservation-T-Union-2
-// 	TS |- ~qo : TT	
+// 	TTC |- ~qo : TT	
 // 	
 // 	local {
 // 		
@@ -164,7 +164,7 @@ strategy induction-Preservation {
 // 		~qi == q1
 // 		~cin == conf(~qi, TS)
 // 		~cout == conf(~qo, TS)
-// 		reduce(~cin) = some(~cout)
+// 		reduce(~cin) = someConf(~cout)
 // 		TTC |- ~qi : TT
 // 		StoreContextConsistent(~TS, ~TTC)
 // 		================================ SQL-Preservation-T-Union-IH1
@@ -175,11 +175,11 @@ strategy induction-Preservation {
 // 		// forall ~t1 q1 != Tvalue(~t1)
 // 		// ~cin == conf(~qi, TS)
 // 		// ~cout == conf(~qo, TS)
-// 		// reduce(~cin) = some(~cout)
+// 		// reduce(~cin) = someConf(~cout)
 // 		// TTC |- ~qi : TT
 // 		// StoreContextConsistent(~TS, ~TTC)
 // 		// ========================================== SQL-Preservation-T-Union-3
-// 		// TS |- ~qo : TT	
+// 		// TTC |- ~qo : TT	
 // 	}
 // 	
 // 	axiom 
@@ -187,93 +187,99 @@ strategy induction-Preservation {
 // 	forall ~t1 q1 != Tvalue(~t1)
 // 	~cin == conf(~qi, TS)
 // 	~cout == conf(~qo, TS)
-// 	reduce(~cin) = some(~cout)
+// 	reduce(~cin) = someConf(~cout)
 // 	TTC |- ~qi : TT
 // 	StoreContextConsistent(~TS, ~TTC)
 // 	========================================== SQL-Preservation-T-Union-3
-// 	TS |- ~qo : TT	
+// 	TTC |- ~qo : TT	
 // 		
 // 	goal 
 // 	~qi == Union(q1, q2)
 // 	~cin == conf(~qi, TS)
 // 	~cout == conf(~qo, TS)
-// 	reduce(~cin) = some(~cout)
+// 	reduce(~cin) = someConf(~cout)
 // 	TTC |- ~qi : TT
 // 	StoreContextConsistent(~TS, ~TTC)
 // 	================================ SQL-Preservation-T-Union
-// 	TS |- ~qo : TT
+// 	TTC |- ~qo : TT
 // }
 // // 
 // // local {
-// // 	consts sql1 : SQLExp
-// // 		sql2 : SQLExp
+// // 	consts q1 : Query
+// // 		q2 : Query
+// //       TTC : TTContext
 // // 		TS : TStore
 // // 		TT : TType
 // // 	
 // // 	axiom 
-// // 	~cin == conf(sql1, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
+// // 	~cin == conf(q1, TS)
+// // 	~cout == conf(~qo, TS)
+// // 	reduce(~cin) = someConf(~cout)
+// // 	TTC |- ~qi : TT
+// //   StoreContextConsistent(TS, TTC)
 // // 	================================ SQL-Preservation-T-Intersection-IH1
-// // 	TS |- ~sqlo : TT
+// // 	TTC |- ~qo : TT
 // // 	
 // // 	axiom 
-// // 	~cin == conf(sql2, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
+// // 	~cin == conf(q2, TS)
+// // 	~cout == conf(~qo, TS)
+// // 	reduce(~cin) = someConf(~cout)
+// // 	TTC |- ~qi : TT
+// //   StoreContextConsistent(TS, TTC)
 // // 	================================ SQL-Preservation-T-Intersection-IH2
-// // 	TS |- ~sqlo : TT
+// // 	TTC |- ~qo : TT
 // // 		
 // // 	goal 
-// // 	~sqli == Intersection(sql1, sql2)
-// // 	~cin == conf(~sqli, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
+// // 	~qi == Intersection(q1, q2)
+// // 	~cin == conf(~qi, TS)
+// // 	~cout == conf(~qo, TS)
+// // 	reduce(~cin) = someConf(~cout)
+// // 	TTC |- ~qi : TT
 // // 	================================ SQL-Preservation-T-Intersection
-// // 	TS |- ~sqlo : TT
+// // 	TTC |- ~qo : TT
 // // }
 // // 
 // // 
 // // local {
-// // 	consts sql1 : SQLExp
-// // 		sql2 : SQLExp
+// // 	consts q1 : Query
+// // 		q2 : Query
+// //       TTC : TTContext
 // // 		TS : TStore
 // // 		TT : TType
 // // 	
 // // 	axiom 
-// // 	~cin == conf(sql1, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
+// // 	~cin == conf(q1, TS)
+// // 	~cout == conf(~qo, TS)
+// // 	reduce(~cin) = someConf(~cout)
+// // 	TTC |- ~qi : TT
+// //   StoreContextConsistent(TS, TTC)
 // // 	================================ SQL-Preservation-T-Difference-IH1
-// // 	TS |- ~sqlo : TT
+// // 	TTC |- ~qo : TT
 // // 	
 // // 	axiom 
-// // 	~cin == conf(sql2, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
+// // 	~cin == conf(q2, TS)
+// // 	~cout == conf(~qo, TS)
+// // 	reduce(~cin) = someConf(~cout)
+// // 	TTC |- ~qi : TT
+// //   StoreContextConsistent(TS, TTC)
 // // 	================================ SQL-Preservation-T-Difference-IH2
-// // 	TS |- ~sqlo : TT
+// // 	TTC |- ~qo : TT
 // // 		
 // // 	goal 
-// // 	~sqli == Difference(sql1, sql2)
-// // 	~cin == conf(~sqli, TS)
-// // 	~cout == conf(~sqlo, TS)
-// // 	reduce(~cin) = some(~cout)
-// // 	TS |- ~sqli : TT
+// // 	~qi == Difference(q1, q2)
+// // 	~cin == conf(~qi, TS)
+// // 	~cout == conf(~qo, TS)
+// // 	reduce(~cin) = someConf(~cout)
+// // 	TTC |- ~qi : TT
 // // 	================================ SQL-Preservation-T-Difference
-// // 	TS |- ~sqlo : TT
+// // 	TTC |- ~qo : TT
 // // }
 // 
 	hide-all
 	axiom
 	~cin == conf(~qi, ~TS)
 	~cout == conf(~qo, ~TS)
-	reduce(~cin) = some(~cout)
+	reduce(~cin) = someConf(~cout)
 	~TTC |- ~qi : ~TT
 	StoreContextConsistent(~TS, ~TTC)
 	=================================== SQL-Preservation-ind
@@ -287,7 +293,7 @@ strategy induction-Preservation {
 goal verify-with induction-Preservation
 ~cin == conf(~qi, ~TS)
 ~cout == conf(~qo, ~TS)
-reduce(~cin) = some(~cout)
+reduce(~cin) = someConf(~cout)
 ~TTC |- ~qi : ~TT
 StoreContextConsistent(~TS, ~TTC)
 =================================== SQL-Preservation

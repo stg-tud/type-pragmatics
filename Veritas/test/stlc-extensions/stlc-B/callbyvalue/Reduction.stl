@@ -1,0 +1,53 @@
+module stlcB.callbyvalue.Reduction
+
+import stlcB.Syntax
+import stlcB.Subst
+
+sorts
+	OptExp
+
+constructors
+	noExp : OptExp
+	someExp : Exp -> OptExp
+
+function
+isSomeExp : OptExp -> Bool
+isSomeExp(noExp) = false
+isSomeExp(someExp(e)) = true
+
+partial function
+getSomeExp : OptExp -> Exp
+getSomeExp(someExp(e)) = e
+
+function
+reduce : Exp -> OptExp
+reduce(True) = noExp
+reduce(False) = noExp
+reduce(var(x)) = noExp
+reduce(abs(x, S, e)) = noExp
+reduce(app(abs(x, S, e1), e2)) = let e2red = reduce(e2) in
+	if isSomeExp(e2red)
+	then someExp(app(abs(x, S, e1), getSomeExp(e2red)))
+	else 
+		if isValue(e2)
+		then someExp(subst(x, e2, e1))
+		else noExp
+reduce(app(e1, e2)) = let e1red = reduce(e1) in
+	if isSomeExp(e1red)
+	then someExp(app(getSomeExp(e1red), e2))
+	else noExp
+reduce(ifExp(True, e1, e2)) = someExp(e1)
+reduce(ifExp(False, e1, e2)) = someExp(e2)
+reduce(ifExp(c, e1, e2)) = let cred = reduce(c) in
+    if isSomeExp(cred)
+    then someExp(ifExp(getSomeExp(cred), e1, e2))
+    else noExp
+
+lemma
+reduce(~e) == ~res
+========================== reduce-CODOM
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+

@@ -1,6 +1,9 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.Configuration
 
 /**
  * abstract transformation of a module
@@ -11,31 +14,31 @@ import de.tu_darmstadt.veritas.backend.veritas._
  *
  */
 trait ModuleTransformation {
+  var config: Configuration = _
+  
   var path: Seq[VeritasConstruct] = Seq()
 
   def testPath(p: VeritasConstruct => Boolean) = path.exists(p)
-  
+
   /**
    * convenience function, can be used whenever overriding one of the trans- functions below
    * in a concrete transformation to execute the "parent transformation" first
-   * 
-   * subtransres is the result of applying the super transformation, f the new transformation that 
+   *
+   * subtransres is the result of applying the super transformation, f the new transformation that
    * shall be applied in addition, leaving unchanged all constructs for which the f is not defined
    */
   def withSuper[T](suptransres: Seq[T])(f: PartialFunction[T, Seq[T]]): Seq[T] =
     suptransres flatMap (t => if (f.isDefinedAt(t)) f(t) else Seq(t))
-  
-  
+
   /**
    * convenience function, can be used whenever overriding one of the trans- functions below
    * in a concrete transformation to execute the "parent transformation" first
-   * 
-   * subtransres is the result of applying the super transformation, f the new transformation that 
+   *
+   * subtransres is the result of applying the super transformation, f the new transformation that
    * shall be applied in addition, leaving unchanged all constructs for which the f is not defined
    */
   def withSuper[T](suptransres: T)(f: PartialFunction[T, T]): T =
     if (f.isDefinedAt(suptransres)) f(suptransres) else suptransres
-  
 
   /**
    * collect the path of a VeritasConstruct within a given AST
@@ -81,7 +84,12 @@ trait ModuleTransformation {
   /**
    * convenience method for applying the transformation to a sequence of modules in a row
    */
-  def apply(m: Seq[Module]): Seq[Module] = m flatMap trans
+  def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
+    this.config = config
+    val result = m flatMap trans
+    this.config = null
+    result
+  }
 
   /**
    * top-level transformation for a module
@@ -90,13 +98,17 @@ trait ModuleTransformation {
    *
    * naming convention: trans + <Name of constructs> (+ s, if the function can give back a sequence)
    */
-  def trans(m: Module): Seq[Module] = trace(m) { m => transModule(m.name, m.imports, m.body) }
+  def trans(m: Module): Seq[Module] = {
+    path = Seq() //important: reset path for each new module!
+    checkPrecondition(m); 
+    trace(m) { m => transModule(m.name, m.imports, m.defs) }
+  }
 
   def transModule(name: String, is: Seq[Import], mdefs: Seq[ModuleDef]): Seq[Module] =
     Seq(Module(name, trace(is)(transModuleImport(_)), trace(mdefs)(transModuleDefs(_))))
 
   def transModuleImport(i: Import): Seq[Import] = Seq(i)
-  def transModuleBody(mdefs: Seq[ModuleDef]): Seq[ModuleDef] = mdefs.flatMap(transModuleDefs(_))
+
   def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = mdef match {
     case Local(defs)                  => Seq(Local(trace(defs)(transModuleDefs(_))))
     case h @ HideAll                  => Seq(h)
@@ -109,10 +121,10 @@ trait ModuleTransformation {
     case LemmasWithStrategy(s, gs, t) => Seq(LemmasWithStrategy(s, trace(gs)(transTypingRules(_)), t))
     case GoalsWithStrategy(s, gs, t)  => Seq(GoalsWithStrategy(s, trace(gs)(transTypingRules(_)), t))
     case Sorts(s)                     => Seq(Sorts(trace(s)(transSortDefs(_))))
-    case Constructors(cts)            => Seq(Constructors(trace(cts)(transConstructorDecls(_))))
     case Functions(fs)                => Seq(Functions((trace(fs)(transFunctionDefs(_)))))
     case PartialFunctions(fs)         => Seq(PartialFunctions((trace(fs)(transFunctionDefs(_)))))
-    case Consts(cts)                  => Seq(Consts(trace(cts)(transConstructorDecls(_))))
+    case Consts(cts, diff)                  => Seq(Consts(trace(cts)(transConstDecl(_)), diff))
+    case DataType(open, name, cs)     => Seq(DataType(open, name, trace(cs)(transDataTypeConstructor(_, open, name))))
     // if default case is not covered, compiler shows a warning if the match is not exhaustive
     // look for these warnings when extending the Veritas language!
     //case s                            => throw TransformationError("Unsupported construct in transModuleDef: " + s)
@@ -131,8 +143,8 @@ trait ModuleTransformation {
   }
 
   def transFunctionPatterns(p: FunctionPattern): Seq[FunctionPattern] = p match {
-    case FunctionPatApp(fn, args @ _*) => Seq(FunctionPatApp(fn, (trace(args)(transFunctionPatterns(_))): _*))
-    case pv @ FunctionPatVar(vn)       => Seq(pv)
+    case FunctionPatApp(fn, args) => Seq(FunctionPatApp(fn, trace(args)(transFunctionPatterns(_))))
+    case pv @ FunctionPatVar(vn)  => Seq(pv)
   }
 
   def transTypingRules(tr: TypingRule): Seq[TypingRule] = tr match {
@@ -175,49 +187,52 @@ trait ModuleTransformation {
     case FunctionMeta(m) => Seq(FunctionMeta(trace(m)(transMetaVar(_))))
     case f: FunctionExp  => transFunctionExps(f) //no tracing here, we did not yet get out any arguments! (i.e. there is no new information to put into the trace)
   }
-  
+
   def transFunctionExps(f: FunctionExp): Seq[FunctionExp] = f match {
-    case FunctionExpNot(f)             => Seq(FunctionExpNot(trace(f)(transFunctionExp(_))))
-    case FunctionExpEq(f1, f2)         => Seq(FunctionExpEq(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_))))
-    case FunctionExpNeq(f1, f2)        => Seq(FunctionExpNeq(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_))))
-    case FunctionExpAnd(l, r)          => Seq(FunctionExpAnd(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
-    case FunctionExpOr(l, r)           => Seq(FunctionExpOr(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
-    case FunctionExpBiImpl(l, r)       => Seq(FunctionExpBiImpl(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
-    case FunctionExpIf(c, t, e)        => Seq(FunctionExpIf(trace(c)(transFunctionExpMeta(_)), trace(t)(transFunctionExpMeta(_)), trace(e)(transFunctionExpMeta(_))))
-    case FunctionExpLet(n, e, i)       => Seq(FunctionExpLet(n, trace(e)(transFunctionExpMeta(_)), trace(i)(transFunctionExpMeta(_))))
-    case FunctionExpApp(fn, args @ _*) => Seq(FunctionExpApp(fn, (trace(args)(transFunctionExpMetas(_))): _*))
-    case v @ FunctionExpVar(n)         => Seq(v)
-    case t @ FunctionExpTrue           => Seq(t)
-    case f @ FunctionExpFalse          => Seq(f)
+    case FunctionExpNot(f)        => Seq(FunctionExpNot(trace(f)(transFunctionExp(_))))
+    case FunctionExpEq(f1, f2)    => Seq(FunctionExpEq(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_))))
+    case FunctionExpNeq(f1, f2)   => Seq(FunctionExpNeq(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_))))
+    case FunctionExpAnd(l, r)     => Seq(FunctionExpAnd(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
+    case FunctionExpOr(l, r)      => Seq(FunctionExpOr(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
+    case FunctionExpBiImpl(l, r)  => Seq(FunctionExpBiImpl(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
+    case FunctionExpIf(c, t, e)   => Seq(FunctionExpIf(trace(c)(transFunctionExpMeta(_)), trace(t)(transFunctionExpMeta(_)), trace(e)(transFunctionExpMeta(_))))
+    case FunctionExpLet(n, e, i)  => Seq(FunctionExpLet(n, trace(e)(transFunctionExpMeta(_)), trace(i)(transFunctionExpMeta(_))))
+    case FunctionExpApp(fn, args) => Seq(FunctionExpApp(fn, trace(args)(transFunctionExpMetas(_))))
+    case v @ FunctionExpVar(n)    => Seq(v)
+    case t @ FunctionExpTrue      => Seq(t)
+    case f @ FunctionExpFalse     => Seq(f)
   }
 
-
   def transFunctionExp(f: FunctionExp): FunctionExp = f match {
-    case FunctionExpNot(f)             => FunctionExpNot(trace(f)(transFunctionExp(_)))
-    case FunctionExpEq(f1, f2)         => FunctionExpEq(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_)))
-    case FunctionExpNeq(f1, f2)        => FunctionExpNeq(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_)))
-    case FunctionExpAnd(l, r)          => FunctionExpAnd(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
-    case FunctionExpOr(l, r)           => FunctionExpOr(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
-    case FunctionExpBiImpl(l, r)       => FunctionExpBiImpl(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
-    case FunctionExpIf(c, t, e)        => FunctionExpIf(trace(c)(transFunctionExpMeta(_)), trace(t)(transFunctionExpMeta(_)), trace(e)(transFunctionExpMeta(_)))
-    case FunctionExpLet(n, e, i)       => FunctionExpLet(n, trace(e)(transFunctionExpMeta(_)), trace(i)(transFunctionExpMeta(_)))
-    case FunctionExpApp(fn, args @ _*) => FunctionExpApp(fn, (trace(args)(transFunctionExpMetas(_))): _*)
-    case v @ FunctionExpVar(n)         => v
-    case t @ FunctionExpTrue           => t
-    case f @ FunctionExpFalse          => f
+    case FunctionExpNot(f)        => FunctionExpNot(trace(f)(transFunctionExp(_)))
+    case FunctionExpEq(f1, f2)    => FunctionExpEq(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_)))
+    case FunctionExpNeq(f1, f2)   => FunctionExpNeq(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_)))
+    case FunctionExpAnd(l, r)     => FunctionExpAnd(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
+    case FunctionExpOr(l, r)      => FunctionExpOr(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
+    case FunctionExpBiImpl(l, r)  => FunctionExpBiImpl(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
+    case FunctionExpIf(c, t, e)   => FunctionExpIf(trace(c)(transFunctionExpMeta(_)), trace(t)(transFunctionExpMeta(_)), trace(e)(transFunctionExpMeta(_)))
+    case FunctionExpLet(n, e, i)  => FunctionExpLet(n, trace(e)(transFunctionExpMeta(_)), trace(i)(transFunctionExpMeta(_)))
+    case FunctionExpApp(fn, args) => FunctionExpApp(fn, (trace(args)(transFunctionExpMetas(_))))
+    case v @ FunctionExpVar(n)    => v
+    case t @ FunctionExpTrue      => t
+    case f @ FunctionExpFalse     => f
   }
 
   def transSortDefs(sd: SortDef): Seq[SortDef] = Seq(sd)
-  def transConstructorDecls(cd: ConstructorDecl): Seq[ConstructorDecl] = cd match {
-    case ConstructorDecl(n, in, out) => Seq(ConstructorDecl(n, trace(in)(transSortRefs(_)), trace(out)(transSortRef(_))))
+  
+  def transConstDecl(d: ConstDecl): Seq[ConstDecl] = d match {
+    case ConstDecl(n, out) => Seq(ConstDecl(n, transSortRef(out)))
+  }
+
+  def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = d match {
+    case DataTypeConstructor(n, in) => Seq(DataTypeConstructor(n, trace(in)(transSortRefs(_))))
   }
 
   def transSortRef(sr: SortRef): SortRef = sr
   def transSortRefs(sr: SortRef): Seq[SortRef] = Seq(sr)
-  
-  
+
   protected def checkPrecondition(input: Module): Unit = {}
-  
+
 }
 
 //trait ModuleDefTransformation extends ModuleTransformation {
@@ -239,3 +254,5 @@ trait ModuleTransformation {
 //   */
 //  protected def checkPrecondition(input: Module): Unit = {}
 //}
+
+object Identity extends ModuleTransformation

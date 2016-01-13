@@ -1,0 +1,13 @@
+module stlca.TypeProofs.TWeakvar
+
+import stlca.TypeBase
+import stlca.Context
+import stlca.Syntax
+
+// this proof is significantly faster in its own file
+goal
+~e == var(~y)
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak-var
+bind(~x, ~S, ~C) |- ~e : ~T

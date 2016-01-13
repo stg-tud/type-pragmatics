@@ -1,0 +1,24 @@
+module stlca.Gensym
+
+import stlca.Syntax
+
+function
+gensym : Exp -> Var
+
+axiom
+gensym(~e) == ~v
+================== gensym-is-fresh
+!isFreeVar(~v, ~e)
+
+
+// goal
+// ~fresh = gensym(~e)
+// isFreeVar(~x, ~e)
+// =================== fresh-not-free
+// ~fresh != ~x
+// 
+// axiom 
+// ~fresh = gensym(~e)
+// isFreeVar(~x, ~e)
+// =================== fresh-not-free
+// ~fresh != ~x

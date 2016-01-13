@@ -119,17 +119,10 @@ SortDef.SortDef = SortLex
 
 SortRef.SortRef = SortLex 
 
-ConstructorDecl.ConstructorDecl = 
-<<ID> : <SortRef+> -\> <SortRef>
-
-> 
-  
-ConstructorDecl = ConstDecl 
-
-ConstDecl = 
+ConstDecl.ConstDecl = 
 <<ID> : <SortRef>
 
-> {ast("ConstructorDecl(<1>, [], <2>)")}
+>
 
 context-free syntax
 
@@ -146,12 +139,12 @@ FunctionSig =
 <<ID> : <SortRef>> {ast("FunctionSig(<1>, [], <2>)")}
 
 FunctionEq = 
-<<ID> = <FunctionExpMeta>
+<<ID> = <FunctionExp>
 
 > {ast("FunctionEq(<1>, [], <2>)")}
 
 FunctionEq.FunctionEq = 
-<<ID>(<{FunctionPattern ","}*>) = <FunctionExpMeta>
+<<ID>(<{FunctionPattern ","}*>) = <FunctionExp>
 
 >
  
@@ -268,47 +261,45 @@ ImportAnno.ImportAnnoFunctions =
 ImportAnno.ImportAnnoGoals = 
 <goals>
  
-ImportAnno.ImportAnnoConstructors = 
-<constructors>
+ImportAnno.ImportAnnoTypes = 
+<types>
 
 ModuleDef.Local = 
 <local { 
   	<ModuleDef*> 
 }>
  
-DataTypeConstructor =
+DataTypeClosedness.Sealed = <>
+DataTypeClosedness.Open = <open> 
+
+DataTypeConstructor = 
 ID {ast("DataTypeConstructor(<1>, [])")}
 
 DataTypeConstructor.DataTypeConstructor = 
 <<ID> ( <{SortRef ","}*> )>
- 
+
+ModuleDef = 
+<<DataTypeClosedness> data <ID>> {ast("DataType(<1>, <2>, [])")}
+
 ModuleDef.DataType = 
-<data <ID> = <{DataTypeConstructor "|"}+>>
- 
+<<DataTypeClosedness> data <ID> = <{DataTypeConstructor "|"}+>>
+
 ModuleDef.Sorts = 
 <sorts <SortDef*>
   
-> 
+>
 
 ModuleDef = 
 <sort <SortDef>
   
 > {ast("Sorts([<1>])")}
 
-ModuleDef.Constructors = 
-<constructors 
-	<ConstructorDecl*>
-	
->
- 
-ModuleDef = 
-<constructor 
-	<ConstructorDecl>
-	
-> {ast("Constructors([<1>])")}
+
+DifferentConsts.Any = <>
+DifferentConsts.Different = <different>
 
 ModuleDef.Consts = 
-<consts <ConstDecl*>
+<<DifferentConsts> consts <ConstDecl*>
 
 >
  
@@ -316,6 +307,7 @@ ModuleDef =
 <const <ConstDecl>
 
 > {ast("Consts([<1>])")}
+
   
 ModuleDef.Functions = 
 <functions 

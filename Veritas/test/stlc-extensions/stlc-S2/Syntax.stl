@@ -1,0 +1,49 @@
+module stlcS2.Syntax
+
+sorts
+  Var Exp Typ
+
+constructors
+  var : Var -> Exp
+  abs : Var Typ Exp -> Exp
+  app : Exp Exp -> Exp
+  inl : Exp Typ -> Exp
+  inr : Exp Typ -> Exp
+  case : Exp Var Exp Var Exp -> Exp
+
+function
+isValue : Exp -> Bool
+isValue(abs(x, S, e)) = true
+isValue(var(x)) = false
+isValue(app(e1, e2)) = false
+isValue(inl(e, T)) = isValue(e)
+isValue(inr(e, T)) = isValue(e)
+isValue(case(e, x1, e1, x2, e2)) = false
+
+function
+isFreeVar : Var Exp -> Bool
+isFreeVar(v, var(x))       = x == v
+isFreeVar(v, abs(x, T, e)) = x != v && isFreeVar(v, e) 
+isFreeVar(v, app(e1, e2))  = isFreeVar(v, e1) || isFreeVar(v, e2)
+isFreeVar(v, inl(e, T)) = isFreeVar(v, e)
+isFreeVar(v, inr(e, T)) = isFreeVar(v, e)
+isFreeVar(v, case(e, x1, e1, x2, e2)) = isFreeVar(v, e) || (v != x1 && isFreeVar(v, e1)) || (v != x2 && isFreeVar(v, e2))
+
+
+// axiom
+// isFreeVar(~v, ~e)
+// ================= isFreeVar-inv
+// OR
+// => exists ~x
+//      ~e = var(~x)
+//      ~x = ~v
+// => exists ~x, ~T, ~e1
+//      ~e = abs(~x, ~T, ~e1)
+//      ~x != ~v
+//      isFreeVar(~v, ~e1)
+// => exists ~e1, ~e2
+//      ~e = app(~e1, ~e2)
+//      isFreeVar(~v, ~e1)
+// => exists ~e1, ~e2
+//      ~e = app(~e1, ~e2)
+//      isFreeVar(~v, ~e2)

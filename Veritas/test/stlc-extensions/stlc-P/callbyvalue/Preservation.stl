@@ -1,0 +1,351 @@
+module stlcP.callbyvalue.Preservation
+
+import stlcP.Syntax
+import stlcP.Subst {names}
+import stlcP.SubstLemma
+import stlcP.callbyvalue.Reduction
+import stlcP.Types
+import stlcP.Context {names}
+
+// Prove type preservation by induction on recursive structure of reduction relation
+// Each derived rule represents one induction case.
+
+goal
+~ein == var(~x)
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation-T-var
+~C |- ~eout : ~T
+
+//Verification succeeded, used lemmas: reduce0, DIFF-noExp-someExp.
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-pair-IH1
+	~C |- ~eout : ~T
+
+	axiom // NEEDED (as expected!)
+	~ein == e2
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-pair-IH2
+	~C |- ~eout : ~T
+	
+	lemma
+	isValue(e1)
+	reduce(e2) = someExp(~e2red)
+	reduce(pair(e1, e2)) = someExp(~eout)
+	~C |- pair(e1, e2) : ~T
+	================================ T-Preservation-T-pair-1
+	~C |- ~eout : ~T
+	
+	lemma
+	isValue(e1)
+	reduce(e2) = noExp
+	~ein == pair(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-pair-2
+	~C |- ~eout : ~T
+
+	lemma
+	!isValue(e1)
+	reduce(e1) = someExp(~e1red)
+	reduce(pair(e1, e2)) = someExp(~eout)
+	~C |- pair(e1, e2) : ~T
+	================================ T-Preservation-T-pair-3
+	~C |- ~eout : ~T
+	
+	lemma
+	!isValue(e1)
+	reduce(e1) = noExp
+	~ein == pair(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-pair-4
+	~C |- ~eout : ~T
+
+	goal
+	~ein == pair(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-pair
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-first-IH1
+	~C |- ~eout : ~T
+	
+	lemma
+	~C |- first(~e) : ~T
+	=============================== T-inv-first
+	exists ~T2
+	  ~C |- ~e : pairType(~T, ~T2)
+	  
+	lemma
+	~C |- pair(~e, ~e2) : pairType(~T1, ~T2)
+	============================== T-inv-pair
+	~C |- ~e : ~T1
+	~C |- ~e2 : ~T2
+
+	lemma
+	~ein == first(e1)
+	e1 == pair(~e, ~e2)
+	isValue(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-first-1
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == pair(~e, ~e2)
+	!isValue(e1)
+	reduce(e1) = someExp(~ered)
+	~ein == first(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-first-2
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == pair(~e, ~e2)
+	!isValue(e1)
+	reduce(e1) = noExp
+	~ein == first(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-first-3
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != pair(~e, ~e2)
+	reduce(e1) = someExp(~ered)
+	~ein == first(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-first-4
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != pair(~e, ~e2)
+	reduce(e1) = noExp
+	~ein == first(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-first-5
+	~C |- ~eout : ~T
+
+	goal
+	~ein == first(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-first
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-second-IH1
+	~C |- ~eout : ~T
+
+	lemma
+	~C |- second(~e) : ~T
+	=============================== T-inv-second
+	exists ~T1
+	  ~C |- ~e : pairType(~T1, ~T)
+	  
+	lemma
+	~C |- pair(~e, ~e2) : pairType(~T1, ~T2)
+	============================== T-inv-pair
+	~C |- ~e : ~T1
+	~C |- ~e2 : ~T2
+
+	lemma
+	~ein == first(e1)
+	e1 == pair(~e, ~e2)
+	isValue(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-second-1
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == pair(~e, ~e2)
+	!isValue(e1)
+	reduce(e1) = someExp(~ered)
+	~ein == second(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-second-2
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == pair(~e, ~e2)
+	!isValue(e1)
+	reduce(e1) = noExp
+	~ein == second(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-second-3
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != pair(~e, ~e2)
+	reduce(e1) = someExp(~ered)
+	~ein == second(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-second-4
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 != pair(~e, ~e2)
+	reduce(e1) = noExp
+	~ein == second(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-second-5
+	~C |- ~eout : ~T
+
+	goal
+	~ein == second(e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-second
+	~C |- ~eout : ~T
+}
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom 
+	reduce(e1) = someExp(~eout)
+	~C |- e1 : ~T
+	================================ T-Preservation-T-abs-IH
+	~C |- ~eout : ~T
+
+	goal
+	~ein == abs(~x, ~S, e1)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	========================================== T-Preservation-T-abs
+	~C |- ~eout : ~T
+	
+	//Verification succeeded, used lemmas: reduce1, DIFF-noExp-someExp.
+}
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-IH1
+	~C |- ~eout : ~T
+
+	axiom // NEEDED (as expected!)
+	~ein == e2
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-IH2
+	~C |- ~eout : ~T
+	
+	lemma
+	reduce(app(e1, e2)) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = someExp(~e2red)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-1
+	~C |- ~eout : ~T
+	
+	lemma
+	e1 == abs(~x, ~S, ~eabs)
+	~C |- app(e1, e2) : ~T
+	======================== app-parameter-1-type
+	~C |- e1 : arrow(~S, ~T)
+	
+	lemma
+	e1 == abs(~x, ~S, ~eabs)
+	~C |- app(e1, e2) : ~T
+	~C |- e1 : arrow(~S, ~T)
+	======================== app-parameter-subtype
+	bind(~x, ~S, ~C) |- ~eabs : ~T
+	
+	lemma
+	e1 == abs(~x, ~S, ~eabs)
+	~C |- e1 : arrow(~S, ~T)
+	~C |- app(e1, e2) : ~T
+	======================== app-parameter-2-type
+	~C |- e2 : ~S
+	
+	lemma
+	reduce(app(e1, e2)) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = noExp
+	isValue(e2)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-2
+	~C |- ~eout : ~T
+	
+	lemma
+	reduce(app(e1, e2)) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = noExp
+	!isValue(e2)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-3
+	~C |- ~eout : ~T
+	
+	lemma
+	reduce(app(e1, e2)) = someExp(~eout)
+	e1 != abs(~x, ~S, ~eabs)
+	reduce(e1) = someExp(~e1red)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-4
+	~C |- ~eout : ~T
+	
+	lemma
+	reduce(app(e1, e2)) = someExp(~eout)
+	e1 != abs(~x, ~S, ~eabs)
+	reduce(e1) = noExp
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app-5
+	~C |- ~eout : ~T
+
+	goal
+	reduce(app(e1, e2)) = someExp(~eout)
+	~C |- app(e1, e2) : ~T
+	================================ T-Preservation-T-app
+	~C |- ~eout : ~T
+}
+
+axiom
+reduce(~ein) = someExp(~eout)
+~C |- ~ein : ~T
+=================== T-Preservation
+~C |- ~eout : ~T

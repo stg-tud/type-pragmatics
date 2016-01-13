@@ -1,0 +1,11 @@
+
+fof('isFreeVar4', axiom, (![VVar0,VExp0,Vv,Ve] : (((VVar0=Vv) & (VExp0=vpred(Ve))) => ((visFreeVar(Vv,Ve) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => visFreeVar(Vv,Ve)))))).
+fof('T-Context-Duplicate', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vx,VTx,VC),Ve,VT)))).
+fof('T-Context-Swap', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx!=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vy,VTy,vbind(Vx,VTx,VC)),Ve,VT)))).
+fof('subst4', axiom, (![VVar0,VExp0,VExp1,RESULT,Vx,Ve,Ve1] : (((VVar0=Vx) & ((VExp0=Ve) & (VExp1=vpred(Ve1)))) => ((RESULT=vsubst(VVar0,VExp0,VExp1)) => (RESULT=vpred(vsubst(Vx,Ve,Ve1))))))).
+fof('T-pred', axiom, (![VC,Ve] : (vtcheck(VC,Ve,vNum) => vtcheck(VC,vpred(Ve),vNum)))).
+fof('T-inv-pred', axiom, (![VT,VC,Ve] : (vtcheck(VC,vpred(Ve),VT) => ((VT=vNum) & vtcheck(VC,Ve,vNum))))).
+fof('T-Strong', axiom, (![Vx,VS,VC,Ve,VT] : (((~visFreeVar(Vx,Ve)) & vtcheck(vbind(Vx,VS,VC),Ve,VT)) => vtcheck(VC,Ve,VT)))).
+fof('EQ-epred', axiom, (((vepred=vepred) => $true) & ($true => (vepred=vepred)))).
+fof('T-subst-IH-pred', axiom, (![VT,VC,Vx,Ve,VT2] : ((vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),vepred,VT2)) => vtcheck(VC,vsubst(Vx,Ve,vepred),VT2)))).
+fof('T-subst-pred', conjecture, (![VT,VC,Vx,Ve,VT2] : ((vtcheck(VC,Ve,VT) & vtcheck(vbind(Vx,VT,VC),vpred(vepred),VT2)) => vtcheck(VC,vsubst(Vx,Ve,vpred(vepred)),VT2)))).

@@ -1,0 +1,104 @@
+module stlca.callbyvalue.Preservationapp
+
+import stlca.Syntax
+import stlca.Subst {names}
+import stlca.SubstLemma
+import stlca.callbyvalue.Reduction
+import stlca.TypeBase
+import stlca.Context
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom
+	~ein == e1
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-IH1
+	~C |- ~eout : ~T
+
+	axiom // NEEDED (as expected!)
+	~ein == e2
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-IH2
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = someExp(~e2red)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-1
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	e1 == abs(~x, ~S, ~eabs)
+	~C |- ~ein : ~T
+	======================== app-parameter-1-type
+	~C |- e1 : arrow(~S, ~T)
+	
+	lemma
+	~ein == app(e1, e2)
+	e1 == abs(~x, ~S, ~eabs)
+	~C |- ~ein : ~T
+	======================== app-parameter-subtype
+	bind(~x, ~S, ~C) |- ~eabs : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	e1 == abs(~x, ~S, ~eabs)
+	~C |- e1 : arrow(~S, ~T)
+	~C |- ~ein : ~T
+	======================== app-parameter-2-type
+	~C |- e2 : ~S
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = noExp
+	isValue(e2)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-2
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 == abs(~x, ~S, ~eabs)
+	reduce(e2) = noExp
+	!isValue(e2)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-3
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 != abs(~x, ~S, ~eabs)
+	reduce(e1) = someExp(~e1red)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-4
+	~C |- ~eout : ~T
+	
+	lemma
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	e1 != abs(~x, ~S, ~eabs)
+	reduce(e1) = noExp
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app-5
+	~C |- ~eout : ~T
+
+	goal
+	~ein == app(e1, e2)
+	reduce(~ein) = someExp(~eout)
+	~C |- ~ein : ~T
+	================================ T-Preservation-T-app
+	~C |- ~eout : ~T
+}

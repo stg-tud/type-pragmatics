@@ -1,0 +1,25 @@
+module stlca.TypeProofs.TWeakabs1
+
+import stlca.TypeBase
+import stlca.Context
+import stlca.Syntax
+
+// needs own file since additional axioms make this
+// unprovable for vampire
+local {
+	const eabs : Exp
+
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+	
+	goal
+	~x != ~y
+	~e == abs(~y, ~S1, eabs)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	============================= T-Weak-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+}

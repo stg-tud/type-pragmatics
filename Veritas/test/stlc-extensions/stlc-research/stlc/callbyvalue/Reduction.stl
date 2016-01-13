@@ -1,0 +1,362 @@
+module stlc2.callbyvalue.Reduction
+
+import stlc2.Syntax
+import stlc2.Subst
+
+sorts
+	OptExp
+
+constructors
+	noExp : OptExp
+	someExp : Exp -> OptExp
+
+function
+isSomeExp : OptExp -> Bool
+isSomeExp(noExp) = false
+isSomeExp(someExp(e)) = true
+
+partial function
+getSomeExp : OptExp -> Exp
+getSomeExp(someExp(e)) = e
+
+function
+reduce : Exp -> OptExp
+reduce(True) = noExp
+reduce(False) = noExp
+reduce(Zero) = noExp
+reduce(succ(e)) =
+	if isNum(e)
+	then noExp
+	else let ered = reduce(e) in
+        if isSomeExp(ered)
+        then someExp(succ(getSomeExp(ered)))
+        else noExp
+reduce(pred(succ(e))) =
+	if isNum(e)
+	then someExp(e)
+	else let ered = reduce(e) in 
+	    if isSomeExp(ered)
+	    then someExp(pred(succ(getSomeExp(ered))))
+	    else noExp
+reduce(pred(Zero)) = someExp(Zero)
+reduce(pred(e)) = let ered = reduce(e) in
+    if isSomeExp(ered)
+    then someExp(pred(getSomeExp(ered)))
+    else noExp
+reduce(isZero(Zero)) = someExp(True)
+reduce(isZero(e)) =
+	if isValue(e)
+	then someExp(False)
+	else let ered = reduce(e) in
+        if isSomeExp(ered)
+        then someExp(isZero(getSomeExp(ered)))
+        else noExp
+reduce(var(x)) = noExp
+reduce(abs(x, S, e)) = noExp
+reduce(app(abs(x, S, e1), e2)) = let e2red = reduce(e2) in
+	if isSomeExp(e2red)
+	then someExp(app(abs(x, S, e1), getSomeExp(e2red)))
+	else 
+		if isValue(e2)
+		then someExp(subst(x, e2, e1))
+		else noExp
+reduce(app(e1, e2)) = let e1red = reduce(e1) in
+  if isSomeExp(e1red)
+  then someExp(app(getSomeExp(e1red), e2))
+  else noExp
+
+
+local {
+	lemma
+	~e == True
+	reduce(~e) == ~res
+	================== reduce-CODOM-1
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == False
+	reduce(~e) == ~res
+	================== reduce-CODOM-2
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	
+	lemma
+	~e == Zero
+	reduce(~e) == ~res
+	================== reduce-CODOM-3
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == succ(~e1)
+	isNum(~e1)
+	reduce(~e) == ~res
+	================== reduce-CODOM-4
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+
+	lemma
+	~e == succ(~e1)
+	!isNum(~e1)
+	isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-5
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+
+	lemma
+	~e == succ(~e1)
+	!isNum(~e1)
+	!isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-6
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+
+	lemma
+	~e == pred(succ(~e1))
+	isNum(~e1)
+	reduce(~e) == ~res
+	================== reduce-CODOM-7
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == pred(succ(~e1))
+	!isNum(~e1)
+	isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-8
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == pred(succ(~e1))
+	!isNum(~e1)
+	!isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-9
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == pred(Zero)
+	reduce(~e) == ~res
+	================== reduce-CODOM-10
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	
+	lemma
+	~e == pred(~e1)
+	~e1 != Zero
+	~e1 != succ(~e3)
+	isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-11
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	
+	lemma
+	~e == pred(~e1)
+	~e1 != Zero
+	~e1 != succ(~e3)
+	!isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-12
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == isZero(Zero)
+	reduce(~e) == ~res
+	================== reduce-CODOM-13
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == isZero(~e1)
+	isValue(~e1)
+	reduce(~e) == ~res
+	================== reduce-CODOM-14
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+
+	lemma
+	~e == isZero(~e1)
+	!isValue(~e1)
+	isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-15
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+
+	lemma
+	~e == isZero(~e1)
+	!isValue(~e1)
+	!isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-16
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+
+	lemma
+	~e == var(~x)
+	reduce(~e) == ~res
+	================== reduce-CODOM-17
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == abs(~x, ~S, ~eabs)
+	reduce(~e) == ~res
+	================== reduce-CODOM-18
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	
+	lemma
+	~e == app(abs(~x, ~S, ~eabs), ~e1)
+	isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-19
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	
+	lemma
+	~e == app(abs(~x, ~S, ~eabs), ~e1)
+	!isSomeExp(reduce(~e1))
+	isValue(~e1)
+	reduce(~e) == ~res
+	================== reduce-CODOM-20
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == app(abs(~x, ~S, ~eabs), ~e1)
+	!isSomeExp(reduce(~e1))
+	!isValue(~e1)
+	reduce(~e) == ~res
+	================== reduce-CODOM-21
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	    
+	lemma
+	~e == app(~e1, ~e3)
+	~e1 != abs(~x, ~S, ~eabs)
+	isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-22
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	    
+	lemma
+	~e == app(~e1, ~e3)
+	~e1 != abs(~x, ~S, ~eabs)
+	!isSomeExp(reduce(~e1))
+	reduce(~e) == ~res
+	================== reduce-CODOM-23
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+	
+	hide-all
+	include { reduce-CODOM-1, reduce-CODOM-2, reduce-CODOM-3,
+	          reduce-CODOM-4, reduce-CODOM-5, reduce-CODOM-6,
+	          reduce-CODOM-7, reduce-CODOM-8, reduce-CODOM-9,
+	          reduce-CODOM-10, reduce-CODOM-11, reduce-CODOM-12,
+	          reduce-CODOM-13, reduce-CODOM-14, reduce-CODOM-15,
+	          reduce-CODOM-16, reduce-CODOM-17, reduce-CODOM-18,
+	          reduce-CODOM-19, reduce-CODOM-20, reduce-CODOM-21,
+	          reduce-CODOM-22, reduce-CODOM-23, reduce-INV }
+	goal
+	reduce(~e) == ~res
+	================== reduce-CODOM
+	OR
+	=> ~res == noExp
+	=> exists ~e2
+	    ~res == someExp(~e2)
+}
+
+axiom
+reduce(~e) == ~res
+========================== reduce-CODOM
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+
+
+
+// axiom
+// reduce(~e) == ~res
+// ========================== reduce-Inv
+// OR
+// => exists ~x
+// 	~e == var(~x)
+// 	~res == noExp
+// => exists ~x, ~S, ~e1
+// 	~e == abs(~x, ~S, ~e1)
+// 	~res == noExp
+// => exists ~x, ~S, ~e1, ~e2
+// 	~e == app(abs(~x, ~S, ~e1), ~e2)
+// 	~res == someExp(subst(~x, ~e2, ~e1))
+// => exists ~e1, ~e2, ~e1Red
+// 	~e == app(~e1, ~e2)
+// 	forall ~x, ~S, ~e11, ~e22
+// 		~e != app(abs(~x, ~S, ~e11), ~e22)
+// 	~e1Red == reduce(~e1)
+// 	isSomeExp(~e1Red)
+// 	~res == someExp(app(getSomeExp(~e1Red), ~e2))
+// => exists ~e1, ~e2, ~e1Red
+// 	~e == app(~e1, ~e2)
+// 	forall ~x, ~S, ~e11, ~e22
+// 		~e != app(abs(~x, ~S, ~e11), ~e22)
+// 	~e1Red == reduce(~e1)
+// 	!isSomeExp(~e1Red)
+// 	~res == noExp

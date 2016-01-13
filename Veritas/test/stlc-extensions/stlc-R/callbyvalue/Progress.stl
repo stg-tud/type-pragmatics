@@ -1,0 +1,99 @@
+module stlcR.callbyvalue.Progress
+
+import stlcR.Syntax
+import stlcR.Context
+import stlcR.callbyvalue.Reduction
+import stlcR.Types
+
+// Prove by induction on typing relation. Cases: T-var, T-abs, T-app
+
+goal
+~ein == var(~x)
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-var
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+	
+//Verification succeeded, used lemmas: T-inv, DIFF-var-app, lookup0, DIFF-noType-someType, DIFF-var-abs.
+
+local {
+	consts
+	    e1 : Exp
+	
+	axiom
+	empty |- e1 : ~T
+	!isValue(e1)
+	================== T-Progress-fix-IH
+	exists ~eout
+	    reduce(e1) == someExp(~eout)
+	
+	goal
+	~ein == fix(e1)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	================== T-Progress-fix
+	exists ~eout
+	    reduce(~ein) == someExp(~eout)
+}
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom 
+	empty |- e1 : ~T
+	!isValue(e1)
+	=========================== T-Progress-T-abs-IH
+	exists ~eout
+		reduce(e1) == someExp(~eout)
+
+	goal
+	~ein == abs(~x, ~S, e1)
+	empty |- ~ein : ~Tin
+	!isValue(~ein)
+	=========================== T-Progress-T-abs
+	exists ~eout
+		reduce(abs(~x, ~S, e1)) == someExp(~eout)
+		
+	//Verification succeeded, used lemmas: isValue0.
+}
+
+
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom	 
+	~ein == e1
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app-IH1
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+
+	axiom // NEEDED! (as expected)
+	~ein == e2	 
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app-IH2
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+	
+	goal
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+}
+
+axiom
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress
+exists ~eout
+	reduce(~ein) == someExp(~eout)

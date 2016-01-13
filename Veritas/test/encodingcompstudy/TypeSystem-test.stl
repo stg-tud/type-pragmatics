@@ -1,0 +1,207 @@
+module encodingcompstudy.TypeSystem-test
+
+import encodingcompstudy.Tables
+import encodingcompstudy.TStore
+import encodingcompstudy.Syntax
+import encodingcompstudy.TContext
+import encodingcompstudy.TypeSystem
+
+
+goal
+
+======================================================== test-T-Tvalue-1
+emptyContext |- Tvalue(table(aempty, tempty)) : ttempty
+
+local {
+	
+	different consts 
+		x1 : FVal
+		x2 : FVal
+		y1 : FVal
+		y2 : FVal
+		z1 : FVal
+		z2 : FVal
+	
+	different consts
+		TN : TName
+		T1 : FType
+		T2 : FType
+		T3 : FType
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	axiom 
+	=================== ftype-x1
+	fieldType(x1) == T1
+	
+	axiom 
+	=================== ftype-x2
+	fieldType(x2) == T1
+	
+	axiom 
+	=================== ftype-y1
+	fieldType(y1) == T2
+	
+	axiom 
+	=================== ftype-y2
+	fieldType(y2) == T2
+	
+	axiom 
+	=================== ftype-z1
+	fieldType(z1) == T3
+	
+	axiom 
+	=================== ftype-z2
+	fieldType(z2) == T3
+	
+	goal 
+	~al == acons(A1, acons(A2, acons(A3, aempty)))
+	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
+	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
+		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
+	=============================================================================== test-T-tvalue-2
+	~ttc |- Tvalue(table(~al, ~rt)) : ~tt
+	
+}
+
+   
+local {
+	
+	different consts
+		TN : TName
+		T1 : FType
+		T2 : FType
+		T3 : FType
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	
+	goal 
+	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
+	~ttc == bindContext(TN, ~tt, emptyContext)
+	=============================================================================== test-T-SelectAllFrom
+	~ttc |- SelectAllFrom(Ref(TN)) : ~tt
+	
+}
+
+local {
+	
+	different consts
+		TN : TName
+		T1 : FType
+		T2 : FType
+		T3 : FType
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	
+	goal 
+	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
+	~ttc == bindContext(TN, ~tt, emptyContext)
+	===================================================================================== test-T-SelectSomeFrom1
+	~ttc |- SelectSomeFrom(acons(A3, aempty), Ref(TN)) : ttcons(ctype(A3, T3), ttempty)
+	
+}
+
+local {
+	
+	different consts
+		TN : TName
+		T1 : FType
+		T2 : FType
+		T3 : FType
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	goal 
+	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
+	~ttc == bindContext(TN, ~tt, emptyContext)
+	=============================================================================== test-T-SelectSomeFrom2
+	~ttc |- SelectSomeFrom(acons(A3, acons(A1, aempty)), Ref(TN)) : ttcons(ctype(A3, T3), ttcons(ctype(A1, T1), ttempty))
+	
+}
+
+local {
+	
+	different consts 
+		x1 : FVal
+	
+	different consts
+		TN : TName
+		T1 : FType
+		T2 : FType
+		T3 : FType
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	
+	goal 
+	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
+	~p == VEquals(A3, x1)
+	~ttc == bindContext(TN, ~tt, emptyContext)
+	=============================================================================== test-T-SelectAllFromWhere1
+	~ttc |- SelectAllFromWhere(Ref(TN), ~p) : ~tt
+	
+}
+
+local {
+	
+	different consts 
+		z1 : FVal
+	
+	different consts
+		TN : TName
+		T1 : FType
+		T2 : FType
+		T3 : FType
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	
+	goal 
+	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
+	~p == VEquals(A3, z1)
+	~ttc == bindContext(TN, ~tt, emptyContext)
+	=============================================================================== test-T-SelectAllFromWhere1
+	~ttc |- SelectAllFromWhere(Ref(TN), ~p) : ~tt
+	
+}
+
+local {
+	
+	different consts 
+		x1 : FVal
+	
+	different consts
+		TN : TName
+		T1 : FType
+		T2 : FType
+		T3 : FType
+		A1 : AName
+		A2 : AName
+		A3 : AName
+		
+	
+	goal 
+	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
+	~p == VEquals(A1, x1)
+	~ttc == bindContext(TN, ~tt, emptyContext)
+	=============================================================================== test-T-SelectSomeFromWhere1
+	~ttc |- SelectSomeFromWhere(acons(A3, aempty), Ref(TN), ~p) : ttcons(ctype(A3, T3), ttempty)
+	
+}
+
+
+
+
+
+
+
+
+

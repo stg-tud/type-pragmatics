@@ -1,0 +1,68 @@
+module stlca.SubstLemmaAbs
+
+import stlca.Syntax
+import stlca.Context
+import stlca.TypeBase
+import stlca.Gensym
+import stlca.AlphaEquivalence
+import stlca.Subst
+import stlca.SubstLemmaAux.SubstLemmaAux
+
+goal
+~e2 == abs(~y, ~S, ~e1)
+~x == ~y
+~C |- ~e : ~T
+bind(~x, ~T, ~C) |- ~e2 : ~T2
+============================== T-subst-abs-1
+~C |- subst(~x, ~e, ~e2) : ~T2
+
+
+local {
+	const eabs : Exp
+	
+	//Lemma must be used locally only here! Proof is in SubstLemmaAux.stl
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	axiom
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- eabs : ~T2
+	============================== T-subst-IH-abs
+	~C |- subst(~x, ~e, eabs) : ~T2
+
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	bind(~x, ~T, ~C) |- ~e2 : arrow(~S, ~T2)
+	========================================= T-subst-eabs-type
+	bind(~y, ~S, bind(~x, ~T, ~C)) |- eabs : ~T2
+	
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : arrow(~S, ~T2)
+	============================================ T-subst-abs-2-type-decomposition
+	~C |- abs(~y, ~S, subst(~x, ~e, eabs)) : arrow(~S, ~T2)
+	 
+	lemma
+	~e2 == abs(~y, ~S, eabs)
+	bind(~x, ~T, ~C) |- ~e2 : ~A
+	============================= T-abs-type-extraction
+	exists ~T2
+	    ~A == arrow(~S, ~T2)
+
+	goal
+	~e2 == abs(~y, ~S, eabs)
+	~x != ~y
+	!isFreeVar(~y, ~e)
+	~C |- ~e : ~T
+	bind(~x, ~T, ~C) |- ~e2 : ~T2
+	================================================= T-subst-abs-2
+	~C |- subst(~x, ~e, ~e2) : ~T2
+}
+

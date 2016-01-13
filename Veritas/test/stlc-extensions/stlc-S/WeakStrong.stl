@@ -1,0 +1,259 @@
+module stlcS.WeakStrong
+
+import stlcS.Types
+import stlcS.Syntax
+import stlcS.Context
+
+
+axioms
+
+//Auxiliary lemmas for on contexts
+
+//Proof by structural induction 
+
+//proof for Weakening without using T-Weak-FreeVar
+
+goal
+~e == var(~y)
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak-var
+bind(~x, ~S, ~C) |- ~e : ~T
+
+local {
+	const eabs : Exp
+
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- eabs : ~T
+	============================== T-Weak-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+	
+	goal
+	~x != ~y
+	~e == abs(~y, ~S1, eabs)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	============================= T-Weak-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+		
+	axioms
+	lookup(~x, ~C) == noType
+	~C |- e1app : ~T
+	=========================== T-Weak-app-IH1
+	bind(~x, ~S, ~C) |- e1app : ~T
+	
+	lookup(~x, ~C) == noType
+	~C |- e2app : ~T
+	=========================== T-Weak-app-IH2
+	bind(~x, ~S, ~C) |- e2app : ~T
+	
+	
+	goal
+	~e == app(e1app, e2app)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-app
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+	    e1 : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- e1 : ~T
+	=========================== T-Weak-inl-IH
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	goal
+	~e == inl(e1, ~T1)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-inl
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+	    e1 : Exp
+	
+	axiom
+	lookup(~x, ~C) == noType
+	~C |- e1 : ~T
+	=========================== T-Weak-inr-IH
+	bind(~x, ~S, ~C) |- e1 : ~T
+	
+	goal
+	~e == inr(e1, ~T1)
+	lookup(~x, ~C) == noType
+	~C |- ~e : ~T
+	=========================== T-Weak-inr
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+axiom
+lookup(~x, ~C) == noType
+~C |- ~e : ~T
+=========================== T-Weak
+bind(~x, ~S, ~C) |- ~e : ~T
+
+
+
+//Proof by structural induction, Strenghthening
+
+goal
+~e == var(~y)
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong-var
+~C |- ~e : ~T
+
+local {
+	const eabs : Exp
+	
+	axiom
+	!isFreeVar(~x, eabs)
+	bind(~x, ~S, ~C) |- eabs : ~T
+	=========================== T-Strong-abs-IH
+	~C |- eabs : ~T
+	
+	goal
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : arrow(~T1, ~T2)
+	=========================== T-Strong-abs-use-IH
+	bind(~y, ~S1, ~C) |- eabs : ~T2
+	
+	axiom
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : arrow(~T1, ~T2)
+	=========================== T-Strong-abs-use-IH
+	bind(~y, ~S1, ~C) |- eabs : ~T2
+
+	goal
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-abs
+	~C |- ~e : ~T
+}
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+
+	axioms 
+	!isFreeVar(~x, e1app)
+	bind(~x, ~S, ~C) |- e1app : ~T
+	=========================== T-Strong-app-IH1
+	~C |- e1app : ~T
+	
+	!isFreeVar(~x, e2app)
+	bind(~x, ~S, ~C) |- e2app : ~T
+	=========================== T-Strong-app-IH2
+	~C |- e2app : ~T
+	
+	goal
+	~e == app(e1app, e2app)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-app
+	~C |- ~e : ~T
+}
+
+local {
+	consts
+	   e1 : Exp
+	
+	axioms
+	!isFreeVar(~x, e1)
+	bind(~x, ~S, ~C) |- e1 : ~T
+	=========================== T-Strong-inr-inl-IH
+	~C |- e1 : ~T
+	
+	goal
+	~e == inl(e1, ~T1)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-inl
+	~C |- ~e : ~T
+	
+	goal
+	~e == inr(e1, ~T1)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-inr
+	~C |- ~e : ~T
+}
+
+local {
+	consts
+	    e1 : Exp
+	    t1 : Exp
+	    t2 : Exp
+	    
+	axiom
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- e1 : ~T
+	=========================== T-Strong-case-IH1
+	~C |- e1 : ~T
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- t1 : ~T
+	=========================== T-Strong-case-IH2
+	~C |- t1 : ~T
+	
+	axiom
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- t2 : ~T
+	=========================== T-Strong-case-IH3
+	~C |- t2 : ~T
+	
+	lemma
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	============================== T-Strong-weak-use-IH1
+	exists ~T1, ~T2
+	    ~C |- e1 : sum(~T1, ~T2)
+	    
+	lemma
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	============================== T-Strong-weak-use-IH2
+	exists ~T1
+	    bind(~x1, ~T1, ~C) |- t1 : ~T
+	    
+	lemma
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	============================== T-Strong-weak-use-IH3
+	exists ~T2
+	    bind(~x2, ~T2, ~C) |- t2 : ~T
+	
+	goal
+	~e == case(e1, ~x1, t1, ~x2, t2)
+	!isFreeVar(~x, ~e)
+	bind(~x, ~S, ~C) |- ~e : ~T
+	=========================== T-Strong-case
+	~C |- ~e : ~T
+}
+
+axiom
+!isFreeVar(~x, ~e)
+bind(~x, ~S, ~C) |- ~e : ~T
+=========================== T-Strong
+~C |- ~e : ~T

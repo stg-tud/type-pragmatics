@@ -1,0 +1,164 @@
+module stlcP.callbyvalue.Reduction
+
+import stlcP.Syntax
+import stlcP.Subst
+
+sorts
+	OptExp
+
+constructors
+	noExp : OptExp
+	someExp : Exp -> OptExp
+
+function
+isSomeExp : OptExp -> Bool
+isSomeExp(noExp) = false
+isSomeExp(someExp(e)) = true
+
+partial function
+getSomeExp : OptExp -> Exp
+getSomeExp(someExp(e)) = e
+
+function
+reduce : Exp -> OptExp
+reduce(pair(e1, e2)) =
+	if isValue(e1)
+	then let e2red = reduce(e2) in
+		if isSomeExp(e2red)
+		then someExp(pair(e1, getSomeExp(e2red)))
+		else noExp
+	else let e1red = reduce(e1) in 
+		if isSomeExp(e1red)
+		then someExp(pair(getSomeExp(e1red), e2))
+		else noExp
+reduce(first(pair(e1, e2))) = let pred = reduce(pair(e1, e2)) in
+    if isValue(pair(e1, e2))
+    then someExp(e1)
+    else if isSomeExp(pred)
+         then someExp(first(getSomeExp(pred)))
+         else noExp
+reduce(first(e)) = let ered = reduce(e) in
+    if isSomeExp(ered)
+    then someExp(first(getSomeExp(ered)))
+    else noExp
+reduce(second(pair(e1, e2))) = let pred = reduce(pair(e1, e2)) in
+    if isValue(pair(e1, e2))
+    then someExp(e2)
+    else if isSomeExp(pred)
+         then someExp(second(getSomeExp(pred)))
+         else noExp
+reduce(second(e)) = let ered = reduce(e) in
+    if isSomeExp(ered)
+    then someExp(second(getSomeExp(ered)))
+    else noExp
+reduce(var(x)) = noExp
+reduce(abs(x, S, e)) = noExp
+reduce(app(abs(x, S, e1), e2)) = let e2red = reduce(e2) in
+	if isSomeExp(e2red)
+	then someExp(app(abs(x, S, e1), getSomeExp(e2red)))
+	else 
+		if isValue(e2)
+		then someExp(subst(x, e2, e1))
+		else noExp
+reduce(app(e1, e2)) = let e1red = reduce(e1) in
+	if isSomeExp(e1red)
+	then someExp(app(getSomeExp(e1red), e2))
+	else noExp
+	
+lemma
+reduce(pair(~e1, ~e2)) == ~res
+========================== reduce-CODOM-pair
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+
+lemma
+reduce(first(~e)) == ~res
+========================== reduce-CODOM-first
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+
+lemma
+reduce(second(~e)) == ~res
+========================== reduce-CODOM-second
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+
+lemma
+reduce(var(~x)) == ~res
+========================== reduce-CODOM-var
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+	
+lemma
+reduce(abs(~x, ~S, ~e)) == ~res
+========================== reduce-CODOM-abs
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+	
+lemma
+reduce(app(~e1, ~e3)) == ~res
+========================== reduce-CODOM-app
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+
+
+local {
+hide-all
+include { reduce-CODOM-pair, reduce-CODOM-first, reduce-CODOM-second,
+          reduce-CODOM-var, reduce-CODOM-abs, reduce-CODOM-app, reduce-INV }
+goal
+reduce(~e) == ~res
+========================== reduce-CODOM
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+}
+
+axiom
+reduce(~e) == ~res
+========================== reduce-CODOM
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+
+// axiom
+// reduce(~e) == ~res
+// ========================== reduce-Inv
+// OR
+// => exists ~x
+// 	~e == var(~x)
+// 	~res == noExp
+// => exists ~x, ~S, ~e1
+// 	~e == abs(~x, ~S, ~e1)
+// 	~res == noExp
+// => exists ~x, ~S, ~e1, ~e2
+// 	~e == app(abs(~x, ~S, ~e1), ~e2)
+// 	~res == someExp(subst(~x, ~e2, ~e1))
+// => exists ~e1, ~e2, ~e1Red
+// 	~e == app(~e1, ~e2)
+// 	forall ~x, ~S, ~e11, ~e22
+// 		~e != app(abs(~x, ~S, ~e11), ~e22)
+// 	~e1Red == reduce(~e1)
+// 	isSomeExp(~e1Red)
+// 	~res == someExp(app(getSomeExp(~e1Red), ~e2))
+// => exists ~e1, ~e2, ~e1Red
+// 	~e == app(~e1, ~e2)
+// 	forall ~x, ~S, ~e11, ~e22
+// 		~e != app(abs(~x, ~S, ~e11), ~e22)
+// 	~e1Red == reduce(~e1)
+// 	!isSomeExp(~e1Red)
+// 	~res == noExp

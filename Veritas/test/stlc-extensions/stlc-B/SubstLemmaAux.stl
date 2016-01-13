@@ -1,0 +1,162 @@
+module stlcB.SubstLemmaAux
+
+import stlcB.Syntax
+import stlcB.Context
+import stlcB.Subst
+import stlcB.AlphaEquivalence
+import stlcB.Types
+
+
+//Auxiliary lemmas for on contexts
+
+//Proof by structural induction 
+
+goal
+~e == var(~y)
+!isFreeVar(~x, ~e)
+~C |- ~e : ~T
+=========================== T-Weak-FreeVar-var
+bind(~x, ~S, ~C) |- ~e : ~T
+
+goal
+~e == True
+!isFreeVar(~x, ~e)
+~C |- ~e : ~T
+=========================== T-Weak-FreeVar-True
+bind(~x, ~S, ~C) |- ~e : ~T
+
+goal
+~e == False
+!isFreeVar(~x, ~e)
+~C |- ~e : ~T
+=========================== T-Weak-FreeVar-False
+bind(~x, ~S, ~C) |- ~e : ~T
+
+local {
+	const eabs : Exp
+
+	axiom
+	!isFreeVar(~x, eabs)
+	~C |- eabs : ~T
+	============================== T-Weak-FreeVar-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+	
+	goal
+	~x != ~y
+	!isFreeVar(~x, abs(~y, ~S1, eabs))
+	~C |- abs(~y, ~S1, eabs) : ~T
+	============================= T-Weak-FreeVar-abs-1
+	bind(~x, ~S, ~C) |- abs(~y, ~S1, eabs) : ~T
+}
+
+local {
+	const eabs : Exp
+	
+	axiom
+	~x != ~y
+	~e == abs(~y, ~S1, ~e1)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	============================= T-Weak-FreeVar-abs-1
+	bind(~x, ~S, ~C) |- ~e : ~T
+	
+	
+	//necessary axioms on alpha equivalence
+	axioms
+	============================ alpha-equiv-refl
+	alphaEquivalent(~e, ~e)
+
+
+	alphaEquivalent(~e1, ~e2)
+	============================ alpha-equiv-sym
+	alphaEquivalent(~e2, ~e1)
+
+ 
+	alphaEquivalent(~e1, ~e2)
+	alphaEquivalent(~e2, ~e3)
+	============================ alpha-equiv-trans
+	alphaEquivalent(~e1, ~e3)
+
+	!isFreeVar(~y, ~e)
+	====================================================================== alpha-equiv-subst-abs
+	alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+	~C |- ~e : ~T
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-typing
+	~C |- ~e1 : ~T
+	
+	!isFreeVar(~x, ~e)
+	alphaEquivalent(~e, ~e1)
+	========================= alpha-equiv-FreeVar
+	!isFreeVar(~x, ~e1)
+
+	//NOT needed!
+	axiom
+	!isFreeVar(~x, eabs)
+	~C |- eabs : ~T
+	============================== T-Weak-FreeVar-abs-IH
+	bind(~x, ~S, ~C) |- eabs : ~T
+
+	goal
+	~x == ~y
+	~e == abs(~y, ~S1, eabs)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	============================ T-Weak-FreeVar-abs-2
+	bind(~x, ~S, ~C) |- ~e : ~T
+}
+
+local {
+	consts
+		e1app : Exp
+		e2app : Exp
+		
+	axioms
+	!isFreeVar(~x, e1app)
+	~C |- e1app : ~T
+	=============================== T-Weak-FreeVar-app-IH1
+	bind(~x, ~S, ~C) |- e1app : ~T
+	
+	!isFreeVar(~x, e2app)
+	~C |- e2app : ~T
+	=============================== T-Weak-FreeVar-app-IH2
+	bind(~x, ~S, ~C) |- e2app : ~T
+	
+	goal
+	!isFreeVar(~x, app(e1app, e2app))
+	~C |- app(e1app, e2app) : ~T
+	=========================== T-Weak-FreeVar-app
+	bind(~x, ~S, ~C) |- app(e1app, e2app) : ~T
+}
+
+local {
+    consts
+        c : Exp
+        e1 : Exp
+        e2 : Exp
+    
+    axioms
+    !isFreeVar(~x, c)
+    ~C |- c : ~T
+    =========================== T-Weak-FreeVar-if-IH1
+    bind(~x, ~S, ~C) |- c : ~T
+    
+    !isFreeVar(~x, e1)
+    ~C |- e1 : ~T
+    =========================== T-Weak-FreeVar-if-IH2
+    bind(~x, ~S, ~C) |- e1 : ~T
+    
+    !isFreeVar(~x, e2)
+    ~C |- e2 : ~T
+    =========================== T-Weak-FreeVar-if-IH3
+    bind(~x, ~S, ~C) |- e2 : ~T
+    
+    goal
+	~e == ifExp(c, e1, e2)
+	!isFreeVar(~x, ~e)
+	~C |- ~e : ~T
+	=========================== T-Weak-FreeVar-if
+	bind(~x, ~S, ~C) |- ~e : ~T
+}

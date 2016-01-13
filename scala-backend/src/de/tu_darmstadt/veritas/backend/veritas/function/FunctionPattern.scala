@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.backend.veritas
+package de.tu_darmstadt.veritas.backend.veritas.function
 
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
@@ -7,10 +7,11 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
+import de.tu_darmstadt.veritas.backend.veritas._
 
 sealed trait FunctionPattern extends VeritasConstruct with PrettyPrintable
 
-case class FunctionPatApp(functionName: String, args: FunctionPattern*) extends FunctionPattern {
+case class FunctionPatApp(functionName: String, args: Seq[FunctionPattern]) extends FunctionPattern {
   override val children = Seq(args)
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
@@ -21,7 +22,7 @@ case class FunctionPatApp(functionName: String, args: FunctionPattern*) extends 
       case e: FunctionPattern => e
       case _                  => throw new ClassCastException
     }
-    FunctionPatApp(functionName, newargs: _*)
+    FunctionPatApp(functionName, newargs)
   }
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -30,6 +31,8 @@ case class FunctionPatApp(functionName: String, args: FunctionPattern*) extends 
     args.lastOption foreach (writer.write(_))
     writer.write(")")
   }
+  
+  override def toString() = s"${functionName}(${args.mkString(",")})"
 }
 
 case class FunctionPatVar(varName: String) extends FunctionPattern with SimplePrettyPrintable {
@@ -43,11 +46,13 @@ case class FunctionPatVar(varName: String) extends FunctionPattern with SimplePr
   }
 
   override val prettyString = varName
+  
+  override def toString() = varName
 }
 
 object FunctionPattern {
   def from(term: StrategoTerm): FunctionPattern = term match {
-    case StrategoAppl("FunctionPatApp", StrategoString(func), StrategoList(args)) => FunctionPatApp(func, (args map FunctionPattern.from): _*)
+    case StrategoAppl("FunctionPatApp", StrategoString(func), StrategoList(args)) => FunctionPatApp(func, args map FunctionPattern.from)
     case StrategoAppl("FunctionPatVar", StrategoString(v)) => FunctionPatVar(v)
     case t => throw VeritasParseError(t)
   }

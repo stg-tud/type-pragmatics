@@ -1,0 +1,42 @@
+module stlca.callbyvalue.ProgressSucc
+
+import stlca.Syntax
+import stlca.Context
+import stlca.TypeBase
+import stlca.callbyvalue.Reduction
+
+local {
+	const e1 : Exp
+	
+	axiom
+	~ein == e1
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	===================== T-Progress-T-succ-IH
+	exists ~eout
+	    reduce(~ein) == someExp(~eout)
+	
+	
+	lemma
+	~ein == succ(e1)
+	empty |- ~ein : ~T
+	================== succ-parameter-type
+	empty |- e1 : Num
+	
+	// necessary, vampire does not seem to take this into consideration
+	// in a reasonable time span otherwise.
+	lemma
+	~ein == succ(e1)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	================== succ-parameter-value
+	!isValue(e1)
+	
+	goal
+	~ein == succ(e1)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	===================== T-Progress-T-succ
+	exists ~eout
+	    reduce(~ein) == someExp(~eout)
+}

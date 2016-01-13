@@ -1,0 +1,477 @@
+module stlcS2.callbyvalue.Progress
+
+import stlcS2.Syntax
+import stlcS2.Context
+import stlcS2.callbyvalue.Reduction
+import stlcS2.Types
+import stlcS2.Subst //{ names }
+
+//hide { subst0, subst1, subst2, subst3, subst4, subst5, subst6, subst7, subst8, subst9, subst10, subst11, subst12, subst13, subst14, subst15, subst16, subst17, subst-INV }
+
+// Prove by induction on typing relation. Cases: T-var, T-abs, T-app
+
+// axiom
+// isValue(~e)
+// =========== T-value-INV
+// OR
+// => exists ~x, ~S, ~eabs
+//      ~e == abs(~x, ~S, ~eabs)
+// => exists ~e1, ~T
+//      ~e == inl(~e1, ~T)
+//      isValue(~e1)
+// => exists ~e1, ~T
+//      ~e == inr(~e1, ~T)
+//      isValue(~e1)
+
+// goal
+// empty |- var(~x) : ~T
+// !isValue(var(~x))
+// =========================== T-Progress-T-var
+// exists ~eout
+// 	reduce(var(~x)) == someExp(~eout)
+
+goal
+~ein == var(~x)
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress-T-var
+exists ~eout
+	reduce(~ein) == someExp(~eout)
+	
+//Verification succeeded, used lemmas: T-inv, DIFF-var-app, lookup0, DIFF-noType-someType, DIFF-var-abs.
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom 
+	empty |- e1 : ~T
+	!isValue(e1)
+	=========================== T-Progress-T-abs-IH
+	exists ~eout
+		reduce(e1) == someExp(~eout)
+
+	// goal
+	// empty |- abs(~x, ~S, e1) : ~Tin
+	// !isValue(abs(~x, ~S, e1))
+	// =========================== T-Progress-T-abs
+	// exists ~eout
+	// 	reduce(abs(~x, ~S, e1)) == someExp(~eout)
+	
+	goal
+	~ein == abs(~x, ~S, e1)
+	empty |- ~ein : ~Tin
+	!isValue(~ein)
+	=========================== T-Progress-T-abs
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+		
+	//Verification succeeded, used lemmas: isValue0.
+}
+
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom	 
+	empty |- e1 : ~T
+	!isValue(e1)
+	=========================== T-Progress-T-app-IH1
+	exists ~eout
+		reduce(e1) == someExp(~eout)
+
+	axiom // NEEDED! (as expected) 
+	empty |- e2 : ~T
+	!isValue(e2)
+	=========================== T-Progress-T-app-IH2
+	exists ~eout
+		reduce(e2) == someExp(~eout)
+	
+	// lemma
+	// empty |- app(e1, e2) : ~T
+	// reduce(e1) == noExp
+	// ======================== T-app-e1-isValue
+	// isValue(e1)
+	//    
+	// lemma
+	// empty |- app(e1, e2) : ~T
+	// isValue(e1)
+	// ======================= T-app-e1-is-not-inl
+	// e1 != inl(~e, ~T2)
+	// 
+	// lemma
+	// empty |- app(e1, e2) : ~T
+	// isValue(e1)
+	// ======================= T-app-e1-is-not-inr
+	// e1 != inr(~e, ~T2)
+	// 
+	// lemma
+	// empty |- app(e1, e2) : ~T
+	// isValue(e1)
+	// ======================= T-app-e1-possibilities
+	// exists ~x, ~S, ~e
+	//   e1 == abs(~x, ~S, ~e)
+	//      
+	// lemma
+	// empty |- app(e1, e2) : ~T
+	// reduce(e2) == noExp
+	// ======================== T-app-e2-isValue
+	// isValue(e2)
+	// 
+	// lemma
+	// empty |- app(e1, e2) : ~T
+	// isValue(e2)
+	// ======================= T-app-e2-possibilities
+	// OR
+	// => exists ~x, ~S, ~e
+	//      e2 == abs(~x, ~S, ~e)
+	// => exists ~e, ~T
+	//      e2 == inl(~e, ~T)
+	// => exists ~e, ~T
+	//      e2 == inr(~e, ~T)
+	// 
+	// lemma
+	// e1 == abs(~x, ~S, ~e)
+	// isSomeExp(reduce(e2))
+	// empty |- app(e1, e2) : ~T
+	// !isValue(app(e1, e2))
+	// ===================== T-Progress-T-app-1
+	// exists ~eout
+	//     reduce(app(e1, e2)) == someExp(~eout)
+	//     
+	// lemma
+	// e1 == abs(~x, ~S, ~e)
+	// !isSomeExp(reduce(e2))
+	// isValue(e2)
+	// empty |- app(e1, e2) : ~T
+	// !isValue(app(e1, e2))
+	// ===================== T-Progress-T-app-2
+	// exists ~eout
+	//     reduce(app(e1, e2)) == someExp(~eout)
+	// 
+	// lemma
+	// e1 == abs(~x, ~S, ~e)
+	// !isSomeExp(reduce(e2))
+	// !isValue(e2)
+	// empty |- app(e1, e2) : ~T
+	// !isValue(app(e1, e2))
+	// ===================== T-Progress-T-app-3
+	// exists ~eout
+	//     reduce(app(e1, e2)) == someExp(~eout)
+	//     
+	// lemma
+	// e1 != abs(~x, ~S, ~e)
+	// isSomeExp(reduce(e1))
+	// empty |- app(e1, e2) : ~T
+	// !isValue(app(e1, e2))
+	// ===================== T-Progress-T-app-4
+	// exists ~eout
+	//     reduce(app(e1, e2)) == someExp(~eout)
+	// 
+	// lemma
+	// e1 != abs(~x, ~S, ~e)
+	// !isSomeExp(reduce(e1))
+	// empty |- app(e1, e2) : ~T
+	// !isValue(app(e1, e2))
+	// ===================== T-Progress-T-app-5
+	// exists ~eout
+	//     reduce(app(e1, e2)) == someExp(~eout)
+
+	// goal
+	// empty |- app(e1, e2) : ~T
+	// !isValue(app(e1, e2))
+	// =========================== T-Progress-T-app
+	// exists ~eout
+	// 	reduce(app(e1, e2)) == someExp(~eout)
+	
+	goal
+	~ein == app(e1, e2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	=========================== T-Progress-T-app
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+		
+	// Verification succeeded, used lemmas: reduce3, isValue1, T-Progress-T-app-IH2, reduce2, EQ-abs, DIFF-var-
+    // abs, T-Weak, isSomeExp0, EQ-arrow, isSomeExp1, isValue2, reduce5, reduce1, lookup0, DIFF-noType-
+    // someType, reduce-CODOM, EQ-app, T-inv, DIFF-var-app, DIFF-abs-app, T-Progress-T-app-IH1, DIFF-noExp-
+    // someExp. -> 22
+		
+}
+
+local {
+	consts
+		e : Exp
+		t1 : Exp
+		t2 : Exp
+
+	axiom	 
+	empty |- e : ~T
+	!isValue(e)
+	=========================== T-Progress-T-case-IH1
+	exists ~eout
+		reduce(e) == someExp(~eout)
+
+	axiom
+	empty |- t1 : ~T
+	!isValue(t1)
+	=========================== T-Progress-T-case-IH2
+	exists ~eout
+		reduce(t1) == someExp(~eout)
+
+	axiom
+	empty |- t2 : ~T
+	!isValue(t2)
+	=========================== T-Progress-T-case-IH3
+	exists ~eout
+		reduce(t2) == someExp(~eout)
+
+// 	lemma
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	reduce(e) == noExp
+// 	======================== T-case-e-isValue
+// 	isValue(e)
+// 	
+// 	lemma
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	isValue(e)
+// 	===================== T-case-e-is-not-abs
+// 	e != abs(~x, ~S, ~eabs)
+// 	
+// 	lemma
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	isValue(e)
+// 	===================== T-case-e-possibilities
+// 	OR
+// 	=> exists ~v, ~T2
+// 	     e == inl(~v, ~T2)
+// 	=> exists ~v, ~T2
+// 	     e == inr(~v, ~T2)
+// 
+// 	lemma
+// 	e == inl(~v, ~T1)
+// 	isValue(inl(~v, ~T1))
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	!isValue(case(e, ~x1, t1, ~x2, t2))
+// 	======================== T-Progress-T-case-1
+// 	exists ~eout
+// 		reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+// 		
+// 	lemma
+// 	e == inl(~v, ~T1)
+// 	!isValue(inl(~v, ~T1))
+// 	isSomeExp(reduce(inl(~v, ~T1)))
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	!isValue(case(e, ~x1, t1, ~x2, t2))
+// 	======================== T-Progress-T-case-2
+// 	exists ~eout
+// 		reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+// 		
+// 	lemma
+// 	e == inl(~v, ~T1)
+// 	!isValue(inl(~v, ~T1))
+// 	!isSomeExp(reduce(inl(~v, ~T1)))
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	!isValue(case(e, ~x1, t1, ~x2, t2))
+// 	======================== T-Progress-T-case-3
+// 	exists ~eout
+// 		reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+// 		
+// 	lemma
+// 	e == inr(~v, ~T1)
+// 	isValue(inr(~v, ~T1))
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	!isValue(case(e, ~x1, t1, ~x2, t2))
+// 	======================== T-Progress-T-case-4
+// 	exists ~eout
+// 		reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+// 	
+// 	lemma
+// 	e == inr(~v, ~T1)
+// 	!isValue(inr(~v, ~T1))
+// 	isSomeExp(reduce(inr(~v, ~T1)))
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	!isValue(case(e, ~x1, t1, ~x2, t2))
+// 	======================== T-Progress-T-case-5
+// 	exists ~eout
+// 		reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+// 		
+// 	lemma
+// 	e == inr(~v, ~T1)
+// 	!isValue(~v)
+// 	!isSomeExp(reduce(inr(~v, ~T1)))
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	!isValue(case(e, ~x1, t1, ~x2, t2))
+// 	======================== T-Progress-T-case-6
+// 	exists ~eout
+// 		reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+// 
+// 	lemma
+// 	e != inr(~v, ~T)
+// 	e != inl(~v, ~T)
+// 	isSomeExp(reduce(e))
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	!isValue(case(e, ~x1, t1, ~x2, t2))
+// 	======================== T-Progress-T-case-7
+// 	exists ~eout
+// 		reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+// 	
+// 	lemma
+// 	e != inr(~v, ~T)
+// 	e != inl(~v, ~T)
+// 	!isSomeExp(reduce(e))
+// 	empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+// 	!isValue(case(e, ~x1, t1, ~x2, t2))
+// 	======================== T-Progress-T-case-8
+// 	exists ~eout
+// 		reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+		
+	// goal
+	// empty |- case(e, ~x1, t1, ~x2, t2) : ~T
+	// !isValue(case(e, ~x1, t1, ~x2, t2))
+	// ======================== T-Progress-T-case
+	// exists ~eout
+	// 	reduce(case(e, ~x1, t1, ~x2, t2)) == someExp(~eout)
+	
+	goal
+	~ein == case(e, ~x1, t1, ~x2, t2)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	======================== T-Progress-T-case
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+}
+
+local {
+	const e : Exp
+	
+	axiom
+	empty |- e : ~T
+	!isValue(e)
+	================== T-Progress-T-inl-IH
+	exists ~eout
+		reduce(e) == someExp(~eout)
+		
+	// lemma
+	// empty |- inl(e, ~T) : ~T
+	// reduce(e) == noExp
+	// ======================== T-inl-e-isValue
+	// isValue(e)
+	// 
+	// lemma
+	// empty |- inl(e, ~T) : ~T
+	// isValue(e)
+	// ============== T-inl-e-possibilities
+	// OR
+	// => exists ~x, ~S, ~eabs
+	//      e == abs(~x, ~S, ~eabs)
+	// => exists ~e1, ~T2
+	//      e == inl(~e1, ~T2)
+	//      isValue(~e1)
+	// => exists ~e1, ~T2
+	//      e == inr(~e1, ~T2)
+	//      isValue(~e1)
+	// 
+	// lemma
+	// isSomeExp(inl(e, ~T))
+	// empty |- inl(e, ~T) : ~T
+	// !isValue(inl(e, ~T))
+	// ==================== T-Progress-T-inl-1
+	// exists ~eout
+	// 	reduce(inl(e, ~T)) == someExp(~eout)
+	// 	
+	// lemma
+	// !isSomeExp(inl(e, ~T))
+	// empty |- inl(e, ~T) : ~T
+	// !isValue(inl(e, ~T))
+	// ==================== T-Progress-T-inl-2
+	// exists ~eout
+	// 	reduce(inl(e, ~T)) == someExp(~eout)
+		
+	// goal
+	// empty |- inl(e, ~T) : ~T
+	// !isValue(inl(e, ~T))
+	// ==================== T-Progress-T-inl
+	// exists ~eout
+	// 	reduce(inl(e, ~T)) == someExp(~eout)
+	
+	goal
+	~ein == inl(e, ~T)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	==================== T-Progress-T-inl
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+	
+}
+
+local {
+	const e : Exp
+	
+	axiom
+	empty |- e : ~T
+	!isValue(e)
+	================== T-Progress-T-inl-IH
+	exists ~eout
+		reduce(e) == someExp(~eout)
+		
+	// lemma
+	// empty |- inr(e, ~T) : ~T
+	// reduce(e) == noExp
+	// ======================== T-inr-e-isValue
+	// isValue(e)
+	// 
+	// lemma
+	// empty |- inr(e, ~T) : ~T
+	// isValue(e)
+	// ============== T-inr-e-possibilities
+	// OR
+	// => exists ~x, ~S, ~eabs
+	//      e == abs(~x, ~S, ~eabs)
+	// => exists ~e1, ~T2
+	//      e == inl(~e1, ~T2)
+	//      isValue(~e1)
+	// => exists ~e1, ~T2
+	//      e == inr(~e1, ~T2)
+	//      isValue(~e1)
+	// 
+	// lemma
+	// isSomeExp(inr(e, ~T))
+	// empty |- inr(e, ~T) : ~T
+	// !isValue(inr(e, ~T))
+	// ==================== T-Progress-T-inr-1
+	// exists ~eout
+	// 	reduce(inr(e, ~T)) == someExp(~eout)
+	// 	
+	// lemma
+	// !isSomeExp(inr(e, ~T))
+	// empty |- inr(e, ~T) : ~T
+	// !isValue(inr(e, ~T))
+	// ==================== T-Progress-T-inr-2
+	// exists ~eout
+	// 	reduce(inl(e, ~T)) == someExp(~eout)
+		
+	// goal
+	// empty |- inr(e, ~T) : ~T
+	// !isValue(inr(e, ~T))
+	// ==================== T-Progress-T-inr
+	// exists ~eout
+	// 	reduce(inl(e, ~T)) == someExp(~eout)
+	
+	goal
+	~ein == inr(e, ~T)
+	empty |- ~ein : ~T
+	!isValue(~ein)
+	==================== T-Progress-T-inr
+	exists ~eout
+		reduce(~ein) == someExp(~eout)
+}
+
+axiom
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress
+exists ~eout
+	reduce(~ein) == someExp(~eout)

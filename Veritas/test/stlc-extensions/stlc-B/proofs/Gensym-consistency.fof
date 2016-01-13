@@ -1,0 +1,35 @@
+fof('EQ-True', axiom, (((vTrue=vTrue) => $true) & ($true => (vTrue=vTrue)))).
+fof('EQ-False', axiom, (((vFalse=vFalse) => $true) & ($true => (vFalse=vFalse)))).
+fof('EQ-var', axiom, (![VVar0,VVar1] : (((vvar(VVar0)=vvar(VVar1)) => (VVar0=VVar1)) & ((VVar0=VVar1) => (vvar(VVar0)=vvar(VVar1)))))).
+fof('EQ-abs', axiom, (![VVar0,VTyp0,VExp0,VVar1,VTyp1,VExp1] : (((vabs(VVar0,VTyp0,VExp0)=vabs(VVar1,VTyp1,VExp1)) => ((VVar0=VVar1) & ((VTyp0=VTyp1) & (VExp0=VExp1)))) & (((VVar0=VVar1) & ((VTyp0=VTyp1) & (VExp0=VExp1))) => (vabs(VVar0,VTyp0,VExp0)=vabs(VVar1,VTyp1,VExp1)))))).
+fof('EQ-app', axiom, (![VExp0,VExp1,VExp2,VExp3] : (((vapp(VExp0,VExp1)=vapp(VExp2,VExp3)) => ((VExp0=VExp2) & (VExp1=VExp3))) & (((VExp0=VExp2) & (VExp1=VExp3)) => (vapp(VExp0,VExp1)=vapp(VExp2,VExp3)))))).
+fof('EQ-ifExp', axiom, (![VExp0,VExp1,VExp2,VExp3,VExp4,VExp5] : (((vifExp(VExp0,VExp1,VExp2)=vifExp(VExp3,VExp4,VExp5)) => ((VExp0=VExp3) & ((VExp1=VExp4) & (VExp2=VExp5)))) & (((VExp0=VExp3) & ((VExp1=VExp4) & (VExp2=VExp5))) => (vifExp(VExp0,VExp1,VExp2)=vifExp(VExp3,VExp4,VExp5)))))).
+fof('DIFF-True-False', axiom, (vTrue!=vFalse)).
+fof('DIFF-True-var', axiom, (![VVar0] : (vTrue!=vvar(VVar0)))).
+fof('DIFF-False-var', axiom, (![VVar0] : (vFalse!=vvar(VVar0)))).
+fof('DIFF-True-abs', axiom, (![VVar0,VTyp0,VExp0] : (vTrue!=vabs(VVar0,VTyp0,VExp0)))).
+fof('DIFF-False-abs', axiom, (![VVar0,VTyp0,VExp0] : (vFalse!=vabs(VVar0,VTyp0,VExp0)))).
+fof('DIFF-var-abs', axiom, (![VVar0,VVar1,VTyp0,VExp0] : (vvar(VVar0)!=vabs(VVar1,VTyp0,VExp0)))).
+fof('DIFF-True-app', axiom, (![VExp0,VExp1] : (vTrue!=vapp(VExp0,VExp1)))).
+fof('DIFF-False-app', axiom, (![VExp0,VExp1] : (vFalse!=vapp(VExp0,VExp1)))).
+fof('DIFF-var-app', axiom, (![VVar0,VExp0,VExp1] : (vvar(VVar0)!=vapp(VExp0,VExp1)))).
+fof('DIFF-abs-app', axiom, (![VVar0,VTyp0,VExp0,VExp1,VExp2] : (vabs(VVar0,VTyp0,VExp0)!=vapp(VExp1,VExp2)))).
+fof('DIFF-True-ifExp', axiom, (![VExp0,VExp1,VExp2] : (vTrue!=vifExp(VExp0,VExp1,VExp2)))).
+fof('DIFF-False-ifExp', axiom, (![VExp0,VExp1,VExp2] : (vFalse!=vifExp(VExp0,VExp1,VExp2)))).
+fof('DIFF-var-ifExp', axiom, (![VVar0,VExp0,VExp1,VExp2] : (vvar(VVar0)!=vifExp(VExp0,VExp1,VExp2)))).
+fof('DIFF-abs-ifExp', axiom, (![VVar0,VTyp0,VExp0,VExp1,VExp2,VExp3] : (vabs(VVar0,VTyp0,VExp0)!=vifExp(VExp1,VExp2,VExp3)))).
+fof('DIFF-app-ifExp', axiom, (![VExp0,VExp1,VExp2,VExp3,VExp4] : (vapp(VExp0,VExp1)!=vifExp(VExp2,VExp3,VExp4)))).
+fof('isValue0', axiom, (![Vx,VS,Ve,VExp0] : ((VExp0=vabs(Vx,VS,Ve)) => visValue(VExp0)))).
+fof('isValue1', axiom, (![Vx,VExp0] : ((VExp0=vvar(Vx)) => (~visValue(VExp0))))).
+fof('isValue2', axiom, (![Ve1,Ve2,VExp0] : ((VExp0=vapp(Ve1,Ve2)) => (~visValue(VExp0))))).
+fof('isValue3', axiom, (![Vc,Ve1,Ve2,VExp0] : ((VExp0=vifExp(Vc,Ve1,Ve2)) => (~visValue(VExp0))))).
+fof('isValue4', axiom, (![VExp0] : ((VExp0=vTrue) => visValue(VExp0)))).
+fof('isValue5', axiom, (![VExp0] : ((VExp0=vFalse) => visValue(VExp0)))).
+fof('isFreeVar0', axiom, (![Vv,VVar0,VExp0] : (((VVar0=Vv) & (VExp0=vTrue)) => (~visFreeVar(VVar0,VExp0))))).
+fof('isFreeVar1', axiom, (![Vv,VVar0,VExp0] : (((VVar0=Vv) & (VExp0=vFalse)) => (~visFreeVar(VVar0,VExp0))))).
+fof('isFreeVar2', axiom, (![VVar0,VExp0,Vx,Vv] : (((VVar0=Vv) & (VExp0=vvar(Vx))) => (((Vx=Vv) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (Vx=Vv)))))).
+fof('isFreeVar3', axiom, (![VT,VVar0,VExp0,Vx,Vv,Ve] : (((VVar0=Vv) & (VExp0=vabs(Vx,VT,Ve))) => ((((Vx!=Vv) & visFreeVar(Vv,Ve)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => ((Vx!=Vv) & visFreeVar(Vv,Ve))))))).
+fof('isFreeVar4', axiom, (![VVar0,VExp0,Ve1,Vv,Ve2] : (((VVar0=Vv) & (VExp0=vapp(Ve1,Ve2))) => (((visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2))))))).
+fof('isFreeVar5', axiom, (![VVar0,VExp0,Vc,Ve1,Vv,Ve2] : (((VVar0=Vv) & (VExp0=vifExp(Vc,Ve1,Ve2))) => (((visFreeVar(Vv,Vc) | (visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2))) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (visFreeVar(Vv,Vc) | (visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2)))))))).
+fof('gensym-is-fresh', axiom, (![Vv,Ve] : ((vgensym(Ve)=Vv) => (~visFreeVar(Vv,Ve))))).
+fof('FALSE', conjecture, $false).

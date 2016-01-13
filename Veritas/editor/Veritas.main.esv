@@ -19,7 +19,7 @@ language General properties
   description:   "Spoofax-generated editor for the Veritas language"
   url:           http://strategoxt.org
   
-  extensions:    stl
+  extensions:    stl, test
   table:         include/Veritas.tbl
   start symbols: Module
   

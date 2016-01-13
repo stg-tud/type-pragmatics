@@ -29,6 +29,9 @@ signature
     	
     	FOFGoal : List(Formula) * Formula -> File
     	RelBool : Sort
+    	
+    	ConstructorDecl : A * B * C -> ConstructorDecl
+    	Constructors : A -> Constructors
 
 rules
 
