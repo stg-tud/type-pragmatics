@@ -175,12 +175,13 @@ object Backend {
       BasicTrans,
       // determines whether and which inversion axioms are generated for functions/typing rules
       Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
+      //NoBooleanFunctionInversionAxiomSplit
       // variable inlining/extraction
       VariableTrans ,
       // insert type guards for quantified metavariables
       //Optional(InsertTypeGuardsForMetavars, ifConfig(FinalEncoding, FinalEncoding.GuardedFOF)),
       // determines whether logical optimizations take place prior to fof/tff encoding
-      Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
+      //Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
       // select problem
       ProblemTrans
       )
