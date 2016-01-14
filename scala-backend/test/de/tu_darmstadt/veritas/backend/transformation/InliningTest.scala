@@ -91,6 +91,20 @@ class InliningTest extends FunSuite {
 
     assert(res.head == modres)
   }
+  
+  test("Collect only: Inlining within premises 'wrong' order") {
+    val tr = TypingRule("simple",
+      Seq(genEq(genMeta("z"), genApp1("f", "x")), genEq(genApp1("f", "y"), genMeta("x"))),
+      Seq(FunctionExpJudgment(FunctionExpFalse)))
+    val mod = genSimpleModule("inlinesimple", tr)
+
+   val collection = CollectOnly(Seq(mod))(Backend.onlyTFFTest)
+
+    assert(collection.head == mod)
+    assert(CollectOnly.chosenSubstitutions(MetaVar("z")) == genApp1("f", "x"))
+    assert(CollectOnly.chosenSubstitutions(MetaVar("x")) == genApp1("f", "y"))
+    assert(CollectOnly.chosenSubstitutions.size == 2)
+  }
 
   test("Inlining within premises 'wrong' order") {
     val tr = TypingRule("simple",
@@ -101,7 +115,7 @@ class InliningTest extends FunSuite {
     val trres = TypingRule("simple",
       Seq(genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))),
       Seq(FunctionExpJudgment(FunctionExpFalse)))
-    val modres = genSimpleModule("inlinesimple", tr)
+    val modres = genSimpleModule("inlinesimple", trres)
 
     val res = InlineEverythingFPAndRemovePrems(Seq(mod))(Backend.onlyTFFTest)
 
@@ -133,7 +147,7 @@ class InliningTest extends FunSuite {
     val trres = TypingRule("simple",
       Seq(),
       Seq(genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))))
-    val modres = genSimpleModule("inlinesimple", tr)
+    val modres = genSimpleModule("inlinesimple", trres)
 
     val res = InlineEverythingFPAndRemovePrems(Seq(mod))(Backend.onlyTFFTest)
 
@@ -164,7 +178,7 @@ class InliningTest extends FunSuite {
     assert(CollectOnly.chosenSubstitutions.size == 1)
   }
 
-  test("Inlining of metavar-metavar eq simple from left to right, no removal") {
+  test("Inlining of metavar-metavar eq simple from left to right, one step (no removal)") {
     val tr = TypingRule("simple",
       Seq(genEq(genMeta("y"), genMeta("x"))),
       Seq(genEq(genApp1("g", "z"), genMeta("y"))))
@@ -196,14 +210,14 @@ class InliningTest extends FunSuite {
     assert(res.head == modres)
   }
 
-  test("No inlining or removal of metavar-metavar eq simple from right to left") {
+  test("No inlining of metavar-metavar eq simple from right to left, but remove") {
     val tr = TypingRule("simple",
       Seq(genEq(genMeta("x"), genMeta("y"))),
       Seq(genEq(genApp1("g", "z"), genMeta("y"))))
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(genEq(genMeta("x"), genMeta("y"))),
+      Seq(),
       Seq(genEq(genApp1("g", "z"), genMeta("y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -308,7 +322,7 @@ class InliningTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(),
+      Seq(genEq(genMeta("x"), genMeta("y"))),
       Seq(genEq(genApp1("g", "a"), genApp1("f", "y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -326,7 +340,7 @@ class InliningTest extends FunSuite {
 
     val trres = TypingRule("simple",
       Seq(),
-      Seq(genEq(genApp1("g", "z"), genMeta("x"))))
+      Seq(genEq(genApp1("g", "z"), genMeta("y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
     val res = InlineEverythingFPAndRemovePrems(Seq(mod))(Backend.onlyTFFTest)

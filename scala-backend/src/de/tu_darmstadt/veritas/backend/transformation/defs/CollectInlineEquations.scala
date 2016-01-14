@@ -76,7 +76,7 @@ trait CollectInlineEquations extends ModuleTransformation {
         case FunctionExpEq(FunctionMeta(m1), FunctionMeta(m2)) => {
           if (!chosenSubstitutions.isDefinedAt(m1))
             chosenSubstitutions = chosenSubstitutions + (m1 -> FunctionMeta(m2))
-            //only include left-to-right-direction in this case!
+            //only include one direction in this case!
 //          if (!chosenSubstitutions.isDefinedAt(m2))
 //            chosenSubstitutions = chosenSubstitutions + (m2 -> FunctionMeta(m1))
         }
@@ -154,11 +154,11 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
   /**
    * collect variables that were eliminated during inlining
    */
-  var eliminatedVars: Set[MetaVar] = Set()
+  var removableVars: Set[MetaVar] = Set()
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     //reset state for each typing rule that is traversed
-    eliminatedVars = Set()
+    removableVars = Set()
     tr match {
       case t @ TypingRule(n, prems, conss) => super.transTypingRules(t)
     }
@@ -183,21 +183,20 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
     }
   }
 
-  //substitute meta vars with meta vars in quantified varlists
-  //add substituted vars to eliminatedVars - but make sure to remove vars from 
-  //eliminatedVars if they don't get substituted
+  //needed for substituting meta vars with meta vars in quantified varlists
+  //do not add to eliminated vars, because we are only substituting in quantifier varlists 
+  //when calling this function - so there is no need for removing any naming
   private def inlineMeta(m: MetaVar): MetaVar = {
     def acyclicMVLookup(m: MetaVar, lookedup: Set[MetaVar]): MetaVar = {
       if (chosenSubstitutions.isDefinedAt(m) && checkSubstitute(m))
         chosenSubstitutions(m) match {
-          case FunctionMeta(mv) if (!(lookedup contains mv)) =>
-            { eliminatedVars += m; acyclicMVLookup(mv, (lookedup + m)) }
-          case FunctionMeta(mv) => { eliminatedVars -= m; m }
-          case _                => { eliminatedVars -= m; m }
+          case FunctionMeta(mv) if (!(lookedup contains mv)) => acyclicMVLookup(mv, (lookedup + m))
+          case FunctionMeta(mv) => m //cycle detected, just return old metavar
+          case _ => m //cannot be substituted with metavar, just return old metavar
         }
-      else { eliminatedVars -= m; m }
+      else m
     }
-    acyclicMVLookup(m, Set())
+    acyclicMVLookup(m, Set()) //no further substitution known, just return old metavar
   }
 
   override def transMetaVar(m: MetaVar): MetaVar =
@@ -209,13 +208,14 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
   //look given meta-variable up as far as possible 
   //(without going into cycles and without returning sth. that contains any of
   //the meta-variables that were already looked up during a single look up)
+  //add eliminated meta variables (including the ones eliminated "on the way") to eliminatedVars accumulator
   private def acyclicLookup(m: MetaVar, lookedup: Set[MetaVar]): FunctionExpMeta = {
     if (chosenSubstitutions.isDefinedAt(m))
       chosenSubstitutions(m) match {
         case FunctionMeta(mv) if (!(lookedup contains mv)) =>
-          acyclicLookup(mv, (lookedup + m))
-        case FunctionMeta(mv) => FunctionMeta(m)
-        case fmexp if (!((lookedup + m) exists (mv => occursIn(FunctionMeta(mv), fmexp)))) => fmexp
+          { removableVars += m; acyclicLookup(mv, (lookedup + m))}
+        case FunctionMeta(mv) => { removableVars += m; FunctionMeta(m) } //cycle detected, just return old metavar
+        case fmexp if (!((lookedup + m) exists (mv => occursIn(FunctionMeta(mv), fmexp)))) => { removableVars += m; fmexp }
         case _ => FunctionMeta(m) //i.e. do not attempt to substitute equations like x = f(x) into anything
       }
     else
@@ -226,16 +226,7 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
     (FreeVariables.freeVariables(res, Set[MetaVar]())) contains fm.metavar
 
   private def substFunctionExpMeta: PartialFunction[FunctionExpMeta, FunctionExpMeta] = {
-    case fm @ FunctionMeta(m) if (checkSubstitute(fm) && chosenSubstitutions.isDefinedAt(m)) =>
-      {
-        val res = acyclicLookup(m, Set())
-        if (res != fm && !occursIn(fm, res))
-          eliminatedVars += m
-        else
-          eliminatedVars -= m
-        res
-      }
-    case fm @ FunctionMeta(m) => { eliminatedVars -= m; fm }
+    case fm @ FunctionMeta(m) if (checkSubstitute(fm)) => acyclicLookup(m, Set())
   }
 
   private def substFunctionExpMetas: PartialFunction[FunctionExpMeta, Seq[FunctionExpMeta]] =
@@ -327,7 +318,7 @@ object InlineEverythingFP extends ModuleTransformation {
 object InlineEverythingFPAndRemovePrems extends ModuleTransformation {
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     val newtr = InlineEverythingOnce.transTypingRules(tr)
-    val firstelim = InlineEverythingOnce.eliminatedVars
+    val firstelim = InlineEverythingOnce.removableVars
     if (newtr.head != tr) newtr map (ntr => InlineEverythingFPAndRemovePrems.transTypingRules(ntr))
     else newtr
 
