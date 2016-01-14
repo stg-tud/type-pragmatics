@@ -82,7 +82,7 @@ object VariableTrans extends Alternative(selectConfig(VariableEncoding) {
   case VariableEncoding.NameEverything =>
     NameEverythingButMetaVars
   case VariableEncoding.InlineEverything =>
-    InlineEverythingFPAndRemovePrems
+    InlineEverythingAndRemovePremsFP
   case VariableEncoding.NameParamsAndResults =>
     SeqTrans(NameFunctionResultsOnly, NameSubstituteFunctionDefParametersOnly)
 })

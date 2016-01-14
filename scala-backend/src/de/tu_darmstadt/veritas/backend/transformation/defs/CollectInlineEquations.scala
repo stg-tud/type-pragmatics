@@ -9,11 +9,11 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.Configuration
 
 /*
- * trait for collecting equations/substitutions that can be inlined into other formulas
+ * trait for collecting equations that can be inlined into other formulas
  */
 trait CollectInlineEquations extends ModuleTransformation {
 
-  //collect substitutions for inlining of meta variables
+  //collect equations chosen for inlining (left side replaced by right side)
   var chosenSubstitutions: Map[MetaVar, FunctionExpMeta] = Map()
   var freshNames = new FreshNames
 
@@ -33,8 +33,7 @@ trait CollectInlineEquations extends ModuleTransformation {
   }
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
-    //the traversal of the sub-constructs (TypingRuleJudements of premises and conclusion) 
-    //will collect named subformulas as premises
+    //the traversal of the other constructs will collect named subformulas as premises
     //and modify variable chosenSubstitutions
     //reset chosenSubstitutions & freshNames for each new typing rule that is traversed
     chosenSubstitutions = Map()
@@ -44,57 +43,12 @@ trait CollectInlineEquations extends ModuleTransformation {
     }
   }
 
-  //remove not useful and cyclic substitutions
-  //i.e. only keep substitutions of the form metavar = non-metavar
-  //  private def cleanSubstMap(): Unit = {
-  //    var precleanedMap: Map[MetaVar, FunctionExpMeta] = Map()
-  //    for ((k, v) <- chosenSubstitutions) {
-  //      v match {
-  //        case FunctionMeta(m) => {
-  //          var lookedup: Set[MetaVar] = Set()
-  //          var nextlookup = m
-  //          var continue = true
-  //          var res: FunctionExpMeta = FunctionMeta(m)
-  //          while (continue && chosenSubstitutions.isDefinedAt(nextlookup) && !(lookedup contains m)) {
-  //            lookedup += nextlookup
-  //            chosenSubstitutions(m) match {
-  //              case FunctionMeta(m1) => { nextlookup = m1; res = FunctionMeta(m1) }
-  //              case fexp             => { continue = false; res = fexp }
-  //            }
-  //            precleanedMap = chosenSubstitutions.updated(k, res)
-  //          }
-  //        }
-  //        case _ => ;
-  //      }
-  //    }
-  //    chosenSubstitutions = precleanedMap filter {case (k, v) => !v.isInstanceOf[FunctionMeta]}
-  //  }
-
-  private def addEqtoSubstMap(eq: FunctionExpMeta): Unit = {
-    if (checkConstruct(eq))
-      eq match {
-        case FunctionExpEq(FunctionMeta(m1), FunctionMeta(m2)) => {
-          if (!chosenSubstitutions.isDefinedAt(m1))
-            chosenSubstitutions = chosenSubstitutions + (m1 -> FunctionMeta(m2))
-            //only include left-to-right-direction in this case!
-//          if (!chosenSubstitutions.isDefinedAt(m2))
-//            chosenSubstitutions = chosenSubstitutions + (m2 -> FunctionMeta(m1))
-        }
-        case FunctionExpEq(FunctionMeta(m), r) =>
-          if (!chosenSubstitutions.isDefinedAt(m))
-            chosenSubstitutions = chosenSubstitutions + (m -> r)
-        case FunctionExpEq(l, FunctionMeta(m)) =>
-          if (!chosenSubstitutions.isDefinedAt(m))
-            chosenSubstitutions = chosenSubstitutions + (m -> l)
-        case _ => ;
-      }
-  }
-
-  // ensures correct scoping of substitutions (substitutions from inner scope are not visible in outer scope)
-  private def typingRuleMatching(): PartialFunction[TypingRuleJudgment, TypingRuleJudgment] =
-    {
-      case f @ FunctionExpJudgment(eq) => {
-        addEqtoSubstMap(eq) //will always contain the binding for the first (!) instance of a meta variable m within a premise list
+  override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
+    trj match {
+      case f @ FunctionExpJudgment(eq @ FunctionExpEq(FunctionMeta(m), r)) => {
+        if (checkConstruct(eq) && !chosenSubstitutions.isDefinedAt(m))
+          chosenSubstitutions = chosenSubstitutions + (m -> r)
+        //will always contain the binding for the first (!) instance of a meta variable m within a premise list
         FunctionExpJudgment(trace(eq)(transFunctionExp(_)))
       }
       case e @ ExistsJudgment(vl, jl) => {
@@ -116,8 +70,7 @@ trait CollectInlineEquations extends ModuleTransformation {
         res
       }
       case OrJudgment(orc) => {
-        //TODO carefully think about substitution in ors!
-        //only substitute within or cases - substitution within a case is ok!
+        //only substitute within or cases - TODO: is substitution within a case ok?
         //do not attempt substitution between or cases for now
         //unsure how to do this such that it is always correct
         val res = OrJudgment(orc map (sor => {
@@ -134,31 +87,66 @@ trait CollectInlineEquations extends ModuleTransformation {
         chosenSubstitutions = oldchosen
         res
       }
+      case t => super.transTypingRuleJudgment(t)
     }
 
-  override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
-    if (typingRuleMatching().isDefinedAt(trj))
-      typingRuleMatching()(trj)
-    else
-      super.transTypingRuleJudgment(trj)
-
   override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
-    if (typingRuleMatching().isDefinedAt(trj))
-      Seq(typingRuleMatching()(trj))
-    else
-      super.transTypingRuleJudgments(trj)
+    trj match {
+      case f @ FunctionExpJudgment(eq @ FunctionExpEq(FunctionMeta(m), r)) => {
+        if (checkConstruct(eq) && !chosenSubstitutions.isDefinedAt(m))
+          chosenSubstitutions = chosenSubstitutions + (m -> r)
+        //will always contain the binding for the first (!) instance of a meta variable m within a premise list
+        Seq(FunctionExpJudgment(trace(eq)(transFunctionExp(_))))
+      }
+      case e @ ExistsJudgment(vl, jl) => {
+        val oldchosen = chosenSubstitutions
+        //add substitutions for quantified variables with fresh names
+        vl map { m => chosenSubstitutions + (m -> FunctionMeta(MetaVar(freshNames.freshName(m.name)))) }
+        val res = ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
+        chosenSubstitutions = oldchosen
+        Seq(res)
+      }
+      case e @ ForallJudgment(vl, jl) => {
+        val oldchosen = chosenSubstitutions
+        //add substitutions for quantified variables with fresh names
+        vl map { m => chosenSubstitutions + (m -> FunctionMeta(MetaVar(freshNames.freshName(m.name)))) }
+        val res = ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
+        chosenSubstitutions = oldchosen
+        Seq(res)
+      }
+      case OrJudgment(orc) => {
+        //only substitute within or cases - TODO: is substitution within a case ok?
+        //do not attempt substitution between or cases for now
+        //unsure how to do this such that it is always correct
+        val res = OrJudgment(orc map (sor => {
+          val oldchosen = chosenSubstitutions
+          val res = trace(sor)(transTypingRuleJudgments(_))
+          chosenSubstitutions = oldchosen
+          res
+        }))
+        Seq(res)
+      }
+      case NotJudgment(jdg) => {
+        val oldchosen = chosenSubstitutions
+        val res = NotJudgment(trace(jdg)(transTypingRuleJudgment(_)))
+        chosenSubstitutions = oldchosen
+        Seq(res)
+      }
+      case t => super.transTypingRuleJudgments(t)
+    }
 
 }
 
 trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations {
   /**
-   * collect variables that were eliminated during inlining
+   * save which variables were used for substitution in a single typing rule
+   *
    */
-  var eliminatedVars: Set[MetaVar] = Set()
+  var substitutedVars: Set[String] = Set()
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     //reset state for each typing rule that is traversed
-    eliminatedVars = Set()
+    substitutedVars = Set()
     tr match {
       case t @ TypingRule(n, prems, conss) => super.transTypingRules(t)
     }
@@ -174,81 +162,45 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
    *
    */
   def checkSubstitute(vc: VeritasConstruct): Boolean = {
-    //prevent substitutions within the substitution equations themselves
+    //exclude meta variables on RHS of equations of the form m = ... m ....
     val relparent = if (vc.isInstanceOf[MetaVar] && path.isDefinedAt(2)) path(2) else path(1)
     relparent match {
       case FunctionExpEq(FunctionMeta(m), r) if (chosenSubstitutions.isDefinedAt(m) && chosenSubstitutions(m) == r) => false
-      case FunctionExpEq(l, FunctionMeta(m)) if (chosenSubstitutions.isDefinedAt(m) && chosenSubstitutions(m) == l) => false
       case _ => true
     }
   }
 
   //substitute meta vars with meta vars in quantified varlists
-  //add substituted vars to eliminatedVars - but make sure to remove vars from 
-  //eliminatedVars if they don't get substituted
-  private def inlineMeta(m: MetaVar): MetaVar = {
-    def acyclicMVLookup(m: MetaVar, lookedup: Set[MetaVar]): MetaVar = {
-      if (chosenSubstitutions.isDefinedAt(m) && checkSubstitute(m))
-        chosenSubstitutions(m) match {
-          case FunctionMeta(mv) if (!(lookedup contains mv)) =>
-            { eliminatedVars += m; acyclicMVLookup(mv, (lookedup + m)) }
-          case FunctionMeta(mv) => { eliminatedVars -= m; m }
-          case _                => { eliminatedVars -= m; m }
-        }
-      else { eliminatedVars -= m; m }
-    }
-    acyclicMVLookup(m, Set())
-  }
-
+  //add variables that were used to substitutedVars
   override def transMetaVar(m: MetaVar): MetaVar =
-    inlineMeta(m)
+    if (chosenSubstitutions.isDefinedAt(m) && checkSubstitute(m))
+      chosenSubstitutions(m) match {
+        case FunctionMeta(n) => { substitutedVars = substitutedVars + m.name; n }
+        case _               => m
+      }
+    else m
 
   override def transMetaVars(m: MetaVar): Seq[MetaVar] =
-    Seq(inlineMeta(m))
-
-  //look given meta-variable up as far as possible 
-  //(without going into cycles and without returning sth. that contains any of
-  //the meta-variables that were already looked up during a single look up)
-  private def acyclicLookup(m: MetaVar, lookedup: Set[MetaVar]): FunctionExpMeta = {
-    if (chosenSubstitutions.isDefinedAt(m))
+    if (chosenSubstitutions.isDefinedAt(m) && checkSubstitute(m))
       chosenSubstitutions(m) match {
-        case FunctionMeta(mv) if (!(lookedup contains mv)) =>
-          acyclicLookup(mv, (lookedup + m))
-        case FunctionMeta(mv) => FunctionMeta(m)
-        case fmexp if (!((lookedup + m) exists (mv => occursIn(FunctionMeta(mv), fmexp)))) => fmexp
-        case _ => FunctionMeta(m) //i.e. do not attempt to substitute equations like x = f(x) into anything
+        case FunctionMeta(n) => { substitutedVars = substitutedVars + m.name; Seq(n) }
+        case _               => Seq(m)
       }
-    else
-      FunctionMeta(m)
-  }
-
-  private def occursIn(fm: FunctionMeta, res: FunctionExpMeta): Boolean =
-    (FreeVariables.freeVariables(res, Set[MetaVar]())) contains fm.metavar
-
-  private def substFunctionExpMeta: PartialFunction[FunctionExpMeta, FunctionExpMeta] = {
-    case fm @ FunctionMeta(m) if (checkSubstitute(fm) && chosenSubstitutions.isDefinedAt(m)) =>
-      {
-        val res = acyclicLookup(m, Set())
-        if (res != fm && !occursIn(fm, res))
-          eliminatedVars += m
-        else
-          eliminatedVars -= m
-        res
-      }
-    case fm @ FunctionMeta(m) => { eliminatedVars -= m; fm }
-  }
-
-  private def substFunctionExpMetas: PartialFunction[FunctionExpMeta, Seq[FunctionExpMeta]] =
-    { case fm @ FunctionMeta(m) => Seq(substFunctionExpMeta(fm)) }
+    else Seq(m)
 
   //in FunctionExpMeta, substitute meta vars with what is given in chosenSubstitution
-  //make sure that eliminatedVars contains exactly the variables that were present in f 
-  //prior to the call, but are not present anymore after the call
+  //add variables that were used to substitutedVars
   override def transFunctionExpMeta(f: FunctionExpMeta): FunctionExpMeta =
-    withSuper(super.transFunctionExpMeta(f))(substFunctionExpMeta)
+    withSuper(super.transFunctionExpMeta(f)) {
+      case fm @ FunctionMeta(m) if (checkSubstitute(fm) && chosenSubstitutions.isDefinedAt(m)) =>
+        { substitutedVars = substitutedVars + m.name; transFunctionExpMeta(chosenSubstitutions(m)) } //substitute in substitution, if necessary
+    }
 
   override def transFunctionExpMetas(f: FunctionExpMeta): Seq[FunctionExpMeta] =
-    withSuper[FunctionExpMeta](super.transFunctionExpMetas(f))(substFunctionExpMetas)
+    withSuper[FunctionExpMeta](super.transFunctionExpMetas(f)) {
+      case fm @ FunctionMeta(m) if (checkSubstitute(fm) && chosenSubstitutions.isDefinedAt(m)) =>
+        { substitutedVars = substitutedVars + m.name; transFunctionExpMetas(chosenSubstitutions(m)) }
+    }
 
 }
 
@@ -258,19 +210,17 @@ trait InlineSubformulas extends ModuleTransformation with CollectInlineEquations
  *
  * takes as parameter a set with variables that were substituted during a previous transformation
  */
-class RemoveSubstitutionPremises(eliminatedVars: Set[MetaVar]) extends ModuleTransformation {
+class RemoveUnusedPremises(substitutedVars: Set[String]) extends ModuleTransformation {
   /**
    * override to control which of the equations marked for inlining
    * get actually removed from the premises
    *
    * default: remove all premises that were used at least once during substitution
-   * (but leave premises that were never used for substitution!)
+   * (but leave premises that were never used!)
    */
   def removeNamingPremise(feq: FunctionExpEq): Boolean =
     feq match {
-      case FunctionExpEq(l, r) if (l == r) => true // always remove tautologies
-      case FunctionExpEq(FunctionMeta(m), r) if (eliminatedVars contains m) => true
-      case FunctionExpEq(l, FunctionMeta(m)) if (eliminatedVars contains m) => true
+      case FunctionExpEq(FunctionMeta(m), r) if (substitutedVars contains m.name) => true
       case _ => false
     }
 
@@ -305,9 +255,6 @@ class RemoveSubstitutionPremises(eliminatedVars: Set[MetaVar]) extends ModuleTra
     }
 }
 
-//only collect equations
-object CollectOnly extends CollectInlineEquations
-
 //does not remove equality premises used for substitution!
 object InlineEverythingOnce extends InlineSubformulas
 
@@ -320,21 +267,23 @@ object InlineEverythingFP extends ModuleTransformation {
   }
 }
 
-//first do fixpoint inlining
-//at the end remove the unused premises
-//TODO: fix this instance, cannot work like this! Recursion broken?
+//first apply InlineEverythingOnce
+//at the end remove the premises that were used for substitution
 //from all implications (aka typing rules)
-object InlineEverythingFPAndRemovePrems extends ModuleTransformation {
+object InlineEverythingAndRemovePrems extends ModuleTransformation {
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     val newtr = InlineEverythingOnce.transTypingRules(tr)
-    val firstelim = InlineEverythingOnce.eliminatedVars
-    if (newtr.head != tr) newtr map (ntr => InlineEverythingFPAndRemovePrems.transTypingRules(ntr))
-    else newtr
-
-    val RemPremInst = new RemoveSubstitutionPremises(firstelim)
+    val RemPremInst = new RemoveUnusedPremises(InlineEverythingOnce.substitutedVars)
     newtr flatMap RemPremInst.transTypingRules
   }
 }
 
-
+//fixpoint iteration of InlineEverythingAndRemomePrems
+object InlineEverythingAndRemovePremsFP extends ModuleTransformation {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
+    val newmd = InlineEverythingAndRemovePrems(m)
+    if (newmd != m) apply(newmd)
+    else newmd
+  }
+}
 
