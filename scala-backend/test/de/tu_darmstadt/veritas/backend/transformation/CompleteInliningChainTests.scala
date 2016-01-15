@@ -17,7 +17,10 @@ import de.tu_darmstadt.veritas.backend.transformation.defs.InlineEverythingFP
 import de.tu_darmstadt.veritas.backend.Backend
 import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpFalse
 
-class InliningTest extends FunSuite {
+/**
+ * tests the complete inlining transformation chain
+ */
+class CompleteInliningChainTests extends FunSuite {
 
   def genSimpleModule(name: String, testRule: TypingRule) =
     Module(name, Seq(), Seq(Axioms(Seq(testRule))))
@@ -70,7 +73,7 @@ class InliningTest extends FunSuite {
       Seq(genEq(genApp1("f", "x"), genMeta("x"))),
       Seq(genEq(genApp1("g", "z"), genMeta("x"))))
     val mod = genSimpleModule("inlinesimple", tr)
-
+s
     val res = InlineEverythingFPAndRemovePrems(Seq(mod))(Backend.onlyTFFTest)
 
     assert(res.head == mod)
@@ -90,20 +93,6 @@ class InliningTest extends FunSuite {
     val res = InlineEverythingFPAndRemovePrems(Seq(mod))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
-  }
-  
-  test("Collect only: Inlining within premises 'wrong' order") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genMeta("z"), genApp1("f", "x")), genEq(genApp1("f", "y"), genMeta("x"))),
-      Seq(FunctionExpJudgment(FunctionExpFalse)))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-   val collection = CollectOnly(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(collection.head == mod)
-    assert(CollectOnly.chosenSubstitutions(MetaVar("z")) == genApp1("f", "x"))
-    assert(CollectOnly.chosenSubstitutions(MetaVar("x")) == genApp1("f", "y"))
-    assert(CollectOnly.chosenSubstitutions.size == 2)
   }
 
   test("Inlining within premises 'wrong' order") {
@@ -165,18 +154,6 @@ class InliningTest extends FunSuite {
     assert(res.head == mod)
   }
 
-  test("Collect substitution equations metavar-metavar eq simple from left to right") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genMeta("y"), genMeta("x"))),
-      Seq(genEq(genApp1("g", "z"), genMeta("y"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val collection = CollectOnly(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(collection.head == mod)
-    assert(CollectOnly.chosenSubstitutions(MetaVar("y")) == genMeta("x"))
-    assert(CollectOnly.chosenSubstitutions.size == 1)
-  }
 
   test("Inlining of metavar-metavar eq simple from left to right, one step (no removal)") {
     val tr = TypingRule("simple",
