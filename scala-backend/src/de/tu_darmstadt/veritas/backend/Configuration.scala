@@ -38,7 +38,7 @@ object Configuration {
   }
 
   object Problem extends ConfigOption {
-    val Consistency, Proof, Test = Value
+    val Consistency, Proof, Test, All = Value
   }
 
   def ifConfig(p: ConfigParameter, v: ConfigValue) = (cfg: Configuration) => cfg.m.get(p).map(_ == v).getOrElse(false)
@@ -59,7 +59,7 @@ object FullVariability extends VariabilityModel {
     vars <- VariableEncoding.iterator;
     inv <- InversionLemma.iterator;
     fin <- FinalEncoding.iterator;
-    prob <- Problem.iterator
+    prob <- Problem.iterator if prob != Problem.All
   ) yield Configuration(Map(
     LogicalSimplification -> simpl,
     VariableEncoding -> vars,

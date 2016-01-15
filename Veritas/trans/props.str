@@ -103,3 +103,12 @@ rules
 	where
 		rules ( Fresh :+ v -> 0);
 		w := <make-fresh> v
+		
+		
+
+	append-string(|s) = !(<id>, s); conc-strings
+	prepend-string(|s) = !(s, <id>); conc-strings
+
+	append(|k) = !(<id>, k); conc
+	prepend(|k) = !(k, <id>); conc
+
