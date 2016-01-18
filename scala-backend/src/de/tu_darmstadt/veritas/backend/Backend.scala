@@ -49,8 +49,6 @@ object Backend {
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
-  private var inputDirectory: String = "" //directory of input file
-
   private def writeFile(file: PrettyPrintableFile, path: String): String = {
     val filehandler = new File(path)
     Context.log(s"Writing file to ${filehandler.getAbsolutePath}...")
@@ -73,7 +71,7 @@ object Backend {
    * processes results of a single encoding alternative for a given Stratego file, writes result files
    */
   @throws[BackendError[_]]("and the appropriate subclasses on internal error at any stage")
-  private def processSingleResult: ResultProcessor = { (config, outputFiles) =>
+  private def processSingleResult(inputDirectory: String): ResultProcessor = { (config, outputFiles) =>
     Context.log(s"Finished generation for configuration $config\n")
 
     val problem = config(Problem).toString().toLowerCase
@@ -98,9 +96,9 @@ object Backend {
    * returns pairs of directory name of a file and the actual prettyPrintableFile
    */
   private def runEncodings(
-      input: StrategoTerm, 
-      variabilityModel: VariabilityModel = this.variabilityModel,
-      processResult: ResultProcessor = processSingleResult)
+      input: StrategoTerm,
+      processResult: ResultProcessor,
+      variabilityModel: VariabilityModel = this.variabilityModel)
   : Seq[(String, PrettyPrintableFile)] = {
     val module = Module.from(input)
     val comparison = new EncodingComparison(variabilityModel, module)
@@ -133,11 +131,11 @@ object Backend {
         "Argument must be a triple: (project path (Veritas), input file directory, AST of file as Stratego term)")
     }
 
-    inputDirectory = s"$projectPath/$inputDir"
+    val inputDirectory = s"$projectPath/$inputDir"
 
     Context.initStrategy(context)
 
-    val resultFiles = runEncodings(ast) //writes files
+    val resultFiles = runEncodings(ast, processSingleResult(inputDirectory)) //writes files
 
     // generate return value that is expected by caller of runAsStrategy
     var resseq: Seq[IStrategoTuple] = Seq()
@@ -167,19 +165,20 @@ object Backend {
         "Argument must be a quatruple: (project path (Veritas), input file directory, proofPath, AST of file as Stratego term)")
     }
 
-    inputDirectory = s"$projectPath/$inputDir"
     val consistencyFile = s"$projectPath/${Util.removeExtension(proofPath)}-consistency.fof"    
 
     Context.initStrategy(context)
 
-    val resultFiles = runEncodings(ast, defaultVariabilityModel, { (config, outputFiles) =>
+    val proc: ResultProcessor = { (config, outputFiles) =>
       if (outputFiles.size != 1)
       	Context.log(s"There should be a single goal encoding, but got ${outputFiles.size} results")
       
       val file = outputFiles.last
       val pathname = writeFile(file, consistencyFile)
       Seq((pathname, file))
-    })
+    }
+    
+    val resultFiles = runEncodings(ast, proc, defaultVariabilityModel)
 
     
     val resultFile = resultFiles.last
@@ -209,20 +208,18 @@ object Backend {
         "Argument must be a quatruple: (project path (Veritas), input file directory, proofPath, AST of file as Stratego term)")
     }
 
-    inputDirectory = s"$projectPath/$inputDir"
     val consistencyFile = s"$projectPath/${Util.removeExtension(proofPath)}-consistency.fof"    
 
     Context.initStrategy(context)
 
-    val resultFiles = runEncodings(ast, defaultVariabilityModel, { (config, outputFiles) =>
-      if (outputFiles.size != 1)
-      	throw new IllegalStateException(s"There should be a single goal encoding, but got ${outputFiles.size} results")
-      
+    val proc: ResultProcessor = { (config, outputFiles) =>
       outputFiles map { file =>
         val pathname = writeFile(file, consistencyFile)
         (pathname, file)
       }
-    })
+    }
+    
+    val resultFiles = runEncodings(ast, proc, defaultVariabilityModel)
 
     
     val resultFile = resultFiles.head
@@ -302,15 +299,14 @@ object Backend {
       case Array(atermFilename, indexAndTaskenginePath) => (StrategoTerm.fromATermFile(atermFilename), indexAndTaskenginePath)
     }
 
-    //set default directory for output files
-    inputDirectory = "test"
 
     Context.initStandalone(indexAndTaskenginePath)
 
     //use line below for debugging single partial transformation chains
     val resultFiles = debugTransformation(aterm) 
     
-    //val resultFiles = runAllEncodings(aterm) //writes files
+    val inputDirectory = "test"
+//    val resultFiles = runEncodings(aterm, processSingleResult(inputDirectory)) //writes files
 
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
     outputPrettyPrinter.writeln()
