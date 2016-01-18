@@ -10,6 +10,10 @@ data AList =
 	aempty |
 	acons(AName, AList)
 
+function append : AList AList -> AList
+append(aempty, y) = y
+append(acons(a, al), y) = acons(a, append(al,y))
+
 // type of a single column (pair AName, FType)
 data CType =
 	ctype(AName, FType)
