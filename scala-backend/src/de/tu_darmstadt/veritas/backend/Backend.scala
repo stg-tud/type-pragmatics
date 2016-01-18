@@ -221,14 +221,11 @@ object Backend {
     
     val resultFiles = runEncodings(ast, proc, defaultVariabilityModel)
 
-    
-    val resultFile = resultFiles.head
-    
     // generate return value that is expected by caller of runAsStrategy
     var resseq: Seq[IStrategoTuple] = Seq()
-
+    
     for ((fullname, file) <- resultFiles) {
-      val strategoFilename = context.getFactory.makeString(s"${Util.removeExtension(proofPath)}-consistency.fof")
+      val strategoFilename = context.getFactory.makeString(fullname)
       val strategoContent = context.getFactory.makeString(file.toPrettyString)
       val strategoTuple = context.getFactory.makeTuple(strategoFilename, strategoContent)
       resseq = resseq :+ strategoTuple
