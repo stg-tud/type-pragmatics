@@ -21,35 +21,15 @@ import de.tu_darmstadt.veritas.backend.fof.Variable
 object ToFof {
   def toFofFile(coreModule: Module): FofFile = coreModule match {
     case Module(name, Seq(), body) => {
-      val goal = getOnlyGoal(coreModule)
+      val goal = coreModule.getOnlyGoal
       val axioms = coreModule.defs.collect { case Axioms(axioms) => axioms }.flatten
 
       val transformedAxioms = axioms map (typingRuleToFof(_, Axiom))
       val transformedGoal = typingRuleToFof(goal, Conjecture)
 
-      FofFile(name + ".fof", transformedAxioms :+ transformedGoal)
+      FofFile(name + ".fof", goal.name, transformedAxioms :+ transformedGoal)
     }
     case Module(name, _, _) => throw TransformationError(s"(Core TSSL) Module $name still contained imports")
-  }
-
-  /**
-   * returns the single goal at the end of the file, throws TransformationError if
-   *  - there is no goal (every .fof file must have one for proof)
-   *  - there is more than one (fof allows only one per file)
-   *  - there are elements that are not goals after a goal (not in scope!!)
-   */
-  private def getOnlyGoal(mod: Module): TypingRule = {
-    mod.defs.last match {
-      case Goals(goals, /* TODO */ timeout) if (goals.length == 1) => {
-        val allGoals = mod.defs.collect { case g @ Goals(goals, _) => g }
-        if (allGoals.length > 1)
-          throw throw TransformationError(s"(Core TSSL) Module ${mod.name} contained more than one goal (several positions)")
-        else
-          goals.head
-      }
-      case Goals(goals, /* TODO */ timeout) if (goals.length != 1) => throw TransformationError(s"(Core TSSL) Module ${mod.name} contained more than one goal at last position (or illegal empty goal block)")
-      case _ => throw TransformationError(s"(Core TSSL) Module ${mod.name} contained no goal at all or did not have a goal as last construct! ")
-    }
   }
 
   private def typingRuleToFof(rule: TypingRule, role: FormulaRole): FofAnnotated =

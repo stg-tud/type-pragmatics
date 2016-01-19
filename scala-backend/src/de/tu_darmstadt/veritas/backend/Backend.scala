@@ -171,18 +171,19 @@ object Backend {
 
     val proc: ResultProcessor = { (config, outputFiles) =>
       if (outputFiles.size != 1)
-      	Context.log(s"There should be a single goal encoding, but got ${outputFiles.size} results")
-      
-      val file = outputFiles.last
-      val pathname = writeFile(file, consistencyFile)
-      Seq((pathname, file))
+        Context.log(s"There should be a single goal encoding, but got ${outputFiles.size} results")
+        
+      if (outputFiles.size < 1)
+      	throw new IllegalStateException(s"There should be a single goal encoding, but got ${outputFiles.size} results")
+      else {
+        val file = outputFiles.last
+        val pathname = writeFile(file, consistencyFile)
+        Seq((pathname, file))
+      }
     }
     
     val resultFiles = runEncodings(ast, proc, defaultVariabilityModel)
 
-    
-    val resultFile = resultFiles.last
-    
     // generate return value that is expected by caller of runAsStrategy
     var resseq: Seq[IStrategoTuple] = Seq()
 
@@ -202,19 +203,18 @@ object Backend {
   
     def runAsProofStrategy(context: org.strategoxt.lang.Context, inputFromEditor: IStrategoTerm): IStrategoList = {
     // check and destructure input
-    val (projectPath, inputDir, proofPath, ast) = StrategoTerm(inputFromEditor) match {
+    val (projectPath, inputDir, basePath, ast) = StrategoTerm(inputFromEditor) match {
       case StrategoTuple(StrategoString(projectPath), StrategoString(inputDir), StrategoString(proofPath), ast) => (projectPath, inputDir, proofPath, ast)
       case _ => throw new IllegalArgumentException("Illegal input to backend-strategy: " +
         "Argument must be a quatruple: (project path (Veritas), input file directory, proofPath, AST of file as Stratego term)")
     }
 
-    val consistencyFile = s"$projectPath/${Util.removeExtension(proofPath)}-consistency.fof"    
-
     Context.initStrategy(context)
 
     val proc: ResultProcessor = { (config, outputFiles) =>
       outputFiles map { file =>
-        val pathname = writeFile(file, consistencyFile)
+        val filename = Util.generateFileName(basePath, file.goalname)
+        val pathname = writeFile(file, filename)
         (pathname, file)
       }
     }

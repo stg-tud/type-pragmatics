@@ -43,7 +43,7 @@ menus
     action: "Generate SMT"         = generate-smt (openeditor) (realtime)
 
   menu: "Verification"
-    action: "Verify single file with Vampire (auto)" = verify-vampire
+    action: "Verify single file with Vampire (auto)" = invoke-backend-verify-vampire
     action: "Verify single file with Vampire (30)" = verify-vampire-30
     action: "Verify single file with Vampire (60)" = verify-vampire-60
     action: "Verify single file with Vampire (120)" = verify-vampire-120
