@@ -24,7 +24,7 @@ object Util {
   
   def generateFileName(basePath: String, ruleName: String): String = {
     val (basePrefix, ext) = splitExtension(basePath)
-    val filePrefix = s"basePrefix-$ruleName"
+    val filePrefix = s"$basePrefix-$ruleName"
     s"$filePrefix.$ext"
   }
 }

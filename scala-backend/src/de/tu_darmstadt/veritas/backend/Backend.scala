@@ -214,20 +214,19 @@ object Backend {
     val proc: ResultProcessor = { (config, outputFiles) =>
       outputFiles map { file =>
         val filename = Util.generateFileName(basePath, file.goalname)
-        val pathname = writeFile(file, filename)
-        (pathname, file)
+        val pathname = writeFile(file, s"$projectPath/$filename")
+        (filename, file)
       }
     }
     
     val resultFiles = runEncodings(ast, proc, defaultVariabilityModel)
 
-    // generate return value that is expected by caller of runAsStrategy
-    var resseq: Seq[IStrategoTuple] = Seq()
+    var resseq: Seq[IStrategoTuple] = Seq() // Seq[(RuleName, FilePath)]
     
     for ((fullname, file) <- resultFiles) {
+    	val strategoGoalname = context.getFactory.makeString(file.goalname)
       val strategoFilename = context.getFactory.makeString(fullname)
-      val strategoContent = context.getFactory.makeString(file.toPrettyString)
-      val strategoTuple = context.getFactory.makeTuple(strategoFilename, strategoContent)
+      val strategoTuple = context.getFactory.makeTuple(strategoGoalname, strategoFilename)
       resseq = resseq :+ strategoTuple
     }
 
