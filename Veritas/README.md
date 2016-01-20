@@ -21,7 +21,10 @@ Installation steps:
 3. Clone the Veritas folder on your desktop and import the Veritas project in your Eclipse with Spoofax.
 4. Build the Veritas project in Eclipse (make sure the build is successful before continuing with further steps).
 
-### Optional: How to install Veritas and the scala-backend
+### How to install Veritas and the Scala Backend
+
+Note: The Scala backend is currently under construction, and will eventually replace most of the functionality written in Stratego previously.
+While we are reconstructing Veritas, not everything described below might work!
 
 You need:
 
