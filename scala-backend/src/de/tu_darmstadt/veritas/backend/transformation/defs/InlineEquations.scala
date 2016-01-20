@@ -46,24 +46,24 @@ trait InlineEquation extends ModuleTransformation {
     tr match {
       case tr @ TypingRule(n, prems, conss) => { //Seq(TypingRule(n, trace(prems)(transTypingRuleJudgments(_)), trace(conss)(transTypingRuleJudgments(_))))
         //look for inlineable equation in premises, outer scope
-        trace(prems)(transTypingRuleJudgments(_))
+        val findprems = trace(prems)(transTypingRuleJudgments(_))
         inlineableEquation match {
           case Some(eq) => {
             // call transTypingRuleJudgment again to substitute in premises AND conclusion
             substMap += eqtoBinding(eq)
-            Seq(TypingRule(n, trace(prems)(transTypingRuleJudgments(_)), trace(conss)(transTypingRuleJudgments(_))))
+            Seq(TypingRule(n, trace(findprems)(transTypingRuleJudgments(_)), trace(conss)(transTypingRuleJudgments(_))))
           }
           // if no equation in premises found, look for inlineable equation in conclusion, outer scope
           case None => {
             if (conss.size == 1)
               Seq(tr) //do not attempt any inlining (and notably, removal) if the conclusion only has one element
             else {
-              trace(conss)(transTypingRuleJudgments(_))
+              val findconss = trace(conss)(transTypingRuleJudgments(_))
               inlineableEquation match {
                 case Some(eq) => {
                   // call transTypingRuleJudgment again, substitute in conclusion only
                   substMap += eqtoBinding(eq)
-                  Seq(TypingRule(n, prems, trace(conss)(transTypingRuleJudgments(_))))
+                  Seq(TypingRule(n, prems, trace(findconss)(transTypingRuleJudgments(_))))
                 }
                 case None => Seq(tr)
               }
