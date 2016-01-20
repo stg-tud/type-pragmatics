@@ -278,6 +278,47 @@ class InlineOneStepTest extends FunSuite {
     assert(res.head == modres)
   }
   
+  test("Do not throw away last equation in conclusion") {
+    val tr = TypingRule("simple",
+      Seq(),
+      Seq(genEq(genApp1("g", "z"), genMeta("y"))))
+    val mod = genSimpleModule("inlinesimple", tr)
+
+    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
+
+    assert(res.head == mod)
+  }
+  
+  test("Inlining in exists: do not throw away last equation") {
+    val tr = TypingRule("simple",
+      Seq(ExistsJudgment(Seq(MetaVar("x")), 
+          Seq(genEq(genMeta("x"), genApp1("f", "y"))))),
+      Seq(genEq(genApp1("g", "z"), genMeta("x"))))
+    val mod = genSimpleModule("inlinesimple", tr)
+    
+    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
+
+    assert(res.head == mod)
+  }
+  
+  test("Inlining in forall: do not throw away last equation") {
+    val tr = TypingRule("simple",
+      Seq(ExistsJudgment(Seq(MetaVar("x")), 
+          Seq(genEq(genMeta("x"), genApp1("f", "y"))))),
+      Seq(genEq(genApp1("g", "z"), genMeta("x"))))
+    val mod = genSimpleModule("inlinesimple", tr)
+    
+    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
+
+    assert(res.head == mod)
+  }
+  
+  test("Inlining in exists: binder renaming") {
+    
+  }
+  
+  
+  
 
 //  test("Inlining and removal of metavar-metavar eq simple, several equations") {
 //    val tr = TypingRule("simple",
