@@ -7,6 +7,61 @@ import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
+
+/**
+ * substitute in a given construct the meta variables in substMap parameter
+ * can be called for an entire module as well, but should be used inside specific
+ * TypingRule or Seq[TypingRuleJudgment]
+ */
+class SubstituteMeta(substMap: Map[MetaVar, FunctionExpMeta]) extends ModuleTransformation {
+  //TODO
+}
+
+/**
+ * this trait includes some of the functionality already present in LogicalTermOptimization
+ * but really ONLY removes tautologies with the given MetaVars
+ * (which we should always do when inlining, because inlining creates tautologies)
+ * TODO: remove this duplication of functionality somehow?
+ */
+class RemoveTautologies(mvlist: Seq[MetaVar]) extends ModuleTransformation {
+
+  override def transTypingRules(tr: TypingRule): Seq[TypingRule] = tr match {
+    case TypingRule(n, prems, conss) => {
+      val newprems = trace(prems)(transTypingRuleJudgments(_))
+      val newconss = trace(conss)(transTypingRuleJudgments(_))
+      val filterprems = newprems filterNot (p => p == FunctionExpJudgment(FunctionExpTrue))
+      val filterconss = newconss filterNot (p => p == FunctionExpJudgment(FunctionExpTrue))
+
+      //ensure that no rule with empty conclusion is created
+      if (filterconss.length < 1)
+        Seq(TypingRule(n, filterprems, Seq(FunctionExpJudgment(FunctionExpTrue))))
+      else
+        Seq(TypingRule(n, filterprems, filterconss))
+    }
+  }
+
+  /**
+   * make sure to replace constructs with true bodies with true
+   */
+  override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
+    withSuper(super.transTypingRuleJudgments(trj)) {
+      ???
+    }
+  
+  override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] = 
+    withSuper(super.transFunctionExps(f)) {
+    case FunctionExpEq(f1, f2) if (f1 == f2) => Seq(FunctionExpTrue)
+  }
+  
+  override def transFunctionExp(f: FunctionExp): FunctionExp = 
+    withSuper(super.transFunctionExp(f)) {
+    case FunctionExpEq(f1, f2) if (f1 == f2) => FunctionExpTrue
+  }
+  
+  
+  
+}
 
 /**
  * for discovering a single inlineable equation per scope,
@@ -248,7 +303,7 @@ trait InlineEquation extends ModuleTransformation {
         if (newors.isEmpty)
           None
         //TODO what about the case where newors.length = 1....? Do we have to treat this?
-          //or does it not matter since fof/tff translation correctly treats this case?
+        //or does it not matter since fof/tff translation correctly treats this case?
         else Some(OrJudgment(newors))
       }
       case ReduceJudgment(f1, f2)       => Some(ReduceJudgment(trace(f1)(transFunctionExpMeta(_)), trace(f2)(transFunctionExpMeta(_))))
