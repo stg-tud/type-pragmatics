@@ -10,10 +10,12 @@ object LogicalTermOptimization extends ModuleTransformation {
     withSuper(super.transTypingRules(tr)) {
       case TypingRule(n, prems, conss) => {
         val filteredprems = prems filterNot (_ == FunctionExpJudgment(FunctionExpTrue))
-        if (filteredprems == Seq())
-          Seq(TypingRule(n, Seq(FunctionExpJudgment(FunctionExpTrue)), conss))
+        val filteredconss = conss filterNot (_ == FunctionExpJudgment(FunctionExpTrue))
+        //ensure that conclusions will not be empty!
+        if (filteredconss == Seq())
+          Seq(TypingRule(n, filteredprems, Seq(FunctionExpJudgment(FunctionExpTrue))))
         else
-          Seq(TypingRule(n, filteredprems, conss))
+          Seq(TypingRule(n, filteredprems, filteredconss))
       }
     }
 
