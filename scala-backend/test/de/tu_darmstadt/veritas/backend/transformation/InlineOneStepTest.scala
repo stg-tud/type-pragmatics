@@ -41,7 +41,7 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(genEq(genMeta("x"), genApp1("f", "y"))),
+      Seq(FunctionExpJudgment(FunctionExpTrue)),
       Seq(genEq(genApp1("g", "z"), genApp1("f", "y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -57,7 +57,7 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(genEq(genApp1("f", "y"), genMeta("x"))),
+      Seq(FunctionExpJudgment(FunctionExpTrue)),
       Seq(genEq(genApp1("g", "z"), genApp1("f", "y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -85,8 +85,8 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(genEq(genApp1("f", "y"), genMeta("x")),
-        genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))),
+      Seq(FunctionExpJudgment(FunctionExpTrue), 
+          genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))),
       Seq(FunctionExpJudgment(FunctionExpFalse)))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -104,8 +104,8 @@ class InlineOneStepTest extends FunSuite {
 
     val trres = TypingRule("simple",
       Seq(),
-      Seq(genEq(genApp1("f", "y"), genMeta("x")),
-        genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))))
+      Seq(FunctionExpJudgment(FunctionExpTrue),
+          genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))))
     val modres = genSimpleModule("inlinesimple", trres)
 
     val res = InlineOnce(Seq(mod))(Backend.onlyTFFTest)
@@ -131,7 +131,7 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(genEq(genMeta("y"), genMeta("x"))),
+      Seq(FunctionExpJudgment(FunctionExpTrue)),
       Seq(genEq(genApp1("g", "z"), genMeta("x"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -147,133 +147,11 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(genEq(genMeta("x"), genMeta("y"))),
+      Seq(FunctionExpJudgment(FunctionExpTrue)),
       Seq(genEq(genApp1("g", "z"), genMeta("y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
     val res = InlineOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == modres)
-  }
-  
-  // tests with removal of premises
-  
-   test("Simple implication inlining and removal premise into conclusion") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genMeta("x"), genApp1("f", "y"))),
-      Seq(genEq(genApp1("g", "z"), genMeta("x"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val trres = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genApp1("g", "z"), genApp1("f", "y"))))
-    val modres = genSimpleModule("inlinesimple", trres)
-
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == modres)
-  }
-
-  test("Simple implication inlining and removal premise into conclusion other way around") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genApp1("f", "y"), genMeta("x"))),
-      Seq(genEq(genApp1("g", "z"), genMeta("x"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val trres = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genApp1("g", "z"), genApp1("f", "y"))))
-    val modres = genSimpleModule("inlinesimple", trres)
-
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == modres)
-  }
-
-  test("No inlining/removal of circular equations") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genApp1("f", "x"), genMeta("x"))),
-      Seq(genEq(genApp1("g", "z"), genMeta("x"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == mod)
-  }
-
-  test("Inlining and removal within premises") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genApp1("f", "y"), genMeta("x")),
-        genEq(genMeta("z"), genApp1("f", "x"))),
-      Seq(FunctionExpJudgment(FunctionExpFalse)))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val trres = TypingRule("simple",
-      Seq(genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))),
-      Seq(FunctionExpJudgment(FunctionExpFalse)))
-    val modres = genSimpleModule("inlinesimple", trres)
-
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == modres)
-  }
-
-  test("Inlining and removal within conclusion") {
-    val tr = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genApp1("f", "y"), genMeta("x")),
-        genEq(genMeta("z"), genApp1("f", "x"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val trres = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))))
-    val modres = genSimpleModule("inlinesimple", trres)
-
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == modres)
-  }
-
-  test("No inlining/removal in wrong direction (conclusion into premises)") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genApp1("g", "z"), genApp1("f", "x"))),
-      Seq(genEq(genMeta("x"), genApp1("f", "y"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == mod)
-  }
-
-  test("Inlining and removal of metavar-metavar eq simple from left to right") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genMeta("y"), genMeta("x"))),
-      Seq(genEq(genApp1("g", "z"), genMeta("y"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val trres = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genApp1("g", "z"), genMeta("x"))))
-    val modres = genSimpleModule("inlinesimple", trres)
-
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == modres)
-  }
-
-  test("No inlining (but removal) of metavar-metavar eq simple from right to left") {
-    val tr = TypingRule("simple",
-      Seq(genEq(genMeta("x"), genMeta("y"))),
-      Seq(genEq(genApp1("g", "z"), genMeta("y"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val trres = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genApp1("g", "z"), genMeta("y"))))
-    val modres = genSimpleModule("inlinesimple", trres)
-
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
   }
@@ -284,7 +162,7 @@ class InlineOneStepTest extends FunSuite {
       Seq(genEq(genApp1("g", "z"), genMeta("y"))))
     val mod = genSimpleModule("inlinesimple", tr)
 
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
+    val res = InlineOnce(Seq(mod))(Backend.onlyTFFTest)
 
     assert(res.head == mod)
   }
@@ -296,7 +174,7 @@ class InlineOneStepTest extends FunSuite {
       Seq(genEq(genApp1("g", "z"), genMeta("x"))))
     val mod = genSimpleModule("inlinesimple", tr)
     
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
+    val res = InlineOnce(Seq(mod))(Backend.onlyTFFTest)
 
     assert(res.head == mod)
   }
@@ -308,7 +186,7 @@ class InlineOneStepTest extends FunSuite {
       Seq(genEq(genApp1("g", "z"), genMeta("x"))))
     val mod = genSimpleModule("inlinesimple", tr)
     
-    val res = InlineAndRemoveOnce(Seq(mod))(Backend.onlyTFFTest)
+    val res = InlineOnce(Seq(mod))(Backend.onlyTFFTest)
 
     assert(res.head == mod)
   }
@@ -316,8 +194,6 @@ class InlineOneStepTest extends FunSuite {
   test("Inlining in exists: binder renaming") {
     
   }
-  
-  
   
 
 //  test("Inlining and removal of metavar-metavar eq simple, several equations") {
