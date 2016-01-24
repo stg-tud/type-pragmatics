@@ -4,6 +4,7 @@ import encodingcompstudy.Tables
 import encodingcompstudy.TStore
 
 
+
 //predicates for where clauses of queries	
 data Pred =
 	VEquals(AName, FVal) |
