@@ -32,12 +32,17 @@ object Backend {
   val singleTransformation = PartialVariability(
     Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
       (Problem -> Seq(Problem.Test)),
-      (InversionLemma -> Seq(InversionLemma.On)),
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
-  val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.InlineEverything, InversionLemma -> InversionLemma.On, Problem -> Problem.Consistency))
-  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.NameParamsAndResults, InversionLemma -> InversionLemma.Off, Problem -> Problem.Consistency))
+  val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
+    LogicalSimplification -> LogicalSimplification.On,
+    VariableEncoding -> VariableEncoding.InlineEverything,
+    Problem -> Problem.Consistency))
+  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF,
+    LogicalSimplification -> LogicalSimplification.On,
+    VariableEncoding -> VariableEncoding.NameParamsAndResults,
+    Problem -> Problem.Consistency))
 
   /**
    * This variability model is used by the code below
@@ -74,9 +79,8 @@ object Backend {
     val typing = config(FinalEncoding).toString().toLowerCase
     val variable = config(VariableEncoding).toString().toLowerCase
     val simpl = config(LogicalSimplification).toString().toLowerCase
-    val inv = config(InversionLemma).toString().toLowerCase
 
-    val outputFolder = s"$problem/$typing/$variable-$simpl-$inv"
+    val outputFolder = s"$problem/$typing/$variable-$simpl"
 
     //write the files in the corresponding directory
     //is it necessary to use the Stratego context when backend is called as a strategy
@@ -145,17 +149,17 @@ object Backend {
     else
       context.getFactory.makeList(resseq.asJava)
   }
-  
+
   /**
    * function for debugging:
-   * 
+   *
    * apply a single partial transformation chain on a module, without writing files
    * for debugging intermediate steps
-   * 
+   *
    * customize conf and CustomPartialChain below for debugging
    */
   def debugTransformation(aterm: StrategoTerm): Seq[(String, PrettyPrintableFile)] = {
-    
+
     import de.tu_darmstadt.veritas.backend.transformation._
     import de.tu_darmstadt.veritas.backend.transformation.defs._
     import de.tu_darmstadt.veritas.backend.transformation.imports._
@@ -165,30 +169,28 @@ object Backend {
       FinalEncoding -> FinalEncoding.TFF,
       LogicalSimplification -> LogicalSimplification.On,
       VariableEncoding -> VariableEncoding.InlineEverything,
-      InversionLemma -> InversionLemma.On,
       Problem -> Problem.Test))
-      
+
     val modules = Seq(Module.from(aterm))
 
     object CustomPartialChain extends SeqTrans(
       // desugar Veritas constructs
       BasicTrans,
       // determines whether and which inversion axioms are generated for functions/typing rules
-      Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
+      TotalFunctionInversionAxioms, // ignored: InversionAll
       //NoBooleanFunctionInversionAxiomSplit
       // variable inlining/extraction
-      VariableTrans ,
+      VariableTrans,
       // insert type guards for quantified metavariables
       //Optional(InsertTypeGuardsForMetavars, ifConfig(FinalEncoding, FinalEncoding.GuardedFOF)),
       // determines whether logical optimizations take place prior to fof/tff encoding
       //Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
       // select problem
-      ProblemTrans
-      )
+      ProblemTrans)
 
     val transformationChain = { sm: Seq[Module] => CustomPartialChain(sm)(conf) }
     val resultingModSeq = transformationChain(modules)
-    resultingModSeq map {m => ("", m)}
+    resultingModSeq map { m => ("", m) }
   }
 
   /**
@@ -210,8 +212,8 @@ object Backend {
     Context.initStandalone(indexAndTaskenginePath)
 
     //use line below for debugging single partial transformation chains
-    val resultFiles = debugTransformation(aterm) 
-    
+    val resultFiles = debugTransformation(aterm)
+
     //val resultFiles = runAllEncodings(aterm) //writes files
 
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))

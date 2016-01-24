@@ -91,7 +91,8 @@ object MainTrans extends SeqTrans(
   // desugar Veritas constructs
   BasicTrans,
   // determines whether and which inversion axioms are generated for functions/typing rules
-  Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
+  // update: always generate function inversion axioms!
+  TotalFunctionInversionAxioms, // ignored: InversionAll
   // variable inlining/extraction
   VariableTrans,
   // insert type guards for quantified metavariables
