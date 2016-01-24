@@ -41,7 +41,7 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(FunctionExpJudgment(FunctionExpTrue)),
+      Seq(),
       Seq(genEq(genApp1("g", "z"), genApp1("f", "y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -57,7 +57,7 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(FunctionExpJudgment(FunctionExpTrue)),
+      Seq(),
       Seq(genEq(genApp1("g", "z"), genApp1("f", "y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -85,8 +85,7 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(FunctionExpJudgment(FunctionExpTrue), 
-          genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))),
+      Seq(genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))),
       Seq(FunctionExpJudgment(FunctionExpFalse)))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -104,8 +103,7 @@ class InlineOneStepTest extends FunSuite {
 
     val trres = TypingRule("simple",
       Seq(),
-      Seq(FunctionExpJudgment(FunctionExpTrue),
-          genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))))
+      Seq(genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))))
     val modres = genSimpleModule("inlinesimple", trres)
 
     val res = InlineOnce(Seq(mod))(Backend.onlyTFFTest)
@@ -131,7 +129,7 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(FunctionExpJudgment(FunctionExpTrue)),
+      Seq(),
       Seq(genEq(genApp1("g", "z"), genMeta("x"))))
     val modres = genSimpleModule("inlinesimple", trres)
 
@@ -147,7 +145,7 @@ class InlineOneStepTest extends FunSuite {
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",
-      Seq(FunctionExpJudgment(FunctionExpTrue)),
+      Seq(),
       Seq(genEq(genApp1("g", "z"), genMeta("y"))))
     val modres = genSimpleModule("inlinesimple", trres)
 

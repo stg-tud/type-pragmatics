@@ -94,7 +94,7 @@ class CompleteInliningChainTests extends FunSuite {
     assert(res.head == modres)
   }
   
-  test("Inlining within premises 'wrong' order") {
+  test("Inlining within premises, different order") {
     val tr = TypingRule("simple",
       Seq(genEq(genMeta("z"), genApp1("f", "x")),
           genEq(genApp1("f", "y"), genMeta("x"))),
@@ -115,22 +115,6 @@ class CompleteInliningChainTests extends FunSuite {
     val tr = TypingRule("simple",
       Seq(),
       Seq(genEq(genApp1("f", "y"), genMeta("x")), genEq(genMeta("z"), genApp1("f", "x"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val trres = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))))
-    val modres = genSimpleModule("inlinesimple", trres)
-
-    val res = LogicalTermOptimization(InlineFP(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
-
-    assert(res.head == modres)
-  }
-
-  test("Inlining within conclusion 'wrong' order") {
-    val tr = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genMeta("z"), genApp1("f", "x")), genEq(genApp1("f", "y"), genMeta("x"))))
     val mod = genSimpleModule("inlinesimple", tr)
 
     val trres = TypingRule("simple",

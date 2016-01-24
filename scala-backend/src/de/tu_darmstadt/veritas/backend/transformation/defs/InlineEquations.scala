@@ -64,7 +64,11 @@ class SubstituteMeta(sMap: Map[MetaVar, FunctionExpMeta]) extends ModuleTransfor
         //filter unnecessary quantifiers
         val newvl = newvl_unfiltered filter (mv => FreeVariables.freeVariables(newjl, Set[MetaVar]()) contains mv)
         substMap = oldSubstMap
-        ExistsJudgment(newvl, newjl)
+        if (newvl.length < 1)
+          //TODO: better solution for preventing empty quantifier lists?
+          ExistsJudgment(vl, newjl)
+        else
+          ExistsJudgment(newvl, newjl)
       }
       case ForallJudgment(vl, jl) => {
         //to avoid capture avoidance, rename all quantifiers as well
@@ -76,7 +80,11 @@ class SubstituteMeta(sMap: Map[MetaVar, FunctionExpMeta]) extends ModuleTransfor
         //filter unnecessary quantifiers
         val newvl = newvl_unfiltered filter (mv => FreeVariables.freeVariables(newjl, Set[MetaVar]()) contains mv)
         substMap = oldSubstMap
-        ForallJudgment(newvl, newjl)
+        if (newvl.length < 1)
+          //TODO: better solution for preventing empty quantifier lists?
+          ForallJudgment(vl, newjl)
+        else
+          ForallJudgment(newvl, newjl)
       }
     }
 
@@ -132,23 +140,76 @@ class SubstituteMeta(sMap: Map[MetaVar, FunctionExpMeta]) extends ModuleTransfor
 }
 
 /**
- * replaces tautologies for the expressions given in explist with True
- * why? minimum interference with logical term optimization,
- * which might or might not be applied in addition to inlining
+ * removes tautologies for the expressions given in explist with True
  *
- * TODO: remove this duplication of functionality somehow?
+ * use for removing tautologies that occurred during inlining
+ * why only these? -> minimal interference with logical term optimization,
+ * which might or might not take place afterward
+ *
  */
 class RemoveTautologies(explist: Seq[FunctionExpMeta]) extends ModuleTransformation {
 
-  override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
-    withSuper(super.transFunctionExps(f)) {
-      case FunctionExpEq(f1, f2) if (f1 == f2 && (explist contains f1)) => Seq(FunctionExpTrue)
+  override def transTypingRules(tr: TypingRule): Seq[TypingRule] = tr match {
+    case TypingRule(n, prems, conss) => {
+      val newprems = trace(prems)(transTypingRuleJudgments(_))
+      val newconss = trace(conss)(transTypingRuleJudgments(_))
+      //ensure that conclusions don't become empty
+      if (newconss.length < 1)
+        Seq(TypingRule(n, newprems, conss))
+      else
+        Seq(TypingRule(n, newprems, newconss))
+    }
+  }
+
+  override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
+    withSuper(super.transTypingRuleJudgments(trj)) {
+      case FunctionExpJudgment(eq @ FunctionExpEq(_, _)) =>
+        if (removeEq(eq))
+          Seq()
+        else
+          Seq(FunctionExpJudgment(trace(eq)(transFunctionExp(_))))
+      case ExistsJudgment(vl, jl) => {
+        val newjl = trace(jl)(transTypingRuleJudgments(_))
+        val newvl_unfiltered = trace(vl)(transMetaVars(_))
+        //filter unnecessary quantifiers, if any
+        val newvl = newvl_unfiltered filter (mv => FreeVariables.freeVariables(newjl, Set[MetaVar]()) contains mv)
+        if (newjl.length < 1)
+          Seq()
+        else if (newvl.length < 1)
+          newjl
+        else
+          Seq(ExistsJudgment(newvl, newjl))
+      }
+      case ForallJudgment(vl, jl) => {
+        val newjl = trace(jl)(transTypingRuleJudgments(_))
+        val newvl_unfiltered = trace(vl)(transMetaVars(_))
+        //filter unnecessary quantifiers, if any
+        val newvl = newvl_unfiltered filter (mv => FreeVariables.freeVariables(newjl, Set[MetaVar]()) contains mv)
+        if (newjl.length < 1)
+          Seq()
+        else if (newvl.length < 1)
+          newjl
+        else
+          Seq(ForallJudgment(newvl, newjl))
+      }
+      case OrJudgment(orc) =>
+        {
+          val neworcs_unfiltered = orc map (sor => trace(sor)(transTypingRuleJudgments(_)))
+          val neworcs = neworcs_unfiltered filterNot (s => s.isEmpty)
+          if (neworcs.length == 0)
+            Seq()
+          else if (neworcs.length == 1)
+            neworcs.head
+          else Seq(OrJudgment(neworcs))
+        }
     }
 
-  override def transFunctionExp(f: FunctionExp): FunctionExp =
-    withSuper(super.transFunctionExp(f)) {
-      case FunctionExpEq(f1, f2) if (f1 == f2 && (explist contains f1)) => FunctionExpTrue
+  private def removeEq(eq: FunctionExpEq): Boolean =
+    eq match {
+      case FunctionExpEq(f1, f2) if (f1 == f2 && (explist contains f1)) => true
+      case _ => false
     }
+
 }
 
 /**
@@ -221,7 +282,7 @@ trait InlineEquation extends ModuleTransformation {
     val substitutionInst = new SubstituteMeta(Map(eqtoBinding(substeq)))
     val substtrj = trj map { trj => substitutionInst.transTypingRuleJudgment(trj) }
     val removeInst = new RemoveTautologies(Seq(substeq.f1, substeq.f2))
-    substtrj map { trj => removeInst.transTypingRuleJudgment(trj) }
+    substtrj flatMap { trj => removeInst.transTypingRuleJudgments(trj) }
   }
 
   /**
