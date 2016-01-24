@@ -12,6 +12,8 @@ imports
   
   names
   generate
+  props
+  verification
   
 strategies
 
@@ -22,6 +24,10 @@ strategies
   //          The first element of the tuples is the filename relative to the project path
   //          The second is the content of the output file (as String)
   external backend-strategy(|)
+  
+  external backend-consistency-strategy(|)
+  
+  external backend-proof-strategy(|)
 
 rules // Incremental code generation of project using compilation library.
   	  // See lib/compilation-library.generated.str for documentation
@@ -40,7 +46,7 @@ rules // Incremental code generation of project using compilation library.
     // <map(\(fn, c) -> <dirname; try(mkdir)> fn\)> files;
     // <map(write-file)> files;
     result := <if <?[]> files then !None() else !<Hd> files end> ()
-    
+
   invoke-backend-folder : 
 		(selected, position, ast, path, project-path) -> result
 	where
@@ -52,6 +58,51 @@ rules // Incremental code generation of project using compilation library.
   with
   	index-setup(|<language>, project-path); index-persist;
   	task-setup(|project-path); task-persist
+
+
+
+  invoke-backend-consistency-5 = invoke-backend-consistency(|"5")
+  invoke-backend-consistency-120 = invoke-backend-consistency(|"120")
+  invoke-backend-consistency-300 = invoke-backend-consistency(|"300")
+  invoke-backend-consistency(|time) : (selected, position, ast, path, project-path) -> None()
+  with
+  	// uncomment this only if you want to always store the Index/Tasks on disk, i.e.
+  	// because the loading from the Java objects in the Backend doesnt work
+	index-and-task-persist;
+	// index-setup(|<language>, project-path);
+	// task-setup(|project-path);
+	
+	proofpath := <gen-proofpath> path; 
+    false-goal := Goals(None(),[TypingRule(RuleName("", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))]);
+    //TODO: consistency check for strategies/local blocks??
+    ast-with-false := <Module(id, id, filter(not(?Local(_) + ?Goals(_,_) + ?Lemmas(_,_) + ?Strategy(_,_,_) + 
+    	?GoalsWithStrategy(_,_,_) + ?LemmasWithStrategy(_,_,_))); append(|[false-goal]))> ast;
+
+    [(file,_)] := <backend-consistency-strategy <+ error(!"backend default strategy failed: ")> (project-path, <dirname> path, proofpath, ast-with-false);
+    <try(call-vampire-sat(|"FALSE", time, project-path))> file;
+	<queue-analysis> path
+
+
+  invoke-backend-verify-vampire-30 = invoke-backend-verify-vampire(|"30")
+  invoke-backend-verify-vampire-60 = invoke-backend-verify-vampire(|"60")
+  invoke-backend-verify-vampire-120 = invoke-backend-verify-vampire(|"120")
+  invoke-backend-verify-vampire(|time) : (selected, position, ast, path, project-path) -> None()
+  with
+  	// uncomment this only if you want to always store the Index/Tasks on disk, i.e.
+  	// because the loading from the Java objects in the Backend doesnt work
+	index-and-task-persist;
+	// index-setup(|<language>, project-path);
+	// task-setup(|project-path);
+	
+	proofpath := <gen-proofpath> path; 
+    basepath := <guarantee-extension(|"fof")> proofpath;
+
+	rulesOutfiles := <backend-proof-strategy <+ error(!"backend default strategy failed: ")> (project-path, <dirname> path, basepath, ast);
+
+    <map(\(r,f) -> <try(call-vampire(|r, time, project-path))> f\)> rulesOutfiles;
+	<queue-analysis> path
+
+
 
 //   // DEPRECATED
 //   debug-show-backend-input: (selected, position, ast, path, project-path) -> (filename, result)

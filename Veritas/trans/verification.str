@@ -9,6 +9,7 @@ imports
   names
   fof-rewriting
   smt-rewriting
+  props
   veritas
   lib/editor-common.generated
   runtime/analysis/core
@@ -21,7 +22,7 @@ signature
 		VerificationFailure : String -> Result
 
 rules
-	CurrentFileFOF = CurrentFile; guarantee-extension(|"fof"); gen-proofpath
+	CurrentFileFOF = CurrentFile; gen-proofpath; guarantee-extension(|"fof")
 	
 	constraint-warning :
 		Module(m,_,body) -> <conc> (consistency-msgs, goal-msgs)
