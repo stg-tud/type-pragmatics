@@ -51,9 +51,21 @@ object ToFof {
    */
   private def jdgToFof(jdg: TypingRuleJudgment): FofUnitary =
     jdg match {
-      case FunctionExpJudgment(f)        => functionExpToFof(f)
-      case ExistsJudgment(vars, jdglist) => Exists(vars map toUntypedVar, Parenthesized(And(jdglist map jdgToFof)))
-      case ForallJudgment(vars, jdglist) => ForAll(vars map toUntypedVar, Parenthesized(And(jdglist map jdgToFof)))
+      case FunctionExpJudgment(f) => functionExpToFof(f)
+      case ExistsJudgment(vars, jdglist) => {
+        val mappedvars = vars map toUntypedVar
+        if (mappedvars.isEmpty)
+          Parenthesized(And(jdglist map jdgToFof))
+        else
+          Exists(mappedvars, Parenthesized(And(jdglist map jdgToFof)))
+      }
+      case ForallJudgment(vars, jdglist) => {
+        val mappedvars = vars map toUntypedVar
+        if (mappedvars.isEmpty)
+          Parenthesized(And(jdglist map jdgToFof))
+        else
+          ForAll(mappedvars, Parenthesized(And(jdglist map jdgToFof)))
+      }
       case NotJudgment(jdg)              => Not(jdgToFof(jdg))
       case OrJudgment(ors)               => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgToFof)))))
       case _                             => throw TransformationError("Encountered unsupported (not Core) judgment while translating a goal or axiom (e.g. typing judgment): " + jdg)

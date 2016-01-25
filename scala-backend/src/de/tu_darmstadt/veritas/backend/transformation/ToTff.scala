@@ -52,10 +52,10 @@ object ToTff {
     typedecllist = Seq()
     axiomlist = Seq()
     goal = None
-    
+
     types = new CollectTypesClass
     types.apply(Seq(veritasModule))
-    
+
     typedSymbols = Map()
     for (d <- types.dataTypes)
       addDataType(d)
@@ -65,7 +65,7 @@ object ToTff {
       addSymbol(con, in, out)
     for ((con, (in, out)) <- types.pfunctypes)
       addSymbol(con, in, out)
-    
+
     veritasModule match {
       case Module(name, Seq(), body) => {
         bodyToTff(body)
@@ -75,7 +75,7 @@ object ToTff {
     }
   }
 
-    /**
+  /**
    * create a top-level typed symbol
    */
   private def makeTopLevelSymbol(name: String): TypedSymbol =
@@ -89,9 +89,9 @@ object ToTff {
 
   private def translatePredefinedType(t: String): DefinedType =
     t match {
-      case "Bool" => DefinedType("o")
+      case "Bool"  => DefinedType("o")
       case "iType" => DefinedType("i")
-      case n => DefinedType(n)
+      case n       => DefinedType(n)
     }
 
   /**
@@ -108,10 +108,10 @@ object ToTff {
       val ts = makeTopLevelSymbol(name)
       typedSymbols.get(name) match {
         case Some(ts) => SymbolType(ts)
-        case None => throw TransformationError(s"Encountered sort reference ${name}, which has not been defined yet!")
+        case None     => throw TransformationError(s"Encountered sort reference ${name}, which has not been defined yet!")
       }
     }
-  
+
   /**
    *  translate a Module body (sequence of ModuleDefs) to TffAnnotated
    *  adds the collected declarations to the appropriate collections of the object defined above
@@ -155,14 +155,13 @@ object ToTff {
 
   private def addSymbol(name: String, in: Seq[SortRef], out: SortRef): Unit =
     typedecllist :+= {
-        val outt = getAtomicType(out.name)
-        val ints = in map (s => getAtomicType(s.name))
-        val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
-        val ts = TypedSymbol(name, t)
-        addTSIfNew(ts)
-        TffAnnotated(s"${name}_type", Type, ts)
-      }
-
+      val outt = getAtomicType(out.name)
+      val ints = in map (s => getAtomicType(s.name))
+      val t = if (ints.isEmpty) outt else TffMappingType(ints, outt)
+      val ts = TypedSymbol(name, t)
+      addTSIfNew(ts)
+      TffAnnotated(s"${name}_type", Type, ts)
+    }
 
   /**
    * translates axioms to Tff
@@ -185,7 +184,7 @@ object ToTff {
     for (v <- vars)
       yield TypedVariable(v.name, getAtomicType(v.sortType.name))
   }
-  
+
   /**
    * translates typing rules (= implications) to Tff
    * TODO: universal quantification over all free variables!!
@@ -194,9 +193,9 @@ object ToTff {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs)
     val jdgs = prems ++ conseqs
     types.inferMetavarTypes(quantifiedVars, jdgs)
-		val vars = makeVarlist(quantifiedVars.toSeq, jdgs)
+    val vars = makeVarlist(quantifiedVars.toSeq, jdgs)
 
-		val transformedprems = prems map jdgtoTff
+    val transformedprems = prems map jdgtoTff
 
     if (transformedprems == Seq(True))
       ForAll(vars, Parenthesized(And(conseqs map jdgtoTff)))
@@ -210,12 +209,24 @@ object ToTff {
    */
   private def jdgtoTff(jdg: TypingRuleJudgment): FofUnitary =
     jdg match {
-      case FunctionExpJudgment(f)        => functionExpToTff(f)
-      case ExistsJudgment(vars, jdglist) => Exists(makeVarlist(vars, jdglist), Parenthesized(And(jdglist map jdgtoTff)))
-      case ForallJudgment(vars, jdglist) => ForAll(makeVarlist(vars, jdglist), Parenthesized(And(jdglist map jdgtoTff)))
-      case NotJudgment(jdg)              => Not(jdgtoTff(jdg))
-      case OrJudgment(ors)               => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgtoTff)))))
-      case _                             => throw TransformationError("Encountered unsupported judgment while translating a goal or axiom (e.g. typing judgment)")
+      case FunctionExpJudgment(f) => functionExpToTff(f)
+      case ExistsJudgment(vars, jdglist) => {
+        val mappedvars = makeVarlist(vars, jdglist)
+        if (mappedvars.isEmpty)
+          Parenthesized(And(jdglist map jdgtoTff))
+        else
+          Exists(mappedvars, Parenthesized(And(jdglist map jdgtoTff)))
+      }
+      case ForallJudgment(vars, jdglist) => {
+        val mappedvars = makeVarlist(vars, jdglist)
+        if (mappedvars.isEmpty)
+          Parenthesized(And(jdglist map jdgtoTff))
+        else
+          ForAll(mappedvars, Parenthesized(And(jdglist map jdgtoTff)))
+      }
+      case NotJudgment(jdg) => Not(jdgtoTff(jdg))
+      case OrJudgment(ors)  => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgtoTff)))))
+      case _                => throw TransformationError("Encountered unsupported judgment while translating a goal or axiom (e.g. typing judgment)")
     }
 
   /**
