@@ -1,0 +1,68 @@
+module encodingcompstudy.Synthesis-test
+
+import encodingcompstudy.Syntax
+import encodingcompstudy.Semantics
+import encodingcompstudy.TypeSystem
+import encodingcompstudy.TStore
+import encodingcompstudy.Tables
+import encodingcompstudy.TableAux
+import encodingcompstudy.TContext
+
+goal
+~TTC |- ~q1 : ~TT
+==================== test-synthesis-1
+exists ~TTC
+  ~TTC |- ~q2 : ~TT
+  ~TTC |- Intersection(~q1, ~q2) : ~TT
+
+// given table with attribute names acons(a, al2), there is a projection such that
+// the result is a table with attribute names al2
+goal
+~al1 = acons(~a, ~al2)
+~table1 == table(~al1, ~rt1)
+welltypedtable(~al2, ~table1)
+==================== test-synthesis-2
+exists ~table2, ~rt2, ~p
+  ~table2 == table(~al2, ~rt2)
+  welltypedtable(~al2, ~table2)
+  someRawTable(~p) = project(~al, ~table1)
+  ~table2 == table(~al2, ~p)
+
+// there is a table Y != X, such that intersect(X, Y) = X
+goal
+~table1 == table(~al, ~rt1)
+welltypedtable(~al, ~table1)
+============================= test-synthesis-3
+exists ~table2, ~rt2
+  ~table2 != ~table1
+  ~table2 == table(~al, ~rt2)
+  intersect(~table1, ~table2) == someTable(~table1)
+
+// there are table values that give the same intersection result for any intersection of any two queries
+goal
+~TTC |- ~sql1 : ~TT
+~TTC |- ~sql2 : ~TT
+reduce(conf(Intersection(~sql1, ~sql2), ~ts)) == ~result
+==================== test-synthesis-4
+exists ~t1, ~t2
+  welltypedtable(~TT, ~t1)
+  welltypedtable(~TT, ~t2)
+  reduce(conf(Intersection(Tvalue(~t1), Tvalue(~t2)), ~ts)) == ~result
+    
+goal
+====== test-synthesis-5
+exists ~conf
+  reduce(~conf) = noConf
+  
+goal
+===== test-synthesis-6
+exists ~table
+  projectEmptyCol(~table) == tcons(rempty, tempty)
+
+// if there is a well typed raw table, there's an equivalent well typed table
+goal
+welltypedRawtable(~rt)
+========================= test-synthesis-7
+exists ~TT, ~table, ~al
+  ~table = table(~al, ~rt)
+  welltypedtable(~TT, ~table)

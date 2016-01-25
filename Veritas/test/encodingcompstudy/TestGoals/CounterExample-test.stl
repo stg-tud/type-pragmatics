@@ -1,0 +1,76 @@
+module encodingcompstudy.CounterExample-test
+
+import encodingcompstudy.Syntax
+import encodingcompstudy.Semantics
+import encodingcompstudy.TypeSystem
+import encodingcompstudy.TStore
+import encodingcompstudy.Tables
+
+// there exists t2 such that union(t1, t2) != t1
+goal
+~t1 = Tvalue(~table1)
+~TTC |- ~t1 : ~TT
+==================== test-counterexample-1
+exists ~t2, ~table2, ~u, ~ts, ~tunion
+  ~t2 = Tvalue(~table2)
+  ~u = Union(~t1, ~t2)
+  ~TTC |- ~t2 : ~TT
+  ~TTC |- ~u : ~TT
+  reduce(conf(~u, ~ts)) = someConf(conf(Tvalue(someTable(~tunion)), ~ts))
+  ~tunion != ~t1
+
+// there exists t2 such that the single attribute name is equal to t1's but is differently typed
+goal
+~t1 = table(acons(~a1, aempty), ~rt1)
+welltypedtable(~TT, ~t1)
+==================================== test-counterexample-2
+exists ~t2
+  ~t2 = table(acons(~a1, aempty), ~rt2)
+  welltypedtable(~TT2, ~t2)
+  ~t1 != ~t2
+
+// if two contexts type the same object as the same type, they are not necessarily equal
+goal
+~C |- ~e : ~T
+============== test-counterexample-3
+exists ~C2
+  ~C2 |- ~e : ~T
+  ~C != ~C2
+
+
+// there exists t2 such that union(t1, select(p, t2)) != select(p, union(t1, t2))
+goal
+welltypedtable(~al, ~t1)
+~p = VEquals(~a, ~v)
+========================= test-counterexample-4
+exists ~t2, ~tmpResult1, ~tmpResult2, ~result1, ~result2
+  welltypedtable(~al, ~t2)
+  someTable(~tmpResult1) = select(~t2, ~p)
+  someTable(~result1) = union(~t1, ~tmpResult1)
+  someTable(~tmpResult2) = union(~t1, ~t2)
+  someTable(~result2) = select(~tmpResult2, ~p)
+  ~result1 != ~result2
+
+// there exists t2 such that diff(t1, select(p, t2)) != select(p, diff(t1, t2))
+goal
+welltypedtable(~al, ~t1)
+~p = VEquals(~a, ~v)
+========================= test-counterexample-5
+exists ~t2, ~tmpResult1, ~tmpResult2, ~result1, ~result2
+  welltypedtable(~al, ~t2)
+  someTable(~tmpResult1) = select(~t2, ~p)
+  someTable(~result1) = difference(~t1, ~tmpResult1)
+  someTable(~tmpResult2) = difference(~t1, ~t2)
+  someTable(~result2) = select(~tmpResult2, ~p)
+  ~result1 != ~result2
+
+// difference is not commutative
+goal
+welltypedtable(~al, ~t1)
+======================== test-counterexample-6
+exists ~t2
+  welltypedtable(~al, ~t2)
+  difference(~t1, ~t2) != difference(~t2, ~t1)
+
+// union(x, y) - z
+// union(x - z, y)

@@ -1,0 +1,78 @@
+module encodingcompstudy.Test-test
+
+import encodingcompstudy.Syntax
+import encodingcompstudy.Semantics
+import encodingcompstudy.TypeSystem
+import encodingcompstudy.TStore
+import encodingcompstudy.Tables
+import encodingcompstudy.TableAux
+import encodingcompstudy.TContext
+
+local {
+	different consts
+	    fv : FVal
+	    gv : FVal
+	    hv : FVal
+
+	goal
+	~al = acons(~a, acons(~b, acons(~c, aempty)))
+	~pred = VEquals(~b, gv)
+	~row = rcons(fv, rcons(gv, rcons(hv, rempty)))
+	============================================== test-1
+	singleRowSelect(~al, ~pred, ~row) == isTrue
+}
+
+local {
+	different consts
+		r1 : Row
+		r2 : Row
+	
+	goal
+	~table1 == Tvalue(table(~al, tcons(r1, tempty)))
+	~table2 == Tvalue(table(~al, tcons(r2, tempty)))
+	welltypedtable(~table1)
+	welltypedtable(~table2)
+	============================ test-2
+	reduce(conf(Intersection(~table1, ~table2), ~ts)) == someConf(conf(Tvalue(table(~al, tempty))))
+}
+
+local {
+	different consts
+		a1 : AName
+		a2 : AName
+		a3 : AName
+	
+	goal
+	~al == acons(a1, acons(a2, acons(a3, aempty)))
+	~row == rcons(~v1, rcons(~v2, rcons(~v3, rempty)))
+	~table == table(~al, tcons(~row, tempty))
+	welltypedtable(~table)
+	========================== test-3
+	findCol(a2) == someRawTable(tcons(rcons(~v2, rempty), tempty))
+}
+
+local {
+	different consts
+		row1 : Row
+		row2 : Row
+		row3 : Row
+	
+	goal
+	~table1 == tcons(row1, tcons(row2, tempty))
+	~table2 == tcons(row3, tcons(row1, tempty))
+	============================================ test-4
+	rawDifference(~table1, ~table2) == tcons(row2, tempty)
+}
+
+goal
+~table = tcons(~row1, tcons(~row2, tcons(~row3, tcons(~row4, tempty))))
+======================================================================= test-5
+rowIn(~row4, ~table)
+
+goal
+~table1 = table(~al, ~rt)
+~table2 = table(acons(~a, ~al), ~rt2)
+welltypedtable(~table1)
+welltypedtable(~table2)
+================================= test-6
+reduce(conf(Union(Tvalue(~table1), Tvalue(~table2)), ~ts)) == noConf
