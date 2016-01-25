@@ -69,6 +69,8 @@ object ProblemTrans extends Alternative(selectConfig(Problem) {
     SeqTrans(SplitModulesByGoal("proof"), MoveDeclsToFront)
   case Problem.Test =>
     SeqTrans(SplitModulesByGoal("test"), MoveDeclsToFront)
+  case Problem.All =>
+    SeqTrans(SplitModulesByGoal(""), MoveDeclsToFront)
 })
 
 /**

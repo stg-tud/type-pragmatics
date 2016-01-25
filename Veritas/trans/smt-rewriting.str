@@ -237,12 +237,6 @@ rules
 	pp-smt-list(|sep) : [arg|args] -> <concat-strings> [<pp-smt-inner> arg, sep, <pp-smt-list(|sep)> args]
 	pp-smt-list(|sep) = debug(!"pp-smt-list failed: "); fail
 
-	append-string(|s) = !(<id>, s); conc-strings
-	prepend-string(|s) = !(s, <id>); conc-strings
-
-	append(|k) = !(<id>, k); conc
-	prepend(|k) = !(k, <id>); conc
-
 rules
 	smt-prelude = ![<set-logic>, <decl-term-sort>]
 	set-logic = !"" // TODO explicitly set logic

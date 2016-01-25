@@ -256,9 +256,8 @@ object ToTff {
    */
   private def constructFinalTff(name: String): TffFile = {
     goal match {
-      case Some(g) => TffFile(name, typedecllist ++ axiomlist ++ Seq(g))
+      case Some(g) => TffFile(name, g.name, typedecllist ++ axiomlist ++ Seq(g))
       case None    => throw TransformationError(s"There was no goal in Module ${name}; TFF Transformation failed!")
     }
   }
-
 }
