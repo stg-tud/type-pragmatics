@@ -1,0 +1,96 @@
+module encodingcompstudy.Proof-test
+
+import encodingcompstudy.Syntax
+import encodingcompstudy.Semantics
+import encodingcompstudy.TypeSystem
+import encodingcompstudy.TStore
+import encodingcompstudy.Tables
+import encodingcompstudy.TableAux
+import encodingcompstudy.TContext
+
+// union is commutative
+goal
+welltypedtable(~al, table(~al, ~t1))
+welltypedtable(~al, table(~al, ~t2))
+~u1 = rawUnion(~t1, ~t2)
+~u2 = rawUnion(~t2, ~t1)
+rowIn(~r1, ~u1)
+!rowIn(~r2, ~u1)
+======================== test-proof-1
+rowIn(~r, ~u2)
+!rowIn(~r2, ~u2)
+
+// diff(union(a, b), c) = union(diff(a, c), diff(b, c))
+goal
+welltypedtable(~al, table(~al, ~t1))
+welltypedtable(~al, table(~al, ~t2))
+welltypedtable(~al, table(~al, ~t3))
+~d1 = rawDifference(rawUnion(~t1, ~t2), ~t3)
+~d2 = rawUnion(rawDifference(~t1, ~t3), rawDifference(~t2, ~t3))
+rowIn(~r1, ~d1)
+!rowIn(~r2, ~d1)
+==================================== test-proof-2
+rowIn(~r1, ~d2)
+!rowIn(~r2, ~d2)
+
+local {
+	different consts
+		x : TName
+		y : TName
+	
+	// unnecessary variable in context does not change typing
+	goal
+	~TTC = bindContext(x, ~Tx, bindContext(y, ~Ty, ~C))
+	checkPValidity(~p, ~Ty)
+	projectType(~al, ~Ty) == someTType(~TT)
+	============================ test-proof-3
+	~TTC |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
+}
+
+// select all is identity
+goal
+~TTC |- Tvalue(~table) : ~TT
+lookupStore(~name, ~ts) = someTable(~table)
+========================================== test-proof-3
+reduce(conf(SelectAllFrom(Ref(~tn)), ~ts)) == Tvalue(~table)
+
+// intersection is associative
+goal
+welltypedRawtable(~t1)
+welltypedRawtable(~t2)
+welltypedRawtable(~t3)
+~intersection1 == rawIntersection(rawIntersection(~t1, ~t2), ~t3)
+~intersection2 == rawIntersection(~t1, rawIntersection(~t2, ~t3))
+==================================== test-proof-4
+~intersection1 == ~intersection2
+
+
+// type preservation for union of values. Induction hypothesis should not be necessary, no recursive calls used
+// in this case.
+goal
+~TTC |- Tvalue(~t1) : ~TT
+~TTC |- Tvalue(~t2) : ~TT
+~u == Union(Tvalue(~t1), Tvalue(~t2)) : ~TT
+~TTC |- Union(Tvalue(~t1), Tvalue(~t2)) : ~TT
+reduce(conf(~u, ~ts)) == someConf(conf(~result, ~ts))
+============================================= test-proof-5
+~TTC |- ~result : ~TT
+
+// if a query is a value, reduce will return noConf
+goal
+~TTC |- ~q : ~TT
+isValue(~q)
+============= test-proof-6
+reduce(conf(~t, ~ts)) == noConf
+
+goal
+lookupContext(~tn, ~TTC) == someTType(~TT1)
+checkPValidity(~p, ~TT1)
+projectType(~al, ~TT1) == someTType(~TT)
+~q = SelectSomeFromWhere(~al, Ref(~tn), ~pred)
+~TTC |- ~q : ~TT
+lookupStore(~tn, ~ts) == someTable(~t)
+reduce(conf(~q, ~ts)) == someConf(conf(~result, ~ts))
+================= test-proof-7
+~TTC |- ~result : ~TT
+
