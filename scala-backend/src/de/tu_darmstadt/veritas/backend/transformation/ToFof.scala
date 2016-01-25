@@ -66,9 +66,16 @@ object ToFof {
         else
           ForAll(mappedvars, Parenthesized(And(jdglist map jdgToFof)))
       }
-      case NotJudgment(jdg)              => Not(jdgToFof(jdg))
-      case OrJudgment(ors)               => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgToFof)))))
-      case _                             => throw TransformationError("Encountered unsupported (not Core) judgment while translating a goal or axiom (e.g. typing judgment): " + jdg)
+      case NotJudgment(jdg) => Not(jdgToFof(jdg))
+      case OrJudgment(ors) => {
+        val translatedors = ors map (orcase => Parenthesized(And(orcase map jdgToFof)))
+        if (translatedors.isEmpty)
+          True
+        else if (translatedors.length == 1)
+          translatedors.head
+        else Parenthesized(Or(translatedors))
+      }
+      case _ => throw TransformationError("Encountered unsupported (not Core) judgment while translating a goal or axiom (e.g. typing judgment): " + jdg)
     }
 
   private def toUntypedVar(v: MetaVar): UntypedVariable = UntypedVariable(v.name)

@@ -225,8 +225,15 @@ object ToTff {
           ForAll(mappedvars, Parenthesized(And(jdglist map jdgtoTff)))
       }
       case NotJudgment(jdg) => Not(jdgtoTff(jdg))
-      case OrJudgment(ors)  => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgtoTff)))))
-      case _                => throw TransformationError("Encountered unsupported judgment while translating a goal or axiom (e.g. typing judgment)")
+      case OrJudgment(ors) => {
+        val translatedors = ors map (orcase => Parenthesized(And(orcase map jdgtoTff)))
+        if (translatedors.isEmpty)
+          True
+        else if (translatedors.length == 1)
+          translatedors.head
+        else Parenthesized(Or(translatedors))
+      }
+      case _ => throw TransformationError("Encountered unsupported judgment while translating a goal or axiom (e.g. typing judgment)")
     }
 
   /**
