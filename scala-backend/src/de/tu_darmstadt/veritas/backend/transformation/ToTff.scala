@@ -197,7 +197,7 @@ object ToTff {
 
     val transformedprems = prems map jdgtoTff
 
-    if (transformedprems == Seq(True))
+    if (transformedprems == Seq(True) || transformedprems == Seq())
       ForAll(vars, Parenthesized(And(conseqs map jdgtoTff)))
     else
       ForAll(vars, Parenthesized(

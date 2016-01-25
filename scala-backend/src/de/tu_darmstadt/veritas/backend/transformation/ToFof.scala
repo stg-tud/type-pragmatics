@@ -39,7 +39,7 @@ object ToFof {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs) map toUntypedVar
     val transformedprems = prems map jdgToFof
 
-    if (transformedprems == Seq(True))
+    if (transformedprems == Seq(True) || transformedprems == Seq())
       ForAll(quantifiedVars.toSeq, Parenthesized(And(conseqs map jdgToFof)))
     else
       ForAll(quantifiedVars.toSeq, Parenthesized(
