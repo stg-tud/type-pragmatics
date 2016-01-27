@@ -7,16 +7,21 @@ import encodingcompstudy.TStore
 import encodingcompstudy.Tables
 import encodingcompstudy.TableAux
 import encodingcompstudy.TContext
+import encodingcompstudy.SoundnessAuxDefs
 
 local {
 	different consts
 	    fv : FVal
 	    gv : FVal
 	    hv : FVal
+	    
+	    a : AName
+	    b : AName
+	    c : AName
 
 	goal
-	~al = acons(~a, acons(~b, acons(~c, aempty)))
-	~pred = VEquals(~b, gv)
+	~al = acons(a, acons(b, acons(c, aempty)))
+	~pred = VEquals(b, gv)
 	~row = rcons(fv, rcons(gv, rcons(hv, rempty)))
 	============================================== test-1
 	singleRowSelect(~al, ~pred, ~row) == isTrue
@@ -26,14 +31,18 @@ local {
 	different consts
 		r1 : Row
 		r2 : Row
+		
+		a : AName
+		b : AName
 	
 	goal
-	~table1 == Tvalue(table(~al, tcons(r1, tempty)))
-	~table2 == Tvalue(table(~al, tcons(r2, tempty)))
-	welltypedtable(~table1)
-	welltypedtable(~table2)
+	~al = acons(a, acons(b, aempty))
+	~table1 == table(~al, tcons(r1, tempty)))
+	~table2 == table(~al, tcons(r2, tempty)))
+	welltypedtable(~tt, ~table1)
+	welltypedtable(~tt, ~table2)
 	============================ test-2
-	reduce(conf(Intersection(~table1, ~table2), ~ts)) == someConf(conf(Tvalue(table(~al, tempty))))
+	reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), ~ts)) == someConf(conf(Tvalue(table(~al, tempty))))
 }
 
 local {
@@ -41,14 +50,18 @@ local {
 		a1 : AName
 		a2 : AName
 		a3 : AName
+		
+		v1 : FVal
+		v2 : FVal
+		v3 : FVal
 	
 	goal
 	~al == acons(a1, acons(a2, acons(a3, aempty)))
-	~row == rcons(~v1, rcons(~v2, rcons(~v3, rempty)))
+	~row == rcons(v1, rcons(v2, rcons(v3, rempty)))
 	~table == table(~al, tcons(~row, tempty))
-	welltypedtable(~table)
+	welltypedtable(~tt, ~table)
 	========================== test-3
-	findCol(a2) == someRawTable(tcons(rcons(~v2, rempty), tempty))
+	findCol(a2) == someRawTable(tcons(rcons(v2, rempty), tempty))
 }
 
 local {
@@ -69,10 +82,85 @@ goal
 ======================================================================= test-5
 rowIn(~row4, ~table)
 
-goal
-~table1 = table(~al, ~rt)
-~table2 = table(acons(~a, ~al), ~rt2)
-welltypedtable(~table1)
-welltypedtable(~table2)
-================================= test-6
-reduce(conf(Union(Tvalue(~table1), Tvalue(~table2)), ~ts)) == noConf
+local {
+	different consts
+		a : AName
+		b : AName
+		c : AName
+		d : AName
+	
+	goal
+	~al = acons(a, acons(b, acons(c, acons(d, aempty))))
+	~table1 = table(~al, ~rt)
+	~table2 = table(acons(~a, ~al), ~rt2)
+	welltypedtable(~tt1, ~table1)
+	welltypedtable(~tt2, ~table2)
+	================================= test-6
+	reduce(conf(Union(Tvalue(~table1), Tvalue(~table2)), ~ts)) == noConf
+	
+	goal
+	~al == acons(a, acons(b, acons(c, aempty)))
+	~al2 == append(~al, acons(d, aempty)) 
+	========================================== test-7
+	~al2 == acons(a, acons(b, acons(c, acons(d, aempty))))
+}
+
+local {
+	different consts
+		tn1 : TName
+		tn2 : TName
+		tn3 : TName
+		
+		tt1 : TType
+		tt2 : TType
+		tt3 : TType
+		
+		t1 : Table
+		t2 : Table
+		t3 : Table
+	
+	goal
+	welltypedtable(tt1, t1)
+	welltypedtable(tt2, t2)
+	welltypedtable(tt3, t3)
+	~TS == bindStore(tn1, t1, bindStore(tn2, t2, bindStore(tn3, t3, emptyStore)))
+	~TTC == bindContext(tn1, tt1, bindContext(tn2, tt2, bindContext(tn3, tt3, emptyContext)))
+	========================================================================================= test-8
+	StoreContextConsistent(~TS, ~TTC)
+}
+
+local {
+	different consts
+		tn1 : TName
+		tn2 : TName
+		tn3 : TName
+		tn4 : TName
+		tn5 : TName
+		
+		tt : TType
+		tt4 : TType
+		
+	goal
+	~TTC = bindContext(tn1, tt, bindContext(tn2, tt, bindContext(tn3, tt, bindContext(tn4, tt4, bindContext(tn5, tt)))))
+	========================================= test-9
+	lookupContext(tn4) == someTType(tt4)
+	
+}
+
+local {
+	different consts
+		v1 : FVal
+		v2 : FVal
+		v3 : FVal
+		v4 : FVal
+	
+	goal
+	~row1 == rcons(v1, rcons(v2, rempty))
+	~row2 == rcons(v3, rcons(v4, rempty))
+	~table == tcons(~row1, tcons(~row2, tempty))
+	~result == dropFirstColRaw(~table)
+	~resultRow1 == rcons(v2, rempty)
+	~resultRow2 == rcons(v4, rempty)
+	============================================= test-10
+	~result == tcons(~resultRow1, tcons(~resultRow2, tempty))
+}

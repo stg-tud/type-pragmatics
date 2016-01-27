@@ -7,31 +7,60 @@ import encodingcompstudy.TStore
 import encodingcompstudy.Tables
 import encodingcompstudy.TableAux
 import encodingcompstudy.TContext
+import encodingcompstudy.SoundnessAuxDefs
 
 // union is commutative
-goal
-welltypedtable(~al, table(~al, ~t1))
-welltypedtable(~al, table(~al, ~t2))
-~u1 = rawUnion(~t1, ~t2)
-~u2 = rawUnion(~t2, ~t1)
-rowIn(~r1, ~u1)
-!rowIn(~r2, ~u1)
-======================== test-proof-1
-rowIn(~r, ~u2)
-!rowIn(~r2, ~u2)
+local {
+	different consts
+		table1 : RawTable
+		table2 : RawTable
+		
+	consts
+		row1 : Row
+		row2 : Row
+		al : AList
+		RT : RawType
+	
+	axiom
+	welltypedRawtable(RT, table1)
+	welltypedRawtable(RT, table2)
+	~u1 = rawUnion(table1, table2)
+	~u2 = rawUnion(table2, table1)
+	rowIn(~r1, ~u1)
+	============================== proof-1-IH
+	rowIn(~r1, ~u2)
+	
+	goal
+	~t1 = tcons(row1, table1)
+	~t2 = tcons(row2, table2)
+	welltypedRawtable(RT, ~t1)
+	welltypedRawtable(RT, ~t2)
+	rowIn(~r1, ~u1)
+	======================== proof-1
+	rowIn(~r, ~u2)
+}
 
 // diff(union(a, b), c) = union(diff(a, c), diff(b, c))
-goal
-welltypedtable(~al, table(~al, ~t1))
-welltypedtable(~al, table(~al, ~t2))
-welltypedtable(~al, table(~al, ~t3))
-~d1 = rawDifference(rawUnion(~t1, ~t2), ~t3)
-~d2 = rawUnion(rawDifference(~t1, ~t3), rawDifference(~t2, ~t3))
-rowIn(~r1, ~d1)
-!rowIn(~r2, ~d1)
-==================================== test-proof-2
-rowIn(~r1, ~d2)
-!rowIn(~r2, ~d2)
+// for tables with only one row
+local {
+	consts
+		row1 : Row
+		row2 : Row
+		row3 : Row
+	
+	goal
+	~table1 = tcons(row1, tempty)
+	~table2 = tcons(row2, tempty)
+	~table3 = tcons(row3, tempty)
+	welltypedRawtable(~rt, ~table1)
+	welltypedRawtable(~rt, ~table2)
+	welltypedRawtable(~rt, ~table3)
+	~d1 = rawDifference(rawUnion(~table1, ~table2), ~table3)
+	~d2 = rawUnion(rawDifference(~table1, ~table3), rawDifference(~table2, ~table3))
+	rowIn(~r1, ~d1)
+	==================================== proof-2
+	rowIn(~r1, ~d2)
+}
 
 local {
 	different consts
@@ -43,7 +72,7 @@ local {
 	~TTC = bindContext(x, ~Tx, bindContext(y, ~Ty, ~C))
 	checkPValidity(~p, ~Ty)
 	projectType(~al, ~Ty) == someTType(~TT)
-	============================ test-proof-3
+	============================ proof-3
 	~TTC |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
 }
 
@@ -51,38 +80,55 @@ local {
 goal
 ~TTC |- Tvalue(~table) : ~TT
 lookupStore(~name, ~ts) = someTable(~table)
-========================================== test-proof-3
-reduce(conf(SelectAllFrom(Ref(~tn)), ~ts)) == Tvalue(~table)
+========================================== proof-4
+reduce(conf(SelectAllFrom(Ref(~tn)), ~ts)) == someConf(conf(Tvalue(~table), ~ts))
 
-// intersection is associative
-goal
-welltypedRawtable(~t1)
-welltypedRawtable(~t2)
-welltypedRawtable(~t3)
-~intersection1 == rawIntersection(rawIntersection(~t1, ~t2), ~t3)
-~intersection2 == rawIntersection(~t1, rawIntersection(~t2, ~t3))
-==================================== test-proof-4
-~intersection1 == ~intersection2
+// intersection is associative for tables with one row
+local {
+	consts
+		row1 : Row
+		row2 : Row
+		row3 : Row
+
+	goal
+	~t1 == tcons(row1, tempty)
+	~t2 == tcons(row2, tempty)
+	~t3 == tcons(row3, tempty)
+	welltypedRawtable(~rt, ~t1)
+	welltypedRawtable(~rt, ~t2)
+	welltypedRawtable(~rt, ~t3)
+	~intersection1 == rawIntersection(rawIntersection(~t1, ~t2), ~t3)
+	~intersection2 == rawIntersection(~t1, rawIntersection(~t2, ~t3))
+	==================================== proof-5
+	~intersection1 == ~intersection2
+}
 
 
 // type preservation for union of values. Induction hypothesis should not be necessary, no recursive calls used
 // in this case.
-goal
-~TTC |- Tvalue(~t1) : ~TT
-~TTC |- Tvalue(~t2) : ~TT
-~u == Union(Tvalue(~t1), Tvalue(~t2)) : ~TT
-~TTC |- Union(Tvalue(~t1), Tvalue(~t2)) : ~TT
-reduce(conf(~u, ~ts)) == someConf(conf(~result, ~ts))
-============================================= test-proof-5
-~TTC |- ~result : ~TT
+local {
+	consts
+		t1 : Table
+		t2 : Table
+	
+	goal
+	~TTC |- Tvalue(t1) : ~TT
+	~TTC |- Tvalue(t2) : ~TT
+	~u == Union(Tvalue(t1), Tvalue(t2))
+	~TTC |- Union(Tvalue(t1), Tvalue(t2)) : ~TT
+	reduce(conf(~u, ~ts)) == someConf(conf(~result, ~ts))
+	============================================= proof-6
+	~TTC |- ~result : ~TT
+}
 
 // if a query is a value, reduce will return noConf
 goal
 ~TTC |- ~q : ~TT
 isValue(~q)
-============= test-proof-6
+============= proof-7
 reduce(conf(~t, ~ts)) == noConf
 
+// Preservation for one specific case SelectSomeFromWhere case
 goal
 lookupContext(~tn, ~TTC) == someTType(~TT1)
 checkPValidity(~p, ~TT1)
@@ -91,6 +137,33 @@ projectType(~al, ~TT1) == someTType(~TT)
 ~TTC |- ~q : ~TT
 lookupStore(~tn, ~ts) == someTable(~t)
 reduce(conf(~q, ~ts)) == someConf(conf(~result, ~ts))
-================= test-proof-7
+StoreContextConsistent(~ts, ~TTC)
+================= proof-8
 ~TTC |- ~result : ~TT
 
+// if a query can be reduced to a value, its intersection with another value is equal 
+// to the intersection of both of those values after two reduction steps.
+local {
+	consts
+		sql1 : Query
+		sql2 : Query
+		
+	goal
+	~TTC |- sql1 : ~TT
+	~TTC |- sql2 : ~TT
+	~sql1 == Tvalue(~t1)
+	reduce(conf(sql2, ~ts)) == someConf(conf(Tvalue(~t2), ~ts))
+	reduce(conf(Intersection(sql1, sql2), ~ts)) == someConf(conf(~tmp, ~ts))
+	reduce(conf(~tmp, ~ts)) == ~result
+	==================== proof-9
+	reduce(conf(Intersection(Tvalue(~t1), Tvalue(~t2)), ~ts)) == ~result
+}
+
+// adding a table to store and contexts preserves consistency
+local {
+	goal
+	StoreContextConsistent(~ts, ~ttc)
+	welltypedtable(~tt, ~t)
+	==================== proof-10
+	StoreContextConsistent(bindStore(~tn, ~t, ~ts), bindContext(~tn, ~tt, ~ttc))
+}

@@ -1,0 +1,174 @@
+module encodingcompstudy.Execution-test
+
+import encodingcompstudy.Syntax
+import encodingcompstudy.Semantics
+import encodingcompstudy.TypeSystem
+import encodingcompstudy.TStore
+import encodingcompstudy.Tables
+import encodingcompstudy.TableAux
+import encodingcompstudy.TContext
+
+
+goal
+~in == someConf(~c)
+================== execution-1
+exists ~out
+  getSomeConf(~in) == ~out
+
+local {
+	different consts
+		r1 : Row
+		r2 : Row
+		r3 : Row
+		r4 : Row
+	
+	goal
+	~t1 == tcons(r1, tcons(r2, tcons(r4, tempty)))
+	~t2 == tcons(r2, tcons(r3, tempty))
+	===================================== execution-2
+	exists ~result
+		rawUnion(~t1, ~t2) == ~result
+}
+
+local {
+	different consts
+		tn1 : TName
+		tn2 : TName
+		
+		tt1 : TType
+		tt2 : TType
+		
+	goal
+	~C = bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn1, tt1, emptyContext)))))
+	============================ execution-3
+	exists ~result
+		lookupContext(tn1, ~C) == ~result
+}
+
+local {
+	different consts
+		a : AName
+		b : AName
+		c : AName
+		
+		f : FType
+		g : FType
+		h : FType
+		
+		t : TType
+		u : TType
+		v : TType
+		
+	goal
+	~tt = ttcons(ctype(a, f), ttcons(ctype(b, g), ttcons(ctype(c, h), ttempty)))
+	======================================== execution-4
+	exists ~result
+		ctypeIn(c, f, ~tt) == ~result
+		
+	goal
+	~tt = ttcons(ctype(a, f), ttcons(ctype(b, g), ttcons(ctype(c, h), ttempty)))
+	findColType(c, ~tt) == ~type
+	============================ execution-5
+	exists ~result
+		getSomeFType(~type) == ~result
+}
+
+local {
+	different consts
+		a : AName
+		b : AName
+		c : AName
+		
+		v : FVal
+		w : FVal
+		u : FVal
+	
+	goal
+	~al = acons(a, acons(b, acons(c, aempty)))
+	~row1 = rcons(v, rcons(w, rcons(u)))
+	~row2 = rcons(v, rcons(w, rcons(u)))
+	~row3 = rcons(u, rcons(v, rcons(w)))
+	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tcons(~row4, tempty))))
+	~t = table(~al, ~rt)
+	========================= execution-6
+	exists ~result
+		project(acons(a, acons(c, aempty)), ~t) == ~result
+}
+
+local {
+	different consts
+		v : FVal
+		w : FVal
+	
+	goal
+	~row1 = rcons(v, rempty)
+	~row2 = rcons(v, rcons(w, rempty))
+	~table1 = tcons(~row1, tcons(~row1, tcons(~row1, tempty)))
+	~table2 = tcons(~row2, tcons(~row2, tcons(~row2, tempty)))
+	========================================================== execution-7
+	exists ~result
+		attachColToFrontRaw(~table1, ~table2) == ~result
+	
+}
+
+local {
+	different consts
+		a : AName
+		b : AName
+		c : AName
+		
+		v : FVal
+		w : FVal
+		
+	goal
+	~al = acons(a, acons(b, acons(c, aempty)))
+	~pred = VEquals(b, v)
+	~row1 = rcons(v, rcons(v, rcons(v, rempty)))
+	~row2 = rcons(v, rcons(w, rcons(v, rempty)))
+	~row3 = rcons(w, rcons(v, rcons(w, rempty)))
+	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tempty)))
+	~table = table(~al, ~rt)
+	========== execution-8
+	exists ~result
+		select(~table, ~pred) == ~result
+}
+
+local {
+	different consts
+		a : AName
+		b : AName
+		c : AName
+		d : AName
+		e : AName
+		
+		v : FVal
+		w : FVal
+		x : FVal
+		y : FVal
+		z : FVal
+		
+	goal
+	~al = acons(a, acons(b, acons(c, acons(d, acons(e, aempty)))))
+	~row = rcons(v, rcons(w, rcons(x, rcons(y, rcons(z, rempty)))))
+	~pred = VEquals(e, v)
+	=========== execution-9
+	exists ~result
+		singleRowSelect(~al, ~pred, ~row) == ~result
+}
+
+local {
+	different consts
+		a : AName
+		b : AName
+		c : AName
+		
+		f : FType
+		g : FType
+		
+	goal
+	~tt = ttcons(ctype(a, f), ttcons(ctype(b, f), ttcons(ctype(c, g), ttempty)))
+	~al = acons(a, acons(b, aempty))
+	=========== execution-10
+	exists ~result
+		matchingAList(~tt, ~al) == ~result
+}

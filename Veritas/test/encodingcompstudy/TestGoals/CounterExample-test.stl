@@ -5,72 +5,193 @@ import encodingcompstudy.Semantics
 import encodingcompstudy.TypeSystem
 import encodingcompstudy.TStore
 import encodingcompstudy.Tables
+import encodingcompstudy.TContext
+import encodingcompstudy.TableAux
 
 // there exists t2 such that union(t1, t2) != t1
-goal
-~t1 = Tvalue(~table1)
-~TTC |- ~t1 : ~TT
-==================== test-counterexample-1
-exists ~t2, ~table2, ~u, ~ts, ~tunion
-  ~t2 = Tvalue(~table2)
-  ~u = Union(~t1, ~t2)
-  ~TTC |- ~t2 : ~TT
-  ~TTC |- ~u : ~TT
-  reduce(conf(~u, ~ts)) = someConf(conf(Tvalue(someTable(~tunion)), ~ts))
-  ~tunion != ~t1
+local {
+	different consts
+		a : AName
+		b : AName
+		
+		v : FVal
+		w : FVal
+		u : FVal
+		
+	goal
+	~al = acons(a, acons(b, aempty))
+	~row = rcons(v, rcons(w, rempty))
+	~rt = tcons(~row, tempty)
+	~table1 = table(~al, ~rt)
+	~t1 = Tvalue(~table1)
+	welltypedtable(~TT, ~table1)
+	fieldType(v) == fieldType(u) // allow welltyped synthesis of row(u, w)
+	==================== counterexample-1
+	exists ~t2, ~table2, ~un, ~ts, ~tunion
+	  ~t2 = Tvalue(~table2)
+	  ~un = Union(~t1, ~t2)
+	  welltypedtable(~TT, ~table2)
+	  reduce(conf(~un, ~ts)) = someConf(conf(Tvalue(~tunion), ~ts))
+	  ~tunion != ~table1
+}
 
 // there exists t2 such that the single attribute name is equal to t1's but is differently typed
-goal
-~t1 = table(acons(~a1, aempty), ~rt1)
-welltypedtable(~TT, ~t1)
-==================================== test-counterexample-2
-exists ~t2
-  ~t2 = table(acons(~a1, aempty), ~rt2)
-  welltypedtable(~TT2, ~t2)
-  ~t1 != ~t2
+local {
+	different consts
+		fv1 : FVal
+		fv2 : FVal
+	
+	axiom
+	===== types-differ-counterexample-2
+	fieldType(fv1) != fieldType(fv2)
+	
+	goal
+	~rt = tcons(rcons(fv1, rempty), tempty)
+	~t1 = table(acons(~a1, aempty), ~rt1)
+	welltypedtable(~TT, ~t1)
+	==================================== counterexample-2
+	exists ~t2, ~TT2, ~rt2
+	  ~t2 = table(acons(~a1, aempty), ~rt2)
+	  welltypedtable(~TT2, ~t2)
+	  ~t1 != ~t2
+}
 
 // if two contexts type the same object as the same type, they are not necessarily equal
-goal
-~C |- ~e : ~T
-============== test-counterexample-3
-exists ~C2
-  ~C2 |- ~e : ~T
-  ~C != ~C2
+local {	
+	goal
+	~C == bindContext(~n, ~T, emptyContext)
+	lookupContext(~n, ~C) == someTType(~T)
+	============== counterexample-3
+	exists ~C2
+	  lookupContext(~n, ~C2) == someTType(~T)
+	  ~C != ~C2
+}
 
 
 // there exists t2 such that union(t1, select(p, t2)) != select(p, union(t1, t2))
-goal
-welltypedtable(~al, ~t1)
-~p = VEquals(~a, ~v)
-========================= test-counterexample-4
-exists ~t2, ~tmpResult1, ~tmpResult2, ~result1, ~result2
-  welltypedtable(~al, ~t2)
-  someTable(~tmpResult1) = select(~t2, ~p)
-  someTable(~result1) = union(~t1, ~tmpResult1)
-  someTable(~tmpResult2) = union(~t1, ~t2)
-  someTable(~result2) = select(~tmpResult2, ~p)
-  ~result1 != ~result2
+local {
+	different consts
+		a : AName
+		
+		v1 : FVal
+		v2 : FVal
+		
+	goal
+	~al == acons(a, aempty)
+	~rt == tcons(rcons(v2, rempty), tempty)
+	~t1 == table(~al, ~rt)
+	welltypedtable(~tt, ~t1)
+	~p = VEquals(a, v1)
+	fieldType(v1) == fieldType(v2)
+	========================= counterexample-4
+	exists ~t2, ~tmpResult1, ~tmpResult2, ~result1, ~result2
+	  welltypedtable(~tt, ~t2)
+	  someTable(~tmpResult1) = select(~t2, ~p)
+	  someTable(~result1) = union(~t1, ~tmpResult1)
+	  someTable(~tmpResult2) = union(~t1, ~t2)
+	  someTable(~result2) = select(~tmpResult2, ~p)
+	  ~result1 != ~result2
+}
 
 // there exists t2 such that diff(t1, select(p, t2)) != select(p, diff(t1, t2))
-goal
-welltypedtable(~al, ~t1)
-~p = VEquals(~a, ~v)
-========================= test-counterexample-5
-exists ~t2, ~tmpResult1, ~tmpResult2, ~result1, ~result2
-  welltypedtable(~al, ~t2)
-  someTable(~tmpResult1) = select(~t2, ~p)
-  someTable(~result1) = difference(~t1, ~tmpResult1)
-  someTable(~tmpResult2) = difference(~t1, ~t2)
-  someTable(~result2) = select(~tmpResult2, ~p)
-  ~result1 != ~result2
+local {
+	goal
+	~rt == tcons(rcons(~v, rempty), tempty)
+	~al == acons(~a, aempty)
+	~t1 == table(~al, ~rt)
+	welltypedtable(~tt, ~t1)
+	~p = VEquals(~a, ~v)
+	========================= counterexample-5
+	exists ~t2, ~tmpResult1, ~tmpResult2, ~result1, ~result2
+	  welltypedtable(~tt, ~t2)
+	  someTable(~tmpResult1) = select(~t2, ~p)
+	  someTable(~result1) = difference(~t1, ~tmpResult1)
+	  someTable(~tmpResult2) = difference(~t1, ~t2)
+	  someTable(~result2) = select(~tmpResult2, ~p)
+	  ~result1 != ~result2
+}
 
 // difference is not commutative
-goal
-welltypedtable(~al, ~t1)
-======================== test-counterexample-6
-exists ~t2
-  welltypedtable(~al, ~t2)
-  difference(~t1, ~t2) != difference(~t2, ~t1)
+local {
+	different consts
+		r1 : Row
+		r2 : Row
+		
+	goal
+	~rt == tcons(r1, tcons(r2, tempty))
+	~al == acons(~a, aempty)
+	~t1 == table(~al, ~rt)
+	welltypedtable(~tt, ~t1)
+	======================== counterexample-6
+	exists ~t2
+	  welltypedtable(~tt, ~t2)
+	  difference(~t1, ~t2) != difference(~t2, ~t1)
+}
 
-// union(x, y) - z
-// union(x - z, y)
+local {
+	consts
+		v : FVal
+	
+	goal
+	====================== counterexample-7
+	exists ~rt
+	  projectEmptyCol(~rt) != tempty
+}
+
+local {
+	different consts
+	    fv : FVal
+	    gv : FVal
+	    hv : FVal
+	    
+	    a : AName
+	    b : AName
+	    c : AName
+
+	goal
+	~al = acons(b, acons(c, aempty))
+	~pred = VEquals(b, gv)
+	~row = rcons(gv, rcons(hv, rempty))
+	============================================== counterexample-8
+	exists ~name, ~value
+	  singleRowSelect(acons(~name, ~al), ~pred, rcons(~value, ~row)) != isFalse
+}
+
+local {
+	different consts
+		r1 : Row
+		r2 : Row
+		
+		a : AName
+		b : AName
+	
+	goal
+	~al = acons(a, acons(b, aempty))
+	~table1 == table(~al, tcons(r1, tempty))
+	welltypedtable(~tt, ~table1)
+	============================ counterexample-9
+	exists ~table2, ~row
+	  ~table2 == table(~al, tcons(~row, tempty))
+	  welltypedtable(~tt, ~table2)
+	  reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), ~ts)) != someConf(conf(Tvalue(table(~al, tempty))))
+}
+
+local {
+	different consts
+		a1 : AName
+		a2 : AName
+		a3 : AName
+		
+		v1 : FVal
+		v2 : FVal
+		v3 : FVal
+	
+	goal
+	~al == acons(a1, acons(a2, acons(a3, aempty)))
+	~row == rcons(v1, rcons(v2, rcons(v3, rempty)))
+	~table == table(~al, tcons(~row, tempty))
+	welltypedtable(~tt, ~table)
+	========================== counterexample-10
+	exists ~name
+	  findCol(~name) != someRawTable(tcons(rcons(v2, rempty), tempty))
+}
