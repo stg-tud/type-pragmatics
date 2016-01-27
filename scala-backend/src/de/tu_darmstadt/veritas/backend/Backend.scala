@@ -44,12 +44,22 @@ object Backend {
     LogicalSimplification -> LogicalSimplification.On,
     VariableEncoding -> VariableEncoding.NameParamsAndResults,
     Problem -> Problem.Consistency))
-
+    
+  val inliningOnlyTest = PartialVariability(Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything)))
+  val inliningComparisonTest = PartialVariability(
+      Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything, VariableEncoding.Unchanged),
+      Problem -> Seq(Problem.Test)))  
+  
   /**
    * This variability model is used by the code below
    */
-  val variabilityModel = fullVariability //runs about 20 minutes
+  val variabilityModel = fullVariability //runs for at least several minutes!
+
   
+  /**
+   * this variability model is used for single verifications
+   * triggered from Veritas
+   */
   val defaultVariabilityModel = PartialVariability(
     Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
       (Problem -> Seq(Problem.All)),
