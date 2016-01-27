@@ -58,13 +58,11 @@ object FullVariability extends VariabilityModel {
   override def iterator = for (
     simpl <- LogicalSimplification.iterator;
     vars <- VariableEncoding.iterator;
-    //inv <- InversionLemma.iterator;
     fin <- FinalEncoding.iterator;
     prob <- Problem.iterator if prob != Problem.All
   ) yield Configuration(Map(
     LogicalSimplification -> simpl,
     VariableEncoding -> vars,
-    //InversionLemma -> inv,
     FinalEncoding -> fin,
     Problem -> prob))
 }
@@ -75,13 +73,11 @@ case class PartialVariability(config: Map[ConfigParameter, Seq[ConfigValue]]) ex
   override def iterator = for (
     simpl <- LogicalSimplification.iterator if test(LogicalSimplification, simpl);
     vars <- VariableEncoding.iterator if test(VariableEncoding, vars);
-    //inv <- InversionLemma.iterator if test(InversionLemma, inv);
     fin <- FinalEncoding.iterator if test(FinalEncoding, fin);
     prob <- Problem.iterator if test(Problem, prob)
   ) yield Configuration(Map(
     LogicalSimplification -> simpl,
     VariableEncoding -> vars,
-    //InversionLemma -> inv,
     FinalEncoding -> fin,
     Problem -> prob))
 }
