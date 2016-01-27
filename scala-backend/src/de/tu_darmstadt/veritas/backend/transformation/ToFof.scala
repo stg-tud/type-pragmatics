@@ -39,7 +39,7 @@ object ToFof {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs) map toUntypedVar
     val transformedprems = prems map jdgToFof
 
-    if (transformedprems == Seq(True))
+    if (transformedprems == Seq(True) || transformedprems == Seq())
       ForAll(quantifiedVars.toSeq, Parenthesized(And(conseqs map jdgToFof)))
     else
       ForAll(quantifiedVars.toSeq, Parenthesized(
@@ -51,12 +51,31 @@ object ToFof {
    */
   private def jdgToFof(jdg: TypingRuleJudgment): FofUnitary =
     jdg match {
-      case FunctionExpJudgment(f)        => functionExpToFof(f)
-      case ExistsJudgment(vars, jdglist) => Exists(vars map toUntypedVar, Parenthesized(And(jdglist map jdgToFof)))
-      case ForallJudgment(vars, jdglist) => ForAll(vars map toUntypedVar, Parenthesized(And(jdglist map jdgToFof)))
-      case NotJudgment(jdg)              => Not(jdgToFof(jdg))
-      case OrJudgment(ors)               => Parenthesized(Or(ors map (orcase => Parenthesized(And(orcase map jdgToFof)))))
-      case _                             => throw TransformationError("Encountered unsupported (not Core) judgment while translating a goal or axiom (e.g. typing judgment): " + jdg)
+      case FunctionExpJudgment(f) => functionExpToFof(f)
+      case ExistsJudgment(vars, jdglist) => {
+        val mappedvars = vars map toUntypedVar
+        if (mappedvars.isEmpty)
+          Parenthesized(And(jdglist map jdgToFof))
+        else
+          Exists(mappedvars, Parenthesized(And(jdglist map jdgToFof)))
+      }
+      case ForallJudgment(vars, jdglist) => {
+        val mappedvars = vars map toUntypedVar
+        if (mappedvars.isEmpty)
+          Parenthesized(And(jdglist map jdgToFof))
+        else
+          ForAll(mappedvars, Parenthesized(And(jdglist map jdgToFof)))
+      }
+      case NotJudgment(jdg) => Not(jdgToFof(jdg))
+      case OrJudgment(ors) => {
+        val translatedors = ors map (orcase => Parenthesized(And(orcase map jdgToFof)))
+        if (translatedors.isEmpty)
+          True
+        else if (translatedors.length == 1)
+          translatedors.head
+        else Parenthesized(Or(translatedors))
+      }
+      case _ => throw TransformationError("Encountered unsupported (not Core) judgment while translating a goal or axiom (e.g. typing judgment): " + jdg)
     }
 
   private def toUntypedVar(v: MetaVar): UntypedVariable = UntypedVariable(v.name)

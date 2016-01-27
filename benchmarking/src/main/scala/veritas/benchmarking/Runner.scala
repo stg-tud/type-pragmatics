@@ -97,8 +97,8 @@ case class Runner(config: Config) {
         summary += fs
       }
       threadPool.shutdown() //without this line, the worker threads stay alive!
-      //set up sequential execution!
     } else {
+      //set up sequential execution!
       println(s"Will execute ${joblist.length} jobs sequentially.")
       println(s"Estimated worst case duration: ${estimatedDuration}, " +
         s"i.e. would be finished on ${calcFinishTime(estimatedDuration)}")
