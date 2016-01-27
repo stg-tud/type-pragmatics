@@ -52,37 +52,34 @@ class SubstituteMeta(sMap: Map[MetaVar, FunctionExpMeta]) extends ModuleTransfor
   override def transMetaVars(m: MetaVar): Seq[MetaVar] =
     Seq(inlineMeta(m))
 
+  private def substQuantifierBody(vl: Seq[MetaVar], jl: Seq[TypingRuleJudgment]): (Seq[MetaVar], Seq[TypingRuleJudgment]) = {
+    val oldSubstMap = substMap
+    //to avoid capturing of variables, simply rename all quantifiers
+    //by adding extra pairs to substitution
+    substMap = Map()
+    (vl foreach { m => substMap += (m -> FunctionMeta(MetaVar(freshNames.freshName(m.name)))) })
+    val newvl = trace(vl)(transMetaVars(_))
+    val freshvarjl = trace(jl)(transTypingRuleJudgments(_)) //substitution with fresh names
+    substMap = oldSubstMap
+    val newjl = trace(freshvarjl)(transTypingRuleJudgments(_)) //actual substitution with substitutions from outer scope
+    (newvl, newjl)
+  }
+
   private def substituteInTypingRuleJudgment: PartialFunction[TypingRuleJudgment, TypingRuleJudgment] =
     {
       case ExistsJudgment(vl, jl) => {
-        //to avoid capture avoidance, rename all quantifiers as well
-        //by adding extra pairs to substitution
-        val oldSubstMap = substMap
-        (vl foreach { m => substMap += (m -> FunctionMeta(MetaVar(freshNames.freshName(m.name)))) })
-        val newjl = trace(jl)(transTypingRuleJudgments(_))
-        val newvl_unfiltered = trace(vl)(transMetaVars(_))
-        //filter unnecessary quantifiers
-        val newvl = newvl_unfiltered filter (mv => FreeVariables.freeVariables(newjl, Set[MetaVar]()) contains mv)
-        substMap = oldSubstMap
+        val (newvl, newjl) = substQuantifierBody(vl, jl)
         if (newvl.length < 1)
           //TODO: better solution for preventing empty quantifier lists?
-          ExistsJudgment(vl, newjl)
+          ExistsJudgment(Seq(MetaVar("EMPTY")), newjl)
         else
           ExistsJudgment(newvl, newjl)
       }
       case ForallJudgment(vl, jl) => {
-        //to avoid capture avoidance, rename all quantifiers as well
-        //by adding extra pairs to substitution
-        val oldSubstMap = substMap
-        (vl foreach { m => substMap += (m -> FunctionMeta(MetaVar(freshNames.freshName(m.name)))) })
-        val newjl = trace(jl)(transTypingRuleJudgments(_))
-        val newvl_unfiltered = trace(vl)(transMetaVars(_))
-        //filter unnecessary quantifiers
-        val newvl = newvl_unfiltered filter (mv => FreeVariables.freeVariables(newjl, Set[MetaVar]()) contains mv)
-        substMap = oldSubstMap
+        val (newvl, newjl) = substQuantifierBody(vl, jl)
         if (newvl.length < 1)
           //TODO: better solution for preventing empty quantifier lists?
-          ForallJudgment(vl, newjl)
+          ForallJudgment(Seq(MetaVar("EMPTY")), newjl)
         else
           ForallJudgment(newvl, newjl)
       }
@@ -221,21 +218,13 @@ trait InlineEquation extends ModuleTransformation {
   // saves current equation marked for inlining
   private var inlineableEquation: Option[FunctionExpEq] = None
 
-  //for processing quantifiers;
-  //restricts which kind of naming equations may be chosen for inlining
-  //in forall: only inline equations for free variables!
-  //in exists: only inline equations for bound variables!
-  private var restrictedToVars: Set[MetaVar] = Set()
-
   override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     inlineableEquation = None
-    restrictedToVars = Set()
     super.apply(m)
   }
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     inlineableEquation = None
-    restrictedToVars = Set()
     tr match {
       case tr @ TypingRule(n, prems, conss) => {
         //look for inlineable equation in premises, outer scope
@@ -246,35 +235,26 @@ trait InlineEquation extends ModuleTransformation {
             val newconss = substituteInBlock(conss, eq)
             Seq(TypingRule(n, newprems, newconss))
           }
-          // if no equation in premises found, look for inlineable equation in conclusion, outer scope
-          case None => {
-            if (conss.size == 1)
-              Seq(tr) //do not attempt any inlining (and notably, removal) if the conclusion only has one element
-            else {
-              val findconss = trace(conss)(transTypingRuleJudgments(_))
-              inlineableEquation match {
-                case Some(eq) => {
-                  // call transTypingRuleJudgment again, substitute in conclusion only
-                  val newconss = substituteInBlock(conss, eq)
-                  Seq(TypingRule(n, prems, newconss))
-                }
-                case None => Seq(tr)
-              }
-            }
-          }
+          // if no equation in premises found, we cannot inline anything
+          case None => Seq(tr)
         }
       }
     }
   }
 
+  // do not recurse into exists/forall/or bodies, since
+  // they cannot contain any inlineable equations:
+  // since currently bodies of exist/forall/or judgments do not support implication, 
+  // but only conjunction, we generally cannot safely use equations in these bodies
+  // for inlining!
   override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
-    findEqInTypingRuleJudgment(trj).getOrElse(super.transTypingRuleJudgment(trj))
+    findEqInTypingRuleJudgment(trj).getOrElse(trj)
 
   override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] = {
     val find = findEqInTypingRuleJudgment(trj)
     find match {
       case Some(newtrj) => Seq(newtrj)
-      case None         => super.transTypingRuleJudgments(trj)
+      case None         => Seq(trj)
     }
   }
 
@@ -291,18 +271,10 @@ trait InlineEquation extends ModuleTransformation {
    * provided methode remove returns true for the equation in question
    */
   private def checkEquation(eq: FunctionExpEq): Boolean = {
-    def checkMV(m: MetaVar): Boolean =
-      if (restrictedToVars.isEmpty)
-        true //if no restriction given, all MetaVars can be chosen for inlineable equations!
-      else
-        restrictedToVars contains m
-
     eq match {
-      case FunctionExpEq(FunctionMeta(m1), FunctionMeta(m2)) if (checkMV(m1) && checkMV(m2)) => true
-      case FunctionExpEq(fm @ FunctionMeta(m), r) if (occursIn(fm, r)) => false
-      case FunctionExpEq(FunctionMeta(m), r) if (checkMV(m)) => true
-      case FunctionExpEq(l, fm @ FunctionMeta(m)) if (occursIn(fm, l)) => false
-      case FunctionExpEq(l, FunctionMeta(m)) if (checkMV(m)) => true
+      case FunctionExpEq(FunctionMeta(m1), FunctionMeta(m2)) => true
+      case FunctionExpEq(fm @ FunctionMeta(m), r) => !occursIn(fm, r)
+      case FunctionExpEq(l, fm @ FunctionMeta(m)) => !occursIn(fm, l)
       case _ => false
     }
   }
@@ -325,26 +297,6 @@ trait InlineEquation extends ModuleTransformation {
       case None    => inlineableEquation = Some(eq)
     }
 
-  private def processInnerScope(binders: Seq[MetaVar], body: Seq[TypingRuleJudgment]): (Seq[MetaVar], Seq[TypingRuleJudgment]) = {
-    //important: we only do inlining, if the body is actually contains at least two elements!
-    if (body.length > 1) {
-      val oldinlineable = inlineableEquation
-      inlineableEquation = None
-      val findbody = trace(body)(transTypingRuleJudgments(_))
-      val result = inlineableEquation match {
-        case Some(eq) => {
-          val newbody = substituteInBlock(body, eq)
-          val newbinders = binders filter (mv => FreeVariables.freeVariables(newbody, Set[MetaVar]()) contains mv)
-          (newbinders, newbody)
-        }
-        case None => (binders, body)
-      }
-      //reset inlineable equation to value before scope!
-      inlineableEquation = oldinlineable
-      result
-    } else (binders, body)
-  }
-
   private def findEqInTypingRuleJudgment(trj: TypingRuleJudgment): Option[TypingRuleJudgment] =
     trj match {
       case fej @ FunctionExpJudgment(f) => {
@@ -358,28 +310,9 @@ trait InlineEquation extends ModuleTransformation {
           case _ => Some(fej)
         }
       }
-      case e @ ExistsJudgment(vl, jl) => {
-        val oldrestricted = restrictedToVars
-        //desired variables for inlining must be bound variables
-        restrictedToVars = vl.toSet
-        val (newvl, newjl) = processInnerScope(vl, jl)
-        restrictedToVars = oldrestricted
-        Some(ExistsJudgment(newvl, newjl))
-      }
-      case f @ ForallJudgment(vl, jl) => {
-        val oldrestricted = restrictedToVars
-        //desired variables for inlining must be free variables
-        restrictedToVars = FreeVariables.freeVariables(jl, vl.toSet)
-        val (newvl, newjl) = processInnerScope(vl, jl)
-        restrictedToVars = oldrestricted
-        Some(ExistsJudgment(newvl, newjl))
-      }
-      //traversing NotJudgment is not beneficial, can only contain a single TypingRuleJudgment anyway
-      //maybe add later: discover negations of inequalities as inlining equation as well?
-      case o @ OrJudgment(orc) => {
-        val neworc = orc map { sor => processInnerScope(Seq(), sor)._2 }
-        Some(OrJudgment(neworc))
-      }
+      // since currently bodies of exist/forall/or judgments do not support implication, 
+      // but only conjunction, we generally cannot safely use equations in these bodies
+      // for inlining!
       case _ => None
     }
 }

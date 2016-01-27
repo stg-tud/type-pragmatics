@@ -94,23 +94,6 @@ class InlineOneStepTest extends FunSuite {
     assert(res.head == modres)
   }
 
-  test("Inlining within conclusion") {
-    val tr = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genApp1("f", "y"), genMeta("x")),
-        genEq(genMeta("z"), genApp1("f", "x"))))
-    val mod = genSimpleModule("inlinesimple", tr)
-
-    val trres = TypingRule("simple",
-      Seq(),
-      Seq(genEq(genMeta("z"), genAppApp1("f", genApp1("f", "y")))))
-    val modres = genSimpleModule("inlinesimple", trres)
-
-    val res = InlineOnce(Seq(mod))(Backend.onlyTFFTest)
-
-    assert(res.head == modres)
-  }
-
   test("No inlining in wrong direction (conclusion into premises)") {
     val tr = TypingRule("simple",
       Seq(genEq(genApp1("g", "z"), genApp1("f", "x"))),
@@ -165,7 +148,7 @@ class InlineOneStepTest extends FunSuite {
     assert(res.head == mod)
   }
   
-  test("Inlining in exists: do not throw away last equation") {
+  test("Do not discover inlineable equations in forall") {
     val tr = TypingRule("simple",
       Seq(ExistsJudgment(Seq(MetaVar("x")), 
           Seq(genEq(genMeta("x"), genApp1("f", "y"))))),
@@ -177,7 +160,7 @@ class InlineOneStepTest extends FunSuite {
     assert(res.head == mod)
   }
   
-  test("Inlining in forall: do not throw away last equation") {
+  test("Do not discover inlineable equations in exists") {
     val tr = TypingRule("simple",
       Seq(ExistsJudgment(Seq(MetaVar("x")), 
           Seq(genEq(genMeta("x"), genApp1("f", "y"))))),
@@ -187,10 +170,6 @@ class InlineOneStepTest extends FunSuite {
     val res = InlineOnce(Seq(mod))(Backend.onlyTFFTest)
 
     assert(res.head == mod)
-  }
-  
-  test("Inlining in exists: binder renaming") {
-    
   }
   
 
