@@ -69,6 +69,12 @@ object ProblemTrans extends Alternative(selectConfig(Problem) {
     SeqTrans(SplitModulesByGoal("proof"), MoveDeclsToFront)
   case Problem.Test =>
     SeqTrans(SplitModulesByGoal("test"), MoveDeclsToFront)
+  case Problem.Execution =>
+    SeqTrans(SplitModulesByGoal("execution"), MoveDeclsToFront)
+  case Problem.Synthesis =>
+    SeqTrans(SplitModulesByGoal("synthesis"), MoveDeclsToFront)
+  case Problem.Counterexample =>
+    SeqTrans(SplitModulesByGoal("counterexample"), MoveDeclsToFront)
   case Problem.All =>
     SeqTrans(SplitModulesByGoal(""), MoveDeclsToFront)
 })
@@ -102,7 +108,7 @@ object MainTrans extends SeqTrans(
   // determines whether logical optimizations take place prior to fof/tff encoding
   Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
   // select problem
-  ProblemTrans) 
+  ProblemTrans)
 
 object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF    => FofBare

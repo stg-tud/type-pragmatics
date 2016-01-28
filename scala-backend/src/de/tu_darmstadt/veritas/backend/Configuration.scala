@@ -39,7 +39,7 @@ object Configuration {
   }
 
   object Problem extends ConfigOption {
-    val Consistency, Proof, Test, All = Value
+    val Consistency, Proof, Test, Execution, Synthesis, Counterexample, All = Value
   }
 
   def ifConfig(p: ConfigParameter, v: ConfigValue) = (cfg: Configuration) => cfg.m.get(p).map(_ == v).getOrElse(false)
