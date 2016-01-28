@@ -3,12 +3,16 @@ package de.tu_darmstadt.veritas.backend
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintWriter
+
 import scala.collection.JavaConverters.seqAsJavaListConverter
 import scala.util.control.NonFatal
+
 import org.spoofax.interpreter.terms.IStrategoList
 import org.spoofax.interpreter.terms.IStrategoTerm
 import org.spoofax.interpreter.terms.IStrategoTuple
+
 import de.tu_darmstadt.veritas.backend.Configuration._
+import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTuple
 import de.tu_darmstadt.veritas.backend.util.BackendError
@@ -18,7 +22,6 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.util.Util
 
 object Backend {
@@ -30,22 +33,36 @@ object Backend {
   val singleTransformation = PartialVariability(
     Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
       (Problem -> Seq(Problem.Test)),
-      (InversionLemma -> Seq(InversionLemma.On)),
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
-  val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.InlineEverything, InversionLemma -> InversionLemma.On, Problem -> Problem.Consistency))
-  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF, LogicalSimplification -> LogicalSimplification.On, VariableEncoding -> VariableEncoding.NameParamsAndResults, InversionLemma -> InversionLemma.Off, Problem -> Problem.Consistency))
-
+  val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
+    LogicalSimplification -> LogicalSimplification.On,
+    VariableEncoding -> VariableEncoding.InlineEverything,
+    Problem -> Problem.Consistency))
+  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF,
+    LogicalSimplification -> LogicalSimplification.On,
+    VariableEncoding -> VariableEncoding.NameParamsAndResults,
+    Problem -> Problem.Consistency))
+    
+  val inliningOnlyTest = PartialVariability(Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything)))
+  val inliningComparisonTest = PartialVariability(
+      Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything, VariableEncoding.Unchanged),
+      Problem -> Seq(Problem.Test)))  
+  
   /**
    * This variability model is used by the code below
    */
-  val variabilityModel = fullVariability //runs about 20 minutes
+  val variabilityModel = fullVariability //runs for at least several minutes!
+
   
+  /**
+   * this variability model is used for single verifications
+   * triggered from Veritas
+   */
   val defaultVariabilityModel = PartialVariability(
     Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
       (Problem -> Seq(Problem.All)),
-      (InversionLemma -> Seq(InversionLemma.On)),
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
@@ -78,9 +95,8 @@ object Backend {
     val typing = config(FinalEncoding).toString().toLowerCase
     val variable = config(VariableEncoding).toString().toLowerCase
     val simpl = config(LogicalSimplification).toString().toLowerCase
-    val inv = config(InversionLemma).toString().toLowerCase
 
-    val outputFolder = s"$problem/$typing/$variable-$simpl-$inv"
+    val outputFolder = s"$problem/$typing/$variable-$simpl"
 
     //write the files in the corresponding directory
     //is it necessary to use the Stratego context when backend is called as a strategy
@@ -257,7 +273,6 @@ object Backend {
       FinalEncoding -> FinalEncoding.TFF,
       LogicalSimplification -> LogicalSimplification.On,
       VariableEncoding -> VariableEncoding.InlineEverything,
-      InversionLemma -> InversionLemma.On,
       Problem -> Problem.Test))
       
     val modules = Seq(Module.from(aterm))
@@ -266,20 +281,21 @@ object Backend {
       // desugar Veritas constructs
       BasicTrans,
       // determines whether and which inversion axioms are generated for functions/typing rules
-      Optional(TotalFunctionInversionAxioms, ifConfig(InversionLemma, InversionLemma.On)), // ignored: InversionAll
+      TotalFunctionInversionAxioms, // ignored: InversionAll
+      //NoBooleanFunctionInversionAxiomSplit
       // variable inlining/extraction
-      VariableTrans ,
+      VariableTrans,
       // insert type guards for quantified metavariables
       //Optional(InsertTypeGuardsForMetavars, ifConfig(FinalEncoding, FinalEncoding.GuardedFOF)),
       // determines whether logical optimizations take place prior to fof/tff encoding
-      Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
+      //Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
       // select problem
       ProblemTrans
       )
 
     val transformationChain = { sm: Seq[Module] => CustomPartialChain(sm)(conf) }
     val resultingModSeq = transformationChain(modules)
-    resultingModSeq map {m => ("", m)}
+    resultingModSeq map { m => ("", m) }
   }
 
   /**
