@@ -4,9 +4,9 @@ module Veritas-Menus
 menus
 
   menu: "Backend"
-    action: "Invoke Backend"          = invoke-backend (openeditor)
-    action: "Invoke Backend Folder"   = invoke-backend-folder
-    action: "Persist Index and Tasks" = index-and-task-persist
+    action: "Generate all encoding variants (single file)"  = invoke-backend (openeditor)
+    action: "Generate all encoding variants (folder)"   	= invoke-backend-folder
+    action: "Persist Index and Tasks" 						= index-and-task-persist
   
   menu: "Syntax"                       (openeditor)
     
@@ -36,24 +36,24 @@ menus
       action: "Selection"            = debug-task-selection
     end
   
-  menu: "FOF"
-    action: "Open FOF"			   = open-fof (openeditor) (realtime)
-    action: "Generate FOF"         = generate-fof (openeditor) (realtime)
-    action: "Generate all FOFs for folder" = gen-fof-for-folder
-    action: "Generate SMT"         = generate-smt (openeditor) (realtime)
+  // menu: "FOF"
+  //   action: "Open FOF"			   = open-fof (openeditor) (realtime)
+  //   action: "Generate FOF"         = generate-fof (openeditor) (realtime)
+  //   action: "Generate all FOFs for folder" = gen-fof-for-folder
+    // action: "Generate SMT"         = generate-smt (openeditor) (realtime)
 
   menu: "Verification"
-    action: "Verify single file with Vampire (auto)" = invoke-backend-verify-vampire-auto
+    // action: "Verify single file with Vampire (auto)" = invoke-backend-verify-vampire-auto
     action: "Verify single file with Vampire (30)" = invoke-backend-verify-vampire-30
     action: "Verify single file with Vampire (60)" = invoke-backend-verify-vampire-60
     action: "Verify single file with Vampire (120)" = invoke-backend-verify-vampire-120
-    action: "Vampire (auto) for entire folder" = invoke-backend-verify-vampire-folder
+    // action: "Vampire (auto) for entire folder" = invoke-backend-verify-vampire-folder
     action: "Clean" = clean-proofs
 
   menu: "Check consistency"
     action: "Check consistency single file with Vampire (5 seconds)" = invoke-backend-consistency-5
     action: "Check consistency single file with Vampire (120 seconds)" = invoke-backend-consistency-120
     action: "Check consistency single file with Vampire (300 seconds)" = invoke-backend-consistency-300
-	action: "Check consistency of entire folder (5 seconds)" = invoke-backend-consistency-folder-5
-	action: "Check consistency of entire folder (300 seconds)" = invoke-backend-consistency-folder-300
+	// action: "Check consistency of entire folder (5 seconds)" = invoke-backend-consistency-folder-5
+	// action: "Check consistency of entire folder (300 seconds)" = invoke-backend-consistency-folder-300
 
