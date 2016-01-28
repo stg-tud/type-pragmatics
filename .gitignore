@@ -19,3 +19,5 @@ Veritas/test/encodingcompstudy/test
 *.xls
 Veritas/test/encodingcompstudy/proofs
 Veritas/test/encodingcompstudy/TestGoals/proofs
+Veritas/test/encodingcompstudy/TestGoals/consistency
+Veritas/test/encodingcompstudy/TestGoals/test
