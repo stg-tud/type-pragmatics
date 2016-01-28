@@ -5,6 +5,7 @@ import de.tu_darmstadt.veritas.backend.veritas.Import
 import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
 import de.tu_darmstadt.veritas.backend.veritas.Goals
+import de.tu_darmstadt.veritas.backend.veritas.Lemmas
 import de.tu_darmstadt.veritas.backend.Configuration
 
 trait ContainsGoal extends ModuleTransformation {
@@ -20,6 +21,7 @@ trait ContainsGoal extends ModuleTransformation {
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     withSuper(super.transModuleDefs(mdef)) {
       case g @ Goals(_, _) => { _containsGoal = true; Seq(g) }
+      case l @ Lemmas(_, _) => { _containsGoal = true; Seq(l) }
     }
 
 }
