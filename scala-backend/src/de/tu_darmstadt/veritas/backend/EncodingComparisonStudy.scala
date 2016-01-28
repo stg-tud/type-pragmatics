@@ -56,8 +56,7 @@ object BasicTrans extends SeqTrans(
   ConstructorTrans,
   GenerateDiffAxiomsForConsts,
   FunctionEqToAxiomsSimple,
-  TranslateTypingJudgmentToFunction,
-  TranslateTypingJudgmentSimpleToFunction)
+  TranslateAllTypingJudgments)
 
 /**
  * determine which different problems are encoded ("Fragestellungen")

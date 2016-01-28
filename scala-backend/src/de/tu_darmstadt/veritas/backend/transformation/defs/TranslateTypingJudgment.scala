@@ -6,279 +6,162 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.util.BackendError
 
 /**
- * this trait tries to infer the signature of TypingJudgments from a Module
- * (i.e. tries to find types for the arguments of the typing judgment occurrences)
- *
- * assumes that within a module, typing judgments are always used with the same types
- *
+ * trait for inferring the types of the arguments of the different typing judgments
  */
-trait InferTypingJudgmentSignature extends CollectTypes {
+class InferTypingJudgmentsSignature extends CollectTypes {
+  //types of 3-argument typing judgment
+  val targs: Array[Option[SortRef]] = Array(None, None, None)
 
-  private var t1: Option[SortRef] = None
-  private var t2: Option[SortRef] = None
-  private var t3: Option[SortRef] = None
+  //types of 2-argument typing judgment
+  val stargs: Array[Option[SortRef]] = Array(None, None)
 
-  var typingJudgmentFunctionDecl: Option[FunctionSig] = None
-
-  /**
-   * override this function to change the function signature generated for the typing judgment
-   */
-  def makeTypingJudgmentFunctionDecl(t1: SortRef, t2: SortRef, t3: SortRef): Unit =
-    typingJudgmentFunctionDecl = Some(FunctionSig("tcheck", Seq(t1, t2, t3), SortRef("Bool")))
-
-  /**
-   * typable: toType is itself a function application or is argument of a function application
-   */
-  private def typeTypableOccurrence(toType: FunctionExpMeta, typableOcc: FunctionExpApp): SortRef = {
-    typableOcc match {
-      case FunctionExpApp(fn, args) => {
-        val (in, out) = constrTypes.getOrElse(fn, functypes.getOrElse(fn, pfunctypes.getOrElse(fn, (Seq(), SortRef("")))))
-        if (out.name == "") throw TransformationError(s"Function ${fn} was not declared!?")
-        if (args contains toType)
-          in(args.indexOf(toType))
-        else if (toType == typableOcc | toType.isInstanceOf[FunctionMeta]) 
-          //just assumes that meta variables that don't appear in argslist have to be from equations
-          //hence type variable with return type!
-          out
-        else
-          throw TransformationError(s"Could not type ${toType} against ${typableOcc}")
-      }
-    }
-  }
-
-  /**
-   * finds constructs in given sequence of TypingRuleJudgment that have the
-   * given MetaVar m as direct child and are one of
-   * - function applications (Appl)
-   * - equalities/inequalities with the m on one side and a function application on the other side
-   *
-   * this function was copied from ToTff and slightly simplified (to return only FunctionExpApp occurrences)
-   */
-  private def findTypableOccurrences(f: FunctionExpMeta)(jdglist: Seq[TypingRuleJudgment]): Set[FunctionExpApp] = {
-
-    def searchFunctionExp(e: FunctionExpMeta): Set[FunctionExpApp] = {
-      e match {
-        // base cases just return empty set, all listed explicitly just in case!  
-        case FunctionMeta(m)   => Set()
-        case FunctionExpVar(n) => Set()
-        case FunctionExpTrue   => Set()
-        case FunctionExpFalse  => Set()
-        case FunctionExpNot(f) => searchFunctionExp(f)
-        case fe @ FunctionExpEq(l, r @ FunctionExpApp(n, args)) =>
-          if (f == l) Set(r) else searchFunctionExp(r)
-        case fe @ FunctionExpEq(l @ FunctionExpApp(n, args), r) =>
-          if (f == r) Set(l) else searchFunctionExp(l)
-        case FunctionExpEq(f1, f2) => searchFunctionExp(f1) ++ searchFunctionExp(f2)
-        case fe @ FunctionExpNeq(l, r @ FunctionExpApp(n, args)) =>
-          if (f == l) Set(r) else searchFunctionExp(r)
-        case fe @ FunctionExpNeq(l @ FunctionExpApp(n, args), r) =>
-          if (f == r) Set(l) else searchFunctionExp(l)
-        case FunctionExpNeq(f1, f2)  => searchFunctionExp(f1) ++ searchFunctionExp(f2)
-        case FunctionExpAnd(l, r)    => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpOr(l, r)     => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpBiImpl(l, r) => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpIf(c, t, e)  => searchFunctionExp(c) ++ searchFunctionExp(t) ++ searchFunctionExp(e)
-        case FunctionExpLet(n, e, i) => searchFunctionExp(e) ++ searchFunctionExp(i)
-        case fe @ FunctionExpApp(fn, args) => {
-          val afe = (args flatMap searchFunctionExp).toSet
-          if (args contains f) afe ++ Set(fe) else afe
+  override def transTypingRules(tr: TypingRule): Seq[TypingRule] =
+    tr match {
+      case TypingRule(n, prems, conss) => {
+        try {
+          inferMetavarTypes(tr) //try to infer types for all meta vars
+        } catch {
+          case _: BackendError[_] => ; //ignore any inference errors for now
         }
-        // this should never happen
-        case _ => throw TransformationError(s"While trying to type ${f}, found a function expression that is not covered by the code!")
-      }
-    }
-    (for (jdg <- jdglist) yield {
-      jdg match {
-        case FunctionExpJudgment(f)   => searchFunctionExp(f)
-        case ExistsJudgment(vl, jdgl) => findTypableOccurrences(f)(jdgl)
-        case ForallJudgment(vl, jdgl) => findTypableOccurrences(f)(jdgl)
-        case NotJudgment(jdg)         => findTypableOccurrences(f)(Seq(jdg))
-        case OrJudgment(jdgll)        => jdgll flatMap findTypableOccurrences(f)
-        case TypingJudgment(_, _, _)  => Seq() //do not search in TypingJudgments
-        case _                        => throw TransformationError(s"While trying to type ${f}, encountered a construct in an axiom, premise, or conclusion that is not supported!")
-      }
-    }).flatten.toSet
-  }
-
-  private def findTypableOccurrence(f: FunctionExpMeta, context: VeritasConstruct): Option[FunctionExpApp] =
-    context match {
-      case TypingRule(n, prems, cons) => {
-        val occset = findTypableOccurrences(f)(prems ++ cons)
-        if (occset.size == 1)
-          Some(occset.head)
-        else
-          None
-      }
-      case _ => None
-      //this function only considers typing judgments that appear directly in a typing rule for typing
-      //not those that might appear in exists/forall or or judgments
-    }
-
-  /**
-   * tries to type a given FunctionExpMeta based on the direct context in which it occurs
-   * (direct parent)
-   *
-   */
-  private def tryTyping(f: FunctionExpMeta, context: VeritasConstruct): Option[SortRef] =
-    f match {
-      case fapp @ FunctionExpApp(fn, args) => try {
-        Some(typeTypableOccurrence(fapp, fapp))
-      } catch {
-        case TransformationError(m) => throw TransformationError(s"Could not type ${f}: " + m)
-      }
-
-      case _ => try {
-        val occ = findTypableOccurrence(f, context)
-        if (occ == None)
-          None
-        else
-          Some(typeTypableOccurrence(f, occ.get))
-      } catch {
-        case TransformationError(m) => throw TransformationError(s"Could not type ${f}: " + m)
+        Seq(TypingRule(n, trace(prems)(transTypingRuleJudgments(_)), trace(conss)(transTypingRuleJudgments(_))))
       }
     }
 
   override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
     withSuper(super.transTypingRuleJudgment(trj)) {
-      case t @ TypingJudgment(f1, f2, f3) => {
-        //TODO maybe extract a function here
-        val f1type = tryTyping(f1, path(1))
-        if (f1type != None)
-          t1 match {
-            case None                         => t1 = f1type
-            case s @ Some(_) if (s != f1type) => throw TransformationError("Found at least two different possible types for context argument of typing judgment!")
-          }
-        //if no type found, do nothing
-
-        val f2type = tryTyping(f2, path(1))
-        if (f2type != None)
-          t2 match {
-            case None                         => t2 = f2type
-            case s @ Some(_) if (s != f2type) => throw TransformationError("Found at least two different possible types for program/expression argument of typing judgment!")
-          }
-        //if no type found, do nothing
-
-        val f3type = tryTyping(f3, path(1))
-        if (f3type != None)
-          t3 match {
-            case None                         => t3 = f3type
-            case s @ Some(_) if (s != f3type) => throw TransformationError("Found at least two different possible types for type argument of typing judgment!")
-          }
-        //if no type found, do nothing
-
-        if (typingJudgmentFunctionDecl == None && t1.isDefined && t2.isDefined && t3.isDefined)
-          makeTypingJudgmentFunctionDecl(t1.get, t2.get, t3.get)
-        //do not modify original typing judgment  
-        t
-      }
+      case t @ TypingJudgment(f1, f2, f3)    => { updateTargs(Seq(f1, f2, f3)); t }
+      case st @ TypingJudgmentSimple(f1, f2) => { updateStargs(Seq(f1, f2)); st }
     }
 
   override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
     withSuper(super.transTypingRuleJudgments(trj)) {
-      case t @ TypingJudgment(f1, f2, f3) => {
-        //TODO maybe extract a function here
-        val f1type = tryTyping(f1, path(1))
-        if (f1type != None)
-          t1 match {
-            case None                         => t1 = f1type
-            case s @ Some(_) if (s == f1type) => t1 = f1type
-            case _                            => throw TransformationError("Found at least two different possible types for context argument of typing judgment!")
-          }
-        //if no type found, do nothing
+      case t @ TypingJudgment(f1, f2, f3)    => { updateTargs(Seq(f1, f2, f3)); Seq(t) }
+      case st @ TypingJudgmentSimple(f1, f2) => { updateStargs(Seq(f1, f2)); Seq(st) }
+    }
 
-        val f2type = tryTyping(f2, path(1))
-        if (f2type != None)
-          t2 match {
-            case None                         => t2 = f2type
-            case s @ Some(_) if (s == f2type) => t2 = f2type
-            case _                            => throw TransformationError("Found at least two different possible types for program/expression argument of typing judgment!")
-          }
-        //if no type found, do nothing
+  private def inferSingleArg(f: FunctionExpMeta): Option[SortRef] =
+    f match {
+      case FunctionMeta(m) => try {
+        Some(m.sortType)
+      } catch {
+        case e: java.util.NoSuchElementException => None
+        case e: java.lang.ClassCastException     => None
+      }
+      case FunctionExpApp(f, args) => {
+        val (argstype, restype): (Seq[SortRef], SortRef) =
+          functypes.getOrElse(f,
+            pfunctypes.getOrElse(f,
+              constrTypes.getOrElse(f, (Seq(), SortRef("")))))
+        if (restype.name.isEmpty())
+          None
+        else
+          Some(restype)
+      }
+      case _ => throw BackendError("An argument of a typing rule judgment was unequal to a meta-variable or an application: " + f)
+    }
 
-        val f3type = tryTyping(f3, path(1))
-        if (f3type != None)
-          t3 match {
-            case None                         => t3 = f3type
-            case s @ Some(_) if (s == f3type) => t3 = f3type
-            case _                            => throw TransformationError("Found at least two different possible types for type argument of typing judgment!")
-          }
-        //if no type found, do nothing
-
-        if (typingJudgmentFunctionDecl == None && t1.isDefined && t2.isDefined && t3.isDefined)
-          makeTypingJudgmentFunctionDecl(t1.get, t2.get, t3.get)
-        //do not modify original typing judgment  
-        Seq(t)
+  //TODO is there any nice way to remove this code duplication?
+  private def updateTargs(args: Seq[FunctionExpMeta]) = {
+    for (i <- 0 until 3) {
+      val argtype = inferSingleArg(args(i))
+      argtype match {
+        case Some(t) if (targs(i) == None)  => targs(i) = Some(t)
+        case Some(t) if (targs(i).get == t) => ;
+        case None                           => ;
+        case _                              => throw BackendError("Found two different types for arguments of typing judgment - cannot infer type signature of typing judgment!")
       }
     }
+  }
+
+  private def updateStargs(args: Seq[FunctionExpMeta]) = {
+    for (i <- 0 until 2) {
+      val argtype = inferSingleArg(args(i))
+      argtype match {
+        case Some(t) if (stargs(i) == None)  => stargs(i) = Some(t)
+        case Some(t) if (stargs(i).get == t) => ;
+        case None                            => ;
+        case _                               => throw BackendError("Found two different types for arguments of simple typing judgment - cannot infer type signature of simple typing judgment!")
+      }
+    }
+  }
 
 }
 
 /**
- * translates occurrence of TypingJudgment into a function
- * this includes declaring this function, at the top of the module
- *
- * warning: assumes that the first usage of a TypingJudgment occurs within an Axiom (not Lemma or Goal)!
- * warning 2: also assumes that types used within arguments of a TypingJudgment are always the same
+ * trait for translating different typing judgments to a function or a predicate
+ * (depending on the current configuration)
  */
-trait TranslateTypingJudgment extends ModuleTransformation {
+trait TranslateTypingJudgments extends ModuleTransformation {
 
-  var typingJudgmentFunctionDecl: Option[FunctionSig] = None
+  var typingJudgmentSignature: Option[FunctionSig] = None
+  var stypingJudgmentSignature: Option[FunctionSig] = None
 
-  class InferSignature extends InferTypingJudgmentSignature
-  var inferSignature = new InferSignature
+  var makeTJFunctionExp: ((FunctionExpMeta, FunctionExpMeta, FunctionExpMeta) => FunctionExp) = (a, b, c) => FunctionExpTrue
+  var makeSTJFunctionExp: ((FunctionExpMeta, FunctionExpMeta) => FunctionExp) = (a, b) => FunctionExpTrue
 
   /**
-   * set to true as soon as the typingJugdment was defined once in current scope
+   * set to true as soon as the typing judgment was defined once in current scope
    * (to prevent duplicate definitions)
    */
   private var tjdeclared: Boolean = false
 
+  /**
+   * set to true as soon as the simple typing judgment was defined once in current scope
+   * (to prevent duplicate definitions)
+   */
+  private var stjdeclared: Boolean = false
+
   override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
-    //make sure to reset state whenever a new module is called!
-    //(we assume we want a fresh tcheck declaration for in each module)
     tjdeclared = false
-    typingJudgmentFunctionDecl = None
-    inferSignature = new InferSignature
-    val inf = inferSignature(m)
-    typingJudgmentFunctionDecl = inferSignature.typingJudgmentFunctionDecl
-    inf flatMap trans
-  }
+    stjdeclared = false
+    val inferinst = new InferTypingJudgmentsSignature
+    inferinst(m)
 
-  private def containsTypingJudgment(as: Seq[TypingRule]): Boolean =
-    as exists { tr =>
-      tr match {
-        case TypingRule(n, prems, cons) =>
-          (prems exists {
-            case FunctionExpJudgment(FunctionExpApp(fn, _)) if (typingJudgmentFunctionDecl != None && fn == typingJudgmentFunctionDecl.get.name) => true
-            case _ => false
-          }) ||
-            (cons exists {
-              case FunctionExpJudgment(FunctionExpApp(fn, _)) if (typingJudgmentFunctionDecl != None && fn == typingJudgmentFunctionDecl.get.name) => true
-              case _ => false
-            })
-      }
+    if (config.m(Configuration.TypingJudgmentEncoding) == Configuration.TypingJudgmentEncoding.Function) {
+      if (!(inferinst.targs contains None))
+        makeTypingJudgmentFunctionDecl(inferinst.targs(0).get, inferinst.targs(1).get, inferinst.targs(2).get)
+      if (!(inferinst.stargs contains None))
+        makeStypingJudgmentFunctionDecl(inferinst.stargs(0).get, inferinst.stargs(1).get)
+    } else if (config.m(Configuration.TypingJudgmentEncoding) == Configuration.TypingJudgmentEncoding.Predicate) {
+      if (!(inferinst.targs contains None))
+        makeTypingJudgmentPredicateDecl(inferinst.targs(0).get, inferinst.targs(1).get, inferinst.targs(2).get)
+      if (!(inferinst.stargs contains None))
+        makeStypingJudgmentPredicateDecl(inferinst.stargs(0).get, inferinst.stargs(1).get)
     }
+    super.apply(m)
+  }
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     withSuper(super.transModuleDefs(mdef)) {
-      // just put tcheck declaration in front of axiom where it is first used
-      case ax @ Axioms(as) if (typingJudgmentFunctionDecl != None && !tjdeclared && containsTypingJudgment(as)) => {
+      // just put typing judgment declaration in front of axiom where it is first used
+      case ax @ Axioms(as) if (typingJudgmentSignature != None && !tjdeclared && containsTypingJudgment(as)) => {
         tjdeclared = true
-        Seq(Functions(Seq(FunctionDef(typingJudgmentFunctionDecl.get, Seq()))), ax)
+        Seq(Functions(Seq(FunctionDef(typingJudgmentSignature.get, Seq()))), ax)
+      }
+      // just put typing simple judgment declaration in front of axiom where it is first used
+      case ax @ Axioms(as) if (stypingJudgmentSignature != None && !stjdeclared && containsSTypingJudgment(as)) => {
+        stjdeclared = true
+        Seq(Functions(Seq(FunctionDef(stypingJudgmentSignature.get, Seq()))), ax)
       }
     }
 
   override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
     withSuper(super.transTypingRuleJudgment(trj)) {
       case TypingJudgment(f1, f2, f3) => {
-        if (typingJudgmentFunctionDecl == None)
+        if (typingJudgmentSignature == None)
           throw TransformationError(s"Could not transform a typing judgment, no function signature could be inferred: ${trj}")
         else {
-          val fn = typingJudgmentFunctionDecl.get.name
-          FunctionExpJudgment(FunctionExpApp(fn, Seq(f1, f2, f3)))
+          FunctionExpJudgment(makeTJFunctionExp(f1, f2, f3))
+        }
+      }
+      case TypingJudgmentSimple(f1, f2) => {
+        if (stypingJudgmentSignature == None)
+          throw TransformationError(s"Could not transform a simple typing judgment, no function signature could be inferred: ${trj}")
+        else {
+          FunctionExpJudgment(makeSTJFunctionExp(f1, f2))
         }
       }
     }
@@ -286,270 +169,86 @@ trait TranslateTypingJudgment extends ModuleTransformation {
   override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
     withSuper(super.transTypingRuleJudgments(trj)) {
       case TypingJudgment(f1, f2, f3) => {
-        if (typingJudgmentFunctionDecl == None)
+        if (typingJudgmentSignature == None)
           throw TransformationError(s"Could not transform a typing judgment, no function signature could be inferred: ${trj}")
         else {
-          val fn = typingJudgmentFunctionDecl.get.name
-          Seq(FunctionExpJudgment(FunctionExpApp(fn, Seq(f1, f2, f3))))
+          Seq(FunctionExpJudgment(makeTJFunctionExp(f1, f2, f3)))
+        }
+      }
+      case TypingJudgmentSimple(f1, f2) => {
+        if (stypingJudgmentSignature == None)
+          throw TransformationError(s"Could not transform a simple typing judgment, no function signature could be inferred: ${trj}")
+        else {
+          Seq(FunctionExpJudgment(makeSTJFunctionExp(f1, f2)))
         }
       }
     }
 
-}
+  private def containsTypingJudgment(as: Seq[TypingRule]): Boolean =
+    as exists { tr =>
+      tr match {
+        case TypingRule(n, prems, cons) =>
+          (prems exists {
+            case FunctionExpJudgment(FunctionExpApp(fn, _)) if (typingJudgmentSignature != None && fn == typingJudgmentSignature.get.name) => true
+            case FunctionExpJudgment(FunctionExpEq(FunctionExpApp(fn, _), _)) if (typingJudgmentSignature != None && fn == typingJudgmentSignature.get.name) => true
+            case _ => false
+          }) ||
+            (cons exists {
+              case FunctionExpJudgment(FunctionExpApp(fn, _)) if (typingJudgmentSignature != None && fn == typingJudgmentSignature.get.name) => true
+              case FunctionExpJudgment(FunctionExpEq(FunctionExpApp(fn, _), _)) if (typingJudgmentSignature != None && fn == typingJudgmentSignature.get.name) => true
+              case _ => false
+            })
+      }
+    }
 
-object TranslateTypingJudgmentToFunction extends TranslateTypingJudgment
-
-//below version of above trait for translating TypingJudgmentSimple (which has just two arguments)
-trait InferTypingJudgmentSimple extends CollectTypes {
-
-  protected var t1: Option[SortRef] = None
-  protected var t2: Option[SortRef] = None
-
-  var typingJudgmentFunctionDecl: Option[FunctionSig] = None
+  private def containsSTypingJudgment(as: Seq[TypingRule]): Boolean =
+    as exists { tr =>
+      tr match {
+        case TypingRule(n, prems, cons) =>
+          (prems exists {
+            case FunctionExpJudgment(FunctionExpApp(fn, _)) if (stypingJudgmentSignature != None && fn == stypingJudgmentSignature.get.name) => true
+            case FunctionExpJudgment(FunctionExpEq(FunctionExpApp(fn, _), _)) if (typingJudgmentSignature != None && fn == typingJudgmentSignature.get.name) => true
+            case _ => false
+          }) ||
+            (cons exists {
+              case FunctionExpJudgment(FunctionExpApp(fn, _)) if (stypingJudgmentSignature != None && fn == stypingJudgmentSignature.get.name) => true
+              case FunctionExpJudgment(FunctionExpEq(FunctionExpApp(fn, _), _)) if (typingJudgmentSignature != None && fn == typingJudgmentSignature.get.name) => true
+              case _ => false
+            })
+      }
+    }
 
   /**
    * override this function to change the function signature generated for the typing judgment
    */
-  def makeTypingJudgmentFunctionDecl(t1: SortRef, t2: SortRef): Unit =
-    typingJudgmentFunctionDecl = Some(FunctionSig("tchecksimple", Seq(t1, t2), SortRef("Bool")))
-
-  /**
-   * typable: toType is itself a function application or is argument of a function application
-   */
-  private def typeTypableOccurrence(toType: FunctionExpMeta, typableOcc: FunctionExpApp): SortRef = {
-    typableOcc match {
-      case FunctionExpApp(fn, args) => {
-        val (in, out) = constrTypes.getOrElse(fn, functypes.getOrElse(fn, pfunctypes.getOrElse(fn, (Seq(), SortRef("")))))
-        if (out.name == "") throw TransformationError(s"Function ${fn} was not declared!?")
-        if (toType == typableOcc)
-          out
-        else {
-          if (args contains toType)
-            in(args.indexOf(toType))
-          else
-            throw TransformationError(s"Could not type ${toType} against ${typableOcc}")
-        }
-      }
-    }
+  def makeTypingJudgmentFunctionDecl(t1: SortRef, t2: SortRef, t3: SortRef): Unit = {
+    typingJudgmentSignature = Some(FunctionSig("tcheck", Seq(t1, t2), t3))
+    makeTJFunctionExp = (a1, a2, a3) => FunctionExpEq(FunctionExpApp("tcheck", Seq(a1, a2)), a3)
   }
 
   /**
-   * finds constructs in given sequence of TypingRuleJudgment that have the
-   * given MetaVar m as direct child and are one of
-   * - function applications (Appl)
-   * - equalities/inequalities with the m on one side and a function application on the other side
-   *
-   * this function was copied from ToTff and slightly simplified (to return only FunctionExpApp occurrences)
+   * override this function to change the function signature generated for the typing judgment
    */
-  private def findTypableOccurrences(f: FunctionExpMeta)(jdglist: Seq[TypingRuleJudgment]): Set[FunctionExpApp] = {
-
-    def searchFunctionExp(e: FunctionExpMeta): Set[FunctionExpApp] = {
-      e match {
-        // base cases just return empty set, all listed explicitly just in case!  
-        case FunctionMeta(m)   => Set()
-        case FunctionExpVar(n) => Set()
-        case FunctionExpTrue   => Set()
-        case FunctionExpFalse  => Set()
-        case FunctionExpNot(f) => searchFunctionExp(f)
-        case fe @ FunctionExpEq(l, r @ FunctionExpApp(n, args)) =>
-          if (f == l) Set(r) else searchFunctionExp(r)
-        case fe @ FunctionExpEq(l @ FunctionExpApp(n, args), r) =>
-          if (f == r) Set(l) else searchFunctionExp(l)
-        case FunctionExpEq(f1, f2) => searchFunctionExp(f1) ++ searchFunctionExp(f2)
-        case fe @ FunctionExpNeq(l, r @ FunctionExpApp(n, args)) =>
-          if (f == l) Set(r) else searchFunctionExp(r)
-        case fe @ FunctionExpNeq(l @ FunctionExpApp(n, args), r) =>
-          if (f == r) Set(l) else searchFunctionExp(l)
-        case FunctionExpNeq(f1, f2)  => searchFunctionExp(f1) ++ searchFunctionExp(f2)
-        case FunctionExpAnd(l, r)    => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpOr(l, r)     => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpBiImpl(l, r) => searchFunctionExp(l) ++ searchFunctionExp(r)
-        case FunctionExpIf(c, t, e)  => searchFunctionExp(c) ++ searchFunctionExp(t) ++ searchFunctionExp(e)
-        case FunctionExpLet(n, e, i) => searchFunctionExp(e) ++ searchFunctionExp(i)
-        case fe @ FunctionExpApp(fn, args) => {
-          val afe = (args flatMap searchFunctionExp).toSet
-          if (args contains f) afe ++ Set(fe) else afe
-        }
-        // this should never happen
-        case _ => throw TransformationError(s"While trying to type ${f}, found a function expression that is not covered by the code!")
-      }
-    }
-    (for (jdg <- jdglist) yield {
-      jdg match {
-        case FunctionExpJudgment(f)   => searchFunctionExp(f)
-        case ExistsJudgment(vl, jdgl) => findTypableOccurrences(f)(jdgl)
-        case ForallJudgment(vl, jdgl) => findTypableOccurrences(f)(jdgl)
-        case NotJudgment(jdg)         => findTypableOccurrences(f)(Seq(jdg))
-        case OrJudgment(jdgll)        => jdgll flatMap findTypableOccurrences(f)
-        case TypingJudgment(_, _, _)  => Seq() //do not search in TypingJudgments
-        case _                        => throw TransformationError(s"While trying to type ${f}, encountered a construct in an axiom, premise, or conclusion that is not supported!")
-      }
-    }).flatten.toSet
+  def makeStypingJudgmentFunctionDecl(t1: SortRef, t2: SortRef): Unit = {
+    stypingJudgmentSignature = Some(FunctionSig("tchecksimple", Seq(t1), t2))
+    makeSTJFunctionExp = (a1, a2) => FunctionExpEq(FunctionExpApp("tchecksimple", Seq(a1)), a2)
   }
 
-  private def findTypableOccurrence(f: FunctionExpMeta, context: VeritasConstruct): Option[FunctionExpApp] =
-    context match {
-      case TypingRule(n, prems, cons) => {
-        val occset = findTypableOccurrences(f)(prems ++ cons)
-        if (occset.size == 1)
-          Some(occset.head)
-        else
-          None
-      }
-      case _ => None
-      //this function only considers typing judgments that appear directly in a typing rule for typing
-      //not those that might appear in exists/forall or or judgments
-    }
+  /**
+   * override this function to change the function signature generated for the typing judgment
+   */
+  def makeTypingJudgmentPredicateDecl(t1: SortRef, t2: SortRef, t3: SortRef): Unit = {
+    typingJudgmentSignature = Some(FunctionSig("ptcheck", Seq(t1, t2, t3), SortRef("Bool")))
+    makeTJFunctionExp = (a1, a2, a3) => FunctionExpApp("ptcheck", Seq(a1, a2, a3))
+  }
 
   /**
-   * tries to type a given FunctionExpMeta based on the direct context in which it occurs
-   * (direct parent)
-   *
+   * override this function to change the function signature generated for the typing judgment
    */
-  protected def tryTyping(f: FunctionExpMeta, context: VeritasConstruct): Option[SortRef] =
-    f match {
-      case fapp @ FunctionExpApp(fn, args) => try {
-        Some(typeTypableOccurrence(fapp, fapp))
-      } catch {
-        case TransformationError(m) => throw TransformationError(s"Could not type ${f}: " + m)
-      }
-
-      case _ => try {
-        val occ = findTypableOccurrence(f, context)
-        if (occ == None)
-          None
-        else
-          Some(typeTypableOccurrence(f, occ.get))
-      } catch {
-        case TransformationError(m) => throw TransformationError(s"Could not type ${f}: " + m)
-      }
-    }
-
-  override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
-    withSuper(super.transTypingRuleJudgment(trj)) {
-      case t @ TypingJudgmentSimple(f1, f2) => {
-        //TODO maybe extract a function here
-        val f1type = tryTyping(f1, path(1))
-        if (f1type != None)
-          t1 match {
-            case None                         => t1 = f1type
-            case s @ Some(_) if (s != f1type) => throw TransformationError("Found at least two different possible types for context argument of typing judgment!")
-          }
-        //if no type found, do nothing
-
-        val f2type = tryTyping(f2, path(1))
-        if (f2type != None)
-          t2 match {
-            case None                         => t2 = f2type
-            case s @ Some(_) if (s != f2type) => throw TransformationError("Found at least two different possible types for program/expression argument of typing judgment!")
-          }
-        //if no type found, do nothing
-
-        if (typingJudgmentFunctionDecl == None && t1.isDefined && t2.isDefined)
-          makeTypingJudgmentFunctionDecl(t1.get, t2.get)
-        //do not modify original typing judgment  
-        t
-      }
-    }
-
-  override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
-    withSuper(super.transTypingRuleJudgments(trj)) {
-      case t @ TypingJudgmentSimple(f1, f2) => {
-        //TODO maybe extract a function here
-        val f1type = tryTyping(f1, path(1))
-        if (f1type != None)
-          t1 match {
-            case None                         => t1 = f1type
-            case s @ Some(_) if (s == f1type) => t1 = f1type
-            case _                            => throw TransformationError("Found at least two different possible types for context argument of typing judgment!")
-          }
-        //if no type found, do nothing
-
-        val f2type = tryTyping(f2, path(1))
-        if (f2type != None)
-          t2 match {
-            case None                         => t2 = f2type
-            case s @ Some(_) if (s == f2type) => t2 = f2type
-            case _                            => throw TransformationError("Found at least two different possible types for program/expression argument of typing judgment!")
-          }
-        //if no type found, do nothing
-
-        if (typingJudgmentFunctionDecl == None && t1.isDefined && t2.isDefined)
-          makeTypingJudgmentFunctionDecl(t1.get, t2.get)
-        //do not modify original typing judgment  
-        Seq(t)
-      }
-    }
-
+  def makeStypingJudgmentPredicateDecl(t1: SortRef, t2: SortRef): Unit = {
+    stypingJudgmentSignature = Some(FunctionSig("ptchecksimple", Seq(t1, t2), SortRef("Bool")))
+    makeSTJFunctionExp = (a1, a2) => FunctionExpApp("ptchecksimple", Seq(a1, a2))
+  }
 }
 
-trait TranslateTypingJudgmentSimple extends ModuleTransformation {
-
-  var typingJudgmentFunctionDecl: Option[FunctionSig] = None
-
-  class InferSignature extends InferTypingJudgmentSignature
-  val inferSignature = new InferSignature
-
-  /**
-   * set to true as soon as the typingJugdment was defined once in current scope
-   * (to prevent duplicate definitions)
-   */
-  private var tjdeclared: Boolean = false
-
-  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
-    val inf = inferSignature(m)
-    typingJudgmentFunctionDecl = inferSignature.typingJudgmentFunctionDecl
-    inf flatMap trans
-  }
-
-  private def containsTypingJudgment(as: Seq[TypingRule]): Boolean =
-    as exists { tr =>
-      tr match {
-        case TypingRule(n, prems, cons) =>
-          (prems exists {
-            case FunctionExpJudgment(FunctionExpApp(fn, _)) if (typingJudgmentFunctionDecl != None && fn == typingJudgmentFunctionDecl.get.name) => true
-            case _ => false
-          }) ||
-            (cons exists {
-              case FunctionExpJudgment(FunctionExpApp(fn, _)) if (typingJudgmentFunctionDecl != None && fn == typingJudgmentFunctionDecl.get.name) => true
-              case _ => false
-            })
-      }
-    }
-
-  override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
-    withSuper(super.transModuleDefs(mdef)) {
-      // just put tchecksimple declaration in front of axiom where it is first used
-      case ax @ Axioms(as) if (typingJudgmentFunctionDecl != None && !tjdeclared && containsTypingJudgment(as)) => {
-        tjdeclared = true
-        Seq(Functions(Seq(FunctionDef(typingJudgmentFunctionDecl.get, Seq()))), ax)
-      }
-    }
-
-  override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
-    withSuper(super.transTypingRuleJudgment(trj)) {
-      case TypingJudgmentSimple(f1, f2) => {
-        if (typingJudgmentFunctionDecl == None)
-          throw TransformationError(s"Could not transform a simple typing judgment, no function signature could be inferred: ${trj}")
-        else {
-          val fn = typingJudgmentFunctionDecl.get.name
-          FunctionExpJudgment(FunctionExpApp(fn, Seq(f1, f2)))
-        }
-      }
-    }
-
-  override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
-    withSuper(super.transTypingRuleJudgments(trj)) {
-      case TypingJudgmentSimple(f1, f2) => {
-        if (typingJudgmentFunctionDecl == None)
-          throw TransformationError(s"Could not transform a simple typing judgment, no function signature could be inferred: ${trj}")
-        else {
-          val fn = typingJudgmentFunctionDecl.get.name
-          Seq(FunctionExpJudgment(FunctionExpApp(fn, Seq(f1, f2))))
-        }
-      }
-    }
-
-}
-
-object TranslateTypingJudgmentSimpleToFunction extends TranslateTypingJudgmentSimple
+object TranslateAllTypingJudgments extends TranslateTypingJudgments

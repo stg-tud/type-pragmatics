@@ -37,25 +37,27 @@ object Backend {
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
   val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
+    TypingJudgmentEncoding -> TypingJudgmentEncoding.Predicate,
+    LogicalSimplification -> LogicalSimplification.On,
+    VariableEncoding -> VariableEncoding.NameEverything,
+    Problem -> Problem.Proof))
+  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF,
+    TypingJudgmentEncoding -> TypingJudgmentEncoding.Function,
     LogicalSimplification -> LogicalSimplification.On,
     VariableEncoding -> VariableEncoding.InlineEverything,
-    Problem -> Problem.Consistency))
-  val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF,
-    LogicalSimplification -> LogicalSimplification.On,
-    VariableEncoding -> VariableEncoding.NameParamsAndResults,
-    Problem -> Problem.Consistency))
-    
+    Problem -> Problem.Proof))
+
   val inliningOnlyTest = PartialVariability(Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything)))
   val inliningComparisonTest = PartialVariability(
-      Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything, VariableEncoding.Unchanged),
-      Problem -> Seq(Problem.Test)))  
-  
+    Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything, VariableEncoding.Unchanged),
+      Problem -> Seq(Problem.Test)))
+
   /**
    * This variability model is used by the code below
    */
   val variabilityModel = fullVariability //runs for at least several minutes!
+  //val variabilityModel = onlyGuardedFOFTest
 
-  
   /**
    * this variability model is used for single verifications
    * triggered from Veritas
@@ -83,7 +85,7 @@ object Backend {
   }
 
   type ResultProcessor = (Configuration, Seq[PrettyPrintableFile]) => Seq[(String, PrettyPrintableFile)]
-  
+
   /**
    * processes results of a single encoding alternative for a given Stratego file, writes result files
    */
@@ -95,8 +97,9 @@ object Backend {
     val typing = config(FinalEncoding).toString().toLowerCase
     val variable = config(VariableEncoding).toString().toLowerCase
     val simpl = config(LogicalSimplification).toString().toLowerCase
+    val tj = config(TypingJudgmentEncoding).toString().toLowerCase
 
-    val outputFolder = s"$problem/$typing/$variable-$simpl"
+    val outputFolder = s"$problem/$typing/$tj-$variable-$simpl"
 
     //write the files in the corresponding directory
     //is it necessary to use the Stratego context when backend is called as a strategy
@@ -112,10 +115,9 @@ object Backend {
    * returns pairs of directory name of a file and the actual prettyPrintableFile
    */
   private def runEncodings(
-      input: StrategoTerm,
-      processResult: ResultProcessor,
-      variabilityModel: VariabilityModel = this.variabilityModel)
-  : Seq[(String, PrettyPrintableFile)] = {
+    input: StrategoTerm,
+    processResult: ResultProcessor,
+    variabilityModel: VariabilityModel = this.variabilityModel): Seq[(String, PrettyPrintableFile)] = {
     val module = Module.from(input)
     val comparison = new EncodingComparison(variabilityModel, module)
 
@@ -169,7 +171,7 @@ object Backend {
     else
       context.getFactory.makeList(resseq.asJava)
   }
-  
+
   /**
    * Run backend as default strategy from inside Veritas editor with a single default configuration
    */
@@ -181,23 +183,23 @@ object Backend {
         "Argument must be a quatruple: (project path (Veritas), input file directory, proofPath, AST of file as Stratego term)")
     }
 
-    val consistencyFile = s"$projectPath/${Util.removeExtension(proofPath)}-consistency.fof"    
+    val consistencyFile = s"$projectPath/${Util.removeExtension(proofPath)}-consistency.fof"
 
     Context.initStrategy(context)
 
     val proc: ResultProcessor = { (config, outputFiles) =>
       if (outputFiles.size != 1)
         Context.log(s"There should be a single goal encoding, but got ${outputFiles.size} results")
-        
+
       if (outputFiles.size < 1)
-      	throw new IllegalStateException(s"There should be a single goal encoding, but got ${outputFiles.size} results")
+        throw new IllegalStateException(s"There should be a single goal encoding, but got ${outputFiles.size} results")
       else {
         val file = outputFiles.last
         val pathname = writeFile(file, consistencyFile)
         Seq((pathname, file))
       }
     }
-    
+
     val resultFiles = runEncodings(ast, proc, defaultVariabilityModel)
 
     // generate return value that is expected by caller of runAsStrategy
@@ -216,8 +218,8 @@ object Backend {
     else
       context.getFactory.makeList(resseq.asJava)
   }
-  
-    def runAsProofStrategy(context: org.strategoxt.lang.Context, inputFromEditor: IStrategoTerm): IStrategoList = {
+
+  def runAsProofStrategy(context: org.strategoxt.lang.Context, inputFromEditor: IStrategoTerm): IStrategoList = {
     // check and destructure input
     val (projectPath, inputDir, basePath, ast) = StrategoTerm(inputFromEditor) match {
       case StrategoTuple(StrategoString(projectPath), StrategoString(inputDir), StrategoString(proofPath), ast) => (projectPath, inputDir, proofPath, ast)
@@ -234,13 +236,13 @@ object Backend {
         (filename, file)
       }
     }
-    
+
     val resultFiles = runEncodings(ast, proc, defaultVariabilityModel)
 
     var resseq: Seq[IStrategoTuple] = Seq() // Seq[(RuleName, FilePath)]
-    
+
     for ((fullname, file) <- resultFiles) {
-    	val strategoGoalname = context.getFactory.makeString(file.goalname)
+      val strategoGoalname = context.getFactory.makeString(file.goalname)
       val strategoFilename = context.getFactory.makeString(fullname)
       val strategoTuple = context.getFactory.makeTuple(strategoGoalname, strategoFilename)
       resseq = resseq :+ strategoTuple
@@ -253,17 +255,16 @@ object Backend {
       context.getFactory.makeList(resseq.asJava)
   }
 
-  
   /**
    * function for debugging:
-   * 
+   *
    * apply a single partial transformation chain on a module, without writing files
    * for debugging intermediate steps
-   * 
+   *
    * customize conf and CustomPartialChain below for debugging
    */
   def debugTransformation(aterm: StrategoTerm): Seq[(String, PrettyPrintableFile)] = {
-    
+
     import de.tu_darmstadt.veritas.backend.transformation._
     import de.tu_darmstadt.veritas.backend.transformation.defs._
     import de.tu_darmstadt.veritas.backend.transformation.imports._
@@ -274,7 +275,7 @@ object Backend {
       LogicalSimplification -> LogicalSimplification.On,
       VariableEncoding -> VariableEncoding.InlineEverything,
       Problem -> Problem.Test))
-      
+
     val modules = Seq(Module.from(aterm))
 
     object CustomPartialChain extends SeqTrans(
@@ -290,8 +291,7 @@ object Backend {
       // determines whether logical optimizations take place prior to fof/tff encoding
       //Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
       // select problem
-      ProblemTrans
-      )
+      ProblemTrans)
 
     val transformationChain = { sm: Seq[Module] => CustomPartialChain(sm)(conf) }
     val resultingModSeq = transformationChain(modules)
@@ -311,14 +311,13 @@ object Backend {
       case Array(atermFilename, indexAndTaskenginePath) => (StrategoTerm.fromATermFile(atermFilename), indexAndTaskenginePath)
     }
 
-
     Context.initStandalone(indexAndTaskenginePath)
 
     //use line below for debugging single partial transformation chains
-    val resultFiles = debugTransformation(aterm) 
-    
+    val resultFiles = debugTransformation(aterm)
+
     val inputDirectory = "test"
-//    val resultFiles = runEncodings(aterm, processSingleResult(inputDirectory)) //writes files
+    //    val resultFiles = runEncodings(aterm, processSingleResult(inputDirectory)) //writes files
 
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
     outputPrettyPrinter.writeln()
