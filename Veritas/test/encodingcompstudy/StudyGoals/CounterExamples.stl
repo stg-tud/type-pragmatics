@@ -1,4 +1,4 @@
-module encodingcompstudy.CounterExample-test
+module encodingcompstudy.CounterExamples
 
 import encodingcompstudy.Syntax
 import encodingcompstudy.Semantics

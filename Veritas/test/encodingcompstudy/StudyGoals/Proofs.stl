@@ -1,4 +1,4 @@
-module encodingcompstudy.Proof-test
+module encodingcompstudy.Proofs
 
 import encodingcompstudy.Syntax
 import encodingcompstudy.Semantics

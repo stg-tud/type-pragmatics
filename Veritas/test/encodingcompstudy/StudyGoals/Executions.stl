@@ -1,4 +1,4 @@
-module encodingcompstudy.Execution-test
+module encodingcompstudy.Executions
 
 import encodingcompstudy.Syntax
 import encodingcompstudy.Semantics
