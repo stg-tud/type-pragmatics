@@ -18,7 +18,6 @@ local {
 	consts
 		row1 : Row
 		row2 : Row
-		al : AList
 		RT : RawType
 	
 	axiom
@@ -81,7 +80,7 @@ goal
 ~TTC |- Tvalue(~table) : ~TT
 lookupStore(~name, ~ts) = someTable(~table)
 ========================================== proof-4
-reduce(conf(SelectAllFrom(Ref(~tn)), ~ts)) == someConf(conf(Tvalue(~table), ~ts))
+reduce(conf(SelectAllFrom(Ref(~name)), ~ts)) == someConf(conf(Tvalue(~table), ~ts))
 
 // intersection is associative for tables with one row
 local {
@@ -116,17 +115,19 @@ local {
 	~TTC |- Tvalue(t2) : ~TT
 	~u == Union(Tvalue(t1), Tvalue(t2))
 	~TTC |- Union(Tvalue(t1), Tvalue(t2)) : ~TT
-	reduce(conf(~u, ~ts)) == someConf(conf(~result, ~ts))
+	reduce(conf(~u, ~ts)) == someConf(conf(Tvalue(~result), ~ts))
+	StoreContextConsistent(~ts, ~TTC)
 	============================================= proof-6
-	~TTC |- ~result : ~TT
+	~TTC |- Tvalue(~result) : ~TT
 }
 
 // if a query is a value, reduce will return noConf
 goal
 ~TTC |- ~q : ~TT
 isValue(~q)
+StoreContextConsistent(~ts, ~TTC)
 ============= proof-7
-reduce(conf(~t, ~ts)) == noConf
+reduce(conf(~q, ~ts)) == noConf
 
 // Preservation for one specific case SelectSomeFromWhere case
 goal

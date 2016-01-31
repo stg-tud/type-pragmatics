@@ -85,11 +85,13 @@ local {
 }
     
 goal
+true
 ====== synthesis-4
 exists ~conf
   reduce(~conf) = noConf
   
 goal
+true
 ===== synthesis-5
 exists ~table
   projectEmptyCol(~table) == tcons(rempty, tempty)

@@ -37,8 +37,8 @@ local {
 	
 	goal
 	~al = acons(a, acons(b, aempty))
-	~table1 == table(~al, tcons(r1, tempty))
-	~table2 == table(~al, tcons(r2, tempty))
+	~table1 == table(~al, tcons(r1, tempty)))
+	~table2 == table(~al, tcons(r2, tempty)))
 	welltypedtable(~tt, ~table1)
 	welltypedtable(~tt, ~table2)
 	============================ test-2
