@@ -120,17 +120,10 @@ trait TranslateTypingJudgments extends ModuleTransformation {
     val inferinst = new InferTypingJudgmentsSignature
     inferinst(m)
 
-    if (config.m(Configuration.TypingJudgmentEncoding) == Configuration.TypingJudgmentEncoding.Function) {
-      if (!(inferinst.targs contains None))
-        makeTypingJudgmentFunctionDecl(inferinst.targs(0).get, inferinst.targs(1).get, inferinst.targs(2).get)
-      if (!(inferinst.stargs contains None))
-        makeStypingJudgmentFunctionDecl(inferinst.stargs(0).get, inferinst.stargs(1).get)
-    } else if (config.m(Configuration.TypingJudgmentEncoding) == Configuration.TypingJudgmentEncoding.Predicate) {
-      if (!(inferinst.targs contains None))
-        makeTypingJudgmentPredicateDecl(inferinst.targs(0).get, inferinst.targs(1).get, inferinst.targs(2).get)
-      if (!(inferinst.stargs contains None))
-        makeStypingJudgmentPredicateDecl(inferinst.stargs(0).get, inferinst.stargs(1).get)
-    }
+    if (!(inferinst.targs contains None))
+      makeTypingJudgmentPredicateDecl(inferinst.targs(0).get, inferinst.targs(1).get, inferinst.targs(2).get)
+    if (!(inferinst.stargs contains None))
+      makeStypingJudgmentPredicateDecl(inferinst.stargs(0).get, inferinst.stargs(1).get)
     super.apply(m)
   }
 

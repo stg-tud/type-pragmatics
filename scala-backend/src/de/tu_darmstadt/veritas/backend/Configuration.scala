@@ -28,9 +28,12 @@ object Configuration {
     val NameParamsAndResults = Value("namparres")
   }
 
-  object TypingJudgmentEncoding extends ConfigOption {
-    val Function, Predicate = Value
-  }
+  
+// this variable is currently removed, encoding the typing judgment as function
+// yields inconsistencies in many type systems
+//  object TypingJudgmentEncoding extends ConfigOption {
+//    val Function, Predicate = Value
+//  }
 
   // this variable is currently removed, we decided on not having this variation in the study
   //  object InversionLemma extends ConfigOption {
@@ -60,13 +63,11 @@ trait VariabilityModel extends Iterable[Configuration]
 
 object FullVariability extends VariabilityModel {
   override def iterator = for (
-    typ <- TypingJudgmentEncoding.iterator;
     simpl <- LogicalSimplification.iterator;
     vars <- VariableEncoding.iterator;
     fin <- FinalEncoding.iterator;
     prob <- Problem.iterator if prob != Problem.All
   ) yield Configuration(Map(
-    TypingJudgmentEncoding -> typ,
     LogicalSimplification -> simpl,
     VariableEncoding -> vars,
     FinalEncoding -> fin,
@@ -77,13 +78,11 @@ case class PartialVariability(config: Map[ConfigParameter, Seq[ConfigValue]]) ex
   private def test(p: ConfigParameter, v: ConfigValue) = config.get(p).map(_.contains(v)).getOrElse(true)
 
   override def iterator = for (
-    typ <- TypingJudgmentEncoding.iterator if test(TypingJudgmentEncoding, typ);
     simpl <- LogicalSimplification.iterator if test(LogicalSimplification, simpl);
     vars <- VariableEncoding.iterator if test(VariableEncoding, vars);
     fin <- FinalEncoding.iterator if test(FinalEncoding, fin);
     prob <- Problem.iterator if test(Problem, prob)
   ) yield Configuration(Map(
-    TypingJudgmentEncoding -> typ,
     LogicalSimplification -> simpl,
     VariableEncoding -> vars,
     FinalEncoding -> fin,

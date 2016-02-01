@@ -37,12 +37,10 @@ object Backend {
       (LogicalSimplification -> Seq(LogicalSimplification.On))))
 
   val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
-    TypingJudgmentEncoding -> TypingJudgmentEncoding.Predicate,
     LogicalSimplification -> LogicalSimplification.On,
     VariableEncoding -> VariableEncoding.NameEverything,
     Problem -> Problem.Proof))
   val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF,
-    TypingJudgmentEncoding -> TypingJudgmentEncoding.Function,
     LogicalSimplification -> LogicalSimplification.On,
     VariableEncoding -> VariableEncoding.InlineEverything,
     Problem -> Problem.Proof))
@@ -97,9 +95,8 @@ object Backend {
     val typing = config(FinalEncoding).toString().toLowerCase
     val variable = config(VariableEncoding).toString().toLowerCase
     val simpl = config(LogicalSimplification).toString().toLowerCase
-    val tj = config(TypingJudgmentEncoding).toString().toLowerCase
 
-    val outputFolder = s"$problem/$typing/$tj-$variable-$simpl"
+    val outputFolder = s"$problem/$typing/$variable-$simpl"
 
     //write the files in the corresponding directory
     //is it necessary to use the Stratego context when backend is called as a strategy
