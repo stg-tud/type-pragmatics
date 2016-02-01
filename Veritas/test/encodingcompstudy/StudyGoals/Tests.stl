@@ -61,7 +61,7 @@ local {
 	~table == table(~al, tcons(~row, tempty))
 	welltypedtable(~tt, ~table)
 	========================== test-3
-	findCol(a2) == someRawTable(tcons(rcons(v2, rempty), tempty))
+	findCol(a2, ~table) == someRawTable(tcons(rcons(v2, rempty), tempty))
 }
 
 local {
@@ -143,7 +143,7 @@ local {
 	goal
 	~TTC = bindContext(tn1, tt, bindContext(tn2, tt, bindContext(tn3, tt, bindContext(tn4, tt4, bindContext(tn5, tt)))))
 	========================================= test-9
-	lookupContext(tn4) == someTType(tt4)
+	lookupContext(tn4, ~TTC) == someTType(tt4)
 	
 }
 

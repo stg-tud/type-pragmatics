@@ -173,7 +173,7 @@ local {
 	exists ~table2, ~row
 	  ~table2 == table(~al, tcons(~row, tempty))
 	  welltypedtable(~tt, ~table2)
-	  reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), ~ts)) != someConf(conf(Tvalue(table(~al, tempty))))
+	  reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), ~ts)) != someConf(conf(Tvalue(table(~al, tempty)), ~ts))
 }
 
 local {
@@ -193,5 +193,5 @@ local {
 	welltypedtable(~tt, ~table)
 	========================== counterexample-10
 	exists ~name
-	  findCol(~name) != someRawTable(tcons(rcons(v2, rempty), tempty))
+	  findCol(~name, ~table) != someRawTable(tcons(rcons(v2, rempty), tempty))
 }
