@@ -371,7 +371,7 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown"), time, VampireTrace(clauses.finalizedArray, VampireConfig.this))
+        new ProverResult(Inconclusive("Unknown - Parse error?"), Some(0.0), VampireTrace((new GrowingArray[VampireClause](1)).finalizedArray, VampireConfig.this))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails(proof, lemmas))
         case Disproved => new ProverResult(Disproved, time, model)
