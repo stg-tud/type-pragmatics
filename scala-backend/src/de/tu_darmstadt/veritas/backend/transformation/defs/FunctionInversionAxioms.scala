@@ -66,9 +66,17 @@ trait FunctionInversionAxioms extends CollectTypes {
       case TypingRule(n, _, _) => n
     }
 
+    def nameMatches(rn: String, fn: String): Boolean = {
+      val eqnameregex = """(.+)[0-9]+""".r.unanchored
+      rn match {
+        case eqnameregex(fnname) => (fnname == fn)
+        case _                   => false
+      }
+    }
+
     if (!rulenames.isEmpty) {
-      val func: Seq[String] = ((for { fn <- functypes.keys if (rulenames.forall { rn => rn.startsWith(fn) }) } yield fn) ++
-        (for { fn <- pfunctypes.keys if (rulenames.forall { rn => rn.startsWith(fn) }) } yield fn)).toSeq
+      val func: Seq[String] = ((for { fn <- functypes.keys if (rulenames.forall { rn => nameMatches(rn, fn) }) } yield fn) ++
+        (for { fn <- pfunctypes.keys if (rulenames.forall { rn => nameMatches(rn, fn) }) } yield fn)).toSeq
 
       func match {
         case Seq()                          => false
