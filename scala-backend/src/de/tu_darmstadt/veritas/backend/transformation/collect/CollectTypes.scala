@@ -88,12 +88,12 @@ trait CollectTypes extends ModuleTransformation {
          | Functions(_)
          | PartialFunctions(_)
          | Sorts(_)
-        => Left(transModuleDefs(mdef)) // Left = done in first phase
+        => Left(trace(mdef)(transModuleDefs(_))) // Left = done in first phase
       case other => Right(Seq(other))  // Right = to be done in second phase
     }}
     mdefsTyped flatMap {
       case Left(seq) => seq
-      case Right(Seq(mdef)) => transModuleDefs(mdef)
+      case Right(Seq(mdef)) => trace(mdef)(transModuleDefs(_))
     }
   }
   
@@ -123,7 +123,10 @@ trait CollectTypes extends ModuleTransformation {
   override def transFunctionSig(sig: FunctionSig): FunctionSig =
     withSuper(super.transFunctionSig(sig)) {
       case sig =>
-        _functypes += (sig.name -> (sig.in, sig.out))
+        if (path(2).isInstanceOf[Functions])
+          _functypes += (sig.name -> (sig.in, sig.out))
+        else if (path(2).isInstanceOf[PartialFunctions])
+          _pfunctypes += (sig.name -> (sig.in, sig.out))
         sig
     }
 
