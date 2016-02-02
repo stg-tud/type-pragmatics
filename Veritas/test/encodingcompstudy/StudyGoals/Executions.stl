@@ -85,9 +85,9 @@ local {
 	
 	goal
 	~al = acons(a, acons(b, acons(c, aempty)))
-	~row1 = rcons(v, rcons(w, rcons(u)))
-	~row2 = rcons(v, rcons(w, rcons(u)))
-	~row3 = rcons(u, rcons(v, rcons(w)))
+	~row1 = rcons(v, rcons(w, rcons(u, rempty)))
+	~row2 = rcons(v, rcons(w, rcons(u, rempty)))
+	~row3 = rcons(u, rcons(v, rcons(w, rempty)))
 	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tcons(~row4, tempty))))
 	~t = table(~al, ~rt)
 	========================= execution-6

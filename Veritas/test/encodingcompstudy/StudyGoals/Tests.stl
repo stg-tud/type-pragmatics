@@ -141,7 +141,7 @@ local {
 		tt4 : TType
 		
 	goal
-	~TTC = bindContext(tn1, tt, bindContext(tn2, tt, bindContext(tn3, tt, bindContext(tn4, tt4, bindContext(tn5, tt)))))
+	~TTC = bindContext(tn1, tt, bindContext(tn2, tt, bindContext(tn3, tt, bindContext(tn4, tt4, bindContext(tn5, tt, emptyContext)))))
 	========================================= test-9
 	lookupContext(tn4, ~TTC) == someTType(tt4)
 	

@@ -113,7 +113,7 @@ local {
 
 	goal
 	~types == rtcons(ft1, rtcons(ft2, rtcons(ft3, rtempty)))
-	~table == tcons(rcons(fv1, rcons(fv2, rcons(fv3))), tempty)
+	~table == tcons(rcons(fv1, rcons(fv2, rcons(fv3, rempty))), tempty)
 	welltypedRawtable(~types, ~table)
 	~c1 == ctype(a, ft1)
 	~c2 == ctype(b, ft2)
