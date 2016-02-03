@@ -42,7 +42,7 @@ local {
 	welltypedtable(~tt, ~table1)
 	welltypedtable(~tt, ~table2)
 	============================ test-2
-	reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), emptyStore)) == someConf(conf(Tvalue(table(~al, tempty)) emptyStore))
+	reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), emptyStore)) == someConf(conf(Tvalue(table(~al, tempty)), emptyStore))
 }
 
 local {
