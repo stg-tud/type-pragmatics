@@ -39,8 +39,6 @@ local {
 	~al = acons(a, acons(b, aempty))
 	~table1 == table(~al, tcons(r1, tempty))
 	~table2 == table(~al, tcons(r2, tempty))
-	welltypedtable(~tt, ~table1)
-	welltypedtable(~tt, ~table2)
 	============================ test-2
 	reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), emptyStore)) == someConf(conf(Tvalue(table(~al, tempty)), emptyStore))
 }
@@ -59,7 +57,6 @@ local {
 	~al == acons(a1, acons(a2, acons(a3, aempty)))
 	~row == rcons(v1, rcons(v2, rcons(v3, rempty)))
 	~table == table(~al, tcons(~row, tempty))
-	welltypedtable(~tt, ~table)
 	========================== test-3
 	findCol(a2, ~table) == someRawTable(tcons(rcons(v2, rempty), tempty))
 }
@@ -77,10 +74,19 @@ local {
 	rawDifference(~table1, ~table2) == tcons(row2, tempty)
 }
 
-goal
-~table = tcons(~row1, tcons(~row2, tcons(~row3, tcons(~row4, tempty))))
-======================================================================= test-5
-rowIn(~row4, ~table)
+local {	
+	different consts
+		row1 : Row
+		row2 : Row
+		row3 : Row
+		row4 : Row
+
+
+	goal
+	~table = tcons(row1, tcons(row2, tcons(row3, tcons(row4, tempty))))
+	======================================================================= test-5
+	rowIn(row4, ~table)
+}
 
 local {
 	different consts
@@ -88,22 +94,37 @@ local {
 		b : AName
 		c : AName
 		d : AName
+		z : AName
 	
 	goal
 	~al = acons(a, acons(b, acons(c, acons(d, aempty))))
 	~table1 = table(~al, ~rt)
-	~table2 = table(acons(~a, ~al), ~rt2)
-	welltypedtable(~tt1, ~table1)
-	welltypedtable(~tt2, ~table2)
+	~table2 = table(acons(z, ~al), ~rt2)
 	================================= test-6
-	reduce(conf(Union(Tvalue(~table1), Tvalue(~table2)), ~ts)) == noConf
+	reduce(conf(Union(Tvalue(~table1), Tvalue(~table2)), emptyStore)) == noConf
 	
-	goal
-	~al == acons(a, acons(b, acons(c, aempty)))
-	~al2 == append(~al, acons(d, aempty)) 
-	========================================== test-7
-	~al2 == acons(a, acons(b, acons(c, acons(d, aempty))))
 }
+
+local {
+	different consts
+		a : AName
+		b : AName
+		
+		ft1 : FType
+		ft2 : FType
+		
+		tn1 : TName
+		
+    goal
+    ~tt1 == ttcons(ctype(a, ft1), ttcons(ctype(b, ft2), ttempty))
+    ~TTC == bindContext(tn1, ~tt1, emptyContext)
+    ~al == acons(b, aempty)
+    ~TT == ttcons(ctype(b, ft2), ttempty)
+    ==================================================== test-7
+    ~TTC |- SelectSomeFrom(~al, Ref(tn1)) : ~TT
+    
+}
+
 
 local {
 	different consts
