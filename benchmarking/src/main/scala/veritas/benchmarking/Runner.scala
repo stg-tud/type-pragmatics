@@ -127,7 +127,7 @@ object Runner {
     import ExecutionContext.Implicits.global
     val f = Future(blocking(p.exitValue()))
     try {
-      val code = Await.result(f, duration.Duration(timeoutSeconds + 5, "sec"))
+      val code = Await.result(f, duration.Duration(timeoutSeconds + 10, "sec"))
       val end = System.nanoTime()
 
       if (logExec)

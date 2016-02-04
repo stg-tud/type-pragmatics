@@ -13,13 +13,13 @@ case class NewPrincessConfig()
   override val name = s"newprincess"
   override val proverCommand = findBinaryInPath(s"java")
 
-  override val acceptedFileFormats = Set(".fof", ".tff")
+  override val acceptedFileFormats = Set(".fof")
 
   private var lemmas: List[String] = null
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
     var call = Seq(proverCommand.getAbsolutePath)
-    call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "ap.CmdlMain", "-inputFormat=tptp")
+    call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "-cp", "princess-all.jar", "ap.CmdlMain", "-inputFormat=tptp")
     if (timeout > 0)
     //java -Xss20000k -Xmx1500m -noverify ap.CmdlMain -printTree -inputFormat=tptp -timeout=%1 %2
       // accepts timeout in ms
@@ -57,6 +57,7 @@ case class NewPrincessConfig()
     var proofBuilder: StringBuilder = _
 
     override def out(s: => String) = try {
+      //println(s)
       if (s.contains("TIMEOUT"))
         status = Inconclusive("Timeout")
       else if (s.contains("VALID")) {
@@ -75,6 +76,7 @@ case class NewPrincessConfig()
 
     override def buffer[T](f: => T) = f // no setup or teardown
     override def err(s: => String) = try {
+        //println(s)
         if (s.contains("ms")) {
           time = tryExtractTimeSeconds(s)
         }
@@ -85,7 +87,7 @@ case class NewPrincessConfig()
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown"), time, StringDetails("Inconclusive"))
+        new ProverResult(Inconclusive("Unknown - Parse Error?"), Some(0.0), StringDetails("Inconclusive"))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails("", lemmas))
         case Disproved => new ProverResult(Disproved, time, StringDetails("Disproved"))
