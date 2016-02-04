@@ -8,171 +8,112 @@ import encodingcompstudy.Tables
 import encodingcompstudy.TableAux
 import encodingcompstudy.TContext
 
-local {
-	different consts
-		a : AName
-		b : AName
-		
-		v : FVal
-		w : FVal
-		
-		ft : FType
-		
-	goal
-	~al = acons(a, acons(b, aempty))
-	~tt = ttcons(ctype(a, ft), ttcons(ctype(b, ft), ttempty))
-	~rt = tcons(rcons(v, rcons(w, rempty)), tcons(rcons(w, rcons(v, rempty)), tempty))
-	welltypedtable(~TT, table(~al, ~rt))
-	~q1 = Tvalue(table(~al, ~rt))
-	~TTC |- ~q1 : ~TT
-	==================== synthesis-1
-	exists ~TTC
-	  ~TTC |- ~q2 : ~TT
-	  ~TTC |- Intersection(~q1, ~q2) : ~TT
-}
 
-// given table with attribute names acons(a, al2), there is a projection such that
-// the result is a table with attribute names al2
-local {
-	different consts
-		a : AName
-		b : AName
-		c : AName
-		
-		v1 : FVal
-		v2 : FVal
-		v3 : FVal
-		
-	goal
-	~al2 = acons(b, acons(c, aempty))
-	~al1 = acons(a, ~al2)
-	~rt1 = tcons(rcons(v1, rcons(v2, rcons(v3, rempty))), tempty)
-	~table1 == table(~al1, ~rt1)
-	welltypedtable(~tt1, ~table1)
-	~rt2 = tcons(rcons(v2, rcons(v3, rempty)), tempty)
-	~table2 == table(~al2, ~rt2)
-	welltypedtable(~tt2, ~able2)
-	==================== synthesis-2
-	exists ~p
-	  someRawTable(~rt2) == project(~p, ~table1)
-}
-
-// there is a table Y != X, such that intersect(X, Y) = X
-local {
-	different consts
-		a : AName
-		b : AName
-	
-		v1 : FVal
-		v2 : FVal
-		v3 : FVal
-		v4 : FVal
-	
-	goal
-	~row1 == rcons(v1, rcons(v2, rempty))
-	~row2 == rcons(v3, rcons(v4, rempty))
-	~rt1 == tcons(~row1, tcons(~row2, tempty))
-	~al == acons(a, acons(b, aempty))
-	~table1 == table(~al, ~rt1)
-	welltypedtable(~tt, ~table1)
-	============================= synthesis-3
-	exists ~table2, ~rt2, ~row3
-	  ~table2 != ~table1
-	  ~rt2 == tcons(~row3, ~rt1)
-	  ~table2 == table(~al, ~rt2)
-	  welltypedtable(~tt, ~table2)
-	  intersect(~table1, ~table2) == someTable(~table1)
-}
-    
 goal
 true
-====== synthesis-4
+================================= synthesis-1
+exists ~TTC, ~q1, ~q2, ~TT
+  ~TTC |- ~q1 : ~TT
+  ~TTC |- ~q2 : ~TT
+  ~TTC |- Intersection(~q1, ~q2) : ~TT
+
+
+//given table with one column and one row, there is an attribute list
+//to project the table on itself
+local {
+	consts
+		v : FVal
+
+	goal
+	~rt1 == tcons(rcons(v, rempty), tempty)
+	~table1 == table(acons(~a, aempty), ~rt1)
+	===================================================================== synthesis-2
+	exists ~p
+  		project(~p, ~table1) == someRawTable(~rt1)
+}
+
+local {
+	consts
+		a : AName
+		b : AName
+		r : Row
+		q : Row
+		
+	goal
+	~table1 == table(acons(a, acons(b, aempty)), tcons(r, tcons(q, tempty)))
+	========================================================================= synthesis-3
+	exists ~table2
+		~table1 != ~table2
+		intersect(~table1, ~table2) == someTable(~table1)
+	
+}
+
+//there is a configuration that cannot be reduced further 
+//(but does not contain a table value)    
+goal
+true
+======================= synthesis-4
 exists ~conf
+  forall ~t, ~ts ~conf != conf(Tvalue(~t), ~ts)
   reduce(~conf) = noConf
   
 goal
 true
-===== synthesis-5
+=================================================== synthesis-5
 exists ~table
   projectEmptyCol(~table) == tcons(rempty, tempty)
 
-// if there is a well typed raw table, there's an equivalent well typed table
-local {
-	different consts
-		ft1 : FType
-		ft2 : FType
-		ft3 : FType
-	
-		fv1 : FVal
-		fv2 : FVal
-		fv3 : FVal
-		
-		a : AName
-		b : AName
-		c : AName
+// if there is a well typed raw table, there also is a 
+// well-typed table that contains this raw table
+goal
+~r1 == rcons(~fv1, rcons(~fv2, rempty))
+~r2 == rcons(~fv3, rcons(~fv4, rempty))
+~rt == tcons(~r1, tcons(~r2, tempty))
+~rtype == rtcons(~ft1, rtcons(~ft2, rtempty))
+welltypedRawtable(~rtype, ~rt)
+======================================================================== synthesis-6
+exists ~TT, ~table2, ~al
+  ~table2 = table(~al, ~rt)
+  welltypedtable(~TT, ~table2)
 
-	goal
-	~types == rtcons(ft1, rtcons(ft2, rtcons(ft3, rtempty)))
-	~table == tcons(rcons(fv1, rcons(fv2, rcons(fv3, rempty))), tempty)
-	welltypedRawtable(~types, ~table)
-	~c1 == ctype(a, ft1)
-	~c2 == ctype(b, ft2)
-	~c3 == ctype(c, ft3)
-	========================= synthesis-6
-	exists ~TT, ~table2, ~al, ~rt
-	  ~table2 = table(~al, ~rt)
-	  welltypedtable(~TT, ~table2)
-}
 
-local {
-	different consts
-		a : AName
-		b : AName
-		c : AName
-		
-		t : FType
-		u : FType
-		v : FType
-		
-	goal
-	~tt = ttcons(ctype(a, t), ttcons(ctype(b, u), ttcons(ctype(c, v), ttempty)))
-	====== synthesis-7
-	exists ~x, ~fv
-	  checkPValidity(VEquals(~x, ~fv), ~tt)
-}
+goal
+~tt = ttcons(ctype(~a, ~t), ttcons(ctype(~b, ~u), ttempty))
+forall ~type
+	exists ~fv 
+		fieldType(~fv) == ~type
+======================================= synthesis-7
+exists ~x, ~fv
+  checkPValidity(VEquals(~x, ~fv), ~tt)
+
+
+goal
+true
+====== synthesis-8
+exists ~al
+  projectType(~al, ~tt) = someTType(ttempty)
+
 
 local {
+	consts
+	  a : AName
+	  t : FType
+	  
 	goal
-	====== synthesis-8
+	~tt = ttcons(ctype(a, t), ttempty)
+	===================================================================================== synthesis-9
 	exists ~al
-	  projectType(~al, ~tt) = someTType(ttempty)
+ 		projectType(~al, ~tt) = someTType(~tt)	
 }
 
-local {
-	different consts
-		a : AName
-		b : AName
-		c : AName
-		
-		t : FType
-		u : FType
-		v : FType
-		
-	goal
-	~tt = ttcons(ctype(a, t), ttcons(ctype(b, u), ttcons(ctype(c, v), ttempty)))
-	====== synthesis-9
-	exists ~al
-	  projectType(~al, ~tt) = someTType(ttcons(ctype(b, u), ttcons(ctype(a, t), ttcons(ctype(c, v), ttempty))))	
-}
 
 local {
-	different consts
-		row1 : Row
-		row2 : Row
-	
+	consts
+		table1 : Table
+
 	goal
-	~table1 = tcons(row1, tempty)
-	======= synthesis-10
+	true
+	========================================== synthesis-10
 	exists ~table2
-	  rawUnion(~table1, ~table2) = tcons(row1, tcons(row2, tempty))
+	 rawUnion(table1, ~table2) = table1
 }
