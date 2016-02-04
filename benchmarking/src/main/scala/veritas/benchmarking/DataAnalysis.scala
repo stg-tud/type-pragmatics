@@ -16,8 +16,9 @@ case class AnalysisHeader(bconfig: Config, proverConfig: ProverConfig, veritasCo
   def getAnalysisHeaderCells(indices: List[Int]): Set[Cell] = Set[Cell](
     StringCell(indices(0), proverConfig.name),
     NumericCell(indices(1), bconfig.timeout),
-    StringCell(indices(2), veritasConfig.typing),
-    StringCell(indices(3), veritasConfig.transformations)
+    StringCell(indices(2), veritasConfig.goalcategory),
+    StringCell(indices(3), veritasConfig.typing),
+    StringCell(indices(4), veritasConfig.transformations)
   )
 }
 
@@ -25,11 +26,12 @@ object AnalysisHeader {
   def getAnalysisHeaderCells(): Set[Cell] = Set[Cell](
     StringCell(0, "Prover Config"),
     StringCell(1, "Timeout"),
-    StringCell(2, "Veritas Config, typing"),
-    StringCell(3, "Veritas Config, transformations")
+    StringCell(2, "Goal Category"),
+    StringCell(3, "Veritas Config, typing"),
+    StringCell(4, "Veritas Config, transformations")
   )
 
-  val headerlength = 4
+  val headerlength = getAnalysisHeaderCells().size
 }
 
 abstract class DataAnalysis(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]]) {
@@ -109,7 +111,7 @@ class SuccessfulRatePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, 
   override val datatitle = "Rate of successful proofs"
 
   def calcSuccessRate(ah: AnalysisHeader): Double =
-    if (successfulFilesPerConfig(ah) > 0) 0
+    if (!(successfulFilesPerConfig(ah) > 0)) 0
     else
       try {
         (successfulFilesPerConfig(ah).toDouble / totalFilesPerConfig(ah).toDouble) * 100
@@ -129,12 +131,12 @@ class SuccessfulRatePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, 
 class AverageTimePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
   extends SuccessfulPerVC(bconfig, fileSummaries) {
 
-  override val datatitle = "Average time per successful proof (sec)"
+  override val datatitle = "Average time per successful proof (ms)"
 
   val successAvgPerConfig: Map[AnalysisHeader, Double] =
     applyPerConfig2((ah, lfs) => {
       val filterProved = lfs filter provedtest
-      val ts = filterProved map (fs => fs.timeSeconds)
+      val ts = filterProved map (fs => fs.timeSeconds * 1000)
       if (ts.isEmpty) 0
       else
         try {

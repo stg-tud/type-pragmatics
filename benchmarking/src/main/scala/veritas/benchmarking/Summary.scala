@@ -6,7 +6,7 @@ import veritas.benchmarking.Main.Config
 import scala.collection.immutable.{Iterable, IndexedSeq, ListMap}
 
 
-case class VeritasConfig(typing: String, transformations: String)
+case class VeritasConfig(goalcategory: String, typing: String, transformations: String)
 
 /**
   *
@@ -25,10 +25,11 @@ case class FileSummary(filePath: String, proverConfig: ProverConfig, proverResul
       else File.separator
     val pathParts = filePath.split(fileSeparator)
     //assemble configuration from last two parts of path
+    val goalcategory = pathParts(pathParts.length - 4)
     val typing = pathParts(pathParts.length - 3)
     val transformations = pathParts(pathParts.length - 2)
 
-    new VeritasConfig(typing, transformations)
+    new VeritasConfig(goalcategory, typing, transformations)
   }
 
 }
@@ -107,12 +108,13 @@ case class Summary(config: Config) {
         Set(
           StringCell(0, "Prover Config"),
           StringCell(1, "Prover Timeout"),
-          StringCell(2, "Veritas Config, Typing"),
-          StringCell(3, "Veritas Config, Transformation"),
-          StringCell(4, "File"),
-          StringCell(5, "Time-ms"),
-          StringCell(6, "Status"),
-          StringCell(7, "Details")
+          StringCell(2, "Goal Category"),
+          StringCell(3, "Veritas Config, Typing"),
+          StringCell(4, "Veritas Config, Transformation"),
+          StringCell(5, "File"),
+          StringCell(6, "Time-ms"),
+          StringCell(7, "Status"),
+          StringCell(8, "Details")
         )
       }
 
@@ -123,12 +125,13 @@ case class Summary(config: Config) {
         val cells = Set[Cell](
           StringCell(0, res.proverConfig.name),
           NumericCell(1, config.timeout),
-          StringCell(2, res.veritasConfig.typing),
-          StringCell(3, res.veritasConfig.transformations),
-          StringCell(4, file.getName),
-          NumericCell(5, res.timeSeconds * 1000.0),
-          StringCell(6, res.proverResult.status.toString),
-          StringCell(7, detailsString.replace("\n", "\t").substring(0, Math.min(detailsString.length, 32767)))
+          StringCell(2, res.veritasConfig.goalcategory),
+          StringCell(3, res.veritasConfig.typing),
+          StringCell(4, res.veritasConfig.transformations),
+          StringCell(5, file.getName),
+          NumericCell(6, res.timeSeconds * 1000.0),
+          StringCell(7, res.proverResult.status.toString),
+          StringCell(8, detailsString.replace("\n", "\t").substring(0, Math.min(detailsString.length, 32767)))
         )
         rows += Row(rowNum) {
           cells
