@@ -109,7 +109,7 @@ local {
 
 local {
 	consts
-		table1 : Table
+		table1 : RawTable
 
 	goal
 	true

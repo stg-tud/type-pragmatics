@@ -40,24 +40,24 @@ exists ~C2
   lookupContext(~n, ~C2) == someTType(~T)
   ~C != ~C2
 
-// there exists t2 such that union(t1, select(p, t2)) != select(p, union(t1, t2))
+// there exists t2 such that union(t1, select(t2, p)) != select(union(t1, t2), p)
 goal
 ~t1 = table(acons(~n, aempty), tcons(rcons(~v, rempty), tempty))
 ~p = VEquals(~n, ~v)
-============================================================= counterexample-4
-exists ~t2, ~r2, ~v2
+==================================================================================== counterexample-4
+exists ~t2, ~v2
 	~t2 = table(acons(~n, aempty), tcons(rcons(~v2, rempty), tempty))
-	union(~t1, select(~p, ~t2)) != select(~p, union(~t1, ~t2))
+	union(~t1, getSomeTable(select(~t2, ~p))) != select(getSomeTable(union(~t1, ~t2)), ~p)
 
 
-// there exists t2 such that diff(t1, select(p, t2)) != select(p, diff(t1, t2))
+// there exists t2 such that diff(t1, select(t2, p)) != select(diff(t1, t2), p)
 goal
 ~t1 = table(acons(~n, aempty), tcons(rcons(~v, rempty), tempty))
 ~p = VEquals(~n, ~v)
 ============================================================= counterexample-5
-exists ~t2, ~r2, ~v2
+exists ~t2, ~v2
 	~t2 = table(acons(~n, aempty), tcons(rcons(~v2, rempty), tempty))
-	difference(~t1, select(~p, ~t2)) != select(~p, difference(~t1, ~t2))
+	difference(~t1, getSomeTable(select(~t2, ~p))) != select(getSomeTable(difference(~t1, ~t2)), ~p)
 
 
 // difference is not commutative
