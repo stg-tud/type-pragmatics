@@ -189,7 +189,7 @@ FunctionExp.FunctionExpVar =
 ID
  
 FunctionExp.FunctionExpIf = 
-<if <FunctionExpMeta>
+<if <FunctionExp>
 then <FunctionExpMeta> 
 else <FunctionExpMeta>
 >
