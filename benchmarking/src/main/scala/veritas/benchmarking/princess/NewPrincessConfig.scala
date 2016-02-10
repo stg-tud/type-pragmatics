@@ -10,7 +10,7 @@ case class NewPrincessConfig()
 
   def isValid = proverCommand != null
 
-  override val name = s"newprincess"
+  override val name = s"princess-standard"
   override val proverCommand = findBinaryInPath(s"java")
 
   override val acceptedFileFormats = Set(".fof")
@@ -19,9 +19,8 @@ case class NewPrincessConfig()
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
     var call = Seq(proverCommand.getAbsolutePath)
-    call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "-cp", "princess-all.jar", "ap.CmdlMain", "-inputFormat=tptp")
+    call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "-cp", "princess-all-standard.jar", "ap.CmdlMain", "-inputFormat=tptp")
     if (timeout > 0)
-    //java -Xss20000k -Xmx1500m -noverify ap.CmdlMain -printTree -inputFormat=tptp -timeout=%1 %2
       // accepts timeout in ms
       call = call :+ ("-timeout=" + (timeout*1000).toString)
 

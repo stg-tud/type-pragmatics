@@ -10,24 +10,18 @@ case class PrincessConfig()
 
   def isValid = proverCommand != null
 
-  override val name = s"princess"
+  override val name = s"princess-casc"
   override val proverCommand = findBinaryInPath(s"java")
 
   override val acceptedFileFormats = Set(".fof", ".tff")
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
     var call = Seq(proverCommand.getAbsolutePath)
-    call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "ap.CmdlMain", "-inputFormat=tptp")
+    call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "-cp", "princess-all-casc.jar", "ap.CmdlMain", "-inputFormat=tptp")
     if (timeout > 0)
-      //java -Xss20000k -Xmx1500m -noverify ap.CmdlMain -printTree -inputFormat=tptp -timeout=%1 %2
       call = call :+ ("-timeout=" + timeout.toString)
 
-
-    if (fullLogs) {
-      call = call :+ "+printTree" // doesn't seem to work.
-    }
     call = call :+ file.getAbsolutePath
-    println(call)
     call
   }
 
@@ -35,7 +29,6 @@ case class PrincessConfig()
     if(output.length > 20)
       None
     else {
-      println("extracting time")
       val end = output.lastIndexOf("ms")
       val start = output.lastIndexOf("\n", end) + 1
       if (start < 0 || end < 0)
@@ -43,7 +36,6 @@ case class PrincessConfig()
       else {
         val s = output.substring(start, end)
         val d = s.toDouble / 1000
-        println(d)
         Some(d)
       }
     }
@@ -59,8 +51,7 @@ case class PrincessConfig()
     var proofBuilder: StringBuilder = _
 
     override def out(s: => String) = try {
-      //println(s)
-      if (s.contains("% SZS status TimeOut"))
+      if (s.contains("% SZS status Timeout"))
         status = Inconclusive("Timeout")
       else if (s.contains("% SZS status Theorem")) {
         status = Proved
@@ -76,8 +67,8 @@ case class PrincessConfig()
         time = tryExtractTimeSeconds(s)
       }
     } catch {
-      case e: Exception => println(s"Error ${e.getMessage} in $s")
-        throw e
+        case e: Exception => println(s"Error ${e.getMessage} in $s")
+          throw e
     }
 
     override def result =
