@@ -90,8 +90,8 @@ object ProverConfig {
     _configs += c_sat.name -> c_sat
   }
 
-  _configs += "princess" -> PrincessConfig()
-  _configs += "newprincess" -> NewPrincessConfig()
+  _configs += "princess-casc" -> PrincessConfig()
+  _configs += "princess-standard" -> NewPrincessConfig()
   _configs += "eprover" -> EproverConfig()
   //_configs += "eprover" -> BeagleConfig() //doesn't work yet
 

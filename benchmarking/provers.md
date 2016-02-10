@@ -5,7 +5,9 @@ Make sure this binary is available for benchmarks by either pointing your PATH v
 
 ## Princess Installation ##
 
-Download the CASC/TPTP distribution from here: http://www.philipp.ruemmer.org/princess.shtml. After this, change the CLASSPATH environment variable to point to /path/to/princess/dist/princess-all.jar.
+Download the CASC/TPTP distribution from here: http://www.philipp.ruemmer.org/princess/princess-casc-bin-2015-07-06.tar.gz. Unpack, copy the file princess-all.jar from the dist folder into the benchmarking folder. Rename to princess-all-casc.jar.
+
+Download the standard distribution from here: http://www.philipp.ruemmer.org/princess/princess-bin-2016-02-01.zip. Unpack, copy the file princess-all.jar from the dist folder into the benchmarking folder. Rename to princess-all-standard.jar.
 
 ## Beagle Installation ##
 
