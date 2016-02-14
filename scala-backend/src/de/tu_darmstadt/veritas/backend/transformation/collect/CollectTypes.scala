@@ -9,7 +9,10 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 
 trait CollectTypes extends ModuleTransformation {
-  private var _dataTypes: Set[String] = Set()
+  //TODO: do we allow different data types declarations with the same name?
+  // if yes, clarify semantics - if necessary, make sure that _dataTypes collects
+  // ALL data type constructors that belong to a definition!
+  private var _dataTypes: Map[String, (Boolean, Seq[DataTypeConstructor])] = Map()
   // constrTypes: datatype constructors and constants
   private var _constrTypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   private var _functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
@@ -33,7 +36,7 @@ trait CollectTypes extends ModuleTransformation {
    * top-level function for translating a Module to a TffFile
    */
   override def transModule(name: String, _is: Seq[Import], _mdefs: Seq[ModuleDef]): Seq[Module] = {
-    _dataTypes = Set()
+    _dataTypes = Map()
     _constrTypes = Map()
     _functypes = Map()
     _pfunctypes = Map()
@@ -48,7 +51,7 @@ trait CollectTypes extends ModuleTransformation {
    */
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = mdef match {
     case d: DataType => 
-      _dataTypes += d.name
+      _dataTypes += (d.name -> (d.open, d.constrs))
       super.transModuleDefs(d)
       
     case Local(defs) =>
@@ -115,9 +118,11 @@ trait CollectTypes extends ModuleTransformation {
 
   override def transSortDefs(sd: SortDef): Seq[SortDef] =
     withSuper(super.transSortDefs(sd)) {
-      case sd =>
-        _dataTypes += sd.name
+      case sd => {
+        if (!_dataTypes.isDefinedAt(sd.name))
+          _dataTypes += (sd.name -> (true, Seq()))
         Seq(sd)
+      }
     }
 
   override def transFunctionSig(sig: FunctionSig): FunctionSig =

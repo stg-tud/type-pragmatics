@@ -57,8 +57,8 @@ object ToTff {
     types.apply(Seq(veritasModule))
 
     typedSymbols = Map()
-    for (d <- types.dataTypes)
-      addDataType(d)
+    for ((n, conss) <- types.dataTypes)
+      addDataType(n)
     for ((con, (in, out)) <- types.constrTypes)
       addSymbol(con, in, out)
     for ((con, (in, out)) <- types.functypes)
