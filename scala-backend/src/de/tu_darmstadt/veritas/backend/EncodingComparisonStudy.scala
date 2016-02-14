@@ -43,7 +43,7 @@ object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF =>
     GenerateCtorAxioms
   case FinalEncoding.GuardedFOF =>
-    SeqTrans(GenerateCtorAxioms, GenerateTypeGuards)
+    SeqTrans(GenerateCtorAxioms, GenerateAllTypeGuards)
   case FinalEncoding.TFF =>
     Identity // TODO is this correct, or do we need GenerateCtorAxioms?
 })
@@ -78,6 +78,16 @@ object ProblemTrans extends Alternative(selectConfig(Problem) {
     SeqTrans(SplitModulesByGoal(""), MoveDeclsToFront)
 })
 
+object GuardsTrans extends Alternative(selectConfig(FinalEncoding) {
+  // insert type guards for quantified metavariables
+  case FinalEncoding.GuardedFOF =>
+    InsertTypeGuardsForAllMetavars
+  //insert only specific type guards for execution goals
+  case _ =>
+    Optional(SeqTrans(GenerateExecutionGuards, InsertTypeGuardsInExecutionGoals),
+      c => (ifConfig(Problem, Problem.Execution)(c) || ifConfig(Problem, Problem.Consistency)(c)))
+})
+
 /**
  * determine whether subformulas in axioms/goals are inlined or named with an additional variable
  * (which adds an equation to the set of premises of axioms/goals)
@@ -103,7 +113,7 @@ object MainTrans extends SeqTrans(
   // variable inlining/extraction
   VariableTrans,
   // insert type guards for quantified metavariables
-  Optional(InsertTypeGuardsForMetavars, ifConfig(FinalEncoding, FinalEncoding.GuardedFOF)),
+  GuardsTrans,
   // determines whether logical optimizations take place prior to fof/tff encoding
   Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
   // select problem

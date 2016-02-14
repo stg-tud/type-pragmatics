@@ -11,14 +11,12 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 import de.tu_darmstadt.veritas.backend.tff.TffAtomicType
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
 
-object InsertTypeGuardsForMetavars extends ModuleTransformation with CollectTypes {
+class InsertTypeGuardsForMetavars extends ModuleTransformation with CollectTypes {
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     tr match {
-      case tr @ TypingRule(n, prems, conss) =>
-        if (n.startsWith(GenerateTypeGuards.ruleprefix))
-          Seq(tr)
-        else {
+      case tr @ TypingRule(n, prems, conss) if checkTypingRule(tr) =>
+        {
           //infers types of all variables in the typing rule, also in quantifiers
           val vars = inferMetavarTypes(tr)
           val newprems = trace(prems)(transTypingRuleJudgments(_))
@@ -26,25 +24,33 @@ object InsertTypeGuardsForMetavars extends ModuleTransformation with CollectType
           val guards = vars map (v => makeGuardPremise(v))
           Seq(TypingRule(n, guards.toSeq ++ newprems, newconss))
         }
+      case tr => Seq(tr)
     }
   }
 
   //generate guards in inner quantifiers as well
   override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment = {
     withSuper(super.transTypingRuleJudgment(trj)) {
-      case ExistsJudgment(vl, jl) => ExistsJudgment(vl, addGuardsToQuantifierBody(vl, jl))
-      case ForallJudgment(vl, jl) => ForallJudgment(vl, addGuardsToQuantifierBody(vl, jl))
+      case ExistsJudgment(vl, jl) => ExistsJudgment(vl, addGuardsToExistsBody(vl, jl))
+      case ForallJudgment(vl, jl) => ForallJudgment(vl, addGuardsToForallBody(vl, jl))
     }
   }
 
   override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] = {
     withSuper(super.transTypingRuleJudgments(trj)) {
-      case ExistsJudgment(vl, jl) => Seq(ExistsJudgment(vl, addGuardsToQuantifierBody(vl, jl)))
-      case ForallJudgment(vl, jl) => Seq(ForallJudgment(vl, addGuardsToQuantifierBody(vl, jl)))
+      case ExistsJudgment(vl, jl) => Seq(ExistsJudgment(vl, addGuardsToExistsBody(vl, jl)))
+      case ForallJudgment(vl, jl) => Seq(ForallJudgment(vl, addGuardsToForallBody(vl, jl)))
     }
   }
 
-  private def addGuardsToQuantifierBody(vl: Seq[MetaVar], jl: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
+  def addGuardsToExistsBody(vl: Seq[MetaVar], jl: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
+    //types of meta variables should have been inferred already
+    //in exists bodies, guards must be attached via conjunction!
+    val guards = vl map (v => makeGuardPremise(v))
+    guards ++ jl
+  }
+
+  def addGuardsToForallBody(vl: Seq[MetaVar], jl: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
     //types of meta variables should have been inferred already
     val guards = vl map (v => makeGuardPremise(v))
     val negguards = guards map (g => NotJudgment(g))
@@ -53,5 +59,40 @@ object InsertTypeGuardsForMetavars extends ModuleTransformation with CollectType
 
   private def makeGuardPremise(v: MetaVar): TypingRuleJudgment =
     FunctionExpJudgment(
-      GenerateTypeGuards.guardCall(v.sortType.name, FunctionMeta(v)))
+      GenerateAllTypeGuards.guardCall(v.sortType.name, FunctionMeta(v)))
+
+  def checkTypingRule(tr: TypingRule): Boolean =
+    tr match {
+      case TypingRule(n, _, _) => !(n.startsWith(GenerateAllTypeGuards.ruleprefix))
+    }
+}
+
+object InsertTypeGuardsForAllMetavars extends InsertTypeGuardsForMetavars
+
+/**
+ * In execution goals, only add guards in quantified variables in exists body (and nowhere else!)
+ */
+object InsertTypeGuardsInExecutionGoals extends InsertTypeGuardsForMetavars {
+  override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
+    tr match {
+      case tr @ TypingRule(n, prems, conss) if checkTypingRule(tr) =>
+        {
+          //infers types of all variables in the typing rule, also in quantifiers
+          val vars = inferMetavarTypes(tr)
+          val newprems = trace(prems)(transTypingRuleJudgments(_))
+          val newconss = trace(conss)(transTypingRuleJudgments(_))
+          Seq(TypingRule(n, newprems, newconss))
+        }
+      case tr => Seq(tr)
+    }
+  }
+
+  override def addGuardsToForallBody(vl: Seq[MetaVar], jl: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
+    jl
+  }
+
+  override def checkTypingRule(tr: TypingRule): Boolean =
+    tr match {
+      case TypingRule(n, prems, conss) => super.checkTypingRule(tr) && n.startsWith("execution")
+    }
 }

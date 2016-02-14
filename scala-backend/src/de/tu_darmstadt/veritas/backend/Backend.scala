@@ -268,10 +268,10 @@ object Backend {
     import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 
     val conf = Configuration(Map(
-      FinalEncoding -> FinalEncoding.TFF,
+      FinalEncoding -> FinalEncoding.GuardedFOF,
       LogicalSimplification -> LogicalSimplification.On,
-      VariableEncoding -> VariableEncoding.InlineEverything,
-      Problem -> Problem.Test))
+      VariableEncoding -> VariableEncoding.Unchanged,
+      Problem -> Problem.Execution))
 
     val modules = Seq(Module.from(aterm))
 
@@ -284,11 +284,12 @@ object Backend {
       // variable inlining/extraction
       VariableTrans,
       // insert type guards for quantified metavariables
-      //Optional(InsertTypeGuardsForMetavars, ifConfig(FinalEncoding, FinalEncoding.GuardedFOF)),
+      GuardsTrans //,
       // determines whether logical optimizations take place prior to fof/tff encoding
       //Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
       // select problem
-      ProblemTrans)
+      //ProblemTrans)
+      )
 
     val transformationChain = { sm: Seq[Module] => CustomPartialChain(sm)(conf) }
     val resultingModSeq = transformationChain(modules)
