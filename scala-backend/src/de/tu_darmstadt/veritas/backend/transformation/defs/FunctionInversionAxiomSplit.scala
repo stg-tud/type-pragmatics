@@ -60,9 +60,11 @@ trait FunctionInversionAxiomSplit extends ModuleTransformation {
 
   private def findFunctionParameterNames(f1: FunctionExpMeta) = f1 match {
     case FunctionExpApp(_, parameterList) => parameterList flatMap collectVariablesInExpression
+    case _ => Seq("") //TODO think about what should happen if first case does not match - throw exception?
   }
   private def findResultVariableName(f2: FunctionExpMeta) = f2 match {
     case FunctionMeta(MetaVar(name)) => name
+    case _ => "" //TODO think about what should happen if first case does not match - throw exception?
   }
 
   private def variableNames(premises: Seq[TypingRuleJudgment]): (String, Seq[String]) = {
