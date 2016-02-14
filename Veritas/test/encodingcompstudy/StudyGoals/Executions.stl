@@ -45,33 +45,33 @@ local {
 		lookupContext(tn1, ~C) == ~result
 }
 
-local {
-	different consts
-		a : AName
-		b : AName
-		c : AName
-		
-		f : FType
-		g : FType
-		h : FType
-		
-		t : TType
-		u : TType
-		v : TType
-		
-	goal
-	~tt = ttcons(ctype(a, f), ttcons(ctype(b, g), ttcons(ctype(c, h), ttempty)))
-	======================================== execution-4
-	exists ~result
-		ctypeIn(c, f, ~tt) == ~result
-		
-	goal
-	~tt = ttcons(ctype(a, f), ttcons(ctype(b, g), ttcons(ctype(c, h), ttempty)))
-	findColType(c, ~tt) == ~type
-	============================ execution-5
-	exists ~result
-		getSomeFType(~type) == ~result
-}
+// local {
+// 	different consts
+// 		a : AName
+// 		b : AName
+// 		c : AName
+// 		
+// 		f : FType
+// 		g : FType
+// 		h : FType
+// 		
+// 		t : TType
+// 		u : TType
+// 		v : TType
+// 		
+// 	// goal
+// 	// ~tt = ttcons(ctype(a, f), ttcons(ctype(b, g), ttcons(ctype(c, h), ttempty)))
+// 	// ======================================== execution-4
+// 	// exists ~result
+// 	// 	ctypeIn(c, f, ~tt) == ~result
+// 		
+// 	goal
+// 	~tt = ttcons(ctype(a, f), ttcons(ctype(b, g), ttcons(ctype(c, h), ttempty)))
+// 	findColType(c, ~tt) == ~type
+// 	============================ execution-5
+// 	exists ~result
+// 		getSomeFType(~type) == ~result
+// }
 
 local {
 	different consts
@@ -156,19 +156,19 @@ local {
 		singleRowSelect(~al, ~pred, ~row) == ~result
 }
 
-local {
-	different consts
-		a : AName
-		b : AName
-		c : AName
-		
-		f : FType
-		g : FType
-		
-	goal
-	~tt = ttcons(ctype(a, f), ttcons(ctype(b, f), ttcons(ctype(c, g), ttempty)))
-	~al = acons(a, acons(b, aempty))
-	=========== execution-10
-	exists ~result
-		matchingAList(~tt, ~al) == ~result
-}
+// local {
+// 	different consts
+// 		a : AName
+// 		b : AName
+// 		c : AName
+// 		
+// 		f : FType
+// 		g : FType
+// 		
+// 	goal
+// 	~tt = ttcons(ctype(a, f), ttcons(ctype(b, f), ttcons(ctype(c, g), ttempty)))
+// 	~al = acons(a, acons(b, aempty))
+// 	=========== execution-10
+// 	exists ~result
+// 		matchingAList(~tt, ~al) == ~result
+// }
