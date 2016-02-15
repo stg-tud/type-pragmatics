@@ -46,3 +46,6 @@ Veritas/test/encodingcompstudy/StudyGoals/proof
 benchmarking/princess-all.jar
 benchmarking/princess-all-casc.jar
 benchmarking/princess-all-standard.jar
+benchmarking/datasets/logs
+benchmarking/datasets/SQL-results/test-complete.xls
+benchmarking/datasets/SQL-results/test.xls
