@@ -9,6 +9,10 @@ import encodingcompstudy.TableAux
 import encodingcompstudy.TContext
 
 
+//important: execution goals should not existentially quantify over
+//- results of predicates (of type Bool)
+//- open data types
+
 goal
 ~in == someConf(~c)
 ================== execution-1
@@ -45,33 +49,40 @@ local {
 		lookupContext(tn1, ~C) == ~result
 }
 
-// local {
-// 	different consts
-// 		a : AName
-// 		b : AName
-// 		c : AName
-// 		
-// 		f : FType
-// 		g : FType
-// 		h : FType
-// 		
-// 		t : TType
-// 		u : TType
-// 		v : TType
-// 		
-// 	// goal
-// 	// ~tt = ttcons(ctype(a, f), ttcons(ctype(b, g), ttcons(ctype(c, h), ttempty)))
-// 	// ======================================== execution-4
-// 	// exists ~result
-// 	// 	ctypeIn(c, f, ~tt) == ~result
-// 		
-// 	goal
-// 	~tt = ttcons(ctype(a, f), ttcons(ctype(b, g), ttcons(ctype(c, h), ttempty)))
-// 	findColType(c, ~tt) == ~type
-// 	============================ execution-5
-// 	exists ~result
-// 		getSomeFType(~type) == ~result
-// }
+local {
+	different consts
+		a : FVal
+		b : FVal
+	
+	goal
+	~row1 = rcons(a, rcons(b, rempty))
+	~row2 = rcons(b, rcons(a, rempty))
+	~rawRable = tcons(~row1, tcons(~row2, tempty))
+	================================================ execution-4
+	exists ~result
+		dropFirstColRaw(~rawTable) == ~result
+		
+}
+
+local {
+	different consts
+		an : AName
+		am : AName
+		
+		a : FVal
+		b : FVal
+	
+	
+	goal
+	~row1 = rcons(a, rcons(b, rempty))
+	~row2 = rcons(b, rcons(a, rempty))
+	~rawRable = tcons(~row1, tcons(~row2, tempty))
+	~table = table(acons(an, acons(am, aempty)), ~rawTable)
+	======================================================= execution-5
+	exists ~result
+		findCol(an, ~table) = ~result
+}
+
 
 local {
 	different consts
@@ -156,19 +167,21 @@ local {
 		singleRowSelect(~al, ~pred, ~row) == ~result
 }
 
-// local {
-// 	different consts
-// 		a : AName
-// 		b : AName
-// 		c : AName
-// 		
-// 		f : FType
-// 		g : FType
-// 		
-// 	goal
-// 	~tt = ttcons(ctype(a, f), ttcons(ctype(b, f), ttcons(ctype(c, g), ttempty)))
-// 	~al = acons(a, acons(b, aempty))
-// 	=========== execution-10
-// 	exists ~result
-// 		matchingAList(~tt, ~al) == ~result
-// }
+local {
+	different consts
+		an : AName
+		am : AName
+		ak : AName
+		
+		tn : FType
+		tm : FType
+		tk : FType
+	
+	
+	goal
+	~al = acons(an, aempty)
+	~tt = ttcons(ctype(an, tn), ttcons(ctype(am, tm), ttcons(ctype(ak, tk), ttempty)))
+	==================================== execution-10
+	exists ~result
+		projectType(~al, ~tt) == ~result
+}
