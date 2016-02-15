@@ -1,8 +1,6 @@
 package veritas.benchmarking
 
 
-import java.io.File
-
 import veritas.benchmarking.Main.Config
 
 import scala.collection.immutable.ListMap
@@ -160,7 +158,7 @@ class AvgDeviationFromMinimalUsedLemmas(bconfig: Config, fileSummaries: ListMap[
 
   override val datatitle = "Average deviation from minimum number of used lemmas per goals"
 
-  def getFileName(fs: FileSummary) = fs.filePath.split(File.separator).last
+  def getFileName(fs: FileSummary) = fs.fileName
 
   def getNumUsedLemmas(fs: FileSummary) = fs.proverResult.details.toList.length
 

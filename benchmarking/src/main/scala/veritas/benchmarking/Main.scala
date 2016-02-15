@@ -21,10 +21,12 @@ object Main extends App {
                      logCSV: File = null,
                      logXLS: File = null,
                      logXLSOverview: File = null,
-                     parallelism: Int = 0
+                     parallelism: Int = 0,
+                     logFilePath: String = "",
+                     summarizeLogs: Boolean = false
                    ) {
     def ensureDefaultOptions: Config = {
-      if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null && logXLS == null)
+      if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null && logXLS == null && !summarizeLogs)
         copy(logPerFile = true, logSummary = true)
       else
         this
@@ -88,12 +90,18 @@ object Main extends App {
       config.copy(parallelism = f)
     } text (s"set parallelism level: 0 = no parallelism at all, " +
       s"1 = number of system cores - 1, greater 1 = custom parallelism level")
+    opt[String]("logfile") action { (s, config) =>
+      config.copy(logFilePath = s)
+    } text ("Path for output of each prover")
+    opt[Unit]("summarizelogs") action { (b, config) =>
+      config.copy(summarizeLogs = true)
+    } text ("indicates that given files are already proof logs (for summary)")
 
-    arg[File]("<proof goal file>...") unbounded() validate { file =>
+    arg[File]("<proof goal file> or <proof log file>...") unbounded() validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
     } action { (file, config) =>
       config.copy(files = config.files :+ file.getAbsoluteFile)
-    } text ("files containing proof goals")
+    } text ("files containing proof goals or files containing proof logs (with summarizeLogs)")
 
     for (opts <- ProverConfig.contributedOptions)
       opts.contributeOptions(this)
@@ -107,6 +115,8 @@ object Main extends App {
       runner.run()
       val summary = runner.summary
 
+
+
       if (config.logSummary)
         print(summary.makeSummary)
       if (config.logCSV != null)
@@ -118,5 +128,6 @@ object Main extends App {
         summary.makeXLS.safeToFile(config.logXLS.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
       if (config.logXLSOverview != null)
         summary.makeXLSOverview.safeToFile(config.logXLSOverview.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+
   }
 }

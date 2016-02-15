@@ -5,12 +5,11 @@ import java.util.{Date, Calendar}
 import java.util.concurrent.Executors
 
 import veritas.benchmarking.Main.Config
-
 import scala.collection.parallel.ExecutionContextTaskSupport
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
-
+case class VeritasConfig(goalcategory: String, typing: String, transformations: String)
 case class Runner(config: Config) {
 
   val summary = new Summary(config)
@@ -25,11 +24,25 @@ case class Runner(config: Config) {
 
   lazy val allFiles = config.files.flatMap(listAllFiles(_))
 
-  private def callProverAndLog: (ProverConfig, File) => (File, FileSummary) = {
-    case (proverConfig, file) => {
+  private def extractVeritasConfig(filePath: String): VeritasConfig = {
+    // split takes regular expression, \-separator (windows systems) needs to be escaped.
+    val fileSeparator =
+      if(File.separator == "\\") "\\\\"
+      else File.separator
+    val pathParts = filePath.split(fileSeparator)
+    //assemble configuration from last two parts of path
+    val goalcategory = pathParts(pathParts.length - 4)
+    val typing = pathParts(pathParts.length - 3)
+    val transformations = pathParts(pathParts.length - 2)
+
+    new VeritasConfig(goalcategory, typing, transformations)
+  }
+
+  private def callProverAndLog: (ProverConfig, File, File) => (VeritasConfFile, FileSummary) = {
+    case (proverConfig, file, outfile) => {
       val call = proverConfig.makeCall(file, config.timeout, config.fullLogs)
       val (result, proctime) = Runner.exec(call, config.timeout, config.logExec,
-        () => proverConfig.newResultProcessor(file, config.timeout))
+        () => proverConfig.newResultProcessor(config.timeout, outfile))
       val tooltime = result.timeSeconds
       val time = tooltime match {
         case None => proctime
@@ -42,7 +55,7 @@ case class Runner(config: Config) {
           t
       }
 
-      val res = FileSummary(file.getAbsolutePath, proverConfig, result, time)
+      val res = FileSummary(extractVeritasConfig(file.getAbsolutePath), file.getName, proverConfig, result, time)
       val status = res.proverResult.status
       val logDetail = config.logProof && status == Proved ||
         config.logDisproof && status == Disproved ||
@@ -54,7 +67,7 @@ case class Runner(config: Config) {
         print(res.proverResult.details.toHumanString)
 
 
-      (file, res)
+      (VeritasConfFile(extractVeritasConfig(file.getAbsolutePath), file.getName), res)
 
     }
   }
@@ -66,12 +79,28 @@ case class Runner(config: Config) {
     cal.getTime.toString
   }
 
+  def executeProvers(): Unit = {
+    def makeOutputFile(proverConfig: ProverConfig, file: File): File = {
+      val prepath = if (config.logFilePath.isEmpty) "." else config.logFilePath
+      val filePath = file.getPath
+      val fileSeparator =
+        if(File.separator == "\\") "\\\\"
+        else File.separator
+      val pathParts = filePath.split(fileSeparator)
+      //assemble configuration from last two parts of path
+      val goalcategory = pathParts(pathParts.length - 4)
+      val typing = pathParts(pathParts.length - 3)
+      val transformations = pathParts(pathParts.length - 2)
+      val filename = file.getName
+      val path = s"$prepath/${proverConfig.name}+${config.timeout}+${goalcategory}+${typing}+${transformations}+${filename}.proof"
+      new File(path)
+    }
 
-  def run(): Unit = {
+
     val joblist = for {proverConfig <- config.proverConfigs
                        file <- allFiles
                        if (proverConfig.acceptedFileFormats.exists(s => file.getName().endsWith(s)))}
-      yield (proverConfig, file)
+      yield (proverConfig, file, makeOutputFile(proverConfig, file))
 
     val estimatedDuration = Duration(joblist.length * config.timeout, "seconds")
 
@@ -92,7 +121,7 @@ case class Runner(config: Config) {
       parjoblist.tasksupport =
         new ExecutionContextTaskSupport(ExecutionContext.fromExecutor(threadPool))
 
-      val summarylist = parjoblist.map { case (pc, file) => callProverAndLog(pc, file) }
+      val summarylist = parjoblist.map { case (pc, file, outfile) => callProverAndLog(pc, file, outfile) }
       for (fs <- summarylist.toList) {
         summary += fs
       }
@@ -102,12 +131,63 @@ case class Runner(config: Config) {
       println(s"Will execute ${joblist.length} jobs sequentially.")
       println(s"Estimated worst case duration: ${estimatedDuration}, " +
         s"i.e. would be finished on ${calcFinishTime(estimatedDuration)}")
-      val summarylist = joblist map { case (pc, file) => callProverAndLog(pc, file) }
+      val summarylist = joblist map { case (pc, file, outfile) => callProverAndLog(pc, file, outfile) }
       for (fs <- summarylist) {
         summary += fs
       }
     }
+  }
 
+  def processProofLogs(): Unit = {
+
+    // convention for file names:
+    // proverConfig+timeout+goalcategory+typing+transformations+filename.proof
+    //
+    // override functions below if convention shall be changed!
+    def getProverConfig(fn: String): ProverConfig = {
+      val split = fn.split("\\+")
+      val configname = split(0)
+      ProverConfig.configs(configname)
+    }
+    def getVeritasConfig(fn: String): VeritasConfig = {
+      val split = fn.split("\\+")
+      val goalcategory = split(2)
+      val typing = split(3)
+      val transformations = split(4)
+      VeritasConfig(goalcategory, typing, transformations)
+    }
+    def getFilename(fn: String): String = {
+      val split = fn.split("\\+")
+      val prename = split.last
+      prename.dropRight(6) //drop .proof
+    }
+    def getTimeout(fn: String): Int = {
+      val split = fn.split("\\+")
+      split(1).toInt
+    }
+
+    for (file <- allFiles if file.getName().endsWith(".proof")) {
+      val fn = file.getName()
+      val inputfile = getFilename(fn)
+      val time = getTimeout(fn)
+      val proverconf = getProverConfig(fn)
+      val veritasconf = getVeritasConfig(fn)
+
+      val resultproc = proverconf.newResultProcessor(time, file)
+      resultproc.processLogs()
+
+      val filesummary = FileSummary(veritasconf, inputfile, proverconf, resultproc.result, time)
+      summary += (VeritasConfFile(veritasconf, inputfile), filesummary)
+    }
+  }
+
+
+
+  def run(): Unit = {
+    if (config.summarizeLogs)
+      processProofLogs()
+    else
+      executeProvers()
   }
 
 }
@@ -132,6 +212,9 @@ object Runner {
 
       if (logExec)
         println(" done")
+
+      //process logs once at the end
+      resultProc.processLogs()
 
       (resultProc.result, (end - start).toDouble / 1000000000)
 

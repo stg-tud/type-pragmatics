@@ -64,41 +64,43 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
     }
   }
 
-  def tryFindModel(file: File, timeout: Int): ResultDetails = {
-    val call = makeSatCall(file, timeout)
-    val buf = new StringBuffer
-    val (satout, _) = Runner.exec(call, timeout, false, () => new ResultProcessor {
-      var modelBuilder: StringBuilder = null
-      var model: String = null
+//  def tryFindModel(timeout: Int, outfile: File): ResultDetails = {
+//    val call = makeSatCall(file, timeout) //needs file, currently not passed along!
+//    val buf = new StringBuffer
+//    val (satout, _) = Runner.exec(call, timeout, false, () => new ResultProcessor(outfile) {
+//      var modelBuilder: StringBuilder = null
+//      var model: String = null
+//
+//      override def result = new ProverResult(null, None, StringDetails(model))
+//
+//      override def extractProverResult(s: => String) =
+//        if (s.endsWith("Satisfiable!")) {
+//          modelBuilder = StringBuilder.newBuilder
+//          model = null
+//        }
+//        else if (modelBuilder != null && s.contains("-------")) {
+//          model = modelBuilder.toString
+//          modelBuilder = null
+//        }
+//        else if (modelBuilder != null) {
+//          modelBuilder ++= s
+//        }
+//
+//      override def buffer[T](f: => T) = f
+//
+//      override def err(s: => String) = {} // ignore
+//    })
+//
+//    satout.details
+//  }
 
-      override def result = new ProverResult(null, None, StringDetails(model))
 
-      override def out(s: => String) =
-        if (s.endsWith("Satisfiable!")) {
-          modelBuilder = StringBuilder.newBuilder
-          model = null
-        }
-        else if (modelBuilder != null && s.contains("-------")) {
-          model = modelBuilder.toString
-          modelBuilder = null
-        }
-        else if (modelBuilder != null) {
-          modelBuilder ++= s
-        }
-      override def buffer[T](f: => T) = f
-      override def err(s: => String) = {} // ignore
-    })
-
-    satout.details
-  }
-
-
-  override def newResultProcessor(file: File, timeout: Int) = VampireResultProcessor(file, timeout)
+  override def newResultProcessor(timeout: Int, outfile: File) = VampireResultProcessor(timeout, outfile)
 
   val parenDigits = Pattern.compile("\\(\\d+")
   val braceDigits = Pattern.compile("\\{\\d+")
 
-  case class VampireResultProcessor(file: File, timeout: Int) extends ResultProcessor {
+  case class VampireResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
 
     private var clauses: GrowingArray[VampireClause] = _
     private var maxindex: Int = _
@@ -128,78 +130,81 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
       satSplitting = Map()
     }
 
-    override def out(s: => String) = try {
-//      println(s)
-
-      if (s.contains("% remaining time: ")) {
-        nextStrategy()
-      }
-
-      else if (s.contains("Time limit reached!")) {
-        // do nothing
-      }
-
-      // parse status
-      else if (s.endsWith("Termination reason: Refutation"))
-        status = Proved
-      else if (s.contains("Termination reason: Satisfiable")) {
-        status = Disproved
-        val foundModel = tryFindModel(file, timeout)
-        if (foundModel != null)
-          model = foundModel
-      }
-      else if (s.contains("Termination reason: ")) {
-        val start = s.indexOf("Termination reason: ") + "Termination reason: ".length
-        status = Inconclusive(s.substring(start))
-      }
-
-      // parse proof
-      else if (s.contains("start Proof")) {
-        proofBuilder = StringBuilder.newBuilder
-        proof = null
-      }
-      else if (s.contains("end Proof")) {
-        proof = proofBuilder.toString
-        proofBuilder = null
-      }
-      else if (proofBuilder != null) {
-        proofBuilder ++= s
-        val lemmaregex = """file\('.+',(.+)\)\)""".r.unanchored
-        s match {
-          case lemmaregex(lemmaname) => lemmas = List(lemmaname) ++ lemmas
-          case _ =>
+    override def extractProverResult(s: => String) = {
+      try {
+        if (s.contains("% remaining time: ")) {
+          nextStrategy()
         }
-      }
 
-      // parse time
-      else if (s.contains(" in time ")) {
-        val start = s.indexOf(" in time ")
-        val end = s.indexOf(" s", start)
-        if (start < 0 || end < 0)
-          time = None
-        else {
-          val timeS = s.substring(start + " in time ".length, end)
-          val timeD = timeS.toDouble
-          time = Some(timeD)
+        else if (s.contains("Time limit reached!")) {
+          // do nothing
         }
-      }
 
-      // parse clauses
-      else if (s.startsWith("[SA] new: ")) {
-        val (id, term, age, weight, step, satC) = parseClause(s, "[SA] new: ")
-        addClause(NEW, id, term, age, weight, step, satC)
+        // parse status
+        else if (s.endsWith("Termination reason: Refutation"))
+          status = Proved
+        else if (s.contains("Termination reason: Satisfiable")) {
+          status = Disproved
+//          val foundModel = tryFindModel(timeout, outfile)
+//          if (foundModel != null)
+//            model = foundModel
+        }
+        else if (s.contains("Termination reason: ")) {
+          val start = s.indexOf("Termination reason: ") + "Termination reason: ".length
+          status = Inconclusive(s.substring(start))
+        }
+
+        // parse proof
+        else if (s.contains("start Proof")) {
+          proofBuilder = StringBuilder.newBuilder
+          proof = null
+        }
+        else if (s.contains("end Proof")) {
+          proof = proofBuilder.toString
+          proofBuilder = null
+        }
+        else if (proofBuilder != null) {
+          proofBuilder ++= s
+          val lemmaregex = """file\('.+',(.+)\)\)""".r.unanchored
+          s match {
+            case lemmaregex(lemmaname) => lemmas = List(lemmaname) ++ lemmas
+            case _ =>
+          }
+        }
+
+        // parse time
+        else if (s.contains(" in time ")) {
+          val start = s.indexOf(" in time ")
+          val end = s.indexOf(" s", start)
+          if (start < 0 || end < 0)
+            time = None
+          else {
+            val timeS = s.substring(start + " in time ".length, end)
+            val timeD = timeS.toDouble
+            time = Some(timeD)
+          }
+        }
+
+        // parse clauses
+        else if (s.startsWith("[SA] new: ")) {
+          val (id, term, age, weight, step, satC) = parseClause(s, "[SA] new: ")
+          addClause(NEW, id, term, age, weight, step, satC)
+        }
+        else if (s.startsWith("[SA] active: ")) {
+          val (id, term, age, weight, step, satC) = parseClause(s, "[SA] active: ")
+          addClause(ACTIVE, id, term, age, weight, step, satC)
+        }
+        else if (s.startsWith("[SA] passive: ")) {
+          val (id, term, age, weight, step, satC) = parseClause(s, "[SA] passive: ")
+          addClause(PASSIVE, id, term, age, weight, step, satC)
+        }
+      } catch {
+        case e: Exception => println(s"Error ${e.getMessage} in $s")
+          throw e
       }
-      else if (s.startsWith("[SA] active: ")) {
-        val (id, term, age, weight, step, satC) = parseClause(s, "[SA] active: ")
-        addClause(ACTIVE, id, term, age, weight, step, satC)
-      }
-      else if (s.startsWith("[SA] passive: ")) {
-        val (id, term, age, weight, step, satC) = parseClause(s, "[SA] passive: ")
-        addClause(PASSIVE, id, term, age, weight, step, satC)
-      }
-    } catch {
-      case e: Exception => println(s"Error ${e.getMessage} in $s")
-        throw e
+      //write output String into file
+      writer println s
+      flush()
     }
 
     def parseClause(s: String, prefix: String): (Int, String, Int, Int, VampireStep, Seq[Int]) = {
@@ -215,7 +220,7 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
       val termendBraceMatcher = braceDigits.matcher(termprefix)
       val braceStart = if (termendBraceMatcher.find()) termendBraceMatcher.start() else Int.MaxValue
       var squareStart = termprefix.indexOf('[')
-      if (squareStart <= 0)  squareStart = termprefix.length + 1
+      if (squareStart <= 0) squareStart = termprefix.length + 1
 
       val termend = Math.min(parenStart, Math.min(braceStart, squareStart)) - 1
       val term = termprefix.substring(0, termend)
@@ -235,8 +240,8 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
         else {
           val restTerm = termprefix.substring(parenStart + 1)
           val sep = restTerm.indexOf(':')
-          val end1 = restTerm.indexOf(":", sep+1)
-          val end2 = restTerm.indexOf(")", sep+1)
+          val end1 = restTerm.indexOf(":", sep + 1)
+          val end2 = restTerm.indexOf(")", sep + 1)
           val end =
             if (end1 >= 0)
               end1
@@ -316,6 +321,7 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
         throw new IllegalStateException(s"Incomplete parse $t of $s, rest $rest")
       t
     }
+
     def parseTermRest(s: String): (Term, String) = {
       var open = s.indexOf('(')
       val comma = s.indexOf(',')
@@ -366,8 +372,12 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
       }
     }
 
-    override def buffer[T](f: => T) = f // no setup or teardown
-    override def err(s: => String) = {println(s)} // ignore
+    override def buffer[T](f: => T) = f
+
+    // no setup or teardown
+    override def err(s: => String) = {
+      println(s)
+    } // ignore
 
     override def result =
       if (status == null)
@@ -378,5 +388,6 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
         case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, VampireManyTraces(traces :+ VampireTrace(clauses.finalizedArray, VampireConfig.this)))
       }
   }
+
 }
 

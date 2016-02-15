@@ -28,9 +28,9 @@ case class BeagleConfig()
     call
   }
 
-  override def newResultProcessor(file: File, timeout: Int) = BeagleResultProcessor(file, timeout)
+  override def newResultProcessor(timeout: Int, outfile: File) = BeagleResultProcessor(timeout, outfile)
 
-  case class BeagleResultProcessor(file: File, timeout: Int) extends ResultProcessor {
+  case class BeagleResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
 
     var status: ProverStatus = _
     var time: Option[Double] = _
@@ -40,25 +40,27 @@ case class BeagleConfig()
 
     private var proofOutputRunning = false
 
-    override def out(s: => String) = try {
-      println(s)
-      if (s.contains("% SZS status Theorem"))
-        status = Proved
-      else if (s.contains("% SZS status CounterSatisfiable")) {
-        status = Disproved
-      } else if (status == Proved && s.contains("Refutation")) {
-        proofOutputRunning = true
-        proofBuilder = StringBuilder.newBuilder
-      } else if (proofOutputRunning && s.contains("Inference")) {
-        proof = proofBuilder.toString
-        proofBuilder = null
-        proofOutputRunning = false
-      } else if(proofOutputRunning) {
-        proofBuilder ++= s
+    override def extractProverResult(s: => String) = {
+      try {
+        println(s)
+        if (s.contains("% SZS status Theorem"))
+          status = Proved
+        else if (s.contains("% SZS status CounterSatisfiable")) {
+          status = Disproved
+        } else if (status == Proved && s.contains("Refutation")) {
+          proofOutputRunning = true
+          proofBuilder = StringBuilder.newBuilder
+        } else if (proofOutputRunning && s.contains("Inference")) {
+          proof = proofBuilder.toString
+          proofBuilder = null
+          proofOutputRunning = false
+        } else if (proofOutputRunning) {
+          proofBuilder ++= s
+        }
+      } catch {
+        case e: Exception => println(s"Error ${e.getMessage} in $s")
+          throw e
       }
-    } catch {
-      case e: Exception => println(s"Error ${e.getMessage} in $s")
-        throw e
     }
 
     override def buffer[T](f: => T) = f // no setup or teardown

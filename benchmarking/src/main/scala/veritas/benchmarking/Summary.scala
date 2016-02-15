@@ -6,38 +6,21 @@ import veritas.benchmarking.Main.Config
 import scala.collection.immutable.{Iterable, IndexedSeq, ListMap}
 
 
-case class VeritasConfig(goalcategory: String, typing: String, transformations: String)
+case class VeritasConfFile(veritasConfig: VeritasConfig, filename: String)
 
 /**
   *
-  * @param filePath absolute path of the file for which the result was produced
-  *                 (used for extracting Veritas configuration)
+  * @param veritasConfig Veritas configuration for file
   * @param proverConfig
   * @param proverResult
   * @param timeSeconds
   */
-case class FileSummary(filePath: String, proverConfig: ProverConfig, proverResult: ProverResult, timeSeconds: Double) {
-
-  val veritasConfig: VeritasConfig = {
-    // split takes regular expression, \-separator (windows systems) needs to be escaped.
-    val fileSeparator =
-      if(File.separator == "\\") "\\\\"
-      else File.separator
-    val pathParts = filePath.split(fileSeparator)
-    //assemble configuration from last two parts of path
-    val goalcategory = pathParts(pathParts.length - 4)
-    val typing = pathParts(pathParts.length - 3)
-    val transformations = pathParts(pathParts.length - 2)
-
-    new VeritasConfig(goalcategory, typing, transformations)
-  }
-
-}
+case class FileSummary(veritasConfig: VeritasConfig, fileName: String, proverConfig: ProverConfig, proverResult: ProverResult, timeSeconds: Double)
 
 case class Summary(config: Config) {
-  private var fileSummaries: ListMap[ProverConfig, ListMap[File, FileSummary]] = ListMap()
+  private var fileSummaries: ListMap[ProverConfig, ListMap[VeritasConfFile, FileSummary]] = ListMap()
 
-  def +=(fileResult: (File, FileSummary)): Unit = {
+  def +=(fileResult: (VeritasConfFile, FileSummary)): Unit = {
     val proverConfig = fileResult._2.proverConfig
     fileSummaries.get(proverConfig) match {
       case None => fileSummaries += proverConfig -> ListMap(fileResult)
@@ -45,8 +28,8 @@ case class Summary(config: Config) {
     }
   }
 
-  def +=(file: File, fileResult: FileSummary): Unit = {
-    this += (file -> fileResult)
+  def +=(veritasconffile: VeritasConfFile, fileResult: FileSummary): Unit = {
+    this += (veritasconffile -> fileResult)
   }
 
   def makeSummary: String = {
@@ -78,7 +61,7 @@ case class Summary(config: Config) {
          (file, res) <- files) {
       cell(res.proverConfig.name)
       cell(config.timeout.toString)
-      cell(file.getAbsolutePath)
+      cell(file.filename)
       cell((res.timeSeconds * 1000).toString)
       cell(res.proverResult.status.toString)
       cell(res.proverResult.details.toString, true)
@@ -128,7 +111,7 @@ case class Summary(config: Config) {
           StringCell(2, res.veritasConfig.goalcategory),
           StringCell(3, res.veritasConfig.typing),
           StringCell(4, res.veritasConfig.transformations),
-          StringCell(5, file.getName),
+          StringCell(5, file.filename),
           NumericCell(6, res.timeSeconds * 1000.0),
           StringCell(7, res.proverResult.status.toString),
           StringCell(8, detailsString.replace("\n", "\t").substring(0, Math.min(detailsString.length, 32767)))

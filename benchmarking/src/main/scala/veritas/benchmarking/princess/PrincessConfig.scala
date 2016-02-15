@@ -6,7 +6,7 @@ import java.util.regex.Pattern
 import veritas.benchmarking._
 
 case class PrincessConfig()
-    extends ProverConfig {
+  extends ProverConfig {
 
   def isValid = proverCommand != null
 
@@ -26,7 +26,7 @@ case class PrincessConfig()
   }
 
   def tryExtractTimeSeconds(output: String) = {
-    if(output.length > 20)
+    if (output.length > 20)
       None
     else {
       val end = output.lastIndexOf("ms")
@@ -41,34 +41,38 @@ case class PrincessConfig()
     }
   }
 
-  override def newResultProcessor(file: File, timeout: Int) = PrincessResultProcessor(file, timeout)
+  override def newResultProcessor(timeout: Int, outfile: File) = PrincessResultProcessor(timeout, outfile)
 
-  case class PrincessResultProcessor(file: File, timeout: Int) extends ResultProcessor {
+  case class PrincessResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
 
     var status: ProverStatus = _
     var time: Option[Double] = _
 
     var proofBuilder: StringBuilder = _
 
-    override def out(s: => String) = try {
-      if (s.contains("% SZS status Timeout"))
-        status = Inconclusive("Timeout")
-      else if (s.contains("% SZS status Theorem")) {
-        status = Proved
+    override def extractProverResult(s: => String) = {
+      try {
+        if (s.contains("% SZS status Timeout"))
+          status = Inconclusive("Timeout")
+        else if (s.contains("% SZS status Theorem")) {
+          status = Proved
+        }
+      } catch {
+        case e: Exception => println(s"Error ${e.getMessage} in $s")
+          throw e
       }
-    } catch {
-      case e: Exception => println(s"Error ${e.getMessage} in $s")
-        throw e
     }
 
-    override def buffer[T](f: => T) = f // no setup or teardown
+    override def buffer[T](f: => T) = f
+
+    // no setup or teardown
     override def err(s: => String) = try {
       if (s.contains("ms")) {
         time = tryExtractTimeSeconds(s)
       }
     } catch {
-        case e: Exception => println(s"Error ${e.getMessage} in $s")
-          throw e
+      case e: Exception => println(s"Error ${e.getMessage} in $s")
+        throw e
     }
 
     override def result =
@@ -80,5 +84,6 @@ case class PrincessConfig()
         case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, StringDetails("Inconclusive"))
       }
   }
+
 }
 

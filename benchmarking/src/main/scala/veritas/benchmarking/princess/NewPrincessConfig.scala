@@ -21,8 +21,8 @@ case class NewPrincessConfig()
     var call = Seq(proverCommand.getAbsolutePath)
     call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "-cp", "princess-all-standard.jar", "ap.CmdlMain", "-inputFormat=tptp")
     if (timeout > 0)
-      // accepts timeout in ms
-      call = call :+ ("-timeout=" + (timeout*1000).toString)
+    // accepts timeout in ms
+      call = call :+ ("-timeout=" + (timeout * 1000).toString)
 
 
     call = call :+ "+unsatCore"
@@ -31,7 +31,7 @@ case class NewPrincessConfig()
   }
 
   def tryExtractTimeSeconds(output: String) = {
-    if(output.length > 20)
+    if (output.length > 20)
       None
     else {
       val end = output.lastIndexOf("ms")
@@ -46,43 +46,47 @@ case class NewPrincessConfig()
     }
   }
 
-  override def newResultProcessor(file: File, timeout: Int) = PrincessResultProcessor(file, timeout)
+  override def newResultProcessor(timeout: Int, outfile: File) = PrincessResultProcessor(timeout, outfile)
 
-  case class PrincessResultProcessor(file: File, timeout: Int) extends ResultProcessor {
+  case class PrincessResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
 
     var status: ProverStatus = _
     var time: Option[Double] = _
 
     var proofBuilder: StringBuilder = _
 
-    override def out(s: => String) = try {
-      //println(s)
-      if (s.contains("TIMEOUT"))
-        status = Inconclusive("Timeout")
-      else if (s.contains("VALID")) {
-        status = Proved
-      }
-
-      else if(status == Proved) {
-        if(s.startsWith("{")) {
-          lemmas = s.substring(1, s.indexOf("}")).split(",").toList
-        }
-      }
-    } catch {
-      case e: Exception => println(s"Error ${e.getMessage} in $s")
-        throw e
-    }
-
-    override def buffer[T](f: => T) = f // no setup or teardown
-    override def err(s: => String) = try {
+    override def extractProverResult(s: => String) = {
+      try {
         //println(s)
-        if (s.contains("ms")) {
-          time = tryExtractTimeSeconds(s)
+        if (s.contains("TIMEOUT"))
+          status = Inconclusive("Timeout")
+        else if (s.contains("VALID")) {
+          status = Proved
+        }
+
+        else if (status == Proved) {
+          if (s.startsWith("{")) {
+            lemmas = s.substring(1, s.indexOf("}")).split(",").toList
+          }
         }
       } catch {
         case e: Exception => println(s"Error ${e.getMessage} in $s")
           throw e
       }
+    }
+
+    override def buffer[T](f: => T) = f
+
+    // no setup or teardown
+    override def err(s: => String) = try {
+      //println(s)
+      if (s.contains("ms")) {
+        time = tryExtractTimeSeconds(s)
+      }
+    } catch {
+      case e: Exception => println(s"Error ${e.getMessage} in $s")
+        throw e
+    }
 
     override def result =
       if (status == null)
@@ -93,4 +97,5 @@ case class NewPrincessConfig()
         case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, StringDetails("Inconclusive"))
       }
   }
+
 }

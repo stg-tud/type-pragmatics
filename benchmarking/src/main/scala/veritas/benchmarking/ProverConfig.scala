@@ -1,6 +1,6 @@
 package veritas.benchmarking
 
-import java.io.File
+import java.io._
 
 import scopt.OptionParser
 import veritas.benchmarking.beagle.BeagleConfig
@@ -8,7 +8,7 @@ import veritas.benchmarking.vampire.{VampireTraceAnalisisOptions, VampireTraceAn
 import veritas.benchmarking.princess.{NewPrincessConfig, PrincessConfig}
 import veritas.benchmarking.eprover.EproverConfig
 
-import scala.sys.process.ProcessLogger
+import scala.sys.process.FileProcessLogger
 
 sealed trait ProverStatus
 case object Proved extends ProverStatus
@@ -68,11 +68,37 @@ trait ProverConfig {
   }
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean): Seq[String]
-  def newResultProcessor(file: File, timeout: Int): ResultProcessor
+  def newResultProcessor(timeout: Int, outfile: File): ResultProcessor
 }
 
-trait ResultProcessor extends ProcessLogger {
+abstract class ResultProcessor(outfile: File) extends FileProcessLogger(outfile) {
   def result: ProverResult
+
+  val writer = new PrintWriter(
+      new BufferedWriter(
+        new OutputStreamWriter(
+          new FileOutputStream(outfile, true)
+        )
+      ))
+
+  //reads the outfile of this ResultProcessor and processes them using extractProverResult
+  def processLogs() = {
+    val fileLines = io.Source.fromFile(outfile).getLines.toList
+    for (line <- fileLines)
+      extractProverResult(line)
+  }
+
+  //override to define how a result processor processes the output of a prover
+  def extractProverResult(s: => String): Unit
+
+  //log output of prover to a separate file (given by outfile
+  override def out(s : => String) = {
+    writer println s
+    flush()
+  }
+
+  override def close(): Unit = writer.close()
+  override def flush(): Unit = writer.flush()
 }
 
 trait ContributedOptions {
