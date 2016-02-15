@@ -43,8 +43,10 @@ sealed abstract class FofInfixUnary(termLeft: Term,
                                     opString: String) extends FofUnitary {
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
+    writer.write("(")
     writer.write(termLeft).write(opString)
     writer.write(termRight)
+    writer.write(")")
   }
 }
 
