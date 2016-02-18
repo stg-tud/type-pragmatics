@@ -9,7 +9,7 @@ import scala.collection.parallel.ExecutionContextTaskSupport
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
-case class VeritasConfig(goalcategory: String, typing: String, transformations: String)
+
 case class Runner(config: Config) {
 
   val summary = new Summary(config)
@@ -35,7 +35,7 @@ case class Runner(config: Config) {
     val typing = pathParts(pathParts.length - 3)
     val transformations = pathParts(pathParts.length - 2)
 
-    new VeritasConfig(goalcategory, typing, transformations)
+    new VeritasConfig(goalcategory, typing, transformations.split("-").toList)
   }
 
   private def callProverAndLog: (ProverConfig, File, File) => (VeritasConfFile, FileSummary) = {
@@ -154,7 +154,7 @@ case class Runner(config: Config) {
       val goalcategory = split(2)
       val typing = split(3)
       val transformations = split(4)
-      VeritasConfig(goalcategory, typing, transformations)
+      VeritasConfig(goalcategory, typing, transformations.split("-").toList)
     }
     def getFilename(fn: String): String = {
       val split = fn.split("\\+")
