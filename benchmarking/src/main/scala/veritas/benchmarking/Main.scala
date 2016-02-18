@@ -51,7 +51,7 @@ object Main extends App {
 
     opt[String]('c', "config") unbounded() validate { c =>
       if (ProverConfig.configs.isDefinedAt(c)) success
-      else failure(s"Unknown prover configuration $c. Known configurations: ${ProverConfig.configs.keys.mkString}")
+      else failure(s"Unknown prover configuration $c. Known configurations: ${ProverConfig.configs.keys.mkString(", ")}")
     } action { (c, config) =>
       config.copy(proverConfigs = config.proverConfigs :+ ProverConfig.configs(c))
     } text (s"prover configuration, one of ${ProverConfig.configs.keys.mkString(", ")}")

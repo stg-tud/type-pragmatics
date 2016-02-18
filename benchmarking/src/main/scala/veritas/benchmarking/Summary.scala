@@ -5,7 +5,7 @@ import veritas.benchmarking.Main.Config
 
 import scala.collection.immutable.{Iterable, IndexedSeq, ListMap}
 
-
+case class VeritasConfig(goalcategory: String, typing: String, transformations: List[String])
 case class VeritasConfFile(veritasConfig: VeritasConfig, filename: String)
 
 /**
@@ -60,7 +60,7 @@ case class Summary(config: Config) {
     for ((proverConfig, files) <- fileSummaries;
          (file, res) <- files) {
       cell(res.proverConfig.name)
-      cell(config.timeout.toString)
+      cell(res.timeSeconds.toString)
       cell(file.filename)
       cell((res.timeSeconds * 1000).toString)
       cell(res.proverResult.status.toString)
@@ -86,18 +86,19 @@ case class Summary(config: Config) {
 
     var sheets = Set[Sheet]()
     for ((proverConfig, files) <- fileSummaries) {
-
+      //TODO the header is currently hardcoded with respect to the used encoding variables - maybe fix later
       val header = Row(0) {
         Set(
           StringCell(0, "Prover Config"),
           StringCell(1, "Prover Timeout"),
           StringCell(2, "Goal Category"),
           StringCell(3, "Veritas Config, Typing"),
-          StringCell(4, "Veritas Config, Transformation"),
-          StringCell(5, "File"),
-          StringCell(6, "Time-ms"),
-          StringCell(7, "Status"),
-          StringCell(8, "Details")
+          StringCell(4, "Veritas Config, variable encoding"),
+          StringCell(5, "Veritas Config, logical optimization"),
+          StringCell(6, "File"),
+          StringCell(7, "Time-ms"),
+          StringCell(8, "Status"),
+          StringCell(9, "Details")
         )
       }
 
@@ -105,17 +106,25 @@ case class Summary(config: Config) {
       var rowNum = 1
       for ((file, res) <- files) {
         val detailsString = res.proverResult.details.toHumanString
-        val cells = Set[Cell](
+        val offset = 4 //currently hard coded, change if you want to change the table layout
+        val transformationcells = for (i <- (offset until (res.veritasConfig.transformations.length + offset))) yield
+          StringCell(i, res.veritasConfig.transformations(i-offset))
+        val afteroffset = offset + transformationcells.length
+
+
+        val surroundingcells = Set[Cell](
           StringCell(0, res.proverConfig.name),
-          NumericCell(1, config.timeout),
+          NumericCell(1, res.timeSeconds),
           StringCell(2, res.veritasConfig.goalcategory),
           StringCell(3, res.veritasConfig.typing),
-          StringCell(4, res.veritasConfig.transformations),
-          StringCell(5, file.filename),
-          NumericCell(6, res.timeSeconds * 1000.0),
-          StringCell(7, res.proverResult.status.toString),
-          StringCell(8, detailsString.replace("\n", "\t").substring(0, Math.min(detailsString.length, 32767)))
+          //StringCell(4, res.veritasConfig.transformations),
+          StringCell(afteroffset, file.filename),
+          NumericCell(afteroffset + 1, res.timeSeconds * 1000.0),
+          StringCell(afteroffset + 2, res.proverResult.status.toString),
+          StringCell(afteroffset + 3, detailsString.replace("\n", "\t").substring(0, Math.min(detailsString.length, 32767)))
         )
+
+        val cells = surroundingcells union transformationcells.toSet
         rows += Row(rowNum) {
           cells
         }
@@ -138,13 +147,16 @@ case class Summary(config: Config) {
     val contractedFileSummaries: ListMap[ProverConfig, List[FileSummary]]
     = fileSummaries map { case (pc, fsmap) => (pc, fsmap.values.toList) }
 
+    //TODO: timeout is hardcoded here - actually implicitly assumes that all timeouts in the list will be equal and just takes the first
+    val time = contractedFileSummaries.head._2.head.timeSeconds
+
     // val overviewData decides which overview data is computed
     val overviewData: List[DataAnalysis] = List(
-      new SuccessfulPerVC(config, contractedFileSummaries),
-      new TotalPerVC(config, contractedFileSummaries),
-      new SuccessfulRatePerVC(config, contractedFileSummaries),
-      new AverageTimePerVC(config, contractedFileSummaries),
-      new AvgDeviationFromMinimalUsedLemmas(config, contractedFileSummaries))
+      new SuccessfulPerVC(time.toInt, contractedFileSummaries),
+      new TotalPerVC(time.toInt, contractedFileSummaries),
+      new SuccessfulRatePerVC(time.toInt, contractedFileSummaries),
+      new AverageTimePerVC(time.toInt, contractedFileSummaries),
+      new AvgDeviationFromMinimalUsedLemmas(time.toInt, contractedFileSummaries))
     val overviewColTitles = overviewData map (_.datatitle)
 
     println(s"creating overview of file summaries: ${fileSummaries.size}")

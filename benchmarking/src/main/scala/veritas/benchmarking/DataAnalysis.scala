@@ -8,36 +8,44 @@ import scala.collection.immutable.ListMap
 import info.folone.scala.poi._
 
 
-case class AnalysisHeader(bconfig: Config, proverConfig: ProverConfig, veritasConfig: VeritasConfig) {
+case class AnalysisHeader(timeout: Int, proverConfig: ProverConfig, veritasConfig: VeritasConfig) {
   override def toString() = s"${proverConfig.name}, $veritasConfig"
 
-  def getAnalysisHeaderCells(indices: List[Int]): Set[Cell] = Set[Cell](
-    StringCell(indices(0), proverConfig.name),
-    NumericCell(indices(1), bconfig.timeout),
-    StringCell(indices(2), veritasConfig.goalcategory),
-    StringCell(indices(3), veritasConfig.typing),
-    StringCell(indices(4), veritasConfig.transformations)
-  )
+  def getAnalysisHeaderCells(indices: List[Int]): Set[Cell] = {
+    val basicset = Set[Cell](
+      StringCell(indices(0), proverConfig.name),
+      NumericCell(indices(1), timeout),
+      StringCell(indices(2), veritasConfig.goalcategory),
+      StringCell(indices(3), veritasConfig.typing)
+    )
+    val offset = basicset.size
+    val encvarset = for (i <- (offset until (veritasConfig.transformations.length + offset))) yield
+      StringCell(indices(i), veritasConfig.transformations(i - offset))
+
+    basicset union encvarset.toSet
+  }
 }
 
 object AnalysisHeader {
+  //TODO the header is currently hardcoded with respect to the used encoding variables - maybe fix later
   def getAnalysisHeaderCells(): Set[Cell] = Set[Cell](
     StringCell(0, "Prover Config"),
     StringCell(1, "Timeout"),
     StringCell(2, "Goal Category"),
     StringCell(3, "Veritas Config, typing"),
-    StringCell(4, "Veritas Config, transformations")
+    StringCell(4, "Veritas Config, variable encoding"),
+    StringCell(5, "Veritas Config, logical optimization")
   )
 
   val headerlength = getAnalysisHeaderCells().size
 }
 
-abstract class DataAnalysis(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]]) {
+abstract class DataAnalysis(timeout: Int, fileSummaries: ListMap[ProverConfig, List[FileSummary]]) {
   val datatitle: String
 
   val configCombinations: Set[AnalysisHeader] =
     (for ((pc, lfs) <- fileSummaries; fs <- lfs) yield {
-      new AnalysisHeader(bconfig, pc, fs.veritasConfig)
+      new AnalysisHeader(timeout, pc, fs.veritasConfig)
     }).toSet
 
   val resPerConfig: Map[AnalysisHeader, List[FileSummary]] = (for (ah <- configCombinations)
@@ -69,8 +77,8 @@ abstract class DataAnalysis(bconfig: Config, fileSummaries: ListMap[ProverConfig
 }
 
 //sum total number of files per prover and Veritas config
-class TotalPerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
-  extends DataAnalysis(bconfig, fileSummaries) {
+class TotalPerVC(timeout: Int, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
+  extends DataAnalysis(timeout, fileSummaries) {
 
   val datatitle = "No. of files"
 
@@ -85,8 +93,8 @@ class TotalPerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[File
 
 
 //calculate number of successfully proven files per prover config and per Veritas config
-class SuccessfulPerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
-  extends TotalPerVC(bconfig, fileSummaries) {
+class SuccessfulPerVC(timeout: Int, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
+  extends TotalPerVC(timeout, fileSummaries) {
 
   override val datatitle = "No. of successful proofs"
 
@@ -103,8 +111,8 @@ class SuccessfulPerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, List
 
 
 //calculate percentage rate of successfully proven files
-class SuccessfulRatePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
-  extends SuccessfulPerVC(bconfig, fileSummaries) {
+class SuccessfulRatePerVC(timeout: Int, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
+  extends SuccessfulPerVC(timeout, fileSummaries) {
 
   override val datatitle = "Rate of successful proofs"
 
@@ -126,8 +134,8 @@ class SuccessfulRatePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, 
 }
 
 //calculate average proof time for successful proofs
-class AverageTimePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
-  extends SuccessfulPerVC(bconfig, fileSummaries) {
+class AverageTimePerVC(timeout: Int, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
+  extends SuccessfulPerVC(timeout, fileSummaries) {
 
   override val datatitle = "Average time per successful proof (ms)"
 
@@ -153,8 +161,8 @@ class AverageTimePerVC(bconfig: Config, fileSummaries: ListMap[ProverConfig, Lis
 }
 
 //calculate minimal number of used lemmas per goal
-class AvgDeviationFromMinimalUsedLemmas(bconfig: Config, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
-  extends SuccessfulPerVC(bconfig, fileSummaries) {
+class AvgDeviationFromMinimalUsedLemmas(timeout: Int, fileSummaries: ListMap[ProverConfig, List[FileSummary]])
+  extends SuccessfulPerVC(timeout, fileSummaries) {
 
   override val datatitle = "Average deviation from minimum number of used lemmas per goals"
 

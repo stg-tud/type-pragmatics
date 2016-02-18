@@ -12,13 +12,13 @@ case class BeagleConfig()
   override val name = s"beagle"
   override val proverCommand = findBinaryInPath(s"java")
 
-  val jar = findFileInPath("beagle.jar")
+  //val jar = findFileInPath("beagle.jar")
 
   override val acceptedFileFormats = Set(".fof", ".tff")
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
     var call = Seq(proverCommand.getAbsolutePath)
-    call = call ++ Seq("-jar", jar.getAbsolutePath)
+    call = call ++ Seq("-jar", "beagle.jar")
     if (timeout > 0)
       call = call ++ Seq("-t", timeout.toString)
 
