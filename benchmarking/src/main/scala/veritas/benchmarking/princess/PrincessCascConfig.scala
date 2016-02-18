@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 
 import veritas.benchmarking._
 
-case class PrincessConfig()
+case class PrincessCascConfig()
   extends ProverConfig {
 
   def isValid = proverCommand != null
@@ -21,6 +21,7 @@ case class PrincessConfig()
     if (timeout > 0)
       call = call :+ ("-timeout=" + timeout.toString)
 
+    call = call :+ "+unsatCore"
     call = call :+ file.getAbsolutePath
     call
   }
@@ -50,12 +51,19 @@ case class PrincessConfig()
 
     var proofBuilder: StringBuilder = _
 
+    private var lemmas: List[String] = null
+
     override def extractProverResult(s: => String) = {
       try {
         if (s.contains("% SZS status Timeout"))
           status = Inconclusive("Timeout")
         else if (s.contains("% SZS status Theorem")) {
           status = Proved
+        }
+        else if (status == Proved) {
+          if (s.startsWith("{")) {
+            lemmas = s.substring(1, s.indexOf("}")).split(",").toList
+          }
         }
       } catch {
         case e: Exception => println(s"Error ${e.getMessage} in $s")
@@ -77,7 +85,7 @@ case class PrincessConfig()
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown"), time, StringDetails("Inconclusive"))
+        new ProverResult(Inconclusive("Unknown"), Some(0.0), StringDetails("Inconclusive"))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails(""))
         case Disproved => new ProverResult(Disproved, time, StringDetails("Disproved"))
