@@ -126,6 +126,9 @@ ConstDecl.ConstDecl =
 
 context-free syntax
 
+JudgmentDef = RelationSig
+ {ast("FunctionDef(<1>, [])")}
+ 
 FunctionDef.FunctionDef = 
 <<FunctionSig> 
 <FunctionEq*>
@@ -325,6 +328,12 @@ ModuleDef.PartialFunctions =
 <FunctionDef*>
 
 >
+
+ModuleDef = 
+<judgments 
+<JudgmentDef*>
+
+> {ast("PartialFunctions(<1>)")}
  
 ModuleDef = 
 <partial function 

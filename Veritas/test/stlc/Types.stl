@@ -7,7 +7,6 @@ import stlc.Subst
 constructors
 	arrow : Typ Typ -> Typ
 
-
 axioms
 
 lookup(~x, ~C) == someType(~T)
