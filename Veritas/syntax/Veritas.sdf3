@@ -309,7 +309,7 @@ ModuleDef.Consts =
 ModuleDef = 
 <const <ConstDecl>
 
-> {ast("Consts([Any(), <1>])")}
+> {ast("Consts(Any(), [<1>])")}
 
   
 ModuleDef.Functions = 

@@ -2,7 +2,6 @@ module stlc.Types
 
 import stlc.Syntax
 import stlc.Context
-import stlc.Subst
 
 axioms
 
