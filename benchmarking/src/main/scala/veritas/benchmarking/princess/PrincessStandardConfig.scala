@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 
 import veritas.benchmarking._
 
-case class NewPrincessConfig()
+case class PrincessStandardConfig()
   extends ProverConfig {
 
   def isValid = proverCommand != null
@@ -14,8 +14,6 @@ case class NewPrincessConfig()
   override val proverCommand = findBinaryInPath(s"java")
 
   override val acceptedFileFormats = Set(".fof")
-
-  private var lemmas: List[String] = null
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
     var call = Seq(proverCommand.getAbsolutePath)
@@ -54,6 +52,7 @@ case class NewPrincessConfig()
     var time: Option[Double] = _
 
     var proofBuilder: StringBuilder = _
+    private var lemmas: List[String] = null
 
     override def extractProverResult(s: => String) = {
       try {
@@ -90,7 +89,7 @@ case class NewPrincessConfig()
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown - Parse Error?"), Some(0.0), StringDetails("Inconclusive"))
+        new ProverResult(Inconclusive("Unknown"), Some(0.0), StringDetails("Inconclusive"))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails("", lemmas))
         case Disproved => new ProverResult(Disproved, time, StringDetails("Disproved"))
