@@ -2,13 +2,13 @@ module stlc.Context
 
 import stlc.Syntax
 
-sorts Ctx OptTyp
-constructors
-  empty : Ctx
-  bind : Var Typ Ctx -> Ctx
-  
-  noType : OptTyp
-  someType : Typ -> OptTyp
+data Ctx
+  = empty
+  | bind(Var, Typ, Ctx)
+
+data OptTyp  
+  = noType
+  | someType(Typ)
 
 function
 isSomeType : OptTyp -> Bool

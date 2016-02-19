@@ -1,12 +1,15 @@
 module stlc.Syntax
 
-sorts
-  Var Exp Typ
+open data Var
 
-constructors
-  var : Var -> Exp
-  abs : Var Typ Exp -> Exp
-  app : Exp Exp -> Exp
+data Typ
+	= tvar(Var)
+	| tfun(Typ, Typ)
+
+data Exp
+  = var(Var)
+  | abs(Var, Typ, Exp)
+  | app(Exp, Exp)
 
 function
 isValue : Exp -> Bool
