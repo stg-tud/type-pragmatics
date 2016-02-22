@@ -105,6 +105,12 @@ object GenerateAllTypeGuards extends GenerateTypeGuards {
           val domAxiom = makeDomainAxiom(name, constrs)
           Seq(dt, guardFunctions, Axioms(guardAxioms :+ domAxiom))
         }
+      case c@Consts(cdseq,_) => {
+        val consts_axs = cdseq map {case ConstDecl(name, sort) => 
+          TypingRule(guard(name), Seq(), Seq(guardCall(sort.name, FunctionExpApp(name, Seq()))))
+        }  
+        Seq(c, Axioms(consts_axs))
+      }
       case _ => super.insertGuardAxsHere(mdef)
     }
 }
