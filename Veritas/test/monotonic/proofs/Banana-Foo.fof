@@ -1,0 +1,2 @@
+fof('DIFF-one-two', axiom, (vone != vtwo)).
+fof('Foo', conjecture, ![Vx] : ((vfoo = Vx) => ((Vx = vone) | (Vx = vtwo)))).
