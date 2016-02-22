@@ -1,0 +1,10 @@
+module other.test
+
+import encodingcompstudy.Tables
+
+
+goal
+
+~a != ~c
+========== test
+acons(~a, ~b) != acons(~c, ~b)
