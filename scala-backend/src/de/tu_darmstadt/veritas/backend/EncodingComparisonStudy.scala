@@ -45,7 +45,7 @@ object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
   case FinalEncoding.GuardedFOF =>
     SeqTrans(GenerateCtorAxioms, GenerateAllTypeGuards)
   case FinalEncoding.TFF =>
-    Identity // TODO is this correct, or do we need GenerateCtorAxioms?
+    GenerateCtorAxioms
 })
 
 object BasicTrans extends SeqTrans(
