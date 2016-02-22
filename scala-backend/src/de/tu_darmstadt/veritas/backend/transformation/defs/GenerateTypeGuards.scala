@@ -168,11 +168,11 @@ object GenerateExecutionGuards extends GenerateTypeGuards with CollectTypes {
     // for execution guards, provide domain axioms in both directions
     // TODO: is this really sound, for barefof and tff? (at least for tff, it should be ok)
     Seq(TypingRule(
-      name,
+      name + "-1",
       Seq(FunctionExpJudgment(guardCall(dataType, v))),
       Seq(OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, v)))))),
       TypingRule(
-      name,
+      name + "-2",
       Seq(OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, v))))),
       Seq(FunctionExpJudgment(guardCall(dataType, v)))))
   }
