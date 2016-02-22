@@ -51,6 +51,9 @@ lexical syntax
   Keyword = "hide"
   Keyword = "hide-all"
   Keyword = "strategy"
+  Keyword = "partial"
+  Keyword = "judgment"
+  Keyword = "judgments"
   PrimitiveType = "Nat" 
   PrimitiveType = "String" 
 

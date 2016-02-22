@@ -1,28 +1,35 @@
-fof('EQ-var', axiom, (![VVar0,VVar1] : (((vvar(VVar0)=vvar(VVar1)) => (VVar0=VVar1)) & ((VVar0=VVar1) => (vvar(VVar0)=vvar(VVar1)))))).
-fof('EQ-abs', axiom, (![VVar0,VTyp0,VExp0,VVar1,VTyp1,VExp1] : (((vabs(VVar0,VTyp0,VExp0)=vabs(VVar1,VTyp1,VExp1)) => ((VVar0=VVar1) & ((VTyp0=VTyp1) & (VExp0=VExp1)))) & (((VVar0=VVar1) & ((VTyp0=VTyp1) & (VExp0=VExp1))) => (vabs(VVar0,VTyp0,VExp0)=vabs(VVar1,VTyp1,VExp1)))))).
-fof('EQ-app', axiom, (![VExp0,VExp1,VExp2,VExp3] : (((vapp(VExp0,VExp1)=vapp(VExp2,VExp3)) => ((VExp0=VExp2) & (VExp1=VExp3))) & (((VExp0=VExp2) & (VExp1=VExp3)) => (vapp(VExp0,VExp1)=vapp(VExp2,VExp3)))))).
-fof('DIFF-var-abs', axiom, (![VVar0,VVar1,VTyp0,VExp0] : (vvar(VVar0)!=vabs(VVar1,VTyp0,VExp0)))).
-fof('DIFF-var-app', axiom, (![VVar0,VExp0,VExp1] : (vvar(VVar0)!=vapp(VExp0,VExp1)))).
-fof('DIFF-abs-app', axiom, (![VVar0,VTyp0,VExp0,VExp1,VExp2] : (vabs(VVar0,VTyp0,VExp0)!=vapp(VExp1,VExp2)))).
-fof('isValue0', axiom, (![Vx,VS,Ve,VExp0] : ((VExp0=vabs(Vx,VS,Ve)) => visValue(VExp0)))).
-fof('isValue1', axiom, (![Vx,VExp0] : ((VExp0=vvar(Vx)) => (~visValue(VExp0))))).
-fof('isValue2', axiom, (![Ve1,Ve2,VExp0] : ((VExp0=vapp(Ve1,Ve2)) => (~visValue(VExp0))))).
-fof('isFreeVar0', axiom, (![VVar0,VExp0,Vx,Vv] : (((VVar0=Vv) & (VExp0=vvar(Vx))) => (((Vx=Vv) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (Vx=Vv)))))).
-fof('isFreeVar1', axiom, (![VT,VVar0,VExp0,Vx,Vv,Ve] : (((VVar0=Vv) & (VExp0=vabs(Vx,VT,Ve))) => ((((Vx!=Vv) & visFreeVar(Vv,Ve)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => ((Vx!=Vv) & visFreeVar(Vv,Ve))))))).
-fof('isFreeVar2', axiom, (![VVar0,VExp0,Ve1,Vv,Ve2] : (((VVar0=Vv) & (VExp0=vapp(Ve1,Ve2))) => (((visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2)) => visFreeVar(VVar0,VExp0)) & (visFreeVar(VVar0,VExp0) => (visFreeVar(Vv,Ve1) | visFreeVar(Vv,Ve2))))))).
-fof('EQ-empty', axiom, (((vempty=vempty) => $true) & ($true => (vempty=vempty)))).
-fof('EQ-bind', axiom, (![VVar0,VTyp0,VCtx0,VVar1,VTyp1,VCtx1] : (((vbind(VVar0,VTyp0,VCtx0)=vbind(VVar1,VTyp1,VCtx1)) => ((VVar0=VVar1) & ((VTyp0=VTyp1) & (VCtx0=VCtx1)))) & (((VVar0=VVar1) & ((VTyp0=VTyp1) & (VCtx0=VCtx1))) => (vbind(VVar0,VTyp0,VCtx0)=vbind(VVar1,VTyp1,VCtx1)))))).
-fof('EQ-noType', axiom, (((vnoType=vnoType) => $true) & ($true => (vnoType=vnoType)))).
-fof('EQ-someType', axiom, (![VTyp0,VTyp1] : (((vsomeType(VTyp0)=vsomeType(VTyp1)) => (VTyp0=VTyp1)) & ((VTyp0=VTyp1) => (vsomeType(VTyp0)=vsomeType(VTyp1)))))).
-fof('DIFF-empty-bind', axiom, (![VVar0,VTyp0,VCtx0] : (vempty!=vbind(VVar0,VTyp0,VCtx0)))).
-fof('DIFF-noType-someType', axiom, (![VTyp0] : (vnoType!=vsomeType(VTyp0)))).
-fof('isSomeType0', axiom, (![VOptTyp0] : ((VOptTyp0=vnoType) => (~visSomeType(VOptTyp0))))).
-fof('isSomeType1', axiom, (![Ve,VOptTyp0] : ((VOptTyp0=vsomeType(Ve)) => visSomeType(VOptTyp0)))).
-fof('getSomeType0', axiom, (![VOptTyp0,RESULT,Ve] : ((VOptTyp0=vsomeType(Ve)) => ((RESULT=vgetSomeType(VOptTyp0)) => (RESULT=Ve))))).
-fof('lookup0', axiom, (![Vx,VVar0,VCtx0,RESULT] : (((VVar0=Vx) & (VCtx0=vempty)) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vnoType))))).
-fof('lookup1', axiom, (![VC,Vx,Vy,VVar0,VCtx0,RESULT,VTy] : (((VVar0=Vx) & (VCtx0=vbind(Vy,VTy,VC))) => ((Vx=Vy) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vsomeType(VTy))))))).
-fof('lookup2', axiom, (![VTy,Vy,VVar0,VCtx0,RESULT,Vx,VC] : (((VVar0=Vx) & (VCtx0=vbind(Vy,VTy,VC))) => ((~(Vx=Vy)) => ((RESULT=vlookup(VVar0,VCtx0)) => (RESULT=vlookup(Vx,VC))))))).
-fof('lookup-INV', axiom, (![VVar0,VCtx0,RESULT] : ((vlookup(VVar0,VCtx0)=RESULT) => ((?[Vx] : ((VVar0=Vx) & ((VCtx0=vempty) & (RESULT=vnoType)))) | ((?[VC,Vx,Vy,VTy] : ((VVar0=Vx) & ((VCtx0=vbind(Vy,VTy,VC)) & ((Vx=Vy) & (RESULT=vsomeType(VTy)))))) | (?[VTy,Vy,Vx,VC] : ((VVar0=Vx) & ((VCtx0=vbind(Vy,VTy,VC)) & ((~(Vx=Vy)) & (RESULT=vlookup(Vx,VC))))))))))).
-fof('T-Context-Duplicate', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vx,VTx,VC),Ve,VT)))).
-fof('T-Context-Swap', axiom, (![Vy,VTy,Vx,VTx,VC,Ve,VT] : (((Vx!=Vy) & vtcheck(vbind(Vx,VTx,vbind(Vy,VTy,VC)),Ve,VT)) => vtcheck(vbind(Vy,VTy,vbind(Vx,VTx,VC)),Ve,VT)))).
+fof('EQ-tvar', axiom, ![VVar0, VVar1] : ((VVar0 = VVar1) <=> (vtvar(VVar0) = vtvar(VVar1)))).
+fof('EQ-tfun', axiom, ![VTyp0, VTyp2, VTyp1, VTyp3] : (((VTyp0 = VTyp2) & (VTyp1 = VTyp3)) <=> (vtfun(VTyp0, VTyp1) = vtfun(VTyp2, VTyp3)))).
+fof('DIFF-tvar-tfun', axiom, ![VVar0, VTyp0, VTyp1] : (vtvar(VVar0) != vtfun(VTyp0, VTyp1))).
+fof('EQ-var', axiom, ![VVar0, VVar1] : ((VVar0 = VVar1) <=> (vvar(VVar0) = vvar(VVar1)))).
+fof('EQ-abs', axiom, ![VExp1, VVar0, VVar1, VTyp1, VExp0, VTyp0] : (((VVar0 = VVar1) & ((VTyp0 = VTyp1) & (VExp0 = VExp1))) <=> (vabs(VVar0, VTyp0, VExp0) = vabs(VVar1, VTyp1, VExp1)))).
+fof('EQ-app', axiom, ![VExp0, VExp2, VExp1, VExp3] : (((VExp0 = VExp2) & (VExp1 = VExp3)) <=> (vapp(VExp0, VExp1) = vapp(VExp2, VExp3)))).
+fof('DIFF-var-abs', axiom, ![VVar0, VVar1, VTyp0, VExp0] : (vvar(VVar0) != vabs(VVar1, VTyp0, VExp0))).
+fof('DIFF-var-app', axiom, ![VVar0, VExp0, VExp1] : (vvar(VVar0) != vapp(VExp0, VExp1))).
+fof('DIFF-abs-app', axiom, ![VExp1, VVar0, VExp2, VExp0, VTyp0] : (vabs(VVar0, VTyp0, VExp0) != vapp(VExp1, VExp2))).
+fof('isValue0', axiom, ![Vx, VS, Ve] : visValue(vabs(Vx, VS, Ve))).
+fof('isValue1', axiom, ![Vx] : (~visValue(vvar(Vx)))).
+fof('isValue2', axiom, ![Ve1, Ve2] : (~visValue(vapp(Ve1, Ve2)))).
+fof('isValue-true-INV', axiom, ![VExp0] : (visValue(VExp0) => ?[Vx, VS, Ve] : (VExp0 = vabs(Vx, VS, Ve)))).
+fof('isValue-false-INV', axiom, ![VExp0] : ((~visValue(VExp0)) => (?[Vx] : (VExp0 = vvar(Vx)) | ?[Ve1, Ve2] : (VExp0 = vapp(Ve1, Ve2))))).
+fof('isFreeVar0', axiom, ![Vv, Vx] : (visFreeVar(Vv, vvar(Vx)) <=> (Vx = Vv))).
+fof('isFreeVar1', axiom, ![Vv, Vx, VT, Ve] : (visFreeVar(Vv, vabs(Vx, VT, Ve)) <=> ((Vx != Vv) & visFreeVar(Vv, Ve)))).
+fof('isFreeVar2', axiom, ![Vv, Ve1, Ve2] : (visFreeVar(Vv, vapp(Ve1, Ve2)) <=> (visFreeVar(Vv, Ve1) | visFreeVar(Vv, Ve2)))).
+fof('isFreeVar-true-INV', axiom, ![VVar0, VExp0] : (visFreeVar(VVar0, VExp0) => (?[Vv, Vx] : ((VVar0 = Vv) & (VExp0 = vvar(Vx)) & (Vx = Vv)) | ?[Vv, Vx, VT, Ve] : ((VVar0 = Vv) & (VExp0 = vabs(Vx, VT, Ve)) & ((Vx != Vv) & visFreeVar(Vv, Ve))) | ?[Vv, Ve1, Ve2] : ((VVar0 = Vv) & (VExp0 = vapp(Ve1, Ve2)) & (visFreeVar(Vv, Ve1) | visFreeVar(Vv, Ve2)))))).
+fof('isFreeVar-false-INV', axiom, ![VVar0, VExp0] : ((~visFreeVar(VVar0, VExp0)) => (?[Vv, Vx] : ((VVar0 = Vv) & (VExp0 = vvar(Vx)) & (~(Vx = Vv))) | ?[Vv, Vx, VT, Ve] : ((VVar0 = Vv) & (VExp0 = vabs(Vx, VT, Ve)) & (~((Vx != Vv) & visFreeVar(Vv, Ve)))) | ?[Vv, Ve1, Ve2] : ((VVar0 = Vv) & (VExp0 = vapp(Ve1, Ve2)) & (~(visFreeVar(Vv, Ve1) | visFreeVar(Vv, Ve2))))))).
+fof('EQ-bind', axiom, ![VCtx0, VCtx1, VVar0, VVar1, VTyp1, VTyp0] : (((VVar0 = VVar1) & ((VTyp0 = VTyp1) & (VCtx0 = VCtx1))) <=> (vbind(VVar0, VTyp0, VCtx0) = vbind(VVar1, VTyp1, VCtx1)))).
+fof('DIFF-empty-bind', axiom, ![VVar0, VTyp0, VCtx0] : (vempty != vbind(VVar0, VTyp0, VCtx0))).
+fof('EQ-someType', axiom, ![VTyp0, VTyp1] : ((VTyp0 = VTyp1) <=> (vsomeType(VTyp0) = vsomeType(VTyp1)))).
+fof('DIFF-noType-someType', axiom, ![VTyp0] : (vnoType != vsomeType(VTyp0))).
+fof('isSomeType0', axiom, (~visSomeType(vnoType))).
+fof('isSomeType1', axiom, ![Ve] : visSomeType(vsomeType(Ve))).
+fof('isSomeType-true-INV', axiom, ![VOptTyp0] : (visSomeType(VOptTyp0) => ?[Ve] : (VOptTyp0 = vsomeType(Ve)))).
+fof('isSomeType-false-INV', axiom, ![VOptTyp0] : ((~visSomeType(VOptTyp0)) => (VOptTyp0 = vnoType))).
+fof('getSomeType0', axiom, ![Ve] : (vgetSomeType(vsomeType(Ve)) = Ve)).
+fof('lookup0', axiom, ![Vx] : (vlookup(Vx, vempty) = vnoType)).
+fof('lookup1', axiom, ![Vx, Vy, VTy, VC] : ((Vx = Vy) => (vlookup(Vx, vbind(Vy, VTy, VC)) = vsomeType(VTy)))).
+fof('lookup2', axiom, ![Vx, Vy, VTy, VC] : ((Vx != Vy) => (vlookup(Vx, vbind(Vy, VTy, VC)) = vlookup(Vx, VC)))).
+fof('lookup-INV', axiom, ![VVar0, VCtx0, VRESULT] : ((vlookup(VVar0, VCtx0) = VRESULT) => (?[Vx] : ((VVar0 = Vx) & (VCtx0 = vempty) & (VRESULT = vnoType)) | ?[Vx, Vy, VTy, VC] : ((Vx = Vy) & (VVar0 = Vx) & (VCtx0 = vbind(Vy, VTy, VC)) & (VRESULT = vsomeType(VTy))) | ?[Vx, Vy, VTy, VC] : ((Vx != Vy) & (VVar0 = Vx) & (VCtx0 = vbind(Vy, VTy, VC)) & (VRESULT = vlookup(Vx, VC)))))).
+fof('T-Context-Duplicate', axiom, ![Vx, VTx, Vy, Ve, VC, VTy, VT] : (((Vx = Vy) & vptcheck(vbind(Vx, VTx, vbind(Vy, VTy, VC)), Ve, VT)) => vptcheck(vbind(Vx, VTx, VC), Ve, VT))).
+fof('T-Context-Swap', axiom, ![Vx, VTx, Vy, Ve, VC, VTy, VT] : (((Vx != Vy) & vptcheck(vbind(Vx, VTx, vbind(Vy, VTy, VC)), Ve, VT)) => vptcheck(vbind(Vy, VTy, vbind(Vx, VTx, VC)), Ve, VT))).
 fof('FALSE', conjecture, $false).

@@ -3,12 +3,9 @@ module stlc.callbyvalue.Reduction
 import stlc.Syntax
 import stlc.Subst
 
-sorts
-	OptExp
-
-constructors
-	noExp : OptExp
-	someExp : Exp -> OptExp
+data OptExp
+	= noExp
+	| someExp(Exp)
 
 function
 isSomeExp : OptExp -> Bool
@@ -44,7 +41,7 @@ strategy reduce-defs-only {
 	gensym-is-fresh
 	}
 }
-	
+
 lemma // could be derived from return type of `reduce`
 reduce(~e) == ~res
 ========================== reduce-CODOM
