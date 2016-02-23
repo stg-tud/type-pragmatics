@@ -40,7 +40,8 @@ object LogicalTermOptimization extends ModuleTransformation {
           case Seq(f @ FunctionExpJudgment(FunctionExpFalse)) => f
           case seq => {
             //remove superfluous binders
-            val newvl = vl filter (mv => FreeVariables.freeVariables(seq, Set[MetaVar]()) contains mv)
+            val frees = FreeVariables.freeVariables(seq, Set[MetaVar]())
+            val newvl = vl filter (mv => frees contains mv)
             //this potentially generates an exists judgment with an empty variable list
             //all subsequent transformations should be able to handle this at the moment
             //TODO is there a better solution??
@@ -55,7 +56,8 @@ object LogicalTermOptimization extends ModuleTransformation {
           case Seq(f @ FunctionExpJudgment(FunctionExpFalse)) => f
           case seq => {
             //remove superfluous binders
-            val newvl = vl filter (mv => FreeVariables.freeVariables(seq, Set[MetaVar]()) contains mv)
+            val frees = FreeVariables.freeVariables(seq, Set[MetaVar]())
+            val newvl = vl filter (mv => frees contains mv)
             //this potentially generates an exists judgment with an empty variable list
             //all subsequent transformations should be able to handle this at the moment
             //TODO is there a better solution??
@@ -65,7 +67,7 @@ object LogicalTermOptimization extends ModuleTransformation {
       }
       case NotJudgment(f @ FunctionExpJudgment(FunctionExpTrue))  => FunctionExpJudgment(FunctionExpFalse)
       case NotJudgment(f @ FunctionExpJudgment(FunctionExpFalse)) => FunctionExpJudgment(FunctionExpTrue)
-      case NotJudgment(NotJudgment(j))                            => j
+      case NotJudgment(NotJudgment(j))                            => transTypingRuleJudgment(j)
       case OrJudgment(orc) => {
         val optimized_orcs = orc map { ors => optimizeSeqTypingRuleJudgment(ors) }
         if (optimized_orcs contains Seq(FunctionExpJudgment(FunctionExpTrue)))
@@ -115,7 +117,7 @@ object LogicalTermOptimization extends ModuleTransformation {
       }
       case NotJudgment(f @ FunctionExpJudgment(FunctionExpTrue))  => Seq(FunctionExpJudgment(FunctionExpFalse))
       case NotJudgment(f @ FunctionExpJudgment(FunctionExpFalse)) => Seq(FunctionExpJudgment(FunctionExpTrue))
-      case NotJudgment(NotJudgment(j))                            => Seq(j)
+      case NotJudgment(NotJudgment(j))                            => transTypingRuleJudgments(j)
       case OrJudgment(orc) => {
         val filtered_orig = orc filterNot (_ == Seq())
         val optimized_orcs = filtered_orig map { ors => optimizeSeqTypingRuleJudgment(ors) }
@@ -143,7 +145,7 @@ object LogicalTermOptimization extends ModuleTransformation {
     case FunctionExpBiImpl(l, r) if (l == r)                 => FunctionExpTrue
     case FunctionExpNot(FunctionExpFalse)                    => FunctionExpTrue
     case FunctionExpNot(FunctionExpTrue)                     => FunctionExpFalse
-    case FunctionExpNot(FunctionExpNot(e))                   => e
+    case FunctionExpNot(FunctionExpNot(e))                   => transFunctionExp(e)
     case FunctionExpAnd(_, FunctionExpFalse)                 => FunctionExpFalse
     case FunctionExpAnd(FunctionExpFalse, _)                 => FunctionExpFalse
     case FunctionExpAnd(l, FunctionExpTrue)                  => transFunctionExp(l)
