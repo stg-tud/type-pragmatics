@@ -3,34 +3,42 @@ module monotonic.Banana
 open data Monkey
 open data Banana
 
-// judgments
-// owns: Monkey Banana
-// 
-// partial functions
-// b1 : Monkey -> Banana
-// b2 : Monkey -> Banana
-// 
-// axioms
-// ----------------- A1
-// owns(~m, b1(~m))
-// owns(~m, b2(~m))
-// 
-// ----------------- A2
-// b1(~m) != b2(~m)
-// 
-// owns(~m1, ~b)
-// owns(~m2, ~b)
-// ----------------- A3
-// ~m1 = ~m2
+const
+  M1: Monkey
 
-data Two = one | two
+judgments
+owns: Monkey Banana
 
-partial function
-foo : Two 
+partial functions
+b1 : Monkey -> Banana
+b2 : Monkey -> Banana
+
+axioms
+----------------- A1
+owns(~m, b1(~m))
+owns(~m, b2(~m))
+
+----------------- A2
+b1(~m) != b2(~m)
+
+owns(~m1, ~b)
+owns(~m2, ~b)
+----------------- A3
+~m1 = ~m2
 
 goal
-foo() = ~x
---------- Foo
-OR 
-=> ~x = one
-=> ~x = two
+---------- GOAL
+owns(~m1, ~b)
+
+
+// data Two = one | two
+// 
+// partial function
+// foo : Two 
+// 
+// goal
+// foo() = ~x
+// --------- Foo
+// OR 
+// => ~x = one
+// => ~x = two

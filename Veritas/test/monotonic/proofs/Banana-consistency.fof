@@ -1,5 +1,4 @@
 fof('A1', axiom, ![Vm] : (vowns(Vm, vb1(Vm)) & vowns(Vm, vb2(Vm)))).
 fof('A2', axiom, ![Vm] : (vb1(Vm) != vb2(Vm))).
 fof('A3', axiom, ![Vm1, Vb, Vm2] : ((vowns(Vm1, Vb) & vowns(Vm2, Vb)) => (Vm1 = Vm2))).
-fof('DIFF-one-two', axiom, (vone != vtwo)).
 fof('FALSE', conjecture, $false).
