@@ -44,3 +44,5 @@ bind(~y, ~Ty, bind(~x, ~Tx, ~C)) |- ~e : ~T
 
 
 
+
+

@@ -120,10 +120,8 @@ trait TranslateTypingJudgments extends ModuleTransformation {
     val inferinst = new InferTypingJudgmentsSignature
     inferinst(m)
 
-    if (!(inferinst.targs contains None))
-      makeTypingJudgmentPredicateDecl(inferinst.targs(0).get, inferinst.targs(1).get, inferinst.targs(2).get)
-    if (!(inferinst.stargs contains None))
-      makeStypingJudgmentPredicateDecl(inferinst.stargs(0).get, inferinst.stargs(1).get)
+    makeTypingJudgmentPredicateDecl(inferinst.targs(0).getOrElse(SortRef("Ctx")), inferinst.targs(1).getOrElse(SortRef("Exp")), inferinst.targs(2).getOrElse(SortRef("Typ")))
+    makeStypingJudgmentPredicateDecl(inferinst.stargs(0).getOrElse(SortRef("Exp")), inferinst.stargs(1).getOrElse(SortRef("Typ")))
     super.apply(m)
   }
 

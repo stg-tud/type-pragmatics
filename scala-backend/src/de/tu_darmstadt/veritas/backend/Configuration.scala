@@ -16,9 +16,10 @@ object Configuration {
         Regex.quote(NameTransformer.NAME_JOIN_STRING)).last
   }
 
-  object LogicalSimplification extends ConfigOption {
-    val Off = Value("nosimpl")
-    val On = Value("dosimpl")
+  object Simplification extends ConfigOption {
+    val None = Value("nonsimpl")
+    val Logical = Value("logsimpl")
+    val LogicalAndConstructors = Value("patsimpl")
   }
 
   object VariableEncoding extends ConfigOption {
@@ -63,12 +64,12 @@ trait VariabilityModel extends Iterable[Configuration]
 
 object FullVariability extends VariabilityModel {
   override def iterator = for (
-    simpl <- LogicalSimplification.iterator;
+    simpl <- Simplification.iterator;
     vars <- VariableEncoding.iterator;
     fin <- FinalEncoding.iterator;
     prob <- Problem.iterator if prob != Problem.All
   ) yield Configuration(Map(
-    LogicalSimplification -> simpl,
+    Simplification -> simpl,
     VariableEncoding -> vars,
     FinalEncoding -> fin,
     Problem -> prob))
@@ -78,12 +79,12 @@ case class PartialVariability(config: Map[ConfigParameter, Seq[ConfigValue]]) ex
   private def test(p: ConfigParameter, v: ConfigValue) = config.get(p).map(_.contains(v)).getOrElse(true)
 
   override def iterator = for (
-    simpl <- LogicalSimplification.iterator if test(LogicalSimplification, simpl);
+    simpl <- Simplification.iterator if test(Simplification, simpl);
     vars <- VariableEncoding.iterator if test(VariableEncoding, vars);
     fin <- FinalEncoding.iterator if test(FinalEncoding, fin);
     prob <- Problem.iterator if test(Problem, prob)
   ) yield Configuration(Map(
-    LogicalSimplification -> simpl,
+    Simplification -> simpl,
     VariableEncoding -> vars,
     FinalEncoding -> fin,
     Problem -> prob))

@@ -34,14 +34,14 @@ object Backend {
     Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
       (Problem -> Seq(Problem.Test)),
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
-      (LogicalSimplification -> Seq(LogicalSimplification.On))))
+      (Simplification -> Seq(Simplification.LogicalAndConstructors))))
 
   val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
-    LogicalSimplification -> LogicalSimplification.On,
+    Simplification -> Simplification.LogicalAndConstructors,
     VariableEncoding -> VariableEncoding.NameEverything,
     Problem -> Problem.Proof))
   val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF,
-    LogicalSimplification -> LogicalSimplification.On,
+    Simplification -> Simplification.LogicalAndConstructors,
     VariableEncoding -> VariableEncoding.InlineEverything,
     Problem -> Problem.Proof))
 
@@ -64,7 +64,7 @@ object Backend {
     Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
       (Problem -> Seq(Problem.All)),
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
-      (LogicalSimplification -> Seq(LogicalSimplification.On))))
+      (Simplification -> Seq(Simplification.LogicalAndConstructors))))
 
   private def writeFile(file: PrettyPrintableFile, path: String): String = {
     val filehandler = new File(path)
@@ -94,7 +94,7 @@ object Backend {
     val problem = config(Problem).toString().toLowerCase
     val typing = config(FinalEncoding).toString().toLowerCase
     val variable = config(VariableEncoding).toString().toLowerCase
-    val simpl = config(LogicalSimplification).toString().toLowerCase
+    val simpl = config(Simplification).toString().toLowerCase
 
     val outputFolder = s"$problem/$typing/$variable-$simpl"
 
@@ -269,7 +269,7 @@ object Backend {
 
     val conf = Configuration(Map(
       FinalEncoding -> FinalEncoding.GuardedFOF,
-      LogicalSimplification -> LogicalSimplification.On,
+      Simplification -> Simplification.LogicalAndConstructors,
       VariableEncoding -> VariableEncoding.Unchanged,
       Problem -> Problem.Execution))
 

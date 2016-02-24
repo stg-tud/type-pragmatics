@@ -158,6 +158,18 @@ final case class FunctionExpOr(left: FunctionExp, right: FunctionExp) extends Fu
   override def toString() = s"(${left}) || (${right})"
 }
 
+/**
+ * convenience to create more than binary ors (and also optimization if args.isEmpty => gives just true)
+ */
+object FunctionExpOr {
+  def apply(args: Seq[FunctionExp]): FunctionExp = args match {
+    case Seq()                => FunctionExpFalse
+    case Seq(oneArg)          => oneArg
+    case Seq(head, rest @ _*) => FunctionExpOr(head, FunctionExpAnd(rest))
+  }
+}
+
+
 final case class FunctionExpBiImpl(left: FunctionExp, right: FunctionExp) extends FunctionExp {
   override val children = Seq(Seq(left), Seq(right))
 

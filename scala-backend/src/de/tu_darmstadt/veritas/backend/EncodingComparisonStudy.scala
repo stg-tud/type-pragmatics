@@ -104,6 +104,15 @@ object VariableTrans extends Alternative(selectConfig(VariableEncoding) {
     SeqTrans(NameFunctionResultsOnly, NameSubstituteFunctionDefParametersOnly)
 })
 
+object SimplificationTrans extends Alternative(selectConfig(Simplification) {
+  case Simplification.None =>
+    Identity
+  case Simplification.Logical =>
+    LogicalTermOptimization
+  case Simplification.LogicalAndConstructors =>
+    SeqTrans(ConstructorSimplification, LogicalTermOptimization)
+})
+
 object MainTrans extends SeqTrans(
   // desugar Veritas constructs
   BasicTrans,
@@ -115,7 +124,7 @@ object MainTrans extends SeqTrans(
   // insert type guards for quantified metavariables
   GuardsTrans,
   // determines whether logical optimizations take place prior to fof/tff encoding
-  Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
+  SimplificationTrans,
   // select problem
   ProblemTrans)
 

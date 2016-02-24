@@ -7,6 +7,7 @@ import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.veritas.function._
 import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.util.Context
 
 /**
  * generates axioms for function equations
@@ -76,68 +77,51 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
           Seq(notprepats)
         else
           for (sp <- collectIfLetPremises(ext)) yield {
-            sp ++ notprepats
+            notprepats ++ sp
           }
       }
     }
 
   private def negatePrepats(pats: Seq[FunctionPattern], prepats: Seq[Seq[FunctionPattern]]): Seq[TypingRuleJudgment] = {
-    def matchingPattern(patpair: (FunctionPattern, FunctionPattern)): Boolean =
-      patpair match {
-        case (FunctionPatVar(n), FunctionPatApp(m, args2)) => true
-        case (FunctionPatApp(n, args1), FunctionPatApp(m, args2)) => n == m && args1.length == args2.length
-        case (FunctionPatVar(n), FunctionPatVar(m)) => true
-        case _ => false
-      }
-    
     def relevantPattern(patpair: (FunctionPattern, FunctionPattern)): Boolean =
       patpair match {
-        case (FunctionPatVar(n), FunctionPatApp(m, args2)) => true
-        case (FunctionPatApp(n, args1), FunctionPatApp(m, args2)) => n == m && args1.length == args2.length
-        case _ => false
+        case (_, FunctionPatVar(m)) => false
+        case _ => true
       }
 
     val correspondingpats = prepats map (s => pats zip s)
-
-    //only negate patterns for a function equation if ALL patterns of pats match its patterns
-    // example: 
-    // f(0, succ(0)) = x
-    // f(succ(n), n) = y -> do not produce negated prepat n != succ(0) 
-    val cases = for (sp <- correspondingpats) yield if (sp exists (pp => !matchingPattern(pp)))
-      Seq()
-    else
-      (for (pp <- sp if (relevantPattern(pp))) yield negatePatternPart(pp))
-
-    makeOrSeqs(cases)
-  }
-
-  private def makeOrSeqs(cases: Seq[Seq[Seq[TypingRuleJudgment]]]): Seq[TypingRuleJudgment] = {
-    (for (c <- cases) yield {
-      val filterempty = c filter (o => !o.isEmpty)
-      if (filterempty.length <= 1)
-        filterempty.flatten
-      else
-        Seq(OrJudgment(filterempty))
-    }).flatten
-  }
-
-  private def negatePatternPart(patpair: (FunctionPattern, FunctionPattern)): Seq[TypingRuleJudgment] =
-    patpair match {
-      case (FunctionPatVar(n), a @ FunctionPatApp(m, args2)) => {
-        val fresha = makeFreshVars(a, new FreshNames)
-        val newvars = collectVars(fresha)
-        if (newvars.isEmpty)
-          Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar(n)), varsToMetaVars(patsToVars(fresha)))))
+    
+    val cases = correspondingpats.map(sp => 
+      OrJudgment(sp flatMap (x => 
+        if (relevantPattern(x))
+          Some(Seq(negatePatternPart(x)))
         else
-          Seq(ForallJudgment(newvars,
-            Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar(n)), varsToMetaVars(patsToVars(fresha)))))))
-      }
-      case (FunctionPatApp(n, args1), FunctionPatApp(m, args2)) =>
-        if (n == m)
-          negatePrepats(args1, Seq(args2))
-        else throw TransformationError("Could not find negation of pattern: " + patpair)
-      case _ => throw TransformationError("Could not find negation of pattern: " + patpair)
-    }
+          None
+      ))
+    )
+    cases
+  }
+
+  private def makeOrSeqs(cases: Seq[Seq[TypingRuleJudgment]]): Seq[TypingRuleJudgment] = {
+    val filterempty = cases filter (o => !o.isEmpty)
+    if (filterempty.length <= 1)
+      filterempty.flatten
+    else
+      Seq(OrJudgment(filterempty))
+  }
+
+  private def negatePatternPart(patpair: (FunctionPattern, FunctionPattern)): TypingRuleJudgment = {
+    val p = patpair._1
+    val old = patpair._2
+    val pexp = varsToMetaVars(patsToVars(p))
+    val freshOld = makeFreshVars(old, new FreshNames)
+    val newvars = collectVars(freshOld)
+    if (newvars.isEmpty)
+      FunctionExpJudgment(FunctionExpNeq(pexp, varsToMetaVars(patsToVars(freshOld))))
+    else
+      ForallJudgment(newvars,
+        Seq(FunctionExpJudgment(FunctionExpNeq(pexp, varsToMetaVars(patsToVars(freshOld))))))
+  }
 
   private def makeFreshVars(p: FunctionPattern, fn: FreshNames): FunctionPattern = {
     p match {

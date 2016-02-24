@@ -23,6 +23,15 @@ isFreeVar(v, var(x))       = x == v
 isFreeVar(v, abs(x, T, e)) = (x != v) && (isFreeVar(v, e)) 
 isFreeVar(v, app(e1, e2))  = isFreeVar(v, e1) || isFreeVar(v, e2)
 
+
+function
+foo : Exp Exp -> Exp
+foo(var(x), e2) = e2
+foo(e1, var(x)) = e1
+foo(var(x), var(y)) = var(x)
+foo(abs(x,T,e1), app(e2, e3)) = e1
+foo(e1, e2) = app(e1, e2)
+
 // axiom
 // isFreeVar(~v, ~e)
 // ================= isFreeVar-inv
