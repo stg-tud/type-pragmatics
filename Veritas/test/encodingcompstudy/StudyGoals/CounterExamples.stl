@@ -104,4 +104,4 @@ goal
 welltypedtable(~tt, ~table)
 ========================== counterexample-10
 exists ~name
-  findCol(~name, ~table) != someRawTable(tcons(rcons(~r, ~rrest), tempty))
+  findCol(~name, ~table) != someRawTable(~rt)
