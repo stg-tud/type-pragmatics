@@ -96,7 +96,7 @@ object Backend {
     val variable = config(VariableEncoding).toString().toLowerCase
     val simpl = config(Simplification).toString().toLowerCase
 
-    val outputFolder = s"$problem/$typing/$variable-$simpl"
+    val outputFolder = s"$problem/$typing/$variable/$simpl"
 
     //write the files in the corresponding directory
     //is it necessary to use the Stratego context when backend is called as a strategy

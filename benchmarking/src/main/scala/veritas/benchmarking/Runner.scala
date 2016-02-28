@@ -30,12 +30,12 @@ case class Runner(config: Config) {
       if(File.separator == "\\") "\\\\"
       else File.separator
     val pathParts = filePath.split(fileSeparator)
-    //assemble configuration from last two parts of path
-    val goalcategory = pathParts(pathParts.length - 4)
-    val typing = pathParts(pathParts.length - 3)
-    val transformations = pathParts(pathParts.length - 2)
+    //assemble configuration from last few parts of path
+    val goalcategory = pathParts(pathParts.length - 5)
+    val typing = pathParts(pathParts.length - 4)
+    val transformations = List(pathParts(pathParts.length - 3), pathParts(pathParts.length - 2))
 
-    new VeritasConfig(goalcategory, typing, transformations.split("-").toList)
+    new VeritasConfig(goalcategory, typing, transformations)
   }
 
   private def callProverAndLog: (ProverConfig, File, File) => (VeritasConfFile, FileSummary) = {
@@ -87,13 +87,14 @@ case class Runner(config: Config) {
         if(File.separator == "\\") "\\\\"
         else File.separator
       val pathParts = filePath.split(fileSeparator)
-      //assemble configuration from last two parts of path
-      val goalcategory = pathParts(pathParts.length - 4)
-      val typing = pathParts(pathParts.length - 3)
-      val transformations = pathParts(pathParts.length - 2)
+      val confPath = pathParts.takeRight(5).dropRight(1).mkString("/")
       val filename = file.getName
-      val path = s"$prepath/${proverConfig.name}+${config.timeout}+${goalcategory}+${typing}+${transformations}+${filename}.proof"
-      new File(path)
+      val path = s"$prepath/${proverConfig.name}/$confPath/${config.timeout}+${filename}.proof"
+      val filehandler = new File(path)
+      if (!filehandler.getParentFile.exists())
+        filehandler.getParentFile.mkdirs()
+      filehandler.createNewFile()
+      filehandler
     }
 
 
@@ -141,29 +142,29 @@ case class Runner(config: Config) {
   def processProofLogs(): Unit = {
 
     // convention for file names:
-    // proverConfig+timeout+goalcategory+typing+transformations+filename.proof
+    // proverConfig/goalcategory/typing/variable/optimization/timeout+filename.proof
     //
     // override functions below if convention shall be changed!
     def getProverConfig(fn: String): ProverConfig = {
-      val split = fn.split("\\+")
-      val configname = split(0)
+      // split takes regular expression, \-separator (windows systems) needs to be escaped.
+      val fileSeparator =
+        if(File.separator == "\\") "\\\\"
+        else File.separator
+      val pathParts = fn.split(fileSeparator)
+      val configname = pathParts(pathParts.length - 6)
+      //assemble configuration from last two parts of path
       ProverConfig.configs(configname)
     }
-    def getVeritasConfig(fn: String): VeritasConfig = {
-      val split = fn.split("\\+")
-      val goalcategory = split(2)
-      val typing = split(3)
-      val transformations = split(4)
-      VeritasConfig(goalcategory, typing, transformations.split("-").toList)
-    }
+
     def getFilename(fn: String): String = {
       val split = fn.split("\\+")
       val prename = split.last
       prename.dropRight(6) //drop .proof
     }
+
     def getTimeout(fn: String): Int = {
       val split = fn.split("\\+")
-      split(1).toInt
+      split(0).toInt
     }
 
     for (file <- allFiles if file.getName().endsWith(".proof")) {
@@ -171,7 +172,7 @@ case class Runner(config: Config) {
       val inputfile = getFilename(fn)
       val time = getTimeout(fn)
       val proverconf = getProverConfig(fn)
-      val veritasconf = getVeritasConfig(fn)
+      val veritasconf = extractVeritasConfig(file.getAbsolutePath)
 
       val resultproc = proverconf.newResultProcessor(time, file)
       resultproc.processLogs()
