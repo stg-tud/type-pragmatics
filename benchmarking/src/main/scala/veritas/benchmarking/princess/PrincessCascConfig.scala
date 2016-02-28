@@ -27,18 +27,14 @@ case class PrincessCascConfig()
   }
 
   def tryExtractTimeSeconds(output: String) = {
-    if (output.length > 20)
-      None
-    else {
-      val end = output.lastIndexOf("ms")
-      val start = output.lastIndexOf("\n", end) + 1
-      if (start < 0 || end < 0)
-        None
-      else {
-        val s = output.substring(start, end)
-        val d = s.toDouble / 1000
-        Some(d)
-      }
+    val timeregex = """([0-9]+)ms""".r.unanchored
+    val provedregex = s""".+:.+proved.+\\(${timeregex.regex}\\)""".r.unanchored
+
+    //try to match "Prover 0: proved (xxxxms)" first, then just xxxxms (from end of file)
+    output match {
+      case provedregex(time) => Some(time.toDouble / 1000)
+      case timeregex(time) => Some(time.toDouble / 1000)
+      case _ => None
     }
   }
 
@@ -65,6 +61,9 @@ case class PrincessCascConfig()
             lemmas = s.substring(1, s.indexOf("}")).split(",").toList
           }
         }
+        else if (s.contains("ms")) {
+          time = tryExtractTimeSeconds(s)
+        }
       } catch {
         case e: Exception => println(s"Error ${e.getMessage} in $s")
           throw e
@@ -75,6 +74,7 @@ case class PrincessCascConfig()
 
     // no setup or teardown
     override def err(s: => String) = try {
+      super.err(s)
       if (s.contains("ms")) {
         time = tryExtractTimeSeconds(s)
       }
@@ -87,7 +87,7 @@ case class PrincessCascConfig()
       if (status == null)
         new ProverResult(Inconclusive("Unknown"), Some(0.0), StringDetails("Inconclusive"))
       else status match {
-        case Proved => new ProverResult(Proved, time, StringDetails(""))
+        case Proved => new ProverResult(Proved, time, StringDetails("", lemmas))
         case Disproved => new ProverResult(Disproved, time, StringDetails("Disproved"))
         case Inconclusive(reason) => new ProverResult(Inconclusive(reason), time, StringDetails("Inconclusive"))
       }

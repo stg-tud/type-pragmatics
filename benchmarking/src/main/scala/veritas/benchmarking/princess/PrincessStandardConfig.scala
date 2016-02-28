@@ -56,7 +56,6 @@ case class PrincessStandardConfig()
 
     override def extractProverResult(s: => String) = {
       try {
-        //println(s)
         if (s.contains("TIMEOUT"))
           status = Inconclusive("Timeout")
         else if (s.contains("VALID")) {
@@ -78,7 +77,7 @@ case class PrincessStandardConfig()
 
     // no setup or teardown
     override def err(s: => String) = try {
-      //println(s)
+      super.err(s)
       if (s.contains("ms")) {
         time = tryExtractTimeSeconds(s)
       }

@@ -142,7 +142,7 @@ class AverageTimePerVC(timeout: Int, fileSummaries: ListMap[ProverConfig, List[F
   val successAvgPerConfig: Map[AnalysisHeader, Double] =
     applyPerConfig2((ah, lfs) => {
       val filterProved = lfs filter provedtest
-      val ts = filterProved map (fs => fs.timeSeconds * 1000)
+      val ts = filterProved map (fs => fs.procTime * 1000)
       if (ts.isEmpty) 0
       else
         try {

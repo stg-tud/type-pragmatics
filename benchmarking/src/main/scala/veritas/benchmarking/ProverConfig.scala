@@ -91,8 +91,14 @@ abstract class ResultProcessor(outfile: File) extends FileProcessLogger(outfile)
   //override to define how a result processor processes the output of a prover
   def extractProverResult(s: => String): Unit
 
-  //log output of prover to a separate file (given by outfile
+  //log output of prover to a separate file (given by outfile)
   override def out(s : => String) = {
+    writer println s
+    flush()
+  }
+
+  //log output of prover to a separate file (given by outfile)
+  override def err(s : => String) = {
     writer println s
     flush()
   }

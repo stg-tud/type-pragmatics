@@ -374,11 +374,6 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
 
     override def buffer[T](f: => T) = f
 
-    // no setup or teardown
-    override def err(s: => String) = {
-      println(s)
-    } // ignore
-
     override def result =
       if (status == null)
         new ProverResult(Inconclusive("Unknown - Parse error?"), Some(0.0), VampireTrace((new GrowingArray[VampireClause](1)).finalizedArray, VampireConfig.this))

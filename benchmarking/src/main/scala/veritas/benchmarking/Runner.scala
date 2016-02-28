@@ -27,7 +27,7 @@ case class Runner(config: Config) {
   private def extractVeritasConfig(filePath: String): VeritasConfig = {
     // split takes regular expression, \-separator (windows systems) needs to be escaped.
     val fileSeparator =
-      if(File.separator == "\\") "\\\\"
+      if (File.separator == "\\") "\\\\"
       else File.separator
     val pathParts = filePath.split(fileSeparator)
     //assemble configuration from last few parts of path
@@ -55,13 +55,13 @@ case class Runner(config: Config) {
           t
       }
 
-      val res = FileSummary(extractVeritasConfig(file.getAbsolutePath), file.getName, proverConfig, result, time)
+      val res = FileSummary(extractVeritasConfig(file.getAbsolutePath), file.getName, proverConfig, result, config.timeout, time)
       val status = res.proverResult.status
       val logDetail = config.logProof && status == Proved ||
         config.logDisproof && status == Disproved ||
         config.logInconclusive && status.isInstanceOf[Inconclusive]
       if (config.logPerFile || logDetail)
-        println(s"Prover ${res.proverConfig.name} finished $file in ${res.timeSeconds.formatted("%.3f")} " +
+        println(s"Prover ${res.proverConfig.name} finished $file in ${res.procTime.formatted("%.3f")} " +
           s"seconds: ${res.proverResult.status}")
       if (logDetail)
         print(res.proverResult.details.toHumanString)
@@ -84,7 +84,7 @@ case class Runner(config: Config) {
       val prepath = if (config.logFilePath.isEmpty) "." else config.logFilePath
       val filePath = file.getPath
       val fileSeparator =
-        if(File.separator == "\\") "\\\\"
+        if (File.separator == "\\") "\\\\"
         else File.separator
       val pathParts = filePath.split(fileSeparator)
       val confPath = pathParts.takeRight(5).dropRight(1).mkString("/")
@@ -148,7 +148,7 @@ case class Runner(config: Config) {
     def getProverConfig(fn: String): ProverConfig = {
       // split takes regular expression, \-separator (windows systems) needs to be escaped.
       val fileSeparator =
-        if(File.separator == "\\") "\\\\"
+        if (File.separator == "\\") "\\\\"
         else File.separator
       val pathParts = fn.split(fileSeparator)
       val configname = pathParts(pathParts.length - 6)
@@ -167,21 +167,21 @@ case class Runner(config: Config) {
       split(0).toInt
     }
 
-    for (file <- allFiles if file.getName().endsWith(".proof")) {
+    for (file <- allFiles if (file.isFile && file.getName().endsWith(".proof"))) {
       val fn = file.getName()
       val inputfile = getFilename(fn)
-      val time = getTimeout(fn)
-      val proverconf = getProverConfig(fn)
+      val timeout = getTimeout(fn)
+      val proverconf = getProverConfig(file.getAbsolutePath)
       val veritasconf = extractVeritasConfig(file.getAbsolutePath)
 
-      val resultproc = proverconf.newResultProcessor(time, file)
+      val resultproc = proverconf.newResultProcessor(timeout, file)
       resultproc.processLogs()
 
-      val filesummary = FileSummary(veritasconf, inputfile, proverconf, resultproc.result, time)
-      summary += (VeritasConfFile(veritasconf, inputfile), filesummary)
+      val filesummary = FileSummary(veritasconf, inputfile, proverconf, resultproc.result, timeout, resultproc.result.timeSeconds.getOrElse(0.0))
+      summary +=(VeritasConfFile(veritasconf, inputfile), filesummary)
+
     }
   }
-
 
 
   def run(): Unit = {

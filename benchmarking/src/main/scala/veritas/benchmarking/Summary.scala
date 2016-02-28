@@ -13,9 +13,9 @@ case class VeritasConfFile(veritasConfig: VeritasConfig, filename: String)
   * @param veritasConfig Veritas configuration for file
   * @param proverConfig
   * @param proverResult
-  * @param timeSeconds
+  * @param procTime
   */
-case class FileSummary(veritasConfig: VeritasConfig, fileName: String, proverConfig: ProverConfig, proverResult: ProverResult, timeSeconds: Double)
+case class FileSummary(veritasConfig: VeritasConfig, fileName: String, proverConfig: ProverConfig, proverResult: ProverResult, timeout: Double, procTime: Double)
 
 case class Summary(config: Config) {
   private var fileSummaries: ListMap[ProverConfig, ListMap[VeritasConfFile, FileSummary]] = ListMap()
@@ -38,7 +38,7 @@ case class Summary(config: Config) {
       val numFiles = files.size
       val proved = files filter (_._2.proverResult.status == Proved)
       val numProved = proved.size
-      val sumProvedTimes = if (proved.isEmpty) 0 else proved map (_._2.timeSeconds) reduce (_ + _)
+      val sumProvedTimes = if (proved.isEmpty) 0 else proved map (_._2.procTime) reduce (_ + _)
       val avgProvedTimeSeconds = if (numProved == 0) -1 else sumProvedTimes / numProved
 
       b ++= s"Prover ${proverConfig.name} attempted $numFiles, proved $numProved, average proved time ${avgProvedTimeSeconds.formatted("%.3f")} seconds\n"
@@ -60,9 +60,9 @@ case class Summary(config: Config) {
     for ((proverConfig, files) <- fileSummaries;
          (file, res) <- files) {
       cell(res.proverConfig.name)
-      cell(res.timeSeconds.toString)
+      cell(res.procTime.toString)
       cell(file.filename)
-      cell((res.timeSeconds * 1000).toString)
+      cell((res.procTime * 1000).toString)
       cell(res.proverResult.status.toString)
       cell(res.proverResult.details.toString, true)
     }
@@ -114,12 +114,12 @@ case class Summary(config: Config) {
 
         val surroundingcells = Set[Cell](
           StringCell(0, res.proverConfig.name),
-          NumericCell(1, res.timeSeconds),
+          NumericCell(1, res.timeout),
           StringCell(2, res.veritasConfig.goalcategory),
           StringCell(3, res.veritasConfig.typing),
           //StringCell(4, res.veritasConfig.transformations),
           StringCell(afteroffset, file.filename),
-          NumericCell(afteroffset + 1, res.timeSeconds * 1000.0),
+          NumericCell(afteroffset + 1, res.procTime * 1000.0),
           StringCell(afteroffset + 2, res.proverResult.status.toString),
           StringCell(afteroffset + 3, detailsString.replace("\n", "\t").substring(0, Math.min(detailsString.length, 32767)))
         )
@@ -148,7 +148,7 @@ case class Summary(config: Config) {
     = fileSummaries map { case (pc, fsmap) => (pc, fsmap.values.toList) }
 
     //TODO: timeout is hardcoded here - actually implicitly assumes that all timeouts in the list will be equal and just takes the first
-    val time = contractedFileSummaries.head._2.head.timeSeconds
+    val time = contractedFileSummaries.head._2.head.timeout
 
     // val overviewData decides which overview data is computed
     val overviewData: List[DataAnalysis] = List(

@@ -42,7 +42,7 @@ case class EproverConfig()
   case class EproverResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
 
     var status: ProverStatus = _
-    var time: Option[Double] = Some(0)
+    var time: Option[Double] = Some(timeout) // default value: timeout for prover (since eprover does not report a time if it was unsuccessful)
 
     var proofBuilder: StringBuilder = _
     var proof: String = null
@@ -92,9 +92,6 @@ case class EproverConfig()
 
 
     override def buffer[T](f: => T) = f
-
-    // no setup or teardown
-    override def err(s: => String) = {}
 
     override def result =
       if (status == null)
