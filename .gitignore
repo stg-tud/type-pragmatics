@@ -50,3 +50,5 @@ benchmarking/datasets/logs
 benchmarking/datasets/SQL-results/test-complete.xls
 benchmarking/datasets/SQL-results/test.xls
 benchmarking/beagle.jar
+Veritas/test/encodingcompstudy/StudyGoals/AllEncodingVariants.tar.bz2
+benchmarking/datasets/AllProverLogs.tar.bz2
