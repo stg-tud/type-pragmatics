@@ -169,6 +169,7 @@ case class Runner(config: Config) {
 
     for (file <- allFiles if (file.isFile && file.getName().endsWith(".proof"))) {
       val fn = file.getName()
+      println(s"Processing $fn ...")
       val inputfile = getFilename(fn)
       val timeout = getTimeout(fn)
       val proverconf = getProverConfig(file.getAbsolutePath)
