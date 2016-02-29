@@ -77,7 +77,7 @@ abstract class ResultProcessor(outfile: File) extends FileProcessLogger(outfile)
   val writer = new PrintWriter(
       new BufferedWriter(
         new OutputStreamWriter(
-          new FileOutputStream(outfile, true)
+          new FileOutputStream(outfile)
         )
       ))
 
