@@ -83,7 +83,7 @@ abstract class ResultProcessor(outfile: File) extends FileProcessLogger(outfile)
 
   //reads the outfile of this ResultProcessor and processes them using extractProverResult
   def processLogs() = {
-    val fileLines = io.Source.fromFile(outfile).getLines.toList
+    val fileLines = io.Source.fromFile(outfile).getLines
     for (line <- fileLines)
       extractProverResult(line)
   }
