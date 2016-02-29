@@ -202,9 +202,6 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
         case e: Exception => println(s"Error ${e.getMessage} in $s")
           throw e
       }
-      //write output String into file
-      writer println s
-      flush()
     }
 
     def parseClause(s: String, prefix: String): (Int, String, Int, Int, VampireStep, Seq[Int]) = {
