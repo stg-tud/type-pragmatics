@@ -43,12 +43,10 @@ Veritas/test/encodingcompstudy/StudyGoals/synthesis
 Veritas/test/encodingcompstudy/StudyGoals/execution
 Veritas/test/encodingcompstudy/StudyGoals/proof
 
-benchmarking/princess-all.jar
-benchmarking/princess-all-casc.jar
-benchmarking/princess-all-standard.jar
 benchmarking/datasets/logs
-benchmarking/datasets/SQL-results/test-complete.xls
-benchmarking/datasets/SQL-results/test.xls
-benchmarking/beagle.jar
-Veritas/test/encodingcompstudy/StudyGoals/AllEncodingVariants.tar.bz2
-benchmarking/datasets/AllProverLogs.tar.bz2
+*.tar.bz2
+*.zip
+*.7z
+*.jar
+
+
