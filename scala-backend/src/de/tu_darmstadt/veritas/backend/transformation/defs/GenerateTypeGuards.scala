@@ -49,25 +49,25 @@ class GenerateTypeGuards extends ModuleTransformation {
     FunctionSig(guard(dataType), Seq(SortRef(dataType)), SortRef(DataType.Bool))
   }
 
-  def makeGuardAxiom(cd: DataTypeConstructor, dataType: String): TypingRule = {
+  def makeGuardAxiom(name: String, in: Seq[SortRef], out: String): TypingRule = {
     val fresh = new FreshNames
-    val vars = cd.in.map(sort => FunctionMeta(MetaVar(fresh.freshName(sort.name))))
+    val vars = in.map(sort => FunctionMeta(MetaVar(fresh.freshName(sort.name))))
 
     // all vars are well-typed
-    val argGuards = cd.in.zip(vars).map {
+    val argGuards = in.zip(vars).map {
       case (sort, v) =>
         guardCall(sort.name, v)
     }
     val argCond = FunctionExpAnd(argGuards)
 
     // the constructor call yields something well-typed
-    val consCall = FunctionExpApp(cd.name, vars)
-    val consCond = guardCall(dataType, consCall)
+    val consCall = FunctionExpApp(name, vars)
+    val consCond = guardCall(out, consCall)
 
     val consequence = FunctionExpJudgment(FunctionExpBiImpl(argCond, consCond))
 
-    val name = s"$ruleprefix-$dataType-${cd.name}"
-    val rule = TypingRule(name, Seq(), Seq(consequence))
+    val rname = s"$ruleprefix-$out-$name"
+    val rule = TypingRule(rname, Seq(), Seq(consequence))
     rule
   }
 
@@ -98,7 +98,7 @@ object GenerateAllTypeGuards extends GenerateTypeGuards {
     mdef match {
       case dt @ DataType(open, name, constrs) =>
         val guardFunctions = Functions(Seq(FunctionDef(makeGuardSignature(name), Seq())))
-        val guardAxioms = constrs map (makeGuardAxiom(_, name))
+        val guardAxioms = constrs map (c => makeGuardAxiom(c.name, c.in, name))
         if (open)
           Seq(dt, guardFunctions, Axioms(guardAxioms))
         else {
@@ -111,6 +111,11 @@ object GenerateAllTypeGuards extends GenerateTypeGuards {
         }  
         Seq(c, Axioms(consts_axs))
       }
+      case funs@Functions(fs) =>
+        val rules = fs map { case FunctionDef(FunctionSig(name, ins, out), _) =>
+          makeGuardAxiom(name, ins, out.name)
+        }
+        Seq(funs, Axioms(rules))
       case _ => super.insertGuardAxsHere(mdef)
     }
 }
