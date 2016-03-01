@@ -23,10 +23,11 @@ object Main extends App {
                      logXLSOverview: File = null,
                      parallelism: Int = 0,
                      logFilePath: String = "",
-                     summarizeLogs: Boolean = false
+                     summarizeLogs: Boolean = false,
+                     layoutData: Boolean = false
                    ) {
     def ensureDefaultOptions: Config = {
-      if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null && logXLS == null && !summarizeLogs)
+      if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null && logXLS == null && !summarizeLogs && !layoutData)
         copy(logPerFile = true, logSummary = true)
       else
         this
@@ -96,12 +97,15 @@ object Main extends App {
     opt[Unit]("summarizelogs") action { (b, config) =>
       config.copy(summarizeLogs = true)
     } text ("indicates that given files are already proof logs (for summary)")
+    opt[Unit]("layoutData") action { (b, config) =>
+      config.copy(layoutData = true)
+    } text ("indicates that argument file is excel file for producing various data layouts")
 
-    arg[File]("<proof goal file> or <proof log file>...") unbounded() validate { file =>
+    arg[File]("<proof goal file> or <proof log file> or <excel file> ...") unbounded() validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
     } action { (file, config) =>
       config.copy(files = config.files :+ file.getAbsoluteFile)
-    } text ("files containing proof goals or files containing proof logs (with summarizeLogs)")
+    } text ("files containing proof goals or files containing proof logs (with option summarizeLogs) or excel file for laying out data (with option layoutData)")
 
     for (opts <- ProverConfig.contributedOptions)
       opts.contributeOptions(this)
@@ -113,21 +117,23 @@ object Main extends App {
       val config = iconfig.ensureDefaultOptions
       val runner = new Runner(config)
       runner.run()
-      val summary = runner.summary
 
+      //only execute the last steps if tool was not called for laying out data
+      if (!config.layoutData) {
+        val summary = runner.summary
 
-
-      if (config.logSummary)
-        print(summary.makeSummary)
-      if (config.logCSV != null)
-        new PrintWriter(config.logCSV) {
-          write(summary.makeCSV);
-          close
-        }
-      if (config.logXLS != null)
-        summary.makeXLS.safeToFile(config.logXLS.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
-      if (config.logXLSOverview != null)
-        summary.makeXLSOverview.safeToFile(config.logXLSOverview.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+        if (config.logSummary)
+          print(summary.makeSummary)
+        if (config.logCSV != null)
+          new PrintWriter(config.logCSV) {
+            write(summary.makeCSV);
+            close
+          }
+        if (config.logXLS != null)
+          summary.makeXLS.safeToFile(config.logXLS.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+        if (config.logXLSOverview != null)
+          summary.makeXLSOverview.safeToFile(config.logXLSOverview.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+      }
 
   }
 }

@@ -186,7 +186,9 @@ case class Runner(config: Config) {
 
 
   def run(): Unit = {
-    if (config.summarizeLogs)
+    if (config.layoutData)
+      DataLayout(allFiles).layoutAll
+    else if (config.summarizeLogs)
       processProofLogs()
     else
       executeProvers()
