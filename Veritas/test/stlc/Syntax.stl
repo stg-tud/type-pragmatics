@@ -32,6 +32,11 @@ foo(var(x), var(y)) = var(x)
 foo(abs(x,T,e1), app(e2, e3)) = e1
 foo(e1, e2) = app(e1, e2)
 
+goal
+~y = ~y
+------------ ABC
+isFreeVar(~x, foo(var(~x), var(~x)))
+
 // axiom
 // isFreeVar(~v, ~e)
 // ================= isFreeVar-inv

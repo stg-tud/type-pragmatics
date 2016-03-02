@@ -18,11 +18,21 @@ object GenerateCtorAxioms extends ModuleTransformation {
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = {
     withSuper(super.transModuleDefs(mdef)) {
-      case dt @ DataType(open, name, constrs) =>
-        val domAxiom = if (!open) Seq(makeDomainAxiom(name, constrs)) else Seq()
+      case dt @ DataType(false, name, constrs) =>
+        val domAxiom = makeDomainAxiom(name, constrs)
         val eqAxioms = constrs map (makeEqAxiom(_))
         val diffAxioms = makeDiffAxioms(constrs)
-        Seq(dt, Axioms(domAxiom ++ eqAxioms ++ diffAxioms))
+        Seq(dt, Axioms(domAxiom +: (eqAxioms ++ diffAxioms)))
+        
+      case dt @ DataType(true, name, constrs) =>
+        val t = SortRef(name)
+        val initName = "$init"+name
+        val enumName = "$enum"+name
+        val finit = Functions(Seq(FunctionDef(FunctionSig(initName, Seq(), t), Seq())))
+        val fenum = Functions(Seq(FunctionDef(FunctionSig(enumName, Seq(t), t), Seq())))
+        val enumEq = makeEqAxiom(DataTypeConstructor(enumName, Seq(t)))
+        val diff = makeDiffAxiom(DataTypeConstructor(initName, Seq()), DataTypeConstructor(enumName, Seq(t)))
+        Seq(dt, finit, fenum, Axioms(Seq(enumEq, diff)))
     }
   }
   
