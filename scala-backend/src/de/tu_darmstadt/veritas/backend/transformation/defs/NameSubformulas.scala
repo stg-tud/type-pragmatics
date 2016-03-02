@@ -190,6 +190,8 @@ trait CollectSubformulas extends ModuleTransformation {
 
   override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
     withSuper[FunctionExp](super.transFunctionExps(f)) {
+      case fe @ FunctionExpEq(FunctionMeta(_), f2)    => Seq(fe)
+      case fe @ FunctionExpEq(f1, FunctionMeta(_))    => Seq(fe)
       case fe @ FunctionExpEq(f1, f2)    => Seq(FunctionExpEq(checkNew(f1), checkNew(f2)))
       case fe @ FunctionExpNeq(f1, f2)   => Seq(FunctionExpNeq(checkNew(f1), checkNew(f2)))
       case fe @ FunctionExpIf(c, t, e)   => Seq(FunctionExpIf(checkNew(c), checkNew(t), checkNew(e)))
@@ -202,6 +204,8 @@ trait CollectSubformulas extends ModuleTransformation {
     //that accept FunctionExpMeta as arguments
     //(since substitution potentially replaces formula with MetaVar!)
     withSuper(super.transFunctionExp(f)) {
+      case fe @ FunctionExpEq(FunctionMeta(_), f2)    => fe
+      case fe @ FunctionExpEq(f1, FunctionMeta(_))    => fe
       case fe @ FunctionExpEq(f1, f2)    => FunctionExpEq(checkNew(f1), checkNew(f2))
       case fe @ FunctionExpNeq(f1, f2)   => FunctionExpNeq(checkNew(f1), checkNew(f2))
       case fe @ FunctionExpIf(c, t, e)   => FunctionExpIf(checkNew(c), checkNew(t), checkNew(e))
@@ -225,8 +229,8 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
    */
   def checkSubstitute(vc: VeritasConstruct): Boolean = true
 
-  private def printAdditionalPremises(ap: Map[FunctionExpMeta, MetaVar]): Seq[TypingRuleJudgment] =
-    for ((mexp, mv) <- ap.iterator.toSeq)
+  def printAdditionalPremises(ap: Map[FunctionExpMeta, MetaVar]): Seq[TypingRuleJudgment] =
+    for ((mexp, mv) <- ap.iterator.toSeq if mexp != FunctionMeta(mv))
       yield FunctionExpJudgment(FunctionExpEq(FunctionMeta(mv), mexp))
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
@@ -365,6 +369,66 @@ object NameEverythingSubstituteNothing extends NameSubformulas {
  * excludes all meta variables from being named
  */
 object NameEverythingButMetaVars extends NameSubformulas
+
+/**
+ * excludes all meta variables from being named
+ */
+object CommonSubformulaElimination extends NameSubformulas {
+  var additionalPremisesSeen: Set[VeritasConstruct] = Set()
+
+  override def checkConstruct(vc: VeritasConstruct): Boolean = {
+    if (additionalPremisesSeen.contains(vc) || additionalPremises.contains(vc.asInstanceOf[FunctionExpMeta]))
+      super.checkConstruct(vc)
+    else {
+      additionalPremisesSeen = additionalPremisesSeen + vc
+      false
+    }
+  }
+  
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
+    //make sure that any mutable state is initialized upon application!
+    additionalPremisesSeen = Set()
+    super.apply(m)
+  }
+
+  override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
+    additionalPremisesSeen = Set()
+    super.transTypingRules(tr)
+    additionalPremisesSeen = Set()
+    val prems = trace(tr.premises)(transTypingRuleJudgments(_))
+    val conss = trace(tr.consequences)(transTypingRuleJudgments(_))
+    Seq(TypingRule(tr.name, printAdditionalPremises(additionalPremises) ++ prems, conss))
+  }
+  
+  override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
+    trj match {
+      case ExistsJudgment(_,_) | ForallJudgment(_,_) => {
+        val oldaddpremsseen = additionalPremisesSeen
+        additionalPremisesSeen = Set()
+        super.transTypingRuleJudgment(trj)
+        additionalPremisesSeen = Set()
+        val res = super.transTypingRuleJudgment(trj)
+        additionalPremisesSeen = oldaddpremsseen
+        res
+      }
+      case _ => super.transTypingRuleJudgment(trj)
+    }
+
+  override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
+    trj match {
+      case ExistsJudgment(_, _) | ForallJudgment(_, _) => {
+        val oldaddpremsseen = additionalPremisesSeen
+        additionalPremisesSeen = Set()
+        super.transTypingRuleJudgment(trj)
+        additionalPremisesSeen = Set()
+        val res = super.transTypingRuleJudgments(trj)
+        additionalPremisesSeen = oldaddpremsseen
+        res
+      }
+      case _ => super.transTypingRuleJudgments(trj)
+    }
+}
+
 
 object NameEverythingButMetaVarsSubstituteNothing extends NameSubformulas {
 

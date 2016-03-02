@@ -268,10 +268,10 @@ object Backend {
     import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 
     val conf = Configuration(Map(
-      FinalEncoding -> FinalEncoding.GuardedFOF,
+      FinalEncoding -> FinalEncoding.BareFOF,
       Simplification -> Simplification.LogicalAndConstructors,
-      VariableEncoding -> VariableEncoding.Unchanged,
-      Problem -> Problem.Execution))
+      VariableEncoding -> VariableEncoding.NameParamsAndResults,
+      Problem -> Problem.Consistency))
 
     val modules = Seq(Module.from(aterm))
 
@@ -291,7 +291,7 @@ object Backend {
       //ProblemTrans)
       )
 
-    val transformationChain = { sm: Seq[Module] => CustomPartialChain(sm)(conf) }
+    val transformationChain = { sm: Seq[Module] => MainTrans(sm)(conf) }
     val resultingModSeq = transformationChain(modules)
     resultingModSeq map { m => ("", m) }
   }

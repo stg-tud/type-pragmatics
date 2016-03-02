@@ -119,12 +119,11 @@ object MainTrans extends SeqTrans(
   // determines whether and which inversion axioms are generated for functions/typing rules
   // update: always generate function inversion axioms!
   TotalFunctionInversionAxioms, // ignored: InversionAll
-  // variable inlining/extraction
-  VariableTrans,
   // insert type guards for quantified metavariables
   GuardsTrans,
+  // variable inlining/extraction
   // determines whether logical optimizations take place prior to fof/tff encoding
-  SimplificationTrans,
+  Fixpoint(SeqTrans(SimplificationTrans, VariableTrans)),
   // select problem
   ProblemTrans)
 

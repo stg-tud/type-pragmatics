@@ -33,7 +33,8 @@ foo(abs(x,T,e1), app(e2, e3)) = e1
 foo(e1, e2) = app(e1, e2)
 
 goal
-~y = ~y
+~x = ~x
+~x = ~x
 ------------ ABC
 isFreeVar(~x, foo(var(~x), var(~x)))
 
