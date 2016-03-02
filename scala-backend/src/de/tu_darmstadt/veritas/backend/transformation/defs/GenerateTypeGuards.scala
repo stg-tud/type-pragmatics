@@ -70,27 +70,6 @@ class GenerateTypeGuards extends ModuleTransformation {
     val rule = TypingRule(rname, Seq(), Seq(consequence))
     rule
   }
-
-  def makeDomainAxiom(dataType: String, constrs: Seq[DataTypeConstructor]): TypingRule = {
-    val name = s"$ruleprefix-dom-$dataType"
-    val v = FunctionMeta(MetaVar("X"))
-
-    // all v. guard(v) => (guard(c1_i)&v=c1(c1_1...c1_k) | ... | guard(cn_i)&v=cn(cn_1...cn_k))
-    // for n=0, simplifies to all v. not guard(v)
-    TypingRule(
-      name,
-      Seq(FunctionExpJudgment(guardCall(dataType, v))),
-      Seq(OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, v))))))
-  }
-
-  def makeEqConsFormula(cd: DataTypeConstructor, v: FunctionMeta): TypingRuleJudgment = {
-    val fresh = new FreshNames
-    val vars = cd.in.map(sort => MetaVar(fresh.freshName(sort.name)))
-
-    val eq = FunctionExpEq(v, FunctionExpApp(cd.name, vars map (FunctionMeta(_))))
-
-    ExistsJudgment(vars, Seq(FunctionExpJudgment(eq)))
-  }
 }
 
 object GenerateAllTypeGuards extends GenerateTypeGuards {
@@ -99,12 +78,7 @@ object GenerateAllTypeGuards extends GenerateTypeGuards {
       case dt @ DataType(open, name, constrs) =>
         val guardFunctions = Functions(Seq(FunctionDef(makeGuardSignature(name), Seq())))
         val guardAxioms = constrs map (c => makeGuardAxiom(c.name, c.in, name))
-        if (open)
-          Seq(dt, guardFunctions, Axioms(guardAxioms))
-        else {
-          val domAxiom = makeDomainAxiom(name, constrs)
-          Seq(dt, guardFunctions, Axioms(guardAxioms :+ domAxiom))
-        }
+        Seq(dt, guardFunctions, Axioms(guardAxioms))
       case c@Consts(cdseq,_) => {
         val consts_axs = cdseq map {case ConstDecl(name, sort) => 
           TypingRule(guard(name), Seq(), Seq(guardCall(sort.name, FunctionExpApp(name, Seq()))))
@@ -181,10 +155,10 @@ object GenerateExecutionGuards extends GenerateTypeGuards with CollectTypes {
     Seq(TypingRule(
       name + "-1",
       Seq(FunctionExpJudgment(guardCall(dataType, v))),
-      Seq(OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, v)))))),
+      Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxioms.makeEqConsFormula(c, v)))))),
       TypingRule(
       name + "-2",
-      Seq(OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, v))))),
+      Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxioms.makeEqConsFormula(c, v))))),
       Seq(FunctionExpJudgment(guardCall(dataType, v)))))
   }
 

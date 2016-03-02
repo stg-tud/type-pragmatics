@@ -19,10 +19,32 @@ object GenerateCtorAxioms extends ModuleTransformation {
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = {
     withSuper(super.transModuleDefs(mdef)) {
       case dt @ DataType(open, name, constrs) =>
+        val domAxiom = if (!open) Seq(makeDomainAxiom(name, constrs)) else Seq()
         val eqAxioms = constrs map (makeEqAxiom(_))
         val diffAxioms = makeDiffAxioms(constrs)
-        Seq(dt, Axioms(eqAxioms ++ diffAxioms))
+        Seq(dt, Axioms(domAxiom ++ eqAxioms ++ diffAxioms))
     }
+  }
+  
+  private def makeDomainAxiom(dataType: String, constrs: Seq[DataTypeConstructor]): TypingRule = {
+    val name = s"dom-$dataType"
+    val v = FunctionMeta(MetaVar("X"))
+
+    // all v. guard(v) => (guard(c1_i)&v=c1(c1_1...c1_k) | ... | guard(cn_i)&v=cn(cn_1...cn_k))
+    // for n=0, simplifies to all v. not guard(v)
+    TypingRule(
+      name,
+      Seq(),
+      Seq(OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, v))))))
+  }
+  
+  def makeEqConsFormula(cd: DataTypeConstructor, v: FunctionMeta): TypingRuleJudgment = {
+    val fresh = new FreshNames
+    val vars = cd.in.map(sort => MetaVar(fresh.freshName(sort.name)))
+
+    val eq = FunctionExpEq(v, FunctionExpApp(cd.name, vars map (FunctionMeta(_))))
+
+    ExistsJudgment(vars, Seq(FunctionExpJudgment(eq)))
   }
 
   private def makeEqAxiom(c: DataTypeConstructor) = {
