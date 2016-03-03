@@ -145,21 +145,25 @@ case class DataLayout(files: Seq[File]) {
 
 
   def extractOverviewMap() = {
-    (for {sh <- rawworkbook.sheets
+    (for {sh <- overviewworkbook.sheets
           row <- sh.rows if (row.index != 0)} yield {
       val pc = extractAtIndex(ProverConfEnum, row, 0)
       val gc = extractAtIndex(GoalCategoryEnum, row, 2)
       val tc = extractAtIndex(TypingConfEnum, row, 3)
       val vc = extractAtIndex(VariableConfEnum, row, 4)
       val sc = extractAtIndex(SimplConfEnum, row, 5)
-      val succnum = getCell(row, 7).toInt
-      val filenum = getCell(row, 8).toInt
-      val succrate = getCell(row, 9).toDouble
-      val avgsucctime = getCell(row, 10).toDouble
-      val avgdev = getCell(row, 11).toDouble
+      val succnum = getCell(row, 6).toDouble.toInt
+      val filenum = getCell(row, 7).toDouble.toInt
+      val succrate = getCell(row, 8).toDouble
+      val avgsucctime = getCell(row, 9).toDouble
+      val avgdev = getCell(row, 10).toDouble
       OverviewKey(pc, gc, tc, vc, sc) -> OverviewResult(succnum, filenum, succrate, avgsucctime, avgdev)
     }).toMap
   }
+
+  
+
+
 
 
   def layoutAll(): Unit =
