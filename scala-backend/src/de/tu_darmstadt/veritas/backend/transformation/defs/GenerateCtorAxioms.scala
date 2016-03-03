@@ -40,8 +40,6 @@ object GenerateCtorAxioms extends ModuleTransformation {
     val name = s"dom-$dataType"
     val v = FunctionMeta(MetaVar("X"))
 
-    // all v. guard(v) => (guard(c1_i)&v=c1(c1_1...c1_k) | ... | guard(cn_i)&v=cn(cn_1...cn_k))
-    // for n=0, simplifies to all v. not guard(v)
     TypingRule(
       name,
       Seq(),
