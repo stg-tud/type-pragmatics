@@ -91,14 +91,15 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
 
     val correspondingpats = prepats map (s => pats zip s)
     
-    val cases = correspondingpats.map(sp => 
-      OrJudgment(sp flatMap (x => 
+    val cases = correspondingpats.flatMap(sp => {
+      val orcases = sp map (x => 
         if (relevantPattern(x))
-          Some(Seq(negatePatternPart(x)))
+          Seq(negatePatternPart(x))
         else
-          None
-      ))
-    )
+          Seq()
+      )
+      makeOrSeqs(orcases)
+    }) 
     cases
   }
 
