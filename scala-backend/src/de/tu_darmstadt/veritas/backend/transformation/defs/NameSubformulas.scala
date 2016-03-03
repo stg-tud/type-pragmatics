@@ -248,7 +248,7 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
       (printAdditionalPremises(inneradditionalPremises) map (a => NotJudgment(a))) map (s => Seq(s))
     val orcases = premisesSeq :+ jl
     if (orcases.length > 1)
-      Seq(OrJudgment(premisesSeq :+ jl))
+      Seq(OrJudgment(orcases))
     else
       jl
   }
