@@ -22,7 +22,9 @@ trait Typing {
 
 //just fof, completely untyped
 case object FofBare extends Typing {
-  override def finalEncoding(m: Module)(implicit config: Configuration) = ToFof.toFofFile(m)
+  override def finalEncoding(m: Module)(implicit config: Configuration) = {
+    ToFof.toFofFile(RewriteFiniteDomainQuantifications(Seq(m)).head)
+  }
 }
 //fof with type guards
 case object FofGuard extends Typing {
