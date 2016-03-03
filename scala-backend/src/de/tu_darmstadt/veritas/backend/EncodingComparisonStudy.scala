@@ -41,11 +41,11 @@ case class AlternativeTyping(select: Configuration => Typing) extends Typing {
 
 object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF =>
-    GenerateCtorAxioms
+    GenerateCtorAxiomsUntyped
   case FinalEncoding.GuardedFOF =>
-    SeqTrans(GenerateCtorAxioms, GenerateAllTypeGuards)
+    SeqTrans(GenerateCtorAxiomsTyped, GenerateAllTypeGuards)
   case FinalEncoding.TFF =>
-    GenerateCtorAxioms
+    GenerateCtorAxiomsTyped
 })
 
 object BasicTrans extends SeqTrans(

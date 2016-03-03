@@ -14,7 +14,7 @@ import de.tu_darmstadt.veritas.backend.veritas.function._
  * Also works with Local/Strategy blocks. No longer (!) assumes one single Constructors() node per
  * Module, multiple are fine now...
  */
-object GenerateCtorAxioms extends ModuleTransformation {
+class GenerateCtorAxioms(typed: Boolean) extends ModuleTransformation {
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = {
     withSuper(super.transModuleDefs(mdef)) {
@@ -22,12 +22,15 @@ object GenerateCtorAxioms extends ModuleTransformation {
         val domAxiom = makeDomainAxiom(name, constrs)
         val eqAxioms = constrs map (makeEqAxiom(_))
         val diffAxioms = makeDiffAxioms(constrs)
-        Seq(dt, Axioms(domAxiom +: (eqAxioms ++ diffAxioms)))
-        
+        if (typed)
+          Seq(dt, Axioms(domAxiom +: (eqAxioms ++ diffAxioms)))
+        else
+          Seq(dt, Axioms(eqAxioms ++ diffAxioms))
+
       case dt @ DataType(true, name, constrs) =>
         val t = SortRef(name)
-        val initName = "$init"+name
-        val enumName = "$enum"+name
+        val initName = "$init" + name
+        val enumName = "$enum" + name
         val finit = Functions(Seq(FunctionDef(FunctionSig(initName, Seq(), t), Seq())))
         val fenum = Functions(Seq(FunctionDef(FunctionSig(enumName, Seq(t), t), Seq())))
         val enumEq = makeEqAxiom(DataTypeConstructor(enumName, Seq(t)))
@@ -35,7 +38,7 @@ object GenerateCtorAxioms extends ModuleTransformation {
         Seq(dt, finit, fenum, Axioms(Seq(enumEq, diff)))
     }
   }
-  
+
   private def makeDomainAxiom(dataType: String, constrs: Seq[DataTypeConstructor]): TypingRule = {
     val name = s"dom-$dataType"
     val v = FunctionMeta(MetaVar("X"))
@@ -45,7 +48,7 @@ object GenerateCtorAxioms extends ModuleTransformation {
       Seq(),
       Seq(OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, v))))))
   }
-  
+
   def makeEqConsFormula(cd: DataTypeConstructor, v: FunctionMeta): TypingRuleJudgment = {
     val fresh = new FreshNames
     val vars = cd.in.map(sort => MetaVar(fresh.freshName(sort.name)))
@@ -88,3 +91,6 @@ object GenerateCtorAxioms extends ModuleTransformation {
         FunctionExpApp(c2.name, argsRight))))
   }
 }
+
+object GenerateCtorAxiomsTyped extends GenerateCtorAxioms(true)
+object GenerateCtorAxiomsUntyped extends GenerateCtorAxioms(false)

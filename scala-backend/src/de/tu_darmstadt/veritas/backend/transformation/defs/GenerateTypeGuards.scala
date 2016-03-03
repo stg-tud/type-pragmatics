@@ -155,10 +155,10 @@ object GenerateExecutionGuards extends GenerateTypeGuards with CollectTypes {
     Seq(TypingRule(
       name + "-1",
       Seq(FunctionExpJudgment(guardCall(dataType, v))),
-      Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxioms.makeEqConsFormula(c, v)))))),
+      Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxiomsTyped.makeEqConsFormula(c, v)))))),
       TypingRule(
       name + "-2",
-      Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxioms.makeEqConsFormula(c, v))))),
+      Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxiomsTyped.makeEqConsFormula(c, v))))),
       Seq(FunctionExpJudgment(guardCall(dataType, v)))))
   }
 
