@@ -22,7 +22,7 @@ exists ~TTC, ~q1, ~q2, ~TT
 //to project the table on itself
 local {
 	consts
-		v : FVal
+		v : Val
 
 	goal
 	~rt1 == tcons(rcons(v, rempty), tempty)
@@ -34,8 +34,8 @@ local {
 
 local {
 	consts
-		a : AName
-		b : AName
+		a : Name
+		b : Name
 		r : Row
 		q : Row
 		
@@ -96,7 +96,7 @@ exists ~al
 
 local {
 	consts
-	  a : AName
+	  a : Name
 	  t : FType
 	  
 	goal

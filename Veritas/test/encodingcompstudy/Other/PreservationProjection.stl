@@ -223,9 +223,9 @@ strategy induct-findCol-Preservation {
 
 	local {
 		consts
-			a : AName
-			a2 : AName
-			al : AList
+			a : Name
+			a2 : Name
+			al : AttrL
 			rt : RawTable
 		
 		axiom
@@ -282,8 +282,8 @@ strategy struc-induction-project-preservation {
 	
 	local {
 		consts
-			a : AName
-			alrest : AList
+			a : Name
+			alrest : AttrL
 		
 		// proof not possible with timeout 300, when equations not inlined!
 		axiom

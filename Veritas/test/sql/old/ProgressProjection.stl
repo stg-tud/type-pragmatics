@@ -13,7 +13,7 @@ strategy proof-table-minus-first-row-findCol {
 		// hide-all
 		// 
 		// 
-		// // including welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
+		// // including welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
 		// // 	rawType0, rawType1, rawType-INV,
 		// // 	makes the proofs below all work, even though none of them uses these axioms...
 		// 
@@ -23,7 +23,7 @@ strategy proof-table-minus-first-row-findCol {
 		// 	DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
 		// 	EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
 		// 	
-		// 	welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
+		// 	welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
 		// 	rawType0, rawType1, rawType-INV,
 		// 	
 		// 	findCol0, findCol1, findCol2, findCol-INV,
@@ -53,7 +53,7 @@ strategy proof-table-minus-first-row-findCol {
 				
 			//step case
 			local {
-				consts al : AList
+				consts al : AttrL
 				
 				axiom 
 				al != aempty
@@ -102,8 +102,8 @@ strategy proof-table-minus-first-row-findCol {
 			findCol(~a, table(acons(~a2, aempty), ~trest)) == someRawTable(~rt1)
 			
 			local {
-				consts a3 : AName
-					al : AList
+				consts a3 : Name
+					al : AttrL
 					
 				axiom
 				findCol(~a, table(acons(~a2, al), tcons(~r, ~trest))) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
@@ -174,9 +174,9 @@ strategy proof-table-minus-first-row-project {
 				
 			local {
 				consts
-				a : AName
-				a2 : AName
-				al : AList
+				a : Name
+				a2 : Name
+				al : AttrL
 				rt : RawTable	
 				
 				axiom
@@ -249,8 +249,8 @@ strategy proof-table-minus-first-row-project {
 		project(aempty, table(~ar2, ~trest)) == someRawTable(~rt2)
 		
 		local {
-			consts a : AName
-				al: AList
+			consts a : Name
+				al: AttrL
 			
 			axiom 
 			project(al, table(~ar2, tcons(~r, ~trest))) == someRawTable(tcons(~r1, ~rt2))
@@ -391,14 +391,14 @@ strategy induction-progress-attachColToFrontRaw {
 		// 	EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
 		// 	DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
 		// 	EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
-		// 	welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
+		// 	welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
 		// 	rawType0, rawType1, rawType-INV,
 		// 	
 		// 	attachColToFrontRaw0, attachColToFrontRaw1, 
 		// 	attachColToFrontRaw2, attachColToFrontRaw3, attachColToFrontRaw-INV }
 		
 		consts
-		f : FVal
+		f : Val
 		rt1 : RawTable
 		r : Row
 		rt2 : RawTable
@@ -414,7 +414,7 @@ strategy induction-progress-attachColToFrontRaw {
 		//include extra lemmas
 		strategy welltyped-table-defs {
 			// hide-all
-			// include {welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
+			// include {welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
 			// 	rawType0, rawType1, rawType-INV,
 			// 	welltypedRawtable0, welltypedRawtable1, welltypedRow0,
 			// 	welltypedRow1, welltypedRow2} 
@@ -506,9 +506,9 @@ strategy induction-progress-findCol {
 			//hide-all
 		
 			consts 
-	 		a : AName
-	 		a2 : AName
-	 		al : AList
+	 		a : Name
+	 		a2 : Name
+	 		al : AttrL
 	 		rt : RawTable
 
 			axiom
@@ -523,7 +523,7 @@ strategy induction-progress-findCol {
 			// findCol0, findCol1, findCol2, findCol-INV,
 			// dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV,
 			// projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV,
-			// welltypedtable0, matchingAList0, matchingAList1, matchingAList2,
+			// welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
 			// rawType0, rawType1, rawType-INV,
 			// welltypedRawtable0, welltypedRawtable1, welltypedRow0,
 			// welltypedRow1, welltypedRow2,
@@ -578,7 +578,7 @@ exists ~c
 
 	
 strategy induction-progress-projection {
-	const ar : AList
+	const ar : AttrL
 	
 	// proof of progress-projection by induction over structure of attribute list
 	goal

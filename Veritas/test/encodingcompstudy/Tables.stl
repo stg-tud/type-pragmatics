@@ -1,22 +1,23 @@
 module encodingcompstudy.Tables
 
-// type of a single field (underspecified)
-open data FType
-// name of attribute (underspecified)
-open data AName
+// name of attributes and tables
+open data Name
 
 // list of attribute names
-data AList =
+data AttrL =
 	aempty |
-	acons(AName, AList)
+	acons(Name, AttrL)
 
-function append : AList AList -> AList
+// type of a single field (underspecified)
+
+function append : AttrL AttrL -> AttrL
 append(aempty, y) = y
 append(acons(a, al), y) = acons(a, append(al,y))
 
-// type of a single column (pair AName, FType)
+open data FType
+// type of a single column (pair Name, FType)
 data CType =
-	ctype(AName, FType)
+	ctype(Name, FType)
 
 // type of a table (table schema) - list of CType
 data TType =
@@ -28,12 +29,12 @@ data RawType =
 	rtcons(FType, RawType)
 
 // Value for a field (underspecified)
-open data FVal
+open data Val
 
 // table row, list of field values (with at least one cell/field per construction!)
 data Row = 
 	rempty |
-	rcons(FVal, Row)
+	rcons(Val, Row)
 
 // table matrix (list of rows), without "header" (attribute list)
 data RawTable =
@@ -42,7 +43,7 @@ data RawTable =
 
 // full table with "header" (attribute list) 
 data Table =
-	table(AList, RawTable)
+	table(AttrL, RawTable)
 
 
 function
@@ -50,37 +51,37 @@ getRaw : Table -> RawTable
 getRaw(table(al, rt)) = rt
 
 function 
-getAL : Table -> AList
+getAL : Table -> AttrL
 getAL(table(al, rt)) = al
 
 // function that assigns a field type to every field value  (underspecified)	
 function
-fieldType : FVal -> FType
+fieldType : Val -> FType
 
 // function that compares whether first field value is smaller than second field value 
 // (underspecified)
 function
-le : FVal FVal -> Bool
+le : Val Val -> Bool
 
 // function that compares whether first field value is greater than second field value 
 // (underspecified)
 function
-ge : FVal FVal -> Bool
+ge : Val Val -> Bool
 
 // check whether a table corresponds to a given type (functional notation)
 // does not yet check for whether the table type contains only unique attribute names!!
 // (but semantics should be possible to define in a sensible way without that requirement...)
 	
 function 
-matchingAList : TType AList -> Bool
-matchingAList(ttempty, aempty) = true
-matchingAList(ttcons(ctype(a1, f), tt), acons(a2, al)) = 
-	(a1 == a2) && matchingAList(tt, al)
-matchingAList(tt, al) = false	
+matchingAttrL : TType AttrL -> Bool
+matchingAttrL(ttempty, aempty) = true
+matchingAttrL(ttcons(ctype(a1, f), tt), acons(a2, al)) = 
+	(a1 == a2) && matchingAttrL(tt, al)
+matchingAttrL(tt, al) = false	
 	
 function
 welltypedtable : TType Table -> Bool
-welltypedtable(tt, table(al, t)) = matchingAList(tt, al) && welltypedRawtable(rawType(tt), t)
+welltypedtable(tt, table(al, t)) = matchingAttrL(tt, al) && welltypedRawtable(rawType(tt), t)
 
 function
 rawType : TType -> RawType

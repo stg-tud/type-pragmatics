@@ -28,7 +28,7 @@ getSomeConf : OptConf -> Conf
 getSomeConf(someConf(c)) = c
 
 function
-findCol : AName Table -> OptRawTable
+findCol : Name Table -> OptRawTable
 findCol(a, table(aempty, rt)) = noRawTable
 findCol(a, table(acons(a2, al), rt)) = 
 		if (a == a2)
@@ -43,7 +43,7 @@ projectEmptyCol(tempty) = tempty
 projectEmptyCol(tcons(r, t)) = tcons(rempty, projectEmptyCol(t))
 	
 function
-project : AList Table -> OptRawTable 
+project : AttrL Table -> OptRawTable 
 project(aempty, table(al, rt)) = someRawTable(projectEmptyCol(rt))
 project(acons(a, alr), t) =
 	let col = findCol(a, t) in
@@ -52,6 +52,17 @@ project(acons(a, alr), t) =
 			then attachColToFrontRaw(getSomeRawTable(col), getSomeRawTable(rest))
 			else noRawTable
 
+data OptVal = noVal | someVal(Val)
+
+function
+evalExpRow : Exp AttrL Row -> OptVal
+evalExpRow(constant(v), al, r) = someVal(v)
+evalExpRow(lookup(a), acons(a2, al), rcons(v, r)) =
+	if a == a2
+	then some(v)
+	else evalExpRow(lookup(a), al, r)
+evalExpRow(e, al, r) = noVal
+
 // Option variant for option boolean (3 answers: true, false, error)
 data Opt3 = 
 	error |
@@ -59,9 +70,9 @@ data Opt3 =
 	isFalse 
 
 // fails if attribute - field type pair is not in table!
-// and is not defined if length of given AList and given Row does not match
+// and is not defined if length of given AttrL and given Row does not match
 partial function 
-singleRowSelect : AList Pred Row -> Opt3
+singleRowSelect : AttrL Pred Row -> Opt3
 singleRowSelect(acons(a1, aempty), VEquals(a2, fv), rcons(f, rempty)) =
 	if (a1 == a2)
 	then (if (f == fv) then isTrue else isFalse)

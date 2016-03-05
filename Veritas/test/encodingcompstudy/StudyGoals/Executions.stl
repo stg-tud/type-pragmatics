@@ -51,8 +51,8 @@ local {
 
 local {
 	different consts
-		a : FVal
-		b : FVal
+		a : Val
+		b : Val
 	
 	goal
 	~row1 = rcons(a, rcons(b, rempty))
@@ -66,11 +66,11 @@ local {
 
 local {
 	different consts
-		an : AName
-		am : AName
+		an : Name
+		am : Name
 		
-		a : FVal
-		b : FVal
+		a : Val
+		b : Val
 	
 	
 	goal
@@ -86,13 +86,13 @@ local {
 
 local {
 	different consts
-		a : AName
-		b : AName
-		c : AName
+		a : Name
+		b : Name
+		c : Name
 		
-		v : FVal
-		w : FVal
-		u : FVal
+		v : Val
+		w : Val
+		u : Val
 	
 	goal
 	~al = acons(a, acons(b, acons(c, aempty)))
@@ -108,8 +108,8 @@ local {
 
 local {
 	different consts
-		v : FVal
-		w : FVal
+		v : Val
+		w : Val
 	
 	goal
 	~row1 = rcons(v, rempty)
@@ -124,12 +124,12 @@ local {
 
 local {
 	different consts
-		a : AName
-		b : AName
-		c : AName
+		a : Name
+		b : Name
+		c : Name
 		
-		v : FVal
-		w : FVal
+		v : Val
+		w : Val
 		
 	goal
 	~al = acons(a, acons(b, acons(c, aempty)))
@@ -146,17 +146,17 @@ local {
 
 local {
 	different consts
-		a : AName
-		b : AName
-		c : AName
-		d : AName
-		e : AName
+		a : Name
+		b : Name
+		c : Name
+		d : Name
+		e : Name
 		
-		v : FVal
-		w : FVal
-		x : FVal
-		y : FVal
-		z : FVal
+		v : Val
+		w : Val
+		x : Val
+		y : Val
+		z : Val
 		
 	goal
 	~al = acons(a, acons(b, acons(c, acons(d, acons(e, aempty)))))
@@ -169,9 +169,9 @@ local {
 
 local {
 	different consts
-		an : AName
-		am : AName
-		ak : AName
+		an : Name
+		am : Name
+		ak : Name
 		
 		tn : FType
 		tm : FType

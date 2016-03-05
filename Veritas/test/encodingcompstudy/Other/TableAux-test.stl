@@ -18,8 +18,8 @@ rowIn(~r, ~rt)
 
 local {
 	different consts
-		x1 : FVal
-		x2 : FVal
+		x1 : Val
+		x2 : Val
 	
 	goal 
 	~rt == tcons(rcons(x1, rcons(x2, rempty)), tempty)
@@ -32,12 +32,12 @@ local {
 local {
 	
 	different consts
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 
 	goal
 	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
@@ -51,12 +51,12 @@ local {
 local {
 	
 	different consts 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 
 	goal
 	~rt == tcons(rcons(x1, rcons(y2,  rcons(z2, rempty))), 
@@ -121,12 +121,12 @@ attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
 
 local {
 	different consts
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	axiom
 	~prt = tcons(rcons(x1, rempty), tempty)
@@ -145,12 +145,12 @@ local {
 
 local {
 	different consts
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	goal
 	~prt = tcons(rcons(x1, rempty),
@@ -180,12 +180,12 @@ attachColToFrontRaw(~prt, ~drt) == someRawTable(~rt)
 
 local {
 	different consts 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	goal
 	~prt = tcons(rcons(x1, rempty),
@@ -239,10 +239,10 @@ rawUnion(~prt, ~drt) == ~rt
 
 local {
 	different consts 
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	goal 85
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
@@ -277,10 +277,10 @@ rawUnion(~prt, ~drt) == ~rt
 local {
 	
 	different consts 
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 	
 	goal 1
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
@@ -327,10 +327,10 @@ rawIntersection(~prt, ~drt) == tempty
 local {
 	
 	different consts 
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	goal 86
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
@@ -359,10 +359,10 @@ rawIntersection(~prt, ~drt) == ~rt
 local {
 	
 	different consts 
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 
 	goal 85
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 
@@ -390,10 +390,10 @@ rawDifference(~prt, ~drt) == tempty
 local {
 	
 	different consts 
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	goal 85
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), tempty)
@@ -408,10 +408,10 @@ local {
 local {
 	
 	different consts 
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 
 	goal 1
 	~prt = tcons(rcons(y2,  rcons(z2, rempty)), 

@@ -19,7 +19,7 @@ getSomeFType : OptFType -> FType
 getSomeFType(someFType(a)) = a
 	
 function
-findColType : AName TType -> OptFType
+findColType : Name TType -> OptFType
 findColType(an, ttempty) = noFType
 findColType(an, ttcons(ctype(a, ft), ttr)) =
 	if (an == a)
@@ -27,7 +27,7 @@ findColType(an, ttcons(ctype(a, ft), ttr)) =
 	else findColType(an, ttr)
 
 function
-projectType : AList TType -> OptTType
+projectType : AttrL TType -> OptTType
 projectType(aempty, tt) = someTType(ttempty)
 projectType(acons(a, alr), tt) =
 	let ft = findColType(a, tt) in
@@ -37,7 +37,7 @@ projectType(acons(a, alr), tt) =
 			else noTType
 			
 function
-ctypeIn : AName FType TType -> Bool
+ctypeIn : Name FType TType -> Bool
 ctypeIn(a, ft, ttempty) = false
 ctypeIn(a, ft, ttcons(ctype(a2, ft2), ttr)) = ((a == a2) && (ft == ft2)) || ctypeIn(a, ft, ttr) 
 

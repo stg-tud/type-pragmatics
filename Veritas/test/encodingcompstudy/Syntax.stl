@@ -4,35 +4,31 @@ import encodingcompstudy.Tables
 import encodingcompstudy.TStore
 
 
+data Exp = constant(Val) | lookup(Name)
 
 //predicates for where clauses of queries	
 data Pred =
-	VEquals(AName, FVal) |
-	VGreater(AName, FVal) |
-	VSmaller(AName, FVal)
+	ptrue() |
+	and(Exp, Exp) |
+	not(Exp) |
+	eq(Exp, Exp) |
+	gt(Exp, Exp) |
+	lt(Exp, Exp)
 	
 	
-//query syntax
-data TRef =
-	Ref(TName)
-
+// Query syntax
+data Select = all() | some(AttrL)
 data Query =
-	Tvalue(Table) |
-	SelectAllFrom(TRef) |
-	SelectSomeFrom(AList, TRef) |
-	SelectAllFromWhere(TRef, Pred) |
-	SelectSomeFromWhere(AList, TRef, Pred) |
+	tvalue(Table) |
+	selectFromWhere(Select, Name, Pred) |
 	Union(Query, Query) |
 	Intersection(Query, Query) |
 	Difference(Query, Query)
 	
 function
 isValue : Query -> Bool
-isValue(Tvalue(t)) = true
-isValue(SelectAllFrom(n)) = false
-isValue(SelectSomeFrom(al, tr)) = false
-isValue(SelectAllFromWhere(tr, p)) = false
-isValue(SelectSomeFromWhere(al, tr, p)) = false
+isValue(tvalue(t)) = true
+isValue(selectFromWhere(s, t, p)) = false
 isValue(Union(q1, q2)) = false
 isValue(Intersection(sql1, sql2)) = false
 isValue(Difference(sql1, sql2)) = false

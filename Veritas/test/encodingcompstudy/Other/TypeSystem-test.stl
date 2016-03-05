@@ -15,21 +15,21 @@ emptyContext |- Tvalue(table(aempty, tempty)) : ttempty
 local {
 	
 	different consts 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 	
 	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
 		T3 : FType
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 		
 	axiom 
 	=================== ftype-x1
@@ -73,9 +73,9 @@ local {
 		T1 : FType
 		T2 : FType
 		T3 : FType
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 		
 	
 	goal 
@@ -93,9 +93,9 @@ local {
 		T1 : FType
 		T2 : FType
 		T3 : FType
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 		
 	
 	goal 
@@ -113,9 +113,9 @@ local {
 		T1 : FType
 		T2 : FType
 		T3 : FType
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 		
 	goal 
 	~tt == ttcons(ctype(A1, T1), ttcons(ctype(A2, T2), ttcons(ctype(A3, T3), ttempty)))
@@ -128,16 +128,16 @@ local {
 local {
 	
 	different consts 
-		x1 : FVal
+		x1 : Val
 	
 	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
 		T3 : FType
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 		
 	
 	goal 
@@ -152,16 +152,16 @@ local {
 local {
 	
 	different consts 
-		z1 : FVal
+		z1 : Val
 	
 	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
 		T3 : FType
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 		
 	
 	goal 
@@ -176,16 +176,16 @@ local {
 local {
 	
 	different consts 
-		x1 : FVal
+		x1 : Val
 	
 	different consts
 		TN : TName
 		T1 : FType
 		T2 : FType
 		T3 : FType
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 		
 	
 	goal 

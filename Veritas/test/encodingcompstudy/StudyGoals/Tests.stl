@@ -11,13 +11,13 @@ import encodingcompstudy.SoundnessAuxDefs
 
 local {
 	different consts
-	    fv : FVal
-	    gv : FVal
-	    hv : FVal
+	    fv : Val
+	    gv : Val
+	    hv : Val
 	    
-	    a : AName
-	    b : AName
-	    c : AName
+	    a : Name
+	    b : Name
+	    c : Name
 
 	goal
 	~al = acons(a, acons(b, acons(c, aempty)))
@@ -32,8 +32,8 @@ local {
 		r1 : Row
 		r2 : Row
 		
-		a : AName
-		b : AName
+		a : Name
+		b : Name
 	
 	goal
 	~al = acons(a, acons(b, aempty))
@@ -45,13 +45,13 @@ local {
 
 local {
 	different consts
-		a1 : AName
-		a2 : AName
-		a3 : AName
+		a1 : Name
+		a2 : Name
+		a3 : Name
 		
-		v1 : FVal
-		v2 : FVal
-		v3 : FVal
+		v1 : Val
+		v2 : Val
+		v3 : Val
 	
 	goal
 	~al == acons(a1, acons(a2, acons(a3, aempty)))
@@ -90,11 +90,11 @@ local {
 
 local {
 	different consts
-		a : AName
-		b : AName
-		c : AName
-		d : AName
-		z : AName
+		a : Name
+		b : Name
+		c : Name
+		d : Name
+		z : Name
 	
 	goal
 	~al = acons(a, acons(b, acons(c, acons(d, aempty))))
@@ -107,8 +107,8 @@ local {
 
 local {
 	different consts
-		a : AName
-		b : AName
+		a : Name
+		b : Name
 		
 		ft1 : FType
 		ft2 : FType
@@ -170,10 +170,10 @@ local {
 
 local {
 	different consts
-		v1 : FVal
-		v2 : FVal
-		v3 : FVal
-		v4 : FVal
+		v1 : Val
+		v2 : Val
+		v3 : Val
+		v4 : Val
 	
 	goal
 	~row1 == rcons(v1, rcons(v2, rempty))

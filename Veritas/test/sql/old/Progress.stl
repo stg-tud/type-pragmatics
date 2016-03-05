@@ -85,29 +85,29 @@ strategy induction-Progress {
 // 			
 // 			goal
 // 			~TT == ttempty
-// 			matchingAList(~TT, ~al1)
-// 			matchingAList(~TT, ~al2)
-// 			=========================== matchingAList-eq-ttempty
+// 			matchingAttrL(~TT, ~al1)
+// 			matchingAttrL(~TT, ~al2)
+// 			=========================== matchingAttrL-eq-ttempty
 // 			~al1 == ~al2
 // 		
 // 			axiom
-// 			matchingAList(tt, ~al1)
-// 			matchingAList(tt, ~al2)
-// 			=========================== matchingAList-eq-ttcons-IH
+// 			matchingAttrL(tt, ~al1)
+// 			matchingAttrL(tt, ~al2)
+// 			=========================== matchingAttrL-eq-ttcons-IH
 // 			~al1 == ~al2
 // 		
 // 			goal
 // 			~TT = ttcons(ctype(~a1, ~f), tt)
-// 			matchingAList(~TT, ~al1)
-// 			matchingAList(~TT, ~al2)
-// 			=========================== matchingAList-eq-ttcons
+// 			matchingAttrL(~TT, ~al1)
+// 			matchingAttrL(~TT, ~al2)
+// 			=========================== matchingAttrL-eq-ttcons
 // 			~al1 == ~al2
 // 		}
 // 		
 // 		axiom
-// 		matchingAList(~TT, ~al1)
-// 		matchingAList(~TT, ~al2)
-// 		=========================== matchingAList-eq
+// 		matchingAttrL(~TT, ~al1)
+// 		matchingAttrL(~TT, ~al2)
+// 		=========================== matchingAttrL-eq
 // 		~al1 == ~al2
 // 	
 // 		goal
