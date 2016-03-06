@@ -40,7 +40,7 @@ exists ~C2
   lookupContext(~n, ~C2) == someTType(~T)
   ~C != ~C2
 
-// there exists t2 such that union(t1, filterRows(t2, p)) != select(filterRows(t1, t2), p)
+// there exists t2 such that rawUnion(t1, filterRows(t2, al, p)) != filterRows(rawUnion(t1, t2), al, p)
 goal
 welltypedtable(~tt, table(~al, ~rt1))
 ~p = eq(lookup(~n), constant(~v))
@@ -50,7 +50,7 @@ exists ~rt2
 	rawUnion(~rt1, filterRows(~rt2, ~al, ~p)) != filterRows(rawUnion(~rt1, ~rt2), ~al, ~p)
 
 
-// there exists t2 such that diff(t1, filterRows(t2, p)) != filterRows(diff(t1, t2), p)
+// there exists t2 such that diff(t1, filterRows(t2, al, p)) != filterRows(diff(t1, t2), al, p)
 goal
 welltypedtable(~tt, table(~al, ~rt1))
 ============================================================= counterexample-5
@@ -93,7 +93,7 @@ goal
 ~t1 == table(~al, ~rt1)
 welltypedtable(~tt, ~t1)
 ============================ counterexample-9
-exists ~rt2, ~table2
+exists ~rt2, ~t2, ~ts
 	~t2 = table(~al, ~rt2)
 	welltypedtable(~tt, ~t2)
 	reduce(conf(Intersection(tvalue(~t1), tvalue(~t2)), ~ts)) == someConf(conf(tvalue(table(~al, tempty)), ~ts))

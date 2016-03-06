@@ -29,7 +29,7 @@ local {
 	~al == acons(~a, aempty)
 	===================================================================== synthesis-2
 	exists ~alr
-  		project(~al, ~al, ~rt) == someRawTable(~rt)
+  		project(~alr, ~al, ~rt) == someRawTable(~rt)
 }
 
 local {

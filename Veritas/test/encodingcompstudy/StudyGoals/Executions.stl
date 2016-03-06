@@ -160,10 +160,10 @@ local {
 	goal
 	~al = acons(a, acons(b, acons(c, acons(d, acons(e, aempty)))))
 	~row = rcons(v, rcons(w, rcons(x, rcons(y, rcons(z, rempty)))))
-	~pred = eq(lookup(e), constant(v))
+	~exp = lookup(e)
 	=========== execution-9
 	exists ~result
-		filterSingleRow(~pred, ~al, ~row) == ~result
+	  	evalExpRow(~exp, ~al, ~row) == ~result
 }
 
 local {
