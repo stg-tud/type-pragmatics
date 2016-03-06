@@ -3,8 +3,6 @@ module encodingcompstudy.TStore
 import encodingcompstudy.Tables
 
 
-open data TName
-	
 data OptTable =
 	noTable |
 	someTable(Table)
@@ -20,10 +18,10 @@ getTable(someTable(t)) = t
 	
 data TStore =
 	emptyStore |
-	bindStore(TName, Table, TStore)
+	bindStore(Name, Table, TStore)
 
 function
-lookupStore : TName TStore -> OptTable
+lookupStore : Name TStore -> OptTable
 lookupStore(n, emptyStore) = noTable
 lookupStore(n, bindStore(m, t, TS)) = 
 	if (n == m)

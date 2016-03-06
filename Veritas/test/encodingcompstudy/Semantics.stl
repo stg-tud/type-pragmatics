@@ -33,7 +33,7 @@ findCol(a, aempty, rt) = noRawTable
 findCol(a, acons(a2, al), rt) = 
 		if (a == a2)
 		then someRawTable(projectFirstRaw(rt))
-		else findCol(a, table(al, dropFirstColRaw(rt)))
+		else findCol(a, al, dropFirstColRaw(rt))
 
 // for projection base case: projecting on an empty attribute list must yield a 
 // table with as many empty rows as the rowcount of the given table
@@ -55,7 +55,7 @@ project(acons(a, alr), al, rt) =
 function
 select : Select AttrL RawTable -> OptTable
 select(all(), al, rt) = someTable(table(al, rt))
-select(alr, al, rt) =
+select(some(alr), al, rt) =
 	let projected = project(alr, al, rt) in
 	if isSomeRawTable(projected)
 	then someTable(table(alr, getRawTable(projected)))
@@ -78,15 +78,9 @@ evalExpRow : Exp AttrL Row -> OptVal
 evalExpRow(constant(v), al, r) = someVal(v)
 evalExpRow(lookup(a), acons(a2, al), rcons(v, r)) =
 	if a == a2
-	then some(v)
+	then someVal(v)
 	else evalExpRow(lookup(a), al, r)
 evalExpRow(e, al, r) = noVal
-
-// Option variant for option boolean (3 answers: true, false, error)
-data Opt3 = 
-	error |
-	isTrue |
-	isFalse 
 
 // returns true iff predicate succeeds on row
 // returns false if predicate evaluates to false or if predicate evaluation fails
@@ -137,7 +131,7 @@ reduce(conf(selectFromWhere(sel, name, pred), ts)) =
 			     else noConf
 		else noConf
 reduce(conf(Union(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts)) =
-	someConf(conf(tvalue(al1, rawUnion(rt1, rt2)), ts))
+	someConf(conf(tvalue(table(al1, rawUnion(rt1, rt2))), ts))
 reduce(conf(Union(tvalue(t), q2), ts)) =
 	let q2reduce = reduce(conf(q2, ts)) in
 		if (isSomeConf(q2reduce))
@@ -149,7 +143,7 @@ reduce(conf(Union(q1, q2), ts)) =
 		then someConf(conf(Union(getQuery(getSomeConf(q1reduce)), q2), ts))
 		else noConf
 reduce(conf(Intersection(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts)) =
-	someConf(conf(tvalue(al1, rawIntersection(rt1, rt2)), ts))
+	someConf(conf(tvalue(table(al1, rawIntersection(rt1, rt2))), ts))
 reduce(conf(Intersection(tvalue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
 		if (isSomeConf(sql2reduce))
@@ -161,7 +155,7 @@ reduce(conf(Intersection(sql1, sql2), ts)) =
 		then someConf(conf(Intersection(getQuery(getSomeConf(sql1reduce)), sql2), ts))
 		else noConf
 reduce(conf(Difference(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts)) =
-	someConf(conf(tvalue(al1, rawDifference(rt1, rt2)), ts))
+	someConf(conf(tvalue(table(al1, rawDifference(rt1, rt2))), ts))
 reduce(conf(Difference(tvalue(t), sql2), ts)) =
 	let sql2reduce = reduce(conf(sql2, ts)) in
 		if (isSomeConf(sql2reduce))
@@ -172,4 +166,3 @@ reduce(conf(Difference(sql1, sql2), ts)) =
 		if (isSomeConf(sql1reduce))
 		then someConf(conf(Difference(getQuery(getSomeConf(sql1reduce)), sql2), ts))
 		else noConf
-	

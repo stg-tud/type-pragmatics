@@ -36,8 +36,8 @@ local {
 
 local {
 	different consts
-		tn1 : TName
-		tn2 : TName
+		tn1 : Name
+		tn2 : Name
 		
 		tt1 : TType
 		tt2 : TType

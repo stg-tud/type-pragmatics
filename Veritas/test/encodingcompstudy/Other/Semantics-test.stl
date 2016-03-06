@@ -16,7 +16,7 @@ local {
 		z2 : Val
 		
 	different consts
-		TN : TName
+		TN : Name
 		A1 : Name
 		A2 : Name
 		A3 : Name
@@ -114,7 +114,7 @@ local {
 		z2 : Val
 		
 	different consts
-		TN : TName
+		TN : Name
 		A1 : Name
 		A2 : Name
 		A3 : Name	
@@ -175,7 +175,7 @@ local {
 		z2 : Val
 		
 	different consts
-		TN : TName
+		TN : Name
 		A1 : Name
 		A2 : Name
 		A3 : Name
@@ -200,7 +200,7 @@ local {
 		z2 : Val
 		
 	different consts
-		TN : TName
+		TN : Name
 		A1 : Name
 		A2 : Name
 		A3 : Name
@@ -238,7 +238,7 @@ local {
 		z2 : Val
 		
 	different consts
-		TN : TName
+		TN : Name
 		A1 : Name
 		A2 : Name
 		A3 : Name
@@ -278,7 +278,7 @@ local {
 		z2 : Val
 		
 	different consts
-		TN : TName
+		TN : Name
 		A1 : Name
 		A2 : Name
 		A3 : Name
@@ -325,7 +325,7 @@ local {
 		z2 : Val
 		
 	different consts
-		TN : TName
+		TN : Name
 		A1 : Name
 		A2 : Name
 		A3 : Name

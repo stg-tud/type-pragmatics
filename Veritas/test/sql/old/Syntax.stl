@@ -16,7 +16,7 @@ sorts
 	
 //query syntax
 constructors
-	Ref : TName -> TRef
+	Ref : Name -> TRef
 	
 	tvalue : Table -> Query
 	SelectAllFrom : TRef -> Query

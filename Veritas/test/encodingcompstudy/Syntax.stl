@@ -9,8 +9,8 @@ data Exp = constant(Val) | lookup(Name)
 //predicates for where clauses of queries	
 data Pred =
 	ptrue() |
-	and(Exp, Exp) |
-	not(Exp) |
+	and(Pred, Pred) |
+	not(Pred) |
 	eq(Exp, Exp) |
 	gt(Exp, Exp) |
 	lt(Exp, Exp)

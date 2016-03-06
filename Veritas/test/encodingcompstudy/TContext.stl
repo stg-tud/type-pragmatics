@@ -5,7 +5,7 @@ import encodingcompstudy.TStore
 
 data TTContext =
 	emptyContext |
-	bindContext(TName, TType, TTContext)
+	bindContext(Name, TType, TTContext)
 
 data OptTType =
 	noTType |
@@ -22,7 +22,7 @@ getSomeTType(someTType(t)) = t
 	
 	
 function
-lookupContext : TName TTContext -> OptTType
+lookupContext : Name TTContext -> OptTType
 lookupContext(tn, emptyContext) = noTType
 lookupContext(tn, bindContext(tm, tt, TTC)) =
 	if (tn == tm)

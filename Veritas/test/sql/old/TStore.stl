@@ -4,7 +4,7 @@ import sql.Tables
 
 
 sorts
-	TStore TName OptTable
+	TStore Name OptTable
 	
 constructors
 	noTable : OptTable
@@ -21,10 +21,10 @@ getTable(someTable(t)) = t
 	
 constructors
 	emptyStore : TStore
-	bindStore : TName Table TStore -> TStore
+	bindStore : Name Table TStore -> TStore
 	
 function
-lookupStore : TName TStore -> OptTable
+lookupStore : Name TStore -> OptTable
 lookupStore(n, emptyStore) = noTable
 lookupStore(n, bindStore(m, t, TS)) = 
 	if (n == m)

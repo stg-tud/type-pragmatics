@@ -113,7 +113,7 @@ local {
 		ft1 : FType
 		ft2 : FType
 		
-		tn1 : TName
+		tn1 : Name
 		
     goal
     ~tt1 == ttcons(ctype(a, ft1), ttcons(ctype(b, ft2), ttempty))
@@ -128,9 +128,9 @@ local {
 
 local {
 	different consts
-		tn1 : TName
-		tn2 : TName
-		tn3 : TName
+		tn1 : Name
+		tn2 : Name
+		tn3 : Name
 		
 		tt1 : TType
 		tt2 : TType
@@ -152,11 +152,11 @@ local {
 
 local {
 	different consts
-		tn1 : TName
-		tn2 : TName
-		tn3 : TName
-		tn4 : TName
-		tn5 : TName
+		tn1 : Name
+		tn2 : Name
+		tn3 : Name
+		tn4 : Name
+		tn5 : Name
 		
 		tt : TType
 		tt4 : TType
