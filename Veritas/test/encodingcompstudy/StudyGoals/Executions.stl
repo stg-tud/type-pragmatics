@@ -76,11 +76,11 @@ local {
 	goal
 	~row1 = rcons(a, rcons(b, rempty))
 	~row2 = rcons(b, rcons(a, rempty))
-	~rawRable = tcons(~row1, tcons(~row2, tempty))
-	~table = table(acons(an, acons(am, aempty)), ~rawTable)
+	~rawTable = tcons(~row1, tcons(~row2, tempty))
+	~al = acons(an, acons(am, aempty))
 	======================================================= execution-5
 	exists ~result
-		findCol(an, ~table) = ~result
+		findCol(an, ~al, ~rawTable) = ~result
 }
 
 
@@ -100,10 +100,9 @@ local {
 	~row2 = rcons(v, rcons(w, rcons(u, rempty)))
 	~row3 = rcons(u, rcons(v, rcons(w, rempty)))
 	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tcons(~row4, tempty))))
-	~t = table(~al, ~rt)
 	========================= execution-6
 	exists ~result
-		project(acons(a, acons(c, aempty)), ~t) == ~result
+		project(acons(a, acons(c, aempty)), ~al, ~rt) == ~result
 }
 
 local {
@@ -133,7 +132,7 @@ local {
 		
 	goal
 	~al = acons(a, acons(b, acons(c, aempty)))
-	~pred = VEquals(b, v)
+	~pred = eq(lookup(b), constant(v))
 	~row1 = rcons(v, rcons(v, rcons(v, rempty)))
 	~row2 = rcons(v, rcons(w, rcons(v, rempty)))
 	~row3 = rcons(w, rcons(v, rcons(w, rempty)))
@@ -141,7 +140,7 @@ local {
 	~table = table(~al, ~rt)
 	========== execution-8
 	exists ~result
-		select(~table, ~pred) == ~result
+		filterRows(~rt, ~al, ~pred) == ~result
 }
 
 local {
@@ -161,10 +160,10 @@ local {
 	goal
 	~al = acons(a, acons(b, acons(c, acons(d, acons(e, aempty)))))
 	~row = rcons(v, rcons(w, rcons(x, rcons(y, rcons(z, rempty)))))
-	~pred = VEquals(e, v)
+	~pred = eq(lookup(e), constant(v))
 	=========== execution-9
 	exists ~result
-		filterSingleRow(~al, ~pred, ~row) == ~result
+		filterSingleRow(~pred, ~al, ~row) == ~result
 }
 
 local {
@@ -180,7 +179,7 @@ local {
 	
 	goal
 	~al = acons(an, aempty)
-	~tt = ttcons(ctype(an, tn), ttcons(ctype(am, tm), ttcons(ctype(ak, tk), ttempty)))
+	~tt = ttcons(an, tn, ttcons(am, tm, ttcons(ak, tk, ttempty)))
 	==================================== execution-10
 	exists ~result
 		projectType(~al, ~tt) == ~result
