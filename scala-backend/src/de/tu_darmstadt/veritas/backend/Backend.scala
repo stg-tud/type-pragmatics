@@ -49,6 +49,7 @@ object Backend {
   val inliningComparisonTest = PartialVariability(
     Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything, VariableEncoding.Unchanged),
       Problem -> Seq(Problem.Test)))
+  val consistencyOnlyTest = PartialVariability(Map(Problem -> Seq(Problem.Consistency)))
 
   /**
    * This variability model is used by the code below
