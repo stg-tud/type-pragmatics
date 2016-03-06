@@ -50,9 +50,9 @@ local {
 //proof should be combination of applying typing inversion lemma and 
 //inferring commented theorem above - but seems to be difficult for Vampire
 goal
-~TTC |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
+~TTC |- selectFromWhere(some(~al), ~tn, ~p) : ~TT
 ===================================================== proof-3
-bindContext(~tn1, ~TT, ~TTC) |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
+bindContext(~tn1, ~TT, ~TTC) |- selectFromWhere(some(~al), ~tn, ~p) : ~TT
 
 
 // select all is identity
@@ -60,7 +60,7 @@ goal
 ~TTC |- tvalue(~table) : ~TT
 lookupStore(~name, ~ts) = someTable(~table)
 ========================================== proof-4
-reduce(conf(SelectAllFrom(Ref(~name)), ~ts)) == someConf(conf(tvalue(~table), ~ts))
+reduce(conf(selectFromWhere(all(), ~name, ptrue()), ~ts)) == someConf(conf(tvalue(~table), ~ts))
 
 // intersection is associative for tables with one row
 goal
@@ -108,7 +108,7 @@ reduce(conf(~q, ~ts)) == noConf
 
 // apparently still too difficult
 goal
-~q = SelectSomeFrom(acons(~a, ~al), Ref(~tn))
+~q = selectFromWhere(some(acons(~a, ~al)), ~tn, ptrue())
 ~TTC |- ~q : ~TT
 ============================================== proof-8
 exists ~ft
