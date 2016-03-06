@@ -53,6 +53,16 @@ project(acons(a, alr), t) =
 			else noRawTable
 
 data OptVal = noVal | someVal(Val)
+data OptRow = noRow | someRow(Row)
+
+function
+isSomeVal : OptVal -> Bool
+isSomeVal(noVal) = false
+isSomeVal(someVal(v)) = true
+
+partial function
+getVal : OptVal -> Val
+getVal(someVal(v)) = v
 
 function
 evalExpRow : Exp AttrL Row -> OptVal
@@ -71,32 +81,26 @@ data Opt3 =
 
 // fails if attribute - field type pair is not in table!
 // and is not defined if length of given AttrL and given Row does not match
-partial function 
-singleRowSelect : AttrL Pred Row -> Opt3
-singleRowSelect(acons(a1, aempty), VEquals(a2, fv), rcons(f, rempty)) =
-	if (a1 == a2)
-	then (if (f == fv) then isTrue else isFalse)
-	else error
-singleRowSelect(acons(a1, ar), VEquals(a2, fv), rcons(f, r)) =
-	if (a1 == a2)
-	then (if (f == fv) then isTrue else isFalse)
-	else singleRowSelect(ar, VEquals(a2, fv), r)
-singleRowSelect(acons(a1, aempty), VGreater(a2, fv), rcons(f, rempty)) =
-	if (a1 == a2)
-	then (if (ge(f,fv)) then isTrue else isFalse)
-	else error
-singleRowSelect(acons(a1, ar), VGreater(a2, fv), rcons(f, r)) =
-	if (a1 == a2)
-	then (if (ge(f,fv)) then isTrue else isFalse)
-	else singleRowSelect(ar, VGreater(a2, fv), r)
-singleRowSelect(acons(a1, aempty), VSmaller(a2, fv), rcons(f, rempty)) =
-	if (a1 == a2)
-	then (if (le(f,fv)) then isTrue else isFalse)
-	else error
-singleRowSelect(acons(a1, ar), VSmaller(a2, fv), rcons(f, r)) =
-	if (a1 == a2)
-	then (if (le(f,fv)) then isTrue else isFalse)
-	else singleRowSelect(ar, VSmaller(a2, fv), r)
+function 
+singleRowSelect : Pred AttrL Row -> Bool
+singleRowSelect(ptrue, al, r) = 
+	true
+singleRowSelect(and(p1, p2), al, r) = 
+	singleRowSelect(p1, al, r) && singleRowSelect(p2, al, r)
+singleRowSelect(not(p), al, r) = 
+	!singleRowSelect(p, al, r)
+singleRowSelect(eq(e1, e2), al, r) =
+	let v1 = evalExpRow(e1, al, r) in
+	let v2 = evalExpRow(e2, al, r) in
+	(isSomeVal(v1) && isSomeVal(v2) && (getVal(v1) == getVal(v2)))
+singleRowSelect(gt(e1, e2), al, r) =
+	let v1 = evalExpRow(e1, al, r) in
+	let v2 = evalExpRow(e2, al, r) in
+	(isSomeVal(v1) && isSomeVal(v2) && greaterThan(getVal(v1), getVal(v2)))
+singleRowSelect(lt(e1, e2), al, r) =
+	let v1 = evalExpRow(e1, al, r) in
+	let v2 = evalExpRow(e2, al, r) in
+	(isSomeVal(v1) && isSomeVal(v2) && lessThan(getVal(v1), getVal(v2)))
 
 // top-level function for selection
 // always true for empty tables!

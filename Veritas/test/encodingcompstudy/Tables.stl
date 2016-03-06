@@ -55,18 +55,18 @@ getAL : Table -> AttrL
 getAL(table(al, rt)) = al
 
 // function that assigns a field type to every field value  (underspecified)	
-function
+partial function
 fieldType : Val -> FType
 
 // function that compares whether first field value is smaller than second field value 
 // (underspecified)
-function
-le : Val Val -> Bool
+partial function
+lessThan : Val Val -> Bool
 
 // function that compares whether first field value is greater than second field value 
 // (underspecified)
-function
-ge : Val Val -> Bool
+partial function
+greaterThan : Val Val -> Bool
 
 // check whether a table corresponds to a given type (functional notation)
 // does not yet check for whether the table type contains only unique attribute names!!
