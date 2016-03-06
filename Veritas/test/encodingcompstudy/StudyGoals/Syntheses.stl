@@ -54,7 +54,7 @@ goal
 true
 ======================= synthesis-4
 exists ~conf
-  forall ~t, ~ts ~conf != conf(Tvalue(~t), ~ts)
+  forall ~t, ~ts ~conf != conf(tvalue(~t), ~ts)
   reduce(~conf) = noConf
   
 goal
@@ -84,7 +84,7 @@ forall ~type
 		fieldType(~fv) == ~type
 ======================================= synthesis-7
 exists ~x, ~fv
-  checkPValidity(VEquals(~x, ~fv), ~tt)
+  tcheckPred(VEquals(~x, ~fv), ~tt)
 
 
 goal

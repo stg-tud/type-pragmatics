@@ -18,7 +18,7 @@ sorts
 constructors
 	Ref : TName -> TRef
 	
-	Tvalue : Table -> Query
+	tvalue : Table -> Query
 	SelectAllFrom : TRef -> Query
 	SelectSomeFrom : AttrL TRef -> Query
 	// SelectAllFromWhere : TRef Pred -> Query
@@ -29,7 +29,7 @@ constructors
 	
 function
 isValue : Query -> Bool
-isValue(Tvalue(t)) = true
+isValue(tvalue(t)) = true
 isValue(SelectAllFrom(n)) = false
 isValue(SelectSomeFrom(al, tr)) = false
 // isValue(SelectAllFromWhere(tr, p)) = false

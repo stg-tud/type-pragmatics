@@ -41,8 +41,8 @@ getRaw : Table -> RawTable
 getRaw(table(al, rt)) = rt
 
 function 
-getAL : Table -> AttrL
-getAL(table(al, rt)) = al
+getAttrL : Table -> AttrL
+getAttrL(table(al, rt)) = al
 
 // function that assigns a field type to every field value  (underspecified)	
 function

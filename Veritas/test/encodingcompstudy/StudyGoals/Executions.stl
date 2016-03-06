@@ -164,7 +164,7 @@ local {
 	~pred = VEquals(e, v)
 	=========== execution-9
 	exists ~result
-		singleRowSelect(~al, ~pred, ~row) == ~result
+		filterSingleRow(~al, ~pred, ~row) == ~result
 }
 
 local {

@@ -15,14 +15,10 @@ append(aempty, y) = y
 append(acons(a, al), y) = acons(a, append(al,y))
 
 open data FType
-// type of a single column (pair Name, FType)
-data CType =
-	ctype(Name, FType)
-
 // type of a table (table schema) - list of CType
 data TType =
 	ttempty |
-	ttcons(CType, TType)
+	ttcons(Name, FType, TType) // type of a single column (pair Name, FType)
 
 data RawType =
 	rtempty |
@@ -51,8 +47,8 @@ getRaw : Table -> RawTable
 getRaw(table(al, rt)) = rt
 
 function 
-getAL : Table -> AttrL
-getAL(table(al, rt)) = al
+getAttrL : Table -> AttrL
+getAttrL(table(al, rt)) = al
 
 // function that assigns a field type to every field value  (underspecified)	
 partial function
@@ -75,7 +71,7 @@ greaterThan : Val Val -> Bool
 function 
 matchingAttrL : TType AttrL -> Bool
 matchingAttrL(ttempty, aempty) = true
-matchingAttrL(ttcons(ctype(a1, f), tt), acons(a2, al)) = 
+matchingAttrL(ttcons(a1, f, tt), acons(a2, al)) = 
 	(a1 == a2) && matchingAttrL(tt, al)
 matchingAttrL(tt, al) = false	
 	
@@ -86,7 +82,7 @@ welltypedtable(tt, table(al, t)) = matchingAttrL(tt, al) && welltypedRawtable(ra
 function
 rawType : TType -> RawType
 rawType(ttempty) = rtempty
-rawType(ttcons(ctype(a, ft), tt)) = rtcons(ft, rawType(tt))
+rawType(ttcons(a, ft, tt)) = rtcons(ft, rawType(tt))
 
 function
 welltypedRawtable : RawType RawTable -> Bool

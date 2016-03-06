@@ -18,8 +18,8 @@ isSomeFType(noFType) = false
 isSomeFType(someFType(a)) = true
 
 partial function
-getSomeFType : OptFType -> FType
-getSomeFType(someFType(a)) = a
+getFType : OptFType -> FType
+getFType(someFType(a)) = a
 	
 function
 findColType : Name TType -> OptFType
@@ -36,7 +36,7 @@ projectType(acons(a, alr), tt) =
 	let ft = findColType(a, tt) in
 		let tprest = projectType(alr, tt) in
 			if (isSomeFType(ft) && isSomeTType(tprest))
-			then someTType(ttcons(ctype(a, getSomeFType(ft)), getSomeTType(tprest)))
+			then someTType(ttcons(ctype(a, getFType(ft)), getSomeTType(tprest)))
 			else noTType
 			
 // function
@@ -45,10 +45,10 @@ projectType(acons(a, alr), tt) =
 // ctypeIn(a, ft, ttcons(ctype(a2, ft2), ttr)) = ((a == a2) && (ft == ft2)) || ctypeIn(a, ft, ttr) 
 
 // function
-// checkPValidity : Pred TType -> Bool
-// checkPValidity(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
-// checkPValidity(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
-// checkPValidity(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+// tcheckPred : Pred TType -> Bool
+// tcheckPred(VEquals(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+// tcheckPred(VGreater(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
+// tcheckPred(VSmaller(a, fv), tt) = ctypeIn(a, fieldType(fv), tt)
 
 //axioms on behavior of table type context
 axioms
@@ -66,8 +66,8 @@ bindContext(~y, ~Ty, bindContext(~x, ~Tx, ~C)) |- ~e : ~T
 axioms
 //a table value with a well-typed table is typable
 welltypedtable(~TT, table(~al, ~rt))
-====================================== T-Tvalue
-~TTC |- Tvalue(table(~al, ~rt)) : ~TT
+====================================== T-tvalue
+~TTC |- tvalue(table(~al, ~rt)) : ~TT
 
 lookupContext(~tn, ~TTC) == someTType(~TT)
 =============================================== T-SelectAllFrom
@@ -79,12 +79,12 @@ projectType(~al, ~TT1) == someTType(~TT)
 ~TTC |- SelectSomeFrom(~al, Ref(~tn)) : ~TT
 
 // lookupContext(~tn, ~TTC) == someTType(~TT)
-// checkPValidity(~p, ~TT)
+// tcheckPred(~p, ~TT)
 // ================================================ T-SelectAllFromWhere
 // ~TTC |- SelectAllFromWhere(Ref(~tn), ~p) : ~TT
 // 
 // lookupContext(~tn, ~TTC) == someTType(~TT1)
-// checkPValidity(~p, ~TT1)
+// tcheckPred(~p, ~TT1)
 // projectType(~al, ~TT1) == someTType(~TT)
 // ================================================ T-SelectSomeFromWhere
 // ~TTC |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT

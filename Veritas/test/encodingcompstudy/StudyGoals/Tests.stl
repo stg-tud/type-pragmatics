@@ -24,7 +24,7 @@ local {
 	~pred = VEquals(b, gv)
 	~row = rcons(fv, rcons(gv, rcons(hv, rempty)))
 	============================================== test-1
-	singleRowSelect(~al, ~pred, ~row) == isTrue
+	filterSingleRow(~al, ~pred, ~row) == isTrue
 }
 
 local {
@@ -40,7 +40,7 @@ local {
 	~table1 == table(~al, tcons(r1, tempty))
 	~table2 == table(~al, tcons(r2, tempty))
 	============================ test-2
-	reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), emptyStore)) == someConf(conf(Tvalue(table(~al, tempty)), emptyStore))
+	reduce(conf(Intersection(tvalue(~table1), tvalue(~table2)), emptyStore)) == someConf(conf(tvalue(table(~al, tempty)), emptyStore))
 }
 
 local {
@@ -101,7 +101,7 @@ local {
 	~table1 = table(~al, ~rt)
 	~table2 = table(acons(z, ~al), ~rt2)
 	================================= test-6
-	reduce(conf(Union(Tvalue(~table1), Tvalue(~table2)), emptyStore)) == noConf
+	reduce(conf(Union(tvalue(~table1), tvalue(~table2)), emptyStore)) == noConf
 	
 }
 

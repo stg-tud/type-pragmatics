@@ -9,8 +9,8 @@ import sql.TypeSystem
 
 goal
 
-======================================================== T-Tvalue-test1
-emptyContext |- Tvalue(table(aempty, tempty)) : ttempty
+======================================================== T-tvalue-test1
+emptyContext |- tvalue(table(aempty, tempty)) : ttempty
 
 local {
 	
@@ -61,7 +61,7 @@ local {
 	~rt == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
 		tcons(rcons(x2, rcons(y1, rcons(z1, rempty))), tempty))
 	=============================================================================== T-tvalue-test2
-	~ttc |- Tvalue(table(~al, ~rt)) : ~tt
+	~ttc |- tvalue(table(~al, ~rt)) : ~tt
 	
 }
 

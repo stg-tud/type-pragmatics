@@ -16,8 +16,8 @@ isSomeTable(noTable) = false
 isSomeTable(someTable(t)) = true
 
 partial function
-getSomeTable : OptTable -> Table
-getSomeTable(someTable(t)) = t
+getTable : OptTable -> Table
+getTable(someTable(t)) = t
 	
 constructors
 	emptyStore : TStore

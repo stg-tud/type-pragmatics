@@ -18,6 +18,7 @@ data Pred =
 	
 // Query syntax
 data Select = all() | some(AttrL)
+
 data Query =
 	tvalue(Table) |
 	selectFromWhere(Select, Name, Pred) |

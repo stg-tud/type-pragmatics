@@ -47,7 +47,7 @@ goal
 ==================================================================================== counterexample-4
 exists ~t2, ~v2
 	~t2 = table(acons(~n, aempty), tcons(rcons(~v2, rempty), tempty))
-	union(~t1, getSomeTable(select(~t2, ~p))) != select(getSomeTable(union(~t1, ~t2)), ~p)
+	union(~t1, getTable(select(~t2, ~p))) != select(getTable(union(~t1, ~t2)), ~p)
 
 
 // there exists t2 such that diff(t1, select(t2, p)) != select(diff(t1, t2), p)
@@ -57,7 +57,7 @@ goal
 ============================================================= counterexample-5
 exists ~t2, ~v2
 	~t2 = table(acons(~n, aempty), tcons(rcons(~v2, rempty), tempty))
-	difference(~t1, getSomeTable(select(~t2, ~p))) != select(getSomeTable(difference(~t1, ~t2)), ~p)
+	difference(~t1, getTable(select(~t2, ~p))) != select(getTable(difference(~t1, ~t2)), ~p)
 
 
 // difference is not commutative
@@ -79,12 +79,12 @@ exists ~rt
 	projectEmptyCol(~rt) != tempty
 
 
-// addding a column before a row can change the result of singleRowSelect
+// addding a column before a row can change the result of filterSingleRow
 goal
 ~pred = VEquals(~b, ~gv)
 ============================================== counterexample-8
 exists ~name, ~value
-	singleRowSelect(~al, ~pred, ~row) != singleRowSelect(acons(~name, ~al), ~pred, rcons(~value, ~row))
+	filterSingleRow(~al, ~pred, ~row) != filterSingleRow(acons(~name, ~al), ~pred, rcons(~value, ~row))
 
 
 //intersection between two tables with the same type can indeed be non-empty
@@ -95,7 +95,7 @@ welltypedtable(~tt, ~table1)
 exists ~table2, ~r2,  ~ts
   ~table2 == table(~al, tcons(~r2, tempty))
   welltypedtable(~tt, ~table2)
-  reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), ~ts)) != someConf(conf(Tvalue(table(~al, tempty)), ~ts))
+  reduce(conf(Intersection(tvalue(~table1), tvalue(~table2)), ~ts)) != someConf(conf(tvalue(table(~al, tempty)), ~ts))
 
 
 // findCol in a non-empty table can fail

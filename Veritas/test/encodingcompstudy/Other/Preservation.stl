@@ -15,13 +15,13 @@ import encodingcompstudy.PreservationProjection
 strategy induction-Preservation {
 	
 	goal 
-	~qi == Tvalue(~t)
+	~qi == tvalue(~t)
 	~cin == conf(~qi, ~TS)
 	~cout == conf(~qo, ~TS)
 	reduce(~cin) = someConf(~cout)
 	~TTC |- ~qi : ~TT
 	StoreContextConsistent(~TS, ~TTC)
-	=================================== SQL-Preservation-T-Tvalue
+	=================================== SQL-Preservation-T-tvalue
 	~TTC |- ~qo : ~TT
 
 
@@ -35,8 +35,8 @@ strategy induction-Preservation {
 	=================================== SQL-Preservation-T-Selectallfrom
 	~TTC |- ~qo : ~TT
 
-	// Verification succeeded, used lemmas: StoreContext-Lookup-WT, EQ-Tvalue, isSome-INV-1, T-inv-Selectallfrom, 
-	//  T-Tvalue, getRaw0, getAL0, getAL-INV, isValue0, EQ-conf, reduce1, reduce2, DIFF-none-some, getSome0, 
+	// Verification succeeded, used lemmas: StoreContext-Lookup-WT, EQ-tvalue, isSome-INV-1, T-inv-Selectallfrom, 
+	//  T-tvalue, getRaw0, getAttrL0, getAttrL-INV, isValue0, EQ-conf, reduce1, reduce2, DIFF-none-some, getSome0, 
 	//  isValue-INV.
 
 	goal 40
