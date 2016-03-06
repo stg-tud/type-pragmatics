@@ -21,10 +21,10 @@ local {
 
 	goal
 	~al = acons(a, acons(b, acons(c, aempty)))
-	~pred = VEquals(b, gv)
+	~pred = eq(lookup(b), constant(gv))
 	~row = rcons(fv, rcons(gv, rcons(hv, rempty)))
 	============================================== test-1
-	filterSingleRow(~al, ~pred, ~row) == isTrue
+	filterSingleRow(~pred, ~al, ~row)
 }
 
 local {
@@ -56,9 +56,9 @@ local {
 	goal
 	~al == acons(a1, acons(a2, acons(a3, aempty)))
 	~row == rcons(v1, rcons(v2, rcons(v3, rempty)))
-	~table == table(~al, tcons(~row, tempty))
+	~rt == tcons(~row, tempty)
 	========================== test-3
-	findCol(a2, ~table) == someRawTable(tcons(rcons(v2, rempty), tempty))
+	findCol(a2, ~al, ~rt) == someRawTable(tcons(rcons(v2, rempty), tempty))
 }
 
 local {
@@ -116,12 +116,12 @@ local {
 		tn1 : Name
 		
     goal
-    ~tt1 == ttcons(ctype(a, ft1), ttcons(ctype(b, ft2), ttempty))
+    ~tt1 == ttcons(a, ft1, ttcons(b, ft2, ttempty))
     ~TTC == bindContext(tn1, ~tt1, emptyContext)
     ~al == acons(b, aempty)
-    ~TT == ttcons(ctype(b, ft2), ttempty)
+    ~TT == ttcons(b, ft2, ttempty)
     ==================================================== test-7
-    ~TTC |- SelectSomeFrom(~al, Ref(tn1)) : ~TT
+    ~TTC |- selectFromWhere(some(~al), tn1, ptrue()) : ~TT
     
 }
 
