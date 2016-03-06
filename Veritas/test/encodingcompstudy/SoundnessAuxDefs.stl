@@ -53,7 +53,7 @@ strategy induction-StoreContext-Lookup-WT {
 			cts : TStore
 		
 		goal
-		~TS = bindContext(ctn, ct, cts)
+		~TS = bindStore(ctn, ct, cts)
 		~TTC = emptyContext
 		StoreContextConsistent(~TS, ~TTC)
 		lookupStore(~tn, ~TS) = someTable(~t)
