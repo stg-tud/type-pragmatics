@@ -21,10 +21,10 @@ getSomeTType(someTType(t)) = t
 	
 constructors
 	emptyContext : TTContext
-	bindContext : TName TType TTContext -> TTContext
+	bindContext : Name TType TTContext -> TTContext
 	
 function
-lookupContext : TName TTContext -> OptTType
+lookupContext : Name TTContext -> OptTType
 lookupContext(tn, emptyContext) = noTType
 lookupContext(tn, bindContext(tm, tt, TTC)) =
 	if (tn == tm)

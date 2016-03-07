@@ -271,29 +271,12 @@ object Backend {
     val conf = Configuration(Map(
       FinalEncoding -> FinalEncoding.BareFOF,
       Simplification -> Simplification.LogicalAndConstructors,
-      VariableEncoding -> VariableEncoding.NameParamsAndResults,
-      Problem -> Problem.Consistency))
+      VariableEncoding -> VariableEncoding.Unchanged,
+      Problem -> Problem.All))
 
     val modules = Seq(Module.from(aterm))
 
-    object CustomPartialChain extends SeqTrans(
-      // desugar Veritas constructs
-      BasicTrans,
-      // determines whether and which inversion axioms are generated for functions/typing rules
-      TotalFunctionInversionAxioms, // ignored: InversionAll
-      //NoBooleanFunctionInversionAxiomSplit
-      // variable inlining/extraction
-      VariableTrans,
-      // insert type guards for quantified metavariables
-      GuardsTrans //,
-      // determines whether logical optimizations take place prior to fof/tff encoding
-      //Optional(LogicalTermOptimization, ifConfig(LogicalSimplification, LogicalSimplification.On)),
-      // select problem
-      //ProblemTrans)
-      )
-
-    val transformationChain = { sm: Seq[Module] => MainTrans(sm)(conf) }
-    val resultingModSeq = transformationChain(modules)
+    val resultingModSeq = MainTrans(modules)(conf)
     resultingModSeq map { m => ("", m) }
   }
 

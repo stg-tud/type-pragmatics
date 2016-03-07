@@ -37,8 +37,8 @@ isSomeRawTable(noRawTable) = false
 isSomeRawTable(someRawTable(t)) = true
 
 partial function
-getSomeRawTable : OptRawTable -> RawTable
-getSomeRawTable(someRawTable(t)) = t
+getRawTable : OptRawTable -> RawTable
+getRawTable(someRawTable(t)) = t
 
 //attaches a raw table with one column to the front of another raw table
 //returns a raw table with one column more
@@ -51,7 +51,7 @@ attachColToFrontRaw(tempty(), tempty()) = someRawTable(tempty)
 attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) =
 	let rest = attachColToFrontRaw(rt1, rt2) in
 		if (isSomeRawTable(rest)) 
-		then someRawTable(tcons(rcons(f, r), getSomeRawTable(rest)))
+		then someRawTable(tcons(rcons(f, r), getRawTable(rest)))
 		else noRawTable
 attachColToFrontRaw(rt1, rt2) = noRawTable
 

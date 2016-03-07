@@ -16,12 +16,12 @@ import sql.ProgressProjection
 
 strategy induction-Progress {
 	goal
-	~q == Tvalue(~t)
+	~q == tvalue(~t)
 	~cin == conf(~q, ~TS)
 	!isValue(~q)
 	~TTC |- ~q : ~TT
 	StoreContextConsistent(~TS, ~TTC)
-	==================================== SQL-Progress-T-Tvalue
+	==================================== SQL-Progress-T-tvalue
 	exists ~cout
 		reduce(~cin) = someConf(~cout)
 	
@@ -85,33 +85,33 @@ strategy induction-Progress {
 // 			
 // 			goal
 // 			~TT == ttempty
-// 			matchingAList(~TT, ~al1)
-// 			matchingAList(~TT, ~al2)
-// 			=========================== matchingAList-eq-ttempty
+// 			matchingAttrL(~TT, ~al1)
+// 			matchingAttrL(~TT, ~al2)
+// 			=========================== matchingAttrL-eq-ttempty
 // 			~al1 == ~al2
 // 		
 // 			axiom
-// 			matchingAList(tt, ~al1)
-// 			matchingAList(tt, ~al2)
-// 			=========================== matchingAList-eq-ttcons-IH
+// 			matchingAttrL(tt, ~al1)
+// 			matchingAttrL(tt, ~al2)
+// 			=========================== matchingAttrL-eq-ttcons-IH
 // 			~al1 == ~al2
 // 		
 // 			goal
 // 			~TT = ttcons(ctype(~a1, ~f), tt)
-// 			matchingAList(~TT, ~al1)
-// 			matchingAList(~TT, ~al2)
-// 			=========================== matchingAList-eq-ttcons
+// 			matchingAttrL(~TT, ~al1)
+// 			matchingAttrL(~TT, ~al2)
+// 			=========================== matchingAttrL-eq-ttcons
 // 			~al1 == ~al2
 // 		}
 // 		
 // 		axiom
-// 		matchingAList(~TT, ~al1)
-// 		matchingAList(~TT, ~al2)
-// 		=========================== matchingAList-eq
+// 		matchingAttrL(~TT, ~al1)
+// 		matchingAttrL(~TT, ~al2)
+// 		=========================== matchingAttrL-eq
 // 		~al1 == ~al2
 // 	
 // 		goal
-// 		~q == Union(Tvalue(~t1), Tvalue(~t2))
+// 		~q == Union(tvalue(~t1), tvalue(~t2))
 // 		~cin == conf(~q, TS)
 // 		!isValue(~q)
 // 		TTC |- ~q : TT
@@ -122,7 +122,7 @@ strategy induction-Progress {
 // 	}
 // 		
 // 	axiom
-// 	~q == Union(Tvalue(~t1), Tvalue(~t2))
+// 	~q == Union(tvalue(~t1), tvalue(~t2))
 // 	~cin == conf(~q, TS)
 // 	!isValue(~q)
 // 	TTC |- ~q : TT
@@ -143,8 +143,8 @@ strategy induction-Progress {
 // 			reduce(~cin) = someConf(~cout)
 // 	
 // 		goal
-// 		~q == Union(Tvalue(~t1), q2)
-// 		forall ~t2 q2 != Tvalue(~t2)
+// 		~q == Union(tvalue(~t1), q2)
+// 		forall ~t2 q2 != tvalue(~t2)
 // 		~cin == conf(~q, TS)
 // 		!isValue(~q)
 // 		TTC |- ~q : TT
@@ -155,8 +155,8 @@ strategy induction-Progress {
 // 	}	
 // 	
 // 	axiom
-// 	~q == Union(Tvalue(~t1), q2)
-// 	forall ~t2 q2 != Tvalue(~t2)
+// 	~q == Union(tvalue(~t1), q2)
+// 	forall ~t2 q2 != tvalue(~t2)
 // 	~cin == conf(~q, TS)
 // 	!isValue(~q)
 // 	TTC |- ~q : TT
@@ -178,7 +178,7 @@ strategy induction-Progress {
 // 			
 // 		goal
 // 		~q == Union(q1, q2)
-// 		forall ~t1 q1 != Tvalue(~t1)
+// 		forall ~t1 q1 != tvalue(~t1)
 // 		~cin == conf(~q, TS)
 // 		!isValue(~q)
 // 		TTC |- ~q :  TT
@@ -190,7 +190,7 @@ strategy induction-Progress {
 // 		
 // 	axiom
 // 	~q == Union(q1, q2)
-// 	forall ~t1 q1 != Tvalue(~t1)
+// 	forall ~t1 q1 != tvalue(~t1)
 // 	~cin == conf(~q, TS)
 // 	!isValue(~q)
 // 	TTC |- ~q :  TT

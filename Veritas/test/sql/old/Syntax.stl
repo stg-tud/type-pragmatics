@@ -9,27 +9,27 @@ sorts
 
 //predicates for where clauses of queries	
 // constructors
-// 	VEquals : AName FVal -> Pred
-// 	VGreater : AName FVal -> Pred
-// 	VSmaller : AName FVal -> Pred
+// 	VEquals : Name Val -> Pred
+// 	VGreater : Name Val -> Pred
+// 	VSmaller : Name Val -> Pred
 	
 	
 //query syntax
 constructors
-	Ref : TName -> TRef
+	Ref : Name -> TRef
 	
-	Tvalue : Table -> Query
+	tvalue : Table -> Query
 	SelectAllFrom : TRef -> Query
-	SelectSomeFrom : AList TRef -> Query
+	SelectSomeFrom : AttrL TRef -> Query
 	// SelectAllFromWhere : TRef Pred -> Query
-	// SelectSomeFromWhere : AList TRef Pred -> Query
+	// SelectSomeFromWhere : AttrL TRef Pred -> Query
 	// Union : Query Query -> Query
 	// Intersection : Query Query -> Query
 	// Difference : Query Query -> Query
 	
 function
 isValue : Query -> Bool
-isValue(Tvalue(t)) = true
+isValue(tvalue(t)) = true
 isValue(SelectAllFrom(n)) = false
 isValue(SelectSomeFrom(al, tr)) = false
 // isValue(SelectAllFromWhere(tr, p)) = false

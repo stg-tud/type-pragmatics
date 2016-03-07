@@ -40,36 +40,33 @@ exists ~C2
   lookupContext(~n, ~C2) == someTType(~T)
   ~C != ~C2
 
-// there exists t2 such that union(t1, select(t2, p)) != select(union(t1, t2), p)
+// there exists t2 such that rawUnion(t1, filterRows(t2, al, p)) != filterRows(rawUnion(t1, t2), al, p)
 goal
-~t1 = table(acons(~n, aempty), tcons(rcons(~v, rempty), tempty))
-~p = VEquals(~n, ~v)
+welltypedtable(~tt, table(~al, ~rt1))
+~p = eq(lookup(~n), constant(~v))
 ==================================================================================== counterexample-4
-exists ~t2, ~v2
-	~t2 = table(acons(~n, aempty), tcons(rcons(~v2, rempty), tempty))
-	union(~t1, getSomeTable(select(~t2, ~p))) != select(getSomeTable(union(~t1, ~t2)), ~p)
+exists ~rt2
+	welltypedtable(~tt, table(~al, ~rt2))
+	rawUnion(~rt1, filterRows(~rt2, ~al, ~p)) != filterRows(rawUnion(~rt1, ~rt2), ~al, ~p)
 
 
-// there exists t2 such that diff(t1, select(t2, p)) != select(diff(t1, t2), p)
+// there exists t2 such that diff(t1, filterRows(t2, al, p)) != filterRows(diff(t1, t2), al, p)
 goal
-~t1 = table(acons(~n, aempty), tcons(rcons(~v, rempty), tempty))
-~p = VEquals(~n, ~v)
+welltypedtable(~tt, table(~al, ~rt1))
 ============================================================= counterexample-5
-exists ~t2, ~v2
-	~t2 = table(acons(~n, aempty), tcons(rcons(~v2, rempty), tempty))
-	difference(~t1, getSomeTable(select(~t2, ~p))) != select(getSomeTable(difference(~t1, ~t2)), ~p)
+exists ~rt2, ~p
+	welltypedtable(~tt, table(~al, ~rt2))
+	rawDifference(~rt1, filterRows(~rt2, ~al, ~p)) != filterRows(rawDifference(~rt1, ~rt2), ~al, ~p)
 
 
 // difference is not commutative
 goal
-~rt == tcons(~r1, tcons(~r2, tempty))
-~al == acons(~a, aempty)
-~t1 == table(~al, ~rt)
-welltypedtable(~tt, ~t1)
+true
 ========================================= counterexample-6
-exists ~t2
-	welltypedtable(~tt, ~t2)
-	difference(~t1, ~t2) != difference(~t2, ~t1)
+exists ~rt1, ~rt2, ~tt
+	welltypedRawtable(~tt, ~rt1)
+	welltypedRawtable(~tt, ~rt2)
+	rawDifference(~rt1, ~rt2) != rawDifference(~rt2, ~rt1)
 
 
 goal
@@ -79,29 +76,34 @@ exists ~rt
 	projectEmptyCol(~rt) != tempty
 
 
-// addding a column before a row can change the result of singleRowSelect
+// addding a column before a row can change the result of filterSingleRow
 goal
-~pred = VEquals(~b, ~gv)
+~pred = eq(lookup(~b), constant(~gv))
 ============================================== counterexample-8
-exists ~name, ~value
-	singleRowSelect(~al, ~pred, ~row) != singleRowSelect(acons(~name, ~al), ~pred, rcons(~value, ~row))
+exists ~name, ~value, ~row, ~al
+	!filterSingleRow(~pred, ~al, ~row) 
+	filterSingleRow(~pred, acons(~name, ~al), rcons(~value, ~row))
+exists ~name, ~value, ~row, ~al
+	filterSingleRow(~pred, ~al, ~row) 
+	!filterSingleRow(~pred, acons(~name, ~al), rcons(~value, ~row))
 
 
 //intersection between two tables with the same type can indeed be non-empty
 goal
-~table1 == table(~al, tcons(~r1, tempty))
-welltypedtable(~tt, ~table1)
+~t1 == table(~al, ~rt1)
+welltypedtable(~tt, ~t1)
 ============================ counterexample-9
-exists ~table2, ~r2,  ~ts
-  ~table2 == table(~al, tcons(~r2, tempty))
-  welltypedtable(~tt, ~table2)
-  reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), ~ts)) != someConf(conf(Tvalue(table(~al, tempty)), ~ts))
+exists ~rt2, ~t2, ~ts
+	~t2 = table(~al, ~rt2)
+	welltypedtable(~tt, ~t2)
+	reduce(conf(Intersection(tvalue(~t1), tvalue(~t2)), ~ts)) == someConf(conf(tvalue(table(~al, tempty)), ~ts))
 
 
-// findCol in a non-empty table can fail
+// // findCol in a non-empty table can fail
 goal
-~table == table(acons(~a, ~al), tcons(rcons(~r, ~rrest), tempty))
-welltypedtable(~tt, ~table)
+~al2 = acons(~a, ~al)
+~rt2 = tcons(~r, ~rt)
+welltypedtable(~tt, table(~al2, ~rt2))
 ========================== counterexample-10
 exists ~name
-  findCol(~name, ~table) != someRawTable(~rt)
+  findCol(~name, ~al2, ~rt2) != someRawTable(~rt)

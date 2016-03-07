@@ -32,7 +32,7 @@ strategy induction-StoreContext-Lookup-WT {
 
 	local {
 		consts
-			ctn : TName
+			ctn : Name
 			ctt : TType
 			cttc : TTContext
 		
@@ -48,12 +48,12 @@ strategy induction-StoreContext-Lookup-WT {
 
 	local {
 		consts
-			ctn : TName
+			ctn : Name
 			ct : Table
 			cts : TStore
 		
 		goal
-		~TS = bindContext(ctn, ct, cts)
+		~TS = bindStore(ctn, ct, cts)
 		~TTC = emptyContext
 		StoreContextConsistent(~TS, ~TTC)
 		lookupStore(~tn, ~TS) = someTable(~t)
@@ -64,10 +64,10 @@ strategy induction-StoreContext-Lookup-WT {
 	
 	local {
 		consts
-			ctn1 : TName
+			ctn1 : Name
 			ct : Table
 			cts : TStore
-			ctn2 : TName
+			ctn2 : Name
 			ctt : TType
 			cttc : TTContext
 		

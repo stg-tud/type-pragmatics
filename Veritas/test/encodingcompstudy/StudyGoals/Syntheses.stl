@@ -22,29 +22,29 @@ exists ~TTC, ~q1, ~q2, ~TT
 //to project the table on itself
 local {
 	consts
-		v : FVal
+		v : Val
 
 	goal
-	~rt1 == tcons(rcons(v, rempty), tempty)
-	~table1 == table(acons(~a, aempty), ~rt1)
+	~rt == tcons(rcons(v, rempty), tempty)
+	~al == acons(~a, aempty)
 	===================================================================== synthesis-2
-	exists ~p
-  		project(~p, ~table1) == someRawTable(~rt1)
+	exists ~alr
+  		project(~alr, ~al, ~rt) == someRawTable(~rt)
 }
 
 local {
 	consts
-		a : AName
-		b : AName
+		a : Name
+		b : Name
 		r : Row
 		q : Row
 		
 	goal
-	~table1 == table(acons(a, acons(b, aempty)), tcons(r, tcons(q, tempty)))
+	~rt1 = tcons(r, tcons(q, tempty))
 	========================================================================= synthesis-3
-	exists ~table2
-		~table1 != ~table2
-		intersect(~table1, ~table2) == someTable(~table1)
+	exists ~rt2
+		~rt1 != ~rt2
+		rawIntersection(~rt1, ~rt2) == ~rt1
 	
 }
 
@@ -54,7 +54,7 @@ goal
 true
 ======================= synthesis-4
 exists ~conf
-  forall ~t, ~ts ~conf != conf(Tvalue(~t), ~ts)
+  forall ~t, ~ts ~conf != conf(tvalue(~t), ~ts)
   reduce(~conf) = noConf
   
 goal
@@ -78,13 +78,13 @@ exists ~TT, ~table2, ~al
 
 
 goal
-~tt = ttcons(ctype(~a, ~t), ttcons(ctype(~b, ~u), ttempty))
+~tt = ttcons(~a, ~t, ttcons(~b, ~u, ttempty))
 forall ~type
 	exists ~fv 
 		fieldType(~fv) == ~type
 ======================================= synthesis-7
-exists ~x, ~fv
-  checkPValidity(VEquals(~x, ~fv), ~tt)
+exists ~p
+  tcheckPred(~p, ~tt)
 
 
 goal
@@ -96,11 +96,11 @@ exists ~al
 
 local {
 	consts
-	  a : AName
+	  a : Name
 	  t : FType
 	  
 	goal
-	~tt = ttcons(ctype(a, t), ttempty)
+	~tt = ttcons(a, t, ttempty)
 	===================================================================================== synthesis-9
 	exists ~al
  		projectType(~al, ~tt) = someTType(~tt)	
@@ -109,11 +109,11 @@ local {
 
 local {
 	consts
-		table1 : RawTable
+		rt1 : RawTable
 
 	goal
 	true
 	========================================== synthesis-10
-	exists ~table2
-	 rawUnion(table1, ~table2) = table1
+	exists ~rt2
+	 rawUnion(rt1, ~rt2) = rt1
 }

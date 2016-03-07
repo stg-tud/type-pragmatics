@@ -8,18 +8,18 @@ import sql.TStore
 
 local {
 	constructors 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	constructors
-		TN : TName
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		TN : Name
+		A1 : Name
+		A2 : Name
+		A3 : Name
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -29,22 +29,22 @@ local {
 	~ts == bindStore(TN, ~t, emptyStore)
 	~q == SelectAllFrom(Ref(TN))
 	========================================================== test-Selectallfrom
-	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~t), ~ts))
+	reduce(conf(~q, ~ts)) == someConf(conf(tvalue(~t), ~ts))
 }
 
 local {
 	constructors 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	constructors
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -57,17 +57,17 @@ local {
 
 local {
 	constructors 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	constructors
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -81,17 +81,17 @@ local {
 
 local {
 	constructors 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	constructors
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -106,18 +106,18 @@ local {
 
 local {
 	constructors 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	constructors
-		TN : TName
-		A1 : AName
-		A2 : AName
-		A3 : AName	
+		TN : Name
+		A1 : Name
+		A2 : Name
+		A3 : Name	
 
 	axiom
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -137,23 +137,23 @@ local {
 	~q == SelectSomeFrom(acons(A1, aempty), Ref(TN))
 	~tresult == table(acons(A1, aempty), tcons(rcons(x1, rempty), tcons(rcons(x2, rempty), tempty)))
 	================================================================================================== test-Selectsomefrom
-	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~tresult), ~ts))
+	reduce(conf(~q, ~ts)) == someConf(conf(tvalue(~tresult), ~ts))
 }
 
 
 local {
 	constructors 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	constructors
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		A1 : Name
+		A2 : Name
+		A3 : Name
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -167,18 +167,18 @@ local {
 
 local {
 	constructors
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	constructors
-		TN : TName
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		TN : Name
+		A1 : Name
+		A2 : Name
+		A3 : Name
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -192,18 +192,18 @@ local {
 
 local {
 	constructors 
-		x1 : FVal
-		x2 : FVal
-		y1 : FVal
-		y2 : FVal
-		z1 : FVal
-		z2 : FVal
+		x1 : Val
+		x2 : Val
+		y1 : Val
+		y2 : Val
+		z1 : Val
+		z2 : Val
 		
 	constructors
-		TN : TName
-		A1 : AName
-		A2 : AName
-		A3 : AName
+		TN : Name
+		A1 : Name
+		A2 : Name
+		A3 : Name
 		
 	axiom
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -224,37 +224,37 @@ local {
 	~tresult == table(acons(A2, acons(A1, aempty)), 
 		tcons(rcons(y2, rcons(x1, rempty)), tcons(rcons(y1, rcons(x2, rempty)), tempty)))
 	======================================================================================= test-Selectsomefrom-2
-	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~tresult), ~ts))
+	reduce(conf(~q, ~ts)) == someConf(conf(tvalue(~tresult), ~ts))
 }
 
 
 // local {
 // 	constructors 
-// 		x1 : FVal
-// 		x2 : FVal
-// 		y1 : FVal
-// 		y2 : FVal
-// 		z1 : FVal
-// 		z2 : FVal
+// 		x1 : Val
+// 		x2 : Val
+// 		y1 : Val
+// 		y2 : Val
+// 		z1 : Val
+// 		z2 : Val
 // 		
 // 	constructors
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
+// 		TN : Name
+// 		A1 : Name
+// 		A2 : Name
+// 		A3 : Name
 // 
 // 
 // 	lemma
 // 	~al == acons(A1, acons(A2, acons(A3, aempty)))
 // 	~r == rcons(x1, rcons(y2, rcons(z2, rempty)))
 // 	=============================================================================== singleRow-aux1
-// 	singleRowSelect(~al, VEquals(A1, x1), ~r) == isTrue
+// 	filterSingleRow(~al, VEquals(A1, x1), ~r) == isTrue
 // 	
 // 	lemma
 // 	~al == acons(A1, acons(A2, acons(A3, aempty)))
 // 	~r == rcons(x2, rcons(y1, rcons(z1, rempty)))
 // 	=============================================================================== singleRow-aux2
-// 	singleRowSelect(~al, VEquals(A1, x1), ~r) == isFalse
+// 	filterSingleRow(~al, VEquals(A1, x1), ~r) == isFalse
 // 	
 // 
 // 	goal
@@ -270,18 +270,18 @@ local {
 
 // local {
 // 	constructors 
-// 		x1 : FVal
-// 		x2 : FVal
-// 		y1 : FVal
-// 		y2 : FVal
-// 		z1 : FVal
-// 		z2 : FVal
+// 		x1 : Val
+// 		x2 : Val
+// 		y1 : Val
+// 		y2 : Val
+// 		z1 : Val
+// 		z2 : Val
 // 		
 // 	constructors
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
+// 		TN : Name
+// 		A1 : Name
+// 		A2 : Name
+// 		A3 : Name
 // 	
 // 	lemma
 // 	~rt1 == tcons(rcons(x1, rcons(y2, rcons(z2, rempty))), 
@@ -308,27 +308,27 @@ local {
 // 	~t1 == table(~al, ~rt1)
 // 	~t2 == table(~al, ~rt2)
 // 	~ts == bindStore(TN, ~t, emptyStore)
-// 	~q == Union(Tvalue(~t1), Tvalue(~t2))
+// 	~q == Union(tvalue(~t1), tvalue(~t2))
 // 	~t == table(~al, ~rtresult)
 // 	============================================================================== test-union1
-// 	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~t), ~ts))
+// 	reduce(conf(~q, ~ts)) == someConf(conf(tvalue(~t), ~ts))
 // }
 
 
 // local {
 // 	constructors 
-// 		x1 : FVal
-// 		x2 : FVal
-// 		y1 : FVal
-// 		y2 : FVal
-// 		z1 : FVal
-// 		z2 : FVal
+// 		x1 : Val
+// 		x2 : Val
+// 		y1 : Val
+// 		y2 : Val
+// 		z1 : Val
+// 		z2 : Val
 // 		
 // 	constructors
-// 		TN : TName
-// 		A1 : AName
-// 		A2 : AName
-// 		A3 : AName
+// 		TN : Name
+// 		A1 : Name
+// 		A2 : Name
+// 		A3 : Name
 // 
 // 	
 // 	axiom
@@ -348,10 +348,10 @@ local {
 // 	~t1 == table(~al, ~rt1)
 // 	~t2 == table(~al, ~rt2)
 // 	~ts == bindStore(TN, ~t, emptyStore)
-// 	~q == Intersection(Tvalue(~t1), Tvalue(~t2))
+// 	~q == Intersection(tvalue(~t1), tvalue(~t2))
 // 	~t == table(~al, tempty)
 // 	============================================================================== test-intersection1
-// 	reduce(conf(~q, ~ts)) == someConf(conf(Tvalue(~t), ~ts))
+// 	reduce(conf(~q, ~ts)) == someConf(conf(tvalue(~t), ~ts))
 // }
 
 

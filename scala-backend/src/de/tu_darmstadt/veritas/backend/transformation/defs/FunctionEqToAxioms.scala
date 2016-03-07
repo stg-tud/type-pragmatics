@@ -142,15 +142,9 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       case FunctionExpIf(c, t, e) => {
         val cp = makeConditionPair(c)
         val subpremsleft = collectIfLetPremises(t.asInstanceOf[FunctionExp])
-        val left =
-          if (subpremsleft.length > 0)
-            (subpremsleft map (s => cp._1 +: s))
-          else Seq(Seq(cp._1))
+        val left = subpremsleft map (s => cp._1 +: s)
         val subpremsright = collectIfLetPremises(e.asInstanceOf[FunctionExp])
-        val right =
-          if (subpremsright.length > 0)
-            (subpremsright map (s => cp._2 +: s))
-          else Seq(Seq(cp._2))
+        val right = subpremsright map (s => cp._2 +: s)
         left ++ right
       }
       case FunctionExpLet(n, i, e) => {
@@ -158,7 +152,7 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
         val letpremise = makeLetPremise(n, i)
         bodyprems map (s => letpremise +: s)
       }
-      case e => Seq()
+      case e => Seq(Seq())
       //TODO this does not support if or let statements in And, Or, Eq etc. - check whether this is a good idea!
     }
 

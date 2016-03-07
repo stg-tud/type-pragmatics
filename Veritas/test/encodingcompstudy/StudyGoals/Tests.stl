@@ -11,20 +11,20 @@ import encodingcompstudy.SoundnessAuxDefs
 
 local {
 	different consts
-	    fv : FVal
-	    gv : FVal
-	    hv : FVal
+	    fv : Val
+	    gv : Val
+	    hv : Val
 	    
-	    a : AName
-	    b : AName
-	    c : AName
+	    a : Name
+	    b : Name
+	    c : Name
 
 	goal
 	~al = acons(a, acons(b, acons(c, aempty)))
-	~pred = VEquals(b, gv)
+	~pred = eq(lookup(b), constant(gv))
 	~row = rcons(fv, rcons(gv, rcons(hv, rempty)))
 	============================================== test-1
-	singleRowSelect(~al, ~pred, ~row) == isTrue
+	filterSingleRow(~pred, ~al, ~row)
 }
 
 local {
@@ -32,33 +32,33 @@ local {
 		r1 : Row
 		r2 : Row
 		
-		a : AName
-		b : AName
+		a : Name
+		b : Name
 	
 	goal
 	~al = acons(a, acons(b, aempty))
 	~table1 == table(~al, tcons(r1, tempty))
 	~table2 == table(~al, tcons(r2, tempty))
 	============================ test-2
-	reduce(conf(Intersection(Tvalue(~table1), Tvalue(~table2)), emptyStore)) == someConf(conf(Tvalue(table(~al, tempty)), emptyStore))
+	reduce(conf(Intersection(tvalue(~table1), tvalue(~table2)), emptyStore)) == someConf(conf(tvalue(table(~al, tempty)), emptyStore))
 }
 
 local {
 	different consts
-		a1 : AName
-		a2 : AName
-		a3 : AName
+		a1 : Name
+		a2 : Name
+		a3 : Name
 		
-		v1 : FVal
-		v2 : FVal
-		v3 : FVal
+		v1 : Val
+		v2 : Val
+		v3 : Val
 	
 	goal
 	~al == acons(a1, acons(a2, acons(a3, aempty)))
 	~row == rcons(v1, rcons(v2, rcons(v3, rempty)))
-	~table == table(~al, tcons(~row, tempty))
+	~rt == tcons(~row, tempty)
 	========================== test-3
-	findCol(a2, ~table) == someRawTable(tcons(rcons(v2, rempty), tempty))
+	findCol(a2, ~al, ~rt) == someRawTable(tcons(rcons(v2, rempty), tempty))
 }
 
 local {
@@ -90,47 +90,47 @@ local {
 
 local {
 	different consts
-		a : AName
-		b : AName
-		c : AName
-		d : AName
-		z : AName
+		a : Name
+		b : Name
+		c : Name
+		d : Name
+		z : Name
 	
 	goal
 	~al = acons(a, acons(b, acons(c, acons(d, aempty))))
 	~table1 = table(~al, ~rt)
 	~table2 = table(acons(z, ~al), ~rt2)
 	================================= test-6
-	reduce(conf(Union(Tvalue(~table1), Tvalue(~table2)), emptyStore)) == noConf
+	reduce(conf(Union(tvalue(~table1), tvalue(~table2)), emptyStore)) == noConf
 	
 }
 
 local {
 	different consts
-		a : AName
-		b : AName
+		a : Name
+		b : Name
 		
 		ft1 : FType
 		ft2 : FType
 		
-		tn1 : TName
+		tn1 : Name
 		
     goal
-    ~tt1 == ttcons(ctype(a, ft1), ttcons(ctype(b, ft2), ttempty))
+    ~tt1 == ttcons(a, ft1, ttcons(b, ft2, ttempty))
     ~TTC == bindContext(tn1, ~tt1, emptyContext)
     ~al == acons(b, aempty)
-    ~TT == ttcons(ctype(b, ft2), ttempty)
+    ~TT == ttcons(b, ft2, ttempty)
     ==================================================== test-7
-    ~TTC |- SelectSomeFrom(~al, Ref(tn1)) : ~TT
+    ~TTC |- selectFromWhere(some(~al), tn1, ptrue()) : ~TT
     
 }
 
 
 local {
 	different consts
-		tn1 : TName
-		tn2 : TName
-		tn3 : TName
+		tn1 : Name
+		tn2 : Name
+		tn3 : Name
 		
 		tt1 : TType
 		tt2 : TType
@@ -152,11 +152,11 @@ local {
 
 local {
 	different consts
-		tn1 : TName
-		tn2 : TName
-		tn3 : TName
-		tn4 : TName
-		tn5 : TName
+		tn1 : Name
+		tn2 : Name
+		tn3 : Name
+		tn4 : Name
+		tn5 : Name
 		
 		tt : TType
 		tt4 : TType
@@ -170,10 +170,10 @@ local {
 
 local {
 	different consts
-		v1 : FVal
-		v2 : FVal
-		v3 : FVal
-		v4 : FVal
+		v1 : Val
+		v2 : Val
+		v3 : Val
+		v4 : Val
 	
 	goal
 	~row1 == rcons(v1, rcons(v2, rempty))

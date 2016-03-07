@@ -29,7 +29,7 @@ getSomeConf : OptConf -> Conf
 getSomeConf(someConf(c)) = c
 
 function
-findCol : AName Table -> OptRawTable
+findCol : Name Table -> OptRawTable
 findCol(a, table(aempty, rt)) = noRawTable
 findCol(a, table(acons(a2, al), rt)) = 
 		if (a == a2)
@@ -44,13 +44,13 @@ projectEmptyCol(tempty) = tempty
 projectEmptyCol(tcons(r, t)) = tcons(rempty, projectEmptyCol(t))
 	
 function
-project : AList Table -> OptRawTable 
+project : AttrL Table -> OptRawTable 
 project(aempty, table(al, rt)) = someRawTable(projectEmptyCol(rt))
 project(acons(a, alr), t) =
 	let col = findCol(a, t) in
 		let rest = project(alr, t) in
 			if (isSomeRawTable(col) && isSomeRawTable(rest))
-			then attachColToFrontRaw(getSomeRawTable(col), getSomeRawTable(rest))
+			then attachColToFrontRaw(getRawTable(col), getRawTable(rest))
 			else noRawTable
 
 // Option variant for option boolean (3 answers: true, false, error)
@@ -63,33 +63,33 @@ project(acons(a, alr), t) =
 // 	isFalse : Opt3
 
 // fails if attribute - field type pair is not in table!
-// and is not defined if length of given AList and given Row does not match
+// and is not defined if length of given AttrL and given Row does not match
 // partial function 
-// singleRowSelect : AList Pred Row -> Opt3
-// singleRowSelect(acons(a1, aempty), VEquals(a2, fv), rcons(f, rempty)) =
+// filterSingleRow : AttrL Pred Row -> Opt3
+// filterSingleRow(acons(a1, aempty), VEquals(a2, fv), rcons(f, rempty)) =
 // 	if (a1 == a2)
 // 	then (if (f == fv) then isTrue else isFalse)
 // 	else error
-// singleRowSelect(acons(a1, ar), VEquals(a2, fv), rcons(f, r)) =
+// filterSingleRow(acons(a1, ar), VEquals(a2, fv), rcons(f, r)) =
 // 	if (a1 == a2)
 // 	then (if (f == fv) then isTrue else isFalse)
-// 	else singleRowSelect(ar, VEquals(a2, fv), r)
-// singleRowSelect(acons(a1, aempty), VGreater(a2, fv), rcons(f, rempty)) =
+// 	else filterSingleRow(ar, VEquals(a2, fv), r)
+// filterSingleRow(acons(a1, aempty), VGreater(a2, fv), rcons(f, rempty)) =
 // 	if (a1 == a2)
 // 	then (if (ge(f,fv)) then isTrue else isFalse)
 // 	else error
-// singleRowSelect(acons(a1, ar), VGreater(a2, fv), rcons(f, r)) =
+// filterSingleRow(acons(a1, ar), VGreater(a2, fv), rcons(f, r)) =
 // 	if (a1 == a2)
 // 	then (if (ge(f,fv)) then isTrue else isFalse)
-// 	else singleRowSelect(ar, VGreater(a2, fv), r)
-// singleRowSelect(acons(a1, aempty), VSmaller(a2, fv), rcons(f, rempty)) =
+// 	else filterSingleRow(ar, VGreater(a2, fv), r)
+// filterSingleRow(acons(a1, aempty), VSmaller(a2, fv), rcons(f, rempty)) =
 // 	if (a1 == a2)
 // 	then (if (le(f,fv)) then isTrue else isFalse)
 // 	else error
-// singleRowSelect(acons(a1, ar), VSmaller(a2, fv), rcons(f, r)) =
+// filterSingleRow(acons(a1, ar), VSmaller(a2, fv), rcons(f, r)) =
 // 	if (a1 == a2)
 // 	then (if (le(f,fv)) then isTrue else isFalse)
-// 	else singleRowSelect(ar, VSmaller(a2, fv), r)
+// 	else filterSingleRow(ar, VSmaller(a2, fv), r)
 
 // top-level function for selection
 // always true for empty tables!
@@ -98,9 +98,9 @@ project(acons(a, alr), t) =
 // select(table(al, tempty), pred) = someTable(table(al, tempty))
 // select(table(al, tcons(r, rt)), pred) =
 // 	let rts = select(table(al, rt), pred) in
-// 		let rb = singleRowSelect(al, pred, r) in 
+// 		let rb = filterSingleRow(al, pred, r) in 
 // 			if (rb == isTrue)
-// 			then someTable(table(al, tcons(r, getRaw(getSomeTable(rts)))))
+// 			then someTable(table(al, tcons(r, getRaw(getTable(rts)))))
 // 			else if (rb == isFalse)
 // 				then rts
 // 				else noTable
@@ -134,78 +134,78 @@ project(acons(a, alr), t) =
 // reduce fails if referenced tables are not found
 function 
 reduce : Conf -> OptConf
-reduce(conf(Tvalue(t), ts)) = noConf
+reduce(conf(tvalue(t), ts)) = noConf
 reduce(conf(SelectAllFrom(Ref(tn)), ts)) = 
 	let ltn = lookupStore(tn, ts) in
 		if (isSomeTable(ltn))
-		then someConf(conf(Tvalue(getSomeTable(ltn)),ts))
+		then someConf(conf(tvalue(getTable(ltn)),ts))
 		else noConf
 reduce(conf(SelectSomeFrom(al, Ref(tn)), ts)) =
 	let ltn = lookupStore(tn, ts) in
 		if (isSomeTable(ltn))
-		then (let pt = project(al, getSomeTable(ltn)) in
+		then (let pt = project(al, getTable(ltn)) in
 			if (isSomeRawTable(pt))
-			then someConf(conf(Tvalue(table(al, getSomeRawTable(pt))), ts))
+			then someConf(conf(tvalue(table(al, getRawTable(pt))), ts))
 			else noConf)
 		else noConf
 // reduce(conf(SelectAllFromWhere(Ref(tn), p), ts)) =
 // 	let ltn = lookupStore(tn, ts) in
 // 		if (isSomeTable(ltn))
-// 		then (let st = select(getSomeTable(ltn), p) in
+// 		then (let st = select(getTable(ltn), p) in
 // 			if (isSomeTable(st))
-// 			then someConf(conf(Tvalue(getSomeTable(st)), ts))
+// 			then someConf(conf(tvalue(getTable(st)), ts))
 // 			else noConf)
 // 		else noConf
 // reduce(conf(SelectSomeFromWhere(al, Ref(tn), p), ts)) =
 // 	let ltn = lookupStore(tn, ts) in
 // 		if (isSomeTable(ltn))
-// 		then (let st = select(getSomeTable(ltn), p) in
+// 		then (let st = select(getTable(ltn), p) in
 // 			if (isSomeTable(st))
-// 			then (let pt = project(al, getSomeTable(st)) in
+// 			then (let pt = project(al, getTable(st)) in
 // 				if(isSomeRawTable(pt))
-// 				then someConf(conf(Tvalue(table(al, getSomeRawTable(pt))), ts))
+// 				then someConf(conf(tvalue(table(al, getRawTable(pt))), ts))
 // 				else noConf)
 // 			else noConf)
 // 		else noConf
-// reduce(conf(Union(Tvalue(t1), Tvalue(t2)), ts)) =
+// reduce(conf(Union(tvalue(t1), tvalue(t2)), ts)) =
 // 	let tunion = union(t1, t2) in
 // 		if (isSomeTable(tunion))
-// 		then someConf(conf(Tvalue(getSomeTable(tunion)), ts))
+// 		then someConf(conf(tvalue(getTable(tunion)), ts))
 // 		else noConf
-// reduce(conf(Union(Tvalue(t), q2), ts)) =
+// reduce(conf(Union(tvalue(t), q2), ts)) =
 // 	let q2reduce = reduce(conf(q2, ts)) in
 // 		if (isSomeConf(q2reduce))
-// 		then someConf(conf(Union(Tvalue(t), getQuery(getSomeConf(q2reduce))), ts))
+// 		then someConf(conf(Union(tvalue(t), getQuery(getSomeConf(q2reduce))), ts))
 // 		else noConf
 // reduce(conf(Union(q1, q2), ts)) =
 // 	let q1reduce = reduce(conf(q1, ts)) in
 // 		if (isSomeConf(q1reduce))
 // 		then someConf(conf(Union(getQuery(getSomeConf(q1reduce)), q2), ts))
 // 		else noConf
-// reduce(conf(Intersection(Tvalue(t1), Tvalue(t2)), ts)) =
+// reduce(conf(Intersection(tvalue(t1), tvalue(t2)), ts)) =
 // 	let tintersection = intersect(t1, t2) in
 // 		if (isSomeTable(tintersection))
-// 		then someConf(conf(Tvalue(getSomeTable(tintersection)), ts))
+// 		then someConf(conf(tvalue(getTable(tintersection)), ts))
 // 		else noConf
-// reduce(conf(Intersection(Tvalue(t), sql2), ts)) =
+// reduce(conf(Intersection(tvalue(t), sql2), ts)) =
 // 	let sql2reduce = reduce(conf(sql2, ts)) in
 // 		if (isSomeConf(sql2reduce))
-// 		then someConf(conf(Intersection(Tvalue(t), getQuery(getSomeConf(sql2reduce))), ts))
+// 		then someConf(conf(Intersection(tvalue(t), getQuery(getSomeConf(sql2reduce))), ts))
 // 		else noConf
 // reduce(conf(Intersection(sql1, sql2), ts)) =
 // 	let sql1reduce = reduce(conf(sql1, ts)) in
 // 		if (isSomeConf(sql1reduce))
 // 		then someConf(conf(Intersection(getQuery(getSomeConf(sql1reduce)), sql2), ts))
 // 		else noConf
-// reduce(conf(Difference(Tvalue(t1), Tvalue(t2)), ts)) =
+// reduce(conf(Difference(tvalue(t1), tvalue(t2)), ts)) =
 // 	let tdifference = difference(t1, t2) in
 // 		if (isSomeTable(tdifference))
-// 		then someConf(conf(Tvalue(getSomeTable(tdifference)), ts))
+// 		then someConf(conf(tvalue(getTable(tdifference)), ts))
 // 		else noConf
-// reduce(conf(Difference(Tvalue(t), sql2), ts)) =
+// reduce(conf(Difference(tvalue(t), sql2), ts)) =
 // 	let sql2reduce = reduce(conf(sql2, ts)) in
 // 		if (isSomeConf(sql2reduce))
-// 		then someConf(conf(Difference(Tvalue(t), getQuery(getSomeConf(sql2reduce))), ts))
+// 		then someConf(conf(Difference(tvalue(t), getQuery(getSomeConf(sql2reduce))), ts))
 // 		else noConf
 // reduce(conf(Difference(sql1, sql2), ts)) =
 // 	let sql1reduce = reduce(conf(sql1, ts)) in

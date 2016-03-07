@@ -1,13 +1,24 @@
 package de.tu_darmstadt.veritas.backend.transformation.defs
 
+import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
-import de.tu_darmstadt.veritas.backend.veritas._
-import de.tu_darmstadt.veritas.backend.veritas.function._
-
-import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
+import de.tu_darmstadt.veritas.backend.util.FreshNames
+import de.tu_darmstadt.veritas.backend.veritas.DataTypeConstructor
+import de.tu_darmstadt.veritas.backend.veritas.ExistsJudgment
+import de.tu_darmstadt.veritas.backend.veritas.ForallJudgment
+import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment
+import de.tu_darmstadt.veritas.backend.veritas.MetaVar
+import de.tu_darmstadt.veritas.backend.veritas.Module
+import de.tu_darmstadt.veritas.backend.veritas.NotJudgment
+import de.tu_darmstadt.veritas.backend.veritas.OrJudgment
+import de.tu_darmstadt.veritas.backend.veritas.SortRef
+import de.tu_darmstadt.veritas.backend.veritas.TypingRule
+import de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment
+import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpApp
+import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpEq
+import de.tu_darmstadt.veritas.backend.veritas.function.FunctionMeta
 
 /**
  * transformations for modules right before they are translated to barefof
@@ -83,13 +94,17 @@ object RewriteFiniteDomainQuantifications extends ModuleTransformation with Coll
   }
 
   private def makeDomainPremises(mvset: Set[MetaVar]): Seq[TypingRuleJudgment] =
-    for (mv <- mvset.toSeq) yield {
+    for (mv <- mvset.toSeq if mv.sortType.name != "Bool") yield {
       val constrs = dataTypes(mv.sortType.name)._2
       OrJudgment(constrs map (c => Seq(makeEqConsFormula(c, FunctionMeta(mv)))))
     }
 
   // true if sort refers to open data type
-  private def checkOpen(s: SortRef): Boolean = dataTypes(s.name)._1
+  private def checkOpen(s: SortRef): Boolean =
+    if (s.name == "Bool")
+      false
+    else
+      dataTypes(s.name)._1
 
   // true if sort either refers to itself (recursive) or to another type marked infinite
   private def checkReferences(s: SortRef): Boolean = {
@@ -101,6 +116,9 @@ object RewriteFiniteDomainQuantifications extends ModuleTransformation with Coll
         case Some((b, dcseq)) => srset union (for (dc <- dcseq) yield refersTo(dc.in.toSet, srset union dc.in.toSet)).flatten.toSet
       }).flatten
 
+    if (s.name == "Bool")
+      return false
+      
     val references = dataTypes(s.name)._2
     references exists (dc =>
       refersTo(dc.in.toSet, Set()) exists (sr => (sr == s || !checkFinite(sr))))

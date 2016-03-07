@@ -29,8 +29,8 @@ class GenerateCtorAxioms(typed: Boolean) extends ModuleTransformation {
 
       case dt @ DataType(true, name, constrs) =>
         val t = SortRef(name)
-        val initName = "$init" + name
-        val enumName = "$enum" + name
+        val initName = "init" + name
+        val enumName = "enum" + name
         val finit = Functions(Seq(FunctionDef(FunctionSig(initName, Seq(), t), Seq())))
         val fenum = Functions(Seq(FunctionDef(FunctionSig(enumName, Seq(t), t), Seq())))
         val enumEq = makeEqAxiom(DataTypeConstructor(enumName, Seq(t)))

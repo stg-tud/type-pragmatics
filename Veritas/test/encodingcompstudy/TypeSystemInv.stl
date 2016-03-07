@@ -10,24 +10,13 @@ axiom
 ==================================================== T-inv
 OR
 => exists ~al, ~rt
-		~q = Tvalue(table(~al, ~rt))
+		~q = tvalue(table(~al, ~rt))
 		welltypedtable(~TT, table(~al, ~rt))
-=> exists ~tn
-		~q == SelectAllFrom(Ref(~tn))
+=> exists ~sel, ~tn, ~p, ~TTr
+		~q == selectFromWhere(~sel, ~tn, ~p)
 		lookupContext(~tn, ~TTC) == someTType(~TT)
-=> exists ~tn, ~TT1, ~al
-		~q == SelectSomeFrom(~al, Ref(~tn))
-		lookupContext(~tn, ~TTC) == someTType(~TT1)
-		projectType(~al, ~TT1) == someTType(~TT)	
-=> exists ~tn, ~p
-		~q == SelectAllFromWhere(Ref(~tn), ~p)
-		lookupContext(~tn, ~TTC) == someTType(~TT)
-		checkPValidity(~p, ~TT)	
-=> exists ~al, ~tn, ~p, ~TT1
-		~q == SelectSomeFromWhere(~al, Ref(~tn), ~p)
-		lookupContext(~tn, ~TTC) == someTType(~TT1)
-		checkPValidity(~p, ~TT1)
-		projectType(~al, ~TT1) == someTType(~TT)
+		tcheckPred(~p, ~TT)
+		selectType(~sel, ~TT) == someTType(~TTr)
 => exists ~q1, ~q2
 		~q == Union(~q1, ~q2)
 		~TTC |- ~q1 : ~TT
@@ -44,43 +33,21 @@ OR
 //variant of inversion lemma in several different lemmas 
 //(seems to be helpful for progress proof)
 lemma
-~q == Tvalue(table(~al, ~rt))
+~q == tvalue(table(~al, ~rt))
 ~TTC |- ~q : ~TT
-==================================================== T-inv-Tvalue
+==================================================== T-inv-tvalue
 welltypedtable(~TT, table(~al, ~rt))
 
 
-lemma
-~q == SelectAllFrom(Ref(~tn))	
-~TTC |- ~q : ~TT
-==================================================== T-inv-Selectallfrom		
-lookupContext(~tn, ~TTC) == someTType(~TT)
-
-
-lemma
-~q == SelectSomeFrom(~al, Ref(~tn))
-~TTC |- ~q : ~TT
-==================================================== T-inv-Selectsomefrom
-exists ~TT1
-	lookupContext(~tn, ~TTC) == someTType(~TT1)
-	projectType(~al, ~TT1) == someTType(~TT)
-	
-
-lemma		
-~q == SelectAllFromWhere(Ref(~tn), ~p)
-~TTC |- ~q : ~TT
-==================================================== T-inv-SelectAllFromWhere
-lookupContext(~tn, ~TTC) == someTType(~TT)
-checkPValidity(~p, ~TT)	
-	
 lemma	
-~q == SelectSomeFromWhere(~al, Ref(~tn), ~p)
+~q == selectFromWhere(~sel, ~tn, ~p)
 ~TTC |- ~q : ~TT
 ==================================================== T-inv-SelectSomeFromWhere
-exists ~TT1
-	lookupContext(~tn, ~TTC) == someTType(~TT1)
-	checkPValidity(~p, ~TT1)
-	projectType(~al, ~TT1) == someTType(~TT)
+exists ~TTr
+	~q == selectFromWhere(~sel, ~tn, ~p)
+	lookupContext(~tn, ~TTC) == someTType(~TT)
+	tcheckPred(~p, ~TT)
+	selectType(~sel, ~TT) == someTType(~TTr)
 		
 
 lemma

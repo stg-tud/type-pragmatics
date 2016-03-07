@@ -96,16 +96,16 @@ exists ~f, ~rthead, ~rtrest
 	~r = rcons(~f, rempty)
 	~rt = tcons(~rthead, ~rtrest)
 	isSomeRawTable(attachColToFrontRaw(~col, ~rtrest))
-	attachColToFrontRaw(tcons(~r, ~col), ~rt) = someRawTable(tcons(rcons(~f, ~rthead), getSomeRawTable(attachColToFrontRaw(~col, ~rtrest))))
+	attachColToFrontRaw(tcons(~r, ~col), ~rt) = someRawTable(tcons(rcons(~f, ~rthead), getRawTable(attachColToFrontRaw(~col, ~rtrest))))
 
 lemma
 ~r = rcons(~f, rempty)
 ~rt = tcons(~rthead, ~rtrest)
 welltypedRawtable(~RT, ~rt)
 welltypedRawtable(rtcons(~colType, rtempty), tcons(~r, ~col))
-welltypedRawtable(rtcons(~colType, ~RT), getSomeRawTable(attachColToFrontRaw(~col, ~rtrest)))
+welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rtrest)))
 ================================================================================================================ AttachCol-WelltypedRawtable-Aux
-welltypedRawtable(rtcons(~colType, ~RT), tcons(rcons(~f, ~rthead), getSomeRawTable(attachColToFrontRaw(~col, ~rtrest))))
+welltypedRawtable(rtcons(~colType, ~RT), tcons(rcons(~f, ~rthead), getRawTable(attachColToFrontRaw(~col, ~rtrest))))
 
 
 // proof of AttachCol-Preserves-Typing
@@ -118,7 +118,7 @@ strategy induction-attachcol-preserves-typing {
 	welltypedRawtable(rtcons(~colType, rtempty), ~col)
 	isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 	======================================================================== AttachCol-Preserves-Typing-1
-	welltypedRawtable(rtcons(~colType, ~RT), getSomeRawTable(attachColToFrontRaw(~col, ~rt)))
+	welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rt)))
 	
 	local {
 		consts
@@ -130,7 +130,7 @@ strategy induction-attachcol-preserves-typing {
 		welltypedRawtable(rtcons(~colType, rtempty), col)
 		isSomeRawTable(attachColToFrontRaw(col, ~rt))
 		======================================================================== AttachCol-Preserves-Typing-2-IH
-		welltypedRawtable(rtcons(~colType, ~RT), getSomeRawTable(attachColToFrontRaw(col, ~rt)))
+		welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(col, ~rt)))
 		
 		//This proof previously worked without modifying the axiom set!
 		//stopped working when correction of inversion lemma encoding was introduced!
@@ -145,7 +145,7 @@ strategy induction-attachcol-preserves-typing {
 		welltypedRawtable(rtcons(~colType, rtempty), tcons(r, col))
 		isSomeRawTable(attachColToFrontRaw(tcons(r, col), ~rt))
 		======================================================================== AttachCol-Preserves-Typing-2
-		welltypedRawtable(rtcons(~colType, ~RT), getSomeRawTable(attachColToFrontRaw(tcons(r, col), ~rt)))
+		welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(tcons(r, col), ~rt)))
 	}
 	
 	hide-all
@@ -154,7 +154,7 @@ strategy induction-attachcol-preserves-typing {
 	welltypedRawtable(rtcons(~colType, rtempty), ~col)
 	isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 	======================================================================== AttachCol-Preserves-Typing-ind
-	welltypedRawtable(rtcons(~colType, ~RT), getSomeRawTable(attachColToFrontRaw(~col, ~rt)))
+	welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rt)))
 } // qed AttachCol-Preserves-Typing
 
 lemma verify-with induction-attachcol-preserves-typing
@@ -162,7 +162,7 @@ welltypedRawtable(~RT, ~rt)
 welltypedRawtable(rtcons(~colType, rtempty), ~col)
 isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 ======================================================================== AttachCol-Preserves-Typing
-welltypedRawtable(rtcons(~colType, ~RT), getSomeRawTable(attachColToFrontRaw(~col, ~rt)))
+welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rt)))
 
 
 // proof of ProjectFirstRaw-Preservation (auxiliary lemma needed in proof of FindCol Preservation)
@@ -223,9 +223,9 @@ strategy induct-findCol-Preservation {
 
 	local {
 		consts
-			a : AName
-			a2 : AName
-			al : AList
+			a : Name
+			a2 : Name
+			al : AttrL
 			rt : RawTable
 		
 		axiom
@@ -256,7 +256,7 @@ strategy induct-findCol-Preservation {
 	isSomeRawTable(findCol(~a, ~t))
 	isSomeFType(findColType(~a, ~TT))
 	================================================== FindCol-Preservation-ind
-	welltypedRawtable(rtcons(getSomeFType(findColType(~a, ~TT)), rtempty), getSomeRawTable(findCol(~a, ~t)))
+	welltypedRawtable(rtcons(getFType(findColType(~a, ~TT)), rtempty), getRawTable(findCol(~a, ~t)))
 	
 } //qed FindCol-Preservation
 
@@ -266,7 +266,7 @@ welltypedtable(~TT, ~t)
 isSomeRawTable(findCol(~a, ~t))
 isSomeFType(findColType(~a, ~TT))
 ================================================== FindCol-Preservation
-welltypedRawtable(rtcons(getSomeFType(findColType(~a, ~TT)), rtempty), getSomeRawTable(findCol(~a, ~t)))
+welltypedRawtable(rtcons(getFType(findColType(~a, ~TT)), rtempty), getRawTable(findCol(~a, ~t)))
 
 // proof of project-preservation
 strategy struc-induction-project-preservation {
@@ -278,12 +278,12 @@ strategy struc-induction-project-preservation {
 	project(~al, ~t) == someRawTable(~pt)
 	projectType(~al, ~TT) == someTType(~PT)
 	===================================== Project-Preservation-aempty
-	~TTC |- Tvalue(table(~al, ~pt)) : ~PT
+	~TTC |- tvalue(table(~al, ~pt)) : ~PT
 	
 	local {
 		consts
-			a : AName
-			alrest : AList
+			a : Name
+			alrest : AttrL
 		
 		// proof not possible with timeout 300, when equations not inlined!
 		axiom
@@ -292,7 +292,7 @@ strategy struc-induction-project-preservation {
 		isSomeRawTable(project(alrest, ~t))
 		isSomeTType(projectType(alrest, ~TT))
 		===================================== Project-Preservation-acons-IH
-		~TTC |- Tvalue(table(alrest, getSomeRawTable(project(alrest, ~t)))) : getSomeTType(projectType(alrest, ~TT))
+		~TTC |- tvalue(table(alrest, getRawTable(project(alrest, ~t)))) : getSomeTType(projectType(alrest, ~TT))
 		
 		goal 100
 		//~al = acons(a, alrest)
@@ -300,7 +300,7 @@ strategy struc-induction-project-preservation {
 		isSomeRawTable(project(acons(a, alrest), ~t))
 		isSomeTType(projectType(acons(a, alrest), ~TT))
 		======================================================================================= Project-Preservation-acons
-		~TTC |- Tvalue(table(acons(a, alrest), getSomeRawTable(project(acons(a, alrest), ~t)))) : getSomeTType(projectType(acons(a, alrest), ~TT))
+		~TTC |- tvalue(table(acons(a, alrest), getRawTable(project(acons(a, alrest), ~t)))) : getSomeTType(projectType(acons(a, alrest), ~TT))
 	}
 	
 	//if induction successful, we proved Project-Preservation and can abbreviate (for now:)
@@ -310,7 +310,7 @@ strategy struc-induction-project-preservation {
 	project(~al, ~t) = someRawTable(~pt)
 	projectType(~al, ~TT) == someTType(~PT)
 	===================================== Project-Preservation-ind
-	~TTC |- Tvalue(table(~al, ~pt)) : ~PT	
+	~TTC |- tvalue(table(~al, ~pt)) : ~PT	
 	
 } // qed Project-Preservation
 
@@ -319,4 +319,4 @@ welltypedtable(~TT, ~t)
 project(~al, ~t) = someRawTable(~pt)
 projectType(~al, ~TT) == someTType(~PT)
 ===================================== Project-Preservation
-~TTC |- Tvalue(table(~al, ~pt)) : ~PT
+~TTC |- tvalue(table(~al, ~pt)) : ~PT

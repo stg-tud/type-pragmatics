@@ -50,17 +50,17 @@ local {
 //proof should be combination of applying typing inversion lemma and 
 //inferring commented theorem above - but seems to be difficult for Vampire
 goal
-~TTC |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
+~TTC |- selectFromWhere(some(~al), ~tn, ~p) : ~TT
 ===================================================== proof-3
-bindContext(~tn1, ~TT, ~TTC) |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
+bindContext(~tn1, ~TT, ~TTC) |- selectFromWhere(some(~al), ~tn, ~p) : ~TT
 
 
 // select all is identity
 goal
-~TTC |- Tvalue(~table) : ~TT
+~TTC |- tvalue(~table) : ~TT
 lookupStore(~name, ~ts) = someTable(~table)
 ========================================== proof-4
-reduce(conf(SelectAllFrom(Ref(~name)), ~ts)) == someConf(conf(Tvalue(~table), ~ts))
+reduce(conf(selectFromWhere(all(), ~name, ptrue()), ~ts)) == someConf(conf(tvalue(~table), ~ts))
 
 // intersection is associative for tables with one row
 goal
@@ -76,13 +76,13 @@ goal
 goal
 ~t1 == table(acons(~a1, aempty), ~rt)
 ~t2 == table(acons(~a2, aempty), ~rt) 
-~u == Union(Tvalue(~t1), Tvalue(~t2))
+~u == Union(tvalue(~t1), tvalue(~t2))
 ~TTC |- ~u : ~TT
 ================================================ proof-6
 ~a1 == ~a2
 
 // exists ~result
-//	reduce(conf(~u, ~ts)) == someConf(conf(Tvalue(~result), ~ts)) // - too difficult?
+//	reduce(conf(~u, ~ts)) == someConf(conf(tvalue(~result), ~ts)) // - too difficult?
 
 // if a query is a value, reduce will return noConf
 goal
@@ -96,7 +96,7 @@ reduce(conf(~q, ~ts)) == noConf
 // too difficult
 // goal
 // lookupContext(~tn, ~TTC) == someTType(~TT1)
-// checkPValidity(~p, ~TT1)
+// tcheckPred(~p, ~TT1)
 // projectType(~al, ~TT1) == someTType(~TT)
 // ~q = SelectSomeFromWhere(~al, Ref(~tn), ~p)
 // ~TTC |- ~q : ~TT
@@ -108,7 +108,7 @@ reduce(conf(~q, ~ts)) == noConf
 
 // apparently still too difficult
 goal
-~q = SelectSomeFrom(acons(~a, ~al), Ref(~tn))
+~q = selectFromWhere(some(acons(~a, ~al)), ~tn, ptrue())
 ~TTC |- ~q : ~TT
 ============================================== proof-8
 exists ~ft
@@ -119,12 +119,12 @@ exists ~ft
 goal
 ~TTC |- ~sql1 : ~TT
 ~TTC |- ~sql2 : ~TT
-~sql1 == Tvalue(~t1)
-reduce(conf(~sql2, ~ts)) == someConf(conf(Tvalue(~t2), ~ts))
+~sql1 == tvalue(~t1)
+reduce(conf(~sql2, ~ts)) == someConf(conf(tvalue(~t2), ~ts))
 reduce(conf(Intersection(~sql1, ~sql2), ~ts)) == someConf(conf(~tmp, ~ts))
 reduce(conf(~tmp, ~ts)) == ~result
 ==================================================================== proof-9
-reduce(conf(Intersection(Tvalue(~t1), Tvalue(~t2)), ~ts)) == ~result
+reduce(conf(Intersection(tvalue(~t1), tvalue(~t2)), ~ts)) == ~result
 
 
 // adding a table to store and contexts preserves consistency
