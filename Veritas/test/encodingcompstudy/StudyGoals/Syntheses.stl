@@ -53,9 +53,10 @@ local {
 goal
 true
 ======================= synthesis-4
-exists ~conf
-  forall ~t, ~ts ~conf != conf(tvalue(~t), ~ts)
-  reduce(~conf) = noConf
+exists ~ts, ~q
+  forall ~t 
+  	~q != tvalue(~t)
+  reduce(~q, ~ts) = noQuery
   
 goal
 true

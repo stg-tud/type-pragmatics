@@ -40,7 +40,7 @@ local {
 	~table1 == table(~al, tcons(r1, tempty))
 	~table2 == table(~al, tcons(r2, tempty))
 	============================ test-2
-	reduce(conf(Intersection(tvalue(~table1), tvalue(~table2)), emptyStore)) == someConf(conf(tvalue(table(~al, tempty)), emptyStore))
+	reduce(Intersection(tvalue(~table1), tvalue(~table2)), emptyStore) == someQuery(tvalue(table(~al, tempty)))
 }
 
 local {
@@ -90,18 +90,22 @@ local {
 
 local {
 	different consts
-		a : Name
-		b : Name
-		c : Name
-		d : Name
-		z : Name
+		v1 : Val
+		v2 : Val
+		v3 : Val
 	
 	goal
-	~al = acons(a, acons(b, acons(c, acons(d, aempty))))
-	~table1 = table(~al, ~rt)
-	~table2 = table(acons(z, ~al), ~rt2)
+	~r1 = rcons(v1, rempty)
+	~r2 = rcons(v2, rempty)
+	~r3 = rcons(v3, rempty)
+	~rt1 = tcons(~r1, tcons(~r1, tcons(~r3, tempty)))
+	~rt2 = tcons(~r2, tcons(~r2, tcons(~r3, tempty)))
+	~table1 = table(~al, ~rt1)
+	~table2 = table(~al2, ~rt2)
+	~rres = tcons(~r1, tcons(~r1, tcons(~r2, tcons(~r2, tcons(~r3, tempty)))))
 	================================= test-6
-	reduce(conf(Union(tvalue(~table1), tvalue(~table2)), emptyStore)) == noConf
+	reduce(Union(tvalue(~table1), tvalue(~table2)), emptyStore) == 
+		someQuery(tvalue(table(~al, ~rres)))
 	
 }
 

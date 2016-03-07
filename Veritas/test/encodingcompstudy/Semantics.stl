@@ -7,25 +7,18 @@ import encodingcompstudy.TStore
 
 
 
-data Conf = 
-	conf(Query, TStore)
+data OptQuery =
+	noQuery |
+	someQuery(Query)
 
 function
-getQuery : Conf -> Query
-getQuery(conf(q, ts)) = q
-
-data OptConf =
-	noConf |
-	someConf(Conf)
-
-function
-isSomeConf : OptConf -> Bool
-isSomeConf(noConf) = false
-isSomeConf(someConf(t)) = true
+isSomeQuery : OptQuery -> Bool
+isSomeQuery(noQuery) = false
+isSomeQuery(someQuery(q)) = true
 
 partial function
-getSomeConf : OptConf -> Conf
-getSomeConf(someConf(c)) = c
+getQuery : OptQuery -> Query
+getQuery(someQuery(q)) = q
 
 function
 findCol : Name AttrL RawTable -> OptRawTable
@@ -53,13 +46,18 @@ project(acons(a, alr), al, rt) =
 			else noRawTable
 
 function
-select : Select AttrL RawTable -> OptTable
-select(all(), al, rt) = someTable(table(al, rt))
-select(some(alr), al, rt) =
+selectRows : Select AttrL RawTable -> OptTable
+selectRows(all(), al, rt) = someTable(table(al, rt))
+selectRows(some(alr), al, rt) =
 	let projected = project(alr, al, rt) in
 	if isSomeRawTable(projected)
 	then someTable(table(alr, getRawTable(projected)))
 	else noTable
+	
+function
+selectTable : Select Table -> OptTable
+selectTable(sel, table(al, rt)) = selectRows(sel, al, rt)
+
 
 data OptVal = noVal | someVal(Val)
 data OptRow = noRow | someRow(Row)
@@ -115,54 +113,57 @@ filterRows(tcons(r, rt), al, pred) =
 		then tcons(r, rts)
 		else rts
 
+function
+filterTable : Table Pred -> Table
+filterTable(table(al, rt), p) = table(al, filterRows(rt, al, p))
+
 
 // reduce fails if referenced tables are not found
 function 
-reduce : Conf -> OptConf
-reduce(conf(tvalue(t), ts)) = noConf
-reduce(conf(selectFromWhere(sel, name, pred), ts)) = 
+reduce : Query TStore -> OptQuery
+reduce(tvalue(t), ts) = noQuery
+reduce(selectFromWhere(sel, name, pred), ts) = 
 	let maybeTable = lookupStore(name, ts) in
 		if (isSomeTable(maybeTable))
-		then let attrl = getAttrL(getTable(maybeTable)) in
-		     let filtered = filterRows(getRaw(getTable(maybeTable)), attrl, pred) in
-		     let maybeSelected = select(sel, attrl, filtered) in
+		then let filtered = filterTable(getTable(maybeTable), pred) in
+		     let maybeSelected = selectTable(sel, filtered) in
 			     if (isSomeTable(maybeSelected))
-			     then someConf(conf(tvalue(getTable(maybeSelected)), ts))
-			     else noConf
-		else noConf
-reduce(conf(Union(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts)) =
-	someConf(conf(tvalue(table(al1, rawUnion(rt1, rt2))), ts))
-reduce(conf(Union(tvalue(t), q2), ts)) =
-	let q2reduce = reduce(conf(q2, ts)) in
-		if (isSomeConf(q2reduce))
-		then someConf(conf(Union(tvalue(t), getQuery(getSomeConf(q2reduce))), ts))
-		else noConf
-reduce(conf(Union(q1, q2), ts)) =
-	let q1reduce = reduce(conf(q1, ts)) in
-		if (isSomeConf(q1reduce))
-		then someConf(conf(Union(getQuery(getSomeConf(q1reduce)), q2), ts))
-		else noConf
-reduce(conf(Intersection(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts)) =
-	someConf(conf(tvalue(table(al1, rawIntersection(rt1, rt2))), ts))
-reduce(conf(Intersection(tvalue(t), sql2), ts)) =
-	let sql2reduce = reduce(conf(sql2, ts)) in
-		if (isSomeConf(sql2reduce))
-		then someConf(conf(Intersection(tvalue(t), getQuery(getSomeConf(sql2reduce))), ts))
-		else noConf
-reduce(conf(Intersection(sql1, sql2), ts)) =
-	let sql1reduce = reduce(conf(sql1, ts)) in
-		if (isSomeConf(sql1reduce))
-		then someConf(conf(Intersection(getQuery(getSomeConf(sql1reduce)), sql2), ts))
-		else noConf
-reduce(conf(Difference(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts)) =
-	someConf(conf(tvalue(table(al1, rawDifference(rt1, rt2))), ts))
-reduce(conf(Difference(tvalue(t), sql2), ts)) =
-	let sql2reduce = reduce(conf(sql2, ts)) in
-		if (isSomeConf(sql2reduce))
-		then someConf(conf(Difference(tvalue(t), getQuery(getSomeConf(sql2reduce))), ts))
-		else noConf
-reduce(conf(Difference(sql1, sql2), ts)) =
-	let sql1reduce = reduce(conf(sql1, ts)) in
-		if (isSomeConf(sql1reduce))
-		then someConf(conf(Difference(getQuery(getSomeConf(sql1reduce)), sql2), ts))
-		else noConf
+			     then someQuery(tvalue(getTable(maybeSelected)))
+			     else noQuery
+		else noQuery
+reduce(Union(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =
+	someQuery(tvalue(table(al1, rawUnion(rt1, rt2))))
+reduce(Union(tvalue(t), q2), ts) =
+	let q2reduce = reduce(q2, ts) in
+		if (isSomeQuery(q2reduce))
+		then someQuery(Union(tvalue(t), getQuery(q2reduce)))
+		else noQuery
+reduce(Union(q1, q2), ts) =
+	let q1reduce = reduce(q1, ts) in
+		if (isSomeQuery(q1reduce))
+		then someQuery(Union(getQuery(q1reduce), q2))
+		else noQuery
+reduce(Intersection(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =
+	someQuery(tvalue(table(al1, rawIntersection(rt1, rt2))))
+reduce(Intersection(tvalue(t), sql2), ts) =
+	let sql2reduce = reduce(sql2, ts) in
+		if (isSomeQuery(sql2reduce))
+		then someQuery(Intersection(tvalue(t), getQuery(sql2reduce)))
+		else noQuery
+reduce(Intersection(sql1, sql2), ts) =
+	let sql1reduce = reduce(sql1, ts) in
+		if (isSomeQuery(sql1reduce))
+		then someQuery(Intersection(getQuery(sql1reduce), sql2))
+		else noQuery
+reduce(Difference(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =
+	someQuery(tvalue(table(al1, rawDifference(rt1, rt2))))
+reduce(Difference(tvalue(t), sql2), ts) =
+	let sql2reduce = reduce(sql2, ts) in
+		if (isSomeQuery(sql2reduce))
+		then someQuery(Difference(tvalue(t), getQuery(sql2reduce)))
+		else noQuery
+reduce(Difference(sql1, sql2), ts) =
+	let sql1reduce = reduce(sql1, ts) in
+		if (isSomeQuery(sql1reduce))
+		then someQuery(Difference(getQuery(sql1reduce), sql2))
+		else noQuery

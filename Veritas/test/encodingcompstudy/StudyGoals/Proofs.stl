@@ -60,7 +60,7 @@ goal
 ~TTC |- tvalue(~table) : ~TT
 lookupStore(~name, ~ts) = someTable(~table)
 ========================================== proof-4
-reduce(conf(selectFromWhere(all(), ~name, ptrue()), ~ts)) == someConf(conf(tvalue(~table), ~ts))
+reduce(selectFromWhere(all(), ~name, ptrue()), ~ts) == someQuery(tvalue(~table))
 
 // intersection is associative for tables with one row
 goal
@@ -90,7 +90,7 @@ goal
 isValue(~q)
 StoreContextConsistent(~ts, ~TTC)
 ==================================== proof-7
-reduce(conf(~q, ~ts)) == noConf
+reduce(~q, ~ts) == noQuery
 
 // Preservation for one specific case SelectSomeFromWhere case
 // too difficult
@@ -120,11 +120,11 @@ goal
 ~TTC |- ~sql1 : ~TT
 ~TTC |- ~sql2 : ~TT
 ~sql1 == tvalue(~t1)
-reduce(conf(~sql2, ~ts)) == someConf(conf(tvalue(~t2), ~ts))
-reduce(conf(Intersection(~sql1, ~sql2), ~ts)) == someConf(conf(~tmp, ~ts))
-reduce(conf(~tmp, ~ts)) == ~result
+reduce(~sql2, ~ts) == someQuery(tvalue(~t2))
+reduce(Intersection(~sql1, ~sql2), ~ts) == someQuery(~tmp)
+reduce(~tmp, ~ts) == ~result
 ==================================================================== proof-9
-reduce(conf(Intersection(tvalue(~t1), tvalue(~t2)), ~ts)) == ~result
+reduce(Intersection(tvalue(~t1), tvalue(~t2)), ~ts) == ~result
 
 
 // adding a table to store and contexts preserves consistency

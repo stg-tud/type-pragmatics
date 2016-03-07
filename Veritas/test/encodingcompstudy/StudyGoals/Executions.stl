@@ -14,10 +14,10 @@ import encodingcompstudy.TContext
 //- open data types
 
 goal
-~in == someConf(~c)
+true
 ================== execution-1
 exists ~out
-  getSomeConf(~in) == ~out
+  reduce(tvalue(~t), ~ts) == ~out
 
 local {
 	different consts

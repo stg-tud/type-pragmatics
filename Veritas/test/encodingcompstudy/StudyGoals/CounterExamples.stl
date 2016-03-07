@@ -96,7 +96,7 @@ welltypedtable(~tt, ~t1)
 exists ~rt2, ~t2, ~ts
 	~t2 = table(~al, ~rt2)
 	welltypedtable(~tt, ~t2)
-	reduce(conf(Intersection(tvalue(~t1), tvalue(~t2)), ~ts)) == someConf(conf(tvalue(table(~al, tempty)), ~ts))
+	reduce(Intersection(tvalue(~t1), tvalue(~t2)), ~ts) == someQuery(tvalue(table(~al, tempty)))
 
 
 // // findCol in a non-empty table can fail
