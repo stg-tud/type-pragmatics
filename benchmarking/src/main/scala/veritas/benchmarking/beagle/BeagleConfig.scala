@@ -28,9 +28,9 @@ case class BeagleConfig()
     call
   }
 
-  override def newResultProcessor(timeout: Int, outfile: File) = BeagleResultProcessor(timeout, outfile)
+  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = BeagleResultProcessor(timeout, outfile, processLogsOnly)
 
-  case class BeagleResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
+  case class BeagleResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
 
     var status: ProverStatus = _
     var time: Option[Double] = _

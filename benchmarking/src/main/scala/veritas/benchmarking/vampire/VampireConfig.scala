@@ -6,7 +6,7 @@ import java.util.regex.Pattern
 import veritas.benchmarking._
 import veritas.benchmarking.util.GrowingArray
 
-case class VampireConfig(version: String, confname: String = "vampire-proof",
+case class VampireConfig(version: String, confname: String = "vampire",
                          mode: String = "casc") extends ProverConfig {
   def isValid = proverCommand != null
 
@@ -95,12 +95,12 @@ case class VampireConfig(version: String, confname: String = "vampire-proof",
 //  }
 
 
-  override def newResultProcessor(timeout: Int, outfile: File) = VampireResultProcessor(timeout, outfile)
+  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = VampireResultProcessor(timeout, outfile, processLogsOnly)
 
   val parenDigits = Pattern.compile("\\(\\d+")
   val braceDigits = Pattern.compile("\\{\\d+")
 
-  case class VampireResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
+  case class VampireResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
 
     private var clauses: GrowingArray[VampireClause] = _
     private var maxindex: Int = _

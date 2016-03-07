@@ -37,9 +37,9 @@ case class EproverConfig()
       None
   }
 
-  override def newResultProcessor(timeout: Int, outfile: File) = EproverResultProcessor(timeout, outfile)
+  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = EproverResultProcessor(timeout, outfile, processLogsOnly)
 
-  case class EproverResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
+  case class EproverResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
 
     var status: ProverStatus = _
     var time: Option[Double] = Some(timeout) // default value: timeout for prover (since eprover does not report a time if it was unsuccessful)
