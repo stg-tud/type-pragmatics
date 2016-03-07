@@ -79,17 +79,26 @@ object GenerateAllTypeGuards extends GenerateTypeGuards {
         val guardFunctions = Functions(Seq(FunctionDef(makeGuardSignature(name), Seq())))
         val guardAxioms = constrs map (c => makeGuardAxiom(c.name, c.in, name))
         Seq(dt, guardFunctions, Axioms(guardAxioms))
-      case c@Consts(cdseq,_) => {
-        val consts_axs = cdseq map {case ConstDecl(name, sort) => 
-          TypingRule(guard(name), Seq(), Seq(guardCall(sort.name, FunctionExpApp(name, Seq()))))
-        }  
+      case c @ Consts(cdseq, _) => {
+        val consts_axs = cdseq map {
+          case ConstDecl(name, sort) =>
+            TypingRule(guard(name), Seq(), Seq(guardCall(sort.name, FunctionExpApp(name, Seq()))))
+        }
         Seq(c, Axioms(consts_axs))
       }
-      case funs@Functions(fs) =>
-        val rules = fs map { case FunctionDef(FunctionSig(name, ins, out), _) =>
-          makeGuardAxiom(name, ins, out.name)
+      case funs @ Functions(fs) => {
+        //Important: No guard axioms for functions that return Bool!
+        val rules = fs flatMap {
+          case FunctionDef(FunctionSig(name, ins, out), _) =>
+            if (out.name != "Bool")
+              Seq(makeGuardAxiom(name, ins, out.name))
+            else Seq()
         }
-        Seq(funs, Axioms(rules))
+        if (rules.isEmpty)
+          Seq(funs)
+        else
+          Seq(funs, Axioms(rules))
+      }
       case _ => super.insertGuardAxsHere(mdef)
     }
 }
@@ -157,9 +166,9 @@ object GenerateExecutionGuards extends GenerateTypeGuards with CollectTypes {
       Seq(FunctionExpJudgment(guardCall(dataType, v))),
       Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxiomsTyped.makeEqConsFormula(c, v)))))),
       TypingRule(
-      name + "-2",
-      Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxiomsTyped.makeEqConsFormula(c, v))))),
-      Seq(FunctionExpJudgment(guardCall(dataType, v)))))
+        name + "-2",
+        Seq(OrJudgment(constrs map (c => Seq(GenerateCtorAxiomsTyped.makeEqConsFormula(c, v))))),
+        Seq(FunctionExpJudgment(guardCall(dataType, v)))))
   }
 
 }

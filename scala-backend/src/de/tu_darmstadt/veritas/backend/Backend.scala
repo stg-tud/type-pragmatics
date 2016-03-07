@@ -269,7 +269,7 @@ object Backend {
     import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 
     val conf = Configuration(Map(
-      FinalEncoding -> FinalEncoding.BareFOF,
+      FinalEncoding -> FinalEncoding.GuardedFOF,
       Simplification -> Simplification.LogicalAndConstructors,
       VariableEncoding -> VariableEncoding.Unchanged,
       Problem -> Problem.All))

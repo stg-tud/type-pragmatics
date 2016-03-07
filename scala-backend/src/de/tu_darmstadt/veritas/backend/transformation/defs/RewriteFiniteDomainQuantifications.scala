@@ -107,7 +107,7 @@ object RewriteFiniteDomainQuantifications extends ModuleTransformation with Coll
       dataTypes(s.name)._1
 
   // true if sort either refers to itself (recursive) or to another type marked infinite
-  private def checkReferences(s: SortRef): Boolean = {
+  private def checkInfinite(s: SortRef): Boolean = {
     //computes closure of references
     def refersTo(srset: Set[SortRef], seen: Set[SortRef]): Set[SortRef] =
       (for (sr <- srset if (!(seen contains sr))) yield dataTypes.get(sr.name) match {
@@ -134,7 +134,7 @@ object RewriteFiniteDomainQuantifications extends ModuleTransformation with Coll
     else if (infiniteTypeCache contains s) false
     //if unknown, determine and update caches accordingly
     else {
-      if (checkOpen(s) || checkReferences(s)) {
+      if (checkOpen(s) || checkInfinite(s)) {
         infiniteTypeCache = infiniteTypeCache + s
         false
       } else {
