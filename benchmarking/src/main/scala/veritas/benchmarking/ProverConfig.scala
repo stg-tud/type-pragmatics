@@ -8,17 +8,20 @@ import veritas.benchmarking.vampire.{VampireTraceAnalisisOptions, VampireTraceAn
 import veritas.benchmarking.princess.{PrincessStandardConfig, PrincessCascConfig}
 import veritas.benchmarking.eprover.EproverConfig
 
-import scala.sys.process.FileProcessLogger
+import scala.sys.process.{ProcessLogger, FileProcessLogger}
 
 sealed trait ProverStatus
+
 case object Proved extends ProverStatus
+
 case object Disproved extends ProverStatus
+
 case class Inconclusive(terminationReason: String) extends ProverStatus
 
 trait ResultDetails {
   /**
-   * @return all details as string
-   */
+    * @return all details as string
+    */
   def toString: String
 
   /**
@@ -28,22 +31,26 @@ trait ResultDetails {
   def toList: List[String] = List()
 
   /**
-   * @return human-readable summary of details as string
-   */
+    * @return human-readable summary of details as string
+    */
   def toHumanString: String
 }
+
 case class StringDetails(details: String, lemmas: List[String] = List()) extends ResultDetails {
   override def toString = details
+
   override def toList = lemmas
-  override def toHumanString = if (lemmas.isEmpty) details else
+
+  override def toHumanString = if (lemmas.isEmpty) details
+  else
     s"Used Lemmas: ${lemmas.length} ${lemmas.mkString(" - ", ", ", "")}"
 }
 
 class ProverResult(
-  val status: ProverStatus,
-  val timeSeconds: Option[Double],
-  val details: ResultDetails
-)
+                    val status: ProverStatus,
+                    val timeSeconds: Option[Double],
+                    val details: ResultDetails
+                  )
 
 trait ProverConfig {
   def isValid: Boolean
@@ -60,7 +67,7 @@ trait ProverConfig {
     null
   }
 
-  def findFileInPath(command: String) : File = {
+  def findFileInPath(command: String): File = {
     for (p <- System.getenv("PATH").split(File.pathSeparator);
          f = new File(p, command) if f.exists())
       return f
@@ -68,18 +75,18 @@ trait ProverConfig {
   }
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean): Seq[String]
-  def newResultProcessor(timeout: Int, outfile: File): ResultProcessor
+
+  def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false): ResultProcessor
 }
 
-abstract class ResultProcessor(outfile: File) extends FileProcessLogger(outfile) {
+abstract class ResultProcessor(outfile: File, processLogsOnly: Boolean = false) extends ProcessLogger {
   def result: ProverResult
 
+  //use own writer to make sure that old log files are overwritten (FileProcessLogger uses writer with append = true)
   val writer = new PrintWriter(
-      new BufferedWriter(
-        new OutputStreamWriter(
-          new FileOutputStream(outfile)
-        )
-      ))
+    new BufferedWriter(
+      new OutputStreamWriter(
+        new FileOutputStream(outfile, processLogsOnly))))
 
   //reads the outfile of this ResultProcessor and processes them using extractProverResult
   def processLogs() = {
@@ -92,19 +99,22 @@ abstract class ResultProcessor(outfile: File) extends FileProcessLogger(outfile)
   def extractProverResult(s: => String): Unit
 
   //log output of prover to a separate file (given by outfile)
-  override def out(s : => String) = {
+  override def out(s: => String) = {
     writer println s
     flush()
   }
 
   //log output of prover to a separate file (given by outfile)
-  override def err(s : => String) = {
+  override def err(s: => String) = {
     writer println s
     flush()
   }
 
-  override def close(): Unit = writer.close()
-  override def flush(): Unit = writer.flush()
+  def close(): Unit =
+    writer.close()
+
+  def flush(): Unit =
+    writer.flush()
 }
 
 trait ContributedOptions {
@@ -122,16 +132,21 @@ object ProverConfig {
     _configs += c_sat.name -> c_sat
   }
 
-  _configs += "princess-casc" -> PrincessCascConfig()
+  _configs += "princess" -> PrincessCascConfig()
   _configs += "princess-standard" -> PrincessStandardConfig()
   _configs += "eprover" -> EproverConfig()
   //_configs += "beagle" -> BeagleConfig() //doesn't work yet
 
   _contributedOptions = _contributedOptions :+ VampireTraceAnalisisOptions
 
-  _configs filter (kv => if (kv._2.isValid) true else {println(s"** Removing invalid configuration ${kv._1}"); false})
+  _configs filter (kv => if (kv._2.isValid) true
+  else {
+    println(s"** Removing invalid configuration ${kv._1}");
+    false
+  })
 
   def configs = _configs
+
   def contributedOptions = _contributedOptions
 }
 

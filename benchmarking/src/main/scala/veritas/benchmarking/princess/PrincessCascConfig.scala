@@ -10,7 +10,7 @@ case class PrincessCascConfig()
 
   def isValid = proverCommand != null
 
-  override val name = s"princess-casc"
+  override val name = "princess"
   override val proverCommand = findBinaryInPath(s"java")
 
   override val acceptedFileFormats = Set(".fof", ".tff")
@@ -38,16 +38,16 @@ case class PrincessCascConfig()
     }
   }
 
-  override def newResultProcessor(timeout: Int, outfile: File) = PrincessResultProcessor(timeout, outfile)
+  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = PrincessResultProcessor(timeout, outfile, processLogsOnly)
 
-  case class PrincessResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
+  case class PrincessResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
 
     var status: ProverStatus = _
     var time: Option[Double] = _
 
     var proofBuilder: StringBuilder = _
 
-    private var lemmas: List[String] = null
+    private var lemmas: List[String] = List[String]()
 
     override def extractProverResult(s: => String) = {
       try {

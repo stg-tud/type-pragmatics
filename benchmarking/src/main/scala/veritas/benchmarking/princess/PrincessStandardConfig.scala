@@ -44,9 +44,9 @@ case class PrincessStandardConfig()
     }
   }
 
-  override def newResultProcessor(timeout: Int, outfile: File) = PrincessResultProcessor(timeout, outfile)
+  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = PrincessResultProcessor(timeout, outfile, processLogsOnly)
 
-  case class PrincessResultProcessor(timeout: Int, outfile: File) extends ResultProcessor(outfile) {
+  case class PrincessResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
 
     var status: ProverStatus = _
     var time: Option[Double] = _

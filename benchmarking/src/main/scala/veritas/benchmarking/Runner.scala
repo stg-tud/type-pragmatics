@@ -89,7 +89,7 @@ case class Runner(config: Config) {
       val pathParts = filePath.split(fileSeparator)
       val confPath = pathParts.takeRight(5).dropRight(1).mkString("/")
       val filename = file.getName
-      val path = s"$prepath/${proverConfig.name}/$confPath/${config.timeout}+${filename}.proof"
+      val path = s"$prepath/${config.timeout}s/${proverConfig.name}/$confPath/${filename}.proof"
       val filehandler = new File(path)
       if (!filehandler.getParentFile.exists())
         filehandler.getParentFile.mkdirs()
@@ -145,37 +145,41 @@ case class Runner(config: Config) {
     // proverConfig/goalcategory/typing/variable/optimization/timeout+filename.proof
     //
     // override functions below if convention shall be changed!
-    def getProverConfig(fn: String): ProverConfig = {
+    def getProverConfig(fp: String): ProverConfig = {
       // split takes regular expression, \-separator (windows systems) needs to be escaped.
       val fileSeparator =
         if (File.separator == "\\") "\\\\"
         else File.separator
-      val pathParts = fn.split(fileSeparator)
+      val pathParts = fp.split(fileSeparator)
       val configname = pathParts(pathParts.length - 6)
       //assemble configuration from last two parts of path
       ProverConfig.configs(configname)
     }
 
     def getFilename(fn: String): String = {
-      val split = fn.split("\\+")
-      val prename = split.last
-      prename.dropRight(6) //drop .proof
+      fn.dropRight(6) //drop .proof
     }
 
-    def getTimeout(fn: String): Int = {
-      val split = fn.split("\\+")
-      split(0).toInt
+    def getTimeout(fp: String): Int = {
+      val fileSeparator =
+        if (File.separator == "\\") "\\\\"
+        else File.separator
+      val pathParts = fp.split(fileSeparator)
+      val stimeout = pathParts(pathParts.length - 7)
+      val timeout = stimeout.dropRight(1)
+      timeout.toInt
     }
 
     for (file <- allFiles if (file.isFile && file.getName().endsWith(".proof"))) {
       val fn = file.getName()
-      println(s"Processing $fn ...")
+      val fp = file.getAbsolutePath()
+      println(s"Processing $fp ...")
       val inputfile = getFilename(fn)
-      val timeout = getTimeout(fn)
-      val proverconf = getProverConfig(file.getAbsolutePath)
-      val veritasconf = extractVeritasConfig(file.getAbsolutePath)
+      val timeout = getTimeout(fp)
+      val proverconf = getProverConfig(fp)
+      val veritasconf = extractVeritasConfig(fp)
 
-      val resultproc = proverconf.newResultProcessor(timeout, file)
+      val resultproc = proverconf.newResultProcessor(timeout, file, true)
       resultproc.processLogs()
 
       val filesummary = FileSummary(veritasconf, inputfile, proverconf, resultproc.result, timeout, resultproc.result.timeSeconds.getOrElse(0.0))
