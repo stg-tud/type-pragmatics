@@ -52,7 +52,7 @@ local {
 	~t == table(~al, ~rt)
 	~tresult == tcons(rcons(x1, rempty), tempty)
 	=================================================================================== test-projection0
-	project(acons(A1, aempty), ~t) == someRawTable(~tresult)
+	selectRows(acons(A1, aempty), ~t) == someRawTable(~tresult)
 }
 
 local {
@@ -76,7 +76,7 @@ local {
 	~t == table(~al, ~rt)
 	~tresult == tcons(rcons(x1, rempty), tcons(rcons(x2, rempty), tempty))
 	=================================================================================== test-projection1
-	project(acons(A1, aempty), ~t) == someRawTable(~tresult)
+	selectRows(acons(A1, aempty), ~t) == someRawTable(~tresult)
 }
 
 local {
@@ -99,7 +99,7 @@ local {
 	~t == table(~al, ~rt)
 	~tresult == tcons(rcons(y2, rempty), tempty)
 	=================================================================================== test-projection2
-	project(acons(A2, aempty), ~t) == someRawTable(~tresult)
+	selectRows(acons(A2, aempty), ~t) == someRawTable(~tresult)
 }
 
 
@@ -126,7 +126,7 @@ local {
 	~t == table(~al, ~rt)
 	~tresult == tcons(rcons(x1, rempty), tcons(rcons(x2, rempty), tempty))
 	=================================================================================== test-projection1
-	project(acons(A1, aempty), ~t) == someRawTable(~tresult)
+	selectRows(acons(A1, aempty), ~t) == someRawTable(~tresult)
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))
@@ -162,7 +162,7 @@ local {
 	~t == table(~al, ~rt)
 	~tresult == tcons(rcons(y2, rempty), tcons(rcons(y1, rempty), tempty))
 	=================================================================================== test-projection2-1
-	project(acons(A2, aempty), ~t) == someRawTable(~tresult)
+	selectRows(acons(A2, aempty), ~t) == someRawTable(~tresult)
 }
 
 local {
@@ -187,7 +187,7 @@ local {
 	~t == table(~al, ~rt)
 	~tresult == tcons(rcons(y2, rcons(x1, rempty)), tcons(rcons(y1, rcons(x2, rempty)), tempty))
 	============================================================================================= test-projection3
-	project(acons(A2, acons(A1, aempty)), ~t) == someRawTable(~tresult)
+	selectRows(acons(A2, acons(A1, aempty)), ~t) == someRawTable(~tresult)
 }
 
 local {
@@ -212,7 +212,7 @@ local {
 	~t == table(~al, ~rt)
 	~tresult == tcons(rcons(y2, rcons(x1, rempty)), tcons(rcons(y1, rcons(x2, rempty)), tempty))
 	============================================================================================= test-projection3
-	project(acons(A2, acons(A1, aempty)), ~t) == someRawTable(~tresult)
+	selectRows(acons(A2, acons(A1, aempty)), ~t) == someRawTable(~tresult)
 
 	goal
 	~al == acons(A1, acons(A2, acons(A3, aempty)))

@@ -36,28 +36,24 @@ projectEmptyCol(tempty) = tempty
 projectEmptyCol(tcons(r, t)) = tcons(rempty, projectEmptyCol(t))
 	
 function // select-list table-list table-rows
-project : AttrL AttrL RawTable -> OptRawTable 
-project(aempty, al, rt) = someRawTable(projectEmptyCol(rt))
-project(acons(a, alr), al, rt) =
+selectRows : AttrL AttrL RawTable -> OptRawTable 
+selectRows(aempty, al, rt) = someRawTable(projectEmptyCol(rt))
+selectRows(acons(a, alr), al, rt) =
 	let col = findCol(a, al, rt) in
-		let rest = project(alr, al, rt) in
+		let rest = selectRows(alr, al, rt) in
 			if (isSomeRawTable(col) && isSomeRawTable(rest))
 			then attachColToFrontRaw(getRawTable(col), getRawTable(rest))
 			else noRawTable
 
 function
-selectRows : Select AttrL RawTable -> OptTable
-selectRows(all(), al, rt) = someTable(table(al, rt))
-selectRows(some(alr), al, rt) =
-	let projected = project(alr, al, rt) in
+selectTable : Select Table -> OptTable
+selectTable(all(), table(al, rt)) = someTable(table(al, rt))
+selectTable(some(alr), table(al, rt)) =
+	let projected = selectRows(alr, al, rt) in
 	if isSomeRawTable(projected)
 	then someTable(table(alr, getRawTable(projected)))
 	else noTable
 	
-function
-selectTable : Select Table -> OptTable
-selectTable(sel, table(al, rt)) = selectRows(sel, al, rt)
-
 
 data OptVal = noVal | someVal(Val)
 data OptRow = noRow | someRow(Row)

@@ -275,7 +275,7 @@ strategy struc-induction-project-preservation {
 	goal
 	~al = aempty
 	welltypedtable(~TT, ~t)
-	project(~al, ~t) == someRawTable(~pt)
+	selectRows(~al, ~t) == someRawTable(~pt)
 	projectType(~al, ~TT) == someTType(~PT)
 	===================================== Project-Preservation-aempty
 	~TTC |- tvalue(table(~al, ~pt)) : ~PT
@@ -289,25 +289,25 @@ strategy struc-induction-project-preservation {
 		axiom
 		//~al = alrest
 		welltypedtable(~TT, ~t)
-		isSomeRawTable(project(alrest, ~t))
+		isSomeRawTable(selectRows(alrest, ~t))
 		isSomeTType(projectType(alrest, ~TT))
 		===================================== Project-Preservation-acons-IH
-		~TTC |- tvalue(table(alrest, getRawTable(project(alrest, ~t)))) : getSomeTType(projectType(alrest, ~TT))
+		~TTC |- tvalue(table(alrest, getRawTable(selectRows(alrest, ~t)))) : getSomeTType(projectType(alrest, ~TT))
 		
 		goal 100
 		//~al = acons(a, alrest)
 		welltypedtable(~TT, ~t)
-		isSomeRawTable(project(acons(a, alrest), ~t))
+		isSomeRawTable(selectRows(acons(a, alrest), ~t))
 		isSomeTType(projectType(acons(a, alrest), ~TT))
 		======================================================================================= Project-Preservation-acons
-		~TTC |- tvalue(table(acons(a, alrest), getRawTable(project(acons(a, alrest), ~t)))) : getSomeTType(projectType(acons(a, alrest), ~TT))
+		~TTC |- tvalue(table(acons(a, alrest), getRawTable(selectRows(acons(a, alrest), ~t)))) : getSomeTType(projectType(acons(a, alrest), ~TT))
 	}
 	
 	//if induction successful, we proved Project-Preservation and can abbreviate (for now:)
 	hide-all
 	axiom
 	welltypedtable(~TT, ~t)
-	project(~al, ~t) = someRawTable(~pt)
+	selectRows(~al, ~t) = someRawTable(~pt)
 	projectType(~al, ~TT) == someTType(~PT)
 	===================================== Project-Preservation-ind
 	~TTC |- tvalue(table(~al, ~pt)) : ~PT	
@@ -316,7 +316,7 @@ strategy struc-induction-project-preservation {
 
 lemma verify-with struc-induction-project-preservation
 welltypedtable(~TT, ~t)
-project(~al, ~t) = someRawTable(~pt)
+selectRows(~al, ~t) = someRawTable(~pt)
 projectType(~al, ~TT) == someTType(~PT)
 ===================================== Project-Preservation
 ~TTC |- tvalue(table(~al, ~pt)) : ~PT

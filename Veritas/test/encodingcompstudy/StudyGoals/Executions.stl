@@ -102,7 +102,7 @@ local {
 	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tcons(~row4, tempty))))
 	========================= execution-6
 	exists ~result
-		project(acons(a, acons(c, aempty)), ~al, ~rt) == ~result
+		selectRows(acons(a, acons(c, aempty)), ~al, ~rt) == ~result
 }
 
 local {

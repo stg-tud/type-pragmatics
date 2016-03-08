@@ -45,10 +45,10 @@ projectEmptyCol(tcons(r, t)) = tcons(rempty, projectEmptyCol(t))
 	
 function
 project : AttrL Table -> OptRawTable 
-project(aempty, table(al, rt)) = someRawTable(projectEmptyCol(rt))
-project(acons(a, alr), t) =
+selectRows(aempty, table(al, rt)) = someRawTable(projectEmptyCol(rt))
+selectRows(acons(a, alr), t) =
 	let col = findCol(a, t) in
-		let rest = project(alr, t) in
+		let rest = selectRows(alr, t) in
 			if (isSomeRawTable(col) && isSomeRawTable(rest))
 			then attachColToFrontRaw(getRawTable(col), getRawTable(rest))
 			else noRawTable
@@ -143,7 +143,7 @@ reduce(conf(SelectAllFrom(Ref(tn)), ts)) =
 reduce(conf(SelectSomeFrom(al, Ref(tn)), ts)) =
 	let ltn = lookupStore(tn, ts) in
 		if (isSomeTable(ltn))
-		then (let pt = project(al, getTable(ltn)) in
+		then (let pt = selectRows(al, getTable(ltn)) in
 			if (isSomeRawTable(pt))
 			then someConf(conf(tvalue(table(al, getRawTable(pt))), ts))
 			else noConf)
@@ -161,7 +161,7 @@ reduce(conf(SelectSomeFrom(al, Ref(tn)), ts)) =
 // 		if (isSomeTable(ltn))
 // 		then (let st = select(getTable(ltn), p) in
 // 			if (isSomeTable(st))
-// 			then (let pt = project(al, getTable(st)) in
+// 			then (let pt = selectRows(al, getTable(st)) in
 // 				if(isSomeRawTable(pt))
 // 				then someConf(conf(tvalue(table(al, getRawTable(pt))), ts))
 // 				else noConf)
