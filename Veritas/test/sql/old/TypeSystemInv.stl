@@ -18,7 +18,7 @@ OR
 => exists ~tn, ~TT1, ~al
 		~q == SelectSomeFrom(~al, Ref(~tn))
 		lookupContext(~tn, ~TTC) == someTType(~TT1)
-		projectType(~al, ~TT1) == someTType(~TT)	
+		selectTypeAttrL(~al, ~TT1) == someTType(~TT)	
 // => exists ~tn, ~p
 // 		~q == SelectAllFromWhere(Ref(~tn), ~p)
 // 		lookupContext(~tn, ~TTC) == someTType(~TT)
@@ -27,7 +27,7 @@ OR
 // 		~q == SelectSomeFromWhere(~al, Ref(~tn), ~p)
 // 		lookupContext(~tn, ~TTC) == someTType(~TT1)
 // 		tcheckPred(~p, ~TT1)
-// 		projectType(~al, ~TT1) == someTType(~TT)
+// 		selectTypeAttrL(~al, ~TT1) == someTType(~TT)
 // => exists ~q1, ~q2
 // 		~q == Union(~q1, ~q2)
 // 		~TTC |- ~q1 : ~TT
@@ -63,7 +63,7 @@ lemma
 ==================================================== T-inv-Selectsomefrom
 exists ~TT1
 	lookupContext(~tn, ~TTC) == someTType(~TT1)
-	projectType(~al, ~TT1) == someTType(~TT)
+	selectTypeAttrL(~al, ~TT1) == someTType(~TT)
 	
 		
 // ~q == SelectAllFromWhere(Ref(~tn), ~p)
@@ -78,7 +78,7 @@ exists ~TT1
 // exists ~TT1
 // 	lookupContext(~tn, ~TTC) == someTType(~TT1)
 // 	tcheckPred(~p, ~TT1)
-// 	projectType(~al, ~TT1) == someTType(~TT)
+// 	selectTypeAttrL(~al, ~TT1) == someTType(~TT)
 // 		
 
 // goal

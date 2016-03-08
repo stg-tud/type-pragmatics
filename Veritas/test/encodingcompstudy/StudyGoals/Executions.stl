@@ -182,5 +182,5 @@ local {
 	~tt = ttcons(an, tn, ttcons(am, tm, ttcons(ak, tk, ttempty)))
 	==================================== execution-10
 	exists ~result
-		projectType(~al, ~tt) == ~result
+		selectTypeAttrL(~al, ~tt) == ~result
 }

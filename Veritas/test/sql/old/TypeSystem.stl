@@ -30,11 +30,11 @@ findColType(an, ttcons(ctype(a, ft), ttr)) =
 	else findColType(an, ttr)
 
 function
-projectType : AttrL TType -> OptTType
-projectType(aempty, tt) = someTType(ttempty)
-projectType(acons(a, alr), tt) =
+selectTypeAttrL : AttrL TType -> OptTType
+selectTypeAttrL(aempty, tt) = someTType(ttempty)
+selectTypeAttrL(acons(a, alr), tt) =
 	let ft = findColType(a, tt) in
-		let tprest = projectType(alr, tt) in
+		let tprest = selectTypeAttrL(alr, tt) in
 			if (isSomeFType(ft) && isSomeTType(tprest))
 			then someTType(ttcons(ctype(a, getFType(ft)), getSomeTType(tprest)))
 			else noTType
@@ -74,7 +74,7 @@ lookupContext(~tn, ~TTC) == someTType(~TT)
 ~TTC |- SelectAllFrom(Ref(~tn)) : ~TT
 
 lookupContext(~tn, ~TTC) == someTType(~TT1)
-projectType(~al, ~TT1) == someTType(~TT)
+selectTypeAttrL(~al, ~TT1) == someTType(~TT)
 ================================================ T-SelectSomeFrom
 ~TTC |- SelectSomeFrom(~al, Ref(~tn)) : ~TT
 
@@ -85,7 +85,7 @@ projectType(~al, ~TT1) == someTType(~TT)
 // 
 // lookupContext(~tn, ~TTC) == someTType(~TT1)
 // tcheckPred(~p, ~TT1)
-// projectType(~al, ~TT1) == someTType(~TT)
+// selectTypeAttrL(~al, ~TT1) == someTType(~TT)
 // ================================================ T-SelectSomeFromWhere
 // ~TTC |- SelectSomeFromWhere(~al, Ref(~tn), ~p) : ~TT
 // 

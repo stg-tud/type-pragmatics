@@ -29,14 +29,14 @@ findColType(an, ttcons(a, ft, ttr)) =
 function
 selectType : Select TType -> OptTType
 selectType(all(), tt) = someTType(tt)
-selectType(some(al), tt) = projectType(al, tt)
+selectType(some(al), tt) = selectTypeAttrL(al, tt)
 
 function
-projectType : AttrL TType -> OptTType
-projectType(aempty, tt) = someTType(ttempty)
-projectType(acons(a, alr), tt) =
+selectTypeAttrL : AttrL TType -> OptTType
+selectTypeAttrL(aempty, tt) = someTType(ttempty)
+selectTypeAttrL(acons(a, alr), tt) =
 	let ft = findColType(a, tt) in
-		let tprest = projectType(alr, tt) in
+		let tprest = selectTypeAttrL(alr, tt) in
 			if (isSomeFType(ft) && isSomeTType(tprest))
 			then someTType(ttcons(a, getFType(ft), getSomeTType(tprest)))
 			else noTType

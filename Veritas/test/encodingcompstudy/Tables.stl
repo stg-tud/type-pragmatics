@@ -20,10 +20,6 @@ data TType =
 	ttempty |
 	ttcons(Name, FType, TType) // type of a single column (pair Name, FType)
 
-data RawType =
-	rtempty |
-	rtcons(FType, RawType)
-
 // Value for a field (underspecified)
 open data Val
 
@@ -77,21 +73,16 @@ matchingAttrL(tt, al) = false
 	
 function
 welltypedtable : TType Table -> Bool
-welltypedtable(tt, table(al, t)) = matchingAttrL(tt, al) && welltypedRawtable(rawType(tt), t)
+welltypedtable(tt, table(al, t)) = matchingAttrL(tt, al) && welltypedRawtable(tt, t)
 
 function
-rawType : TType -> RawType
-rawType(ttempty) = rtempty
-rawType(ttcons(a, ft, tt)) = rtcons(ft, rawType(tt))
+welltypedRawtable : TType RawTable -> Bool
+welltypedRawtable(tt, tempty) = true
+welltypedRawtable(tt, tcons(r, t)) = welltypedRow(tt, r) && welltypedRawtable(tt, t)
 
 function
-welltypedRawtable : RawType RawTable -> Bool
-welltypedRawtable(rt, tempty) = true
-welltypedRawtable(rt, tcons(r, t)) = welltypedRow(rt, r) && welltypedRawtable(rt, t)
-
-function
-welltypedRow : RawType Row -> Bool
-welltypedRow(rtempty, rempty) = true
-welltypedRow(rtcons(ft, rt), rcons(v, r)) = (fieldType(v) == ft) && welltypedRow(rt, r)
-welltypedRow(rt, r) = false
+welltypedRow : TType Row -> Bool
+welltypedRow(ttempty, rempty) = true
+welltypedRow(ttcons(a, ft, tt), rcons(v, r)) = (fieldType(v) == ft) && welltypedRow(tt, r)
+welltypedRow(tt, r) = false
 	

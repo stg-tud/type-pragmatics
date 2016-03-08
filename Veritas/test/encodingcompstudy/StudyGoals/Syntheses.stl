@@ -70,12 +70,11 @@ goal
 ~r1 == rcons(~fv1, rcons(~fv2, rempty))
 ~r2 == rcons(~fv3, rcons(~fv4, rempty))
 ~rt == tcons(~r1, tcons(~r2, tempty))
-~rtype == rtcons(~ft1, rtcons(~ft2, rtempty))
-welltypedRawtable(~rtype, ~rt)
+~tt == ttcons(~a1, ~ft1, ttcons(~a2, ~ft2, ttempty))
+welltypedRawtable(~tt, ~rt)
 ======================================================================== synthesis-6
-exists ~TT, ~table2, ~al
-  ~table2 = table(~al, ~rt)
-  welltypedtable(~TT, ~table2)
+exists ~TT, ~al
+  welltypedtable(~TT, table(~al, ~rt))
 
 
 goal
@@ -92,7 +91,7 @@ goal
 true
 ====== synthesis-8
 exists ~al
-  projectType(~al, ~tt) = someTType(ttempty)
+  selectTypeAttrL(~al, ~tt) = someTType(ttempty)
 
 
 local {
@@ -104,7 +103,7 @@ local {
 	~tt = ttcons(a, t, ttempty)
 	===================================================================================== synthesis-9
 	exists ~al
- 		projectType(~al, ~tt) = someTType(~tt)	
+ 		selectTypeAttrL(~al, ~tt) = someTType(~tt)	
 }
 
 

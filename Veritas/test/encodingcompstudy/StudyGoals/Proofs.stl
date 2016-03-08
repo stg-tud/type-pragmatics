@@ -97,7 +97,7 @@ reduce(~q, ~ts) == noQuery
 // goal
 // lookupContext(~tn, ~TTC) == someTType(~TT1)
 // tcheckPred(~p, ~TT1)
-// projectType(~al, ~TT1) == someTType(~TT)
+// selectTypeAttrL(~al, ~TT1) == someTType(~TT)
 // ~q = SelectSomeFromWhere(~al, Ref(~tn), ~p)
 // ~TTC |- ~q : ~TT
 // lookupStore(~tn, ~ts) == someTable(~t)

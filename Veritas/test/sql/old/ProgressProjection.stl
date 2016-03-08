@@ -493,7 +493,7 @@ strategy induction-progress-findCol {
 	//trivial base case, premises cannot both be true
 	goal
 	welltypedtable(~TT1, table(aempty, ~rt))
-	projectType(acons(~a, ~ar), ~TT1) == someTType(~TT2)
+	selectTypeAttrL(acons(~a, ~ar), ~TT1) == someTType(~TT2)
 	=============================================== progress-findCol-aempty
 	exists ~c
 		findCol(~a, table(aempty, ~rt)) == someRawTable(~c)
@@ -585,7 +585,7 @@ strategy induction-progress-projection {
 	StoreContextConsistent(~TS, ~TTC)
 	lookupContext(~tn, ~TTC) == someTType(~TT1)
 	lookupStore(~tn, ~TS) == someTable(~t)
-	projectType(aempty, ~TT1) == someTType(~TT2)
+	selectTypeAttrL(aempty, ~TT1) == someTType(~TT2)
 	====================================== progress-projection-aempty
 	exists ~t2
 		selectRows(aempty, ~t) == someRawTable(~t2)
@@ -602,7 +602,7 @@ strategy induction-progress-projection {
 		StoreContextConsistent(~TS, ~TTC)
 		lookupContext(~tn, ~TTC) == someTType(~TT1)
 		lookupStore(~tn, ~TS) == someTable(~t)
-		projectType(ar, ~TT1) == someTType(~TT2)
+		selectTypeAttrL(ar, ~TT1) == someTType(~TT2)
 		====================================== progress-projection-acons-IH
 		exists ~rt
 			selectRows(ar, ~t) == someRawTable(~rt)	
@@ -611,7 +611,7 @@ strategy induction-progress-projection {
 		// include{progress-findCol, progress-attachColToFrontRaw,
 		// StoreContext-Lookup-WT,
 		// project0, project1, project2, project-INV,
-		// projectType0, projectType1, projectType2, projectType-INV,
+		// selectTypeAttrL0, selectTypeAttrL1, selectTypeAttrL2, selectTypeAttrL-INV,
 		// findColType0, findColType1, findColType2, findColType-INV,
 		// EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
 		// isSome-INV-1, isSome-INV-2, 
@@ -625,13 +625,13 @@ strategy induction-progress-projection {
 		StoreContextConsistent(~TS, ~TTC)
 		lookupContext(~tn, ~TTC) == someTType(~TT1)
 		lookupStore(~tn, ~TS) == someTable(~t)
-		projectType(acons(~a, ar), ~TT1) == someTType(~TT2)
+		selectTypeAttrL(acons(~a, ar), ~TT1) == someTType(~TT2)
 		=============================================== progress-projection-acons
 		exists ~rt
 			selectRows(acons(~a, ar), ~t) == someRawTable(~rt)
 		
 		// Verification succeeded, used lemmas: progress-findCol-attachColToFrontRaw, isSome-INV-2, progress-
-		// projection-acons-IH, isSome1, progress-findCol, projectType2, DIFF-none-some, isSome-INV-1, StoreContext-
+		// projection-acons-IH, isSome1, progress-findCol, selectTypeAttrL2, DIFF-none-some, isSome-INV-1, StoreContext-
  		// Lookup-WT, project1.	
 	}
 		
@@ -641,7 +641,7 @@ strategy induction-progress-projection {
 	StoreContextConsistent(~TS, ~TTC)
 	lookupContext(~tn, ~TTC) == someTType(~TT1)
 	lookupStore(~tn, ~TS) == someTable(~t)
-	projectType(~al, ~TT1) == someTType(~TT2)
+	selectTypeAttrL(~al, ~TT1) == someTType(~TT2)
 	====================================== progress-projection-ind
 	exists ~rt
 		selectRows(~al, ~t) == someRawTable(~rt)
@@ -653,7 +653,7 @@ lemma verify-with induction-progress-projection
 StoreContextConsistent(~TS, ~TTC)
 lookupContext(~tn, ~TTC) == someTType(~TT1)
 lookupContext(~tn, ~TS) == someTable(~t)
-projectType(~al, ~TT1) == someTType(~TT2)
+selectTypeAttrL(~al, ~TT1) == someTType(~TT2)
 ====================================== progress-projection
 exists ~rt
 	selectRows(~al, ~t) == someRawTable(~rt)
