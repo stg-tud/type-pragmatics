@@ -54,8 +54,7 @@ goal
 true
 ======================= synthesis-4
 exists ~ts, ~q
-  forall ~t 
-  	~q != tvalue(~t)
+  !isValue(~q)
   reduce(~q, ~ts) = noQuery
   
 goal
