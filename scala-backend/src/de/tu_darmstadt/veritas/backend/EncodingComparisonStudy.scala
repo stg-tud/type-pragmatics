@@ -71,11 +71,11 @@ object ProblemTrans extends Alternative(selectConfig(Problem) {
   case Problem.Test =>
     SeqTrans(SplitModulesByGoal("test"), MoveDeclsToFront)
   case Problem.Execution =>
-    SeqTrans(GenerateGroundGuards, SplitModulesByGoal("execution"), MoveDeclsToFront)
+    SeqTrans(SplitModulesByGoal("execution"), MoveDeclsToFront)
   case Problem.Synthesis =>
-    SeqTrans(GenerateGroundGuards, SplitModulesByGoal("synthesis"), MoveDeclsToFront)
+    SeqTrans(SplitModulesByGoal("synthesis"), MoveDeclsToFront)
   case Problem.Counterexample =>
-    SeqTrans(GenerateGroundGuards, SplitModulesByGoal("counterexample"), MoveDeclsToFront)
+    SeqTrans(SplitModulesByGoal("counterexample"), MoveDeclsToFront)
   case Problem.All =>
     SeqTrans(GenerateGroundGuards, SplitModulesByGoal(""), MoveDeclsToFront)
 })
@@ -120,6 +120,13 @@ object MainTrans extends SeqTrans(
   // determines whether and which inversion axioms are generated for functions/typing rules
   // update: always generate function inversion axioms!
   TotalFunctionInversionAxioms, // ignored: InversionAll
+  // generate ground guards for some problems
+  Alternative(selectConfig(Problem) {
+    case Problem.Execution | Problem.Counterexample | Problem.Synthesis =>
+      GenerateGroundGuards
+    case _ =>
+      Identity
+  }),
   // insert type guards for quantified metavariables
   // variable inlining/extraction
   // determines whether logical optimizations take place prior to fof/tff encoding
