@@ -257,7 +257,7 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
     withSuper(super.transTypingRuleJudgment(trj)) {
       case e @ ExistsJudgment(vl, jl) => {
         //note: jl already is the substituted body, so the quantified variables have to be recomputed
-        val newexistsbody = makeOrImpl(jl)
+        val newexistsbody = printAdditionalPremises(inneradditionalPremises) ++ jl
         val allFV = FreeVariables.freeVariables(newexistsbody)
         //including generatedNames from allFV is ok since no generated name
         //within body jl can ever come from outside e (additionalPremises is reset when moving into e,
@@ -281,7 +281,7 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
     withSuper(super.transTypingRuleJudgments(trj)) {
       case e @ ExistsJudgment(vl, jl) => {
         //note: jl already is the substituted body, so the quantified variables have to be recomputed
-        val newexistsbody = makeOrImpl(jl)
+        val newexistsbody = printAdditionalPremises(inneradditionalPremises) ++ jl
         val allFV = FreeVariables.freeVariables(newexistsbody)
         //including generatedNames from allFV is ok since no generated name
         //within body jl can ever come from outside e (additionalPremises is reset when moving into e,
