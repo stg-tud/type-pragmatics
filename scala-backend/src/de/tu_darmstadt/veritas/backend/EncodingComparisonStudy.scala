@@ -71,13 +71,13 @@ object ProblemTrans extends Alternative(selectConfig(Problem) {
   case Problem.Test =>
     SeqTrans(SplitModulesByGoal("test"), MoveDeclsToFront)
   case Problem.Execution =>
-    SeqTrans(GenerateGroundGuard, InsertGroundGuardsInExecutionGoals, SplitModulesByGoal("execution"), MoveDeclsToFront)
+    SeqTrans(GenerateGroundGuards, SplitModulesByGoal("execution"), MoveDeclsToFront)
   case Problem.Synthesis =>
-    SeqTrans(SplitModulesByGoal("synthesis"), MoveDeclsToFront)
+    SeqTrans(GenerateGroundGuards, SplitModulesByGoal("synthesis"), MoveDeclsToFront)
   case Problem.Counterexample =>
-    SeqTrans(SplitModulesByGoal("counterexample"), MoveDeclsToFront)
+    SeqTrans(GenerateGroundGuards, SplitModulesByGoal("counterexample"), MoveDeclsToFront)
   case Problem.All =>
-    SeqTrans(GenerateGroundGuard, InsertGroundGuardsInExecutionGoals, SplitModulesByGoal(""), MoveDeclsToFront)
+    SeqTrans(GenerateGroundGuards, SplitModulesByGoal(""), MoveDeclsToFront)
 })
 
 object GuardsTrans extends Alternative(selectConfig(FinalEncoding) {
