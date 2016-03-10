@@ -19,11 +19,11 @@ case class TransformationError(m: String) extends RuntimeException(m)
   * Created by sylvia on 01/03/16.
   *
   * assumes that it receives two excel files:
-  * 1) raw data
-  * 2) overview data
+  * 1) raw data (base name)
+  * 2) overview data (base name)
   *
   */
-case class DataLayout(files: Seq[File]) {
+case class DataLayout(files: Seq[File], stimeout: String) {
 
   type ConfigValue = Any
 
@@ -372,22 +372,22 @@ case class DataLayout(files: Seq[File]) {
     println("Layouting!")
 
     //Overview graphs all categories for each prover, success rates & average success time
-//    doForallProvers("datasets/layout/PerProver/SuccRate", "successrate_per_goalcategory.csv", layoutSuccessRate(GoalCategoryEnum)(k => k.goalCategory))
-//    doForallProvers("datasets/layout/PerProver/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
-//    doForallProvers("datasets/layout/PerProver/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
-//    doForallProvers("datasets/layout/PerProver/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
-//    doForallProvers("datasets/layout/PerProver/AvgSuccTime", "avgsuccesstime_per_goalcategory.csv", layoutAvgSuccessTime(GoalCategoryEnum)(k => k.goalCategory))
-//    doForallProvers("datasets/layout/PerProver/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTime(TypingConfEnum)(k => k.typingConf))
-//    doForallProvers("datasets/layout/PerProver/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTime(VariableConfEnum)(k => k.variableConf))
-//    doForallProvers("datasets/layout/PerProver/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTime(SimplConfEnum)(k => k.simplConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_goalcategory.csv", layoutSuccessRate(GoalCategoryEnum)(k => k.goalCategory))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_goalcategory.csv", layoutAvgSuccessTime(GoalCategoryEnum)(k => k.goalCategory))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTime(TypingConfEnum)(k => k.typingConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTime(VariableConfEnum)(k => k.variableConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTime(SimplConfEnum)(k => k.simplConf))
 
     //Overview graphs per category for each prover, success rates & average success time
-//    doForallProversCategories("datasets/layout/PerProverPerCategory/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
-//    doForallProversCategories("datasets/layout/PerProverPerCategory/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
-//    doForallProversCategories("datasets/layout/PerProverPerCategory/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
-//    doForallProversCategories("datasets/layout/PerProverPerCategory/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTime(TypingConfEnum)(k => k.typingConf))
-//    doForallProversCategories("datasets/layout/PerProverPerCategory/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTime(VariableConfEnum)(k => k.variableConf))
-//    doForallProversCategories("datasets/layout/PerProverPerCategory/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTime(SimplConfEnum)(k => k.simplConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTime(TypingConfEnum)(k => k.typingConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTime(VariableConfEnum)(k => k.variableConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTime(SimplConfEnum)(k => k.simplConf))
 
 
     //layout for paper graph 1 (success rate per goal category, all provers except princess)
@@ -395,23 +395,23 @@ case class DataLayout(files: Seq[File]) {
     val allcatbutexecution = List(GoalCategoryEnum.Synthesis, GoalCategoryEnum.Test, GoalCategoryEnum.Proof, GoalCategoryEnum.Counterexample)
 
     doForProvers(allpbutprincess,
-      "datasets/layout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRate(GoalCategoryEnum)(k => k.goalCategory))
+      s"datasets/layout/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRate(GoalCategoryEnum)(k => k.goalCategory))
 
     //layout for paper graph 2 (influence of sort encoding, success rate per sort encoding alternative, all provers except princess, all categories together except execution)
     //TODO maybe include execution
     doForProversCategoriesMerge(allpbutprincess, allcatbutexecution,
-      "datasets/layout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
+      s"datasets/layout/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
 
     //layout for paper graph 3 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: counterexample + synthesis)
     doForProversCategoriesMerge(allpbutprincess, List(GoalCategoryEnum.Counterexample, GoalCategoryEnum.Synthesis),
-      "datasets/layout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
+      s"datasets/layout/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
 
     //layout for paper graph 4 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: proof + test)
     doForProversCategoriesMerge(allpbutprincess, List(GoalCategoryEnum.Proof, GoalCategoryEnum.Test),
-      "datasets/layout/Graph4", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
+      s"datasets/layout/$stimeout/Graph4", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
 
     //layout for paper graph 5 (influence of simplifications, success rate per simplification alternative, all provers except princess, all categories)
-    doForProvers(allpbutprincess, "datasets/layout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
+    doForProvers(allpbutprincess, s"datasets/layout/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
 
   }
 }

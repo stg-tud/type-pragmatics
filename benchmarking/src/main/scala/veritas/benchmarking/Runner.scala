@@ -15,9 +15,9 @@ case class Runner(config: Config) {
   val summary = new Summary(config)
 
   def listAllFiles(f: File): Array[File] =
-    if (f.isFile)
+    if (f.isFile && !f.getName.startsWith("."))
       Array(f)
-    else if (f.isDirectory)
+    else if (f.isDirectory && !f.getName.startsWith("."))
       f.listFiles().flatMap(listAllFiles(_))
     else
       Array()
@@ -142,7 +142,7 @@ case class Runner(config: Config) {
   def processProofLogs(): Unit = {
 
     // convention for file names:
-    // proverConfig/goalcategory/typing/variable/optimization/timeout+filename.proof
+    // timeout/proverConfig/goalcategory/typing/variable/optimization/filename.proof
     //
     // override functions below if convention shall be changed!
     def getProverConfig(fp: String): ProverConfig = {
@@ -191,7 +191,7 @@ case class Runner(config: Config) {
 
   def run(): Unit = {
     if (config.layoutData)
-      DataLayout(allFiles).layoutAll
+      DataLayout(allFiles, s"${config.timeout}s").layoutAll
     else if (config.summarizeLogs)
       processProofLogs()
     else

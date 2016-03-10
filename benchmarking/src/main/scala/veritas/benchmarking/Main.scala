@@ -1,6 +1,6 @@
 package veritas.benchmarking
 
-import java.io.{PrintWriter, PrintStream, File}
+import java.io.{FilenameFilter, PrintWriter, PrintStream, File}
 
 import scopt.OptionParser
 
@@ -115,24 +115,103 @@ object Main extends App {
     case None => sys.exit(1)
     case Some(iconfig) =>
       val config = iconfig.ensureDefaultOptions
-      val runner = new Runner(config)
-      runner.run()
 
-      //only execute the last steps if tool was not called for laying out data
-      if (!config.layoutData) {
-        val summary = runner.summary
+      //if logs are to be summarized, separate summaries for different timeouts (subfolders of log folders)
+      if (config.summarizeLogs) {
+        val folderlist = for (f <- config.files if (f.isDirectory)) yield f.listFiles(new FilenameFilter {
+          override def accept(dir: File, name: String): Boolean = dir.isDirectory &&
+            !(name.startsWith(".")) &&
+            !(name.endsWith(".tar") || name.endsWith(".bz2"))
+        })
 
-        if (config.logSummary)
-          print(summary.makeSummary)
-        if (config.logCSV != null)
-          new PrintWriter(config.logCSV) {
-            write(summary.makeCSV);
-            close
+
+        for (dirseq <- folderlist; dir <- dirseq) {
+          val newconfig = config.copy(files = Seq(dir))
+          val dirname = dir.getName
+          val runner = new Runner(newconfig)
+          println(s"Calling runner for $dirname...")
+          runner.run()
+
+          val summary = runner.summary
+
+          def attachDirNameToOutputFile(file: File): File = {
+            val newfileName = s"$dirname-${file.getName}"
+            val path = ((file.getAbsolutePath split("/")).dropRight(1)).mkString("/")
+            new File(s"$path/$newfileName")
           }
-        if (config.logXLS != null)
-          summary.makeXLS.safeToFile(config.logXLS.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
-        if (config.logXLSOverview != null)
-          summary.makeXLSOverview.safeToFile(config.logXLSOverview.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+
+          if (config.logSummary)
+            print(summary.makeSummary)
+          if (config.logCSV != null) {
+            val newfile = attachDirNameToOutputFile(config.logCSV)
+            new PrintWriter(newfile) {
+              write(summary.makeCSV);
+              close
+            }
+          }
+          if (config.logXLS != null) {
+            val newfile = attachDirNameToOutputFile(config.logXLS)
+            summary.makeXLS.safeToFile(newfile.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+          }
+          if (config.logXLSOverview != null) {
+            val newfile = attachDirNameToOutputFile(config.logXLSOverview)
+            summary.makeXLSOverview.safeToFile(newfile.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+          }
+        }
+
+        //mode for layouting data - directory with Excel files that are to be layouted
+        //all the files in the folder should have names like this:
+        // {timeout}s-[...]-[overview|raw].xls
+      } else if (config.layoutData) {
+        val excelfiles = for (f <- config.files) yield f.listFiles(new FilenameFilter {
+          override def accept(dir: File, name: String): Boolean = name.endsWith(".xls")
+        })
+
+        val filenamerexp = """([0-9]+)s-[a-zA-Z]+-([a-zA-Z]+)\.xls""".r.unanchored
+
+        val groupedfiles = for (fseq <- excelfiles) yield {
+          fseq.groupBy[String](f => f.getName match {
+            case filenamerexp(timeout, cl) => timeout
+            case s => s.charAt(0).toString
+          })
+        }
+
+        //start runner for every pair of raw/overview that you can find
+        for (mseq <- groupedfiles; (t, fseq) <- mseq) {
+            val rawfile = fseq.find(f => f.getName match {
+              case filenamerexp(_, cl) if (cl == "raw") => true
+              case _ => false
+            }).getOrElse(null)
+            val overviewfile =fseq.find(f => f.getName match {
+              case filenamerexp(_, cl) if (cl == "overview") => true
+              case _ => false
+            }).getOrElse(null)
+
+          val newconfig = config.copy(files = List(rawfile, overviewfile)).copy(timeout = t.toInt)
+          val runner = new Runner(newconfig)
+          runner.run()
+        }
+      } else {
+        //normal mode (run provers), where we run runner only once
+        val runner = new Runner(config)
+        runner.run()
+
+        //only execute the last steps if tool was not called for laying out data
+        if (!config.layoutData) {
+          val summary = runner.summary
+
+          if (config.logSummary)
+            print(summary.makeSummary)
+          if (config.logCSV != null)
+            new PrintWriter(config.logCSV) {
+              write(summary.makeCSV);
+              close
+            }
+          if (config.logXLS != null)
+            summary.makeXLS.safeToFile(config.logXLS.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+          if (config.logXLSOverview != null)
+            summary.makeXLSOverview.safeToFile(config.logXLSOverview.getAbsolutePath).fold(ex ⇒ throw ex, identity).unsafePerformIO
+        }
       }
 
   }
