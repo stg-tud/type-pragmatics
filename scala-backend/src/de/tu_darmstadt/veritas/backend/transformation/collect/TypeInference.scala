@@ -92,14 +92,13 @@ object TypeInference {
  */
 class TypeInference(symbolType: String => Option[(Seq[SortRef], SortRef)]) {
 
-  def inferMetavarTypes(tr: TypingRule): Seq[MetaVar] = {
+  def inferMetavarTypes(tr: TypingRule): Map[MetaVar, SortRef] = {
     val jdgs = tr.premises ++ tr.consequences
     val vars = FreeVariables.freeVariables(jdgs).toSeq
     inferMetavarTypes(vars, jdgs)
-    vars
   }
 
-  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Unit = {
+  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Map[MetaVar, SortRef] = {
     vars foreach (_.typ = None)
     jdgs foreach (checkJudgment(_))
 

@@ -15,11 +15,13 @@ trait CollectTypes extends ModuleTransformation {
   private var _dataTypes: Map[String, (Boolean, Seq[DataTypeConstructor])] = Map()
   // constrTypes: datatype constructors and constants
   private var _constrTypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  private var _consts: Set[String] = Set() // just the constants
   private var _functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   private var _pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
 
   def dataTypes = _dataTypes
   def constrTypes = _constrTypes
+  def consts = _consts
   def functypes = _functypes
   def pfunctypes = _pfunctypes
 
@@ -57,11 +59,13 @@ trait CollectTypes extends ModuleTransformation {
     case Local(defs) =>
       val oldDataTypes = _dataTypes
       val oldconstypes = _constrTypes
+      val oldconsts = _consts
       val oldfunctypes = _functypes
       val oldpfunctypes = _pfunctypes
       val res = transModuleTypedDefs(defs)
       _dataTypes = oldDataTypes
       _constrTypes = oldconstypes
+      _consts = oldconsts
       _functypes = oldfunctypes
       _pfunctypes = oldpfunctypes
       Seq(Local(res))
@@ -69,11 +73,13 @@ trait CollectTypes extends ModuleTransformation {
     case Strategy(name,is,defs) => 
       val oldDataTypes = _dataTypes
       val oldconstypes = _constrTypes
+      val oldconsts = _consts
       val oldfunctypes = _functypes
       val oldpfunctypes = _pfunctypes
       val res = transModuleTypedDefs(defs)
       _dataTypes = oldDataTypes
       _constrTypes = oldconstypes
+      _consts = oldconsts
       _functypes = oldfunctypes
       _pfunctypes = oldpfunctypes
       Seq(Strategy(name, is, res))
@@ -112,6 +118,7 @@ trait CollectTypes extends ModuleTransformation {
     withSuper(super.transConstDecl(d)) {
       case d =>
         _constrTypes += (d.name -> (Seq() -> d.out))
+        _consts += d.name
         Seq(d)
     }
   }
@@ -141,10 +148,10 @@ trait CollectTypes extends ModuleTransformation {
         Seq(tr)
     }
 
-  def inferMetavarTypes(tr: TypingRule) = 
+  def inferMetavarTypes(tr: TypingRule): Map[MetaVar, SortRef] = 
     new TypeInference(symbolType).inferMetavarTypes(tr)
 
-  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]) = 
+  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Map[MetaVar, SortRef] = 
     new TypeInference(symbolType).inferMetavarTypes(vars, jdgs)
 }
 

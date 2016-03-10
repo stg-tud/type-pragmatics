@@ -18,7 +18,7 @@ class InsertTypeGuardsForMetavars extends ModuleTransformation with CollectTypes
       case tr @ TypingRule(n, prems, conss) if checkTypingRule(tr) =>
         {
           //infers types of all variables in the typing rule, also in quantifiers
-          val vars = inferMetavarTypes(tr)
+          val vars = inferMetavarTypes(tr).keys
           val newprems = trace(prems)(transTypingRuleJudgments(_))
           val newconss = trace(conss)(transTypingRuleJudgments(_))
           val guards = vars map (v => makeGuardPremise(v))
@@ -68,31 +68,3 @@ class InsertTypeGuardsForMetavars extends ModuleTransformation with CollectTypes
 }
 
 object InsertTypeGuardsForAllMetavars extends InsertTypeGuardsForMetavars
-
-/**
- * In execution goals, only add guards in quantified variables in exists body (and nowhere else!)
- */
-object InsertTypeGuardsInExecutionGoals extends InsertTypeGuardsForMetavars {
-  override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
-    tr match {
-      case tr @ TypingRule(n, prems, conss) if checkTypingRule(tr) =>
-        {
-          //infers types of all variables in the typing rule, also in quantifiers
-          val vars = inferMetavarTypes(tr)
-          val newprems = trace(prems)(transTypingRuleJudgments(_))
-          val newconss = trace(conss)(transTypingRuleJudgments(_))
-          Seq(TypingRule(n, newprems, newconss))
-        }
-      case tr => Seq(tr)
-    }
-  }
-
-  override def addGuardsToForallBody(vl: Seq[MetaVar], jl: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
-    jl
-  }
-
-  override def checkTypingRule(tr: TypingRule): Boolean =
-    tr match {
-      case TypingRule(n, prems, conss) => super.checkTypingRule(tr) && n.startsWith("execution")
-    }
-}

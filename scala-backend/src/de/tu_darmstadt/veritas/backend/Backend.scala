@@ -61,11 +61,11 @@ object Backend {
    * this variability model is used for single verifications
    * triggered from Veritas
    */
-  val defaultVariabilityModel = PartialVariability(
-    Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
-      (Problem -> Seq(Problem.All)),
-      (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
-      (Simplification -> Seq(Simplification.LogicalAndConstructors))))
+  val defaultVariabilityModel = Configuration(
+    Map(FinalEncoding -> FinalEncoding.BareFOF,
+      (Problem -> Problem.All),
+      (VariableEncoding -> VariableEncoding.Unchanged),
+      (Simplification -> Simplification.LogicalAndConstructors)))
 
   private def writeFile(file: PrettyPrintableFile, path: String): String = {
     val filehandler = new File(path)
@@ -268,11 +268,12 @@ object Backend {
     import de.tu_darmstadt.veritas.backend.transformation.imports._
     import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 
-    val conf = Configuration(Map(
-      FinalEncoding -> FinalEncoding.GuardedFOF,
-      Simplification -> Simplification.LogicalAndConstructors,
-      VariableEncoding -> VariableEncoding.Unchanged,
-      Problem -> Problem.All))
+    val conf = defaultVariabilityModel
+//      Configuration(Map(
+//      FinalEncoding -> FinalEncoding.BareFOF,
+//      Simplification -> Simplification.LogicalAndConstructors,
+//      VariableEncoding -> VariableEncoding.Unchanged,
+//      Problem -> Problem.All))
 
     val modules = Seq(Module.from(aterm))
 
