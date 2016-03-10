@@ -33,154 +33,154 @@ local {
 	exists ~result
 		rawUnion(~t1, ~t2) == ~result
 }
-// 
-// local {
-// 	different consts
-// 		tn1 : Name
-// 		tn2 : Name
-// 		
-// 		tt1 : TType
-// 		tt2 : TType
-// 		
-// 	goal
-// 	~C = bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn1, tt1, emptyContext)))))
-// 	============================ execution-3
-// 	exists ~result
-// 		lookupContext(tn1, ~C) == ~result
-// }
-// 
-// local {
-// 	different consts
-// 		a : Val
-// 		b : Val
-// 	
-// 	goal
-// 	~row1 = rcons(a, rcons(b, rempty))
-// 	~row2 = rcons(b, rcons(a, rempty))
-// 	~rawRable = tcons(~row1, tcons(~row2, tempty))
-// 	================================================ execution-4
-// 	exists ~result
-// 		dropFirstColRaw(~rawTable) == ~result
-// 		
-// }
-// 
-// local {
-// 	different consts
-// 		an : Name
-// 		am : Name
-// 		
-// 		a : Val
-// 		b : Val
-// 	
-// 	
-// 	goal
-// 	~row1 = rcons(a, rcons(b, rempty))
-// 	~row2 = rcons(b, rcons(a, rempty))
-// 	~rawTable = tcons(~row1, tcons(~row2, tempty))
-// 	~al = acons(an, acons(am, aempty))
-// 	======================================================= execution-5
-// 	exists ~result
-// 		findCol(an, ~al, ~rawTable) = ~result
-// }
-// 
-// 
-// local {
-// 	different consts
-// 		a : Name
-// 		b : Name
-// 		c : Name
-// 		
-// 		v : Val
-// 		w : Val
-// 		u : Val
-// 	
-// 	goal
-// 	~al = acons(a, acons(b, acons(c, aempty)))
-// 	~row1 = rcons(v, rcons(w, rcons(u, rempty)))
-// 	~row2 = rcons(v, rcons(w, rcons(u, rempty)))
-// 	~row3 = rcons(u, rcons(v, rcons(w, rempty)))
-// 	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tcons(~row4, tempty))))
-// 	========================= execution-6
-// 	exists ~result
-// 		selectRows(acons(a, acons(c, aempty)), ~al, ~rt) == ~result
-// }
-// 
-// local {
-// 	different consts
-// 		v : Val
-// 		w : Val
-// 	
-// 	goal
-// 	~row1 = rcons(v, rempty)
-// 	~row2 = rcons(v, rcons(w, rempty))
-// 	~table1 = tcons(~row1, tcons(~row1, tcons(~row1, tempty)))
-// 	~table2 = tcons(~row2, tcons(~row2, tcons(~row2, tempty)))
-// 	========================================================== execution-7
-// 	exists ~result
-// 		attachColToFrontRaw(~table1, ~table2) == ~result
-// 	
-// }
-// 
-// local {
-// 	different consts
-// 		a : Name
-// 		b : Name
-// 		c : Name
-// 		
-// 		v : Val
-// 		w : Val
-// 		
-// 	goal
-// 	~al = acons(a, acons(b, acons(c, aempty)))
-// 	~pred = eq(lookup(b), constant(v))
-// 	~row1 = rcons(v, rcons(v, rcons(v, rempty)))
-// 	~row2 = rcons(v, rcons(w, rcons(v, rempty)))
-// 	~row3 = rcons(w, rcons(v, rcons(w, rempty)))
-// 	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tempty)))
-// 	~table = table(~al, ~rt)
-// 	========== execution-8
-// 	exists ~result
-// 		filterRows(~rt, ~al, ~pred) == ~result
-// }
-// 
-// local {
-// 	different consts
-// 		a : Name
-// 		b : Name
-// 		c : Name
-// 		d : Name
-// 		e : Name
-// 		
-// 		v : Val
-// 		w : Val
-// 		x : Val
-// 		y : Val
-// 		z : Val
-// 		
-// 	goal
-// 	~al = acons(a, acons(b, acons(c, acons(d, acons(e, aempty)))))
-// 	~row = rcons(v, rcons(w, rcons(x, rcons(y, rcons(z, rempty)))))
-// 	~exp = lookup(e)
-// 	=========== execution-9
-// 	exists ~result
-// 	  	evalExpRow(~exp, ~al, ~row) == ~result
-// }
-// 
-// local {
-// 	different consts
-// 		an : Name
-// 		am : Name
-// 		ak : Name
-// 		
-// 		tn : FType
-// 		tm : FType
-// 		tk : FType
-// 	
-// 	
-// 	goal
-// 	~al = acons(an, aempty)
-// 	~tt = ttcons(an, tn, ttcons(am, tm, ttcons(ak, tk, ttempty)))
-// 	==================================== execution-10
-// 	exists ~result
-// 		selectTypeAttrL(~al, ~tt) == ~result
-// }
+
+local {
+	different consts
+		tn1 : Name
+		tn2 : Name
+		
+		tt1 : TType
+		tt2 : TType
+		
+	goal
+	~C = bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn2, tt2, bindContext(tn1, tt1, emptyContext)))))
+	============================ execution-3
+	exists ~result
+		lookupContext(tn1, ~C) == ~result
+}
+
+local {
+	different consts
+		a : Val
+		b : Val
+	
+	goal
+	~row1 = rcons(a, rcons(b, rempty))
+	~row2 = rcons(b, rcons(a, rempty))
+	~rawRable = tcons(~row1, tcons(~row2, tempty))
+	================================================ execution-4
+	exists ~result
+		dropFirstColRaw(~rawTable) == ~result
+		
+}
+
+local {
+	different consts
+		an : Name
+		am : Name
+		
+		a : Val
+		b : Val
+	
+	
+	goal
+	~row1 = rcons(a, rcons(b, rempty))
+	~row2 = rcons(b, rcons(a, rempty))
+	~rawTable = tcons(~row1, tcons(~row2, tempty))
+	~al = acons(an, acons(am, aempty))
+	======================================================= execution-5
+	exists ~result
+		findCol(an, ~al, ~rawTable) = ~result
+}
+
+
+local {
+	different consts
+		a : Name
+		b : Name
+		c : Name
+		
+		v : Val
+		w : Val
+		u : Val
+	
+	goal
+	~al = acons(a, acons(b, acons(c, aempty)))
+	~row1 = rcons(v, rcons(w, rcons(u, rempty)))
+	~row2 = rcons(v, rcons(w, rcons(u, rempty)))
+	~row3 = rcons(u, rcons(v, rcons(w, rempty)))
+	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tcons(~row4, tempty))))
+	========================= execution-6
+	exists ~result
+		selectRows(acons(a, acons(c, aempty)), ~al, ~rt) == ~result
+}
+
+local {
+	different consts
+		v : Val
+		w : Val
+	
+	goal
+	~row1 = rcons(v, rempty)
+	~row2 = rcons(v, rcons(w, rempty))
+	~table1 = tcons(~row1, tcons(~row1, tcons(~row1, tempty)))
+	~table2 = tcons(~row2, tcons(~row2, tcons(~row2, tempty)))
+	========================================================== execution-7
+	exists ~result
+		attachColToFrontRaw(~table1, ~table2) == ~result
+	
+}
+
+local {
+	different consts
+		a : Name
+		b : Name
+		c : Name
+		
+		v : Val
+		w : Val
+		
+	goal
+	~al = acons(a, acons(b, acons(c, aempty)))
+	~pred = eq(lookup(b), constant(v))
+	~row1 = rcons(v, rcons(v, rcons(v, rempty)))
+	~row2 = rcons(v, rcons(w, rcons(v, rempty)))
+	~row3 = rcons(w, rcons(v, rcons(w, rempty)))
+	~rt = tcons(~row1, tcons(~row2, tcons(~row3, tempty)))
+	~table = table(~al, ~rt)
+	========== execution-8
+	exists ~result
+		filterRows(~rt, ~al, ~pred) == ~result
+}
+
+local {
+	different consts
+		a : Name
+		b : Name
+		c : Name
+		d : Name
+		e : Name
+		
+		v : Val
+		w : Val
+		x : Val
+		y : Val
+		z : Val
+		
+	goal
+	~al = acons(a, acons(b, acons(c, acons(d, acons(e, aempty)))))
+	~row = rcons(v, rcons(w, rcons(x, rcons(y, rcons(z, rempty)))))
+	~exp = lookup(e)
+	=========== execution-9
+	exists ~result
+	  	evalExpRow(~exp, ~al, ~row) == ~result
+}
+
+local {
+	different consts
+		an : Name
+		am : Name
+		ak : Name
+		
+		tn : FType
+		tm : FType
+		tk : FType
+	
+	
+	goal
+	~al = acons(an, aempty)
+	~tt = ttcons(an, tn, ttcons(am, tm, ttcons(ak, tk, ttempty)))
+	==================================== execution-10
+	exists ~result
+		selectTypeAttrL(~al, ~tt) == ~result
+}
