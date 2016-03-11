@@ -50,3 +50,11 @@ benchmarking/datasets/logs
 *.jar
 
 
+benchmarking/datasets/layout/PerProverPerCategory
+benchmarking/datasets/layout/PerProver
+benchmarking/datasets/layout/PerCompStrat
+benchmarking/datasets/layout/IndividualConfSuccessRatesPerCat
+benchmarking/datasets/layout/DetailedOverviewPerCat
+benchmarking/datasets/layout/30s
+benchmarking/datasets/layout/120s
+benchmarking/datasets/layout/10s
