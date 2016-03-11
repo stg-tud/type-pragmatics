@@ -76,10 +76,10 @@ trait ProverConfig {
 
   def makeCall(file: File, timeout: Int, fullLogs: Boolean): Seq[String]
 
-  def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false): ResultProcessor
+  def newResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false): ResultProcessor
 }
 
-abstract class ResultProcessor(outfile: File, processLogsOnly: Boolean = false) extends ProcessLogger {
+abstract class ResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) extends ProcessLogger {
   def result: ProverResult
 
   //use own writer to make sure that old log files are overwritten (FileProcessLogger uses writer with append = true)

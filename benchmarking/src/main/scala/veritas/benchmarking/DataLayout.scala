@@ -224,10 +224,11 @@ case class DataLayout(files: Seq[File], stimeout: String) {
   }
 
   //keys of maps designate rows
-  private def makeCSVRowBased[K, V](dataMap: (K Map V)): String = {
+  private def makeCSVRowBased[K, V](dataMap: (K Map V), sortValues: ((K, V), (K, V)) => Boolean): String = {
     val b = StringBuilder.newBuilder
+    val orderedMap = dataMap.toList.sortWith(sortValues)
 
-    for ((k, v) <- dataMap) {
+    for ((k, v) <- orderedMap) {
       val csvtransformablek =
         if (k.isInstanceOf[CSVTransformable])
           k.asInstanceOf[CSVTransformable]
@@ -281,23 +282,23 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     b.toString()
   }
 
-  def filterProver[K <: ConfKey, R <: Result](dataMap: K Map R, prover: List[ProverConfEnum.Value]): (K Map R) = {
+  def filterProver[K <: Key, R <: Result](dataMap: K Map R, prover: List[ProverConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (prover contains k.proverConf)) yield (k, v)
   }
 
-  def filterGoalCategory[K <: ConfKey, R <: Result](dataMap: K Map R, goalcats: List[GoalCategoryEnum.Value]): (K Map R) = {
+  def filterGoalCategory[K <: Key, R <: Result](dataMap: K Map R, goalcats: List[GoalCategoryEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (goalcats contains k.goalCategory)) yield (k, v)
   }
 
-  def filterTypingConf[K <: ConfKey, R <: Result](dataMap: K Map R, typingconf: List[TypingConfEnum.Value]): (K Map R) = {
+  def filterTypingConf[K <: Key, R <: Result](dataMap: K Map R, typingconf: List[TypingConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (typingconf contains k.typingConf)) yield (k, v)
   }
 
-  def filterVariableConf[K <: ConfKey, R <: Result](dataMap: K Map R, variableconf: List[VariableConfEnum.Value]): (K Map R) = {
+  def filterVariableConf[K <: Key, R <: Result](dataMap: K Map R, variableconf: List[VariableConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (variableconf contains k.variableConf)) yield (k, v)
   }
 
-  def filterSimplConf[K <: ConfKey, R <: Result](dataMap: K Map R, simplconf: List[SimplConfEnum.Value]): (K Map R) = {
+  def filterSimplConf[K <: Key, R <: Result](dataMap: K Map R, simplconf: List[SimplConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (simplconf contains k.simplConf)) yield (k, v)
   }
 
@@ -312,7 +313,12 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     }
   }
 
-  def doForProvers(proverlist: List[ProverConfEnum.Value],filepath: String, filename: String, layoutfun: (ConfKey Map OverviewResult) => String, data: (ConfKey Map OverviewResult) = overviewMap) = {
+  def doSingle[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
+    val file = s"$filepath/$filename"
+    writeToFile(file, layoutfun(data))
+  }
+
+  def doForProvers[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
     for (prover <- proverlist) {
       val file = s"$filepath/${prover.toString}-$filename"
       val filteredoverview = filterProver(data, List(prover))
@@ -320,10 +326,21 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     }
   }
 
-  def doForallProvers(filepath: String, filename: String, layoutfun: (ConfKey Map OverviewResult) => String, data: (ConfKey Map OverviewResult) = overviewMap) =
+  def doForCategories[K <: Key, R <: Result](catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
+    for (cat <- catlist) {
+      val file = s"$filepath/${cat.toString}-$filename"
+      val filteredoverview = filterGoalCategory(data, List(cat))
+      writeToFile(file, layoutfun(filteredoverview))
+    }
+  }
+
+  def doForallProvers[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
     doForProvers(ProverConfEnum.iterator.toList, filepath, filename, layoutfun, data)
 
-  def doForProversCategories(proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (ConfKey Map OverviewResult) => String, data: (ConfKey Map OverviewResult) = overviewMap) = {
+  def doForallCategories[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
+    doForCategories(GoalCategoryEnum.iterator.toList, filepath, filename, layoutfun, data)
+
+  def doForProversCategories[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
     for {prover <- proverlist
          cat <- catlist} {
       val file = s"$filepath/${prover.toString}-${cat.toString}-$filename"
@@ -332,18 +349,18 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     }
   }
 
-  def doForallProversCategories(filepath: String, filename: String, layoutfun: (ConfKey Map OverviewResult) => String, data: (ConfKey Map OverviewResult) = overviewMap) =
+  def doForallProversCategories[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
     doForProversCategories(ProverConfEnum.iterator.toList, GoalCategoryEnum.iterator.toList, filepath, filename, layoutfun, data)
 
   // merges data of the given categories in one table
-  def doForProversCategoriesMerge(proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (ConfKey Map OverviewResult) => String, data: (ConfKey Map OverviewResult) = overviewMap) = {
+  def doForProversCategoriesMerge[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
     val filtereddata = filterGoalCategory(data, catlist)
     doForProvers(proverlist, filepath, filename, layoutfun, filtereddata)
   }
 
   private def sortConfsFunction[K] = (k1: K, k2: K) => k1.toString < k2.toString
 
-  private def layoutSuccessRate[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult) : String = {
+  private def layoutSuccessRateIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult) : String = {
 
     val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
       val succRateList = (for ((k, v) <- filteredoverview
@@ -355,7 +372,16 @@ case class DataLayout(files: Seq[File], stimeout: String) {
   }
 
 
-  def layoutAvgSuccessTime[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult) : String = {
+  private def layoutSuccessRateOfCompStrat(filteredoverview: ConfKey Map OverviewResult) : String = {
+    val groupedoverview = filteredoverview.groupBy[String](kr => createShortenedConfCell(kr._1))
+    val intermediateMap: (String Map List[Double]) = for ((cnf, confmap) <- groupedoverview) yield
+      cnf -> (confmap.toList map (kr => kr._2.succrate))
+
+    makeCSVColBased(intermediateMap, sortConfsFunction[String])
+  }
+
+
+  private def layoutAvgSuccessTimeIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: Key => confopt.Value)(filteredoverview: ConfKey Map OverviewResult) : String = {
 
     val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
       val avgSuccTimeList = (for ((k, v) <- filteredoverview
@@ -367,51 +393,113 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     makeCSVColBased(intermediateMap, sortConfsFunction[confopt.Value])
   }
 
+  private def createShortenedConfCell(ck: Key): String = {
+    val typshort = ck.typingConf match {
+      case TypingConfEnum.Barefof => "b"
+      case TypingConfEnum.Tff => "t"
+      case TypingConfEnum.Guardedfof => "g"
+    }
+
+    val varshort = ck.variableConf match {
+      case VariableConfEnum.Inlievery => "in"
+      case VariableConfEnum.Nameevery => "ne"
+      case VariableConfEnum.Namparres => "np"
+      case VariableConfEnum.Unchanged => "u"
+    }
+
+    val simplshort = ck.simplConf match {
+      case SimplConfEnum.Nonsimpl => "n"
+      case SimplConfEnum.Logsimpl => "l"
+      case SimplConfEnum.Patsimpl => "p"
+    }
+
+    s"$typshort$varshort$simplshort"
+  }
+
+  private def layoutRawDetailedTime(filteredraw: (RawKey Map RawResult)) : String = {
+
+    //transform into triple with (filename, config, time)
+    val intermediateList: Iterable[(String, String, Double)] = for ((k, v) <- filteredraw) yield {
+      (k.filename, createShortenedConfCell(k), v.provertime)
+    }
+
+    val confgrouped = intermediateList.groupBy(_._2) //group by configuration shorthand
+
+    //throw away parts of value that are not needed
+    //yields shortconf -> List of provertimes (one for each file)
+    val intermediateMap: (String Map List[Double]) = for ((k,v) <- confgrouped) yield
+      (k -> (for (t <- v) yield t._3).toList)
+
+
+    makeCSVColBased(intermediateMap, sortConfsFunction[String])
+
+  }
+
+  private def layoutIndividualSuccessRates(filteredoverview: (ConfKey Map OverviewResult)) : String = {
+    val intermediateMap: (String Map Double) = for ((k, v) <- filteredoverview) yield {
+      (createShortenedConfCell(k) -> v.succrate)
+    }
+
+    makeCSVRowBased(intermediateMap, (p1 : (String, Double), p2: (String, Double)) => p1._2 > p2._2) //sort descending
+  }
+
 
   def layoutAll(): Unit = {
     println("Layouting!")
 
     //Overview graphs all categories for each prover, success rates & average success time
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_goalcategory.csv", layoutSuccessRate(GoalCategoryEnum)(k => k.goalCategory))
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_goalcategory.csv", layoutAvgSuccessTime(GoalCategoryEnum)(k => k.goalCategory))
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTime(TypingConfEnum)(k => k.typingConf))
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTime(VariableConfEnum)(k => k.variableConf))
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTime(SimplConfEnum)(k => k.simplConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_goalcategory.csv", layoutAvgSuccessTimeIndividualOpt(GoalCategoryEnum)(k => k.goalCategory))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf))
 
     //Overview graphs per category for each prover, success rates & average success time
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTime(TypingConfEnum)(k => k.typingConf))
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTime(VariableConfEnum)(k => k.variableConf))
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTime(SimplConfEnum)(k => k.simplConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf))
+
+    //Detailed overview (based on raw data): performance of individual conf combinations in each category
+    doForallProversCategories(s"datasets/layout/DetailedOverviewPerCat/$stimeout", "time_per_file.csv", layoutRawDetailedTime, rawMap)
+
+    //Detailed layout (based on overview data): success rates per individual conf combination in each category
+    doForallProversCategories(s"datasets/layout/IndividualConfSuccessRatesPerCat/$stimeout", "individual_conf_succ_rate.csv", layoutIndividualSuccessRates)
+
+    //Success rates for individual combinations
+    doSingle(s"datasets/layout/PerCompStrat/$stimeout", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat) //all provers and all categories together
+    doForallProvers(s"datasets/layout/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
+    doForallCategories(s"datasets/layout/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
+    doForallProversCategories(s"datasets/layout/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
 
 
-    //layout for paper graph 1 (success rate per goal category, all provers except princess)
     val allpbutprincess = List(ProverConfEnum.Vampire_4, ProverConfEnum.Vampire_3, ProverConfEnum.Eprover)
     val allcatbutexecution = List(GoalCategoryEnum.Synthesis, GoalCategoryEnum.Test, GoalCategoryEnum.Proof, GoalCategoryEnum.Counterexample)
 
-    doForProvers(allpbutprincess,
-      s"datasets/layout/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRate(GoalCategoryEnum)(k => k.goalCategory))
+    //layout for paper graph 1 (success rate per goal category, all provers)
+    doForProvers(ProverConfEnum.iterator.toList,
+      s"datasets/layout/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory))
 
     //layout for paper graph 2 (influence of sort encoding, success rate per sort encoding alternative, all provers except princess, all categories together except execution)
     //TODO maybe include execution
     doForProversCategoriesMerge(allpbutprincess, allcatbutexecution,
-      s"datasets/layout/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRate(TypingConfEnum)(k => k.typingConf))
+      s"datasets/layout/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
 
     //layout for paper graph 3 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: counterexample + synthesis)
     doForProversCategoriesMerge(allpbutprincess, List(GoalCategoryEnum.Counterexample, GoalCategoryEnum.Synthesis),
-      s"datasets/layout/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
+      s"datasets/layout/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
 
     //layout for paper graph 4 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: proof + test)
     doForProversCategoriesMerge(allpbutprincess, List(GoalCategoryEnum.Proof, GoalCategoryEnum.Test),
-      s"datasets/layout/$stimeout/Graph4", "successrate_per_variableconfiguration.csv", layoutSuccessRate(VariableConfEnum)(k => k.variableConf))
+      s"datasets/layout/$stimeout/Graph4", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
 
     //layout for paper graph 5 (influence of simplifications, success rate per simplification alternative, all provers except princess, all categories)
-    doForProvers(allpbutprincess, s"datasets/layout/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRate(SimplConfEnum)(k => k.simplConf))
+    doForProvers(allpbutprincess, s"datasets/layout/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
 
   }
 }

@@ -7,59 +7,103 @@ library(pryr)
 # returns string w/o leading or trailing whitespace (from Stackoverflow)
 trim <- function (x) gsub("^\\s+|\\s+$", "", x)
 
-boxplot1topdf <- function(infile, title="", xlab="", ylab="", ylim=c(0,100), fontsizex=1) {
+boxplot1topdf <- function(infile, title="", xlab="", ylab="", ylim=c(0,100), fontsizex=1, las=1) {
     outfilesplit <- unlist(strsplit(infile, "[/]"))
-    filename <- outfilesplit[2]
+    filename <- tail(outfilesplit, 1) # assume that last element is filename
     filenamenoending <- substr(filename,1,nchar(filename)-4)
-    outputpath <- file.path(outfilesplit[1], "graphs")
+    prepath <- paste(outfilesplit[1:(length(outfilesplit)-1)], sep="/", collapse="/")
+    outputpath <- file.path(prepath, "graphs")
     dir.create(outputpath, recursive=TRUE, showWarnings=FALSE)
     fulloutputpath <- paste(outputpath, "/", filenamenoending, ".pdf", sep="")
     indata <- read.csv(infile, header=TRUE, sep=",")
     pdf(fulloutputpath)
     boxplot(indata, data=indata, main=title,
-            xlab=xlab, ylab=ylab, ylim=ylim, cex.axis=fontsizex)
+            xlab=xlab, ylab=ylab, ylim=ylim, cex.axis=fontsizex, las=las)
+    # las=1: horizontal (normal) label orientation x axis
+    # las=2: vertical label orientation x-axis
     dev.off()
 }
 
-# listSuccRatePerProver <- list.files("PerProver/SuccRate", pattern="*.csv", full.names=TRUE)
-# listAvgSuccTimePerProver <- list.files("PerProver/AvgSuccTime", pattern="*.csv", full.names=TRUE)
+barplot1topdf <- function(infile, title="", xlab="", ylab="", ylim=c(0,100), fontsizex=1, las=1) {
+    outfilesplit <- unlist(strsplit(infile, "[/]"))
+    filename <- tail(outfilesplit, 1) # assume that last element is filename
+    filenamenoending <- substr(filename,1,nchar(filename)-4)
+    prepath <- paste(outfilesplit[1:(length(outfilesplit)-1)], sep="/", collapse="/")
+    outputpath <- file.path(prepath, "graphs")
+    dir.create(outputpath, recursive=TRUE, showWarnings=FALSE)
+    fulloutputpath <- paste(outputpath, "/", filenamenoending, ".pdf", sep="")
+    indata <- read.csv(infile, header=FALSE, sep=",")
+    pdf(fulloutputpath)
+    bp <- barplot(t(indata[ , -1]), ylim=ylim, las=las, ylab=ylab)
+    axis(side = 1, at = bp, labels = indata$V1, las=las)
+    # las=1: horizontal (normal) label orientation x axis
+    # las=2: vertical label orientation x-axis
+    dev.off()
+}
 
-# listSuccRatePerProverPerCategory <- list.files("PerProverPerCategory/SuccRate", pattern="*.csv", full.names=TRUE)
-# listAvgSuccTimePerProverPerCategory <- list.files("PerProverPerCategory/AvgSuccTime", pattern="*.csv", full.names=TRUE)
+### Complete boxplots for getting an overview
+for (t in c(10, 30, 120)) {
+    listSuccRatePerProver <- list.files(paste("PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
+    listAvgSuccTimePerProver <- list.files(paste("PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
 
-# lapply(listSuccRatePerProver, partial(boxplot1topdf, ylab="Success rate in each configuration (%)"))
-# lapply(listAvgSuccTimePerProver, partial(boxplot1topdf, ylab="Average time (ms) for successful proofs"))
+    listSuccRatePerProverPerCategory <- list.files(paste("PerProverPerCategory/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
+    listAvgSuccTimePerProverPerCategory <- list.files(paste("PerProverPerCategory/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
 
-# lapply(listSuccRatePerProverPerCategory, partial(boxplot1topdf, ylab="Success rate in each configuration (%)"))
-# lapply(listAvgSuccTimePerProverPerCategory, partial(boxplot1topdf, ylab="Average time (ms) for successful proofs"))
+    mstimeout <- t*1000
+    lapply(listSuccRatePerProver, partial(boxplot1topdf, ylab="Success rate in each configuration (%)"))
+    lapply(listAvgSuccTimePerProver, partial(boxplot1topdf, ylab="Average time (ms) for successful proofs", ylim=c(0,mstimeout)))
+
+    lapply(listSuccRatePerProverPerCategory, partial(boxplot1topdf, ylab="Success rate in each configuration (%)"))
+    lapply(listAvgSuccTimePerProverPerCategory, partial(boxplot1topdf, ylab="Average time (ms) for successful proofs", ylim=c(0,mstimeout)))
+
+    listTimesPerProverPerCategory <- list.files(paste("DetailedOverviewPerCat/", t, "s", sep=""), pattern="*.csv", full.names=TRUE)
+    lapply(listTimesPerProverPerCategory, partial(boxplot1topdf, ylab="Prover time (ms) per goal", ylim=c(0,mstimeout), las=2))
 
 
-### Boxplots for first paper graph (goal categories overview)
+    listIndividualSuccessRatesPerProverPerCategory <- list.files(paste("IndividualConfSuccessRatesPerCat/", t, "s", sep=""), pattern="*.csv", full.names=TRUE)
+    lapply(listIndividualSuccessRatesPerProverPerCategory, partial(barplot1topdf, ylab="Success rate (%)", las=2))
 
-boxplot1topdf("Graph1/eprover-successrate_per_goalcategory.csv", title="Eprover", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
-boxplot1topdf("Graph1/vampire-4.0-successrate_per_goalcategory.csv", title="Vampire 4.0", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
-boxplot1topdf("Graph1/vampire-3.0-successrate_per_goalcategory.csv", title="Vampire 3.0", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
+    listStratPerformances <- list.files(paste("PerCompStrat/", t, "s", sep=""), pattern="*.csv", full.names=TRUE)
+    lapply(listStratPerformances, partial(boxplot1topdf, ylab="Success rate (%)"), las=2)
+    
+    
+}
 
-### Boxplots for second paper graph (sorting alternatives overview all categories)
-boxplot1topdf("Graph2/eprover-successrate_per_typingconfiguration.csv", title="Eprover", ylab="Success rate (%) for compilation strategy")
-boxplot1topdf("Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
-boxplot1topdf("Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+### Boxplots for first paper graph (goal categories overview), for all different timeouts
+for (t in c("10s", "30s", "120s")) {
+    boxplot1topdf(paste(t, "/", "Graph1/eprover-successrate_per_goalcategory.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
+    boxplot1topdf(paste(t, "/", "Graph1/princess-successrate_per_goalcategory.csv", sep=""), title="Princess CASC version", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
+    boxplot1topdf(paste(t, "/", "Graph1/vampire-4.0-successrate_per_goalcategory.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
+    boxplot1topdf(paste(t, "/", "Graph1/vampire-3.0-successrate_per_goalcategory.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
+}
 
-### Boxplots for third paper graph (variable alternatives overview, counterexample and synthesis)
-boxplot1topdf("Graph3/eprover-successrate_per_variableconfiguration.csv", title="Eprover", ylab="Success rate (%) for compilation strategy")
-boxplot1topdf("Graph3/vampire-3.0-successrate_per_variableconfiguration.csv", title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
-boxplot1topdf("Graph3/vampire-4.0-successrate_per_variableconfiguration.csv", title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+### Boxplots for second paper graph (sorting alternatives overview all categories), for all different timeouts
+for (t in c("10s", "30s", "120s")) {
+    boxplot1topdf(paste(t, "/", "Graph2/eprover-successrate_per_typingconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
+    boxplot1topdf(paste(t, "/", "Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
+    boxplot1topdf(paste(t, "/", "Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+}
 
-### Boxplots for fourth paper graph (variable alternatives overview, proof and test)
-boxplot1topdf("Graph4/eprover-successrate_per_variableconfiguration.csv", title="Eprover", ylab="Success rate (%) for compilation strategy")
-boxplot1topdf("Graph4/vampire-3.0-successrate_per_variableconfiguration.csv", title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
-boxplot1topdf("Graph4/vampire-4.0-successrate_per_variableconfiguration.csv", title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+### Boxplots for third paper graph (variable alternatives overview, counterexample and synthesis), for all different timeouts
+for (t in c("10s", "30s", "120s")) {
+    boxplot1topdf(paste(t, "/", "Graph3/eprover-successrate_per_variableconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
+    boxplot1topdf(paste(t, "/", "Graph3/vampire-3.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
+    boxplot1topdf(paste(t, "/", "Graph3/vampire-4.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+}
 
-### Boxplots for fifth paper graph (simplification alternatives, overview all categories)
-boxplot1topdf("Graph5/eprover-successrate_per_simplificationconfiguration.csv", title="Eprover", ylab="Success rate (%) for compilation strategy")
-boxplot1topdf("Graph5/vampire-3.0-successrate_per_simplificationconfiguration.csv", title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
-boxplot1topdf("Graph5/vampire-4.0-successrate_per_simplificationconfiguration.csv", title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+### Boxplots for fourth paper graph (variable alternatives overview, proof and test), for all different timeouts
+for (t in c("10s", "30s", "120s")) {
+    boxplot1topdf(paste(t, "/", "Graph4/eprover-successrate_per_variableconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
+    boxplot1topdf(paste(t, "/", "Graph4/vampire-3.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
+    boxplot1topdf(paste(t, "/", "Graph4/vampire-4.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+}
 
+### Boxplots for fifth paper graph (simplification alternatives, overview all categories), for all different timeouts
+for (t in c("10s", "30s", "120s")) {
+    boxplot1topdf(paste(t, "/", "Graph5/eprover-successrate_per_simplificationconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
+    boxplot1topdf(paste(t, "/", "Graph5/vampire-3.0-successrate_per_simplificationconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
+    boxplot1topdf(paste(t, "/", "Graph5/vampire-4.0-successrate_per_simplificationconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+}
 
 
 

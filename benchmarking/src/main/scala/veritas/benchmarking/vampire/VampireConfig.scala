@@ -95,18 +95,18 @@ case class VampireConfig(version: String, confname: String = "vampire",
 //  }
 
 
-  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = VampireResultProcessor(timeout, outfile, processLogsOnly)
+  override def newResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) = VampireResultProcessor(outfile, defaultTimeout, processLogsOnly)
 
   val parenDigits = Pattern.compile("\\(\\d+")
   val braceDigits = Pattern.compile("\\{\\d+")
 
-  case class VampireResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
+  case class VampireResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, defaultTimeout, processLogsOnly) {
 
     private var clauses: GrowingArray[VampireClause] = _
     private var maxindex: Int = _
 
     var status: ProverStatus = _
-    var time: Option[Double] = _
+    var time: Option[Double] = Some(defaultTimeout)
 
     var proofBuilder: StringBuilder = _
     var proof: String = _
@@ -373,7 +373,7 @@ case class VampireConfig(version: String, confname: String = "vampire",
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown - Parse error?"), Some(0.0), VampireTrace((new GrowingArray[VampireClause](1)).finalizedArray, VampireConfig.this))
+        new ProverResult(Inconclusive("Unknown - Parse error?"), Some(defaultTimeout), VampireTrace((new GrowingArray[VampireClause](1)).finalizedArray, VampireConfig.this))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails(proof, lemmas))
         case Disproved => new ProverResult(Disproved, time, model)

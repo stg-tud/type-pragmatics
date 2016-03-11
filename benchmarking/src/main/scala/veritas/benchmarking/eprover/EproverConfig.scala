@@ -37,12 +37,12 @@ case class EproverConfig()
       None
   }
 
-  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = EproverResultProcessor(timeout, outfile, processLogsOnly)
+  override def newResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) = EproverResultProcessor(outfile, defaultTimeout, processLogsOnly)
 
-  case class EproverResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
+  case class EproverResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, defaultTimeout, processLogsOnly) {
 
     var status: ProverStatus = _
-    var time: Option[Double] = Some(timeout) // default value: timeout for prover (since eprover does not report a time if it was unsuccessful)
+    var time: Option[Double] = Some(defaultTimeout) // default value: timeout for prover (since eprover does not report a time if it was unsuccessful)
 
     var proofBuilder: StringBuilder = _
     var proof: String = null
@@ -95,7 +95,7 @@ case class EproverConfig()
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown"), time, StringDetails("Inconclusive"))
+        new ProverResult(Inconclusive("Unknown"), Some(defaultTimeout), StringDetails("Inconclusive"))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails(proof, lemmas))
         case Disproved => new ProverResult(Disproved, time, StringDetails("Disproved"))

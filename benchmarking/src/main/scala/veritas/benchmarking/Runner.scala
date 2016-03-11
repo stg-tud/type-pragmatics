@@ -42,7 +42,7 @@ case class Runner(config: Config) {
     case (proverConfig, file, outfile) => {
       val call = proverConfig.makeCall(file, config.timeout, config.fullLogs)
       val (result, proctime) = Runner.exec(call, config.timeout, config.logExec,
-        () => proverConfig.newResultProcessor(config.timeout, outfile))
+        () => proverConfig.newResultProcessor(outfile, config.timeout))
       val tooltime = result.timeSeconds
       val time = tooltime match {
         case None => proctime
@@ -179,7 +179,7 @@ case class Runner(config: Config) {
       val proverconf = getProverConfig(fp)
       val veritasconf = extractVeritasConfig(fp)
 
-      val resultproc = proverconf.newResultProcessor(timeout, file, true)
+      val resultproc = proverconf.newResultProcessor(file, timeout, true)
       resultproc.processLogs()
 
       val filesummary = FileSummary(veritasconf, inputfile, proverconf, resultproc.result, timeout, resultproc.result.timeSeconds.getOrElse(0.0))

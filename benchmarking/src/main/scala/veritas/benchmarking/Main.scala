@@ -126,8 +126,10 @@ object Main extends App {
 
 
         for (dirseq <- folderlist; dir <- dirseq) {
-          val newconfig = config.copy(files = Seq(dir))
+          val newconfig1 = config.copy(files = Seq(dir))
           val dirname = dir.getName
+          val time = dirname.dropRight(1).toInt
+          val newconfig = newconfig1.copy(timeout = time)
           val runner = new Runner(newconfig)
           println(s"Calling runner for $dirname...")
           runner.run()

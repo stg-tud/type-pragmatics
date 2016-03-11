@@ -28,12 +28,12 @@ case class BeagleConfig()
     call
   }
 
-  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = BeagleResultProcessor(timeout, outfile, processLogsOnly)
+  override def newResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) = BeagleResultProcessor(outfile, defaultTimeout, processLogsOnly)
 
-  case class BeagleResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
+  case class BeagleResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, defaultTimeout, processLogsOnly) {
 
     var status: ProverStatus = _
-    var time: Option[Double] = _
+    var time: Option[Double] = Some(defaultTimeout)
 
     var proofBuilder: StringBuilder = _
     var proof: String = null
@@ -68,7 +68,7 @@ case class BeagleConfig()
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown"), time, StringDetails("Inconclusive"))
+        new ProverResult(Inconclusive("Unknown"), Some(defaultTimeout), StringDetails("Inconclusive"))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails(proof))
         case Disproved => new ProverResult(Disproved, time, StringDetails("Disproved"))

@@ -38,12 +38,12 @@ case class PrincessCascConfig()
     }
   }
 
-  override def newResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) = PrincessResultProcessor(timeout, outfile, processLogsOnly)
+  override def newResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) = PrincessResultProcessor(outfile, defaultTimeout, processLogsOnly)
 
-  case class PrincessResultProcessor(timeout: Int, outfile: File, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, processLogsOnly) {
+  case class PrincessResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false) extends ResultProcessor(outfile, defaultTimeout, processLogsOnly) {
 
     var status: ProverStatus = _
-    var time: Option[Double] = _
+    var time: Option[Double] = Some(defaultTimeout)
 
     var proofBuilder: StringBuilder = _
 
@@ -85,7 +85,7 @@ case class PrincessCascConfig()
 
     override def result =
       if (status == null)
-        new ProverResult(Inconclusive("Unknown"), Some(0.0), StringDetails("Inconclusive"))
+        new ProverResult(Inconclusive("Unknown"), Some(defaultTimeout), StringDetails("Inconclusive"))
       else status match {
         case Proved => new ProverResult(Proved, time, StringDetails("", lemmas))
         case Disproved => new ProverResult(Disproved, time, StringDetails("Disproved"))
