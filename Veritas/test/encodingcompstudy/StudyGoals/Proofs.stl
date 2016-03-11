@@ -40,25 +40,25 @@ local {
 	rowIn(~r, ~d2)
 }
 
-// goal below can be proven easily
-// goal
-// lookupContext(~tn, ~TTC) == someTType(~TT)
-// ===================================================== proof-3-1
-// lookupContext(~tn, bindContext(~tn1, ~TT, ~TTC)) == someTType(~TT)
-
-
-//proof should be combination of applying typing inversion lemma and 
-//inferring commented theorem above - but seems to be difficult for Vampire
-goal
-~TTC |- selectFromWhere(some(~al), ~tn, ~p) : ~TT
-===================================================== proof-3
-bindContext(~tn1, ~TT, ~TTC) |- selectFromWhere(some(~al), ~tn, ~p) : ~TT
-
+local {
+	// axiom
+	// lookupContext(~tn, ~TTC) == someTType(~TT)
+	// ===================================================== proof-3-1
+	// lookupContext(~tn, bindContext(~tn1, ~TT, ~TTC)) == someTType(~TT)
+	
+	
+	//proof should be combination of applying typing inversion lemma and 
+	//inferring commented theorem above - but seems to be difficult for Vampire
+	goal
+	~TTC |- selectFromWhere(some(~al), ~tn, ~p) : ~TT
+	===================================================== proof-3
+	bindContext(~tn1, ~TT, ~TTC) |- selectFromWhere(some(~al), ~tn, ~p) : ~TT
+}
 
 // select all is identity
 goal
-~TTC |- tvalue(~table) : ~TT
-lookupStore(~name, ~ts) = someTable(~table)
+lookupStore(~name, ~ts) == someTable(~table)
+filterTable(~table, ptrue) == ~table
 ========================================== proof-4
 reduce(selectFromWhere(all(), ~name, ptrue()), ~ts) == someQuery(tvalue(~table))
 
@@ -88,7 +88,6 @@ goal
 goal
 ~TTC |- ~q : ~TT
 isValue(~q)
-StoreContextConsistent(~ts, ~TTC)
 ==================================== proof-7
 reduce(~q, ~ts) == noQuery
 
@@ -127,10 +126,24 @@ reduce(~tmp, ~ts) == ~result
 reduce(Intersection(tvalue(~t1), tvalue(~t2)), ~ts) == ~result
 
 
-// adding a table to store and contexts preserves consistency
-goal
-StoreContextConsistent(~ts, ~ttc)
-welltypedtable(~tt, ~t)
-==================================================================== proof-10
-StoreContextConsistent(bindStore(~tn, ~t, ~ts), bindContext(~tn, ~tt, ~ttc))
+local {
+	consts
+	  rt : RawTable
+	
+	axiom
+	~rt1 = rt
+	welltypedRawtable(~tt, ~rt1)
+	welltypedRawtable(~tt, ~rt2)
+	rawIntersection(~rt1, ~rt2) == ~rt3
+	---------------------------------------------- proof-10-IH
+	welltypedRawtable(~tt, ~rt3)
+	
+	goal
+	~rt1 = tcons(~r, rt)
+	welltypedRawtable(~tt, ~rt1)
+	welltypedRawtable(~tt, ~rt2)
+	rawIntersection(~rt1, ~rt2) == ~rt3
+	---------------------------------------------- proof-10
+	welltypedRawtable(~tt, ~rt3)
+}
 
