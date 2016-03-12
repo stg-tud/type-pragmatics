@@ -485,21 +485,26 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     doForProvers(ProverConfEnum.iterator.toList,
       s"datasets/layout/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory))
 
+    //layout for paper graph 2 (performance of all comp strategies for all provers and categories together)
+    doSingle(s"datasets/layout/$stimeout/Graph2", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat)
+
+    //OLD
+
     //layout for paper graph 2 (influence of sort encoding, success rate per sort encoding alternative, all provers except princess, all categories together except execution)
     //TODO maybe include execution
-    doForProversCategoriesMerge(allpbutprincess, allcatbutexecution,
-      s"datasets/layout/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
+    //doForProversCategoriesMerge(allpbutprincess, allcatbutexecution,
+    //  s"datasets/layout/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
 
     //layout for paper graph 3 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: counterexample + synthesis)
-    doForProversCategoriesMerge(allpbutprincess, List(GoalCategoryEnum.Counterexample, GoalCategoryEnum.Synthesis),
-      s"datasets/layout/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
+    //doForProversCategoriesMerge(allpbutprincess, List(GoalCategoryEnum.Counterexample, GoalCategoryEnum.Synthesis),
+    //  s"datasets/layout/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
 
     //layout for paper graph 4 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: proof + test)
-    doForProversCategoriesMerge(allpbutprincess, List(GoalCategoryEnum.Proof, GoalCategoryEnum.Test),
-      s"datasets/layout/$stimeout/Graph4", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
+    //doForProversCategoriesMerge(allpbutprincess, List(GoalCategoryEnum.Proof, GoalCategoryEnum.Test),
+      //s"datasets/layout/$stimeout/Graph4", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
 
     //layout for paper graph 5 (influence of simplifications, success rate per simplification alternative, all provers except princess, all categories)
-    doForProvers(allpbutprincess, s"datasets/layout/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+    //doForProvers(allpbutprincess, s"datasets/layout/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
 
   }
 }

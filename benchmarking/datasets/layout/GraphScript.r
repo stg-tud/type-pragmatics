@@ -41,8 +41,8 @@ barplot1topdf <- function(infile, title="", xlab="", ylab="", ylim=c(0,100), fon
     dev.off()
 }
 
-### Complete boxplots for getting an overview
-for (t in c(10, 30, 120)) {
+### Complete boxplots for getting an overview of the data
+for (t in c(10, 30, 60, 120)) {
     listSuccRatePerProver <- list.files(paste("PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
     listAvgSuccTimePerProver <- list.files(paste("PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
 
@@ -70,40 +70,47 @@ for (t in c(10, 30, 120)) {
 }
 
 ### Boxplots for first paper graph (goal categories overview), for all different timeouts
-for (t in c("10s", "30s", "120s")) {
+for (t in c("10s", "30s", "60s", "120s")) {
     boxplot1topdf(paste(t, "/", "Graph1/eprover-successrate_per_goalcategory.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
     boxplot1topdf(paste(t, "/", "Graph1/princess-successrate_per_goalcategory.csv", sep=""), title="Princess CASC version", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
     boxplot1topdf(paste(t, "/", "Graph1/vampire-4.0-successrate_per_goalcategory.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
     boxplot1topdf(paste(t, "/", "Graph1/vampire-3.0-successrate_per_goalcategory.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy", fontsizex=0.9)
 }
 
-### Boxplots for second paper graph (sorting alternatives overview all categories), for all different timeouts
-for (t in c("10s", "30s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph2/eprover-successrate_per_typingconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
-    boxplot1topdf(paste(t, "/", "Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
-    boxplot1topdf(paste(t, "/", "Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+### Boxplots for second paper graph (performance of all comp strategies, all provers and categories together)
+for (t in c("10s", "30s", "60s", "120s")) {
+    boxplot1topdf(paste(t, "/", "Graph2/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%) for compilation strategy", las=2) 
 }
+
+### CURRENTLY OUTDATED
+
+### Boxplots for second paper graph (sorting alternatives overview all categories), for all different timeouts
+#for (t in c("10s", "30s", "120s")) {
+#    boxplot1topdf(paste(t, "/", "Graph2/eprover-successrate_per_typingconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
+#    boxplot1topdf(paste(t, "/", "Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
+#    boxplot1topdf(paste(t, "/", "Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+#}
 
 ### Boxplots for third paper graph (variable alternatives overview, counterexample and synthesis), for all different timeouts
-for (t in c("10s", "30s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph3/eprover-successrate_per_variableconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
-    boxplot1topdf(paste(t, "/", "Graph3/vampire-3.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
-    boxplot1topdf(paste(t, "/", "Graph3/vampire-4.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
-}
+#for (t in c("10s", "30s", "120s")) {
+#    boxplot1topdf(paste(t, "/", "Graph3/eprover-successrate_per_variableconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
+#    boxplot1topdf(paste(t, "/", "Graph3/vampire-3.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
+#    boxplot1topdf(paste(t, "/", "Graph3/vampire-4.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+#}
 
 ### Boxplots for fourth paper graph (variable alternatives overview, proof and test), for all different timeouts
-for (t in c("10s", "30s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph4/eprover-successrate_per_variableconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
-    boxplot1topdf(paste(t, "/", "Graph4/vampire-3.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
-    boxplot1topdf(paste(t, "/", "Graph4/vampire-4.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
-}
+#for (t in c("10s", "30s", "120s")) {
+#    boxplot1topdf(paste(t, "/", "Graph4/eprover-successrate_per_variableconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
+ #   boxplot1topdf(paste(t, "/", "Graph4/vampire-3.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
+  #  boxplot1topdf(paste(t, "/", "Graph4/vampire-4.0-successrate_per_variableconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+#}
 
 ### Boxplots for fifth paper graph (simplification alternatives, overview all categories), for all different timeouts
-for (t in c("10s", "30s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph5/eprover-successrate_per_simplificationconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
-    boxplot1topdf(paste(t, "/", "Graph5/vampire-3.0-successrate_per_simplificationconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
-    boxplot1topdf(paste(t, "/", "Graph5/vampire-4.0-successrate_per_simplificationconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
-}
+#for (t in c("10s", "30s", "120s")) {
+ #   boxplot1topdf(paste(t, "/", "Graph5/eprover-successrate_per_simplificationconfiguration.csv", sep=""), title="Eprover", ylab="Success rate (%) for compilation strategy")
+  #  boxplot1topdf(paste(t, "/", "Graph5/vampire-3.0-successrate_per_simplificationconfiguration.csv", sep=""), title="Vampire 3.0", ylab="Success rate (%) for compilation strategy")
+   # boxplot1topdf(paste(t, "/", "Graph5/vampire-4.0-successrate_per_simplificationconfiguration.csv", sep=""), title="Vampire 4.0", ylab="Success rate (%) for compilation strategy")
+#}
 
 
 
