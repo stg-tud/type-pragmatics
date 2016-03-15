@@ -485,28 +485,29 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     doForProvers(ProverConfEnum.iterator.toList,
       s"datasets/layout/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory))
 
-    //layout for paper graph RQ2 (performance of all comp strategies for all provers and categories together)
-    doSingle(s"datasets/layout/$stimeout/Graph2", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat)
 
-    //layout for paper graph RQ3 (influence of sort encoding, success rate per sort encoding alternative, all provers except princess, all categories together except execution)
+    //layout for paper graph RQ2 (influence of sort encoding, success rate per sort encoding alternative, all provers except princess, all categories together except execution)
     doForallProvers(
-      s"datasets/layout/$stimeout/Graph3", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
+      s"datasets/layout/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
 
-    //layout for paper graph RQ4 (influence of variable encoding, success rate per sort encoding alternative, all provers and all categories)
+    //layout for paper graph RQ3 (influence of variable encoding, success rate per sort encoding alternative, all provers and all categories)
     doForallProvers(
-      s"datasets/layout/$stimeout/Graph4", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
+      s"datasets/layout/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
 
-    //layout for paper graph RQ5 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: proof + test)
+    //layout for paper graph RQ4 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: proof + test)
     doForallProvers(
-      s"datasets/layout/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+      s"datasets/layout/$stimeout/Graph4", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
 
-    //layout for paper graph 5 (influence of simplifications, success rate per simplification alternative, all provers except princess, all categories)
+    //layout for paper graph RQ5 (influence of simplifications, success rate per simplification alternative, all provers except princess, all categories)
     val filteroutgoodtyping = filterTypingConf(overviewMap, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
     val filteroutgoodinlining = filterVariableConf(filteroutgoodtyping, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
     val filtered = filterProver(filteroutgoodinlining, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
-    doSingle(s"datasets/layout/$stimeout/Graph6", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filtered)
+    doSingle(s"datasets/layout/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filtered)
 
     //doForProvers(allpbutprincess, s"datasets/layout/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+
+    //layout for paper graph RQ6 (performance of all comp strategies for all provers and categories together)
+    doSingle(s"datasets/layout/$stimeout/Graph6", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat)
 
   }
 }
