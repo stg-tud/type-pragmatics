@@ -17,8 +17,3 @@ final case class TffAnnotated(name: String, role: FormulaRole, formula: Fof) ext
   }
 }
 
-/**
- * All typed first-order formula operators extend this trait,
- * extending Fof with the tff-specific elements
- */
-trait Tff extends Fof
