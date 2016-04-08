@@ -2,8 +2,9 @@ package de.tu_darmstadt.veritas.backend.fool
 
 import de.tu_darmstadt.veritas.backend.fof.Term
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
+import de.tu_darmstadt.veritas.backend.fof.PlainTerm
 
-final case class LetIn(bindings: Seq[(Term, Term)], body: Term) extends Term {
+final case class LetIn(bindings: Seq[(Term, Term)], body: Term) extends PlainTerm {
   require(bindings.length > 0, "Cannot construct a let-in with 0 bindings")
   
   override def prettyPrint(writer: PrettyPrintWriter) = {

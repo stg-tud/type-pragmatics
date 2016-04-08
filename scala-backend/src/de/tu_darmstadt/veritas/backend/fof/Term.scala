@@ -21,7 +21,7 @@ abstract class FunSymbol(name: String) extends Term with SimplePrettyPrintable {
 final case class UntypedFunSymbol(name: String) extends FunSymbol(name)
 
 // TODO what exactly distinguishes PlainTerm from Term? No free variables? No variables at all?
-sealed trait PlainTerm extends Term with FofUnitary
+trait PlainTerm extends Term with FofUnitary
 
 final case class Appl(function: FunSymbol, args: Seq[Term]) extends PlainTerm {
   override def prettyPrint(writer: PrettyPrintWriter) = {
