@@ -18,7 +18,7 @@ import de.tu_darmstadt.veritas.backend.fof.Variable
  * - section with n axioms, where typing judgments were already transformed to some typed function! (can be empty)
  * - exactly one goal! (which must not be followed by other axioms, constructors etc, which would be out of scope!)
  */
-object ToFof {
+class ToFof {
   def toFofFile(coreModule: Module): FofFile = coreModule match {
     case Module(name, Seq(), body) => {
       val goal = coreModule.getOnlyGoal
@@ -110,4 +110,8 @@ object ToFof {
       case FunctionExpApp(n, args)  => Appl(UntypedFunSymbol(n), args map functionExpMetaToFof)
       case _                        => throw TransformationError("Encountered unexpected construct in functionExpMetaToFof: " + f)
     }
+}
+
+object ToFof {
+  def apply(m: Module) = (new ToFof).toFofFile(m)
 }

@@ -23,16 +23,21 @@ trait Typing {
 //just fof, completely untyped
 case object FofBare extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) = {
-    ToFof.toFofFile(RewriteFiniteDomainQuantifications(Seq(m)).head)
+    ToFof(RewriteFiniteDomainQuantifications(Seq(m)).head)
   }
 }
 //fof with type guards
 case object FofGuard extends Typing {
-  override def finalEncoding(m: Module)(implicit config: Configuration) = ToFof.toFofFile(m)
+  override def finalEncoding(m: Module)(implicit config: Configuration) = ToFof(m)
 }
 //tff encoding
 case object Tff extends Typing {
-  override def finalEncoding(m: Module)(implicit config: Configuration) = ToTff.toTffFile(m)
+  override def finalEncoding(m: Module)(implicit config: Configuration) = ToTff(m)(config)
+}
+
+//fool encoding (tff with let/ifthenelse)
+case object Fool extends Typing {
+  override def finalEncoding(m: Module)(implicit config: Configuration) = ToFool(m)
 }
 
 case class AlternativeTyping(select: Configuration => Typing) extends Typing {
@@ -139,6 +144,7 @@ object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF    => FofBare
   case FinalEncoding.GuardedFOF => FofGuard
   case FinalEncoding.TFF        => Tff
+  case FinalEncoding.FOOL       => Fool
 })
 
 case class EncodingComparison(vm: VariabilityModel, module: Module) extends Iterable[(Configuration, Seq[PrettyPrintableFile])] {

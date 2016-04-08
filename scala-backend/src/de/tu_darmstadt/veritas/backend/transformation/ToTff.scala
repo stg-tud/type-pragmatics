@@ -19,7 +19,7 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
  * - section with n axioms, where typing judgments were already transformed to some typed function! (can be empty)
  * - exactly one goal! (which must not be followed by other axioms, constructors etc, which would be out of scope!)
  */
-object ToTff {
+class ToTff {
 
   /**
    * list for collecting type declarations from constructor/function declarations in Module
@@ -78,16 +78,16 @@ object ToTff {
   /**
    * create a top-level typed symbol
    */
-  private def makeTopLevelSymbol(name: String): TypedSymbol =
+  protected def makeTopLevelSymbol(name: String): TypedSymbol =
     TypedSymbol(name, DefinedType("tType"))
 
-  private def addTSIfNew(ts: TypedSymbol): Unit =
+  protected def addTSIfNew(ts: TypedSymbol): Unit =
     if (typedSymbols.contains(ts.name))
       throw TransformationError(s"Sort, Constructor, or function ${ts.name} has been defined twice!")
     else
       typedSymbols += ts.name -> ts
 
-  private def translatePredefinedType(t: String): DefinedType =
+  protected def translatePredefinedType(t: String): DefinedType =
     t match {
       case "Bool"  => DefinedType("o")
       case "iType" => DefinedType("i")
@@ -101,7 +101,7 @@ object ToTff {
    * otherwise returns a SymbolType
    *
    */
-  def getAtomicType(name: String): TffAtomicType =
+  protected def getAtomicType(name: String): TffAtomicType =
     if (SortDef.predefinedSorts contains name)
       translatePredefinedType(name)
     else {
@@ -116,7 +116,7 @@ object ToTff {
    *  translate a Module body (sequence of ModuleDefs) to TffAnnotated
    *  adds the collected declarations to the appropriate collections of the object defined above
    */
-  private def bodyToTff(body: Seq[ModuleDef]): Unit = {
+  protected def bodyToTff(body: Seq[ModuleDef]): Unit = {
     body.dropRight(1) foreach { md =>
       md match {
         case Axioms(axs)           => axiomlist ++= translateAxioms(axs)
@@ -144,7 +144,7 @@ object ToTff {
    *
    * throws an error if the data type is already defined
    */
-  private def addDataType(d: String): Unit =
+  protected def addDataType(d: String): Unit =
     typedecllist :+= {
       // note: data types can never contain predefined sorts (ensured via "require")
       // so blindly adding the DataType is ok
@@ -153,7 +153,7 @@ object ToTff {
       TffAnnotated(s"${d}_type", Type, ts)
     }
 
-  private def addSymbol(name: String, in: Seq[SortRef], out: SortRef): Unit =
+  protected def addSymbol(name: String, in: Seq[SortRef], out: SortRef): Unit =
     typedecllist :+= {
       val outt = getAtomicType(out.name)
       val ints = in map (s => getAtomicType(s.name))
@@ -166,7 +166,7 @@ object ToTff {
   /**
    * translates axioms to Tff
    */
-  private def translateAxioms(axs: Seq[TypingRule]): Seq[TffAnnotated] =
+  protected def translateAxioms(axs: Seq[TypingRule]): Seq[TffAnnotated] =
     axs map {
       case TypingRule(name, prems, conseqs) => TffAnnotated(name, Axiom, typingRuleToTff(prems, conseqs))
     }
@@ -174,13 +174,13 @@ object ToTff {
   /**
    * translates goals to Tff
    */
-  private def translateGoal(g: TypingRule): TffAnnotated =
+  protected def translateGoal(g: TypingRule): TffAnnotated =
     g match {
       case TypingRule(name, prems, conseqs) =>
         TffAnnotated(name, Conjecture, typingRuleToTff(prems, conseqs))
     }
 
-  def makeVarlist(vars: Seq[MetaVar], jdgs: Seq[TypingRuleJudgment]): Seq[Variable] = {
+  protected def makeVarlist(vars: Seq[MetaVar], jdgs: Seq[TypingRuleJudgment]): Seq[Variable] = {
     for (v <- vars)
       yield TypedVariable(v.name, getAtomicType(v.sortType.name))
   }
@@ -189,7 +189,7 @@ object ToTff {
    * translates typing rules (= implications) to Tff
    * TODO: universal quantification over all free variables!!
    */
-  private def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) = {
+  protected def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) = {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs)
     val jdgs = prems ++ conseqs
     types.inferMetavarTypes(quantifiedVars, jdgs)
@@ -207,7 +207,7 @@ object ToTff {
   /**
    * translates individual clauses (premises or conclusion) to Tff (-> FofUnitary)
    */
-  private def jdgtoTff(jdg: TypingRuleJudgment): FofUnitary =
+  protected def jdgtoTff(jdg: TypingRuleJudgment): FofUnitary =
     jdg match {
       case FunctionExpJudgment(f) => functionExpToTff(f)
       case ExistsJudgment(vars, jdglist) => {
@@ -240,7 +240,7 @@ object ToTff {
    * translate individual function expressions to Tff (-> FofUnitary);
    * outer function expressions cannot be MetaVars, since a MetaVar cannot be translated to a FofUnitary
    */
-  private def functionExpToTff(f: FunctionExp): FofUnitary =
+  protected def functionExpToTff(f: FunctionExp): FofUnitary =
     f match {
       case FunctionExpNot(f)       => Not(functionExpToTff(f))
       case FunctionExpEq(f1, f2)   => Eq(functionExpMetaToTff(f1), functionExpMetaToTff(f2))
@@ -257,7 +257,7 @@ object ToTff {
   /**
    * translate function expressions including MetaVars to terms
    */
-  private def functionExpMetaToTff(f: FunctionExpMeta): Term =
+  protected def functionExpMetaToTff(f: FunctionExpMeta): Term =
     // the only two constructs which can be turned into a term are
     // FunctionMeta and FunctionExpApp (Appl is both a Term and a FofUnitary!)
     // therefore, encountering any other FunctionExpMeta must result in an error!
@@ -272,10 +272,14 @@ object ToTff {
    * makes sure that the order of the declarations in the generated file is: type declarations, axioms, conjecture
    * TODO find out whether this order is always a good idea!!
    */
-  private def constructFinalTff(name: String): TffFile = {
+  protected def constructFinalTff(name: String): TffFile = {
     goal match {
       case Some(g) => TffFile(name, g.name, typedecllist ++ axiomlist ++ Seq(g))
       case None    => throw TransformationError(s"There was no goal in Module ${name}; TFF Transformation failed!")
     }
   }
+}
+
+object ToTff {
+  def apply(m: Module)(implicit config: Configuration) = (new ToTff).toTffFile(m)(config)
 }
