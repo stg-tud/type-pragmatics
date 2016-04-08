@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.backend.fof.Term
 import de.tu_darmstadt.veritas.backend.fof.FofUnitary
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
-final class IfThenElse(g: FofUnitary, t: Term, e: Term) extends Term {
+final case class IfThenElse(g: FofUnitary, t: Term, e: Term) extends Term {
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write("$ite(")
     writer.write(g).write(", ")
@@ -16,6 +16,3 @@ final class IfThenElse(g: FofUnitary, t: Term, e: Term) extends Term {
 
 }
 
-object IfThenElse {
-  def apply(g: FofUnitary, t: Term, e: Term): Term = new IfThenElse(g, t, e)
-}
