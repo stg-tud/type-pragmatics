@@ -268,17 +268,20 @@ object Backend {
     import de.tu_darmstadt.veritas.backend.transformation.imports._
     import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 
-    val conf = defaultVariabilityModel
-//      Configuration(Map(
-//      FinalEncoding -> FinalEncoding.BareFOF,
-//      Simplification -> Simplification.LogicalAndConstructors,
-//      VariableEncoding -> VariableEncoding.Unchanged,
-//      Problem -> Problem.All))
+    val conf = //defaultVariabilityModel
+      Configuration(Map(
+      FinalEncoding -> FinalEncoding.FOOL,
+      Simplification -> Simplification.LogicalAndConstructors,
+      VariableEncoding -> VariableEncoding.Unchanged,
+      Problem -> Problem.Consistency))
 
     val modules = Seq(Module.from(aterm))
+    
 
     val resultingModSeq = MainTrans(modules)(conf)
-    resultingModSeq map { m => ("", m) }
+    val result = resultingModSeq map {m => TypingTrans.finalEncoding(m)(conf)}
+    //resultingModSeq map { m => ("", m) }
+    result map { m => ("", m) }
   }
 
   /**
