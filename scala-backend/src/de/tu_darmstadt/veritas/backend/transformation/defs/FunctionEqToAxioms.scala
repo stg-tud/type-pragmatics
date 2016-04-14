@@ -10,7 +10,7 @@ import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.util.Context
 
 /**
- * generates axioms for function equations
+ * generates axioms for function equations, throws out all lets and ifs
  * takes order of function equations into account!
  * --> assumes that FunctionPatVar/FunctionExpVar was already substituted with
  * FunctionPatApp/FunctionExpApp if there was a clash with constructor names!
@@ -68,7 +68,7 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       })
   }
 
-  private def collectPremises(f: FunctionEq, prepats: Seq[Seq[FunctionPattern]]): Seq[Seq[TypingRuleJudgment]] =
+  protected def collectPremises(f: FunctionEq, prepats: Seq[Seq[FunctionPattern]]): Seq[Seq[TypingRuleJudgment]] =
     f match {
       case FunctionEq(name, pats, ext) => {
         val notprepats = negatePrepats(pats, prepats)
@@ -82,24 +82,23 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       }
     }
 
-  private def negatePrepats(pats: Seq[FunctionPattern], prepats: Seq[Seq[FunctionPattern]]): Seq[TypingRuleJudgment] = {
+  protected def negatePrepats(pats: Seq[FunctionPattern], prepats: Seq[Seq[FunctionPattern]]): Seq[TypingRuleJudgment] = {
     def relevantPattern(patpair: (FunctionPattern, FunctionPattern)): Boolean =
       patpair match {
         case (_, FunctionPatVar(m)) => false
-        case _ => true
+        case _                      => true
       }
 
     val correspondingpats = prepats map (s => pats zip s)
-    
+
     val cases = correspondingpats.flatMap(sp => {
-      val orcases = sp map (x => 
+      val orcases = sp map (x =>
         if (relevantPattern(x))
           Seq(negatePatternPart(x))
         else
-          Seq()
-      )
+          Seq())
       makeOrSeqs(orcases)
-    }) 
+    })
     cases
   }
 
@@ -211,7 +210,7 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
    * separate if branches, filter out let bodies
    * does not support if-branches or lets in FunctionExpAnd, FunctionExpApp etc.
    */
-  private def separateRights(ext: FunctionExpMeta): Seq[FunctionExpMeta] =
+  protected def separateRights(ext: FunctionExpMeta): Seq[FunctionExpMeta] =
     ext match {
       case FunctionExpIf(c, t, e)  => separateRights(t) ++ separateRights(e)
       case FunctionExpLet(n, i, e) => separateRights(e)
@@ -224,7 +223,7 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       case FunctionPatApp(n, args) => FunctionExpApp(n, args map patsToVars)
     }
 
-  private def varsToMetaVars(f: FunctionExpMeta): FunctionExpMeta =
+  protected def varsToMetaVars(f: FunctionExpMeta): FunctionExpMeta =
     try {
       f match {
         case FunctionExpVar(n)           => FunctionMeta(MetaVar(n))
@@ -252,3 +251,49 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
 }
 
 object FunctionEqToAxiomsSimple extends FunctionEqToSimpleAxioms
+
+// variant which does not throw lets and ifs out when translating function equations to axioms
+// generates one axiom per function equation
+trait FunctionEqtoAxiomsWithLetIf extends FunctionEqToSimpleAxioms {
+  override def collectPremises(f: FunctionEq, prepats: Seq[Seq[FunctionPattern]]): Seq[Seq[TypingRuleJudgment]] =
+    f match {
+      case FunctionEq(name, pats, ext) => {
+        Seq(negatePrepats(pats, prepats))
+      }
+    }
+
+  override def separateRights(ext: FunctionExpMeta): Seq[FunctionExpMeta] =
+    Seq(ext)
+    
+  private def letBoundMetaVarstoApp(letboundVars: Set[String])(f: FunctionExpMeta): FunctionExpMeta =
+   try {
+      f match {
+        case FunctionExpVar(n)           => if (letboundVars contains n) FunctionExpApp(n, Seq()) else FunctionMeta(MetaVar(n))
+        case m @ FunctionMeta(_)         => m //if this happens, input file was not as expected, funtion equations should not contain any MetaVars
+        case FunctionExpApp(n, args)     => FunctionExpApp(n, args map letBoundMetaVarstoApp(letboundVars))
+        //casting to FunctionExp below should be ok because 
+        //1) l and r cannot contain MetaVars, 
+        //2) Transformation assumes that FunctionExpVars have been revolved to FunctionExpApp previously
+        case FunctionExpNot(e)           => FunctionExpNot(letBoundMetaVarstoApp(letboundVars)(e).asInstanceOf[FunctionExp])
+        case FunctionExpAnd(l, r)        => FunctionExpAnd(letBoundMetaVarstoApp(letboundVars)(l).asInstanceOf[FunctionExp], letBoundMetaVarstoApp(letboundVars)(r).asInstanceOf[FunctionExp])
+        case FunctionExpOr(l, r)         => FunctionExpOr(letBoundMetaVarstoApp(letboundVars)(l).asInstanceOf[FunctionExp], letBoundMetaVarstoApp(letboundVars)(r).asInstanceOf[FunctionExp])
+        case FunctionExpBiImpl(l, r)     => FunctionExpBiImpl(letBoundMetaVarstoApp(letboundVars)(l).asInstanceOf[FunctionExp], letBoundMetaVarstoApp(letboundVars)(r).asInstanceOf[FunctionExp])
+        case FunctionExpEq(l, r)         => FunctionExpEq(letBoundMetaVarstoApp(letboundVars)(l), letBoundMetaVarstoApp(letboundVars)(r))
+        case FunctionExpNeq(l, r)        => FunctionExpNeq(letBoundMetaVarstoApp(letboundVars)(l), letBoundMetaVarstoApp(letboundVars)(r))
+        case t @ FunctionExpTrue         => t
+        case f @ FunctionExpFalse        => f
+        case i @ FunctionExpIf(c, t, e)  => FunctionExpIf(letBoundMetaVarstoApp(letboundVars)(c).asInstanceOf[FunctionExp], letBoundMetaVarstoApp(letboundVars)(t), letBoundMetaVarstoApp(letboundVars)(e))
+        case l @ FunctionExpLet(n, i, e) => FunctionExpLet(n, letBoundMetaVarstoApp(letboundVars ++ Set(n))(i), letBoundMetaVarstoApp(letboundVars ++ Set(n))(e))
+      }
+    } catch {
+      case c: ClassCastException => throw TransformationError("In the following function expression, a construct either contained illegal meta variables, or unresolved constructor variables: " + f)
+      case e: Exception          => throw e
+    }
+
+  override def varsToMetaVars(f: FunctionExpMeta): FunctionExpMeta =
+    letBoundMetaVarstoApp(Set())(f)
+
+}
+
+object FunctionEqToAxiomsWLetIf extends FunctionEqtoAxiomsWithLetIf
+

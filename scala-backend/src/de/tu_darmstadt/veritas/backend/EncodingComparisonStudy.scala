@@ -53,6 +53,8 @@ object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
     SeqTrans(GenerateCtorAxiomsTyped, GenerateAllTypeGuards)
   case FinalEncoding.TFF =>
     GenerateCtorAxiomsTyped
+  case FinalEncoding.FOOL =>
+    GenerateCtorAxiomsTyped
 })
 
 object BasicTrans extends SeqTrans(
@@ -61,9 +63,13 @@ object BasicTrans extends SeqTrans(
   VarToApp0,
   DesugarLemmas,
   ConstructorTrans,
-  GenerateDiffAxiomsForConsts,
-  FunctionEqToAxiomsSimple,
-  TranslateAllTypingJudgments)
+  GenerateDiffAxiomsForConsts)
+
+object FunctionTrans extends Alternative(selectConfig(FinalEncoding) {
+  case FinalEncoding.FOOL => SeqTrans(FunctionEqToAxiomsWLetIf, TranslateAllTypingJudgments)
+  case FinalEncoding.GuardedFOF | FinalEncoding.TFF | FinalEncoding.BareFOF => 
+    SeqTrans(FunctionEqToAxiomsSimple, TranslateAllTypingJudgments)
+})
 
 /**
  * determine which different problems are encoded ("Fragestellungen")
@@ -122,6 +128,7 @@ object SimplificationTrans extends Alternative(selectConfig(Simplification) {
 object MainTrans extends SeqTrans(
   // desugar Veritas constructs
   BasicTrans,
+  FunctionTrans,
   // determines whether and which inversion axioms are generated for functions/typing rules
   // update: always generate function inversion axioms!
   TotalFunctionInversionAxioms, // ignored: InversionAll

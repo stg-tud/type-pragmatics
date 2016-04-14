@@ -37,7 +37,7 @@ object FreeVariables {
     case FunctionExpOr(f1, f2)                                  => freeVariables(f1, ignore) ++ freeVariables(f2, ignore)
     case FunctionExpBiImpl(f1, f2)                              => freeVariables(f1, ignore) ++ freeVariables(f2, ignore)
     case FunctionExpIf(cond, f1, f2)                            => freeVariables(cond, ignore) ++ freeVariables(f1, ignore) ++ freeVariables(f2, ignore)
-    case FunctionExpLet(_, f1, f2)                              => freeVariables(f1, ignore) ++ freeVariables(f2, ignore)
+    case FunctionExpLet(n, f1, f2)                              => freeVariables(f1, ignore ++ Set(MetaVar(n))) ++ freeVariables(f2, ignore ++ Set(MetaVar(n)))
     case FunctionExpApp(_, args)                                => args.foldLeft(Set.empty[MetaVar])((already, r) => already ++ freeVariables(r, ignore))
     // NOTE only collecting MetaVars not normal ExpVar
     case FunctionExpVar(_) | FunctionExpTrue | FunctionExpFalse => Set()
