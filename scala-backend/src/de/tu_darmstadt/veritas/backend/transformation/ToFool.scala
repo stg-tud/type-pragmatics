@@ -15,9 +15,7 @@ class ToFool extends ToTff {
 
   override def functionExpToTff(f: FunctionExp): FofUnitary = {
     f match {
-      //TODO think about more safe conversion of if-guards!!
-      //if guards should not contain lone variables?
-      case FunctionExpIf(g, t, e)  => Parenthesized(IfThenElse(functionExpMetaToTff(g).asInstanceOf[FofUnitary], functionExpMetaToTff(t), functionExpMetaToTff(e)))
+      case FunctionExpIf(g, t, e)  => Parenthesized(IfThenElse(functionExpToTff(g), functionExpMetaToTff(t), functionExpMetaToTff(e)))
       case FunctionExpLet(v, e, b) => Parenthesized(LetIn(Seq((UntypedFunSymbol(v), functionExpMetaToTff(e))), functionExpMetaToTff(b)))
       case _                       => super.functionExpToTff(f)
     }

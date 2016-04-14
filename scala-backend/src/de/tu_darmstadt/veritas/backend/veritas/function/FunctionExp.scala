@@ -197,15 +197,15 @@ final case class FunctionExpBiImpl(left: FunctionExp, right: FunctionExp) extend
   override def toString() = s"(${left}) <=> (${right})"
 }
 
-final case class FunctionExpIf(cond: FunctionExpMeta, thenE: FunctionExpMeta, elseE: FunctionExpMeta) extends FunctionExp {
+final case class FunctionExpIf(cond: FunctionExp, thenE: FunctionExpMeta, elseE: FunctionExpMeta) extends FunctionExp {
   override val children = Seq(Seq(cond), Seq(thenE), Seq(elseE))
 
   override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
     if (newchildren.length != 3 || !(newchildren forall (_.length == 1)))
       throw new ClassCastException
 
-    val newcond: FunctionExpMeta = newchildren(0).head match {
-      case e: FunctionExpMeta => e
+    val newcond: FunctionExp = newchildren(0).head match {
+      case e: FunctionExp => e
       case _                  => throw new ClassCastException
     }
     val newthen: FunctionExpMeta = newchildren(1).head match {
@@ -369,7 +369,7 @@ object FunctionExp {
     case StrategoAppl("FunctionExpAnd", f1, f2) => FunctionExpAnd(FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpOr", f1, f2) => FunctionExpOr(FunctionExp.from(f1), FunctionExp.from(f2))
     case StrategoAppl("FunctionExpBiImpl", f1, f2) => FunctionExpBiImpl(FunctionExp.from(f1), FunctionExp.from(f2))
-    case StrategoAppl("FunctionExpIf", cond, f1, f2) => FunctionExpIf(FunctionExpMeta.from(cond), FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
+    case StrategoAppl("FunctionExpIf", cond, f1, f2) => FunctionExpIf(FunctionExp.from(cond), FunctionExpMeta.from(f1), FunctionExpMeta.from(f2))
     case StrategoAppl("FunctionExpLet", StrategoString(name), namedExpr, in) => FunctionExpLet(name, FunctionExpMeta.from(namedExpr), FunctionExpMeta.from(in))
     case StrategoAppl("FunctionExpApp", StrategoString(func), StrategoList(args)) => FunctionExpApp(func, args map FunctionExpMeta.from)
     case StrategoAppl("FunctionExpVar", StrategoString(name)) => FunctionExpVar(name)

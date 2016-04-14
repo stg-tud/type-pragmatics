@@ -195,7 +195,7 @@ trait ModuleTransformation {
     case FunctionExpAnd(l, r)     => Seq(FunctionExpAnd(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
     case FunctionExpOr(l, r)      => Seq(FunctionExpOr(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
     case FunctionExpBiImpl(l, r)  => Seq(FunctionExpBiImpl(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_))))
-    case FunctionExpIf(c, t, e)   => Seq(FunctionExpIf(trace(c)(transFunctionExpMeta(_)), trace(t)(transFunctionExpMeta(_)), trace(e)(transFunctionExpMeta(_))))
+    case FunctionExpIf(c, t, e)   => Seq(FunctionExpIf(trace(c)(transFunctionExp(_)), trace(t)(transFunctionExpMeta(_)), trace(e)(transFunctionExpMeta(_))))
     case FunctionExpLet(n, e, i)  => Seq(FunctionExpLet(n, trace(e)(transFunctionExpMeta(_)), trace(i)(transFunctionExpMeta(_))))
     case FunctionExpApp(fn, args) => Seq(FunctionExpApp(fn, trace(args)(transFunctionExpMetas(_))))
     case v @ FunctionExpVar(n)    => Seq(v)
@@ -210,7 +210,7 @@ trait ModuleTransformation {
     case FunctionExpAnd(l, r)     => FunctionExpAnd(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
     case FunctionExpOr(l, r)      => FunctionExpOr(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
     case FunctionExpBiImpl(l, r)  => FunctionExpBiImpl(trace(l)(transFunctionExp(_)), trace(r)(transFunctionExp(_)))
-    case FunctionExpIf(c, t, e)   => FunctionExpIf(trace(c)(transFunctionExpMeta(_)), trace(t)(transFunctionExpMeta(_)), trace(e)(transFunctionExpMeta(_)))
+    case FunctionExpIf(c, t, e)   => FunctionExpIf(trace(c)(transFunctionExp(_)), trace(t)(transFunctionExpMeta(_)), trace(e)(transFunctionExpMeta(_)))
     case FunctionExpLet(n, e, i)  => FunctionExpLet(n, trace(e)(transFunctionExpMeta(_)), trace(i)(transFunctionExpMeta(_)))
     case FunctionExpApp(fn, args) => FunctionExpApp(fn, (trace(args)(transFunctionExpMetas(_))))
     case v @ FunctionExpVar(n)    => v

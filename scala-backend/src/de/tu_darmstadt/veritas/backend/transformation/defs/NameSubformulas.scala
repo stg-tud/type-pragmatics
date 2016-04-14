@@ -158,25 +158,7 @@ trait CollectSubformulas extends ModuleTransformation {
     else mexp
 
   private def checkNews(mexp: FunctionExpMeta): Seq[FunctionExpMeta] =
-    if (checkConstruct(mexp))
-      //check first whether there has already been a premise with the desired mexp
-      //if so, don't add a new premise
-      findExistingPremise(mexp) match {
-        case Some(fm) => Seq(mexp)
-        case None => mexp match {
-          //only add a new premise if the given mexp is already
-          //one of the generated meta variables
-          case FunctionMeta(m) if (generatedNames contains m) => Seq(mexp)
-          //in all other cases, add a new premise
-          case _ => {
-            val newmeta = newMetaVar(path.head)
-            generatedNames += newmeta
-            addAdditionalPremise(newmeta, mexp)
-            Seq(mexp)
-          }
-        }
-      }
-    else Seq(mexp)
+    Seq(checkNew(mexp))
 
   override def transFunctionExpMeta(f: FunctionExpMeta): FunctionExpMeta =
     withSuper(super.transFunctionExpMeta(f)) {
@@ -189,15 +171,7 @@ trait CollectSubformulas extends ModuleTransformation {
     }
 
   override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
-    withSuper[FunctionExp](super.transFunctionExps(f)) {
-      case fe @ FunctionExpEq(FunctionMeta(_), f2)    => Seq(fe)
-      case fe @ FunctionExpEq(f1, FunctionMeta(_))    => Seq(fe)
-      case fe @ FunctionExpEq(f1, f2)    => Seq(FunctionExpEq(checkNew(f1), checkNew(f2)))
-      case fe @ FunctionExpNeq(f1, f2)   => Seq(FunctionExpNeq(checkNew(f1), checkNew(f2)))
-      case fe @ FunctionExpIf(c, t, e)   => Seq(FunctionExpIf(checkNew(c), checkNew(t), checkNew(e)))
-      case fe @ FunctionExpLet(n, e, i)  => Seq(FunctionExpLet(n, checkNew(e), checkNew(i)))
-      case fe @ FunctionExpApp(fn, args) => Seq(FunctionExpApp(fn, args map checkNew))
-    }
+    Seq(transFunctionExp(f))
 
   override def transFunctionExp(f: FunctionExp): FunctionExp =
     //note: naming of subformulas can anyway only ever be applied within constructs 
@@ -208,7 +182,7 @@ trait CollectSubformulas extends ModuleTransformation {
       case fe @ FunctionExpEq(f1, FunctionMeta(_))    => fe
       case fe @ FunctionExpEq(f1, f2)    => FunctionExpEq(checkNew(f1), checkNew(f2))
       case fe @ FunctionExpNeq(f1, f2)   => FunctionExpNeq(checkNew(f1), checkNew(f2))
-      case fe @ FunctionExpIf(c, t, e)   => FunctionExpIf(checkNew(c), checkNew(t), checkNew(e))
+      case fe @ FunctionExpIf(c, t, e)   => FunctionExpIf(c, checkNew(t), checkNew(e)) // an if-guard cannot be replaced with a metavar!
       case fe @ FunctionExpLet(n, e, i)  => FunctionExpLet(n, checkNew(e), checkNew(i))
       case fe @ FunctionExpApp(fn, args) => FunctionExpApp(fn, args map checkNew)
     }
@@ -330,13 +304,7 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
     }
 
   override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
-    withSuper(super.transFunctionExps(f)) {
-      case fe @ FunctionExpEq(f1, f2)    => Seq(FunctionExpEq(checkAndSubstituteMexp(f1), checkAndSubstituteMexp(f2)))
-      case fe @ FunctionExpNeq(f1, f2)   => Seq(FunctionExpNeq(checkAndSubstituteMexp(f1), checkAndSubstituteMexp(f2)))
-      case fe @ FunctionExpIf(c, t, e)   => Seq(FunctionExpIf(checkAndSubstituteMexp(c), checkAndSubstituteMexp(t), checkAndSubstituteMexp(e)))
-      case fe @ FunctionExpLet(n, e, i)  => Seq(FunctionExpLet(n, checkAndSubstituteMexp(e), checkAndSubstituteMexp(i)))
-      case fe @ FunctionExpApp(fn, args) => Seq(FunctionExpApp(fn, args map checkAndSubstituteMexp))
-    }
+    Seq(transFunctionExp(f))
 
   override def transFunctionExp(f: FunctionExp): FunctionExp =
     //note: naming of subformulas can anyway only ever be applied within constructs 
@@ -345,7 +313,7 @@ trait NameSubformulas extends ModuleTransformation with CollectSubformulas {
     withSuper(super.transFunctionExp(f)) {
       case fe @ FunctionExpEq(f1, f2)    => FunctionExpEq(checkAndSubstituteMexp(f1), checkAndSubstituteMexp(f2))
       case fe @ FunctionExpNeq(f1, f2)   => FunctionExpNeq(checkAndSubstituteMexp(f1), checkAndSubstituteMexp(f2))
-      case fe @ FunctionExpIf(c, t, e)   => FunctionExpIf(checkAndSubstituteMexp(c), checkAndSubstituteMexp(t), checkAndSubstituteMexp(e))
+      case fe @ FunctionExpIf(c, t, e)   => FunctionExpIf(c, checkAndSubstituteMexp(t), checkAndSubstituteMexp(e))
       case fe @ FunctionExpLet(n, e, i)  => FunctionExpLet(n, checkAndSubstituteMexp(e), checkAndSubstituteMexp(i))
       case fe @ FunctionExpApp(fn, args) => FunctionExpApp(fn, args map checkAndSubstituteMexp)
     }
