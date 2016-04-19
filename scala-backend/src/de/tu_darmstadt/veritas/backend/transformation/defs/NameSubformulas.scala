@@ -30,12 +30,15 @@ trait CollectSubformulas extends ModuleTransformation {
    * default: name everything BUT meta variables!
    *
    */
-  def checkConstruct(vc: VeritasConstruct): Boolean =
-    vc match {
+  def checkConstruct(vc: VeritasConstruct): Boolean = {
+    val notmeta = vc match {
       case FunctionMeta(_) => false
       case MetaVar(_)      => false
       case _               => true
     }
+    //do not collect anything inside let expressions
+    notmeta && !(path exists (vc => vc.isInstanceOf[FunctionExpLet]))
+  }
 
   /**
    * gets subformula for which a meta variable is to be generated
@@ -336,11 +339,7 @@ object NameEverythingSubstituteNothing extends NameSubformulas {
 /**
  * excludes all meta variables from being named
  */
-object NameEverythingButMetaVars extends NameSubformulas {
-  // do not substitute anything inside let bodies (possibly unsound)
-  override def checkSubstitute(vc: VeritasConstruct): Boolean = 
-    !(path exists (vc => vc.isInstanceOf[FunctionExpLet]))
-}
+object NameEverythingButMetaVars extends NameSubformulas 
 
 /**
  * excludes all meta variables from being named

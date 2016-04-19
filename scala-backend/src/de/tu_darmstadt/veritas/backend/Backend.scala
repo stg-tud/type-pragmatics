@@ -279,9 +279,9 @@ object Backend {
     
 
     val resultingModSeq = MainTrans(modules)(conf)
-    //val result = resultingModSeq map {m => TypingTrans.finalEncoding(m)(conf)}
-    resultingModSeq map { m => ("", m) }
-    //result map { m => ("", m) }
+    val result = resultingModSeq map {m => TypingTrans.finalEncoding(m)(conf)}
+    //resultingModSeq map { m => ("", m) }
+    result map { m => ("", m) }
   }
 
   /**
