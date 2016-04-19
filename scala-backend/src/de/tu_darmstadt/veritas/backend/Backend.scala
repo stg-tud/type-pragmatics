@@ -272,16 +272,16 @@ object Backend {
       Configuration(Map(
       FinalEncoding -> FinalEncoding.FOOL,
       Simplification -> Simplification.LogicalAndConstructors,
-      VariableEncoding -> VariableEncoding.Unchanged,
+      VariableEncoding -> VariableEncoding.NameEverything,
       Problem -> Problem.Consistency))
 
     val modules = Seq(Module.from(aterm))
     
 
     val resultingModSeq = MainTrans(modules)(conf)
-    val result = resultingModSeq map {m => TypingTrans.finalEncoding(m)(conf)}
-    //resultingModSeq map { m => ("", m) }
-    result map { m => ("", m) }
+    //val result = resultingModSeq map {m => TypingTrans.finalEncoding(m)(conf)}
+    resultingModSeq map { m => ("", m) }
+    //result map { m => ("", m) }
   }
 
   /**

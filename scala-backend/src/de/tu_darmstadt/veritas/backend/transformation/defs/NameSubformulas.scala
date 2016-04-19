@@ -182,8 +182,8 @@ trait CollectSubformulas extends ModuleTransformation {
       case fe @ FunctionExpEq(f1, FunctionMeta(_))    => fe
       case fe @ FunctionExpEq(f1, f2)    => FunctionExpEq(checkNew(f1), checkNew(f2))
       case fe @ FunctionExpNeq(f1, f2)   => FunctionExpNeq(checkNew(f1), checkNew(f2))
-      case fe @ FunctionExpIf(c, t, e)   => FunctionExpIf(c, checkNew(t), checkNew(e)) // an if-guard cannot be replaced with a metavar!
-      case fe @ FunctionExpLet(n, e, i)  => FunctionExpLet(n, checkNew(e), checkNew(i))
+      //case fe @ FunctionExpIf(c, t, e)   => FunctionExpIf(c, checkNew(t), checkNew(e)) // an if-guard cannot be replaced with a metavar!
+      //case fe @ FunctionExpLet(n, e, i)  => FunctionExpLet(n, checkNew(e), checkNew(i))
       case fe @ FunctionExpApp(fn, args) => FunctionExpApp(fn, args map checkNew)
     }
 }
@@ -336,7 +336,11 @@ object NameEverythingSubstituteNothing extends NameSubformulas {
 /**
  * excludes all meta variables from being named
  */
-object NameEverythingButMetaVars extends NameSubformulas
+object NameEverythingButMetaVars extends NameSubformulas {
+  // do not substitute anything inside let bodies (possibly unsound)
+  override def checkSubstitute(vc: VeritasConstruct): Boolean = 
+    !(path exists (vc => vc.isInstanceOf[FunctionExpLet]))
+}
 
 /**
  * excludes all meta variables from being named

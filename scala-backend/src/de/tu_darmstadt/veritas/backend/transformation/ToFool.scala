@@ -19,6 +19,7 @@ import de.tu_darmstadt.veritas.backend.fool.IfThenElseFofUnitary
 import de.tu_darmstadt.veritas.backend.fool.LetInFofUnitary
 import de.tu_darmstadt.veritas.backend.fool.LetInTerm
 import de.tu_darmstadt.veritas.backend.fool.IfThenElseTerm
+import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpVar
 
 class ToFool extends ToTff {
 
@@ -41,6 +42,7 @@ class ToFool extends ToTff {
     // therefore, encountering any other FunctionExpMeta must result in an error!
     f match {
       case FunctionMeta(MetaVar(m)) => UntypedVariable(m)
+      case FunctionExpVar(n)        => UntypedFunSymbol(n) //can occur inside lets, but should not occur elsewhere!
       case FunctionExpApp(n, args)  => Appl(UntypedFunSymbol(n), args map functionExpMetaToTff)
       case FunctionExpIf(g, t, e)   => IfThenElseTerm(functionExpToTff(g), functionExpMetaToTff(t), functionExpMetaToTff(e))
       case FunctionExpLet(v, e, b)  => LetInTerm(Seq((UntypedFunSymbol(v), functionExpMetaToTff(e))), functionExpMetaToTff(b))

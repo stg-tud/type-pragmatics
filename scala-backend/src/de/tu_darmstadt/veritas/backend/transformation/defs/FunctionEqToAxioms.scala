@@ -268,8 +268,8 @@ trait FunctionEqtoAxiomsWithLetIf extends FunctionEqToSimpleAxioms {
   private def letBoundMetaVarstoApp(letboundVars: Set[String])(f: FunctionExpMeta): FunctionExpMeta =
    try {
       f match {
-        case FunctionExpVar(n)           => if (letboundVars contains n) FunctionExpApp(n, Seq()) else FunctionMeta(MetaVar(n))
-        case m @ FunctionMeta(_)         => m //if this happens, input file was not as expected, funtion equations should not contain any MetaVars
+        case v@FunctionExpVar(n)           => if (letboundVars contains n) v else FunctionMeta(MetaVar(n))
+        case m @ FunctionMeta(_)         => m //if this happens, input file was not as expected, function equations should not contain any MetaVars
         case FunctionExpApp(n, args)     => FunctionExpApp(n, args map letBoundMetaVarstoApp(letboundVars))
         //casting to FunctionExp below should be ok because 
         //1) l and r cannot contain MetaVars, 
