@@ -17,7 +17,7 @@ strategy induct-projectemptycol-rtempty {
 	goal
 	~rt = tempty
 	================================================ ProjectEmptyCol-RTEmpty-1
-	welltypedRawtable(rtempty, projectEmptyCol(~rt))
+	welltypedRawtable(ttempty, projectEmptyCol(~rt))
 	
 	local {
 		consts
@@ -27,26 +27,26 @@ strategy induct-projectemptycol-rtempty {
 		axiom
 		~rt = rest
 		================================================ ProjectEmptyCol-RTEmpty-2-IH
-		welltypedRawtable(rtempty, projectEmptyCol(~rt))
+		welltypedRawtable(ttempty, projectEmptyCol(~rt))
 		
 		goal
 		~rt = tcons(r, rest)
 		================================================ ProjectEmptyCol-RTEmpty-2
-		welltypedRawtable(rtempty, projectEmptyCol(~rt))
+		welltypedRawtable(ttempty, projectEmptyCol(~rt))
 	}
 	
 	hide-all
 	axiom
 	true
 	================================================ ProjectEmptyCol-RTEmpty-ind
-	welltypedRawtable(rtempty, projectEmptyCol(~rt))
+	welltypedRawtable(ttempty, projectEmptyCol(~rt))
 	
 } // qed ProjectEmptyCol-RTEmpty
 
 lemma verify-with induct-projectemptycol-rtempty
 true
 ================================================ ProjectEmptyCol-RTEmpty
-welltypedRawtable(rtempty, projectEmptyCol(~rt))
+welltypedRawtable(ttempty, projectEmptyCol(~rt))
 
 // proof of DropFirstCol-Preservation
 strategy induction-dropfirstcol-pres  {
@@ -54,9 +54,9 @@ strategy induction-dropfirstcol-pres  {
 	
 	goal
 	~rt = tempty
-	welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+	welltypedRawtable(ttcons(~a, ~ft, ~TT), ~rt)
 	===================================================== DropFirstCol-Preservation-1
-	welltypedRawtable(~RT, dropFirstColRaw(~rt))
+	welltypedRawtable(~TT, dropFirstColRaw(~rt))
 	
 	local {
 		consts
@@ -64,29 +64,28 @@ strategy induction-dropfirstcol-pres  {
 			rt : RawTable
 		
 		axiom
-		welltypedRawtable(rtcons(~ft, ~RT), rt)
+		welltypedRawtable(ttcons(~a, ~ft, ~TT), rt)
 		===================================================== DropFirstCol-Preservation-2-IH
-		welltypedRawtable(~RT, dropFirstColRaw(rt))
+		welltypedRawtable(~TT, dropFirstColRaw(rt))
 		
 		goal
-		//~FOO = tcons(r, rt) // XXX including this equation -> no proof found
-		welltypedRawtable(rtcons(~ft, ~RT), tcons(r, rt))
+		welltypedRawtable(ttcons(~a, ~ft, ~TT), tcons(r, rt))
 		===================================================== DropFirstCol-Preservation-2
-		welltypedRawtable(~RT, dropFirstColRaw(tcons(r, rt)))
+		welltypedRawtable(~TT, dropFirstColRaw(tcons(r, rt)))
 	}
 	
 	hide-all
 	axiom
-	welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+	welltypedRawtable(ttcons(~a, ~ft, ~TT), ~rt)
 	===================================================== DropFirstCol-Preservation-ind
-	welltypedRawtable(~RT, dropFirstColRaw(~rt))
+	welltypedRawtable(~TT, dropFirstColRaw(~rt))
 	
 } // qed DropFirstCol-Preservation
 
 lemma verify-with induction-dropfirstcol-pres 
-welltypedRawtable(rtcons(~ft, ~RT), ~rt)
+welltypedRawtable(ttcons(~a, ~ft, ~TT), ~rt)
 ===================================================== DropFirstCol-Preservation
-welltypedRawtable(~RT, dropFirstColRaw(~rt))
+welltypedRawtable(~TT, dropFirstColRaw(~rt))
 
 
 lemma 40
@@ -101,11 +100,11 @@ exists ~f, ~rthead, ~rtrest
 lemma
 ~r = rcons(~f, rempty)
 ~rt = tcons(~rthead, ~rtrest)
-welltypedRawtable(~RT, ~rt)
-welltypedRawtable(rtcons(~colType, rtempty), tcons(~r, ~col))
-welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rtrest)))
+welltypedRawtable(~TT, ~rt)
+welltypedRawtable(ttcons(~a, ~colType, ttempty), tcons(~r, ~col))
+welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(~col, ~rtrest)))
 ================================================================================================================ AttachCol-WelltypedRawtable-Aux
-welltypedRawtable(rtcons(~colType, ~RT), tcons(rcons(~f, ~rthead), getRawTable(attachColToFrontRaw(~col, ~rtrest))))
+welltypedRawtable(ttcons(~a, ~colType, ~TT), tcons(rcons(~f, ~rthead), getRawTable(attachColToFrontRaw(~col, ~rtrest))))
 
 
 // proof of AttachCol-Preserves-Typing
@@ -114,11 +113,11 @@ strategy induction-attachcol-preserves-typing {
 	
 	goal
 	~col = tempty
-	welltypedRawtable(~RT, ~rt)
-	welltypedRawtable(rtcons(~colType, rtempty), ~col)
+	welltypedRawtable(~TT, ~rt)
+	welltypedRawtable(ttcons(~a, ~colType, ttempty), ~col)
 	isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 	======================================================================== AttachCol-Preserves-Typing-1
-	welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rt)))
+	welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(~col, ~rt)))
 	
 	local {
 		consts
@@ -126,11 +125,11 @@ strategy induction-attachcol-preserves-typing {
 			col : RawTable
 		
 		axiom
-		welltypedRawtable(~RT, ~rt)
-		welltypedRawtable(rtcons(~colType, rtempty), col)
+		welltypedRawtable(~TT, ~rt)
+		welltypedRawtable(ttcons(~a, ~colType, ttempty), col)
 		isSomeRawTable(attachColToFrontRaw(col, ~rt))
 		======================================================================== AttachCol-Preserves-Typing-2-IH
-		welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(col, ~rt)))
+		welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(col, ~rt)))
 		
 		//This proof previously worked without modifying the axiom set!
 		//stopped working when correction of inversion lemma encoding was introduced!
@@ -141,28 +140,28 @@ strategy induction-attachcol-preserves-typing {
 		// AttachCol-Preserves-Typing-2-IH}
 		
 		goal 60
-		welltypedRawtable(~RT, ~rt)
-		welltypedRawtable(rtcons(~colType, rtempty), tcons(r, col))
+		welltypedRawtable(~TT, ~rt)
+		welltypedRawtable(ttcons(~a, ~colType, ttempty), tcons(r, col))
 		isSomeRawTable(attachColToFrontRaw(tcons(r, col), ~rt))
 		======================================================================== AttachCol-Preserves-Typing-2
-		welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(tcons(r, col), ~rt)))
+		welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(tcons(r, col), ~rt)))
 	}
 	
 	hide-all
 	axiom
-	welltypedRawtable(~RT, ~rt)
-	welltypedRawtable(rtcons(~colType, rtempty), ~col)
+	welltypedRawtable(~TT, ~rt)
+	welltypedRawtable(ttcons(~a, ~colType, ttempty), ~col)
 	isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 	======================================================================== AttachCol-Preserves-Typing-ind
-	welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rt)))
+	welltypedRawtable(ttcons(~a, ~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rt)))
 } // qed AttachCol-Preserves-Typing
 
 lemma verify-with induction-attachcol-preserves-typing
-welltypedRawtable(~RT, ~rt)
-welltypedRawtable(rtcons(~colType, rtempty), ~col)
+welltypedRawtable(~TT, ~rt)
+welltypedRawtable(ttcons(~a, ~colType, ttempty), ~col)
 isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 ======================================================================== AttachCol-Preserves-Typing
-welltypedRawtable(rtcons(~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rt)))
+welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(~col, ~rt)))
 
 
 // proof of ProjectFirstRaw-Preservation (auxiliary lemma needed in proof of FindCol Preservation)
@@ -171,9 +170,9 @@ strategy induction-projectfirstraw-pres {
 	
 	goal
 	~rt = tempty
-	welltypedRawtable(rtcons(~colType, ~RT), ~rt)
+	welltypedRawtable(ttcons(~a, ~colType, ~TT), ~rt)
 	=================================================================== ProjectFirstRaw-Preservation-1
-	welltypedRawtable(rtcons(~colType, rtempty), projectFirstRaw(~rt))
+	welltypedRawtable(ttcons(~a, ~colType, ttempty), projectFirstRaw(~rt))
 	
 	local {
 		consts
@@ -183,9 +182,9 @@ strategy induction-projectfirstraw-pres {
 		hide-all
 		
 		axiom
-		welltypedRawtable(rtcons(~colType, ~RT), rt)
+		welltypedRawtable(ttcons(~a, ~colType, ~TT), rt)
 		================================================================= ProjectFirstRaw-Preservation-2-IH
-		welltypedRawtable(rtcons(~colType, rtempty), projectFirstRaw(rt))
+		welltypedRawtable(ttcons(~a, ~colType, ttempty), projectFirstRaw(rt))
 		
 		// include {EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, 
 		// EQ-rtcons, DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons,
@@ -195,16 +194,16 @@ strategy induction-projectfirstraw-pres {
 		// projectFirstRaw-INV}
 		
 		goal
-		welltypedRawtable(rtcons(~colType, ~RT), tcons(r, rt))
+		welltypedRawtable(ttcons(~a, ~colType, ~TT), tcons(r, rt))
 		============================================================================ ProjectFirstRaw-Preservation-2
-		welltypedRawtable(rtcons(~colType, rtempty), projectFirstRaw(tcons(r, rt)))
+		welltypedRawtable(ttcons(~a, ~colType, ttempty), projectFirstRaw(tcons(r, rt)))
 	}
 	
 	hide-all
 	axiom
-	welltypedRawtable(rtcons(~colType, ~RT), ~rt)
+	welltypedRawtable(ttcons(~a, ~colType, ~TT), ~rt)
 	============================================================================== ProjectFirstRaw-Preservation-ind
-	welltypedRawtable(rtcons(~colType, rtempty), projectFirstRaw(~rt))
+	welltypedRawtable(ttcons(~a, ~colType, ttempty), projectFirstRaw(~rt))
 	
 } // qed ProjectFirstRaw-Preservation
 
@@ -216,10 +215,10 @@ strategy induct-findCol-Preservation {
 	~al = aempty
 	~t = table(~al, ~rt)
 	welltypedtable(~TT, ~t)
-	findCol(~a, ~t) = someRawTable(~col)
+	findCol(~a, ~al, ~rt) = someRawTable(~col)
 	findColType(~a, ~TT) = someFType(~colType)
 	============================================================== FindCol-Preservation-1
-	welltypedRawtable(rtcons(~colType, rtempty), ~col)
+	welltypedRawtable(ttcons(~a, ~colType, ttempty), ~col)
 
 	local {
 		consts
@@ -229,44 +228,44 @@ strategy induct-findCol-Preservation {
 			rt : RawTable
 		
 		axiom
-		findCol(a, table(al, dropFirstColRaw(rt))) = someRawTable(~col)
+		findCol(a, al, dropFirstColRaw(rt)) = someRawTable(~col)
 		welltypedtable(~TT, table(al, dropFirstColRaw(rt)))
 		findColType(a, ~TT) = someFType(~colType)
 		============================================================== FindCol-Preservation-2-IH
-		welltypedRawtable(rtcons(~colType, rtempty), ~col)
+		welltypedRawtable(ttcons(a, ~colType, ttempty), ~col)
 		
 		lemma verify-with induction-projectfirstraw-pres
-		welltypedRawtable(rtcons(~colType, ~RT), ~rt)
+		welltypedRawtable(ttcons(~a, ~colType, ~TT), ~rt)
 		============================================================================== ProjectFirstRaw-Preservation
-		welltypedRawtable(rtcons(~colType, rtempty), projectFirstRaw(~rt))
+		welltypedRawtable(ttcons(~a, ~colType, ttempty), projectFirstRaw(~rt))
 		
 		
 		goal
 		welltypedtable(~TT, table(acons(a2, al), rt))
-		findCol(a, table(acons(a2, al), rt)) = someRawTable(~col)
+		findCol(a, acons(a2, al), rt) = someRawTable(~col)
 		findColType(a, ~TT) = someFType(~colType)
 		============================================================== FindCol-Preservation-2
-		welltypedRawtable(rtcons(~colType, rtempty), ~col)
+		welltypedRawtable(ttcons(a, ~colType, ttempty), ~col)
 	}
 	
 	hide-all
 	axiom
 	// ~t = table(~al, ~rt)
-	welltypedtable(~TT, ~t)
-	isSomeRawTable(findCol(~a, ~t))
+	welltypedtable(~TT, table(~al2, ~rt))
+	isSomeRawTable(findCol(~a, ~al2, ~rt))
 	isSomeFType(findColType(~a, ~TT))
 	================================================== FindCol-Preservation-ind
-	welltypedRawtable(rtcons(getFType(findColType(~a, ~TT)), rtempty), getRawTable(findCol(~a, ~t)))
+	welltypedRawtable(ttcons(~a, getFType(findColType(~a, ~TT)), ttempty), getRawTable(findCol(~a, ~al2, ~rt)))
 	
 } //qed FindCol-Preservation
 
 lemma verify-with induct-findCol-Preservation
 // ~t = table(~al, ~rt)
-welltypedtable(~TT, ~t)
-isSomeRawTable(findCol(~a, ~t))
+welltypedtable(~TT, table(~al2, ~rt))
+isSomeRawTable(findCol(~a, ~al2, ~rt))
 isSomeFType(findColType(~a, ~TT))
 ================================================== FindCol-Preservation
-welltypedRawtable(rtcons(getFType(findColType(~a, ~TT)), rtempty), getRawTable(findCol(~a, ~t)))
+welltypedRawtable(ttcons(~a, getFType(findColType(~a, ~TT)), ttempty), getRawTable(findCol(~a, ~al2, ~rt)))
 
 // proof of project-preservation
 strategy struc-induction-project-preservation {
@@ -274,8 +273,8 @@ strategy struc-induction-project-preservation {
 
 	goal
 	~al = aempty
-	welltypedtable(~TT, ~t)
-	selectRows(~al, ~t) == someRawTable(~pt)
+	welltypedtable(~TT, table(~al2, ~rt))
+	selectRows(~al, ~al2, ~rt) == someRawTable(~pt)
 	selectTypeAttrL(~al, ~TT) == someTType(~PT)
 	===================================== Project-Preservation-aempty
 	~TTC |- tvalue(table(~al, ~pt)) : ~PT
@@ -288,26 +287,26 @@ strategy struc-induction-project-preservation {
 		// proof not possible with timeout 300, when equations not inlined!
 		axiom
 		//~al = alrest
-		welltypedtable(~TT, ~t)
-		isSomeRawTable(selectRows(alrest, ~t))
+		welltypedtable(~TT, table(~al2, ~rt))
+		isSomeRawTable(selectRows(alrest, ~al2, ~rt))
 		isSomeTType(selectTypeAttrL(alrest, ~TT))
 		===================================== Project-Preservation-acons-IH
-		~TTC |- tvalue(table(alrest, getRawTable(selectRows(alrest, ~t)))) : getSomeTType(selectTypeAttrL(alrest, ~TT))
+		~TTC |- tvalue(table(alrest, getRawTable(selectRows(alrest, ~al2, ~rt)))) : getSomeTType(selectTypeAttrL(alrest, ~TT))
 		
 		goal 100
 		//~al = acons(a, alrest)
-		welltypedtable(~TT, ~t)
-		isSomeRawTable(selectRows(acons(a, alrest), ~t))
+		welltypedtable(~TT, table(~al2, ~rt))
+		isSomeRawTable(selectRows(acons(a, alrest), ~al2, ~rt))
 		isSomeTType(selectTypeAttrL(acons(a, alrest), ~TT))
 		======================================================================================= Project-Preservation-acons
-		~TTC |- tvalue(table(acons(a, alrest), getRawTable(selectRows(acons(a, alrest), ~t)))) : getSomeTType(selectTypeAttrL(acons(a, alrest), ~TT))
+		~TTC |- tvalue(table(acons(a, alrest), getRawTable(selectRows(acons(a, alrest), ~al2, ~rt)))) : getSomeTType(selectTypeAttrL(acons(a, alrest), ~TT))
 	}
 	
 	//if induction successful, we proved Project-Preservation and can abbreviate (for now:)
 	hide-all
 	axiom
-	welltypedtable(~TT, ~t)
-	selectRows(~al, ~t) = someRawTable(~pt)
+	welltypedtable(~TT, table(~al2, ~rt))
+	selectRows(~al, ~al2, ~rt) = someRawTable(~pt)
 	selectTypeAttrL(~al, ~TT) == someTType(~PT)
 	===================================== Project-Preservation-ind
 	~TTC |- tvalue(table(~al, ~pt)) : ~PT	
@@ -315,8 +314,8 @@ strategy struc-induction-project-preservation {
 } // qed Project-Preservation
 
 lemma verify-with struc-induction-project-preservation
-welltypedtable(~TT, ~t)
-selectRows(~al, ~t) = someRawTable(~pt)
+welltypedtable(~TT, table(~al2, ~rt))
+selectRows(~al, ~al2, ~rt) = someRawTable(~pt)
 selectTypeAttrL(~al, ~TT) == someTType(~PT)
-===================================== Project-Preservation
+============================================ Project-Preservation
 ~TTC |- tvalue(table(~al, ~pt)) : ~PT

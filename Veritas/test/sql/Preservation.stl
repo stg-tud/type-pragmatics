@@ -9,7 +9,7 @@ import sql.TStore
 import sql.Tables
 import sql.TableAux
 import sql.SoundnessAuxDefs
-//import sql.PreservationProjection
+import sql.PreservationProjection
 
 
 strategy induction-Preservation {
