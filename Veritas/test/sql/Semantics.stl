@@ -1,0 +1,165 @@
+module sql.Semantics
+
+import sql.Tables
+import sql.TableAux
+import sql.Syntax
+import sql.TStore
+
+
+
+data OptQuery =
+	noQuery |
+	someQuery(Query)
+
+function
+isSomeQuery : OptQuery -> Bool
+isSomeQuery(noQuery) = false
+isSomeQuery(someQuery(q)) = true
+
+partial function
+getQuery : OptQuery -> Query
+getQuery(someQuery(q)) = q
+
+function
+findCol : Name AttrL RawTable -> OptRawTable
+findCol(a, aempty, rt) = noRawTable
+findCol(a, acons(a2, al), rt) = 
+		if (a == a2)
+		then someRawTable(projectFirstRaw(rt))
+		else findCol(a, al, dropFirstColRaw(rt))
+
+// for projection base case: projecting on an empty attribute list must yield a 
+// table with as many empty rows as the rowcount of the given table
+function
+projectEmptyCol : RawTable -> RawTable
+projectEmptyCol(tempty) = tempty
+projectEmptyCol(tcons(r, t)) = tcons(rempty, projectEmptyCol(t))
+	
+function // select-list table-list table-rows
+selectRows : AttrL AttrL RawTable -> OptRawTable 
+selectRows(aempty, al, rt) = someRawTable(projectEmptyCol(rt))
+selectRows(acons(a, alr), al, rt) =
+	let col = findCol(a, al, rt) in
+		let rest = selectRows(alr, al, rt) in
+			if (isSomeRawTable(col) && isSomeRawTable(rest))
+			then attachColToFrontRaw(getRawTable(col), getRawTable(rest))
+			else noRawTable
+
+function
+selectTable : Select Table -> OptTable
+selectTable(all(), table(al, rt)) = someTable(table(al, rt))
+selectTable(some(alr), table(al, rt)) =
+	let projected = selectRows(alr, al, rt) in
+	if isSomeRawTable(projected)
+	then someTable(table(alr, getRawTable(projected)))
+	else noTable
+	
+
+data OptVal = noVal | someVal(Val)
+data OptRow = noRow | someRow(Row)
+
+function
+isSomeVal : OptVal -> Bool
+isSomeVal(noVal) = false
+isSomeVal(someVal(v)) = true
+
+partial function
+getVal : OptVal -> Val
+getVal(someVal(v)) = v
+
+function
+evalExpRow : Exp AttrL Row -> OptVal
+evalExpRow(constant(v), al, r) = someVal(v)
+evalExpRow(lookup(a), acons(a2, al), rcons(v, r)) =
+	if a == a2
+	then someVal(v)
+	else evalExpRow(lookup(a), al, r)
+evalExpRow(e, al, r) = noVal
+
+// returns true iff predicate succeeds on row
+// returns false if predicate evaluates to false or if predicate evaluation fails
+function 
+filterSingleRow : Pred AttrL Row -> Bool
+filterSingleRow(ptrue, al, r) = 
+	true
+filterSingleRow(and(p1, p2), al, r) = 
+	filterSingleRow(p1, al, r) && filterSingleRow(p2, al, r)
+filterSingleRow(not(p), al, r) = 
+	!filterSingleRow(p, al, r)
+filterSingleRow(eq(e1, e2), al, r) =
+	let v1 = evalExpRow(e1, al, r) in
+	let v2 = evalExpRow(e2, al, r) in
+	(isSomeVal(v1) && isSomeVal(v2) && (getVal(v1) == getVal(v2)))
+filterSingleRow(gt(e1, e2), al, r) =
+	let v1 = evalExpRow(e1, al, r) in
+	let v2 = evalExpRow(e2, al, r) in
+	(isSomeVal(v1) && isSomeVal(v2) && greaterThan(getVal(v1), getVal(v2)))
+filterSingleRow(lt(e1, e2), al, r) =
+	let v1 = evalExpRow(e1, al, r) in
+	let v2 = evalExpRow(e2, al, r) in
+	(isSomeVal(v1) && isSomeVal(v2) && lessThan(getVal(v1), getVal(v2)))
+
+// filter rows that satisfy pred
+function
+filterRows : RawTable AttrL Pred -> RawTable
+filterRows(tempty, al, pred) = tempty
+filterRows(tcons(r, rt), al, pred) =
+	let rts = filterRows(rt, al, pred) in
+		if filterSingleRow(pred, al, r)
+		then tcons(r, rts)
+		else rts
+
+function
+filterTable : Table Pred -> Table
+filterTable(table(al, rt), p) = table(al, filterRows(rt, al, p))
+
+
+// reduce fails if referenced tables are not found
+function 
+reduce : Query TStore -> OptQuery
+reduce(tvalue(t), ts) = noQuery
+reduce(selectFromWhere(sel, name, pred), ts) = 
+	let maybeTable = lookupStore(name, ts) in
+		if (isSomeTable(maybeTable))
+		then let filtered = filterTable(getTable(maybeTable), pred) in
+		     let maybeSelected = selectTable(sel, filtered) in
+			     if (isSomeTable(maybeSelected))
+			     then someQuery(tvalue(getTable(maybeSelected)))
+			     else noQuery
+		else noQuery
+reduce(Union(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =
+	someQuery(tvalue(table(al1, rawUnion(rt1, rt2))))
+reduce(Union(tvalue(t), q2), ts) =
+	let q2reduce = reduce(q2, ts) in
+		if (isSomeQuery(q2reduce))
+		then someQuery(Union(tvalue(t), getQuery(q2reduce)))
+		else noQuery
+reduce(Union(q1, q2), ts) =
+	let q1reduce = reduce(q1, ts) in
+		if (isSomeQuery(q1reduce))
+		then someQuery(Union(getQuery(q1reduce), q2))
+		else noQuery
+reduce(Intersection(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =
+	someQuery(tvalue(table(al1, rawIntersection(rt1, rt2))))
+reduce(Intersection(tvalue(t), sql2), ts) =
+	let sql2reduce = reduce(sql2, ts) in
+		if (isSomeQuery(sql2reduce))
+		then someQuery(Intersection(tvalue(t), getQuery(sql2reduce)))
+		else noQuery
+reduce(Intersection(sql1, sql2), ts) =
+	let sql1reduce = reduce(sql1, ts) in
+		if (isSomeQuery(sql1reduce))
+		then someQuery(Intersection(getQuery(sql1reduce), sql2))
+		else noQuery
+reduce(Difference(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =
+	someQuery(tvalue(table(al1, rawDifference(rt1, rt2))))
+reduce(Difference(tvalue(t), sql2), ts) =
+	let sql2reduce = reduce(sql2, ts) in
+		if (isSomeQuery(sql2reduce))
+		then someQuery(Difference(tvalue(t), getQuery(sql2reduce)))
+		else noQuery
+reduce(Difference(sql1, sql2), ts) =
+	let sql1reduce = reduce(sql1, ts) in
+		if (isSomeQuery(sql1reduce))
+		then someQuery(Difference(getQuery(sql1reduce), sql2))
+		else noQuery

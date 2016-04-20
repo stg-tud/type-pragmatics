@@ -1,0 +1,3 @@
+
+fof('ProjectEmptyCol-RTEmpty-ind', axiom, (![Vrt] : vwelltypedRawtable(vrtempty,vprojectEmptyCol(Vrt)))).
+fof('ProjectEmptyCol-RTEmpty', conjecture, (![Vrt] : vwelltypedRawtable(vrtempty,vprojectEmptyCol(Vrt)))).

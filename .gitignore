@@ -61,3 +61,6 @@ benchmarking/datasets/layout/10s
 benchmarking/datasets/layout/60s
 benchmarking/datasets/layout/.Rhistory
 benchmarking/datasets/layout/.RData
+Veritas/test/encodingcompstudy/AllVariantsWithFOOL
+Veritas/test/encodingcompstudy/BasicFOOLencodings
+Veritas/test/sql/proofs

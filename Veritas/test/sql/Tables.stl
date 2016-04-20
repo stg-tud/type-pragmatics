@@ -1,0 +1,88 @@
+module sql.Tables
+
+// name of attributes and tables
+open data Name
+
+// list of attribute names
+data AttrL =
+	aempty |
+	acons(Name, AttrL)
+
+// type of a single field (underspecified)
+
+function append : AttrL AttrL -> AttrL
+append(aempty, y) = y
+append(acons(a, al), y) = acons(a, append(al,y))
+
+open data FType
+// type of a table (table schema) - list of CType
+data TType =
+	ttempty |
+	ttcons(Name, FType, TType) // type of a single column (pair Name, FType)
+
+// Value for a field (underspecified)
+open data Val
+
+// table row, list of field values (with at least one cell/field per construction!)
+data Row = 
+	rempty |
+	rcons(Val, Row)
+
+// table matrix (list of rows), without "header" (attribute list)
+data RawTable =
+	tempty |
+	tcons(Row, RawTable)
+
+// full table with "header" (attribute list) 
+data Table =
+	table(AttrL, RawTable)
+
+
+function
+getRaw : Table -> RawTable
+getRaw(table(al, rt)) = rt
+
+function 
+getAttrL : Table -> AttrL
+getAttrL(table(al, rt)) = al
+
+// function that assigns a field type to every field value  (underspecified)	
+partial function
+fieldType : Val -> FType
+
+// function that compares whether first field value is smaller than second field value 
+// (underspecified)
+partial function
+lessThan : Val Val -> Bool
+
+// function that compares whether first field value is greater than second field value 
+// (underspecified)
+partial function
+greaterThan : Val Val -> Bool
+
+// check whether a table corresponds to a given type (functional notation)
+// does not yet check for whether the table type contains only unique attribute names!!
+// (but semantics should be possible to define in a sensible way without that requirement...)
+	
+function 
+matchingAttrL : TType AttrL -> Bool
+matchingAttrL(ttempty, aempty) = true
+matchingAttrL(ttcons(a1, f, tt), acons(a2, al)) = 
+	(a1 == a2) && matchingAttrL(tt, al)
+matchingAttrL(tt, al) = false	
+	
+function
+welltypedtable : TType Table -> Bool
+welltypedtable(tt, table(al, t)) = matchingAttrL(tt, al) && welltypedRawtable(tt, t)
+
+function
+welltypedRawtable : TType RawTable -> Bool
+welltypedRawtable(tt, tempty) = true
+welltypedRawtable(tt, tcons(r, t)) = welltypedRow(tt, r) && welltypedRawtable(tt, t)
+
+function
+welltypedRow : TType Row -> Bool
+welltypedRow(ttempty, rempty) = true
+welltypedRow(ttcons(a, ft, tt), rcons(v, r)) = (fieldType(v) == ft) && welltypedRow(tt, r)
+welltypedRow(tt, r) = false
+	

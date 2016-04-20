@@ -1,0 +1,30 @@
+module sql.TStore
+
+import sql.Tables
+
+
+data OptTable =
+	noTable |
+	someTable(Table)
+
+function
+isSomeTable : OptTable -> Bool
+isSomeTable(noTable) = false
+isSomeTable(someTable(t)) = true
+
+partial function
+getTable : OptTable -> Table
+getTable(someTable(t)) = t
+	
+data TStore =
+	emptyStore |
+	bindStore(Name, Table, TStore)
+
+function
+lookupStore : Name TStore -> OptTable
+lookupStore(n, emptyStore) = noTable
+lookupStore(n, bindStore(m, t, TS)) = 
+	if (n == m)
+	then someTable(t)
+	else lookupStore(n, TS)
+	

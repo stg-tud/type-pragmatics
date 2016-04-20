@@ -64,7 +64,7 @@ object Backend {
   val defaultVariabilityModel = Configuration(
     Map(FinalEncoding -> FinalEncoding.BareFOF,
       (Problem -> Problem.All),
-      (VariableEncoding -> VariableEncoding.Unchanged),
+      (VariableEncoding -> VariableEncoding.InlineEverything),
       (Simplification -> Simplification.LogicalAndConstructors)))
 
   private def writeFile(file: PrettyPrintableFile, path: String): String = {
@@ -269,17 +269,16 @@ object Backend {
     import de.tu_darmstadt.veritas.backend.transformation.lowlevel._
 
     val conf = //defaultVariabilityModel
-      Configuration(Map(
-      FinalEncoding -> FinalEncoding.FOOL,
-      Simplification -> Simplification.LogicalAndConstructors,
-      VariableEncoding -> VariableEncoding.NameEverything,
-      Problem -> Problem.Consistency))
+      Configuration(
+        Map(FinalEncoding -> FinalEncoding.BareFOF,
+          (Problem -> Problem.All),
+          (VariableEncoding -> VariableEncoding.InlineEverything),
+          (Simplification -> Simplification.LogicalAndConstructors)))
 
     val modules = Seq(Module.from(aterm))
-    
 
     val resultingModSeq = MainTrans(modules)(conf)
-    val result = resultingModSeq map {m => TypingTrans.finalEncoding(m)(conf)}
+    val result = resultingModSeq map { m => TypingTrans.finalEncoding(m)(conf) }
     //resultingModSeq map { m => ("", m) }
     result map { m => ("", m) }
   }

@@ -1,0 +1,73 @@
+module sql.TypeSystemInv
+
+import sql.Syntax
+import sql.TypeSystem
+import sql.Tables
+import sql.TContext
+
+axiom
+~TTC |- ~q : ~TT
+==================================================== T-inv
+OR
+=> exists ~al, ~rt
+		~q = tvalue(table(~al, ~rt))
+		welltypedtable(~TT, table(~al, ~rt))
+=> exists ~sel, ~tn, ~p, ~TTr
+		~q == selectFromWhere(~sel, ~tn, ~p)
+		lookupContext(~tn, ~TTC) == someTType(~TT)
+		tcheckPred(~p, ~TT)
+		selectType(~sel, ~TT) == someTType(~TTr)
+=> exists ~q1, ~q2
+		~q == Union(~q1, ~q2)
+		~TTC |- ~q1 : ~TT
+		~TTC |- ~q2 : ~TT
+=> exists ~q1, ~q2
+		~q == Intersection(~q1, ~q2)
+		~TTC |- ~q1 : ~TT
+		~TTC |- ~q2 : ~TT
+=> exists ~q1, ~q2
+		~q == Difference(~q1, ~q2)
+		~TTC |- ~q1 : ~TT
+		~TTC |- ~q2 : ~TT
+		
+//variant of inversion lemma in several different lemmas 
+//(seems to be helpful for progress proof)
+lemma
+~q == tvalue(table(~al, ~rt))
+~TTC |- ~q : ~TT
+==================================================== T-inv-tvalue
+welltypedtable(~TT, table(~al, ~rt))
+
+
+lemma	
+~q == selectFromWhere(~sel, ~tn, ~p)
+~TTC |- ~q : ~TT
+==================================================== T-inv-SelectSomeFromWhere
+exists ~TTr
+	~q == selectFromWhere(~sel, ~tn, ~p)
+	lookupContext(~tn, ~TTC) == someTType(~TT)
+	tcheckPred(~p, ~TT)
+	selectType(~sel, ~TT) == someTType(~TTr)
+		
+
+lemma
+~q == Union(~q1, ~q2)
+~TTC |- ~q : ~TT
+==================================================== T-inv-Union		
+~TTC |- ~q1 : ~TT
+~TTC |- ~q2 : ~TT
+
+
+lemma
+~q == Intersection(~q1, ~q2)
+~TTC |- ~q : ~TT
+==================================================== T-inv-Intersection
+~TTC |- ~q1 : ~TT
+~TTC |- ~q2 : ~TT
+
+lemma
+~q == Difference(~q1, ~q2)
+~TTC |- ~q : ~TT
+==================================================== T-inv-Difference
+~TTC |- ~q1 : ~TT
+~TTC |- ~q2 : ~TT

@@ -1,0 +1,35 @@
+module sql.Syntax
+
+import sql.Tables
+import sql.TStore
+
+
+data Exp = constant(Val) | lookup(Name)
+
+//predicates for where clauses of queries	
+data Pred =
+	ptrue() |
+	and(Pred, Pred) |
+	not(Pred) |
+	eq(Exp, Exp) |
+	gt(Exp, Exp) |
+	lt(Exp, Exp)
+	
+	
+// Query syntax
+data Select = all() | some(AttrL)
+
+data Query =
+	tvalue(Table) |
+	selectFromWhere(Select, Name, Pred) |
+	Union(Query, Query) |
+	Intersection(Query, Query) |
+	Difference(Query, Query)
+	
+function
+isValue : Query -> Bool
+isValue(tvalue(t)) = true
+isValue(selectFromWhere(s, t, p)) = false
+isValue(Union(q1, q2)) = false
+isValue(Intersection(sql1, sql2)) = false
+isValue(Difference(sql1, sql2)) = false

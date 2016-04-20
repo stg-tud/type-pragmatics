@@ -1,0 +1,334 @@
+module sql.Preservation
+
+import sql.Syntax
+import sql.Semantics
+import sql.TContext
+import sql.TypeSystem
+import sql.TypeSystemInv
+import sql.TStore
+import sql.Tables
+import sql.TableAux
+import sql.SoundnessAuxDefs
+//import sql.PreservationProjection
+
+
+strategy induction-Preservation {
+	
+	goal 
+	~qi == tvalue(~t)
+	reduce(~qi, ~TS) = someQuery(~qo)
+	~TTC |- ~qi : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	=================================== SQL-Preservation-T-tvalue
+	~TTC |- ~qo : ~TT
+
+
+	goal 
+	~qi == selectFromWhere(~sel, ~name, ~pred)
+	reduce(~qi, ~TS) = someQuery(~qo)
+	~TTC |- ~qi : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	=================================== SQL-Preservation-T-selectFromWhere
+	~TTC |- ~qo : ~TT
+
+//Union case
+local {
+	consts q1 : Query
+		q2 : Query
+		TS : TStore
+		TTC : TTContext
+		TT : TType
+	
+	local {
+		goal
+		~qi == Union(tvalue(~t1), tvalue(~t2))
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Union-1
+		TTC |- ~qo : TT
+	}	
+		
+	local {
+
+		axiom 
+		~qi == q2
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		================================ SQL-Preservation-T-Union-2-IH
+		TTC |- ~qo : TT
+		
+		goal 
+		~qi == Union(tvalue(~t1), q2)
+		forall ~t2 q2 != tvalue(~t2)
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Union-2
+		TTC |- ~qo : TT	
+	}
+
+	local {
+		
+		axiom 
+		~qi == q1
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		================================ SQL-Preservation-T-Union-3-IH
+		TTC |- ~qo : TT
+		
+		goal 
+		~qi == Union(q1, q2)
+		forall ~t1 q1 != tvalue(~t1)
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Union-3
+		TTC |- ~qo : TT	
+	}
+	
+	//prove union case via case distinction
+	axiom
+	~qi == Union(tvalue(~t1), tvalue(~t2))
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Union-1
+	TTC |- ~qo : TT
+	
+	axiom 
+	~qi == Union(tvalue(~t1), q2)
+	forall ~t2 q2 != tvalue(~t2)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Union-2
+	TTC |- ~qo : TT	
+	
+	axiom 
+	~qi == Union(q1, q2)
+	forall ~t1 q1 != tvalue(~t1)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Union-3
+	TTC |- ~qo : TT	
+
+	goal 
+	~qi == Union(q1, q2)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	================================ SQL-Preservation-T-Union
+	TTC |- ~qo : TT
+}
+
+//Intersection case
+local {
+	consts q1 : Query
+		q2 : Query
+		TS : TStore
+		TTC : TTContext
+		TT : TType
+	
+	local {
+		goal
+		~qi == Intersection(tvalue(~t1), tvalue(~t2))
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Intersection-1
+		TTC |- ~qo : TT
+	}	
+		
+	local {
+
+		axiom 
+		~qi == q2
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		================================ SQL-Preservation-T-Intersection-2-IH
+		TTC |- ~qo : TT
+		
+		goal 
+		~qi == Intersection(tvalue(~t1), q2)
+		forall ~t2 q2 != tvalue(~t2)
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Intersection-2
+		TTC |- ~qo : TT	
+	}
+
+	local {
+		
+		axiom 
+		~qi == q1
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		================================ SQL-Preservation-T-Intersection-3-IH
+		TTC |- ~qo : TT
+		
+		goal 
+		~qi == Intersection(q1, q2)
+		forall ~t1 q1 != tvalue(~t1)
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Intersection-3
+		TTC |- ~qo : TT	
+	}
+	
+	//prove Intersection case via case distinction
+	axiom
+	~qi == Intersection(tvalue(~t1), tvalue(~t2))
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Intersection-1
+	TTC |- ~qo : TT
+	
+	axiom 
+	~qi == Intersection(tvalue(~t1), q2)
+	forall ~t2 q2 != tvalue(~t2)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Intersection-2
+	TTC |- ~qo : TT	
+	
+	axiom 
+	~qi == Intersection(q1, q2)
+	forall ~t1 q1 != tvalue(~t1)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Intersection-3
+	TTC |- ~qo : TT	
+
+	goal 
+	~qi == Intersection(q1, q2)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	================================ SQL-Preservation-T-Intersection
+	TTC |- ~qo : TT
+}
+
+//Difference case
+local {
+	consts q1 : Query
+		q2 : Query
+		TS : TStore
+		TTC : TTContext
+		TT : TType
+	
+	local {
+		goal
+		~qi == Difference(tvalue(~t1), tvalue(~t2))
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Difference-1
+		TTC |- ~qo : TT
+	}	
+		
+	local {
+
+		axiom 
+		~qi == q2
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		================================ SQL-Preservation-T-Difference-2-IH
+		TTC |- ~qo : TT
+		
+		goal 
+		~qi == Difference(tvalue(~t1), q2)
+		forall ~t2 q2 != tvalue(~t2)
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Difference-2
+		TTC |- ~qo : TT	
+	}
+
+	local {
+		
+		axiom 
+		~qi == q1
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		================================ SQL-Preservation-T-Difference-3-IH
+		TTC |- ~qo : TT
+		
+		goal 
+		~qi == Difference(q1, q2)
+		forall ~t1 q1 != tvalue(~t1)
+		reduce(~qi, TS) = someQuery(~qo)
+		TTC |- ~qi : TT
+		StoreContextConsistent(TS, TTC)
+		========================================== SQL-Preservation-T-Difference-3
+		TTC |- ~qo : TT	
+	}
+	
+	//prove union case via case distinction
+	axiom
+	~qi == Difference(tvalue(~t1), tvalue(~t2))
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Difference-1
+	TTC |- ~qo : TT
+	
+	axiom 
+	~qi == Union(tvalue(~t1), q2)
+	forall ~t2 q2 != tvalue(~t2)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Difference-2
+	TTC |- ~qo : TT	
+	
+	axiom 
+	~qi == Difference(q1, q2)
+	forall ~t1 q1 != tvalue(~t1)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	========================================== SQL-Preservation-T-Difference-3
+	TTC |- ~qo : TT	
+
+	goal 
+	~qi == Difference(q1, q2)
+	reduce(~qi, TS) = someQuery(~qo)
+	TTC |- ~qi : TT
+	StoreContextConsistent(TS, TTC)
+	================================ SQL-Preservation-T-Difference
+	TTC |- ~qo : TT
+}
+
+
+	//the above cases prove general preservation
+	hide-all
+	axiom
+	reduce(~qi, ~TS) = someQuery(~qo)
+	~TTC |- ~qi : ~TT
+	StoreContextConsistent(~TS, ~TTC)
+	=================================== SQL-Preservation-ind
+	~TTC |- ~qo : ~TT
+}
+
+//final preservation theorem
+//for now: restricted to the case where table store (and context) does not change!
+goal verify-with induction-Preservation
+reduce(~qi, ~TS) = someQuery(~qo)
+~TTC |- ~qi : ~TT
+StoreContextConsistent(~TS, ~TTC)
+=================================== SQL-Preservation
+~TTC |- ~qo : ~TT
