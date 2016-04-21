@@ -1,9 +1,9 @@
-module stlc.SubstLemmaAux
+module old.stlc.SubstLemmaAux
 
-import stlc.Syntax
-import stlc.Context
-import stlc.Subst
-import stlc.Types
+import old.stlc.Syntax
+import old.stlc.Context
+import old.stlc.Subst
+import old.stlc.Types
 
 
 //Auxiliary lemmas for on contexts
@@ -12,7 +12,7 @@ import stlc.Types
 
 strategy T-Weak-FreeVar-abs-2-alpha-equiv {
 	
-	import stlc.AlphaEquivalence
+	import old.stlc.AlphaEquivalence
 	
 	//generalized version of abs-1 case
 	axiom

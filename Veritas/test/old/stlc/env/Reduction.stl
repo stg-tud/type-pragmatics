@@ -1,7 +1,7 @@
-module stlc.env.Reduction
+module old.stlc.env.Reduction
 
-import stlc.Syntax
-import stlc.Environment
+import old.stlc.Syntax
+import old.stlc.Environment
 
 sort EnvExp
 constructor

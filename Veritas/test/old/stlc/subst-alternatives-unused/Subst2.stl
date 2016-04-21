@@ -1,8 +1,8 @@
-module stlc.Subst2
+module old.stlc.Subst2
 
-import stlc.Syntax
-import stlc.Context
-import stlc.Gensym
+import old.stlc.Syntax
+import old.stlc.Context
+import old.stlc.Gensym
 
 sort
   Subst

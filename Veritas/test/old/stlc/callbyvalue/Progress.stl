@@ -1,9 +1,9 @@
-module stlc.callbyvalue.Progress
+module old.stlc.callbyvalue.Progress
 
-import stlc.Syntax
-import stlc.Context
-import stlc.callbyvalue.Reduction
-import stlc.Types
+import old.stlc.Syntax
+import old.stlc.Context
+import old.stlc.callbyvalue.Reduction
+import old.stlc.Types
 
 // Prove by induction on typing relation. Cases: T-var, T-abs, T-app
 

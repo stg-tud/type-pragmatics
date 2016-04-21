@@ -1,7 +1,7 @@
-module stlc.barendregt.Subst
+module old.stlc.barendregt.Subst
 
-import stlc.Syntax
-import stlc.Context
+import old.stlc.Syntax
+import old.stlc.Context
 
 axiom
 !isFreeVar(~x, ~e)

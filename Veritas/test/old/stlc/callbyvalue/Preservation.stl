@@ -1,10 +1,10 @@
-module stlc.callbyvalue.Preservation
+module old.stlc.callbyvalue.Preservation
 
-import stlc.Syntax
-import stlc.Subst {names}
-import stlc.SubstLemma
-import stlc.callbyvalue.Reduction
-import stlc.Types
+import old.stlc.Syntax
+import old.stlc.Subst {names}
+import old.stlc.SubstLemma
+import old.stlc.callbyvalue.Reduction
+import old.stlc.Types
 
 
 // Prove type preservation by induction on recursive structure of reduction relation

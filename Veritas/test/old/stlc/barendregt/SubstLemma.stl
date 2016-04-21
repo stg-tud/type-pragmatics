@@ -1,9 +1,9 @@
-module stlc.barendregt.SubstLemma
+module old.stlc.barendregt.SubstLemma
 
-import stlc.Syntax
-import stlc.Context
-import stlc.Types
-import stlc.barendregt.Subst
+import old.stlc.Syntax
+import old.stlc.Context
+import old.stlc.Types
+import old.stlc.barendregt.Subst
 
 goal
 ~e2 == var(~y)

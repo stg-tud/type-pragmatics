@@ -1,4 +1,4 @@
-module stlc.Syntax
+module old.stlc.Syntax
 
 open data Var
 

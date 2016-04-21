@@ -1,6 +1,6 @@
-module stlc.Context
+module old.stlc.Context
 
-import stlc.Syntax
+import old.stlc.Syntax
 
 data Ctx
   = empty

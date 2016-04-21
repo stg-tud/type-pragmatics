@@ -1,8 +1,8 @@
-module stlc.Subst
+module old.stlc.Subst
 
-import stlc.Syntax
-import stlc.Context
-import stlc.Gensym
+import old.stlc.Syntax
+import old.stlc.Context
+import old.stlc.Gensym
 
 function
 subst : Var Exp Exp -> Exp

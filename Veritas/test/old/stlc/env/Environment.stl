@@ -1,6 +1,6 @@
-module stlc.env.Environment
+module old.stlc.env.Environment
 
-import stlc.Syntax
+import old.stlc.Syntax
 
 sorts Env OptExp
 

@@ -1,7 +1,7 @@
-module stlc.callbyname.Reduction
+module old.stlc.callbyname.Reduction
 
-import stlc.Syntax
-import stlc.Subst
+import old.stlc.Syntax
+import old.stlc.Subst
 
 sorts
 	OptExp

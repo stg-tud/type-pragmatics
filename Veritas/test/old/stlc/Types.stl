@@ -1,7 +1,7 @@
-module stlc.Types
+module old.stlc.Types
 
-import stlc.Syntax
-import stlc.Context
+import old.stlc.Syntax
+import old.stlc.Context
 
 axioms
 

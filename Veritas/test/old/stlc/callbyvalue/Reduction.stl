@@ -1,7 +1,7 @@
-module stlc.callbyvalue.Reduction
+module old.stlc.callbyvalue.Reduction
 
-import stlc.Syntax
-import stlc.Subst
+import old.stlc.Syntax
+import old.stlc.Subst
 
 data OptExp
 	= noExp

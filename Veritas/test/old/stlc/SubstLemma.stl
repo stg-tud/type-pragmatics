@@ -1,15 +1,15 @@
-module stlc.SubstLemma
+module old.stlc.SubstLemma
 
-import stlc.Syntax
-import stlc.Context
-import stlc.Types
-import stlc.Gensym
-import stlc.Subst
-import stlc.SubstLemmaAux
+import old.stlc.Syntax
+import old.stlc.Context
+import old.stlc.Types
+import old.stlc.Gensym
+import old.stlc.Subst
+import old.stlc.SubstLemmaAux
 
 strategy subst-abs-3-alpha-equiv {
 	
-	import stlc.AlphaEquivalence
+	import old.stlc.AlphaEquivalence
 	
 	// generalized axiom for abs-2 case
 	axiom
