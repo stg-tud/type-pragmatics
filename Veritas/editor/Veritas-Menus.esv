@@ -36,8 +36,8 @@ menus
       action: "Selection"            = debug-task-selection
     end
   
-  // menu: "FOF"
-  //   action: "Open FOF"			   = open-fof (openeditor) (realtime)
+  menu: "FOF"
+    action: "Open FOF"			   = open-fof (openeditor) (realtime)
   //   action: "Generate FOF"         = generate-fof (openeditor) (realtime)
   //   action: "Generate all FOFs for folder" = gen-fof-for-folder
     // action: "Generate SMT"         = generate-smt (openeditor) (realtime)
