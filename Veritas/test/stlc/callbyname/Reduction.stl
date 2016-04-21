@@ -1,0 +1,71 @@
+module stlc.callbyname.Reduction
+
+import stlc.Syntax
+import stlc.Subst
+
+data OptExp = noExp 
+	| someExp(Exp)
+
+function
+isSomeExp : OptExp -> Bool
+isSomeExp(noExp) = false
+isSomeExp(someExp(e)) = true
+
+partial function
+getSomeExp : OptExp -> Exp
+getSomeExp(someExp(e)) = e
+
+function
+reduce : Exp -> OptExp
+reduce(var(x)) = noExp
+reduce(abs(x, S, e)) = noExp
+reduce(app(abs(x, S, e1), e2)) = someExp(subst(x, e2, e1))
+reduce(app(e1, e2)) = let e1red = reduce(e1) in
+	if isSomeExp(e1red)
+	then someExp(app(getSomeExp(e1red), e2))
+	else noExp
+	
+// strategy reduce-defs-only {
+// 	hide-all
+// 	include {
+// 	EQ-var, EQ-abs, EQ-app, DIFF-var-abs, DIFF-var-app, DIFF-abs-app,
+// 	EQ-noExp, EQ-someExp, DIFF-noExp-someExp, isSomeExp0, isSomeExp1, getSomeExp0, 
+// 	reduce0, reduce1, reduce2, reduce3, reduce4, reduce-INV
+// 	}
+// }
+	
+lemma 5 // could be derived from return type of `reduce`
+reduce(~e) == ~res
+========================== reduce-CODOM
+OR
+=> ~res == noExp
+=> exists ~e2
+	~res == someExp(~e2)
+
+// axiom
+// reduce(~e) == ~res
+// ========================== reduce-Inv
+// OR
+// => exists ~x
+// 	~e == var(~x)
+// 	~res == noExp
+// => exists ~x, ~S, ~e1
+// 	~e == abs(~x, ~S, ~e1)
+// 	~res == noExp
+// => exists ~x, ~S, ~e1, ~e2
+// 	~e == app(abs(~x, ~S, ~e1), ~e2)
+// 	~res == someExp(subst(~x, ~e2, ~e1))
+// => exists ~e1, ~e2, ~e1Red
+// 	~e == app(~e1, ~e2)
+// 	forall ~x, ~S, ~e11, ~e22
+// 		~e != app(abs(~x, ~S, ~e11), ~e22)
+// 	~e1Red == reduce(~e1)
+// 	isSomeExp(~e1Red)
+// 	~res == someExp(app(getSomeExp(~e1Red), ~e2))
+// => exists ~e1, ~e2, ~e1Red
+// 	~e == app(~e1, ~e2)
+// 	forall ~x, ~S, ~e11, ~e22
+// 		~e != app(abs(~x, ~S, ~e11), ~e22)
+// 	~e1Red == reduce(~e1)
+// 	!isSomeExp(~e1Red)
+// 	~res == noExp

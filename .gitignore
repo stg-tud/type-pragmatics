@@ -64,3 +64,6 @@ benchmarking/datasets/layout/.RData
 Veritas/test/encodingcompstudy/AllVariantsWithFOOL
 Veritas/test/encodingcompstudy/BasicFOOLencodings
 Veritas/test/sql/proofs
+Veritas/test/stlc/callbyname/proofs/
+Veritas/test/stlc/callbyvalue/proofs/
+Veritas/test/stlc/proofs/

@@ -1,0 +1,38 @@
+module stlc.AlphaEquivalence
+
+import stlc.Syntax
+import stlc.Subst
+
+function
+alphaEquivalent : Exp Exp -> Bool
+
+//axiomatic specification of alpha equivalence
+axioms
+============================ alpha-equiv-refl
+alphaEquivalent(~e, ~e)
+
+
+alphaEquivalent(~e1, ~e2)
+============================ alpha-equiv-sym
+alphaEquivalent(~e2, ~e1)
+
+ 
+alphaEquivalent(~e1, ~e2)
+alphaEquivalent(~e2, ~e3)
+============================ alpha-equiv-trans
+alphaEquivalent(~e1, ~e3)
+	
+!isFreeVar(~y, ~e)
+====================================================================== alpha-equiv-subst-abs
+alphaEquivalent(abs(~x, ~S, ~e), abs(~y, ~S, subst(~x, var(~y), ~e)))
+
+
+~C |- ~e : ~T
+alphaEquivalent(~e, ~e1)
+========================= alpha-equiv-typing
+~C |- ~e1 : ~T
+
+!isFreeVar(~x, ~e)
+alphaEquivalent(~e, ~e1)
+========================= alpha-equiv-FreeVar
+!isFreeVar(~x, ~e1)

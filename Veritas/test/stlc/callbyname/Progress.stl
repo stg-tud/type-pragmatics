@@ -1,0 +1,69 @@
+module stlc.callbyname.Progress
+
+import stlc.Syntax
+import stlc.Context
+import stlc.callbyname.Reduction
+import stlc.Types
+
+// Prove by induction on typing relation. Cases: T-var, T-abs, T-app
+
+goal
+empty |- var(~x) : ~T
+!isValue(var(~x))
+=========================== T-Progress-T-var
+exists ~eout
+	reduce(var(~x)) == someExp(~eout)
+
+local {
+	consts
+		e1 : Exp
+	
+	axiom 
+	empty |- e1 : ~T
+	!isValue(e1)
+	=========================== T-Progress-T-abs-IH
+	exists ~eout
+		reduce(e1) == someExp(~eout)
+
+	goal
+	empty |- abs(~x, ~S, e1) : ~Tin
+	!isValue(abs(~x, ~S, e1))
+	=========================== T-Progress-T-abs
+	exists ~eout
+		reduce(abs(~x, ~S, e1)) == someExp(~eout)
+}
+
+
+local {
+	consts
+		e1 : Exp
+		e2 : Exp
+	
+	axiom	 
+	empty |- e1 : ~T
+	!isValue(e1)
+	=========================== T-Progress-T-app-IH1
+	exists ~eout
+		reduce(e1) == someExp(~eout)
+
+	axiom // not needed 
+	empty |- e2 : ~T
+	!isValue(e2)
+	=========================== T-Progress-T-app-IH2
+	exists ~eout
+		reduce(e2) == someExp(~eout)
+
+	goal
+	empty |- app(e1, e2) : ~T
+	!isValue(app(e1, e2))
+	=========================== T-Progress-T-app
+	exists ~eout
+		reduce(app(e1, e2)) == someExp(~eout)
+}
+
+axiom
+empty |- ~ein : ~T
+!isValue(~ein)
+=========================== T-Progress
+exists ~eout
+	reduce(~ein) == someExp(~eout)

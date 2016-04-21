@@ -1,0 +1,11 @@
+module stlc.Gensym
+
+import stlc.Syntax
+
+partial function
+gensym : Exp -> Var
+
+axiom
+gensym(~e) == ~v
+================== gensym-is-fresh
+!isFreeVar(~v, ~e)

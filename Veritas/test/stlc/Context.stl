@@ -1,0 +1,38 @@
+module stlc.Context
+
+import stlc.Syntax
+
+data Ctx
+  = empty
+  | bind(Var, Typ, Ctx)
+
+data OptTyp  
+  = noType
+  | someType(Typ)
+
+function
+isSomeType : OptTyp -> Bool
+isSomeType(noType) = false
+isSomeType(someType(t)) = true
+
+partial function
+getSomeType : OptTyp -> Typ
+getSomeType(someType(t)) = t
+
+
+function
+lookup : Var Ctx -> OptTyp
+lookup(x, empty) = noType
+lookup(x, bind(y, Ty, C)) = 
+  if (x == y)
+  then someType(Ty)
+  else lookup(x, C)
+
+
+
+
+
+
+
+
+
