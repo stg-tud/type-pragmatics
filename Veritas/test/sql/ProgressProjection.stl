@@ -1,0 +1,662 @@
+module sql.ProgressProjection
+
+import sql.TableAux
+import sql.SoundnessAuxDefs
+import sql.TypeSystem
+import sql.Semantics
+import sql.TStore
+import sql.Tables
+import sql.TContext
+
+strategy proof-table-minus-first-row-findCol {
+
+		// hide-all
+		// 
+		// 
+		// // including welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
+		// // 	rawType0, rawType1, rawType-INV,
+		// // 	makes the proofs below all work, even though none of them uses these axioms...
+		// 
+		// include { EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
+		// 	isSome-INV-1, isSome-INV-2, 
+		// 	EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
+		// 	DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
+		// 	EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
+		// 	
+		// 	welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
+		// 	rawType0, rawType1, rawType-INV,
+		// 	
+		// 	findCol0, findCol1, findCol2, findCol-INV,
+		// 	dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV
+		// }
+		
+		strategy induction-findCol-table-one-col-one-row {
+			// include {projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV}
+			
+			//induction on length of table attribute list, with case distinction
+			//trivial base case 1, premise wrong
+			goal 
+			findCol(~a, aempty, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+			====================================================================== findCol-table-one-col-one-row-aempty
+			exists ~a2, ~ar, ~r, ~trest
+				~al = acons(~a2, ~al)
+				~rt = tcons(~r, ~trest)
+				
+			//trivial base case 2
+			goal 
+			~al = acons(~a2, aempty)
+			findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+			================================================================================= findCol-table-one-col-one-row-acons1
+			exists ~a3, ~ar, ~r, ~trest
+				~al = acons(~a3, ~ar)
+				~rt = tcons(~r, ~trest)
+				
+			//step case
+			local {
+				consts al : AttrL
+				
+				axiom 
+				al != aempty
+				~al = al
+				findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+				====================================================================== findCol-table-one-col-one-row-acons2-IH
+				exists ~a2, ~ar, ~r, ~trest
+					~al = acons(~a2, ~ar)
+					~rt = tcons(~r, ~trest)
+				
+				goal 
+				al != aempty
+				~al = acons(~a2, al)
+				findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+				====================================================================== findCol-table-one-col-one-row-acons2
+				exists ~a3, ~ar, ~r, ~trest
+					~al = acons(~a3, ~ar)
+					~rt = tcons(~r, ~trest)
+			}
+			
+			axiom 
+			findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+			======================================================= findCol-table-one-col-one-row-ind
+			exists ~a2, ~ar, ~r, ~trest
+				~al = acons(~a2, ~ar)
+				~rt = tcons(~r, ~trest)
+			
+		}
+		
+		
+		lemma verify-with induction-findCol-table-one-col-one-row 1
+		findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+		======================================================= findCol-table-one-col-one-row
+		exists ~a2, ~al2, ~r, ~trest
+			~al == acons(~a2, ~al2)
+			~rt == tcons(~r, ~trest)
+		
+		strategy induction-one-col-table-minus-first-row-findCol {
+			//induction on length of ~al (rest list!)
+			
+			//include {projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV}
+			
+			//base case, trivial
+			goal 
+			findCol(~a, acons(~a2, aempty), tcons(~r, ~trest)) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+			=============================================================================================== one-col-table-minus-first-row-findCol-aempty
+			findCol(~a, acons(~a2, aempty), ~trest) == someRawTable(~rt1)
+			
+			local {
+				consts a3 : Name
+					al : AttrL
+					
+				axiom
+				findCol(~a, acons(~a2, al), tcons(~r, ~trest)) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+				=============================================================================================== one-col-table-minus-first-row-findCol-acons-IH
+				findCol(~a, acons(~a2, al), ~trest) == someRawTable(~rt1)
+				
+				//not provable with timeout 300
+				goal 1
+				findCol(~a, acons(~a2, acons(a3, al)), tcons(~r, ~trest)) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+				========================================================================================================= one-col-table-minus-first-row-findCol-acons
+				findCol(~a, acons(~a2, acons(a3, al)), ~trest) == someRawTable(~rt1)	
+					
+			}	
+			
+			axiom
+			findCol(~a, acons(~a2, ~al), tcons(~r, ~trest)) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+			=============================================================================================== one-col-table-minus-first-row-findCol-ind
+			findCol(~a, acons(~a2, ~al), ~trest) == someRawTable(~rt1)	
+		}
+		
+		lemma verify-with induction-one-col-table-minus-first-row-findCol
+		findCol(~a, acons(~a2, ~al), tcons(~r, ~trest)) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+		=============================================================================================== one-col-table-minus-first-row-findCol
+		findCol(~a, acons(~a2, ~al), ~trest) == someRawTable(~rt1)	
+}
+
+strategy proof-table-minus-first-row-project {
+	
+	// hide-all
+	// 
+	// include {EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
+	// 		isSome-INV-1, isSome-INV-2, 
+	// 		EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
+	// 		DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
+	// 		EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
+	// 		
+	// 		project0, project1, project2, project-INV,
+	// 		projectEmptyCol0, projectEmptyCol1, projectEmptyCol-INV
+	// }
+
+	
+	strategy proof-project-table-one-row {
+		//case distinction on length of attribute list for projection
+		
+		// include {
+		// 	findCol0, findCol1, findCol2, findCol-INV,
+		// 	projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV,
+		// 	attachColToFrontRaw0, attachColToFrontRaw1, attachColToFrontRaw2, attachColToFrontRaw3, attachColToFrontRaw-INV,
+		// 	dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV
+		// }
+		
+		// trivial base case, empty list
+		lemma
+		selectRows(aempty, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
+		======================================================= project-table-one-row-aempty
+		exists ~r, ~trest
+			~rt == tcons(~r, ~trest)
+		
+		strategy induction-findCol-one-row {
+			// induction on recursive structure of findCol
+			
+			// trivial, premise wrong!
+			goal
+			findCol(~a, aempty, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+			========================================================= findCol-one-row-1
+			exists ~r, ~trest
+				~rt == tcons(~r, ~trest)
+				
+			local {
+				consts
+				a : Name
+				a2 : Name
+				al : AttrL
+				rt : RawTable	
+				
+				axiom
+				findCol(a, al, dropFirstColRaw(rt)) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+				==================================================================================== findCol-one-row-2-IH
+				exists ~r, ~trest
+					rt == tcons(~r, ~trest)
+			
+				goal 
+				findCol(a, acons(a2, al), rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+				========================================================= findCol-one-row-2
+				exists ~r, ~trest
+					rt == tcons(~r, ~trest)
+			}
+			
+			hide-all
+			axiom 
+			findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+			==================================================================== findCol-one-row-ind
+			exists ~r, ~trest
+				~rt == tcons(~r, ~trest)
+			
+		}
+			
+		lemma verify-with induction-findCol-one-row 
+		findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+		==================================================================== findCol-one-row
+		exists ~r, ~trest
+				~rt == tcons(~r, ~trest)
+		
+				
+		lemma
+		selectRows(acons(~a, ~al), ~al2, ~rt) == someRawTable(tcons(~r1, ~rt2))
+		======================================================= project-table-one-row-acons
+		exists ~r, ~trest
+			~rt == tcons(~r, ~trest)
+	}
+	
+	lemma verify-with proof-project-table-one-row
+	selectRows(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
+	======================================================= project-table-one-row
+	exists ~r, ~trest
+		~rt == tcons(~r, ~trest)
+		
+		
+	strategy proof-one-row-table-minus-first-row-project {
+		
+		// induction on lenght of attribute list 
+	// 	hide-all
+	// 
+	// 	include {EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
+	// 		isSome-INV-1, isSome-INV-2, 
+	// 		EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
+	// 		DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
+	// 		EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
+	// 		
+	// 		project0, project1, project2, project-INV,
+	// 		projectEmptyCol0, projectEmptyCol1, projectEmptyCol-INV,
+	// 		
+	// 		findCol0, findCol1, findCol2, findCol-INV,
+	// 		projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV,
+	// 		attachColToFrontRaw0, attachColToFrontRaw1, attachColToFrontRaw2, attachColToFrontRaw3, attachColToFrontRaw-INV,
+	// 		dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV
+	// 	}
+		
+		
+		goal 
+		selectRows(aempty, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+		======================================================================== one-row-table-minus-first-row-project-aempty
+		selectRows(aempty, ~ar2, ~trest) == someRawTable(~rt2)
+		
+		local {
+			consts a : Name
+				al: AttrL
+			
+			axiom 
+			selectRows(al, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+			======================================================================== one-row-table-minus-first-row-project-acons-IH
+			selectRows(al, ~ar2, ~trest) == someRawTable(~rt2)
+			
+			//repeated lemma from above, reusing proof
+			// lemma verify-with induction-one-col-table-minus-first-row-findCol
+			// findCol(~a, table(acons(~a2, ~al), tcons(~r, ~trest))) == some(tcons(rcons(~f, rempty), ~rt1))
+			// =============================================================================================== one-col-table-minus-first-row-findCol2
+			// findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)	
+			
+			// lemma 1
+			// selectRows(acons(~a, ~al), ~t) == some(~rt)
+			// ==================================================================================== aux0
+			// exists ~col, ~rest
+			// 	some(~col) == findCol(~a, ~t)
+			// 	some(~rest) == selectRows(~al, ~t)
+			// 	attachColToFrontRaw(~col, ~rest) == some(~rt)
+			// 	
+			// lemma 1
+			// some(~col) == findCol(~a, ~t)
+			// some(~rest) == selectRows(~al, ~t)
+			// attachColToFrontRaw(~col, ~rest) == some(~rt)
+			// =============================================== aux-INV
+			// selectRows(acons(~a, ~al), ~t) == some(~rt)
+			// 
+			// 
+			// lemma verify-with proof-table-minus-first-row-findCol
+			// findCol(~a, ~t) == some(tcons(rcons(~f, rempty), ~rt1))
+			// ====================================================== table-minus-first-row-findCol
+			// exists ~a2, ~al, ~r, ~trest
+			// 	~t == table(acons(~a2, ~al), tcons(~r, ~trest))
+			// 	findCol(~a, table(acons(~a2, ~al), ~trest)) == some(~rt1)
+
+			// lemma 1
+			// findCol(~a, table(~ar2, tcons(~r, ~trest))) == some(~col)
+			// selectRows(~al, table(~ar2, tcons(~r, ~trest))) == some(~rest)
+			// attachColToFrontRaw(~col, ~rest) == some(tcons(~r2, ~rt2))
+			// ============================================================================== aux3
+			// exists ~f, ~rt, ~r1, ~rt1, ~rt3
+			// 	~col == tcons(rcons(~f, rempty), ~rt)
+			// 	~rest == tcons(~r1, ~rt1)
+			// 	attachColToFrontRaw(~rt, ~rt1) == some(~rt3)
+				
+			
+			
+			lemma 1
+			selectRows(acons(a, al), ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+			================================================================================= step1
+			exists ~col, ~rest
+				someRawTable(~col) == findCol(~a, ~ar2, tcons(~r, ~trest))
+				someRawTable(~rest) == selectRows(~al, table(~ar2, tcons(~r, ~trest)))
+				attachColToFrontRaw(~col, ~rest) == someRawTable(tcons(~r1, ~rt2))
+				
+			lemma 1
+			attachColToFrontRaw(~col, ~rest) == someRawTable(tcons(~r1, ~rt2))
+			someRawTable(~col) == findCol(~a, table(~ar2, tcons(~r, ~trest)))
+			someRawTable(~rest) == selectRows(~al, table(~ar2, tcons(~r, ~trest)))
+			========================================================================= intermediate-step1
+			exists ~f, ~rt, ~r3, ~rt3
+				~col == tcons(rcons(~f, rempty), ~rt)
+				~rest == tcons(~r3, ~rt3)
+				
+			lemma 1
+			findCol(~a, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(rcons(~f, rempty), ~rt))
+			==================================================================================== step2
+			findCol(~a, ~ar2, ~trest) == someRawTable(~rt)
+			
+			// then apply IH
+	
+	
+			lemma 1
+			attachColToFrontRaw(tcons(rcons(~f, rempty), ~rt), tcons(~r1, ~rt1)) == someRawTable(tcons(~r2, ~rt2))
+			============================================================================================== step3
+			attachColToFrontRaw(~rt, ~rt1) == someRawTable(~rt2)
+			
+			lemma 1
+			findCol(~a, ~ar2, ~trest) == someRawTable(~rt)
+			selectRows(~al, ~ar2, ~trest) == someRawTable(~rest)
+			attachColToFrontRaw(~rt, ~rest) == someRawTable(~rt2)
+			=========================================================== step4
+			selectRows(acons(~a, ~al), ~ar2, ~trest) == someRawTable(~rt2)
+				
+			//not provable with timeout 300!
+			goal 1
+			selectRows(acons(a, al), ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+			======================================================================== one-row-table-minus-first-row-project-acons
+			selectRows(acons(a, al), ~ar2, ~trest) == someRawTable(~rt2)			
+		}
+		
+		hide-all
+		axiom
+		selectRows(~ar, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+		======================================================================== one-row-table-minus-first-row-project-ind
+		selectRows(~ar, ~ar2, ~trest) == someRawTable(~rt2)
+		
+	}
+			
+	lemma verify-with proof-one-row-table-minus-first-row-project
+	selectRows(~ar, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+	======================================================================== one-row-table-minus-first-row-project
+	selectRows(~ar, ~ar2, ~trest) == someRawTable(~rt2)
+	
+	
+	//TODO remove lemma if proof works!
+	lemma 
+	welltypedtable(~TT1, ~t)
+	selectRows(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
+	====================================================== table-minus-first-row-project-TODO
+	exists ~r, ~trest
+		~rt == tcons(~r, ~trest)
+		selectRows(~ar, ~al, ~trest) == someRawTable(~rt2)
+	
+}
+
+
+//proof of progress-attachColToFrontRaw by induction on 
+// the recursive structure of attachColToFrontRaw
+strategy induction-progress-attachColToFrontRaw {
+
+	//trivial base case, premises cannot both be true
+	goal
+	welltypedtable(~TT1, ~t)
+	findCol(~a, ~al, ~rt) == someRawTable(tempty)
+	selectRows(~ar, ~al, ~rt) == someRawTable(tempty)	
+	================================================= progress-attachColToFrontRaw-1
+	exists ~rt2
+		attachColToFrontRaw(tempty, tempty) == someRawTable(~rt2)
+		
+		
+	// induction step
+	local { 
+		
+		// hide-all
+		// include { EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
+		// 	isSome-INV-1, isSome-INV-2, 
+		// 	EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
+		// 	DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
+		// 	EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
+		// 	welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
+		// 	rawType0, rawType1, rawType-INV,
+		// 	
+		// 	attachColToFrontRaw0, attachColToFrontRaw1, 
+		// 	attachColToFrontRaw2, attachColToFrontRaw3, attachColToFrontRaw-INV }
+		
+		consts
+		f : Val
+		rt1 : RawTable
+		r : Row
+		rt2 : RawTable
+	
+		axiom 
+		welltypedtable(~TT1, table(~al, ~rt))
+		findCol(~a, ~al, ~rt) == someRawTable(rt1)
+		selectRows(~ar, ~al, ~rt) == someRawTable(rt2)
+		================================================= progress-attachColToFrontRaw-2-IH
+		exists ~rt3
+			attachColToFrontRaw(rt1, rt2) == someRawTable(~rt3)
+			
+		//include extra lemmas
+		strategy welltyped-table-defs {
+			// hide-all
+			// include {welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
+			// 	rawType0, rawType1, rawType-INV,
+			// 	welltypedRawtable0, welltypedRawtable1, welltypedRow0,
+			// 	welltypedRow1, welltypedRow2} 
+		}
+		
+		lemma verify-with welltyped-table-defs 
+		welltypedtable(~TT1, table(acons(~a, ~al), tcons(~r, ~trest)))
+		====================================================== table-minus-first-row-welltyped
+		welltypedtable(~TT1, table(acons(~a, ~al), ~trest))
+			
+
+		lemma verify-with proof-table-minus-first-row-findCol
+		findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(~f, rempty), ~rt1))
+		====================================================== table-minus-first-row-findCol
+		exists ~a2, ~al2, ~r, ~trest
+			~al == acons(~a2, ~al2)
+			~rt == tcons(~r, ~trest)
+			findCol(~a, acons(~a2, ~al2), ~trest) == someRawTable(~rt1)
+			
+		lemma verify-with proof-table-minus-first-row-project //TODO prove
+		welltypedtable(~TT1, table(~al, ~rt))
+		selectRows(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
+		====================================================== table-minus-first-row-project
+		exists ~r, ~trest
+			~rt == tcons(~r, ~trest)
+			selectRows(~ar, ~al, ~trest) == someRawTable(~rt2)
+			
+		
+		goal
+		welltypedtable(~TT1, table(~al, ~rt))
+		findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(f, rempty), rt1))
+		selectRows(~ar, ~al, ~rt) == someRawTable(tcons(r, rt2))
+		=================================================================================== progress-attachColToFrontRaw-2
+		exists ~rt3
+			attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) == someRawTable(~rt3)
+	}
+	
+	// prove that third case of attachColToFrontRaw can never happen!
+	goal 1 //TODO!!
+	OR
+	=> ~crt != tempty
+	=> ~rt != tempty
+	OR 
+	=> forall ~f, ~rt1 ~crt != tcons(rcons(~f, rempty), ~rt1)
+	=> forall ~r, ~rt2 ~rt != tcons(~r, ~rt2)
+	welltypedtable(~TT1, table(~al, ~rt))
+	findCol(~a, ~al, ~rt) == someRawTable(~crt)
+	selectRows(~ar, ~al, ~rt) == someRawTable(~rt2)
+	================================================= progress-attachColToFrontRaw-3
+	exists ~rt3
+		attachColToFrontRaw(~crt, ~rt2) == someRawTable(~rt3) 	
+	
+	
+	hide-all
+	axiom 
+	welltypedtable(~TT1, table(~al, ~rt))
+	findCol(~a, ~al, ~rt) == someRawTable(~crt)
+	selectRows(~ar, ~al, ~rt) == someRawTable(~rt2)
+	================================================= progress-attachColToFrontRaw-ind
+	exists ~rt3
+		attachColToFrontRaw(~crt, ~rt2) == someRawTable(~rt3) 	
+
+}
+
+
+lemma verify-with induction-progress-attachColToFrontRaw
+welltypedtable(~TT1, table(~al, ~rt))
+findCol(~a, ~al, ~rt) == someRawTable(~crt)
+selectRows(~ar, ~al, ~rt) == someRawTable(~rt2)
+================================================= progress-attachColToFrontRaw
+exists ~rt3
+	attachColToFrontRaw(~crt, ~rt2) == someRawTable(~rt3) 	
+
+//proof of progress-findCol by induction on the recursive structure of findCol
+strategy induction-progress-findCol {
+	
+	//trivial base case, premises cannot both be true
+	goal
+	welltypedtable(~TT1, table(aempty, ~rt))
+	selectTypeAttrL(acons(~a, ~ar), ~TT1) == someTType(~TT2)
+	=============================================== progress-findCol-aempty
+	exists ~c
+		findCol(~a, aempty, ~rt) == someRawTable(~c)
+
+	local {
+			
+		strategy progress-findCol-inductionstep {
+			
+			import sql.PreservationProjection
+			//hide-all
+		
+			consts 
+	 		a : Name
+	 		a2 : Name
+	 		al : AttrL
+	 		rt : RawTable
+
+			axiom
+			welltypedtable(~TTR, table(al, dropFirstColRaw(rt)))
+			findColType(a, ~TTR) == someTType(~TTR2)
+			============================================================ progress-findCol-acons-IH
+			exists ~c
+				findCol(a, al, dropFirstColRaw(rt)) == someRawTable(~c)	
+			
+			// include {DropFirstCol-Preservation,
+			// findColType0, findColType1, findColType2, findColType-INV,
+			// findCol0, findCol1, findCol2, findCol-INV,
+			// dropFirstColRaw0, dropFirstColRaw1, dropFirstColRaw2, dropFirstColRaw-INV,
+			// projectFirstRaw0, projectFirstRaw1, projectFirstRaw2, projectFirstRaw-INV,
+			// welltypedtable0, matchingAttrL0, matchingAttrL1, matchingAttrL2,
+			// rawType0, rawType1, rawType-INV,
+			// welltypedRawtable0, welltypedRawtable1, welltypedRow0,
+			// welltypedRow1, welltypedRow2,
+			// EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
+			// isSome-INV-1, isSome-INV-2, 
+			// EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
+			// DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
+			// EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons}
+			
+			//exclude induction hypothesis for proofs of auxiliary lemmas!
+			strategy exclude-IH {
+				hide {progress-findCol-acons-IH}
+			}
+			
+			lemma verify-with exclude-IH
+			welltypedtable(~TT1, table(acons(~a, ~al), ~rt))
+			=================================================== welltypedtable-type
+			exists ~ft, ~TTR
+				~TT1 == ttcons(~a, ~ft, ~TTR)
+		
+			lemma verify-with exclude-IH
+			welltypedtable(ttcons(~a, ~ft, ~TTR), table(acons(~a, ~al), ~rt))
+			========================================================================== welltyped-subtable
+			welltypedtable(~TTR, table(~al, dropFirstColRaw(~rt)))
+		
+		}
+		
+		goal verify-with progress-findCol-inductionstep
+		welltypedtable(~TT1, table(acons(a2, al), rt))
+		findColType(a, ~TT1) == someTType(~TT2)
+		==================================================== progress-findCol-acons
+		exists ~c
+			findCol(a, acons(a2, al), rt) == someRawTable(~c)
+	}	
+		
+	axiom
+	welltypedtable(~TT1, table(~al, ~rt))	
+	findColType(~a, ~TT1) == someTType(~TT2)
+	=================================================== progress-findCol-ind
+	exists ~c
+		findCol(~a, table(~al, ~rt)) == someRawTable(~c)
+
+} //qed progress-findCol
+	
+	
+lemma verify-with induction-progress-findCol
+welltypedtable(~TT1, table(~al, ~rt))	
+findColType(~a, ~TT1) == someTType(~TT2)
+=============================================== progress-findCol
+exists ~c
+	findCol(~a, table(~al, ~rt)) == someRawTable(~c)
+
+	
+strategy induction-progress-projection {
+	const ar : AttrL
+	
+	// proof of progress-projection by induction over structure of attribute list
+	goal
+	StoreContextConsistent(~TS, ~TTC)
+	lookupContext(~tn, ~TTC) == someTType(~TT1)
+	lookupStore(~tn, ~TS) == someTable(table(~al, ~rt))
+	selectTypeAttrL(aempty, ~TT1) == someTType(~TT2)
+	====================================== progress-projection-aempty
+	exists ~t2
+		selectRows(aempty, ~al, ~rt) == someRawTable(~t2)
+
+	local {
+		
+		//hide-all
+		// Strategy: 1) include all axioms for relevant definitions (recursively!)
+		// 2) include relevant auxiliary lemmas about used definitions
+		// 3) exclude axioms on definitions for which there are auxiliary lemmas
+		// (here: findCol, attachColToFrontRaw, StoreContextConsistent)
+		
+		axiom
+		StoreContextConsistent(~TS, ~TTC)
+		lookupContext(~tn, ~TTC) == someTType(~TT1)
+		lookupStore(~tn, ~TS) == someTable(table(~al, ~rt))
+		selectTypeAttrL(ar, ~TT1) == someTType(~TT2)
+		====================================== progress-projection-acons-IH
+		exists ~rt
+			selectRows(ar, ~al, ~rt) == someRawTable(~rt)	
+	
+	
+		// include{progress-findCol, progress-attachColToFrontRaw,
+		// StoreContext-Lookup-WT,
+		// project0, project1, project2, project-INV,
+		// selectTypeAttrL0, selectTypeAttrL1, selectTypeAttrL2, selectTypeAttrL-INV,
+		// findColType0, findColType1, findColType2, findColType-INV,
+		// EQ-none, EQ-some, DIFF-none-some, isSome0, isSome1, getSome0,
+		// isSome-INV-1, isSome-INV-2, 
+		// EQ-ctype, EQ-aempty, EQ-acons, EQ-ttempty, EQ-ttcons, EQ-rtempty, EQ-rtcons,
+		// DIFF-aempty-acons, DIFF-ttempty-ttcons, DIFF-rtempty-rtcons, EQ-rempty,
+		// EQ-rcons, EQ-tempty, EQ-tcons, EQ-table, DIFF-rempty-rcons, DIFF-tempty-tcons,
+		// lookup0, lookup1, lookup2, lookup-INV, 
+		// clookup0, clookup1, clookup2, clookup-INV}
+		
+		goal 40
+		StoreContextConsistent(~TS, ~TTC)
+		lookupContext(~tn, ~TTC) == someTType(~TT1)
+		lookupStore(~tn, ~TS) == someTable(table(~al, ~rt))
+		selectTypeAttrL(acons(~a, ar), ~TT1) == someTType(~TT2)
+		=============================================== progress-projection-acons
+		exists ~rt
+			selectRows(acons(~a, ar), ~al, ~rt) == someRawTable(~rt)
+		
+		// Verification succeeded, used lemmas: progress-findCol-attachColToFrontRaw, isSome-INV-2, progress-
+		// projection-acons-IH, isSome1, progress-findCol, selectTypeAttrL2, DIFF-none-some, isSome-INV-1, StoreContext-
+ 		// Lookup-WT, project1.	
+	}
+		
+	
+ 	hide-all
+ 	axiom
+	StoreContextConsistent(~TS, ~TTC)
+	lookupContext(~tn, ~TTC) == someTType(~TT1)
+	lookupStore(~tn, ~TS) == someTable(table(~al, ~rt))
+	selectTypeAttrL(~al, ~TT1) == someTType(~TT2)
+	====================================== progress-projection-ind
+	exists ~rt
+		selectRows(~al, ~al, ~rt) == someRawTable(~rt)
+ 
+} //qed progress-projection
+
+
+lemma verify-with induction-progress-projection
+StoreContextConsistent(~TS, ~TTC)
+lookupContext(~tn, ~TTC) == someTType(~TT1)
+lookupContext(~tn, ~TS) == someTable(table(~al, ~rt))
+selectTypeAttrL(~al, ~TT1) == someTType(~TT2)
+====================================== progress-projection
+exists ~rt
+	selectRows(~al, ~al, ~rt) == someRawTable(~rt)
+	
