@@ -1,9 +1,9 @@
-module sql.AuxLemmas
+module old.sql.AuxLemmas
 
-import sql.TStore
-import sql.TContext
-import sql.SoundnessAuxDefs
-import sql.Tables
+import old.sql.TStore
+import old.sql.TContext
+import old.sql.SoundnessAuxDefs
+import old.sql.Tables
 
 
 //proof by simple induction over the structure of the table type context

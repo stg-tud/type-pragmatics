@@ -1,9 +1,9 @@
-module sql.TypeSystemInv
+module old.sql.TypeSystemInv
 
-import sql.Syntax
-import sql.TypeSystem
-import sql.Tables
-import sql.TContext
+import old.sql.Syntax
+import old.sql.TypeSystem
+import old.sql.Tables
+import old.sql.TContext
 
 axiom
 ~TTC |- ~q : ~TT

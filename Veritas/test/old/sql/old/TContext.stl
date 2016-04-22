@@ -1,7 +1,7 @@
-module sql.TContext
+module old.sql.TContext
 
-import sql.Tables
-import sql.TStore
+import old.sql.Tables
+import old.sql.TStore
 
 sorts
 	TTContext OptTType

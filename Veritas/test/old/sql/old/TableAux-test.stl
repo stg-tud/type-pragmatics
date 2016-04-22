@@ -1,7 +1,7 @@
-module sql.TableAux-test
+module old.sql.TableAux-test
 
-import sql.Tables
-import sql.TableAux
+import old.sql.Tables
+import old.sql.TableAux
 
 
 //some tests of the raw table functions

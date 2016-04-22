@@ -1,9 +1,9 @@
-module sql.Semantics
+module old.sql.Semantics
 
-import sql.Syntax
-import sql.TStore
-import sql.Tables
-import sql.TableAux
+import old.sql.Syntax
+import old.sql.TStore
+import old.sql.Tables
+import old.sql.TableAux
 
 sorts
 	Conf OptConf

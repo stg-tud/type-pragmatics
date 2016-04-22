@@ -1,6 +1,6 @@
-module sql.TStore
+module old.sql.TStore
 
-import sql.Tables
+import old.sql.Tables
 
 
 sorts

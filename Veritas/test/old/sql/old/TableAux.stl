@@ -1,6 +1,6 @@
-module sql.TableAux
+module old.sql.TableAux
 
-import sql.Tables
+import old.sql.Tables
 
 //some auxiliary functions on raw tables (all not knowing anything about table types!)
 //the functions are intended to be used with well-typed tables!!

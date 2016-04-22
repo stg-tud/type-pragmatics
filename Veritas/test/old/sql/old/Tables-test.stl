@@ -1,6 +1,6 @@
-module sql.Tables-test
+module old.sql.Tables-test
 
-import sql.Tables
+import old.sql.Tables
 
 //a few tests for well-typedness
 goal

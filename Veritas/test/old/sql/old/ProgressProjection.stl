@@ -1,12 +1,12 @@
-module sql.ProgressProjection
+module old.sql.ProgressProjection
 
-import sql.TableAux
-import sql.SoundnessAuxDefs
-import sql.TypeSystem
-import sql.Semantics
-import sql.TStore
-import sql.Tables
-import sql.TContext
+import old.sql.TableAux
+import old.sql.SoundnessAuxDefs
+import old.sql.TypeSystem
+import old.sql.Semantics
+import old.sql.TStore
+import old.sql.Tables
+import old.sql.TContext
 
 strategy proof-table-minus-first-row-findCol {
 

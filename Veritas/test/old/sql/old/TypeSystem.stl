@@ -1,9 +1,9 @@
-module sql.TypeSystem
+module old.sql.TypeSystem
 
-import sql.Tables
-import sql.TStore
-import sql.Syntax
-import sql.TContext
+import old.sql.Tables
+import old.sql.TStore
+import old.sql.Syntax
+import old.sql.TContext
 
 sorts
 	OptFType

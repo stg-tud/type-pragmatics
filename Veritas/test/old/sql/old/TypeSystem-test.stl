@@ -1,10 +1,10 @@
-module sql.TypeSystem-test
+module old.sql.TypeSystem-test
 
-import sql.Tables
-import sql.TStore
-import sql.Syntax
-import sql.TContext
-import sql.TypeSystem
+import old.sql.Tables
+import old.sql.TStore
+import old.sql.Syntax
+import old.sql.TContext
+import old.sql.TypeSystem
 
 
 goal

@@ -1,7 +1,7 @@
-module sql.Syntax
+module old.sql.Syntax
 
-import sql.Tables
-import sql.TStore
+import old.sql.Tables
+import old.sql.TStore
 
 sorts
 	Pred Query TRef

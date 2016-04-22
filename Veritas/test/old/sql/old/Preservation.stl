@@ -1,15 +1,15 @@
-module sql.Preservation
+module old.sql.Preservation
 
-import sql.Syntax
-import sql.Semantics
-import sql.TContext
-import sql.TypeSystem
-import sql.TypeSystemInv
-import sql.TStore
-import sql.Tables
-import sql.TableAux
-import sql.SoundnessAuxDefs
-import sql.PreservationProjection
+import old.sql.Syntax
+import old.sql.Semantics
+import old.sql.TContext
+import old.sql.TypeSystem
+import old.sql.TypeSystemInv
+import old.sql.TStore
+import old.sql.Tables
+import old.sql.TableAux
+import old.sql.SoundnessAuxDefs
+import old.sql.PreservationProjection
 
 
 strategy induction-Preservation {

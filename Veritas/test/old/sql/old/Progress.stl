@@ -1,14 +1,14 @@
-module sql.Progress
+module old.sql.Progress
 
-import sql.Tables
-import sql.TStore
-import sql.Syntax
-import sql.Semantics
-import sql.TContext
-import sql.TypeSystemInv
-import sql.SoundnessAuxDefs
-import sql.AuxLemmas
-import sql.ProgressProjection
+import old.sql.Tables
+import old.sql.TStore
+import old.sql.Syntax
+import old.sql.Semantics
+import old.sql.TContext
+import old.sql.TypeSystemInv
+import old.sql.SoundnessAuxDefs
+import old.sql.AuxLemmas
+import old.sql.ProgressProjection
 
 //prove progress by induction on the typing derivation of an sql command
 //for union/intersection/difference, you actually need induction on typing derivations!

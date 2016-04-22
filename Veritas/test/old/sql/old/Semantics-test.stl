@@ -1,10 +1,10 @@
-module sql.Semantics-test
+module old.sql.Semantics-test
 
-import sql.Semantics
-import sql.Tables
-import sql.TableAux
-import sql.Syntax
-import sql.TStore
+import old.sql.Semantics
+import old.sql.Tables
+import old.sql.TableAux
+import old.sql.Syntax
+import old.sql.TStore
 
 local {
 	constructors 

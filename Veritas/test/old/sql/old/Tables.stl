@@ -1,4 +1,4 @@
-module sql.Tables
+module old.sql.Tables
 
 // explanation:
 // FType: type of a single field (underspecified)
