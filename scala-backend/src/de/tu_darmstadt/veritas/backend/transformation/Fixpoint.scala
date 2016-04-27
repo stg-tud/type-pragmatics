@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.veritas.Module
 
 object Fixpoint {
-  val MAX = 1
+  val MAX = 5
 }
 
 case class Fixpoint(trans: ModuleTransformation) extends ModuleTransformation {

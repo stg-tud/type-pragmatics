@@ -65,7 +65,7 @@ object Backend {
     Map(FinalEncoding -> FinalEncoding.BareFOF,
       (Problem -> Problem.All),
       (VariableEncoding -> VariableEncoding.InlineEverything),
-      (Simplification -> Simplification.None)))
+      (Simplification -> Simplification.LogicalAndConstructors)))
 
   private def writeFile(file: PrettyPrintableFile, path: String): String = {
     val filehandler = new File(path)
@@ -273,14 +273,14 @@ object Backend {
         Map(FinalEncoding -> FinalEncoding.BareFOF,
           (Problem -> Problem.All),
           (VariableEncoding -> VariableEncoding.InlineEverything),
-          (Simplification -> Simplification.None)))
-
+          (Simplification -> Simplification.LogicalAndConstructors)))
+          
     val modules = Seq(Module.from(aterm))
 
     val resultingModSeq = MainTrans(modules)(conf)
-    val result = resultingModSeq map { m => TypingTrans.finalEncoding(m)(conf) }
-    //resultingModSeq map { m => ("", m) }
-    result map { m => ("", m) }
+    //val result = resultingModSeq map { m => TypingTrans.finalEncoding(m)(conf) }
+    resultingModSeq map { m => ("", m) }
+    //result map { m => ("", m) }
   }
 
   /**

@@ -28,19 +28,23 @@ object ConstructorSimplification extends ModuleTransformation with CollectConstr
   override def transFunctionExp(f: FunctionExp): FunctionExp = 
     withSuper(super.transFunctionExp(f)) {
       case FunctionExpEq(FunctionExpApp(c1, as), FunctionExpApp(c2, bs)) 
-        if c1 == c2 && consNames.contains(c1) && as.size == bs.size 
+        if c1 == c2 && (constructorNames.contains(c1) || constNames.contains(c1)) 
+          && as.size == bs.size 
         => FunctionExpAnd(as.zip(bs).map(ab => FunctionExpEq(ab._1,ab._2)))
 
       case FunctionExpEq(FunctionExpApp(c1, as), FunctionExpApp(c2, bs)) 
-        if c1 != c2 && consNames.contains(c1) && consNames.contains(c2) 
+        if c1 != c2 && ((constNames.contains(c1) && constNames.contains(c2)) 
+            || (constructorNames.contains(c1) && constructorNames.contains(c2)))
         => FunctionExpFalse
 
       case FunctionExpNeq(FunctionExpApp(c1, as), FunctionExpApp(c2, bs)) 
-        if c1 == c2 && consNames.contains(c1) && as.size == bs.size 
+        if c1 == c2 && (constructorNames.contains(c1) || constNames.contains(c1))  
+          && as.size == bs.size 
         => FunctionExpOr(as.zip(bs).map(ab => FunctionExpNeq(ab._1,ab._2)))
 
       case FunctionExpNeq(FunctionExpApp(c1, as), FunctionExpApp(c2, bs))
-        if c1 != c2 && consNames.contains(c1) && consNames.contains(c2)
+        if c1 != c2 && ((constNames.contains(c1) && constNames.contains(c2)) 
+            || (constructorNames.contains(c1) && constructorNames.contains(c2)))
         => FunctionExpTrue
     }
 
