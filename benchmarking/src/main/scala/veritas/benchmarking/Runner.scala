@@ -22,7 +22,7 @@ case class Runner(config: Config) {
     else
       Array()
 
-  lazy val allFiles = config.files.flatMap(listAllFiles(_))
+  val allFiles = config.files.flatMap(listAllFiles(_))
 
   private def extractVeritasConfig(filePath: String): VeritasConfig = {
     // split takes regular expression, \-separator (windows systems) needs to be escaped.
@@ -188,12 +188,34 @@ case class Runner(config: Config) {
     }
   }
 
+  // produces flat index map of all given proof files
+  val flatIndexFileMap: Map[Int, File] = ((1 to allFiles.length) zip allFiles).toMap
+
+  def makeSLURMScripts() = {
+    val ssm = SlurmScriptMaker(config.proverConfigs, config.timeout, flatIndexFileMap)
+    ssm.writeFlattenedFileStructure()
+    //ssm.writeJobScripts()
+  }
+
+  //sort the indexed output from the HHLR again into
+  def sortHHLRProverLogs() = {
+    val HHLRFiles = listAllFiles(config.sortHHLRoutput)
+
+    //TODO: look up the Veritas configuration path in the flatIndexFileMap and rewrite the given log files in the correct path structure
+    ???
+
+  }
+
 
   def run(): Unit = {
     if (config.layoutData)
       DataLayout(allFiles, s"${config.timeout}s").layoutAll
     else if (config.summarizeLogs)
       processProofLogs()
+    else if (config.generateSLURM)
+      makeSLURMScripts()
+    else if (config.sortHHLRoutput != null)
+      sortHHLRProverLogs()
     else
       executeProvers()
   }

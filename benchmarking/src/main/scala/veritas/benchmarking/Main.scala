@@ -24,10 +24,13 @@ object Main extends App {
                      parallelism: Int = 0,
                      logFilePath: String = "",
                      summarizeLogs: Boolean = false,
-                     layoutData: Boolean = false
+                     layoutData: Boolean = false,
+                     generateSLURM: Boolean = false,
+                     sortHHLRoutput: File = null
                    ) {
     def ensureDefaultOptions: Config = {
-      if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null && logXLS == null && !summarizeLogs && !layoutData)
+      if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null &&
+        logXLS == null && !summarizeLogs && !layoutData && !generateSLURM && sortHHLRoutput == null)
         copy(logPerFile = true, logSummary = true)
       else
         this
@@ -96,16 +99,23 @@ object Main extends App {
     } text ("Path for output of each prover")
     opt[Unit]("summarizelogs") action { (b, config) =>
       config.copy(summarizeLogs = true)
-    } text ("indicates that given files are already proof logs (for summary)")
+    } text ("indicates that given files are already proof logs, generates summary")
     opt[Unit]("layoutData") action { (b, config) =>
       config.copy(layoutData = true)
     } text ("indicates that argument file is excel file for producing various data layouts")
+    opt[Unit]("generateSLURM") action { (b, config) =>
+      config.copy(generateSLURM = true)
+    } text ("argument indicates path to prover input files - generates job array SLURM script for executing the prover calls on the HHLR")
+    opt[File]("sortHHLRoutput") action { (f, config) =>
+      config.copy(sortHHLRoutput = f)
+    } text ("argument of option is file path to HHLR output; final file argument indicates path to prover input files")
 
     arg[File]("<proof goal file> or <proof log file> or <excel file> ...") unbounded() validate { file =>
       if (file.exists()) success else failure(s"file not found ${file.getAbsolutePath}")
     } action { (file, config) =>
       config.copy(files = config.files :+ file.getAbsoluteFile)
-    } text ("files containing proof goals or files containing proof logs (with option summarizeLogs) or excel file for laying out data (with option layoutData)")
+    } text ("files containing proof goals or files containing proof logs (with option summarizeLogs) or excel file " +
+      "for laying out data (with option layoutData) or folder with HHLR output (to be sorted with option sortHHLRoutput)")
 
     for (opts <- ProverConfig.contributedOptions)
       opts.contributeOptions(this)
