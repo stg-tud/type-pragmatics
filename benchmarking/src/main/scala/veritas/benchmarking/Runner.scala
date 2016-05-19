@@ -194,7 +194,7 @@ case class Runner(config: Config) {
   def makeSLURMScripts() = {
     val ssm = SlurmScriptMaker(config.proverConfigs, config.timeout, flatIndexFileMap)
     ssm.writeFlattenedFileStructure()
-    //ssm.writeJobScripts()
+    ssm.writeJobScripts()
   }
 
   //sort the indexed output from the HHLR again into
