@@ -24,7 +24,7 @@ case class SlurmScript(jobname: String, stdoutpath: String, stderrpath: String, 
   val mailtype = "ALL"
 
   val tasknumber = 1
-  val corespertask = 1
+  val corespertask = 4
   val mempercpu = 2000
   //in MB
   val features = "avx2"

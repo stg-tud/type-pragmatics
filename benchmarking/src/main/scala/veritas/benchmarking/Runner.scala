@@ -1,10 +1,12 @@
 package veritas.benchmarking
 
-import java.io.File
-import java.util.{Date, Calendar}
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.nio.file.Files
+import java.util.{Calendar, Date}
 import java.util.concurrent.Executors
 
 import veritas.benchmarking.Main.Config
+
 import scala.collection.parallel.ExecutionContextTaskSupport
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -201,8 +203,31 @@ case class Runner(config: Config) {
   def sortHHLRProverLogs() = {
     val HHLRFiles = listAllFiles(config.sortHHLRoutput)
 
-    //TODO: look up the Veritas configuration path in the flatIndexFileMap and rewrite the given log files in the correct path structure
-    ???
+    for (hhlr <- HHLRFiles)
+      {
+        //TODO improve hardcoded numbers?
+        val filename = hhlr.getName
+        val filepath = hhlr.getParent
+        val indexparts = filename.split("_")
+        val index = indexparts(1).toInt*1000 + indexparts(2).toInt
+        val correspondinginput = flatIndexFileMap(index).getPath
+        val fileSeparator =
+          if (File.separator == "\\") "\\\\"
+          else File.separator
+        val splitinputname = correspondinginput.split(fileSeparator)
+        val relevantnamepart = splitinputname.takeRight(5).mkString(fileSeparator)
+
+        val destfile = new File(s"$filepath/${relevantnamepart}.proof")
+
+        if (!destfile.getParentFile.exists())
+          destfile.getParentFile.mkdirs()
+
+        new FileOutputStream(destfile) getChannel() transferFrom(new FileInputStream(hhlr) getChannel, 0, Long.MaxValue)
+
+        //afterwards, delete HHLR-file
+        //flatIndexFileMap(index).delete()
+
+      }
 
   }
 
