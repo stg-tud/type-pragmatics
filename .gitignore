@@ -67,3 +67,5 @@ Veritas/test/sql/proofs
 Veritas/test/stlc/callbyname/proofs/
 Veritas/test/stlc/callbyvalue/proofs/
 Veritas/test/stlc/proofs/
+benchmarking/datasets/HHLRJobScripts
+benchmarking/datasets/HHLRInputFiles
