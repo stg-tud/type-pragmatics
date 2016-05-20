@@ -26,7 +26,7 @@ case class SlurmScript(jobname: String, stdoutpath: String, stderrpath: String, 
   val mempercpu = 2000
   //in MB
   val features = "avx2"
-  val benchmark_conf = true //set to false if benchmark configuration from HHLR is not supposed to be used
+  val benchmark_conf = "fixfreq" //values: "" - no special partition, "benchmark": exclusive use of nodes, "fixfreq": use nodes in benchmark partition, but no exclusive node use per job
 
   //format timeout in seconds as hh:mm:ss
   private def timeoutToFormat(): String = {
@@ -39,13 +39,10 @@ case class SlurmScript(jobname: String, stdoutpath: String, stderrpath: String, 
     val scriptheader =
       s"""#!/bin/bash
          |$scripttag -J $jobname
-         |
-       """.stripMargin
+         |""".stripMargin
 
     val arrayconf = if (arraymaxindex > 0)
-      s"""
-         |$scripttag -a 1-$arraymaxindex
-       """.stripMargin
+      s"$scripttag -a 1-$arraymaxindex"
     else ""
 
     val stdoutpathA = if (arraymaxindex > 0)
@@ -72,7 +69,7 @@ case class SlurmScript(jobname: String, stdoutpath: String, stderrpath: String, 
          |$scripttag -C $features
      """.stripMargin
 
-    val benchmark = if (benchmark_conf) s"""\n$scripttag -p benchmark \n""" else ""
+    val benchmark = if (benchmark_conf != "") s"""\n$scripttag -p $benchmark_conf \n""" else ""
 
     scriptheader + arrayconf + config + benchmark + commands + "\n"
 
@@ -129,15 +126,8 @@ case class SlurmScriptMaker(proverconfigs: Seq[ProverConfig], provertimeout: Int
 
         val provercall = (pc.makeCall(new File(inputpath), provertimeout, false))
         val provercallHHLR = proverpath + provercall(0).split("/").last + " " + provercall.drop(1).mkString(" ")
-        val provercommands =
-          s"""
-             |mkdir -p $outputpathHHLR$currentdate/${provertimeout}s/$jobname/
-             |$provercallHHLR
-           """.stripMargin
 
-
-
-        val slurmjob = SlurmScript(jobname, stdoutpath, stderrpath, timeoutbuffer, provercommands, arraymax)
+        val slurmjob = SlurmScript(jobname, stdoutpath, stderrpath, timeoutbuffer, provercallHHLR, arraymax)
         slurmjob.writeScriptToFile(pathforHHLRJobscripts + jobname)
       }
   }
