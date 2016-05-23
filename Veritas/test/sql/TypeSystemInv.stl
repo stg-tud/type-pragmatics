@@ -10,7 +10,7 @@ axiom
 ==================================================== T-inv
 OR
 => exists ~al, ~rt
-		~q = tvalue(table(~al, ~rt))
+		~q == tvalue(table(~al, ~rt))
 		welltypedtable(~TT, table(~al, ~rt))
 => exists ~sel, ~tn, ~p, ~TTr
 		~q == selectFromWhere(~sel, ~tn, ~p)
@@ -32,11 +32,12 @@ OR
 		
 //variant of inversion lemma in several different lemmas 
 //(seems to be helpful for progress proof)
-lemma
-~q == tvalue(table(~al, ~rt))
-~TTC |- ~q : ~TT
-==================================================== T-inv-tvalue
-welltypedtable(~TT, table(~al, ~rt))
+//not provable, but also not needed yet
+// lemma
+// ~q == tvalue(table(~al, ~rt))
+// ~TTC |- ~q : ~TT
+// ==================================================== T-inv-tvalue
+// welltypedtable(~TT, table(~al, ~rt))
 
 
 lemma	
