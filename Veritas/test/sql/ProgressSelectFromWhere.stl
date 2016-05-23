@@ -1,0 +1,61 @@
+module sql.ProgressSelectFromWhere
+
+import sql.SoundnessAuxDefs
+import sql.TStore
+import sql.Tables
+import sql.TableAux
+import sql.TContext
+import sql.TypeSystem
+import sql.Semantics
+import sql.Syntax
+
+lemma 
+StoreContextConsistent(~TS, ~TTC)
+lookupContext(~tn, ~TTC) == someTType(~tt)
+========================================== successful-lookup
+exists ~t
+	lookupStore(~tn, ~TS) = someTable(~t)
+
+lemma
+StoreContextConsistent(~TS, ~TTC)
+lookupStore(~tn, ~TS) = someTable(~t)
+lookupContext(~tn, ~TTC) == someTType(~tt)
+========================================== welltyped-lookup
+welltypedtable(~tt, ~t)
+
+lemma 
+selectTypeAttrL(~al, ~tt) == someTType(~tt)
+attrIn(~n, ~al)
+=========================================== selectTypeAttrL-implies-findAllColType
+exists ~ft
+	findColType(~n, ~tt) == someFType(~ft)
+	
+lemma 
+~tt == tcons(~r, ~ttr)
+welltypedRawtable(~tt, ~rt)
+============================================= dropFirstColRaw-preserves-welltypedRaw
+welltypedRawtable(~ttr, dropFirstColRaw(~rt))
+
+lemma
+welltypedtable(~tt, table(~al, ~rt))
+findColType(~n, ~tt) == someFType(~ft)
+=============================================== findColType-implies-findCol
+exists ~rt
+	findCol(~n, ~al, ~rt) == someRawTable(~rt)
+	
+lemma
+welltypedtable(~tt, table(~al, ~rt))
+selectTypeAttrL(~al2, ~tt) == someTType(~tt2)
+attrIn(~n, ~al2)
+=============================================== selectType-implies-findCol
+exists ~rt2
+	findCol(~n, ~al, ~rt) == someRawTable(~rt2)
+	
+lemma
+welltypedtable(~tt, table(~al, ~rt))
+selectType(list(~al2), ~tt) == someTType(~tt2)
+================================================= projectColsProgress
+exists ~rt2
+	projectCols(~al2, ~al, ~rt) == someRawTable(~rt2)
+
+
