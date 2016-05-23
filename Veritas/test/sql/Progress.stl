@@ -14,13 +14,6 @@ import sql.SoundnessAuxDefs
 //for union/intersection/difference, you actually need induction on typing derivations!
 //(because of type equality...)
 
-// !isValue(~q)
-// ~TTC |- ~q : ~TT
-// StoreContextConsistent(~TS, ~TTC)
-// ==================================== SQL-Progress
-// exists ~qo
-// 	reduce(~q, ~TS) = someQuery(~qo)
-
 strategy induction-Progress {
 	goal
 	~q == tvalue(~t)
@@ -40,6 +33,42 @@ strategy induction-Progress {
 	exists ~qo
 		reduce(~q, ~TS) = someQuery(~qo) 
 
+//does not work with Vampire 3.0
+// local {
+// 	consts q1 : Query
+// 		q2 : Query
+// 		TS : TStore
+// 		TTC : TTContext
+// 		TT : TType
+// 		
+// 	axiom
+// 	!isValue(q1)
+// 	TTC |- q1 : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Union-IH1
+// 	exists ~qo
+// 		reduce(q1, TS) = someQuery(~qo) 
+// 		
+// 	axiom
+// 	!isValue(q2)
+// 	TTC |- q2 : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Union-IH2
+// 	exists ~qo
+// 		reduce(q2, TS) = someQuery(~qo) 
+// 	
+// 	
+// 	goal
+// 	~q == Union(q1, q2)
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Union
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)	
+// 	
+// }
+
 //union case
 local {
 	consts q1 : Query
@@ -58,7 +87,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Union-1
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo) 
+			reduce(~q, TS) = someQuery(~qo) 
 	}
 		
 			
@@ -70,7 +99,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Union-IH2
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(q2, TS) = someQuery(~qo)
 	
 		goal
 		~q == Union(tvalue(~t1), q2)
@@ -80,7 +109,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Union-2
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(~q, TS) = someQuery(~qo)
 	}	
 	
 	
@@ -93,7 +122,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Union-IH1
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(q1, TS) = someQuery(~qo)
 			
 		goal
 		~q == Union(q1, q2)
@@ -103,7 +132,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Union-3
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(~q, TS) = someQuery(~qo)
 	}
 	
 	axiom
@@ -113,7 +142,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union-1
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 	
 	axiom
 	~q == Union(tvalue(~t1), q2)
@@ -123,7 +152,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union-2
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 		
 	axiom
 	~q == Union(q1, q2)
@@ -133,7 +162,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union-3
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 		
 	goal
 	~q == Union(q1, q2)
@@ -142,7 +171,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 }
 
 //intersection case
@@ -162,7 +191,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Intersection-1
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo) 
+			reduce(~q, TS) = someQuery(~qo) 
 	}
 		
 			
@@ -174,7 +203,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Intersection-IH2
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(q2, TS) = someQuery(~qo)
 	
 		goal
 		~q == Intersection(tvalue(~t1), q2)
@@ -184,7 +213,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Intersection-2
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(~q, TS) = someQuery(~qo)
 	}	
 	
 	
@@ -197,7 +226,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Intersection-IH1
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(q1, TS) = someQuery(~qo)
 			
 		goal
 		~q == Intersection(q1, q2)
@@ -207,7 +236,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Intersection-3
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(~q, TS) = someQuery(~qo)
 	}
 	
 	axiom
@@ -217,7 +246,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Intersection-1
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 	
 	axiom
 	~q == Intersection(tvalue(~t1), q2)
@@ -227,7 +256,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Intersection-2
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 		
 	axiom
 	~q == Intersection(q1, q2)
@@ -237,7 +266,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Intersection-3
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 		
 	goal
 	~q == Intersection(q1, q2)
@@ -246,7 +275,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Intersection
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 }
 
 //difference case
@@ -266,7 +295,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Difference-1
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo) 
+			reduce(~q, TS) = someQuery(~qo) 
 	}
 		
 			
@@ -278,7 +307,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Difference-IH2
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(q2, TS) = someQuery(~qo)
 	
 		goal
 		~q == Difference(tvalue(~t1), q2)
@@ -288,7 +317,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Difference-2
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(~q, TS) = someQuery(~qo)
 	}	
 	
 	
@@ -301,7 +330,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Difference-IH1
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(q1, TS) = someQuery(~qo)
 			
 		goal
 		~q == Difference(q1, q2)
@@ -311,7 +340,7 @@ local {
 		StoreContextConsistent(TS, TTC)
 		==================================== SQL-Progress-T-Difference-3
 		exists ~qo
-			reduce(~q, ~TS) = someQuery(~qo)
+			reduce(~q, TS) = someQuery(~qo)
 	}
 	
 	axiom
@@ -321,7 +350,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Difference-1
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 	
 	axiom
 	~q == Difference(tvalue(~t1), q2)
@@ -331,7 +360,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Difference-2
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 		
 	axiom
 	~q == Difference(q1, q2)
@@ -341,7 +370,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Difference-3
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 		
 	goal
 	~q == Difference(q1, q2)
@@ -350,7 +379,7 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Difference
 	exists ~qo
-		reduce(~q, ~TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)
 }
 
 

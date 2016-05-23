@@ -5,6 +5,10 @@ import sql.Tables
 //some auxiliary functions on raw tables (all not knowing anything about table types!)
 //the functions are intended to be used with well-typed tables!!
 
+function attrIn : Name AttrL -> Bool
+attrIn(n, aempty) = false
+attrIn(n, acons(m, al)) = (n == m) || attrIn(n, al)
+
 function 
 rowIn : Row RawTable -> Bool
 rowIn(r1, tempty) = false
@@ -42,18 +46,33 @@ getRawTable(someRawTable(t)) = t
 
 //attaches a raw table with one column to the front of another raw table
 //returns a raw table with one column more
+//blindly assumes that both tables have the same row count!
+//fails if input tables do not have the same row count or if the first
+//include empty brackets after tempty such that the parser does not report an error
+//is treated exactly like tempty for fof-generation
+// function
+// attachColToFrontRaw : RawTable RawTable -> OptRawTable // Opt[RawTable]
+// attachColToFrontRaw(tempty(), tempty()) = someRawTable(tempty)
+// attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) =
+// 	let rest = attachColToFrontRaw(rt1, rt2) in
+// 		if (isSomeRawTable(rest)) 
+// 		then someRawTable(tcons(rcons(f, r), getRawTable(rest)))
+// 		else noRawTable
+// attachColToFrontRaw(rt1, rt2) = noRawTable
+
+//attaches a raw table with one column to the front of another raw table
+//returns a raw table with one column more, possibly not a welltyped one
+//(if the row counts of the input arguments differ)
 //assumes that both tables have the same row count!
 //include empty brackets after tempty such that the parser does not report an error
 //is treated exactly like tempty for fof-generation
-function
-attachColToFrontRaw : RawTable RawTable -> OptRawTable // Opt[RawTable]
-attachColToFrontRaw(tempty(), tempty()) = someRawTable(tempty)
+function 
+attachColToFrontRaw : RawTable RawTable -> RawTable
+attachColToFrontRaw(tempty(), tempty()) = tempty
 attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) =
-	let rest = attachColToFrontRaw(rt1, rt2) in
-		if (isSomeRawTable(rest)) 
-		then someRawTable(tcons(rcons(f, r), getRawTable(rest)))
-		else noRawTable
-attachColToFrontRaw(rt1, rt2) = noRawTable
+	tcons(rcons(f, r), attachColToFrontRaw(rt1, rt2))
+attachColToFrontRaw(rt1, rt2) = tcons(rempty, tempty)
+
 
 //definition: union removes duplicate rows
 //(but only between the two tables, not within a table!)

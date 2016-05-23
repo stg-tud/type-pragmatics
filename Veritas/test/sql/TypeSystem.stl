@@ -29,7 +29,7 @@ findColType(an, ttcons(a, ft, ttr)) =
 function
 selectType : Select TType -> OptTType
 selectType(all(), tt) = someTType(tt)
-selectType(some(al), tt) = selectTypeAttrL(al, tt)
+selectType(list(al), tt) = selectTypeAttrL(al, tt)
 
 function
 selectTypeAttrL : AttrL TType -> OptTType

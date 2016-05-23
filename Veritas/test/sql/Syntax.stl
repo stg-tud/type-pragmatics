@@ -17,7 +17,7 @@ data Pred =
 	
 	
 // Query syntax
-data Select = all() | some(AttrL)
+data Select = all() | list(AttrL)
 
 data Query =
 	tvalue(Table) |

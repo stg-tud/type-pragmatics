@@ -158,7 +158,7 @@ strategy proof-table-minus-first-row-project {
 		
 		// trivial base case, empty list
 		lemma
-		selectRows(aempty, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
+		projectCols(aempty, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
 		======================================================= project-table-one-row-aempty
 		exists ~r, ~trest
 			~rt == tcons(~r, ~trest)
@@ -210,14 +210,14 @@ strategy proof-table-minus-first-row-project {
 		
 				
 		lemma
-		selectRows(acons(~a, ~al), ~al2, ~rt) == someRawTable(tcons(~r1, ~rt2))
+		projectCols(acons(~a, ~al), ~al2, ~rt) == someRawTable(tcons(~r1, ~rt2))
 		======================================================= project-table-one-row-acons
 		exists ~r, ~trest
 			~rt == tcons(~r, ~trest)
 	}
 	
 	lemma verify-with proof-project-table-one-row
-	selectRows(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
+	projectCols(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
 	======================================================= project-table-one-row
 	exists ~r, ~trest
 		~rt == tcons(~r, ~trest)
@@ -245,18 +245,18 @@ strategy proof-table-minus-first-row-project {
 		
 		
 		goal 
-		selectRows(aempty, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+		projectCols(aempty, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
 		======================================================================== one-row-table-minus-first-row-project-aempty
-		selectRows(aempty, ~ar2, ~trest) == someRawTable(~rt2)
+		projectCols(aempty, ~ar2, ~trest) == someRawTable(~rt2)
 		
 		local {
 			consts a : Name
 				al: AttrL
 			
 			axiom 
-			selectRows(al, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+			projectCols(al, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
 			======================================================================== one-row-table-minus-first-row-project-acons-IH
-			selectRows(al, ~ar2, ~trest) == someRawTable(~rt2)
+			projectCols(al, ~ar2, ~trest) == someRawTable(~rt2)
 			
 			//repeated lemma from above, reusing proof
 			// lemma verify-with induction-one-col-table-minus-first-row-findCol
@@ -300,17 +300,17 @@ strategy proof-table-minus-first-row-project {
 			
 			
 			lemma 1
-			selectRows(acons(a, al), ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+			projectCols(acons(a, al), ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
 			================================================================================= step1
 			exists ~col, ~rest
 				someRawTable(~col) == findCol(~a, ~ar2, tcons(~r, ~trest))
-				someRawTable(~rest) == selectRows(~al, ~ar2, tcons(~r, ~trest))
+				someRawTable(~rest) == projectCols(~al, ~ar2, tcons(~r, ~trest))
 				attachColToFrontRaw(~col, ~rest) == someRawTable(tcons(~r1, ~rt2))
 				
 			lemma 1
 			attachColToFrontRaw(~col, ~rest) == someRawTable(tcons(~r1, ~rt2))
 			someRawTable(~col) == findCol(~a, ~ar2, tcons(~r, ~trest))
-			someRawTable(~rest) == selectRows(~al, ~ar2, tcons(~r, ~trest))
+			someRawTable(~rest) == projectCols(~al, ~ar2, tcons(~r, ~trest))
 			========================================================================= intermediate-step1
 			exists ~f, ~rt, ~r3, ~rt3
 				~col == tcons(rcons(~f, rempty), ~rt)
@@ -331,40 +331,40 @@ strategy proof-table-minus-first-row-project {
 			
 			lemma 1
 			findCol(~a, ~ar2, ~trest) == someRawTable(~rt)
-			selectRows(~al, ~ar2, ~trest) == someRawTable(~rest)
+			projectCols(~al, ~ar2, ~trest) == someRawTable(~rest)
 			attachColToFrontRaw(~rt, ~rest) == someRawTable(~rt2)
 			=========================================================== step4
-			selectRows(acons(~a, ~al), ~ar2, ~trest) == someRawTable(~rt2)
+			projectCols(acons(~a, ~al), ~ar2, ~trest) == someRawTable(~rt2)
 				
 			//not provable with timeout 300!
 			goal 1
-			selectRows(acons(a, al), ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+			projectCols(acons(a, al), ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
 			======================================================================== one-row-table-minus-first-row-project-acons
-			selectRows(acons(a, al), ~ar2, ~trest) == someRawTable(~rt2)			
+			projectCols(acons(a, al), ~ar2, ~trest) == someRawTable(~rt2)			
 		}
 		
 		hide-all
 		axiom
-		selectRows(~ar, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+		projectCols(~ar, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
 		======================================================================== one-row-table-minus-first-row-project-ind
-		selectRows(~ar, ~ar2, ~trest) == someRawTable(~rt2)
+		projectCols(~ar, ~ar2, ~trest) == someRawTable(~rt2)
 		
 	}
 			
 	lemma verify-with proof-one-row-table-minus-first-row-project
-	selectRows(~ar, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
+	projectCols(~ar, ~ar2, tcons(~r, ~trest)) == someRawTable(tcons(~r1, ~rt2))
 	======================================================================== one-row-table-minus-first-row-project
-	selectRows(~ar, ~ar2, ~trest) == someRawTable(~rt2)
+	projectCols(~ar, ~ar2, ~trest) == someRawTable(~rt2)
 	
 	
 	//TODO remove lemma if proof works!
 	lemma 
 	welltypedtable(~TT1, ~t)
-	selectRows(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
+	projectCols(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
 	====================================================== table-minus-first-row-project-TODO
 	exists ~r, ~trest
 		~rt == tcons(~r, ~trest)
-		selectRows(~ar, ~al, ~trest) == someRawTable(~rt2)
+		projectCols(~ar, ~al, ~trest) == someRawTable(~rt2)
 	
 }
 
@@ -377,7 +377,7 @@ strategy induction-progress-attachColToFrontRaw {
 	goal
 	welltypedtable(~TT1, ~t)
 	findCol(~a, ~al, ~rt) == someRawTable(tempty)
-	selectRows(~ar, ~al, ~rt) == someRawTable(tempty)	
+	projectCols(~ar, ~al, ~rt) == someRawTable(tempty)	
 	================================================= progress-attachColToFrontRaw-1
 	exists ~rt2
 		attachColToFrontRaw(tempty, tempty) == someRawTable(~rt2)
@@ -407,7 +407,7 @@ strategy induction-progress-attachColToFrontRaw {
 		axiom 
 		welltypedtable(~TT1, table(~al, ~rt))
 		findCol(~a, ~al, ~rt) == someRawTable(rt1)
-		selectRows(~ar, ~al, ~rt) == someRawTable(rt2)
+		projectCols(~ar, ~al, ~rt) == someRawTable(rt2)
 		================================================= progress-attachColToFrontRaw-2-IH
 		exists ~rt3
 			attachColToFrontRaw(rt1, rt2) == someRawTable(~rt3)
@@ -437,17 +437,17 @@ strategy induction-progress-attachColToFrontRaw {
 			
 		lemma verify-with proof-table-minus-first-row-project //TODO prove
 		welltypedtable(~TT1, table(~al, ~rt))
-		selectRows(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
+		projectCols(~ar, ~al, ~rt) == someRawTable(tcons(~r1, ~rt2))
 		====================================================== table-minus-first-row-project
 		exists ~r, ~trest
 			~rt == tcons(~r, ~trest)
-			selectRows(~ar, ~al, ~trest) == someRawTable(~rt2)
+			projectCols(~ar, ~al, ~trest) == someRawTable(~rt2)
 			
 		
 		goal
 		welltypedtable(~TT1, table(~al, ~rt))
 		findCol(~a, ~al, ~rt) == someRawTable(tcons(rcons(f, rempty), rt1))
-		selectRows(~ar, ~al, ~rt) == someRawTable(tcons(r, rt2))
+		projectCols(~ar, ~al, ~rt) == someRawTable(tcons(r, rt2))
 		=================================================================================== progress-attachColToFrontRaw-2
 		exists ~rt3
 			attachColToFrontRaw(tcons(rcons(f, rempty), rt1), tcons(r, rt2)) == someRawTable(~rt3)
@@ -463,7 +463,7 @@ strategy induction-progress-attachColToFrontRaw {
 	=> forall ~r, ~rt2 ~rt != tcons(~r, ~rt2)
 	welltypedtable(~TT1, table(~al, ~rt))
 	findCol(~a, ~al, ~rt) == someRawTable(~crt)
-	selectRows(~ar, ~al, ~rt) == someRawTable(~rt2)
+	projectCols(~ar, ~al, ~rt) == someRawTable(~rt2)
 	================================================= progress-attachColToFrontRaw-3
 	exists ~rt3
 		attachColToFrontRaw(~crt, ~rt2) == someRawTable(~rt3) 	
@@ -473,7 +473,7 @@ strategy induction-progress-attachColToFrontRaw {
 	axiom 
 	welltypedtable(~TT1, table(~al, ~rt))
 	findCol(~a, ~al, ~rt) == someRawTable(~crt)
-	selectRows(~ar, ~al, ~rt) == someRawTable(~rt2)
+	projectCols(~ar, ~al, ~rt) == someRawTable(~rt2)
 	================================================= progress-attachColToFrontRaw-ind
 	exists ~rt3
 		attachColToFrontRaw(~crt, ~rt2) == someRawTable(~rt3) 	
@@ -484,7 +484,7 @@ strategy induction-progress-attachColToFrontRaw {
 lemma verify-with induction-progress-attachColToFrontRaw
 welltypedtable(~TT1, table(~al, ~rt))
 findCol(~a, ~al, ~rt) == someRawTable(~crt)
-selectRows(~ar, ~al, ~rt) == someRawTable(~rt2)
+projectCols(~ar, ~al, ~rt) == someRawTable(~rt2)
 ================================================= progress-attachColToFrontRaw
 exists ~rt3
 	attachColToFrontRaw(~crt, ~rt2) == someRawTable(~rt3) 	
@@ -590,7 +590,7 @@ strategy induction-progress-projection {
 	selectTypeAttrL(aempty, ~TT1) == someTType(~TT2)
 	====================================== progress-projection-aempty
 	exists ~t2
-		selectRows(aempty, ~al, ~rt) == someRawTable(~t2)
+		projectCols(aempty, ~al, ~rt) == someRawTable(~t2)
 
 	local {
 		
@@ -607,7 +607,7 @@ strategy induction-progress-projection {
 		selectTypeAttrL(ar, ~TT1) == someTType(~TT2)
 		====================================== progress-projection-acons-IH
 		exists ~rt
-			selectRows(ar, ~al, ~rt) == someRawTable(~rt)	
+			projectCols(ar, ~al, ~rt) == someRawTable(~rt)	
 	
 	
 		// include{progress-findCol, progress-attachColToFrontRaw,
@@ -630,7 +630,7 @@ strategy induction-progress-projection {
 		selectTypeAttrL(acons(~a, ar), ~TT1) == someTType(~TT2)
 		=============================================== progress-projection-acons
 		exists ~rt
-			selectRows(acons(~a, ar), ~al, ~rt) == someRawTable(~rt)
+			projectCols(acons(~a, ar), ~al, ~rt) == someRawTable(~rt)
 		
 		// Verification succeeded, used lemmas: progress-findCol-attachColToFrontRaw, isSome-INV-2, progress-
 		// projection-acons-IH, isSome1, progress-findCol, selectTypeAttrL2, DIFF-none-some, isSome-INV-1, StoreContext-
@@ -646,7 +646,7 @@ strategy induction-progress-projection {
 	selectTypeAttrL(~al, ~TT1) == someTType(~TT2)
 	====================================== progress-projection-ind
 	exists ~rt
-		selectRows(~al, ~al, ~rt) == someRawTable(~rt)
+		projectCols(~al, ~al, ~rt) == someRawTable(~rt)
  
 } //qed progress-projection
 
@@ -658,5 +658,5 @@ lookupContext(~tn, ~TS) == someTable(table(~al, ~rt))
 selectTypeAttrL(~al, ~TT1) == someTType(~TT2)
 ====================================== progress-projection
 exists ~rt
-	selectRows(~al, ~al, ~rt) == someRawTable(~rt)
+	projectCols(~al, ~al, ~rt) == someRawTable(~rt)
 	

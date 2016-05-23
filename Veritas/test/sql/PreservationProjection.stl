@@ -274,7 +274,7 @@ strategy struc-induction-project-preservation {
 	goal
 	~al = aempty
 	welltypedtable(~TT, table(~al2, ~rt))
-	selectRows(~al, ~al2, ~rt) == someRawTable(~pt)
+	projectCols(~al, ~al2, ~rt) == someRawTable(~pt)
 	selectTypeAttrL(~al, ~TT) == someTType(~PT)
 	===================================== Project-Preservation-aempty
 	~TTC |- tvalue(table(~al, ~pt)) : ~PT
@@ -288,25 +288,25 @@ strategy struc-induction-project-preservation {
 		axiom
 		//~al = alrest
 		welltypedtable(~TT, table(~al2, ~rt))
-		isSomeRawTable(selectRows(alrest, ~al2, ~rt))
+		isSomeRawTable(projectCols(alrest, ~al2, ~rt))
 		isSomeTType(selectTypeAttrL(alrest, ~TT))
 		===================================== Project-Preservation-acons-IH
-		~TTC |- tvalue(table(alrest, getRawTable(selectRows(alrest, ~al2, ~rt)))) : getSomeTType(selectTypeAttrL(alrest, ~TT))
+		~TTC |- tvalue(table(alrest, getRawTable(projectCols(alrest, ~al2, ~rt)))) : getSomeTType(selectTypeAttrL(alrest, ~TT))
 		
 		goal 100
 		//~al = acons(a, alrest)
 		welltypedtable(~TT, table(~al2, ~rt))
-		isSomeRawTable(selectRows(acons(a, alrest), ~al2, ~rt))
+		isSomeRawTable(projectCols(acons(a, alrest), ~al2, ~rt))
 		isSomeTType(selectTypeAttrL(acons(a, alrest), ~TT))
 		======================================================================================= Project-Preservation-acons
-		~TTC |- tvalue(table(acons(a, alrest), getRawTable(selectRows(acons(a, alrest), ~al2, ~rt)))) : getSomeTType(selectTypeAttrL(acons(a, alrest), ~TT))
+		~TTC |- tvalue(table(acons(a, alrest), getRawTable(projectCols(acons(a, alrest), ~al2, ~rt)))) : getSomeTType(selectTypeAttrL(acons(a, alrest), ~TT))
 	}
 	
 	//if induction successful, we proved Project-Preservation and can abbreviate (for now:)
 	hide-all
 	axiom
 	welltypedtable(~TT, table(~al2, ~rt))
-	selectRows(~al, ~al2, ~rt) = someRawTable(~pt)
+	projectCols(~al, ~al2, ~rt) = someRawTable(~pt)
 	selectTypeAttrL(~al, ~TT) == someTType(~PT)
 	===================================== Project-Preservation-ind
 	~TTC |- tvalue(table(~al, ~pt)) : ~PT	
@@ -315,7 +315,7 @@ strategy struc-induction-project-preservation {
 
 lemma verify-with struc-induction-project-preservation
 welltypedtable(~TT, table(~al2, ~rt))
-selectRows(~al, ~al2, ~rt) = someRawTable(~pt)
+projectCols(~al, ~al2, ~rt) = someRawTable(~pt)
 selectTypeAttrL(~al, ~TT) == someTType(~PT)
 ============================================ Project-Preservation
 ~TTC |- tvalue(table(~al, ~pt)) : ~PT
