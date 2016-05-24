@@ -5,8 +5,10 @@ import sql.TStore
 import sql.Syntax
 import sql.Semantics
 import sql.TContext
+import sql.TypeSystem
 import sql.TypeSystemInv
 import sql.SoundnessAuxDefs
+import sql.ProgressSelectFromWhere
 //import sql.AuxLemmas
 //import sql.ProgressProjection
 
@@ -24,16 +26,50 @@ strategy induction-Progress {
 	exists ~qo
 		reduce(~q, ~TS) = someQuery(~qo)
 	
-	goal	
+	strategy selectFromWhereAux {
+		
+		axiom 
+		StoreContextConsistent(~TS, ~TTC)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
+		========================================== successful-lookup
+		exists ~t
+			lookupStore(~tn, ~TS) = someTable(~t)
+
+		axiom
+		StoreContextConsistent(~TS, ~TTC)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
+		========================================== welltyped-lookup
+		welltypedtable(~tt, ~t)
+		
+		axiom //verify-with filter-preserves-type-lemma
+		lookupStore(~tn, ~TS) == someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
+		welltypedtable(~tt, ~t)
+		================================================== filter-preserves-type-inst
+		welltypedtable(~tt, filterTable(~t, ~p))
+		
+		axiom //verify-with projectTable-progress-lemma
+		lookupStore(~tn, ~TS) == someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
+		welltypedtable(~tt, ~t)
+		projectType(~s, ~tt) == someTType(~tt2)
+		========================================================== projectTable-progress-inst
+		exists ~t2
+			projectTable(~s, ~t) == someTable(~t2)
+		
+	}
+	
+	goal verify-with selectFromWhereAux	
 	~q == selectFromWhere(~s, ~tn, ~p) 
 	!isValue(~q)
 	~TTC |- ~q : ~TT
 	StoreContextConsistent(~TS, ~TTC)
-	==================================== SQL-Progress-T-selectFromWhere
+	==================================== SQL-Progress-T-selectFromWhere-test
 	exists ~qo
 		reduce(~q, ~TS) = someQuery(~qo) 
 
-//does not work with Vampire 3.0
+//does not work with Vampire 3.0, case split necessary
 // local {
 // 	consts q1 : Query
 // 		q2 : Query

@@ -46,9 +46,9 @@ projectCols(acons(a, alr), al, rt) =
 			else noRawTable
 
 function
-selectTable : Select Table -> OptTable
-selectTable(all(), table(al, rt)) = someTable(table(al, rt))
-selectTable(list(alr), table(al, rt)) =
+projectTable : Select Table -> OptTable
+projectTable(all(), table(al, rt)) = someTable(table(al, rt))
+projectTable(list(alr), table(al, rt)) =
 	let projected = projectCols(alr, al, rt) in
 	if isSomeRawTable(projected)
 	then someTable(table(alr, getRawTable(projected)))
@@ -122,7 +122,7 @@ reduce(selectFromWhere(sel, name, pred), ts) =
 	let maybeTable = lookupStore(name, ts) in
 		if (isSomeTable(maybeTable))
 		then let filtered = filterTable(getTable(maybeTable), pred) in
-		     let maybeSelected = selectTable(sel, filtered) in
+		     let maybeSelected = projectTable(sel, filtered) in
 			     if (isSomeTable(maybeSelected))
 			     then someQuery(tvalue(getTable(maybeSelected)))
 			     else noQuery

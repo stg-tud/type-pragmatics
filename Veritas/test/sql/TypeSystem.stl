@@ -27,18 +27,18 @@ findColType(an, ttcons(a, ft, ttr)) =
 	else findColType(an, ttr)
 
 function
-selectType : Select TType -> OptTType
-selectType(all(), tt) = someTType(tt)
-selectType(list(al), tt) = selectTypeAttrL(al, tt)
+projectType : Select TType -> OptTType
+projectType(all(), tt) = someTType(tt)
+projectType(list(al), tt) = projectTypeAttrL(al, tt)
 
 function
-selectTypeAttrL : AttrL TType -> OptTType
-selectTypeAttrL(aempty, tt) = someTType(ttempty)
-selectTypeAttrL(acons(a, alr), tt) =
+projectTypeAttrL : AttrL TType -> OptTType
+projectTypeAttrL(aempty, tt) = someTType(ttempty)
+projectTypeAttrL(acons(a, alr), tt) =
 	let ft = findColType(a, tt) in
-		let tprest = selectTypeAttrL(alr, tt) in
+		let tprest = projectTypeAttrL(alr, tt) in
 			if (isSomeFType(ft) && isSomeTType(tprest))
-			then someTType(ttcons(a, getFType(ft), getSomeTType(tprest)))
+			then someTType(ttcons(a, getFType(ft), getTType(tprest)))
 			else noTType
 
 function
@@ -89,7 +89,7 @@ welltypedtable(~TT, table(~al, ~rt))
 
 lookupContext(~tn, ~TTC) == someTType(~TT)
 tcheckPred(~p, ~TT)
-selectType(~sel, ~TT) == someTType(~TTr)
+projectType(~sel, ~TT) == someTType(~TTr)
 =============================================== T-SelectFromWhere
 ~TTC |- selectFromWhere(~sel, ~tn, ~p) : ~TTr
 

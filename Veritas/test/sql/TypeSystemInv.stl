@@ -16,7 +16,7 @@ OR
 		~q == selectFromWhere(~sel, ~tn, ~p)
 		lookupContext(~tn, ~TTC) == someTType(~TT)
 		tcheckPred(~p, ~TT)
-		selectType(~sel, ~TT) == someTType(~TTr)
+		projectType(~sel, ~TT) == someTType(~TTr)
 => exists ~q1, ~q2
 		~q == Union(~q1, ~q2)
 		~TTC |- ~q1 : ~TT
@@ -48,7 +48,7 @@ exists ~TTr
 	~q == selectFromWhere(~sel, ~tn, ~p)
 	lookupContext(~tn, ~TTC) == someTType(~TT)
 	tcheckPred(~p, ~TT)
-	selectType(~sel, ~TT) == someTType(~TTr)
+	projectType(~sel, ~TT) == someTType(~TTr)
 		
 
 lemma

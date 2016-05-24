@@ -15,47 +15,164 @@ lookupContext(~tn, ~TTC) == someTType(~tt)
 ========================================== successful-lookup
 exists ~t
 	lookupStore(~tn, ~TS) = someTable(~t)
+	
+strategy induction-welltyped-lookup-WT {
+	// by structural induction on ~TS and ~TTC
+	
+	goal
+	~TS = emptyStore
+	~TTC = emptyContext
+	StoreContextConsistent(~TS, ~TTC)
+	lookupStore(~tn, ~TS) = someTable(~t)
+	lookupContext(~tn, ~TTC) == someTType(~tt)
+	================================= welltyped-lookup-1
+	welltypedtable(~tt, ~t)
 
-lemma
+	local {
+		consts
+			ctn : Name
+			ctt : TType
+			cttc : TTContext
+		
+		goal
+		~TS = emptyStore
+		~TTC = bindContext(ctn, ctt, cttc)
+		StoreContextConsistent(~TS, ~TTC)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
+		================================= welltyped-lookup-2
+		welltypedtable(~tt, ~t)
+	}
+
+	local {
+		consts
+			ctn : Name
+			ct : Table
+			cts : TStore
+		
+		goal
+		~TS = bindStore(ctn, ct, cts)
+		~TTC = emptyContext
+		StoreContextConsistent(~TS, ~TTC)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
+		================================= welltyped-lookup-3
+		welltypedtable(~tt, ~t)
+	}
+	
+	local {
+		consts
+			ctn1 : Name
+			ct : Table
+			cts : TStore
+			ctn2 : Name
+			ctt : TType
+			cttc : TTContext
+		
+		axiom
+		~TS = cts
+		~TTC = cttc
+		StoreContextConsistent(~TS, ~TTC)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
+		================================= welltyped-lookup-4-IH
+		welltypedtable(~tt, ~t)
+		
+		goal
+		~TS = bindStore(ctn1, ct, cts)
+		~TTC = bindContext(ctn2, ctt, cttc)
+		StoreContextConsistent(~TS, ~TTC)
+		lookupStore(~tn, ~TS) = someTable(~t)
+		lookupContext(~tn, ~TTC) == someTType(~tt)
+		================================= welltyped-lookup-4
+		welltypedtable(~tt, ~t)
+	}
+	
+	hide-all
+	axiom
+	StoreContextConsistent(~TS, ~TTC)
+	lookupStore(~tn, ~TS) = someTable(~t)
+	lookupContext(~tn, ~TTC) == someTType(~tt)
+	================================= welltyped-lookup-ind
+	welltypedtable(~tt, ~t)
+	
+} // qed welltyped-lookup-WT
+
+
+lemma verify-with induction-welltyped-lookup-WT
 StoreContextConsistent(~TS, ~TTC)
 lookupStore(~tn, ~TS) = someTable(~t)
 lookupContext(~tn, ~TTC) == someTType(~tt)
 ========================================== welltyped-lookup
 welltypedtable(~tt, ~t)
 
-lemma 
-selectTypeAttrL(~al, ~tt) == someTType(~tt)
-attrIn(~n, ~al)
-=========================================== selectTypeAttrL-implies-findAllColType
-exists ~ft
-	findColType(~n, ~tt) == someFType(~ft)
+strategy projectCols-progress-aux {
+	lemma 
+	projectTypeAttrL(~al, ~tt) == someTType(~tt)
+	attrIn(~n, ~al)
+	=========================================== projectTypeAttrL-implies-findAllColType
+	exists ~ft
+		 findColType(~n, ~tt) == someFType(~ft)
 	
-lemma 
-~tt == tcons(~r, ~ttr)
-welltypedRawtable(~tt, ~rt)
-============================================= dropFirstColRaw-preserves-welltypedRaw
-welltypedRawtable(~ttr, dropFirstColRaw(~rt))
+		lemma 
+		~tt == ttcons(~n, ~ft, ~ttr)
+		welltypedRawtable(~tt, ~rt)
+		============================================= dropFirstColRaw-preserves-welltypedRaw
+		welltypedRawtable(~ttr, dropFirstColRaw(~rt))
 
-lemma
-welltypedtable(~tt, table(~al, ~rt))
-findColType(~n, ~tt) == someFType(~ft)
-=============================================== findColType-implies-findCol
-exists ~rt
-	findCol(~n, ~al, ~rt) == someRawTable(~rt)
+		lemma
+		welltypedtable(~tt, table(~al, ~rt))
+		findColType(~n, ~tt) == someFType(~ft)
+		=============================================== findColType-implies-findCol
+		exists ~rt
+		       findCol(~n, ~al, ~rt) == someRawTable(~rt)
 	
-lemma
-welltypedtable(~tt, table(~al, ~rt))
-selectTypeAttrL(~al2, ~tt) == someTType(~tt2)
-attrIn(~n, ~al2)
-=============================================== selectType-implies-findCol
-exists ~rt2
-	findCol(~n, ~al, ~rt) == someRawTable(~rt2)
+		lemma
+		welltypedtable(~tt, table(~al, ~rt))
+		projectTypeAttrL(~al2, ~tt) == someTType(~tt2)
+		attrIn(~n, ~al2)
+		=============================================== projectType-implies-findCol
+		exists ~rt2
+		       findCol(~n, ~al, ~rt) == someRawTable(~rt2)
+	}
 	
-lemma
-welltypedtable(~tt, table(~al, ~rt))
-selectType(list(~al2), ~tt) == someTType(~tt2)
-================================================= projectColsProgress
-exists ~rt2
-	projectCols(~al2, ~al, ~rt) == someRawTable(~rt2)
+strategy projectTable-progress-aux {
+
+	lemma verify-with projectCols-progress-aux
+	welltypedtable(~tt, table(~al, ~rt))
+	projectType(list(~al2), ~tt) == someTType(~tt2)
+	================================================= projectCols-progress
+	exists ~rt2
+	       projectCols(~al2, ~al, ~rt) == someRawTable(~rt2)
+}
+
+strategy projectTable-progress-lemma {
+		lemma verify-with projectTable-progress-aux
+		welltypedtable(~tt, ~t)
+		projectType(~s, ~tt) == someTType(~tt2)
+		=================================================== projectTable-progress
+		exists ~t2
+			projectTable(~s, ~t) == someTable(~t2)
+}
+
+strategy filter-preserves-type-aux {
+	
+	lemma 
+	welltypedRawtable(~tt, ~rt)
+	================================================== filterRows-preserves-table
+	welltypedRawtable(~tt, filterRows(~rt, ~al, ~p))
+}
+
+strategy filter-preserves-type-lemma {
+	lemma verify-with filter-preserves-type-aux
+	welltypedtable(~tt, ~t)
+	================================================== filter-preserves-type
+	welltypedtable(~tt, filterTable(~t, ~p))		
+}
+
+
+
+
+
 
 

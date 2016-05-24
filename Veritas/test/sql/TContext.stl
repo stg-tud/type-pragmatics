@@ -17,8 +17,8 @@ isSomeTType(noTType) = false
 isSomeTType(someTType(t)) = true
 
 partial function
-getSomeTType : OptTType -> TType
-getSomeTType(someTType(t)) = t
+getTType : OptTType -> TType
+getTType(someTType(t)) = t
 	
 	
 function
