@@ -83,6 +83,7 @@ rules // Incremental code generation of project using compilation library.
 	<queue-analysis> path
 
 
+  invoke-backend-verify-vampire-5 = invoke-backend-verify-vampire(|"5")
   invoke-backend-verify-vampire-30 = invoke-backend-verify-vampire(|"30")
   invoke-backend-verify-vampire-60 = invoke-backend-verify-vampire(|"60")
   invoke-backend-verify-vampire-120 = invoke-backend-verify-vampire(|"120")

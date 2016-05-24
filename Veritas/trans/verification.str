@@ -149,6 +149,7 @@ rules
 
 rules
 	verify-vampire = verify-vampire-auto
+	verify-vampire-5 = verify-vampire(|"5")
 	verify-vampire-30 = verify-vampire(|"30")
 	verify-vampire-60 = verify-vampire(|"60")
 	verify-vampire-120 = verify-vampire(|"120")
