@@ -15,7 +15,7 @@ class FreshNames(appendZero: Boolean = true) {
   def freshName(identifier: String): String = {
     val identifierCount = identifierCounts(identifier)
     identifierCounts(identifier) += 1
-    val newid = identifier + (if (identifierCount != 0 || appendZero) identifierCount else "")
+    val newid = identifier + (if (identifierCount != 0 || appendZero) "-" + identifierCount else "")
     if (newid != identifier && identifierCounts(newid) > 0)
       freshName(newid)
     else
