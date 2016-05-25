@@ -69,3 +69,5 @@ Veritas/test/stlc/callbyvalue/proofs/
 Veritas/test/stlc/proofs/
 benchmarking/datasets/HHLRJobScripts
 benchmarking/datasets/HHLRInputFiles
+Veritas/vampire-4.0
+Veritas/vampire-3.0

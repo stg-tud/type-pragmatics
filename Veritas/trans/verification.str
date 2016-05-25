@@ -114,12 +114,17 @@ rules
 		<try(remove-file)> proof-file
 
 rules
-	check-consistency-vampire = check-consistency-vampire(|"5")
-	check-consistency-vampire-60 = check-consistency-vampire(|"60")
-	check-consistency-vampire-120 = check-consistency-vampire(|"120")
-	check-consistency-vampire-300 = check-consistency-vampire(|"300")
+	check-consistency-vampire3 = check-consistency-vampire(|"5", "3.0")
+	check-consistency-vampire3-60 = check-consistency-vampire(|"60", "3.0")
+	check-consistency-vampire3-120 = check-consistency-vampire(|"120", "3.0")
+	check-consistency-vampire3-300 = check-consistency-vampire(|"300", "3.0")
 	
-	check-consistency-vampire(|time) :
+	check-consistency-vampire4 = check-consistency-vampire(|"5", "4.0")
+	check-consistency-vampire4-60 = check-consistency-vampire(|"60", "4.0")
+	check-consistency-vampire4-120 = check-consistency-vampire(|"120", "4.0")
+	check-consistency-vampire4-300 = check-consistency-vampire(|"300", "4.0")
+	
+	check-consistency-vampire(|time,version) :
 		input@(selected, position, ast, path, project-path) -> None()
 	where
 		index-setup(|<language>, project-path); 
@@ -133,30 +138,35 @@ rules
 	    [goal] := <fof-trans <+ error(!"fof-trans failed: ")> ast-with-false;
 	    string := <pp-formula <+ pp-debug(pp-formula)> goal;
 	    <write-file> (filename, string);
-	    <try(call-vampire-sat(|"FALSE", time, project-path))> filename;
+	    <try(call-vampire-sat(|"FALSE", time, project-path,version))> filename;
     	<queue-analysis> path
     	
-    check-consistency-folder-5 = check-consistency-folder(|"5")
-    check-consistency-folder-300 = check-consistency-folder(|"300")
+    check-consistency-folder-5 = check-consistency-folder(|"5", "3.0")
+    check-consistency-folder-300 = check-consistency-folder(|"300", "3.0")
     
-    check-consistency-folder(|time) :
+    check-consistency-folder(|time,version) :
     	input@(selected, position, ast, path, project-path) -> None()
     where
     	pastlist := <get-analyzed-files-folder(|path, project-path)>;
-    	<map(\(p, anast) -> <check-consistency-vampire(|time)> (selected, position, anast, p, project-path)\)> pastlist
+    	<map(\(p, anast) -> <check-consistency-vampire(|time,version)> (selected, position, anast, p, project-path)\)> pastlist
     	
     consistency-filename = remove-extension; <conc-strings> (<id>, "-consistency.fof")	
 
 rules
-	verify-vampire = verify-vampire-auto
-	verify-vampire-5 = verify-vampire(|"5")
-	verify-vampire-30 = verify-vampire(|"30")
-	verify-vampire-60 = verify-vampire(|"60")
-	verify-vampire-120 = verify-vampire(|"120")
+	verify-vampire = verify-vampire-auto(|"3.0")
+	verify-vampire3-5 = verify-vampire(|"5", "3.0")
+	verify-vampire3-30 = verify-vampire(|"30", "3.0")
+	verify-vampire3-60 = verify-vampire(|"60", "3.0")
+	verify-vampire3-120 = verify-vampire(|"120", "3.0")
+	
+	verify-vampire4-5 = verify-vampire(|"5", "4.0")
+	verify-vampire4-30 = verify-vampire(|"30", "4.0")
+	verify-vampire4-60 = verify-vampire(|"60", "4.0")
+	verify-vampire4-120 = verify-vampire(|"120", "4.0")
 	
 	default-timeout = !"120"
 	
-	verify-vampire-auto : 
+	verify-vampire-auto(|version) : 
 		input@(selected, position, ast, path, project-path) -> None()
 	where
 		index-setup(|<language>, project-path);
@@ -177,10 +187,10 @@ rules
 	      <+ ?Lemmas(<id>,_)
 	      <+ ?LemmasWithStrategy(_,<id>,_), conc)> ast;
 	    times := <map(\Some(n) -> n\ <+ default-timeout)> rawtimes;
-	    <zip; map(\((r,t),f) -> <try(call-vampire(|r, t, project-path))> f\)> (<zip> (rulez, times), outfiles);
+	    <zip; map(\((r,t),f) -> <try(call-vampire(|r, t, project-path, version))> f\)> (<zip> (rulez, times), outfiles);
     	<queue-analysis> path
 	
-	verify-vampire(|time) :
+	verify-vampire(|time, version) :
 		input@(selected, position, ast, path, project-path) -> None()
 	where
 		index-setup(|<language>, project-path);
@@ -194,7 +204,7 @@ rules
 	    goals := <fof-trans <+ error(!"fof-trans failed: ")> ast;
 	    strings := <map(pp-formula <+ pp-debug(pp-formula))> goals;
 	    outfiles := <generate-files(|filename, rulez)> strings;
-	    <zip; map(\(r,f) -> <try(call-vampire(|r,time, project-path))> f\)> (rulez, outfiles);
+	    <zip; map(\(r,f) -> <try(call-vampire(|r,time, project-path, version))> f\)> (rulez, outfiles);
     	<queue-analysis> path
     	
     verify-vampire-folder :
@@ -206,7 +216,7 @@ rules
 
 	// call-and-handle = call < debug(!"Command succeeded: ") + debug(!"Command failed: ")
 
-	call-vampire(|rule,time,projectpath) = 
+	call-vampire(|rule,time,projectpath,version) = 
 		?file;
 		proof-file := <guarantee-extension(|"proof")> file;
 		if <not-up-to-date> file => (hash-file, new-hash)
@@ -215,14 +225,14 @@ rules
     		 Stream(out) := <fopen> (proof-file, "w");
     		 Stream(err) := <stderr-stream>;
 			 finally(
-				<call> (<vampire-binary> projectpath, <conc>(<vampire-options(|time)>, [file]), ins, out, err),
+				<call> (<vampire-binary(|version)> projectpath, <conc>(<vampire-options(|time)>, [file]), ins, out, err),
 				<fclose> out;
 				<extract-vampire-info(|rule)> proof-file
 				)
 		else <extract-vampire-info(|rule)> proof-file
 		end
 		
-	call-vampire-sat(|rule,time,projectpath) = 
+	call-vampire-sat(|rule,time,projectpath,version) = 
 		?file;
 		proof-file := <guarantee-extension(|"proof")> file;
 		if <not-up-to-date> file => (hash-file, new-hash)
@@ -231,7 +241,7 @@ rules
     		 Stream(out) := <fopen> (proof-file, "w");
     		 Stream(err) := <stderr-stream>;
 			 finally(
-				<call> (<vampire-binary> projectpath, <conc> (<vampire-sat-options(|time)>, [file]), ins, out, err),
+				<call> (<vampire-binary(|version)> projectpath, <conc> (<vampire-sat-options(|time)>, [file]), ins, out, err),
 				<fclose> out;
 				<extract-vampire-sat-info(|rule)> proof-file
 				)
@@ -315,15 +325,17 @@ rules
 
 	
 	
-	vampire-binary : projectpath -> absolute-path
+	vampire-binary(|version) : projectpath -> absolute-path
 	where
-		absolute-path := <concat-strings> [projectpath, "/", <vampire-command>];
+		vampire := <concat-strings> [<vampire-command>, "-", version];
+		absolute-path := <concat-strings> [projectpath, "/", vampire];
 		<file-exists> absolute-path
 
-	vampire-binary : projectpath -> <vampire-command>
+	//vampire-binary : projectpath -> <vampire-command>
 
 	
 	vampire-command = !"vampire"
+	
 	vampire-options(|time) =
 		!["-t", time, 
 	      "--mode", "casc",

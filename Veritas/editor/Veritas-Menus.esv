@@ -44,17 +44,24 @@ menus
 
   menu: "Verification"
     // action: "Verify single file with Vampire (auto)" = invoke-backend-verify-vampire-auto
-    action: "Verify single file with Vampire (5)" = invoke-backend-verify-vampire-5
-    action: "Verify single file with Vampire (30)" = invoke-backend-verify-vampire-30
-    action: "Verify single file with Vampire (60)" = invoke-backend-verify-vampire-60
-    action: "Verify single file with Vampire (120)" = invoke-backend-verify-vampire-120
+    action: "Verify single file with Vampire 3.0 (5)" = invoke-backend-verify-vampire3-5
+    action: "Verify single file with Vampire 3.0 (30)" = invoke-backend-verify-vampire3-30
+    action: "Verify single file with Vampire 3.0 (60)" = invoke-backend-verify-vampire3-60
+    action: "Verify single file with Vampire 3.0 (120)" = invoke-backend-verify-vampire3-120
+     action: "Verify single file with Vampire 4.0 (5)" = invoke-backend-verify-vampire4-5
+    action: "Verify single file with Vampire 4.0 (30)" = invoke-backend-verify-vampire4-30
+    action: "Verify single file with Vampire 4.0 (60)" = invoke-backend-verify-vampire4-60
+    action: "Verify single file with Vampire 4.0 (120)" = invoke-backend-verify-vampire4-120
     // action: "Vampire (auto) for entire folder" = invoke-backend-verify-vampire-folder
     action: "Clean" = clean-proofs
 
   menu: "Check consistency"
-    action: "Check consistency single file with Vampire (5 seconds)" = invoke-backend-consistency-5
-    action: "Check consistency single file with Vampire (120 seconds)" = invoke-backend-consistency-120
-    action: "Check consistency single file with Vampire (300 seconds)" = invoke-backend-consistency-300
+    action: "Check consistency single file with Vampire 3.0 (5 seconds)" = invoke-backend-consistency-v3-5
+    action: "Check consistency single file with Vampire 3.0 (120 seconds)" = invoke-backend-consistency-v3-120
+    action: "Check consistency single file with Vampire 3.0 (300 seconds)" = invoke-backend-consistency-v3-300
+    action: "Check consistency single file with Vampire 4.0 (5 seconds)" = invoke-backend-consistency-v4-5
+    action: "Check consistency single file with Vampire 4.0 (120 seconds)" = invoke-backend-consistency-v4-120
+    action: "Check consistency single file with Vampire 4.0 (300 seconds)" = invoke-backend-consistency-v4-300
 	// action: "Check consistency of entire folder (5 seconds)" = invoke-backend-consistency-folder-5
 	// action: "Check consistency of entire folder (300 seconds)" = invoke-backend-consistency-folder-300
 

@@ -61,10 +61,13 @@ rules // Incremental code generation of project using compilation library.
 
 
 
-  invoke-backend-consistency-5 = invoke-backend-consistency(|"5")
-  invoke-backend-consistency-120 = invoke-backend-consistency(|"120")
-  invoke-backend-consistency-300 = invoke-backend-consistency(|"300")
-  invoke-backend-consistency(|time) : (selected, position, ast, path, project-path) -> None()
+  invoke-backend-consistency-v3-5 = invoke-backend-consistency(|"5", "3.0")
+  invoke-backend-consistency-v3-120 = invoke-backend-consistency(|"120", "3.0")
+  invoke-backend-consistency-v3-300 = invoke-backend-consistency(|"300", "3.0")
+  invoke-backend-consistency-v4-5 = invoke-backend-consistency(|"5", "4.0")
+  invoke-backend-consistency-v4-120 = invoke-backend-consistency(|"120", "4.0")
+  invoke-backend-consistency-v4-300 = invoke-backend-consistency(|"300", "4.0")
+  invoke-backend-consistency(|time, version) : (selected, position, ast, path, project-path) -> None()
   with
   	// uncomment this only if you want to always store the Index/Tasks on disk, i.e.
   	// because the loading from the Java objects in the Backend doesnt work
@@ -79,15 +82,19 @@ rules // Incremental code generation of project using compilation library.
     	?GoalsWithStrategy(_,_,_) + ?LemmasWithStrategy(_,_,_))); append(|[false-goal]))> ast;
 
     [(file,_)] := <backend-consistency-strategy <+ error(!"backend default strategy failed: ")> (project-path, <dirname> path, proofpath, ast-with-false);
-    <try(call-vampire-sat(|"FALSE", time, project-path))> file;
+    <try(call-vampire-sat(|"FALSE", time, project-path, version))> file;
 	<queue-analysis> path
 
 
-  invoke-backend-verify-vampire-5 = invoke-backend-verify-vampire(|"5")
-  invoke-backend-verify-vampire-30 = invoke-backend-verify-vampire(|"30")
-  invoke-backend-verify-vampire-60 = invoke-backend-verify-vampire(|"60")
-  invoke-backend-verify-vampire-120 = invoke-backend-verify-vampire(|"120")
-  invoke-backend-verify-vampire(|time) : (selected, position, ast, path, project-path) -> None()
+  invoke-backend-verify-vampire3-5 = invoke-backend-verify-vampire(|"5", "3.0")
+  invoke-backend-verify-vampire3-30 = invoke-backend-verify-vampire(|"30", "3.0")
+  invoke-backend-verify-vampire3-60 = invoke-backend-verify-vampire(|"60", "3.0")
+  invoke-backend-verify-vampire3-120 = invoke-backend-verify-vampire(|"120", "3.0")
+  invoke-backend-verify-vampire4-5 = invoke-backend-verify-vampire(|"5", "4.0")
+  invoke-backend-verify-vampire4-30 = invoke-backend-verify-vampire(|"30", "4.0")
+  invoke-backend-verify-vampire4-60 = invoke-backend-verify-vampire(|"60", "4.0")
+  invoke-backend-verify-vampire4-120 = invoke-backend-verify-vampire(|"120", "4.0")
+  invoke-backend-verify-vampire(|time, version) : (selected, position, ast, path, project-path) -> None()
   with
   	// uncomment this only if you want to always store the Index/Tasks on disk, i.e.
   	// because the loading from the Java objects in the Backend doesnt work
@@ -100,7 +107,7 @@ rules // Incremental code generation of project using compilation library.
 
 	rulesOutfiles := <backend-proof-strategy <+ error(!"backend default strategy failed: ")> (project-path, <dirname> path, basepath, ast);
 
-    <map(\(r,f) -> <try(call-vampire(|r, time, project-path))> f\)> rulesOutfiles;
+    <map(\(r,f) -> <try(call-vampire(|r, time, project-path, version))> f\)> rulesOutfiles;
 	<queue-analysis> path
 
 
