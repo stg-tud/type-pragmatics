@@ -17,7 +17,7 @@ You need:
 Installation steps:
 
 1. Install latest version of the Spoofax Language Workbench (http://strategoxt.org/Spoofax) as Eclipse plugin: In Eclipse, choose "Help - Install New Software". Copy the following link to the latest stable Spoofax build: http://download.spoofax.org/update/stable , hit enter, mark everything, and install. (Note: The nightly Spoofax versions http://download.spoofax.org/update/nightly do not work) Restart Eclipse and adapt the eclipse.ini according to the warning you might get during the start-up. After modifying the eclipse.ini, restart Eclipse again.
-2. Copy your Vampire binary into the Veritas folder.
+2. Copy your Vampire binary into the Veritas folder. The binaries have to be named vampire-3.0 and vampire-4.0 according to version of the sources the binaries were compiled from.
 3. Clone the repository and import the Veritas and the scala-backend project into your Scala IDE (with Spoofax plugin) workspace. (The Veritas project will have a warning "Build path entry is missing: Veritas/include/scala-backend.jar", we will resolve this in the next step.)
 4. Build the scala-backend project in Scala IDE. (Manual build via "rightclick on scala-backend -> Build Project" might unavailable unless you uncheck "Project -> Build Automatically"). This should have generated a scala-backend.jar file in the scala-backend directory. Refresh the Veritas project (the "missing build path entry" warning should be resolved now, otherwise manually copy the scala-backend/scala-backend.jar file to Veritas/include/)
 5. Build the Veritas project in Eclipse (make sure the build is successful before continuing with further steps).
