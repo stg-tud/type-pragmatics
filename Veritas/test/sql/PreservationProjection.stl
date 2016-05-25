@@ -89,22 +89,20 @@ welltypedRawtable(~TT, dropFirstColRaw(~rt))
 
 
 lemma 40
-isSomeRawTable(attachColToFrontRaw(tcons(~r, ~col), ~rt))
 ================================================================= AttachColToFrontRaw-Aux 
 exists ~f, ~rthead, ~rtrest
 	~r = rcons(~f, rempty)
 	~rt = tcons(~rthead, ~rtrest)
-	isSomeRawTable(attachColToFrontRaw(~col, ~rtrest))
-	attachColToFrontRaw(tcons(~r, ~col), ~rt) = someRawTable(tcons(rcons(~f, ~rthead), getRawTable(attachColToFrontRaw(~col, ~rtrest))))
+	attachColToFrontRaw(tcons(~r, ~col), ~rt) = tcons(rcons(~f, ~rthead), attachColToFrontRaw(~col, ~rtrest))
 
 lemma
 ~r = rcons(~f, rempty)
 ~rt = tcons(~rthead, ~rtrest)
 welltypedRawtable(~TT, ~rt)
 welltypedRawtable(ttcons(~a, ~colType, ttempty), tcons(~r, ~col))
-welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(~col, ~rtrest)))
+welltypedRawtable(ttcons(~a, ~colType, ~TT), attachColToFrontRaw(~col, ~rtrest))
 ================================================================================================================ AttachCol-WelltypedRawtable-Aux
-welltypedRawtable(ttcons(~a, ~colType, ~TT), tcons(rcons(~f, ~rthead), getRawTable(attachColToFrontRaw(~col, ~rtrest))))
+welltypedRawtable(ttcons(~a, ~colType, ~TT), tcons(rcons(~f, ~rthead), attachColToFrontRaw(~col, ~rtrest)))
 
 
 // proof of AttachCol-Preserves-Typing
@@ -115,9 +113,8 @@ strategy induction-attachcol-preserves-typing {
 	~col = tempty
 	welltypedRawtable(~TT, ~rt)
 	welltypedRawtable(ttcons(~a, ~colType, ttempty), ~col)
-	isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 	======================================================================== AttachCol-Preserves-Typing-1
-	welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(~col, ~rt)))
+	welltypedRawtable(ttcons(~a, ~colType, ~TT), attachColToFrontRaw(~col, ~rt))
 	
 	local {
 		consts
@@ -127,9 +124,8 @@ strategy induction-attachcol-preserves-typing {
 		axiom
 		welltypedRawtable(~TT, ~rt)
 		welltypedRawtable(ttcons(~a, ~colType, ttempty), col)
-		isSomeRawTable(attachColToFrontRaw(col, ~rt))
 		======================================================================== AttachCol-Preserves-Typing-2-IH
-		welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(col, ~rt)))
+		welltypedRawtable(ttcons(~a, ~colType, ~TT), attachColToFrontRaw(col, ~rt))
 		
 		//This proof previously worked without modifying the axiom set!
 		//stopped working when correction of inversion lemma encoding was introduced!
@@ -142,26 +138,23 @@ strategy induction-attachcol-preserves-typing {
 		goal 60
 		welltypedRawtable(~TT, ~rt)
 		welltypedRawtable(ttcons(~a, ~colType, ttempty), tcons(r, col))
-		isSomeRawTable(attachColToFrontRaw(tcons(r, col), ~rt))
 		======================================================================== AttachCol-Preserves-Typing-2
-		welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(tcons(r, col), ~rt)))
+		welltypedRawtable(ttcons(~a, ~colType, ~TT), attachColToFrontRaw(tcons(r, col), ~rt))
 	}
 	
 	hide-all
 	axiom
 	welltypedRawtable(~TT, ~rt)
 	welltypedRawtable(ttcons(~a, ~colType, ttempty), ~col)
-	isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 	======================================================================== AttachCol-Preserves-Typing-ind
-	welltypedRawtable(ttcons(~a, ~colType, ~RT), getRawTable(attachColToFrontRaw(~col, ~rt)))
+	welltypedRawtable(ttcons(~a, ~colType, ~RT), attachColToFrontRaw(~col, ~rt))
 } // qed AttachCol-Preserves-Typing
 
 lemma verify-with induction-attachcol-preserves-typing
 welltypedRawtable(~TT, ~rt)
 welltypedRawtable(ttcons(~a, ~colType, ttempty), ~col)
-isSomeRawTable(attachColToFrontRaw(~col, ~rt))
 ======================================================================== AttachCol-Preserves-Typing
-welltypedRawtable(ttcons(~a, ~colType, ~TT), getRawTable(attachColToFrontRaw(~col, ~rt)))
+welltypedRawtable(ttcons(~a, ~colType, ~TT), attachColToFrontRaw(~col, ~rt))
 
 
 // proof of ProjectFirstRaw-Preservation (auxiliary lemma needed in proof of FindCol Preservation)
