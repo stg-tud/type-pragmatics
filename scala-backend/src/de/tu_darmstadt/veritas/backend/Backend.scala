@@ -62,7 +62,7 @@ object Backend {
    * triggered from Veritas
    */
   val defaultVariabilityModel = Configuration(
-    Map(FinalEncoding -> FinalEncoding.BareFOF,
+    Map(FinalEncoding -> FinalEncoding.TFF,
       (Problem -> Problem.All),
       (VariableEncoding -> VariableEncoding.InlineEverything),
       (Simplification -> Simplification.LogicalAndConstructors)))
@@ -270,7 +270,7 @@ object Backend {
 
     val conf = //defaultVariabilityModel
       Configuration(
-        Map(FinalEncoding -> FinalEncoding.BareFOF,
+        Map(FinalEncoding -> FinalEncoding.TFF,
           (Problem -> Problem.All),
           (VariableEncoding -> VariableEncoding.InlineEverything),
           (Simplification -> Simplification.LogicalAndConstructors)))
@@ -278,9 +278,9 @@ object Backend {
     val modules = Seq(Module.from(aterm))
 
     val resultingModSeq = MainTrans(modules)(conf)
-    //val result = resultingModSeq map { m => TypingTrans.finalEncoding(m)(conf) }
-    resultingModSeq map { m => ("", m) }
-    //result map { m => ("", m) }
+    val result = resultingModSeq map { m => TypingTrans.finalEncoding(m)(conf) }
+    //resultingModSeq map { m => ("", m) }
+    result map { m => ("", m) }
   }
 
   /**

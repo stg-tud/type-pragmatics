@@ -61,10 +61,10 @@ trait FunctionEqToSimpleAxioms extends ModuleTransformation {
       throw TransformationError("Transformation of the following function equation yielded different numbers of premise blocks and conclusions: " + f)
 
     if (premises.length == 0)
-      Axioms(Seq(TypingRule(fresh.freshName(f.functionName), Seq(), conclusion)))
+      Axioms(Seq(TypingRule(fresh.freshRuleName(f.functionName), Seq(), conclusion)))
     else
       Axioms(for ((p, c) <- premises zip conclusion) yield {
-        TypingRule(fresh.freshName(f.functionName), p, Seq(c))
+        TypingRule(fresh.freshRuleName(f.functionName), p, Seq(c))
       })
   }
 

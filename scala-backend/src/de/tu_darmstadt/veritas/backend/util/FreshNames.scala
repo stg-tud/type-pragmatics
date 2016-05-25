@@ -11,13 +11,24 @@ package de.tu_darmstadt.veritas.backend.util
 class FreshNames(appendZero: Boolean = true) {
 
   private[this] val identifierCounts = collection.mutable.Map[String, Int]().withDefaultValue(0)
+  private[this] val ruleNameCounts = collection.mutable.Map[String, Int]().withDefaultValue(0)
 
   def freshName(identifier: String): String = {
     val identifierCount = identifierCounts(identifier)
     identifierCounts(identifier) += 1
-    val newid = identifier + (if (identifierCount != 0 || appendZero) "-" + identifierCount else "")
+    val newid = identifier + (if (identifierCount != 0 || appendZero) identifierCount else "")
     if (newid != identifier && identifierCounts(newid) > 0)
       freshName(newid)
+    else
+      newid
+  }
+  
+  def freshRuleName(identifier: String): String = {
+    val ruleNameCount = ruleNameCounts(identifier)
+    ruleNameCounts(identifier) += 1
+    val newid = identifier + (if (ruleNameCount != 0 || appendZero) "-" + ruleNameCount else "")
+    if (newid != identifier && ruleNameCounts(newid) > 0)
+      freshRuleName(newid)
     else
       newid
   }
