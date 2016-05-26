@@ -70,42 +70,6 @@ strategy induction-Progress {
 		reduce(~q, ~TS) = someQuery(~qo) 
 
 //does not work with Vampire 3.0, case split necessary
-// local {
-// 	consts q1 : Query
-// 		q2 : Query
-// 		TS : TStore
-// 		TTC : TTContext
-// 		TT : TType
-// 		
-// 	axiom
-// 	!isValue(q1)
-// 	TTC |- q1 : TT
-// 	StoreContextConsistent(TS, TTC)
-// 	==================================== SQL-Progress-T-Union-IH1
-// 	exists ~qo
-// 		reduce(q1, TS) = someQuery(~qo) 
-// 		
-// 	axiom
-// 	!isValue(q2)
-// 	TTC |- q2 : TT
-// 	StoreContextConsistent(TS, TTC)
-// 	==================================== SQL-Progress-T-Union-IH2
-// 	exists ~qo
-// 		reduce(q2, TS) = someQuery(~qo) 
-// 	
-// 	
-// 	goal
-// 	~q == Union(q1, q2)
-// 	!isValue(~q)
-// 	TTC |- ~q : TT
-// 	StoreContextConsistent(TS, TTC)
-// 	==================================== SQL-Progress-T-Union
-// 	exists ~qo
-// 		reduce(~q, TS) = someQuery(~qo)	
-// 	
-// }
-
-//union case
 local {
 	consts q1 : Query
 		q2 : Query
@@ -113,93 +77,23 @@ local {
 		TTC : TTContext
 		TT : TType
 		
-	local {	
-		
-	
-		goal
-		~q == Union(tvalue(~t1), tvalue(~t2))
-		!isValue(~q)
-		TTC |- ~q : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Union-1
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo) 
-	}
-		
-			
-	local {
-		
-		axiom
-		!isValue(q2)
-		TTC |- q2 : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Union-IH2
-		exists ~qo
-			reduce(q2, TS) = someQuery(~qo)
-	
-		goal
-		~q == Union(tvalue(~t1), q2)
-		forall ~t2 q2 != tvalue(~t2)
-		!isValue(~q)
-		TTC |- ~q : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Union-2
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo)
-	}	
-	
-	
-	
-	local {
-		
-		axiom
-		!isValue(q1)
-		TTC |- q1 : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Union-IH1
-		exists ~qo
-			reduce(q1, TS) = someQuery(~qo)
-			
-		goal
-		~q == Union(q1, q2)
-		forall ~t1 q1 != tvalue(~t1)
-		!isValue(~q)
-		TTC |- ~q :  TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Union-3
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo)
-	}
-	
 	axiom
-	~q == Union(tvalue(~t1), tvalue(~t2))
-	!isValue(~q)
-	TTC |- ~q : TT
+	!isValue(q1)
+	TTC |- q1 : TT
 	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Union-1
+	==================================== SQL-Progress-T-Union-IH1
 	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-	
-	axiom
-	~q == Union(tvalue(~t1), q2)
-	forall ~t2 q2 != tvalue(~t2)
-	!isValue(~q)
-	TTC |- ~q : TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Union-2
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
+		reduce(q1, TS) = someQuery(~qo) 
 		
 	axiom
-	~q == Union(q1, q2)
-	forall ~t1 q1 != tvalue(~t1)
-	!isValue(~q)
-	TTC |- ~q :  TT
+	!isValue(q2)
+	TTC |- q2 : TT
 	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Union-3
+	==================================== SQL-Progress-T-Union-IH2
 	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-		
+		reduce(q2, TS) = someQuery(~qo) 
+	
+	
 	goal
 	~q == Union(q1, q2)
 	!isValue(~q)
@@ -207,216 +101,322 @@ local {
 	StoreContextConsistent(TS, TTC)
 	==================================== SQL-Progress-T-Union
 	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
+		reduce(~q, TS) = someQuery(~qo)	
+	
 }
+
+//union case
+// local {
+// 	consts q1 : Query
+// 		q2 : Query
+// 		TS : TStore
+// 		TTC : TTContext
+// 		TT : TType
+// 		
+// 	local {	
+// 		
+// 	
+// 		goal
+// 		~q == Union(tvalue(~t1), tvalue(~t2))
+// 		!isValue(~q)
+// 		TTC |- ~q : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Union-1
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo) 
+// 	}
+// 		
+// 			
+// 	local {
+// 		
+// 		axiom
+// 		!isValue(q2)
+// 		TTC |- q2 : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Union-IH2
+// 		exists ~qo
+// 			reduce(q2, TS) = someQuery(~qo)
+// 	
+// 		goal
+// 		~q == Union(tvalue(~t1), q2)
+// 		forall ~t2 q2 != tvalue(~t2)
+// 		!isValue(~q)
+// 		TTC |- ~q : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Union-2
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo)
+// 	}	
+// 	
+// 	
+// 	
+// 	local {
+// 		
+// 		axiom
+// 		!isValue(q1)
+// 		TTC |- q1 : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Union-IH1
+// 		exists ~qo
+// 			reduce(q1, TS) = someQuery(~qo)
+// 			
+// 		goal
+// 		~q == Union(q1, q2)
+// 		forall ~t1 q1 != tvalue(~t1)
+// 		!isValue(~q)
+// 		TTC |- ~q :  TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Union-3
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo)
+// 	}
+// 	
+// 	axiom
+// 	~q == Union(tvalue(~t1), tvalue(~t2))
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Union-1
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 	
+// 	axiom
+// 	~q == Union(tvalue(~t1), q2)
+// 	forall ~t2 q2 != tvalue(~t2)
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Union-2
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 		
+// 	axiom
+// 	~q == Union(q1, q2)
+// 	forall ~t1 q1 != tvalue(~t1)
+// 	!isValue(~q)
+// 	TTC |- ~q :  TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Union-3
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 		
+// 	goal
+// 	~q == Union(q1, q2)
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Union
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// }
 
 //intersection case
-local {
-	consts q1 : Query
-		q2 : Query
-		TS : TStore
-		TTC : TTContext
-		TT : TType
-		
-	local {	
-		
-		goal
-		~q == Intersection(tvalue(~t1), tvalue(~t2))
-		!isValue(~q)
-		TTC |- ~q : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Intersection-1
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo) 
-	}
-		
-			
-	local {
-		
-		axiom
-		!isValue(q2)
-		TTC |- q2 : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Intersection-IH2
-		exists ~qo
-			reduce(q2, TS) = someQuery(~qo)
-	
-		goal
-		~q == Intersection(tvalue(~t1), q2)
-		forall ~t2 q2 != tvalue(~t2)
-		!isValue(~q)
-		TTC |- ~q : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Intersection-2
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo)
-	}	
-	
-	
-	
-	local {
-		
-		axiom
-		!isValue(q1)
-		TTC |- q1 : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Intersection-IH1
-		exists ~qo
-			reduce(q1, TS) = someQuery(~qo)
-			
-		goal
-		~q == Intersection(q1, q2)
-		forall ~t1 q1 != tvalue(~t1)
-		!isValue(~q)
-		TTC |- ~q :  TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Intersection-3
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo)
-	}
-	
-	axiom
-	~q == Intersection(tvalue(~t1), tvalue(~t2))
-	!isValue(~q)
-	TTC |- ~q : TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Intersection-1
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-	
-	axiom
-	~q == Intersection(tvalue(~t1), q2)
-	forall ~t2 q2 != tvalue(~t2)
-	!isValue(~q)
-	TTC |- ~q : TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Intersection-2
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-		
-	axiom
-	~q == Intersection(q1, q2)
-	forall ~t1 q1 != tvalue(~t1)
-	!isValue(~q)
-	TTC |- ~q :  TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Intersection-3
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-		
-	goal
-	~q == Intersection(q1, q2)
-	!isValue(~q)
-	TTC |- ~q : TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Intersection
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-}
-
-//difference case
-local {
-	consts q1 : Query
-		q2 : Query
-		TS : TStore
-		TTC : TTContext
-		TT : TType
-		
-	local {	
-	
-		goal
-		~q == Difference(tvalue(~t1), tvalue(~t2))
-		!isValue(~q)
-		TTC |- ~q : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Difference-1
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo) 
-	}
-		
-			
-	local {
-		
-		axiom
-		!isValue(q2)
-		TTC |- q2 : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Difference-IH2
-		exists ~qo
-			reduce(q2, TS) = someQuery(~qo)
-	
-		goal
-		~q == Difference(tvalue(~t1), q2)
-		forall ~t2 q2 != tvalue(~t2)
-		!isValue(~q)
-		TTC |- ~q : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Difference-2
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo)
-	}	
-	
-	
-	
-	local {
-		
-		axiom
-		!isValue(q1)
-		TTC |- q1 : TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Difference-IH1
-		exists ~qo
-			reduce(q1, TS) = someQuery(~qo)
-			
-		goal
-		~q == Difference(q1, q2)
-		forall ~t1 q1 != tvalue(~t1)
-		!isValue(~q)
-		TTC |- ~q :  TT
-		StoreContextConsistent(TS, TTC)
-		==================================== SQL-Progress-T-Difference-3
-		exists ~qo
-			reduce(~q, TS) = someQuery(~qo)
-	}
-	
-	axiom
-	~q == Difference(tvalue(~t1), tvalue(~t2))
-	!isValue(~q)
-	TTC |- ~q : TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Difference-1
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-	
-	axiom
-	~q == Difference(tvalue(~t1), q2)
-	forall ~t2 q2 != tvalue(~t2)
-	!isValue(~q)
-	TTC |- ~q : TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Difference-2
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-		
-	axiom
-	~q == Difference(q1, q2)
-	forall ~t1 q1 != tvalue(~t1)
-	!isValue(~q)
-	TTC |- ~q :  TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Difference-3
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-		
-	goal
-	~q == Difference(q1, q2)
-	!isValue(~q)
-	TTC |- ~q : TT
-	StoreContextConsistent(TS, TTC)
-	==================================== SQL-Progress-T-Difference
-	exists ~qo
-		reduce(~q, TS) = someQuery(~qo)
-}
+// local {
+// 	consts q1 : Query
+// 		q2 : Query
+// 		TS : TStore
+// 		TTC : TTContext
+// 		TT : TType
+// 		
+// 	local {	
+// 		
+// 		goal
+// 		~q == Intersection(tvalue(~t1), tvalue(~t2))
+// 		!isValue(~q)
+// 		TTC |- ~q : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Intersection-1
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo) 
+// 	}
+// 		
+// 			
+// 	local {
+// 		
+// 		axiom
+// 		!isValue(q2)
+// 		TTC |- q2 : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Intersection-IH2
+// 		exists ~qo
+// 			reduce(q2, TS) = someQuery(~qo)
+// 	
+// 		goal
+// 		~q == Intersection(tvalue(~t1), q2)
+// 		forall ~t2 q2 != tvalue(~t2)
+// 		!isValue(~q)
+// 		TTC |- ~q : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Intersection-2
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo)
+// 	}	
+// 	
+// 	
+// 	
+// 	local {
+// 		
+// 		axiom
+// 		!isValue(q1)
+// 		TTC |- q1 : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Intersection-IH1
+// 		exists ~qo
+// 			reduce(q1, TS) = someQuery(~qo)
+// 			
+// 		goal
+// 		~q == Intersection(q1, q2)
+// 		forall ~t1 q1 != tvalue(~t1)
+// 		!isValue(~q)
+// 		TTC |- ~q :  TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Intersection-3
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo)
+// 	}
+// 	
+// 	axiom
+// 	~q == Intersection(tvalue(~t1), tvalue(~t2))
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Intersection-1
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 	
+// 	axiom
+// 	~q == Intersection(tvalue(~t1), q2)
+// 	forall ~t2 q2 != tvalue(~t2)
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Intersection-2
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 		
+// 	axiom
+// 	~q == Intersection(q1, q2)
+// 	forall ~t1 q1 != tvalue(~t1)
+// 	!isValue(~q)
+// 	TTC |- ~q :  TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Intersection-3
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 		
+// 	goal
+// 	~q == Intersection(q1, q2)
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Intersection
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// }
+// 
+// //difference case
+// local {
+// 	consts q1 : Query
+// 		q2 : Query
+// 		TS : TStore
+// 		TTC : TTContext
+// 		TT : TType
+// 		
+// 	local {	
+// 	
+// 		goal
+// 		~q == Difference(tvalue(~t1), tvalue(~t2))
+// 		!isValue(~q)
+// 		TTC |- ~q : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Difference-1
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo) 
+// 	}
+// 		
+// 			
+// 	local {
+// 		
+// 		axiom
+// 		!isValue(q2)
+// 		TTC |- q2 : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Difference-IH2
+// 		exists ~qo
+// 			reduce(q2, TS) = someQuery(~qo)
+// 	
+// 		goal
+// 		~q == Difference(tvalue(~t1), q2)
+// 		forall ~t2 q2 != tvalue(~t2)
+// 		!isValue(~q)
+// 		TTC |- ~q : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Difference-2
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo)
+// 	}	
+// 	
+// 	
+// 	
+// 	local {
+// 		
+// 		axiom
+// 		!isValue(q1)
+// 		TTC |- q1 : TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Difference-IH1
+// 		exists ~qo
+// 			reduce(q1, TS) = someQuery(~qo)
+// 			
+// 		goal
+// 		~q == Difference(q1, q2)
+// 		forall ~t1 q1 != tvalue(~t1)
+// 		!isValue(~q)
+// 		TTC |- ~q :  TT
+// 		StoreContextConsistent(TS, TTC)
+// 		==================================== SQL-Progress-T-Difference-3
+// 		exists ~qo
+// 			reduce(~q, TS) = someQuery(~qo)
+// 	}
+// 	
+// 	axiom
+// 	~q == Difference(tvalue(~t1), tvalue(~t2))
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Difference-1
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 	
+// 	axiom
+// 	~q == Difference(tvalue(~t1), q2)
+// 	forall ~t2 q2 != tvalue(~t2)
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Difference-2
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 		
+// 	axiom
+// 	~q == Difference(q1, q2)
+// 	forall ~t1 q1 != tvalue(~t1)
+// 	!isValue(~q)
+// 	TTC |- ~q :  TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Difference-3
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// 		
+// 	goal
+// 	~q == Difference(q1, q2)
+// 	!isValue(~q)
+// 	TTC |- ~q : TT
+// 	StoreContextConsistent(TS, TTC)
+// 	==================================== SQL-Progress-T-Difference
+// 	exists ~qo
+// 		reduce(~q, TS) = someQuery(~qo)
+// }
 
 
 	hide-all
