@@ -14,9 +14,9 @@ OR
 		welltypedtable(~TT, table(~al, ~rt))
 => exists ~sel, ~tn, ~p, ~TTr
 		~q == selectFromWhere(~sel, ~tn, ~p)
-		lookupContext(~tn, ~TTC) == someTType(~TT)
-		tcheckPred(~p, ~TT)
-		projectType(~sel, ~TT) == someTType(~TTr)
+		lookupContext(~tn, ~TTC) == someTType(~TTr)
+		tcheckPred(~p, ~TTr)
+		projectType(~sel, ~TTr) == someTType(~TT)
 => exists ~q1, ~q2
 		~q == Union(~q1, ~q2)
 		~TTC |- ~q1 : ~TT
@@ -45,10 +45,9 @@ lemma
 ~TTC |- ~q : ~TT
 ==================================================== T-inv-SelectSomeFromWhere
 exists ~TTr
-	~q == selectFromWhere(~sel, ~tn, ~p)
-	lookupContext(~tn, ~TTC) == someTType(~TT)
-	tcheckPred(~p, ~TT)
-	projectType(~sel, ~TT) == someTType(~TTr)
+	lookupContext(~tn, ~TTC) == someTType(~TTr)
+	tcheckPred(~p, ~TTr)
+	projectType(~sel, ~TTr) == someTType(~TT)
 		
 
 lemma
