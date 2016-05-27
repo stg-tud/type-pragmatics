@@ -105,32 +105,127 @@ lookupContext(~tn, ~TTC) == someTType(~tt)
 ========================================== welltyped-lookup
 welltypedtable(~tt, ~t)
 
+strategy induction-projectTypeAttrL-implies-findAllColType {
+	
+	goal
+	~al == aempty
+	projectTypeAttrL(~al, ~tt) == someTType(~tt2)
+	attrIn(~n, ~al)
+	=========================================== projectTypeAttrL-implies-findAllColType-aempty
+	exists ~ft
+		findColType(~n, ~tt) == someFType(~ft)
+		
+	local {
+		const alr : AttrL
+		
+		axiom 
+		~al == alr
+		projectTypeAttrL(~al, ~tt) == someTType(~tt2)
+		attrIn(~n, ~al)
+		=========================================== projectTypeAttrL-implies-findAllColType-acons-IH
+		exists ~ft
+			findColType(~n, ~tt) == someFType(~ft)
+			
+		goal
+		~al == acons(~a, alr)
+		projectTypeAttrL(~al, ~tt) == someTType(~tt2)
+		attrIn(~n, ~al)
+		=========================================== projectTypeAttrL-implies-findAllColType-acons
+		exists ~ft
+			findColType(~n, ~tt) == someFType(~ft)
+	}
+	
+	
+	hide-all
+	axiom 
+	projectTypeAttrL(~al, ~tt) == someTType(~tt2)
+	attrIn(~n, ~al)
+	=========================================== projectTypeAttrL-implies-findAllColType-ind
+	exists ~ft
+		findColType(~n, ~tt) == someFType(~ft)
+	
+}
 
+strategy induction-dropFirstColRaw-preserves-welltypedRaw {
+	
+	goal
+	~rt == tempty
+	~tt == ttcons(~n, ~ft, ~ttr)
+	welltypedRawtable(~tt, ~rt)
+	============================================= dropFirstColRaw-preserves-welltypedRaw-tempty
+	welltypedRawtable(~ttr, dropFirstColRaw(~rt))
+	
+	local {
+		const rtr : RawTable
+		
+		axiom
+		~rt == rtr
+		~tt == ttcons(~n, ~ft, ~ttr)
+		welltypedRawtable(~tt, ~rt)
+		============================================= dropFirstColRaw-preserves-welltypedRaw-tcons-IH
+		welltypedRawtable(~ttr, dropFirstColRaw(~rt))
+		
+		goal
+		~rt == tcons(~r, rtr)
+		~tt == ttcons(~n, ~ft, ~ttr)
+		welltypedRawtable(~tt, ~rt)
+		============================================= dropFirstColRaw-preserves-welltypedRaw-tcons
+		welltypedRawtable(~ttr, dropFirstColRaw(~rt))
+	}
+	
+	hide-all
+	axiom
+	~tt == ttcons(~n, ~ft, ~ttr)
+	welltypedRawtable(~tt, ~rt)
+	============================================= dropFirstColRaw-preserves-welltypedRaw-ind
+	welltypedRawtable(~ttr, dropFirstColRaw(~rt))
+}
 
-// strategy projectCols-progress-aux {
-// 	lemma 
-// 	projectTypeAttrL(~al, ~tt) == someTType(~tt)
-// 	attrIn(~n, ~al)
-// 	=========================================== projectTypeAttrL-implies-findAllColType
-// 	exists ~ft
-// 		 findColType(~n, ~tt) == someFType(~ft)
-// 	
-// 	lemma 
-// 	~tt == ttcons(~n, ~ft, ~ttr)
-// 	welltypedRawtable(~tt, ~rt)
-// 	============================================= dropFirstColRaw-preserves-welltypedRaw
-// 	welltypedRawtable(~ttr, dropFirstColRaw(~rt))
-// 
-// 	lemma
-// 	welltypedtable(~tt, table(~al, ~rt))
-// 	findColType(~n, ~tt) == someFType(~ft)
-// 	=============================================== findColType-implies-findCol
-// 	exists ~rt
-// 		findCol(~n, ~al, ~rt) == someRawTable(~rt)
-// 	
-// 	
-// 		
-// }
+strategy induction-findColType-implies-findCol {
+	
+	goal
+	~al == aempty
+	welltypedtable(~tt, table(~al, ~rt))
+	findColType(~n, ~tt) == someFType(~ft)
+	=============================================== findColType-implies-findCol-aempty
+	exists ~rt
+		findCol(~n, ~al, ~rt) == someRawTable(~rt)
+		
+	local {
+		const alr : AttrL
+		
+		axiom 
+		~al == aempty
+		welltypedtable(~tt, table(~al, ~rt))
+		findColType(~n, ~tt) == someFType(~ft)
+		=============================================== findColType-implies-findCol-acons-IH
+		exists ~rt
+			findCol(~n, ~al, ~rt) == someRawTable(~rt)
+			
+		lemma verify-with induction-dropFirstColRaw-preserves-welltypedRaw
+		~tt == ttcons(~n, ~ft, ~ttr)
+		welltypedRawtable(~tt, ~rt)
+		============================================= dropFirstColRaw-preserves-welltypedRaw
+		welltypedRawtable(~ttr, dropFirstColRaw(~rt))
+			
+		goal 
+		~al == acons(~a, alr)
+		welltypedtable(~tt, table(~al, ~rt))
+		findColType(~n, ~tt) == someFType(~ft)
+		=============================================== findColType-implies-findCol-acons
+		exists ~rt
+			findCol(~n, ~al, ~rt) == someRawTable(~rt)
+		
+	}
+	
+	hide-all
+	axiom
+	welltypedtable(~tt, table(~al, ~rt))
+	findColType(~n, ~tt) == someFType(~ft)
+	=============================================== findColType-implies-findCol-ind
+	exists ~rt
+		findCol(~n, ~al, ~rt) == someRawTable(~rt)
+}
 
 strategy induction-projectType-implies-findCol {
 	
@@ -155,21 +250,20 @@ strategy induction-projectType-implies-findCol {
 		exists ~rt2
 			findCol(~n, ~al, ~rt) == someRawTable(~rt2)
 			
-		lemma 
-		projectTypeAttrL(~al, ~tt) == someTType(~tt)
+		lemma verify-with induction-projectTypeAttrL-implies-findAllColType
+		projectTypeAttrL(~al, ~tt) == someTType(~tt2)
 		attrIn(~n, ~al)
-		=========================================== projectTypeAttrL-implies-findAllColType
+		=============================================== projectTypeAttrL-implies-findAllColType
 		exists ~ft
 			 findColType(~n, ~tt) == someFType(~ft)
 			 
-		lemma
-		attrIn(~n, ~al2)
+		lemma verify-with induction-findColType-implies-findCol
 		welltypedtable(~tt, table(~al, ~rt))
 		findColType(~n, ~tt) == someFType(~ft)
 		=============================================== findColType-implies-findCol
 		exists ~rt
 			findCol(~n, ~al, ~rt) == someRawTable(~rt)
-			
+	
 		goal
 		~al2 == acons(~a, alr)
 		welltypedtable(~tt, table(~al, ~rt))
