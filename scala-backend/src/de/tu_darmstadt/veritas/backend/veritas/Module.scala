@@ -17,23 +17,6 @@ case class Module(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) exte
   def fold(name: String => String, imports: Seq[Import] => Seq[Import], body: Seq[ModuleDef] => Seq[ModuleDef]) =
     Module(name(this.name), imports(this.imports), body(this.defs))
   
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (newchildren.length != 2)
-      throw new ClassCastException
-
-    val newimps: Seq[Import] = newchildren(0) map {
-      case i: Import => i
-      case _         => throw new ClassCastException
-    }
-
-    val newbody: Seq[ModuleDef] = newchildren(1) map {
-      case e: ModuleDef => e
-      case _            => throw new ClassCastException
-    }
-
-    Module(name, newimps, newbody)
-  }
-
   override val filename = name.split('.').last + ".stl"
   override def goalname = getOnlyGoal.name
   

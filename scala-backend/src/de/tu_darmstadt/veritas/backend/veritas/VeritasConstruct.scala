@@ -12,15 +12,4 @@ trait VeritasConstruct {
    * and the order of the children within the groups
    */
   val children: Seq[Seq[VeritasConstruct]]
-  
-  /**
-   * has to be overridden by each VeritasConstruct!
-   * produces a new copy of the construct, replacing all the children of the construct
-   * with the new children given in the parameter
-   * 
-   * 
-   * @throws ClassCastException if the children do not have the expected type!
-   */
-  def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct
-  
 }

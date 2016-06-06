@@ -9,25 +9,12 @@ sealed trait ImportAnnotation extends VeritasConstruct with SimplePrettyPrintabl
 final case object ImportNames extends ImportAnnotation {
   override val children = Seq()
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    ImportNames
-  }
-
   override val prettyString = "false"
 }
 
 final case object ImportAxioms extends ImportAnnotation {
   override val children = Seq()
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    ImportAxioms
-  }
 
   override def prettyString = "axioms"
 }
@@ -35,12 +22,6 @@ final case object ImportAxioms extends ImportAnnotation {
 final case object ImportFunctions extends ImportAnnotation {
   override val children = Seq()
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    ImportFunctions
-  }
 
   override def prettyString = "functions"
 }
@@ -48,25 +29,11 @@ final case object ImportFunctions extends ImportAnnotation {
 final case object ImportGoals extends ImportAnnotation {
   override val children = Seq()
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    ImportGoals
-  }
-
   override def prettyString = "goals"
 }
 
 final case object ImportConstructors extends ImportAnnotation {
   override val children = Seq()
-
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    ImportConstructors
-  }
 
   override def prettyString = "constructors"
 }

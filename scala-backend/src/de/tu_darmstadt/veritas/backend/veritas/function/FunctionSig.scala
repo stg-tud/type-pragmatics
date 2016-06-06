@@ -11,21 +11,6 @@ import de.tu_darmstadt.veritas.backend.veritas._
 case class FunctionSig(name: String, in: Seq[SortRef], out: SortRef) extends VeritasConstruct with PrettyPrintable {
   override val children = Seq(in, Seq(out))
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (newchildren.length != 2 || newchildren(1).length != 1)
-      throw new ClassCastException
-
-    val newin: Seq[SortRef] = newchildren(0) map {
-      case sr: SortRef => sr
-      case _           => throw new ClassCastException
-    }
-    val newout: SortRef = newchildren(1).head match {
-      case sr: SortRef => sr
-      case _           => throw new ClassCastException
-    }
-    FunctionSig(name, newin, newout)
-  }
-
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(name, " : ")
     in foreach (writer.write(_).write(" "))

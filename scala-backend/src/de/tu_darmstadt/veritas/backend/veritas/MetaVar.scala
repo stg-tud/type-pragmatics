@@ -10,13 +10,6 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
 case class MetaVar(name: String) extends VeritasConstruct with SimplePrettyPrintable with Typeable {
   override val children = Seq()
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    MetaVar(name)
-  }
-
   override def prettyString = s"~$name"
   override def toString() = s"~${name}"
 }

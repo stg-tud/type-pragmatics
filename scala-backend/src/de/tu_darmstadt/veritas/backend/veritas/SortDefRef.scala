@@ -9,13 +9,6 @@ case class SortDef(name: String) extends VeritasConstruct with SimplePrettyPrint
   require(!(SortDef.predefinedSorts contains name), "Attempting to redefine a predefined sort!")
   override val children = Seq()
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    SortDef(name)
-  }
-  
   override def prettyString = name
   override def toString() = name
 }
@@ -23,13 +16,6 @@ case class SortDef(name: String) extends VeritasConstruct with SimplePrettyPrint
 case class SortRef(name: String) extends VeritasConstruct with SimplePrettyPrintable {
   override val children = Seq()
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    SortRef(name)
-  }
-  
   override def prettyString = name
   override def toString() = name
 }

@@ -10,17 +10,6 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 case class DataTypeConstructor(name: String, in: Seq[SortRef]) extends VeritasConstruct with PrettyPrintable {
   override val children = Seq(in)
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (newchildren.length != 1)
-      throw new ClassCastException
-
-    val newin: Seq[SortRef] = newchildren(0) map {
-      case sr: SortRef => sr
-      case _           => throw new ClassCastException
-    }
-    DataTypeConstructor(name, newin)
-  }
-
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(name, "(")
     if (!in.isEmpty) {

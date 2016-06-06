@@ -10,23 +10,6 @@ case class TypingRule(name: String, premises: Seq[TypingRuleJudgment], consequen
   require(!consequences.isEmpty, "typing rule without consequences is not allowed")
   override val children = Seq(premises, consequences)
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (newchildren.length != 2 || newchildren(1).isEmpty)
-      throw new ClassCastException
-
-    val newprems: Seq[TypingRuleJudgment] = newchildren(0) map {
-      case e: TypingRuleJudgment => e
-      case _                     => throw new ClassCastException
-    }
-
-    val newconss: Seq[TypingRuleJudgment] = newchildren(1) map {
-      case e: TypingRuleJudgment => e
-      case _                     => throw new ClassCastException
-    }
-
-    TypingRule(name, newprems, newconss)
-  }
-
   override def prettyPrint(writer: PrettyPrintWriter) = {
     premises foreach (writer.writeln(_))
     // NOTE make the ===== bar as long as the surrounding judgments

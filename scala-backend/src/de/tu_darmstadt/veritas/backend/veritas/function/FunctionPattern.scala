@@ -14,17 +14,6 @@ sealed trait FunctionPattern extends VeritasConstruct with PrettyPrintable
 case class FunctionPatApp(functionName: String, args: Seq[FunctionPattern]) extends FunctionPattern {
   override val children = Seq(args)
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (newchildren.length != 1)
-      throw new ClassCastException
-
-    val newargs: Seq[FunctionPattern] = newchildren(0) map {
-      case e: FunctionPattern => e
-      case _                  => throw new ClassCastException
-    }
-    FunctionPatApp(functionName, newargs)
-  }
-
   override def prettyPrint(writer: PrettyPrintWriter) = {
     writer.write(functionName, "(")
     args.dropRight(1) foreach (writer.write(_).write(", "))
@@ -37,13 +26,6 @@ case class FunctionPatApp(functionName: String, args: Seq[FunctionPattern]) exte
 
 case class FunctionPatVar(varName: String) extends FunctionPattern with SimplePrettyPrintable {
   override val children = Seq()
-
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //create a copy of myself
-    FunctionPatVar(varName)
-  }
 
   override val prettyString = varName
   

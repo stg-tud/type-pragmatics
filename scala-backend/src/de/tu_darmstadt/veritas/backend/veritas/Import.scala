@@ -34,12 +34,6 @@ sealed trait Import extends VeritasConstruct with SimplePrettyPrintable {
 
   override val children = Seq()
 
-  override def transformChildren(newchildren: Seq[Seq[VeritasConstruct]]): VeritasConstruct = {
-    if (!newchildren.isEmpty) throw new ClassCastException
-
-    //return myself
-    this
-  }
 }
 
 case class Resolved(moduleCode: Module) extends Import {
