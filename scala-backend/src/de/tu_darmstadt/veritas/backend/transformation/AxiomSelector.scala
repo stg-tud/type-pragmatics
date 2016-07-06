@@ -45,21 +45,14 @@ import de.tu_darmstadt.veritas.backend.veritas.function.FunctionEq
 import de.tu_darmstadt.veritas.backend.veritas.function.FunctionPattern
 import de.tu_darmstadt.veritas.backend.veritas.function.FunctionPatVar
 import de.tu_darmstadt.veritas.backend.veritas.function.FunctionPatApp
+import de.tu_darmstadt.veritas.backend.veritas.SortDef
+import de.tu_darmstadt.veritas.backend.veritas.VeritasConstruct
+import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 
-trait InformationCollector[+T] {
+trait InformationCollector[T] {
   
   def apply(m: Module): Set[T]
   def apply(m: Module, acc: Set[T]): Set[T] = apply(m) ++ acc
-  
-    /**
-   * convenience function, can be used whenever overriding one of the trans- functions below
-   * in a concrete transformation to execute the "parent transformation" first
-   *
-   * subtransres is the result of applying the super transformation, f the new transformation that
-   * shall be applied in addition, leaving unchanged all constructs for which the f is not defined
-   */
-  def withSuper[T](suptransres: Seq[T])(f: PartialFunction[T, Seq[T]]): Seq[T] =
-    suptransres flatMap (t => if (f.isDefinedAt(t)) f(t) else Seq(t))
 
   /**
    * convenience function, can be used whenever overriding one of the trans- functions below
@@ -68,27 +61,77 @@ trait InformationCollector[+T] {
    * subtransres is the result of applying the super transformation, f the new transformation that
    * shall be applied in addition, leaving unchanged all constructs for which the f is not defined
    */
-  def withSuper[T](suptransres: T)(f: PartialFunction[T, T]): T =
-    if (f.isDefinedAt(suptransres)) f(suptransres) else suptransres
+  
+  def withSuper[S <: VeritasConstruct](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
+    if (f.isDefinedAt(construct)) 
+      f(construct)
+    supcollect(construct)
+  }
   
   def collectFromModuleDef(mdef: ModuleDef): Unit = mdef match {
     case g @ Goals(_, _) => collectFromGoals(g)
     case a @ Axioms(_) => collectFromAxioms(a)
-    case DataType(_, name, cs) => 
-    case Consts(cs, _)         => 
-    case Sorts(s)              => 
-    case Functions(fds)        => 
-    case PartialFunctions(fds) => 
-    case _                     => throw TransformationError("Unsupported top-level construct!")
+    case DataType(_, name, cs) => cs foreach collectFromDataTypeConstructor
+    case Consts(cs, _) => cs foreach collectFromConstDecl
+    case Sorts(s) => s foreach collectFromSortDef
+    case fs @ Functions(fds) => collectFromFunctions(fs)
+    case pfs @ PartialFunctions(fds) => collectFromPartialFunctions(pfs)
+    case _ => {}
   }
+  
+  def collectFromGoals(goals: Goals): Unit = {
+    goals.goals foreach collectFromTypingRule
+  }
+  
+  def collectFromTypingRule(tr: TypingRule): Unit = {
+    (tr.premises ++ tr.consequences) foreach collectFromTypingRuleJudgment
+  }
+
+  def collectFromTypingRuleJudgment(trj: TypingRuleJudgment): Unit = trj match {
+    case TypingJudgment(f1, f2, f3) => Seq(f1, f2, f3) foreach collectFromFunctionExpMeta
+    case TypingJudgmentSimple(f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
+    case FunctionExpJudgment(f) => collectFromFunctionExpMeta(f)
+    case ExistsJudgment(_, jdglst) => jdglst foreach collectFromTypingRuleJudgment
+    case ForallJudgment(_, jdglst) => jdglst foreach collectFromTypingRuleJudgment
+    case ReduceJudgment(f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
+    case NotJudgment(jdg) => collectFromTypingRuleJudgment(jdg)
+    case OrJudgment(orCases) => orCases.flatten foreach collectFromTypingRuleJudgment
+    case _ => TransformationError("Unsupported TypingRuleJudgment!")
+  }
+  
+  
+  def collectFromFunctionExpMeta(fem: FunctionExpMeta): Unit = fem match {
+    case FunctionExpAnd(left, right) => Seq(left, right) foreach collectFromFunctionExpMeta
+    case FunctionExpApp(name, args) => args foreach collectFromFunctionExpMeta 
+    case FunctionExpBiImpl(left, right) => Seq(left, right) foreach collectFromFunctionExpMeta
+    case FunctionExpEq(f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
+    case FunctionExpIf(c, i, t) => Seq(c, i, t) foreach collectFromFunctionExpMeta
+    case FunctionExpLet(name, f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
+    case FunctionExpNeq(f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
+    case FunctionExpNot(f) => collectFromFunctionExpMeta(f)
+    case FunctionExpOr(left, right) => Seq(left, right) foreach collectFromFunctionExpMeta
+    case FunctionExpVar(name) => {}
+    case FunctionMeta(metaVar) => collectFromMetaVar(metaVar)
+    case FunctionExpFalse => {}
+    case FunctionExpTrue => {}
+    case _ => TransformationError("Unsupported FunctionExpMeta!")
+  }
+  
+  def collectFromMetaVar(metaVar: MetaVar): Unit = {}
   
   def collectFromDataType(dt: DataType): Unit = {
     dt.constrs foreach collectFromDataTypeConstructor
+  }
+   
+  def collectFromAxioms(axioms: Axioms): Unit = {
+    axioms.axioms foreach collectFromTypingRule
   }
   
   def collectFromDataTypeConstructor(dtc: DataTypeConstructor): Unit = {
     dtc.in foreach collectFromSortRef
   }
+  
+  def collectFromSortDef(sd: SortDef): Unit = {}
   
   def collectFromSortRef(sr: SortRef): Unit = {}
   
@@ -128,49 +171,17 @@ trait InformationCollector[+T] {
     fs.funcs foreach collectFromFunctionDef
   }
   
-  def collectFromAxioms(axioms: Axioms): Unit = {
-    axioms.axioms foreach collectFromTypingRule
   }
   
-  def collectFromGoals(goals: Goals): Unit = {
-    goals.goals foreach collectFromTypingRule
   }
   
-  def collectFromTypingRule(tr: TypingRule): Unit = {
-    (tr.premises ++ tr.consequences) foreach collectFromTypingRuleJudgment
   }
   
-  def collectFromTypingRuleJudgment(trj: TypingRuleJudgment): Unit = trj match {
-    case TypingJudgment(f1, f2, f3) => Seq(f1, f2, f3) foreach collectFromFunctionExpMeta
-    case TypingJudgmentSimple(f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
-    case FunctionExpJudgment(f) => collectFromFunctionExpMeta(f)
-    case ExistsJudgment(_, jdglst) => jdglst foreach collectFromTypingRuleJudgment
-    case ForallJudgment(_, jdglst) => jdglst foreach collectFromTypingRuleJudgment
-    case ReduceJudgment(f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
-    case NotJudgment(jdg) => collectFromTypingRuleJudgment(jdg)
-    case OrJudgment(orCases) => orCases.flatten foreach collectFromTypingRuleJudgment
-    case _ => TransformationError("Unsupported TypingRuleJudgment!")
   }
   
   
-  def collectFromFunctionExpMeta(fem: FunctionExpMeta): Unit = fem match {
-    case FunctionExpAnd(left, right) => Seq(left, right) foreach collectFromFunctionExpMeta
-    case FunctionExpApp(name, args) => args foreach collectFromFunctionExpMeta 
-    case FunctionExpBiImpl(left, right) => Seq(left, right) foreach collectFromFunctionExpMeta
-    case FunctionExpEq(f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
-    case FunctionExpIf(c, i, t) => Seq(c, i, t) foreach collectFromFunctionExpMeta
-    case FunctionExpLet(name, f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
-    case FunctionExpNeq(f1, f2) => Seq(f1, f2) foreach collectFromFunctionExpMeta
-    case FunctionExpNot(f) => collectFromFunctionExpMeta(f)
-    case FunctionExpOr(left, right) => Seq(left, right) foreach collectFromFunctionExpMeta
-    case FunctionExpVar(name) => {}
-    case FunctionMeta(metaVar) => collectFromMetaVar(metaVar)
-    case FunctionExpFalse => {}
-    case FunctionExpTrue => {}
-    case _ => TransformationError("Unsupported FunctionExpMeta!")
   }
   
-  def collectFromMetaVar(metaVar: MetaVar): Unit = {}
 }
 
 // For combining multiple collectors
