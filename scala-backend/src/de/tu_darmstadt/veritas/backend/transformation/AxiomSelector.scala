@@ -217,7 +217,7 @@ case class DataTypeNameOfConstructorCollector(names: Set[String]) extends Inform
   }
 }
 
-object CollectionUtil {
+object InformationCollectorUtil {
   
   def matchesRegex(s: String, regex: Regex): Boolean = regex.pattern.matcher(s).matches
   
@@ -287,12 +287,12 @@ case class AxiomDefiningConstructorAndFunctionCollector(fNames: Set[String], cto
   
   private def collectAxiom(tr: TypingRule): Unit = {
     ctorNames.foreach { name =>
-      if(CollectionUtil.matchesCotr(tr.name, name))
+      if(InformationCollectorUtil.matchesCotr(tr.name, name))
         collectedInfo += tr
     }
   
     fNames.foreach { name =>
-      if(CollectionUtil.matchesCotr(tr.name, name) || CollectionUtil.matchesFunction(tr.name, name))
+      if(InformationCollectorUtil.matchesCotr(tr.name, name) || InformationCollectorUtil.matchesFunction(tr.name, name))
         collectedInfo += tr
     }
   }
@@ -351,6 +351,6 @@ case class UsedInGoalAxiomSelector(names: Set[String]) extends AxiomSelector {
   
   override def selectAxiom(tr: TypingRule): Boolean =
     names.exists { name =>
-      CollectionUtil.matchesCotr(tr.name, name) || CollectionUtil.matchesFunction(tr.name, name) 
+      InformationCollectorUtil.matchesCotr(tr.name, name) || InformationCollectorUtil.matchesFunction(tr.name, name) 
     }
 }
