@@ -48,10 +48,17 @@ import de.tu_darmstadt.veritas.backend.veritas.function.FunctionPatApp
 import de.tu_darmstadt.veritas.backend.veritas.SortDef
 import de.tu_darmstadt.veritas.backend.veritas.VeritasConstruct
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
+import scala.util.matching.Regex
 
 trait InformationCollector[T] {
   
-  def apply(m: Module): Set[T]
+  val collectedInfo = scala.collection.mutable.Set[T]()
+  
+  def apply(m: Module): Set[T] = {
+    m.defs.foreach (collectFromModuleDef)
+    collectedInfo.toSet
+  }
+  
   def apply(m: Module, acc: Set[T]): Set[T] = apply(m) ++ acc
 
   /**
@@ -170,23 +177,156 @@ trait InformationCollector[T] {
   def collectFromPartialFunctions(fs: PartialFunctions): Unit = {
     fs.funcs foreach collectFromFunctionDef
   }
+}
+
+trait ConstructorAndFunctionNameInModuleDefCollector extends InformationCollector[String] {
+ 
+  override def collectFromFunctionExpMeta(fem: FunctionExpMeta): Unit = 
+    withSuper(fem)(super.collectFromFunctionExpMeta) {
+      case FunctionExpApp(name, args) => collectedInfo += name
+    }
+}
+
+object ConstructorAndFunctionNameInGoalCollector extends ConstructorAndFunctionNameInModuleDefCollector {
+    
+  override def collectFromModuleDef(mdef: ModuleDef): Unit = mdef match {
+    case g @ Goals(_, _) =>collectFromGoals(g)
+    case _ => {}
+  }
+}
+
+case class DataTypeNameOfConstructorCollector(names: Set[String]) extends InformationCollector[String] {  
   
+  override def collectFromModuleDef(mdef: ModuleDef): Unit = mdef match {
+    case a @ Axioms(_) => collectFromAxioms(a)
+    case _ => {}
   }
   
+  override def collectFromTypingRule(tr: TypingRule): Unit = {
+    // someTable -> OptTable
+    // ground-OptTable-someTable
+    // someTable -> DIFF-noTable-someTable
+    // TODO: what types of characters are allowed for datatypes
+    names.foreach { n =>
+      val pattern = ("""ground-([a-zA-Z][a-zA-Z0-9]*)-""" + n).r
+      tr.name match {
+        case pattern(datatypeName) => collectedInfo += datatypeName
+        case _ => {}
+      }
+    }
+  }
+}
+
+object CollectionUtil {
+  
+  def matchesRegex(s: String, regex: Regex): Boolean = regex.pattern.matcher(s).matches
+  
+  def matchesCotr(s: String, name: String): Boolean = {
+    val ground = ("""ground-""" + name + """-[a-zA-Z]+""").r
+    val dom = ("""dom-""" + name).r
+    val eq = ("""EQ-""" + name).r
+    val diffFirst = ("""DIFF-[a-zA-Z]+-""" + name).r
+    val diffSecond = ("""DIFF-""" + name + """-[a-zA-Z]+""").r
+  
+    matchesRegex(s, ground) || matchesRegex(s, dom) ||  matchesRegex(s, eq) || matchesRegex(s, diffFirst) || matchesRegex(s, diffSecond)
   }
   
+  def matchesFunction(s: String, name: String): Boolean = {
+    val function = (name + """-([0-9]+|(true|false)-INV|INV)""").r
+  
+    matchesRegex(s, function)
+  }
+}
+
+case class ConstructorNameOfDataTypeCollector(names: Set[String]) extends InformationCollector[String] { 
+  
+  override def collectFromModuleDef(mdef: ModuleDef): Unit = mdef match {
+      case a @ Axioms(_) => collectFromAxioms(a)
+      case _ => {}
+    }
+  
+  override def collectFromTypingRule(tr: TypingRule): Unit = {
+    // someTable -> OptTable
+    // ground-OptTable-someTable
+    // someTable -> DIFF-noTable-someTable
+    // TODO: what types of characters are allowed for datatypes
+    names.foreach { n =>
+      val pattern = ("""ground-""" + n + """-([a-zA-Z][a-zA-Z0-9]*)""").r
+      tr.name match {
+        case pattern(cotrName) => collectedInfo += cotrName
+        case _ => {}
+      }
+    }
+  }
+}
+
+case class ConstructorAndFunctionNameInAxiomCollector(axioms: Set[TypingRule]) extends ConstructorAndFunctionNameInModuleDefCollector {
+  
+  override def collectFromModuleDef(mdef: ModuleDef): Unit = mdef match {
+    case a @ Axioms(_) => collectFromAxioms(a)
+    case _ => {}
   }
   
+  override def collectFromTypingRule(tr: TypingRule): Unit = 
+    if(axioms.contains(tr))
+      super.collectFromTypingRule(tr)
+}
+
+case class AxiomDefiningConstructorAndFunctionCollector(fNames: Set[String], ctorNames: Set[String]) extends InformationCollector[TypingRule] {
+  
+  // to speed up traversing the tree
+  override def collectFromModuleDef(mdef: ModuleDef): Unit = mdef match {
+    case a @ Axioms(_) => collectFromAxioms(a)
+    case _ => {}
+  }  
+  
+  override def collectFromTypingRule(tr: TypingRule): Unit =
+    withSuper(tr)(super.collectFromTypingRule) {
+      case TypingRule(_, _, _) => collectAxiom(tr)
+    }
+  
+  private def collectAxiom(tr: TypingRule): Unit = {
+    ctorNames.foreach { name =>
+      if(CollectionUtil.matchesCotr(tr.name, name))
+        collectedInfo += tr
+    }
+  
+    fNames.foreach { name =>
+      if(CollectionUtil.matchesCotr(tr.name, name) || CollectionUtil.matchesFunction(tr.name, name))
+        collectedInfo += tr
+    }
+  }
+}
+
+/**
+ * @param depth how deep to search for names which are used by constructors and functions.
+ */
+case class ConstructorAndFunctionNameCollector(depth: Int) extends InformationCollector[String] {
+  
+  var currentDepth = 1
+  
+  override def apply(m: Module): Set[String] = {
+    val names = ConstructorAndFunctionNameInGoalCollector(m)
+    recurse(m, names)
   }
   
-  
-  }
-  
+  private def recurse(m: Module, names: Set[String]): Set[String] =
+    if (currentDepth >= depth) {
+      names
+    } else {
+      currentDepth += 1
+      val dtNames = DataTypeNameOfConstructorCollector(names)(m)
+      val otherCotrNames = ConstructorNameOfDataTypeCollector(dtNames)(m)
+      val axioms: Set[TypingRule] = AxiomDefiningConstructorAndFunctionCollector(names ++ otherCotrNames, dtNames)(m)
+      val newNames = ConstructorAndFunctionNameInAxiomCollector(axioms)(m)
+      names ++ recurse(m, newNames)
+    }
 }
 
 // For combining multiple collectors
 case class InformationCollectorSeq[T](ics: InformationCollector[T]*) extends InformationCollector[T] {
-  def apply(m: Module): Set[T] = {
+  
+  override def apply(m: Module): Set[T] = {
     var acc = Set[T]()
     ics.foreach { ic =>
       acc = ic(m, acc)
@@ -196,6 +336,7 @@ case class InformationCollectorSeq[T](ics: InformationCollector[T]*) extends Inf
 }
 
 trait AxiomSelector {
+  
   def apply(m: Module): Module = Module(m.filename, m.imports, m.defs map transformModuleDef)
 
   final def transformModuleDef(mdef: ModuleDef): ModuleDef = mdef match {
@@ -204,4 +345,12 @@ trait AxiomSelector {
   }
 
   def selectAxiom(tr: TypingRule): Boolean
+}
+
+case class UsedInGoalAxiomSelector(names: Set[String]) extends AxiomSelector {
+  
+  override def selectAxiom(tr: TypingRule): Boolean =
+    names.exists { name =>
+      CollectionUtil.matchesCotr(tr.name, name) || CollectionUtil.matchesFunction(tr.name, name) 
+    }
 }
