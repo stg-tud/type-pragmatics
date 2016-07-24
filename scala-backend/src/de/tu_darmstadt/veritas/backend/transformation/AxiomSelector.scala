@@ -301,18 +301,24 @@ case class AxiomDefiningConstructorAndFunctionCollector(fNames: Set[String], cto
 /**
  * @param depth how deep to search for names which are used by constructors and functions.
  */
-case class ConstructorAndFunctionNameCollector(depth: Int) extends InformationCollector[String] {
+case class ConstructorAndFunctionNameCollector(depth: Int) extends InformationCollector[TypingRule] {
   
   var currentDepth = 1
   
-  override def apply(m: Module): Set[String] = {
+  override def apply(m: Module): Set[TypingRule] = {
     val names = ConstructorAndFunctionNameInGoalCollector(m)
-    recurse(m, names)
+    val axioms = collectAxiomsBasedOnNames(m, names)
+    recurse(m, axioms)
   }
   
-  private def recurse(m: Module, names: Set[String]): Set[String] =
+  private def collectAxiomsBasedOnNames(m: Module, names: Set[String]): Set[TypingRule] = {
+    val dtNames = DataTypeNameOfConstructorCollector(names)(m)
+    val otherCotrNames = ConstructorNameOfDataTypeCollector(dtNames)(m)
+    AxiomDefiningConstructorAndFunctionCollector(names ++ otherCotrNames, dtNames)(m)
+  private def recurse(m: Module, axioms: Set[TypingRule]): Set[TypingRule] =
     if (currentDepth >= depth) {
       names
+      axioms
     } else {
       currentDepth += 1
       val dtNames = DataTypeNameOfConstructorCollector(names)(m)
@@ -320,7 +326,10 @@ case class ConstructorAndFunctionNameCollector(depth: Int) extends InformationCo
       val axioms: Set[TypingRule] = AxiomDefiningConstructorAndFunctionCollector(names ++ otherCotrNames, dtNames)(m)
       val newNames = ConstructorAndFunctionNameInAxiomCollector(axioms)(m)
       names ++ recurse(m, newNames)
+      val newAxioms = collectAxiomsBasedOnNames(m, newNames)
+      axioms ++ recurse(m, newAxioms)
     }
+    
 }
 
 // For combining multiple collectors
@@ -347,10 +356,5 @@ trait AxiomSelector {
   def selectAxiom(tr: TypingRule): Boolean
 }
 
-case class UsedInGoalAxiomSelector(names: Set[String]) extends AxiomSelector {
   
-  override def selectAxiom(tr: TypingRule): Boolean =
-    names.exists { name =>
-      InformationCollectorUtil.matchesCotr(tr.name, name) || InformationCollectorUtil.matchesFunction(tr.name, name) 
-    }
 }
