@@ -268,7 +268,7 @@ trait InlineEquation extends ModuleTransformation {
   /**
    * controls which equations will be inlined
    * all equations detected as inlineable will also be removed,
-   * provided methode remove returns true for the equation in question
+   * provided method remove returns true for the equation in question
    */
   private def checkEquation(eq: FunctionExpEq): Boolean = {
     eq match {
