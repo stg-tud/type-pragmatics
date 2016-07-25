@@ -23,6 +23,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
 import de.tu_darmstadt.veritas.backend.veritas.Module
 import de.tu_darmstadt.veritas.backend.util.Util
+import de.tu_darmstadt.veritas.backend.veritas.Axioms
 
 object Backend {
 
@@ -295,7 +296,29 @@ object Backend {
     val modules = Seq(Module.from(aterm))
 
     val resultingModSeq = MainTrans(modules)(conf)
-    val result = resultingModSeq map { m => TypingTrans.finalEncoding(m)(conf) }
+
+    // collect ground
+    val grounds = resultingModSeq map { m => (m, ConstructorAndFunctionNameCollector(4)(m)) }
+    // filter based on ground
+    val filteredModSeq = grounds map {
+      case (m, ground) =>
+        UsedInGoalAxiomSelector(ground)(m)
+    }
+
+    def countAxioms(m: Module): Int =
+      m.defs.foldLeft(0) {
+        case (acc, mdef) =>
+          mdef match {
+            case Axioms(a) => acc + a.size
+            case _         => acc
+          }
+      }
+
+    for ((original, filtered) <- resultingModSeq zip filteredModSeq) {
+      println("original size: " + countAxioms(original))
+      println("filtered size: " + countAxioms(filtered))
+    }
+    val result = filteredModSeq map { m => TypingTrans.finalEncoding(m)(conf) }
     //resultingModSeq map { m => ("", m) }
     result map { m => ("", m) }
   }
