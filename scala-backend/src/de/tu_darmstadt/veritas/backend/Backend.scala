@@ -34,15 +34,18 @@ object Backend {
     Map(FinalEncoding -> Seq(FinalEncoding.BareFOF),
       (Problem -> Seq(Problem.Test)),
       (VariableEncoding -> Seq(VariableEncoding.Unchanged)),
-      (Simplification -> Seq(Simplification.LogicalAndConstructors))))
+      (Simplification -> Seq(Simplification.LogicalAndConstructors)),
+      (Selection -> Seq(Selection.SelectAll))))
 
   val onlyTFFTest = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
     Simplification -> Simplification.LogicalAndConstructors,
     VariableEncoding -> VariableEncoding.NameEverything,
+    Selection -> Selection.SelectAll,
     Problem -> Problem.Proof))
   val onlyGuardedFOFTest = Configuration(Map(FinalEncoding -> FinalEncoding.GuardedFOF,
     Simplification -> Simplification.LogicalAndConstructors,
     VariableEncoding -> VariableEncoding.InlineEverything,
+    Selection -> Selection.SelectAll,
     Problem -> Problem.Proof))
 
   val inliningOnlyTest = PartialVariability(Map(VariableEncoding -> Seq(VariableEncoding.InlineEverything)))
@@ -65,7 +68,19 @@ object Backend {
     Map(FinalEncoding -> FinalEncoding.TFF,
       (Problem -> Problem.All),
       (VariableEncoding -> VariableEncoding.InlineEverything),
-      (Simplification -> Simplification.LogicalAndConstructors)))
+      (Simplification -> Simplification.LogicalAndConstructors),
+      (Selection -> Selection.SelectUsedFP)))
+      
+  /**
+   * this variability model is used for consistency checks
+   * triggered from Veritas
+   */
+  val defaultVariabilityModelConsistency = Configuration(
+    Map(FinalEncoding -> FinalEncoding.TFF,
+      (Problem -> Problem.All),
+      (VariableEncoding -> VariableEncoding.InlineEverything),
+      (Simplification -> Simplification.LogicalAndConstructors),
+      (Selection -> Selection.SelectAll)))
 
   private def writeFile(file: PrettyPrintableFile, path: String): String = {
     val filehandler = new File(path)
@@ -96,8 +111,9 @@ object Backend {
     val typing = config(FinalEncoding).toString().toLowerCase
     val variable = config(VariableEncoding).toString().toLowerCase
     val simpl = config(Simplification).toString().toLowerCase
+    val sel = config(Selection).toString().toLowerCase
 
-    val outputFolder = s"$problem/$typing/$variable/$simpl"
+    val outputFolder = s"$problem/$typing/$variable/$simpl/$sel"
 
     //write the files in the corresponding directory
     //is it necessary to use the Stratego context when backend is called as a strategy
@@ -198,7 +214,7 @@ object Backend {
       }
     }
 
-    val resultFiles = runEncodings(ast, proc, defaultVariabilityModel)
+    val resultFiles = runEncodings(ast, proc, defaultVariabilityModelConsistency)
 
     // generate return value that is expected by caller of runAsStrategy
     var resseq: Seq[IStrategoTuple] = Seq()
@@ -273,7 +289,8 @@ object Backend {
         Map(FinalEncoding -> FinalEncoding.TFF,
           (Problem -> Problem.All),
           (VariableEncoding -> VariableEncoding.InlineEverything),
-          (Simplification -> Simplification.LogicalAndConstructors)))
+          (Simplification -> Simplification.LogicalAndConstructors),
+          (Selection -> Selection.SelectAll)))
           
     val modules = Seq(Module.from(aterm))
 

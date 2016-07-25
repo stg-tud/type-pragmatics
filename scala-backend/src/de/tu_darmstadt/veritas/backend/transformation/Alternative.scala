@@ -8,3 +8,8 @@ case class Alternative(select: Configuration => ModuleTransformation) extends Mo
   override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] =
     select(config).apply(m)
 }
+
+case class AlternativeSelection(sel: Configuration => AxiomSelector) extends ModuleTransformation {
+  override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] =
+     m map (mod => sel(config).apply(mod))
+}

@@ -348,10 +348,32 @@ trait AxiomSelector {
     case _              => mdef
   }
 
-  def selectAxiom(tr: TypingRule): Boolean
+  //TODO: maybe find a better solution than a default implementation...?
+  def selectAxiom(tr: TypingRule): Boolean = true
 }
 
 case class UsedInGoalAxiomSelector(axioms: Set[TypingRule]) extends AxiomSelector {
 
   override def selectAxiom(tr: TypingRule): Boolean = axioms.contains(tr)
+}
+
+object SelectEverything extends AxiomSelector
+
+case class UsedAxiomSelection(depth: Int) extends AxiomSelector {
+  override def apply(m: Module): Module = 
+     UsedInGoalAxiomSelector(ConstructorAndFunctionNameCollector(depth)(m))(m)
+}
+
+//TODO: make this more efficient, maybe directly encode fixpoint into AxiomSelector?
+object UsedAxiomsFP extends AxiomSelector {
+
+  override def apply(m: Module): Module = {
+     fix(0)(m)
+  }
+  
+  def fix(depth: Int)(m: Module): Module = {
+    val newmd = UsedAxiomSelection(depth)(m)
+    if (newmd != m) fix(depth + 1)(newmd)
+    else newmd
+  }
 }

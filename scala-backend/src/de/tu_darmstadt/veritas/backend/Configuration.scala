@@ -49,6 +49,10 @@ object Configuration {
   object Problem extends ConfigOption {
     val Consistency, Proof, Test, Execution, Synthesis, Counterexample, All = Value
   }
+  
+  object Selection extends ConfigOption {
+    val SelectAll, SelectUsedDepthFive, SelectUsedFP = Value
+  }
 
   def ifConfig(p: ConfigParameter, v: ConfigValue) = (cfg: Configuration) => cfg.m.get(p).map(_ == v).getOrElse(false)
   def selectConfig[T](p: ConfigParameter)(select: ConfigValue => T) = (cfg: Configuration) => select(cfg.m(p))
@@ -67,11 +71,13 @@ object FullVariability extends VariabilityModel {
     simpl <- Simplification.iterator;
     vars <- VariableEncoding.iterator;
     fin <- FinalEncoding.iterator;
+    sel <- Selection.iterator;
     prob <- Problem.iterator if prob != Problem.All
   ) yield Configuration(Map(
     Simplification -> simpl,
     VariableEncoding -> vars,
     FinalEncoding -> fin,
+    Selection -> sel,
     Problem -> prob))
 }
 
@@ -82,11 +88,13 @@ case class PartialVariability(config: Map[ConfigParameter, Seq[ConfigValue]]) ex
     simpl <- Simplification.iterator if test(Simplification, simpl);
     vars <- VariableEncoding.iterator if test(VariableEncoding, vars);
     fin <- FinalEncoding.iterator if test(FinalEncoding, fin);
+    sel <- Selection.iterator if test(Selection, sel);
     prob <- Problem.iterator if test(Problem, prob)
   ) yield Configuration(Map(
     Simplification -> simpl,
     VariableEncoding -> vars,
     FinalEncoding -> fin,
+    Selection -> sel,
     Problem -> prob))
 }
 

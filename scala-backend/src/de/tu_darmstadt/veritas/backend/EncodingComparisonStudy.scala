@@ -125,6 +125,12 @@ object SimplificationTrans extends Alternative(selectConfig(Simplification) {
     SeqTrans(ConstructorSimplification, LogicalTermOptimization)
 })
 
+object SelectionTrans extends AlternativeSelection(selectConfig(Selection) {
+  case Selection.SelectAll => SelectEverything
+  case Selection.SelectUsedDepthFive => UsedAxiomSelection(5)
+  case Selection.SelectUsedFP => UsedAxiomsFP
+})
+
 object MainTrans extends SeqTrans(
   // desugar Veritas constructs
   BasicTrans,
@@ -145,7 +151,9 @@ object MainTrans extends SeqTrans(
   Fixpoint(SeqTrans(SimplificationTrans, VariableTrans)),
   GuardsTrans,
   // select problem
-  ProblemTrans)
+  ProblemTrans, 
+  //selection axioms
+  SelectionTrans)
 
 object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF    => FofBare
