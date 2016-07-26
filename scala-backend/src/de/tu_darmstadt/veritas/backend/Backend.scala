@@ -298,7 +298,7 @@ object Backend {
     val resultingModSeq = MainTrans(modules)(conf)
 
     // collect ground
-    val grounds = resultingModSeq map { m => (m, ConstructorAndFunctionNameCollector(4)(m)) }
+    val grounds = resultingModSeq map { m => (m, ConstructorAndFunctionNameCollectorWithDepth(4)(m)) }
     // filter based on ground
     val filteredModSeq = grounds map {
       case (m, ground) =>

@@ -304,12 +304,8 @@ case class AxiomDefiningConstructorAndFunctionCollector(fNames: Set[String], cto
   }
 }
 
-/**
- * @param depth how deep to search for names which are used by constructors and functions.
- */
-case class ConstructorAndFunctionNameCollector(depth: Int) extends InformationCollector[TypingRule] {
 
-  var currentDepth = 1
+trait ConstructorAndFunctionNameCollector extends InformationCollector[TypingRule] {
 
   override def apply(m: Module): Set[TypingRule] = {
     val names = ConstructorAndFunctionNameInGoalCollector(m)
@@ -324,14 +320,28 @@ case class ConstructorAndFunctionNameCollector(depth: Int) extends InformationCo
     AxiomDefiningConstructorAndFunctionCollector(names ++ otherCotrNames, dtNames)(m)
   }
 
-  private def recurse(m: Module, axioms: Set[TypingRule]): Set[TypingRule] =
-    if (currentDepth >= depth) {
-      axioms
-    } else {
+  protected def recurse(m: Module, axioms: Set[TypingRule]): Set[TypingRule] = {
+    val newNames = ConstructorAndFunctionNameInAxiomCollector(axioms)(m)
+    val newAxioms = collectAxiomsBasedOnNames(m, newNames)
+    if(newAxioms.subsetOf(axioms)) axioms
+    else axioms ++ recurse(m, newAxioms)
+  } 
+}
+
+object ConstructorAndFunctionNameCollectorFP extends ConstructorAndFunctionNameCollector
+
+/**
+ * @param depth how deep to search for names which are used by constructors and functions.
+ */
+case class ConstructorAndFunctionNameCollectorWithDepth(depth: Int) extends ConstructorAndFunctionNameCollector {
+  
+  var currentDepth = 1
+  
+  override def recurse(m: Module, axioms: Set[TypingRule]): Set[TypingRule] =
+    if (currentDepth >= depth) axioms
+    else {
       currentDepth += 1
-      val newNames = ConstructorAndFunctionNameInAxiomCollector(axioms)(m)
-      val newAxioms = collectAxiomsBasedOnNames(m, newNames)
-      axioms ++ recurse(m, newAxioms)
+      super.recurse(m, axioms)
     }
 }
 
@@ -356,7 +366,6 @@ trait AxiomSelector {
     case _              => mdef
   }
 
-  //TODO: maybe find a better solution than a default implementation...?
   def selectAxiom(tr: TypingRule): Boolean = true
 }
 
@@ -365,23 +374,18 @@ case class UsedInGoalAxiomSelector(axioms: Set[TypingRule]) extends AxiomSelecto
   override def selectAxiom(tr: TypingRule): Boolean = axioms.contains(tr)
 }
 
-object SelectEverything extends AxiomSelector
+object SelectEverything extends AxiomSelector {
+  override def selectAxiom(tr: TypingRule): Boolean = true
+}
 
 case class UsedAxiomSelection(depth: Int) extends AxiomSelector {
   override def apply(m: Module): Module = 
-     UsedInGoalAxiomSelector(ConstructorAndFunctionNameCollector(depth)(m))(m)
+     UsedInGoalAxiomSelector(ConstructorAndFunctionNameCollectorWithDepth(depth)(m))(m)
 }
 
 //TODO: make this more efficient, maybe directly encode fixpoint into AxiomSelector?
+//andiderp : implemented fixpoint calculation within ConstructorAndFunctionNameCollector
 object UsedAxiomsFP extends AxiomSelector {
-
-  override def apply(m: Module): Module = {
-     fix(0)(m)
-  }
-  
-  def fix(depth: Int)(m: Module): Module = {
-    val newmd = UsedAxiomSelection(depth)(m)
-    if (newmd != m) fix(depth + 1)(newmd)
-    else newmd
-  }
+  override def apply(m: Module): Module = 
+     UsedInGoalAxiomSelector(ConstructorAndFunctionNameCollectorFP(m))(m)
 }
