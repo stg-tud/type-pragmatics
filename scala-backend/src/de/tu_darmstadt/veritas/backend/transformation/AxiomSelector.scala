@@ -221,11 +221,11 @@ object InformationCollectorUtil {
   def matchesRegex(s: String, regex: Regex): Boolean = regex.pattern.matcher(s).matches
 
   def matchesCotr(s: String, name: String): Boolean = {
-    val ground = ("""ground-""" + name + """-[a-zA-Z]+""").r
+    val ground = ("""ground-""" + name + """-[a-zA-Z][a-zA-Z0-9]*""").r
     val dom = ("""dom-""" + name).r
     val eq = ("""EQ-""" + name).r
-    val diffFirst = ("""DIFF-[a-zA-Z]+-""" + name).r
-    val diffSecond = ("""DIFF-""" + name + """-[a-zA-Z]+""").r
+    val diffFirst = ("""DIFF-[a-zA-Z][a-zA-Z0-9]*-""" + name).r
+    val diffSecond = ("""DIFF-""" + name + """-[a-zA-Z][a-zA-Z0-9]*""").r
 
     matchesRegex(s, ground) || matchesRegex(s, dom) || matchesRegex(s, eq) || matchesRegex(s, diffFirst) || matchesRegex(s, diffSecond)
   }
