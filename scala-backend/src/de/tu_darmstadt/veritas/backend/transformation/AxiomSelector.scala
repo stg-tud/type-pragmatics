@@ -212,24 +212,27 @@ case class DataTypeNameOfConstructorCollector(names: Set[String]) extends Inform
 }
 
 object InformationCollectorUtil {
-
+  
+  val id = """[a-zA-Z][a-zA-Z0-9]*"""
+  
+  def ground(dt: String)( ctor: String) = ("""ground-""" + dt + """-""" + ctor).r
+  def dom(dt: String) = ("""dom-""" + dt).r
+  def eq(cotr: String) = ("""EQ-""" + cotr).r
+  def diff(cotr1: String)(cotr2: String) = ("""DIFF-"""+ cotr1 + """-""" + cotr2).r
+  def function(name: String) = (name + """-([0-9]+|(true|false)-INV|INV)""").r
+  
   def matchesRegex(s: String, regex: Regex): Boolean = regex.pattern.matcher(s).matches
 
-  def matchesCotr(s: String, name: String): Boolean = {
-    val ground = ("""ground-""" + name + """-[a-zA-Z][a-zA-Z0-9]*""").r
-    val dom = ("""dom-""" + name).r
-    val eq = ("""EQ-""" + name).r
-    val diffFirst = ("""DIFF-[a-zA-Z][a-zA-Z0-9]*-""" + name).r
-    val diffSecond = ("""DIFF-""" + name + """-[a-zA-Z][a-zA-Z0-9]*""").r
+  def matchesCotr(s: String, name: String): Boolean = 
+    matchesRegex(s, ground(name)(id)) ||
+    matchesRegex(s, dom(name)) ||
+    matchesRegex(s, eq(name)) ||
+    matchesRegex(s, diff(id)(name)) ||
+    matchesRegex(s, diff(name)(id))
 
-    matchesRegex(s, ground) || matchesRegex(s, dom) || matchesRegex(s, eq) || matchesRegex(s, diffFirst) || matchesRegex(s, diffSecond)
-  }
-
-  def matchesFunction(s: String, name: String): Boolean = {
-    val function = (name + """-([0-9]+|(true|false)-INV|INV)""").r
-
-    matchesRegex(s, function)
-  }
+  def matchesFunction(s: String, name: String): Boolean = matchesRegex(s, function(name))
+  
+  def isConstructorOrFunctionAxiom(s: String): Boolean = matchesCotr(s, id) || matchesFunction(s, id)
 }
 
 case class ConstructorNameOfDataTypeCollector(names: Set[String]) extends InformationCollector[String] {
@@ -259,6 +262,20 @@ case class ConstructorAndFunctionNameInAxiomCollector(axioms: Set[TypingRule]) e
   override def collectFromTypingRule(tr: TypingRule): Unit =
     if (axioms.contains(tr))
       super.collectFromTypingRule(tr)
+}
+
+object NonConstructorOrFunctionAxioms extends InformationCollector[TypingRule] {
+   override def collectFromModuleDef(mdef: ModuleDef): Unit = mdef match {
+    case a @ Axioms(_) => collectFromAxioms(a)
+    case _             => {}
+  }
+   
+  override def collectFromAxioms(as: Axioms): Unit = 
+    as.axioms.filter { tr: TypingRule =>
+      !InformationCollectorUtil.isConstructorOrFunctionAxiom(tr.name) 
+    } foreach { tr => 
+      collectedInfo += tr
+    }
 }
 
 case class AxiomDefiningConstructorAndFunctionCollector(fNames: Set[String], ctorNames: Set[String]) extends InformationCollector[TypingRule] {
@@ -296,8 +313,9 @@ case class ConstructorAndFunctionNameCollector(depth: Int) extends InformationCo
 
   override def apply(m: Module): Set[TypingRule] = {
     val names = ConstructorAndFunctionNameInGoalCollector(m)
+    val nonConstructorOrFunctionAxioms = NonConstructorOrFunctionAxioms(m)
     val axioms = collectAxiomsBasedOnNames(m, names)
-    recurse(m, axioms)
+    recurse(m, axioms ++ nonConstructorOrFunctionAxioms)
   }
 
   private def collectAxiomsBasedOnNames(m: Module, names: Set[String]): Set[TypingRule] = {
