@@ -201,11 +201,7 @@ case class DataTypeNameOfConstructorCollector(names: Set[String]) extends Inform
     case _             => {}
   }
 
-  override def collectFromTypingRule(tr: TypingRule): Unit = {
-    // someTable -> OptTable
-    // ground-OptTable-someTable
-    // someTable -> DIFF-noTable-someTable
-    // TODO: what types of characters are allowed for datatypes
+  override def collectFromTypingRule(tr: TypingRule): Unit =
     names.foreach { n =>
       val pattern = ("""ground-([a-zA-Z][a-zA-Z0-9]*)-""" + n).r
       tr.name match {
@@ -213,7 +209,6 @@ case class DataTypeNameOfConstructorCollector(names: Set[String]) extends Inform
         case _                     => {}
       }
     }
-  }
 }
 
 object InformationCollectorUtil {
@@ -244,11 +239,7 @@ case class ConstructorNameOfDataTypeCollector(names: Set[String]) extends Inform
     case _             => {}
   }
 
-  override def collectFromTypingRule(tr: TypingRule): Unit = {
-    // someTable -> OptTable
-    // ground-OptTable-someTable
-    // someTable -> DIFF-noTable-someTable
-    // TODO: what types of characters are allowed for datatypes
+  override def collectFromTypingRule(tr: TypingRule): Unit =
     names.foreach { n =>
       val pattern = ("""ground-""" + n + """-([a-zA-Z][a-zA-Z0-9]*)""").r
       tr.name match {
@@ -256,7 +247,6 @@ case class ConstructorNameOfDataTypeCollector(names: Set[String]) extends Inform
         case _                 => {}
       }
     }
-  }
 }
 
 case class ConstructorAndFunctionNameInAxiomCollector(axioms: Set[TypingRule]) extends ConstructorAndFunctionNameInModuleDefCollector {
