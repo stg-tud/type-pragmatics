@@ -26,6 +26,8 @@ import de.tu_darmstadt.veritas.backend.ast.MetaVar
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionMeta
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpNeq
 import de.tu_darmstadt.veritas.backend.ast.OrJudgment
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel.ConstructorSimplification
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel.LogicalTermOptimization
 
 class FunctionEqTests extends FunSuite {
 
@@ -72,14 +74,14 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp1("f", zeroExp), zeroExp)),
-      genSimpleEqRule("f1", genEq(genApp1("f", succExp(zeroExp)), zeroExp))))
+      genSimpleEqRule("f-0", genEq(genApp1("f", zeroExp), zeroExp)),
+      genSimpleEqRule("f-1", genEq(genApp1("f", succExp(zeroExp)), zeroExp))))
 
     val modres = genSimpleModule("test",
       Seq(Functions(Seq(FunctionDef(nat1FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -93,15 +95,15 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp1("f", zeroExp), zeroExp)),
-      TypingRule("f1", Seq(genNeq(genMeta("n"), zeroExp)),
+      genSimpleEqRule("f-0", genEq(genApp1("f", zeroExp), zeroExp)),
+      TypingRule("f-1", Seq(genNeq(genMeta("n"), zeroExp)),
         Seq(genEq(genApp1("f", genMeta("n")), zeroExp)))))
 
     val modres = genSimpleModule("test",
       Seq(Functions(Seq(FunctionDef(nat1FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -116,16 +118,16 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp1("f", zeroExp), zeroExp)),
-      genSimpleEqRule("f1", genEq(genApp1("f", succExp(zeroExp)), zeroExp)),
-      TypingRule("f2", Seq(genNeq(genMeta("n"), zeroExp), genNeq(genMeta("n"), succExp(zeroExp))),
+      genSimpleEqRule("f-0", genEq(genApp1("f", zeroExp), zeroExp)),
+      genSimpleEqRule("f-1", genEq(genApp1("f", succExp(zeroExp)), zeroExp)),
+      TypingRule("f-2", Seq(genNeq(genMeta("n"), zeroExp), genNeq(genMeta("n"), succExp(zeroExp))),
         Seq(genEq(genApp1("f", genMeta("n")), zeroExp)))))
 
     val modres = genSimpleModule("test",
       Seq(Functions(Seq(FunctionDef(nat1FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -140,15 +142,15 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
-      genSimpleEqRule("f1", genEq(genApp2("f", zeroExp, succExp(zeroExp)), zeroExp)),
-      genSimpleEqRule("f2", genEq(genApp2("f", succExp(zeroExp), succExp(zeroExp)), zeroExp))))
+      genSimpleEqRule("f-0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
+      genSimpleEqRule("f-1", genEq(genApp2("f", zeroExp, succExp(zeroExp)), zeroExp)),
+      genSimpleEqRule("f-2", genEq(genApp2("f", succExp(zeroExp), succExp(zeroExp)), zeroExp))))
 
     val modres = genSimpleModule("test",
       Seq(Functions(Seq(FunctionDef(nat2FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -162,14 +164,14 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp2("f", zeroExp, succExp(zeroExp)), FunctionExpApp("x", Seq()))),
-      genSimpleEqRule("f1", genEq(genApp2("f", succExp(genMeta("n")), genMeta("n")), FunctionExpApp("y", Seq())))))
+      genSimpleEqRule("f-0", genEq(genApp2("f", zeroExp, succExp(zeroExp)), FunctionExpApp("x", Seq()))),
+      genSimpleEqRule("f-1", genEq(genApp2("f", succExp(genMeta("n")), genMeta("n")), FunctionExpApp("y", Seq())))))
 
     val modres = genSimpleModule("test",
       Seq(Functions(Seq(FunctionDef(nat2FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -184,16 +186,16 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
-      genSimpleEqRule("f1", genEq(genApp2("f", zeroExp, succExp(zeroExp)), zeroExp)),
-      TypingRule("f2", Seq(),
+      genSimpleEqRule("f-0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
+      genSimpleEqRule("f-1", genEq(genApp2("f", zeroExp, succExp(zeroExp)), zeroExp)),
+      TypingRule("f-2", Seq(),
         Seq(genEq(genApp2("f", succExp(zeroExp), genMeta("n")), zeroExp)))))
 
     val modres = genSimpleModule("test",
       Seq(Functions(Seq(FunctionDef(nat2FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -207,15 +209,15 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
-      TypingRule("f1", Seq(genNeq(genMeta("n"), zeroExp)),
+      genSimpleEqRule("f-0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
+      TypingRule("f-1", Seq(genNeq(genMeta("n"), zeroExp)),
         Seq(genEq(genApp2("f", genMeta("n"), zeroExp), zeroExp)))))
 
     val modres = genSimpleModule("test",
       Seq(Functions(Seq(FunctionDef(nat2FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -230,16 +232,16 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
-      genSimpleEqRule("f1", genEq(genApp2("f", zeroExp, succExp(zeroExp)), zeroExp)),
-      TypingRule("f2", Seq(genNeq(genMeta("n"), zeroExp), genNeq(genMeta("n"), succExp(zeroExp))),
+      genSimpleEqRule("f-0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
+      genSimpleEqRule("f-1", genEq(genApp2("f", zeroExp, succExp(zeroExp)), zeroExp)),
+      TypingRule("f-2", Seq(genNeq(genMeta("n"), zeroExp), genNeq(genMeta("n"), succExp(zeroExp))),
         Seq(genEq(genApp2("f", zeroExp, genMeta("n")), zeroExp)))))
 
     val modres = genSimpleModule("test",
       Seq(Functions(Seq(FunctionDef(nat2FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -253,8 +255,8 @@ class FunctionEqTests extends FunSuite {
     val mod = genSimpleFunModule("test", func)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
-      TypingRule("f1", Seq(OrJudgment(Seq(
+      genSimpleEqRule("f-0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
+      TypingRule("f-1", Seq(OrJudgment(Seq(
         Seq(genNeq(genMeta("n"), zeroExp)),
         Seq(genNeq(genMeta("m"), zeroExp))))),
         Seq(genEq(genApp2("f", genMeta("n"), genMeta("m")), zeroExp)))))
@@ -263,7 +265,7 @@ class FunctionEqTests extends FunSuite {
       Seq(Functions(Seq(FunctionDef(nat2FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 
@@ -280,11 +282,11 @@ class FunctionEqTests extends FunSuite {
 
     //note: current result of this transformation is unoptimized!
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
-      TypingRule("f1", Seq(genNeq(genMeta("n"), zeroExp)),
+      genSimpleEqRule("f-0", genEq(genApp2("f", zeroExp, zeroExp), zeroExp)),
+      TypingRule("f-1", Seq(genNeq(genMeta("n"), zeroExp)),
         Seq(genEq(genApp2("f", zeroExp, genMeta("n")), zeroExp))),
-      genSimpleEqRule("f2", genEq(genApp2("f", succExp(zeroExp), genMeta("n")), zeroExp)),
-      TypingRule("f3", Seq(OrJudgment(Seq(
+      genSimpleEqRule("f-2", genEq(genApp2("f", succExp(zeroExp), genMeta("n")), zeroExp)),
+      TypingRule("f-3", Seq(OrJudgment(Seq(
           Seq(genNeq(genMeta("n"), zeroExp)), 
           Seq(genNeq(genMeta("m"), zeroExp)))),
           genNeq(genMeta("n"), zeroExp),
@@ -295,7 +297,7 @@ class FunctionEqTests extends FunSuite {
       Seq(Functions(Seq(FunctionDef(nat2FunctionSig("f"), Seq()))),
         resaxs))
 
-    val res = FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
+    val res = LogicalTermOptimization(ConstructorSimplification(FunctionEqToAxiomsSimple(VarToApp0(Seq(mod))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest))(Backend.onlyTFFTest)
 
     assert(res.head == modres)
 

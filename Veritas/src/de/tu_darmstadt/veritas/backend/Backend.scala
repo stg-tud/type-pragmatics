@@ -326,8 +326,8 @@ object Backend {
   /**
    * Run backend as console application, with optional arguments for giving the ATerm and Index/Tasks
    */
-  val DefaultATerm = "test/Semantics-test.analyzed.aterm"
-  val DefaultIndexAndTaskenginePath = "../Veritas/"
+  val DefaultATerm = "test/SubstLemma.analyzed.aterm"
+  val DefaultIndexAndTaskenginePath = "../VeritasSpoofax/"
 
   def main(args: Array[String]) {
     val (aterm, indexAndTaskenginePath) = args match {
