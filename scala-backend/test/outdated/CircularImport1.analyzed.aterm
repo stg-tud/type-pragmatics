@@ -1,7 +1,0 @@
-Module("scalabackend.CircularImport1"{ Def(
-                                         URI(
-                                           Language("Veritas")
-                                         , [ID(NablNsModule(), "scalabackend.CircularImport1", Unique("D:/Studium/HiWi Veritas/[Bitbucket privates Repo]/Veritas/test/scalabackend/CircularImport1.stl/0"))]
-                                         )
-                                       )
-                                     }, [Import("scalabackend.CircularImport2"{Use(Result(2011))}, None())], [])

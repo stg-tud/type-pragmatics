@@ -1,1 +1,0 @@
-scaladoc -diagrams -d scaladoc $(find src/ -name *.scala -or -name *.java)

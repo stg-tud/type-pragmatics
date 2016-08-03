@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<project default="create-jar">
+	
+	<!-- recompiles ../VeritasSpoofax/trans/names.str to lib/names.ctree (for Stratego Interpreter) -->
+	<target name="names.ctree">
+		<java jar="lib/strategoxt.jar" fork="true" dir="../VeritasSpoofax/trans" >
+			<!-- more stack space, otherwise it gave a StackOverflow for me -->
+			<jvmarg value="-Xss15m" />
+			<arg line="-i names.str" />
+			<arg line="-I ../" /> <!-- includes -->
+			<arg line="-I ../lib" />
+			<arg line="--library" /> <!-- input is not an application, but produce a lib -->
+			<arg line="-F" /> <!-- stop after frontend, creates *.ctree, not *.java files -->
+			<arg line="-o names.ctree" />
+		</java>
+		<delete file="../VeritasSpoofax/trans/names.ctree.dep" />
+		<move file="../VeritasSpoofax/trans/names.ctree" todir="lib/" />
+	</target>
+	
+	<target name="create-jar">
+		<!-- <echoproperties /> -->
+		<jar jarfile="Veritas.jar" basedir="bin" includes="**" compress="false" >
+			<!-- Alternative 1: Repackage scala-library into our jar file -->
+			<zipgroupfileset dir="lib/" includes="**/scala-library.jar" />
+			<zipgroupfileset dir="lib/" includes="**/scala-reflect.jar" />
+
+			<!-- Alternative 2: Add scala-library.jar to classpath in manifest -->
+			<!-- NOTE: This is not recognized by VeritasSpoofax project? -->
+			<!-- <manifest>
+				<attribute name="Main-Class" value="de.tu_darmstadt.veritas.StrategoTermParser$" />
+				<attribute name="Class-Path" value=". scala-library.jar" />
+			</manifest> -->
+			
+			<!-- Alternative 3: do nothing here, include scala-library.jar in classpath of Veritas -->
+		</jar>
+	</target>
+	
+	<target name="clean-jar">
+		<delete file="Veritas.jar" />
+	</target>
+		
+	<!-- not working under Windows =( doesn't find scaladoc in PATH
+	<target name="scaladoc">
+		<fileset dir="src/" id="allsrc" >
+			<or>
+				<filename name="**/*.java"/>
+				<filename name="**/*.scala"/>
+			</or>
+		</fileset>
+		<exec executable="scaladoc">
+			<arg line="-help"/>
+		</exec>
+		<echo message="${toString:allsrc}" />
+	</target>
+	-->
+	
+</project>

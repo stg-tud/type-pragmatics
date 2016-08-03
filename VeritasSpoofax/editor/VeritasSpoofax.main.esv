@@ -25,7 +25,7 @@ language General properties
   
   provider:      include/VeritasSpoofax.ctree
   provider:      include/VeritasSpoofax-java.jar
-  provider:      include/scala-backend.jar
+  provider:      include/Veritas.jar
 
   observer:      editor-analyze (multifile)
   

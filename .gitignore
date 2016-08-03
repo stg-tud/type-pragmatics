@@ -10,8 +10,8 @@ benchmarking/**/target
 benchmarking/.idea
 VeritasSpoofax/vampire
 .recommenders
-scala-backend/.cache-main
-scala-backend/.cache-tests
+Veritas/.cache-main
+Veritas/.cache-tests
 target
 benchmarking/.jenv-vars
 
