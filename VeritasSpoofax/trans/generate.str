@@ -75,7 +75,7 @@ rules // Incremental code generation of project using compilation library.
 		filelist := <readdir> dir;
 		filteredlist := <filter(\s -> <has-extension(|"stl")> s\)> filelist;
 		paths := <map(\s -> <concat-strings> [dir, "/", s]\)> filteredlist;
-		res := <analysis-top(parse-file, id, id, id|"Veritas", project-path)> paths;
+		res := <analysis-top(parse-file, id, id, id|"VeritasSpoofax", project-path)> paths;
 		<?Result(frlist,_,_,_)> res;
 		astlist := <map(?(_,_,_,_,<id>,_,_,_))> frlist;
 		<zip> (paths, astlist)

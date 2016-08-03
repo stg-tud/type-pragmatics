@@ -14,7 +14,7 @@ import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 
 public class VeritasSpoofaxParseControllerGenerated extends DynamicParseController 
 { 
-  public static final String LANGUAGE = new String("Veritas");
+  public static final String LANGUAGE = new String("VeritasSpoofax");
 
   private static final String TABLE = "/include/" + LANGUAGE + ".tbl";
 

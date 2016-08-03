@@ -7,9 +7,9 @@ bin
 include/
 
 editor/java/trans
-editor/Veritas-*.generated.esv
-editor/Veritas-Outliner.generated.str
-syntax/Veritas.generated.pp
+editor/VeritasSpoofax-*.generated.esv
+editor/VeritasSpoofax-Outliner.generated.str
+syntax/VeritasSpoofax.generated.pp
 lib/*.generated.str
 lib-refactoring/*.generated.str
 trans/names.str

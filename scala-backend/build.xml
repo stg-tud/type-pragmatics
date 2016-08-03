@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <project default="create-jar">
 	
-	<!-- recompiles ../Veritas/trans/names.str to lib/names.ctree (for Stratego Interpreter) -->
+	<!-- recompiles ../VeritasSpoofax/trans/names.str to lib/names.ctree (for Stratego Interpreter) -->
 	<target name="names.ctree">
 		<java jar="lib/strategoxt.jar" fork="true" dir="../VeritasSpoofax/trans" >
 			<!-- more stack space, otherwise it gave a StackOverflow for me -->
@@ -25,7 +25,7 @@
 			<zipgroupfileset dir="lib/" includes="**/scala-reflect.jar" />
 
 			<!-- Alternative 2: Add scala-library.jar to classpath in manifest -->
-			<!-- NOTE: This is not recognized by Veritas project? -->
+			<!-- NOTE: This is not recognized by VeritasSpoofax project? -->
 			<!-- <manifest>
 				<attribute name="Main-Class" value="de.tu_darmstadt.veritas.StrategoTermParser$" />
 				<attribute name="Class-Path" value=". scala-library.jar" />
