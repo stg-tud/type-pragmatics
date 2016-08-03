@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.backend.veritas.function
+package de.tu_darmstadt.veritas.backend.ast.function
 
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
-import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.ast._
 
 sealed trait FunctionPattern extends VeritasConstruct with PrettyPrintable
 

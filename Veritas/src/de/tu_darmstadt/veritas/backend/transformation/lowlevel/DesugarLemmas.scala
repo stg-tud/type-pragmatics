@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
-import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 
 /**

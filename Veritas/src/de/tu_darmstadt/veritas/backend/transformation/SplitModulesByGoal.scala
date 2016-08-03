@@ -1,21 +1,21 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.util.FreshNames
-import de.tu_darmstadt.veritas.backend.veritas.Goals
-import de.tu_darmstadt.veritas.backend.veritas.GoalsWithStrategy
-import de.tu_darmstadt.veritas.backend.veritas.Import
-import de.tu_darmstadt.veritas.backend.veritas.Lemmas
-import de.tu_darmstadt.veritas.backend.veritas.LemmasWithStrategy
-import de.tu_darmstadt.veritas.backend.veritas.Local
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.Strategy
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDefHolder
-import de.tu_darmstadt.veritas.backend.veritas.Axioms
-import de.tu_darmstadt.veritas.backend.veritas.HideAll
-import de.tu_darmstadt.veritas.backend.veritas.Hide
-import de.tu_darmstadt.veritas.backend.veritas.Include
-import de.tu_darmstadt.veritas.backend.veritas.TypingRule
+import de.tu_darmstadt.veritas.backend.ast.Goals
+import de.tu_darmstadt.veritas.backend.ast.GoalsWithStrategy
+import de.tu_darmstadt.veritas.backend.ast.Import
+import de.tu_darmstadt.veritas.backend.ast.Lemmas
+import de.tu_darmstadt.veritas.backend.ast.LemmasWithStrategy
+import de.tu_darmstadt.veritas.backend.ast.Local
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.Strategy
+import de.tu_darmstadt.veritas.backend.ast.ModuleDefHolder
+import de.tu_darmstadt.veritas.backend.ast.Axioms
+import de.tu_darmstadt.veritas.backend.ast.HideAll
+import de.tu_darmstadt.veritas.backend.ast.Hide
+import de.tu_darmstadt.veritas.backend.ast.Include
+import de.tu_darmstadt.veritas.backend.ast.TypingRule
 
 /**
  * Flattens the Module structure (containing recursive ModuleDefs inside local etc. blocks) to

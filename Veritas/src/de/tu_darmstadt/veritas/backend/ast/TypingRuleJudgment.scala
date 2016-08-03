@@ -1,11 +1,11 @@
-package de.tu_darmstadt.veritas.backend.veritas
+package de.tu_darmstadt.veritas.backend.ast
 
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
-import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.ast.function._
 
 sealed trait TypingRuleJudgment extends VeritasConstruct with PrettyPrintable
 

@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.backend.util.prettyprint
 
 import java.io.StringWriter
 
-import de.tu_darmstadt.veritas.backend.veritas.Goals
-import de.tu_darmstadt.veritas.backend.veritas.Module
+import de.tu_darmstadt.veritas.backend.ast.Goals
+import de.tu_darmstadt.veritas.backend.ast.Module
 
 /**
  * Implement it when the output to the underlying writer can be used by the corresponding parser to

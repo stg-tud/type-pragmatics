@@ -2,11 +2,11 @@ package de.tu_darmstadt.veritas.backend.transformation.collect
 
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.veritas.Local
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.SortDef
-import de.tu_darmstadt.veritas.backend.veritas.Strategy
+import de.tu_darmstadt.veritas.backend.ast.Local
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.SortDef
+import de.tu_darmstadt.veritas.backend.ast.Strategy
 
 
 trait CollectSortNames extends ModuleTransformation {

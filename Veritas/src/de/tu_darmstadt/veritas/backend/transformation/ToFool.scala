@@ -1,25 +1,25 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
-import de.tu_darmstadt.veritas.backend.veritas.Module
+import de.tu_darmstadt.veritas.backend.ast.Module
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpIf
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpIf
 import de.tu_darmstadt.veritas.backend.fof.FofUnitary
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpLet
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExp
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpLet
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExp
 import de.tu_darmstadt.veritas.backend.fof.Parenthesized
 import de.tu_darmstadt.veritas.backend.fof.UntypedFunSymbol
 import de.tu_darmstadt.veritas.backend.fof.Appl
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpApp
-import de.tu_darmstadt.veritas.backend.veritas.MetaVar
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpApp
+import de.tu_darmstadt.veritas.backend.ast.MetaVar
 import de.tu_darmstadt.veritas.backend.fof.UntypedVariable
 import de.tu_darmstadt.veritas.backend.fof.Term
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionMeta
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpMeta
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionMeta
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpMeta
 import de.tu_darmstadt.veritas.backend.fool.IfThenElseFofUnitary
 import de.tu_darmstadt.veritas.backend.fool.LetInFofUnitary
 import de.tu_darmstadt.veritas.backend.fool.LetInTerm
 import de.tu_darmstadt.veritas.backend.fool.IfThenElseTerm
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpVar
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpVar
 
 class ToFool extends ToTff {
 

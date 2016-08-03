@@ -1,9 +1,9 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
-import de.tu_darmstadt.veritas.backend.veritas.Goals
-import de.tu_darmstadt.veritas.backend.veritas.Local
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.GoalsWithStrategy
+import de.tu_darmstadt.veritas.backend.ast.Goals
+import de.tu_darmstadt.veritas.backend.ast.Local
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.GoalsWithStrategy
 
 trait FilterModuleDefs extends ModuleTransformation {
   /**

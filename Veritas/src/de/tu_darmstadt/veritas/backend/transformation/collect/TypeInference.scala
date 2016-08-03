@@ -4,8 +4,8 @@ import TypeInference._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
-import de.tu_darmstadt.veritas.backend.veritas._
-import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 trait Typeable {

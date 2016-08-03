@@ -1,17 +1,17 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import org.scalatest.FunSuite
-import de.tu_darmstadt.veritas.backend.veritas.TypingRule
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpTrue
-import de.tu_darmstadt.veritas.backend.veritas.Consts
-import de.tu_darmstadt.veritas.backend.veritas.ConstDecl
-import de.tu_darmstadt.veritas.backend.veritas.Axioms
-import de.tu_darmstadt.veritas.backend.veritas.SortRef
-import de.tu_darmstadt.veritas.backend.veritas.Local
+import de.tu_darmstadt.veritas.backend.ast.TypingRule
+import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpTrue
+import de.tu_darmstadt.veritas.backend.ast.Consts
+import de.tu_darmstadt.veritas.backend.ast.ConstDecl
+import de.tu_darmstadt.veritas.backend.ast.Axioms
+import de.tu_darmstadt.veritas.backend.ast.SortRef
+import de.tu_darmstadt.veritas.backend.ast.Local
 import de.tu_darmstadt.veritas.backend.Backend
-import de.tu_darmstadt.veritas.backend.veritas.Goals
-import de.tu_darmstadt.veritas.backend.veritas.Module
+import de.tu_darmstadt.veritas.backend.ast.Goals
+import de.tu_darmstadt.veritas.backend.ast.Module
 
 class SplitGoalsTest extends FunSuite {
  

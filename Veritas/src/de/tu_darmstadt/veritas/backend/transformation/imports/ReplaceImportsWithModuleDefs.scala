@@ -3,11 +3,11 @@ package de.tu_darmstadt.veritas.backend.transformation.imports
 import de.tu_darmstadt.veritas.backend.transformation.FilterGoalsAndLocals
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
-import de.tu_darmstadt.veritas.backend.veritas.Import
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.Resolved
-import de.tu_darmstadt.veritas.backend.veritas.Strategy
+import de.tu_darmstadt.veritas.backend.ast.Import
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.Resolved
+import de.tu_darmstadt.veritas.backend.ast.Strategy
 import de.tu_darmstadt.veritas.backend.Configuration
 
 /**

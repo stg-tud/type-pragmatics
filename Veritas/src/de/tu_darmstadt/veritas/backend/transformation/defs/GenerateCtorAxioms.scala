@@ -1,11 +1,11 @@
 package de.tu_darmstadt.veritas.backend.transformation.defs
 
 import de.tu_darmstadt.veritas.backend.util.FreshNames
-import de.tu_darmstadt.veritas.backend.veritas._
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment._
+import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment._
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.ast.function._
 
 /**
  * For each Constructors() node, it generates a following Axioms() node, containing the EQ and DIFF

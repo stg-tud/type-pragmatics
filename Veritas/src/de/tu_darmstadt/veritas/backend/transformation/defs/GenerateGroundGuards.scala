@@ -2,27 +2,27 @@ package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 import de.tu_darmstadt.veritas.backend.util.FreshNames
-import de.tu_darmstadt.veritas.backend.veritas.Axioms
-import de.tu_darmstadt.veritas.backend.veritas.DataTypeConstructor
-import de.tu_darmstadt.veritas.backend.veritas.ExistsJudgment
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment
-import de.tu_darmstadt.veritas.backend.veritas.Goals
-import de.tu_darmstadt.veritas.backend.veritas.Import
-import de.tu_darmstadt.veritas.backend.veritas.MetaVar
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.TypingRule
-import de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpApp
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionMeta
+import de.tu_darmstadt.veritas.backend.ast.Axioms
+import de.tu_darmstadt.veritas.backend.ast.DataTypeConstructor
+import de.tu_darmstadt.veritas.backend.ast.ExistsJudgment
+import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment
+import de.tu_darmstadt.veritas.backend.ast.Goals
+import de.tu_darmstadt.veritas.backend.ast.Import
+import de.tu_darmstadt.veritas.backend.ast.MetaVar
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.TypingRule
+import de.tu_darmstadt.veritas.backend.ast.TypingRuleJudgment
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpApp
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionMeta
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
-import de.tu_darmstadt.veritas.backend.veritas.DataType
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionDef
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionSig
-import de.tu_darmstadt.veritas.backend.veritas.SortDef
-import de.tu_darmstadt.veritas.backend.veritas.SortRef
-import de.tu_darmstadt.veritas.backend.veritas.Functions
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpVar
+import de.tu_darmstadt.veritas.backend.ast.DataType
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionSig
+import de.tu_darmstadt.veritas.backend.ast.SortDef
+import de.tu_darmstadt.veritas.backend.ast.SortRef
+import de.tu_darmstadt.veritas.backend.ast.Functions
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpVar
 
 /**
  * inserts a ground guards definition that checks if its argument is a ground term, only constructed from

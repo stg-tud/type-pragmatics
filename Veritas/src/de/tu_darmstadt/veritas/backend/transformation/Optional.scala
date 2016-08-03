@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.veritas.Module
+import de.tu_darmstadt.veritas.backend.ast.Module
 
 case class Optional(t: ModuleTransformation, cond: Configuration => Boolean) extends ModuleTransformation {
   

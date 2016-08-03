@@ -1,23 +1,23 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import de.tu_darmstadt.veritas.backend.transformation.imports.ResolveImports
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpTrue
-import de.tu_darmstadt.veritas.backend.veritas.TypingRule
+import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpTrue
+import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.Backend
-import de.tu_darmstadt.veritas.backend.veritas.Goals
+import de.tu_darmstadt.veritas.backend.ast.Goals
 import org.scalatest.FunSuite
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionSig
-import de.tu_darmstadt.veritas.backend.veritas.SortRef
-import de.tu_darmstadt.veritas.backend.veritas.MetaVar
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpApp
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionMeta
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionDef
-import de.tu_darmstadt.veritas.backend.veritas.Resolved
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.Functions
-import de.tu_darmstadt.veritas.backend.veritas.Local
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionSig
+import de.tu_darmstadt.veritas.backend.ast.SortRef
+import de.tu_darmstadt.veritas.backend.ast.MetaVar
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpApp
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionMeta
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
+import de.tu_darmstadt.veritas.backend.ast.Resolved
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.Functions
+import de.tu_darmstadt.veritas.backend.ast.Local
 
 class ImportResolutionTest extends FunSuite {
 

@@ -1,11 +1,11 @@
 package de.tu_darmstadt.veritas.backend.transformation.lowlevel
 
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.veritas.Import
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.Goals
-import de.tu_darmstadt.veritas.backend.veritas.Lemmas
+import de.tu_darmstadt.veritas.backend.ast.Import
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.Goals
+import de.tu_darmstadt.veritas.backend.ast.Lemmas
 import de.tu_darmstadt.veritas.backend.Configuration
 
 trait ContainsGoal extends ModuleTransformation {

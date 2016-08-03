@@ -1,13 +1,13 @@
 package de.tu_darmstadt.veritas.backend.transformation.collect
 
-import de.tu_darmstadt.veritas.backend.veritas.DataTypeConstructor
-import de.tu_darmstadt.veritas.backend.veritas.ConstDecl
+import de.tu_darmstadt.veritas.backend.ast.DataTypeConstructor
+import de.tu_darmstadt.veritas.backend.ast.ConstDecl
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.veritas.Local
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.Local
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.veritas.Strategy
-import de.tu_darmstadt.veritas.backend.veritas.Module
+import de.tu_darmstadt.veritas.backend.ast.Strategy
+import de.tu_darmstadt.veritas.backend.ast.Module
 
 trait CollectConstructorNames extends ModuleTransformation {
   var constructorNames: Set[String] = Set()

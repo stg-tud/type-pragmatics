@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.backend
 
-import de.tu_darmstadt.veritas.backend.veritas._
+import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.Configuration._
 import scala.collection.immutable.TreeMap
 import de.tu_darmstadt.veritas.backend.transformation._

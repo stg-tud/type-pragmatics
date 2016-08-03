@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.backend.transformation.collect
 
 import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff._
-import de.tu_darmstadt.veritas.backend.veritas._
-import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError

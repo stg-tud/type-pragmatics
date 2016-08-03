@@ -5,20 +5,20 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.util.FreshNames
-import de.tu_darmstadt.veritas.backend.veritas.DataTypeConstructor
-import de.tu_darmstadt.veritas.backend.veritas.ExistsJudgment
-import de.tu_darmstadt.veritas.backend.veritas.ForallJudgment
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment
-import de.tu_darmstadt.veritas.backend.veritas.MetaVar
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.NotJudgment
-import de.tu_darmstadt.veritas.backend.veritas.OrJudgment
-import de.tu_darmstadt.veritas.backend.veritas.SortRef
-import de.tu_darmstadt.veritas.backend.veritas.TypingRule
-import de.tu_darmstadt.veritas.backend.veritas.TypingRuleJudgment
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpApp
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpEq
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionMeta
+import de.tu_darmstadt.veritas.backend.ast.DataTypeConstructor
+import de.tu_darmstadt.veritas.backend.ast.ExistsJudgment
+import de.tu_darmstadt.veritas.backend.ast.ForallJudgment
+import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment
+import de.tu_darmstadt.veritas.backend.ast.MetaVar
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.NotJudgment
+import de.tu_darmstadt.veritas.backend.ast.OrJudgment
+import de.tu_darmstadt.veritas.backend.ast.SortRef
+import de.tu_darmstadt.veritas.backend.ast.TypingRule
+import de.tu_darmstadt.veritas.backend.ast.TypingRuleJudgment
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpApp
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpEq
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionMeta
 
 /**
  * transformations for modules right before they are translated to barefof

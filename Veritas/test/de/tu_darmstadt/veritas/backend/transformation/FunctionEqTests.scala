@@ -1,31 +1,31 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
 import org.scalatest.FunSuite
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionDef
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.Functions
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionSig
-import de.tu_darmstadt.veritas.backend.veritas.SortRef
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionEq
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionPatVar
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionPatApp
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpApp
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionPattern
-import de.tu_darmstadt.veritas.backend.veritas.ModuleDef
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpEq
-import de.tu_darmstadt.veritas.backend.veritas.TypingRule
-import de.tu_darmstadt.veritas.backend.veritas.Axioms
-import de.tu_darmstadt.veritas.backend.veritas.FunctionExpJudgment
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpMeta
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.Functions
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionSig
+import de.tu_darmstadt.veritas.backend.ast.SortRef
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionEq
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionPatVar
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionPatApp
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpApp
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionPattern
+import de.tu_darmstadt.veritas.backend.ast.ModuleDef
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpEq
+import de.tu_darmstadt.veritas.backend.ast.TypingRule
+import de.tu_darmstadt.veritas.backend.ast.Axioms
+import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpMeta
 import de.tu_darmstadt.veritas.backend.transformation.defs.FunctionEqToAxiomsSimple
 import de.tu_darmstadt.veritas.backend.Backend
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
-import de.tu_darmstadt.veritas.backend.veritas.DataType
-import de.tu_darmstadt.veritas.backend.veritas.DataTypeConstructor
-import de.tu_darmstadt.veritas.backend.veritas.MetaVar
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionMeta
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpNeq
-import de.tu_darmstadt.veritas.backend.veritas.OrJudgment
+import de.tu_darmstadt.veritas.backend.ast.DataType
+import de.tu_darmstadt.veritas.backend.ast.DataTypeConstructor
+import de.tu_darmstadt.veritas.backend.ast.MetaVar
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionMeta
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpNeq
+import de.tu_darmstadt.veritas.backend.ast.OrJudgment
 
 class FunctionEqTests extends FunSuite {
 

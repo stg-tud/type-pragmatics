@@ -2,13 +2,13 @@ package de.tu_darmstadt.veritas.backend.transformation
 
 import org.scalatest.FunSuite
 
-import de.tu_darmstadt.veritas.backend.veritas._
-import de.tu_darmstadt.veritas.backend.veritas.function._
+import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
 import de.tu_darmstadt.veritas.backend.transformation.defs.FunctionEqToAxiomsSimple
 import de.tu_darmstadt.veritas.backend.transformation.defs.TotalFunctionInversionAxioms
 import de.tu_darmstadt.veritas.backend.Backend
-import de.tu_darmstadt.veritas.backend.veritas.function.FunctionExpFalse
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
 
 class InversionAxiomsTest extends FunSuite {
 

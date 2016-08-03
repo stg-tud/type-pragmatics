@@ -4,11 +4,11 @@ import org.spoofax.interpreter.core.InterpreterException
 import de.tu_darmstadt.veritas.backend.util._
 import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.backend.util.Context
-import de.tu_darmstadt.veritas.backend.veritas.Import
-import de.tu_darmstadt.veritas.backend.veritas.Module
-import de.tu_darmstadt.veritas.backend.veritas.Resolved
-import de.tu_darmstadt.veritas.backend.veritas.Unresolved
-import de.tu_darmstadt.veritas.backend.veritas.VeritasParseError
+import de.tu_darmstadt.veritas.backend.ast.Import
+import de.tu_darmstadt.veritas.backend.ast.Module
+import de.tu_darmstadt.veritas.backend.ast.Resolved
+import de.tu_darmstadt.veritas.backend.ast.Unresolved
+import de.tu_darmstadt.veritas.backend.ast.VeritasParseError
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 

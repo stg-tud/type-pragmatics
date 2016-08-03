@@ -21,9 +21,9 @@ import de.tu_darmstadt.veritas.backend.util.Context.debug
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintableFile
 import de.tu_darmstadt.veritas.backend.util.stacktraceToString
-import de.tu_darmstadt.veritas.backend.veritas.Module
+import de.tu_darmstadt.veritas.backend.ast.Module
 import de.tu_darmstadt.veritas.backend.util.Util
-import de.tu_darmstadt.veritas.backend.veritas.Axioms
+import de.tu_darmstadt.veritas.backend.ast.Axioms
 
 object Backend {
 

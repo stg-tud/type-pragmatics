@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.backend.veritas
+package de.tu_darmstadt.veritas.backend.ast
 
 import de.tu_darmstadt.veritas.backend.nameresolution.NameResolution
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
