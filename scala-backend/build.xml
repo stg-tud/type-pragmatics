@@ -3,7 +3,7 @@
 	
 	<!-- recompiles ../Veritas/trans/names.str to lib/names.ctree (for Stratego Interpreter) -->
 	<target name="names.ctree">
-		<java jar="lib/strategoxt.jar" fork="true" dir="../Veritas/trans" >
+		<java jar="lib/strategoxt.jar" fork="true" dir="../VeritasSpoofax/trans" >
 			<!-- more stack space, otherwise it gave a StackOverflow for me -->
 			<jvmarg value="-Xss15m" />
 			<arg line="-i names.str" />
@@ -13,8 +13,8 @@
 			<arg line="-F" /> <!-- stop after frontend, creates *.ctree, not *.java files -->
 			<arg line="-o names.ctree" />
 		</java>
-		<delete file="../Veritas/trans/names.ctree.dep" />
-		<move file="../Veritas/trans/names.ctree" todir="lib/" />
+		<delete file="../VeritasSpoofax/trans/names.ctree.dep" />
+		<move file="../VeritasSpoofax/trans/names.ctree" todir="lib/" />
 	</target>
 	
 	<target name="create-jar">

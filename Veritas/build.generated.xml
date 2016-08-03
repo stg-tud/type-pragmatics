@@ -50,9 +50,9 @@
     <target name="package-ctree" depends="java.jar" />
 
 	<!-- Initialization -->
-	<available file="${src-gen}/Veritas/strategies/Main.java" property="java.jar.enabled" />
+	<available file="${src-gen}/VeritasSpoofax/strategies/Main.java" property="java.jar.enabled" />
 	<available file="${pp}/${ppmodule}.str" property="pp.module.enabled" />
-	<condition property="java.jar.import" value="-la Veritas.strategies" else="">
+	<condition property="java.jar.import" value="-la VeritasSpoofax.strategies" else="">
 		<isset property="java.jar.enabled" />
 	</condition>
 	<condition property="java.jar.classpath" value=":${include}/${strmodule}-java.jar" else="">
@@ -87,7 +87,7 @@
 	<condition property="src-dirs" value="${src-dirs}" else="${src-gen}">
 		<isset property="src-dirs" />
 	</condition>
-	 <condition property="javajar-includes" value="${javajar-includes}" else="Veritas/strategies/">
+	 <condition property="javajar-includes" value="${javajar-includes}" else="VeritasSpoofax/strategies/">
     <isset property="javajar-includes" />
   </condition>
 
@@ -316,15 +316,15 @@
 	<!-- Target to create library from generated signatures -->
     <target name="sig.lib" unless="pp.module.enabled">
         
-        <available file="${src-gen}/veritas/siglib/Main.java" property="sig-java.available" />
+        <available file="${src-gen}/veritasspoofax/siglib/Main.java" property="sig-java.available" />
         <antcall target="sig.lib.deletehelper" />
         
-        <mkdir dir="${src-gen}/veritas/siglib"/>
+        <mkdir dir="${src-gen}/veritasspoofax/siglib"/>
         
-        <strj input="${include}/${sdfmodule}.str" output="${src-gen}/veritas/siglib/Main.java" package="veritas.siglib" >
+        <strj input="${include}/${sdfmodule}.str" output="${src-gen}/veritasspoofax/siglib/Main.java" package="veritasspoofax.siglib" >
                     <strjargs> 
                         <arg value="--clean"/>
-                        <arg line="-la veritas.siglib -I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
+                        <arg line="-la veritasspoofax.siglib -I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
                         <arg value="--library"/>
                     </strjargs>
                     <str-deps>
@@ -332,29 +332,29 @@
                     </str-deps>
                 </strj>
                 
-        <mkdir dir="${build}/veritas/siglib"/>
+        <mkdir dir="${build}/veritasspoofax/siglib"/>
         
         <sequential>
-            <uptodate-mio input="${src-gen}/veritas/siglib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
+            <uptodate-mio input="${src-gen}/veritasspoofax/siglib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
                 <action>
-                    <javac debug="on" destdir="${build}" includes="veritas/siglib/**" source="1.7" srcdir="${src-gen}" target="1.7">
+                    <javac debug="on" destdir="${build}" includes="veritasspoofax/siglib/**" source="1.7" srcdir="${src-gen}" target="1.7">
                         <classpath>
                             <pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
                         </classpath>
                     </javac>
                     <!-- copy imported terms -->
-                    <copy todir="${build}/veritas/siglib">
-                            <fileset dir="${src-gen}/veritas/siglib" excludes="**/*.java"/>
+                    <copy todir="${build}/veritasspoofax/siglib">
+                            <fileset dir="${src-gen}/veritasspoofax/siglib" excludes="**/*.java"/>
                     </copy>
-                    <copy file="${src-gen}/veritas/siglib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
-                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="veritas/siglib/**"/>
+                    <copy file="${src-gen}/veritasspoofax/siglib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
+                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="veritasspoofax/siglib/**"/>
                     <move file="${lib-gen}/${sdfmodule}-lib.tmp.jar" tofile="${lib-gen}/${sdfmodule}-lib.jar"/>
                     <delete>
-                        <fileset dir="${build}" includes="veritas/siglib/**"/>
+                        <fileset dir="${build}" includes="veritasspoofax/siglib/**"/>
                     </delete> 
                 </action>
                 <deps>
-                    <srcfiles dir="${src-gen}/veritas/siglib/" includes="**/*.java"/>
+                    <srcfiles dir="${src-gen}/veritasspoofax/siglib/" includes="**/*.java"/>
                 </deps>
             </uptodate-mio>
         </sequential>
@@ -363,24 +363,24 @@
     
     <target name="sig.lib.deletehelper" unless="sig-java.available">
         <delete>
-            <fileset dir="${src-gen}" includes="veritas/siglib/**"/>
-            <fileset dir="${build}" includes="veritas/siglib/**"/>
+            <fileset dir="${src-gen}" includes="veritasspoofax/siglib/**"/>
+            <fileset dir="${build}" includes="veritasspoofax/siglib/**"/>
         </delete>
     </target>
 	
 	<!-- Target to create jar from generated pp and signatures -->
 	<target name="pp.lib" if="pp.module.enabled">
 		
-		<available file="${src-gen}/veritas/pplib/Main.java" property="pp-java.available" />
+		<available file="${src-gen}/veritasspoofax/pplib/Main.java" property="pp-java.available" />
         <antcall target="pp.lib.deletehelper" />
         
-        <mkdir dir="${src-gen}/veritas/pplib"/>
+        <mkdir dir="${src-gen}/veritasspoofax/pplib"/>
         
-        <strj input="${pp}/${ppmodule}.str" output="${src-gen}/veritas/pplib/Main.java" package="veritas.pplib" >
+        <strj input="${pp}/${ppmodule}.str" output="${src-gen}/veritasspoofax/pplib/Main.java" package="veritasspoofax.pplib" >
                     <strjargs> 
                         <arg value="--clean"/>
                         <arg line=" --library -I &quot;${basedir}&quot; -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-sdf -la strc" />
-                        <arg line="-la java-front ${java.jar.import} -la veritas.pplib" />
+                        <arg line="-la java-front ${java.jar.import} -la veritasspoofax.pplib" />
                         <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
                         <arg value="--library"/>
                     </strjargs>
@@ -390,29 +390,29 @@
                     </str-deps>
                 </strj>
         
-        <mkdir dir="${build}/veritas/pplib"/>
+        <mkdir dir="${build}/veritasspoofax/pplib"/>
         
         <sequential>
-            <uptodate-mio input="${src-gen}/veritas/pplib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
+            <uptodate-mio input="${src-gen}/veritasspoofax/pplib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
                 <action>
-                    <javac debug="on" destdir="${build}" includes="veritas/pplib/**" source="1.7" srcdir="${src-gen}" target="1.7">
+                    <javac debug="on" destdir="${build}" includes="veritasspoofax/pplib/**" source="1.7" srcdir="${src-gen}" target="1.7">
                         <classpath>
                             <pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
                         </classpath>
                     </javac>
                     <!-- copy imported terms -->
-                    <copy todir="${build}/veritas/pplib">
-                            <fileset dir="${src-gen}/veritas/pplib" excludes="**/*.java"/>
+                    <copy todir="${build}/veritasspoofax/pplib">
+                            <fileset dir="${src-gen}/veritasspoofax/pplib" excludes="**/*.java"/>
                     </copy>
-                    <copy file="${src-gen}/veritas/pplib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
-                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="veritas/pplib/**"/>
+                    <copy file="${src-gen}/veritasspoofax/pplib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
+                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="veritasspoofax/pplib/**"/>
                     <move file="${lib-gen}/${sdfmodule}-lib.tmp.jar" tofile="${lib-gen}/${sdfmodule}-lib.jar"/>
                     <delete>
-                        <fileset dir="${build}" includes="veritas/pplib/**"/>
+                        <fileset dir="${build}" includes="veritasspoofax/pplib/**"/>
                     </delete> 
                 </action>
                 <deps>
-                    <srcfiles dir="${src-gen}/veritas/pplib/" includes="**/*.java"/>
+                    <srcfiles dir="${src-gen}/veritasspoofax/pplib/" includes="**/*.java"/>
                 </deps>
             </uptodate-mio>
         </sequential>
@@ -421,8 +421,8 @@
 	
 	<target name="pp.lib.deletehelper" unless="pp-java.available">
         <delete>
-            <fileset dir="${src-gen}" includes="veritas/pplib/**"/>
-            <fileset dir="${build}" includes="veritas/pplib/**"/>
+            <fileset dir="${src-gen}" includes="veritasspoofax/pplib/**"/>
+            <fileset dir="${build}" includes="veritasspoofax/pplib/**"/>
         </delete>
     </target>
 	
@@ -790,8 +790,8 @@
         <delete file="${include}/${strmodule}.ctree.dep" failonerror="false" />
         <delete file="${include}/${strmodule}.jar" failonerror="false" />
         <delete dir="${src-gen}/trans" failonerror="false" />
-        <delete dir="${src-gen}/veritas/pplib" failonerror="false" />
-        <delete dir="${src-gen}/veritas/siglib" failonerror="false" />
+        <delete dir="${src-gen}/veritasspoofax/pplib" failonerror="false" />
+        <delete dir="${src-gen}/veritasspoofax/siglib" failonerror="false" />
         <delete file="${syntax}/${sdfmodule}.generated.esv" failonerror="false" />
         <delete file="${syntax}/${sdfmodule}.generated.pp" failonerror="false" />
         <delete file="${include}/${metasdfmodule}-Permissive.def" failonerror="false" />

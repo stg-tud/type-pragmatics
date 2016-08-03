@@ -1,7 +1,7 @@
 module backend
 
 imports
-  include/Veritas
+  include/VeritasSpoofax
   
   lib/editor-common.generated
   lib/runtime/index/core

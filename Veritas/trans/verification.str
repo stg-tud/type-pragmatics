@@ -4,13 +4,13 @@ imports
   libstratego-lib
   libstratego-gpp
   libstratego-aterm
-  include/Veritas
+  include/VeritasSpoofax
   generate
   names
   fof-rewriting
   smt-rewriting
   props
-  veritas
+  veritasSpoofax
   lib/editor-common.generated
   runtime/analysis/core
   lib/runtime/index/core

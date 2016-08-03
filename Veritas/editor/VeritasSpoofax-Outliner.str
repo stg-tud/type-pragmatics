@@ -1,11 +1,11 @@
-module editor/Veritas-Outliner
+module editor/VeritasSpoofax-Outliner
 
 imports
   
-  include/Veritas
+  include/VeritasSpoofax
   lib/runtime/editor/outline-library
   lib/runtime/editor/origins
-  editor/Veritas-Outliner.generated
+  editor/VeritasSpoofax-Outliner.generated
 
 rules
   

@@ -1,6 +1,6 @@
 module smt-rewriting
 
-imports include/Veritas
+imports include/VeritasSpoofax
 imports libstratego-lib
 imports trans/fof-rewriting
 imports names

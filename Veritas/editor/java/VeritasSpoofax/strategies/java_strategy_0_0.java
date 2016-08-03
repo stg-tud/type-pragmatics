@@ -1,4 +1,4 @@
-package Veritas.strategies;
+package VeritasSpoofax.strategies;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;

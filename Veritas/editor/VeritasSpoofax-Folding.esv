@@ -1,6 +1,6 @@
-module Veritas-Folding
+module VeritasSpoofax-Folding
 
-imports Veritas-Folding.generated
+imports VeritasSpoofax-Folding.generated
 
 folding
   

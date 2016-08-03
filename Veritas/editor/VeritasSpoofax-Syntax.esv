@@ -1,6 +1,6 @@
-module Veritas-Syntax
+module VeritasSpoofax-Syntax
 
-imports Veritas-Syntax.generated
+imports VeritasSpoofax-Syntax.generated
 
 language
                                                                    

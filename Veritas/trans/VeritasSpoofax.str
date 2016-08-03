@@ -1,4 +1,4 @@
-module Veritas
+module VeritasSpoofax
 
 imports
   libstratego-lib
@@ -8,9 +8,9 @@ imports
   lib/runtime/analysis/-
   lib/runtime/editor/-
   
-  include/Veritas
+  include/VeritasSpoofax
   generate
-  editor/Veritas-Outliner
+  editor/VeritasSpoofax-Outliner
   names
   verification
 

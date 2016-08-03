@@ -1,7 +1,7 @@
 module names
 
 imports
-  include/Veritas
+  include/VeritasSpoofax
   
 namespaces Module Sort Symbol Axiom Rule
 

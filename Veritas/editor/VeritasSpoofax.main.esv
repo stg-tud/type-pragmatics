@@ -1,0 +1,32 @@
+module VeritasSpoofax.main
+
+imports
+  VeritasSpoofax-Colorer
+  VeritasSpoofax-Completions
+  VeritasSpoofax-Folding
+  VeritasSpoofax-Menus
+  VeritasSpoofax-Refactorings
+  VeritasSpoofax-References
+  VeritasSpoofax-Syntax
+  VeritasSpoofax-Views
+
+language General properties
+  
+  name:          VeritasSpoofax
+  id:            VeritasSpoofax
+  extends:       Root
+  
+  description:   "Spoofax-generated editor for the Veritas language"
+  url:           http://strategoxt.org
+  
+  extensions:    stl, test
+  table:         include/VeritasSpoofax.tbl
+  start symbols: Module
+  
+  provider:      include/VeritasSpoofax.ctree
+  provider:      include/VeritasSpoofax-java.jar
+  provider:      include/scala-backend.jar
+
+  observer:      editor-analyze (multifile)
+  
+  on save:       editor-save

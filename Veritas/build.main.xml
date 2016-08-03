@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="all" name="Veritas">
+<project default="all" name="VeritasSpoofax">
 
 	<!-- Key input modules -->
-	<property name="sdfmodule" value="Veritas" />
+	<property name="sdfmodule" value="VeritasSpoofax" />
 	<property name="ppmodule" value="${sdfmodule}-pp" />
 	<property name="sigmodule" value="${sdfmodule}-sig" />
-	<property name="metasdfmodule" value="Stratego-Veritas" />
-	<property name="esvmodule" value="Veritas" />
-	<property name="strmodule" value="Veritas" />
+	<property name="metasdfmodule" value="Stratego-VeritasSpoofax" />
+	<property name="esvmodule" value="VeritasSpoofax" />
+	<property name="strmodule" value="VeritasSpoofax" />
 
 	<!-- Project directories -->
 	<property location="trans" name="trans" />

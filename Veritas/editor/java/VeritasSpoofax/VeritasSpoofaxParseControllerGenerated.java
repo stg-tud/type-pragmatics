@@ -1,4 +1,4 @@
-package SimplyTypedLambdaCalculus;
+package VeritasSpoofax;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 
-public class VeritasParseControllerGenerated extends DynamicParseController 
+public class VeritasSpoofaxParseControllerGenerated extends DynamicParseController 
 { 
   public static final String LANGUAGE = new String("Veritas");
 
@@ -35,15 +35,15 @@ public class VeritasParseControllerGenerated extends DynamicParseController
 
   protected static synchronized void setDescriptor(Descriptor descriptor)
   { 
-    VeritasParseControllerGenerated.descriptor = descriptor;
+    VeritasSpoofaxParseControllerGenerated.descriptor = descriptor;
   }
 
   protected static void createDescriptor()
   { 
     try
     { 
-      InputStream descriptorStream = VeritasParseControllerGenerated.class.getResourceAsStream(DESCRIPTOR);
-      InputStream table = VeritasParseControllerGenerated.class.getResourceAsStream(TABLE);
+      InputStream descriptorStream = VeritasSpoofaxParseControllerGenerated.class.getResourceAsStream(DESCRIPTOR);
+      InputStream table = VeritasSpoofaxParseControllerGenerated.class.getResourceAsStream(TABLE);
       boolean filesystem = false;
       if(descriptorStream == null && new File("./" + DESCRIPTOR).exists())
       { 
@@ -60,7 +60,7 @@ public class VeritasParseControllerGenerated extends DynamicParseController
       if(table == null)
         throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin: " + getPluginLocation() + ")");
       descriptor = DescriptorFactory.load(descriptorStream, table, filesystem ? Path.fromPortableString("./") : null);
-      descriptor.setAttachmentProvider(VeritasParseControllerGenerated.class);
+      descriptor.setAttachmentProvider(VeritasSpoofaxParseControllerGenerated.class);
     }
     catch(BadDescriptorException exc)
     { 
@@ -78,7 +78,7 @@ public class VeritasParseControllerGenerated extends DynamicParseController
 
   private static String getPluginLocation()
   { 
-    return VeritasParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+    return VeritasSpoofaxParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
   }
 
   @Override public IParseController getWrapped()

@@ -5,20 +5,20 @@
          point="org.eclipse.imp.runtime.languageDescription">
       <language
             extensions="stl"
-            description="Veritas"
-            language="Veritas"
+            description="VeritasSpoofax"
+            language="VeritasSpoofax"
             derivedFrom="DynamicRoot"
-            validator="Veritas.VeritasValidator"
-            validatorClass="Veritas.VeritasValidator"
+            validator="VeritasSpoofax.VeritasSpoofaxValidator"
+            validatorClass="VeritasSpoofax.VeritasSpoofaxValidator"
       ></language>
    </extension>
    <extension
-         id="SimplyTypedLambdaCalculus.parser"
-         name="Veritas Parser"
+         id="VeritasSpoofax.parser"
+         name="VeritasSpoofax Parser"
          point="org.eclipse.imp.runtime.parser">
       <parser
-            class="SimplyTypedLambdaCalculus.VeritasParseController"
-            language="Veritas">
+            class="VeritasSpoofax.VeritasSpoofaxParseController"
+            language="VeritasSpoofax">
       </parser>
    </extension>    
 </plugin>

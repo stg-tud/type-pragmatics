@@ -1,6 +1,6 @@
-module Veritas-References
+module VeritasSpoofax-References
 
-imports Veritas-References.generated
+imports VeritasSpoofax-References.generated
 
 references
                                                                                                    

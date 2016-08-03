@@ -1,6 +1,6 @@
-module Veritas-Refactorings
+module VeritasSpoofax-Refactorings
 
-imports Veritas-Refactorings.generated
+imports VeritasSpoofax-Refactorings.generated
 
 refactorings
 

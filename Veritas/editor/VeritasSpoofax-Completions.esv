@@ -1,6 +1,6 @@
-module Veritas-Completions
+module VeritasSpoofax-Completions
 
-imports Veritas-Completions.generated
+imports VeritasSpoofax-Completions.generated
 
 completions
                                                                    

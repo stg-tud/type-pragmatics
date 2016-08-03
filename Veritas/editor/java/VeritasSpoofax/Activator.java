@@ -1,4 +1,4 @@
-package Veritas;
+package VeritasSpoofax;
 
 import org.eclipse.imp.preferences.PreferencesService;
 import org.eclipse.imp.runtime.PluginBase;
@@ -6,9 +6,9 @@ import org.osgi.framework.BundleContext;
 
 public class Activator extends PluginBase 
 { 
-  public static final String kPluginID = "Veritas";
+  public static final String kPluginID = "VeritasSpoofax";
 
-  public static final String kLanguageName = "Veritas";
+  public static final String kLanguageName = "VeritasSpoofax";
 
   protected static Activator sPlugin;
 

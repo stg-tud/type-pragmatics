@@ -1,6 +1,6 @@
-module Veritas-Colorer
+module VeritasSpoofax-Colorer
 
-imports Veritas-Colorer.generated
+imports VeritasSpoofax-Colorer.generated
 
 colorer
                                                                       
