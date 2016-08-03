@@ -62,8 +62,8 @@ class InversionAxiomsTest extends FunSuite {
     val resinv = TotalFunctionInversionAxioms(res)(Backend.onlyTFFTest)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp1("f", zeroExp), zeroExp)),
-      TypingRule("f1", Seq(genNeq(genMeta("n"), zeroExp)),
+      genSimpleEqRule("f-0", genEq(genApp1("f", zeroExp), zeroExp)),
+      TypingRule("f-1", Seq(genNeq(genMeta("n"), zeroExp)),
         Seq(genEq(genApp1("f", genMeta("n")), zeroExp)))))
 
     val modres = genSimpleModule("test",
@@ -84,7 +84,7 @@ class InversionAxiomsTest extends FunSuite {
     val resinv = TotalFunctionInversionAxioms(res)(Backend.onlyTFFTest)
 
     val resaxs = Axioms(Seq(
-      genSimpleEqRule("f0", genEq(genApp1("f", zeroExp), zeroExp))))
+      genSimpleEqRule("f-0", genEq(genApp1("f", zeroExp), zeroExp))))
 
     val resinvaxs = Axioms(Seq(TypingRule("f-INV",
       Seq(genEq(genApp1("f", genMeta("nat0")), genMeta("RESULT"))),
