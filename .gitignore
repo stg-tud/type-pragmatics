@@ -45,9 +45,7 @@ VeritasSpoofax/test/encodingcompstudy/StudyGoals/proof
 
 benchmarking/datasets/logs
 *.tar.bz2
-*.zip
 *.7z
-*.jar
 
 
 benchmarking/datasets/layout/PerProverPerCategory
@@ -84,3 +82,7 @@ VeritasSpoofax/vampire-3.0
 /Veritas/vampire_with_fool
 /Veritas/vampire-3.0
 /Veritas/vampire-4.0
+/benchmarking/beagle.jar
+/benchmarking/princess-all-casc.jar
+/benchmarking/princess-all-standard.jar
+/Veritas/Veritas.jar
