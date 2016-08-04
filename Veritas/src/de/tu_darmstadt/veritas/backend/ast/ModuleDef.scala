@@ -196,7 +196,7 @@ case class DataType(open: Boolean, name: String, constrs: Seq[DataTypeConstructo
       writer.indent()
       constrs(0).prettyPrint(writer)
       constrs.tail foreach {c =>
-        writer.writeln(",")
+        writer.writeln(" |")
         c.prettyPrint(writer)
       }
       writer.unindent()
