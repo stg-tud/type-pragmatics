@@ -36,7 +36,7 @@
     <property name="externaljar" value="../lib.jar"/>
     <property name="externaljarflags" value="-la org.lib"/>
     -->
-	<property name="externaljar" value="../Veritas/Veritas.jar" />
+	<property name="externaljar" value="../Veritas/target/scala-2.11/Veritas.jar" />
 
 	<!-- Environment configuration for command-line builds -->
 	<property name="nativepath" value="${eclipse.spoofaximp.nativeprefix}" />
