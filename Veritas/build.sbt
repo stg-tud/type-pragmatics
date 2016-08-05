@@ -7,3 +7,7 @@ scalaVersion := "2.11.8"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+
+assemblyJarName in assembly := "Veritas.jar"
+
+test in assembly := {}
