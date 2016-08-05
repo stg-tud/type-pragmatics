@@ -51,7 +51,7 @@ object Configuration {
   }
   
   object Selection extends ConfigOption {
-    val SelectAll, SelectUsedDepthFive, SelectUsedFP = Value
+    val SelectAll, SelectUsedDepthOne, SelectUsedDepthTwo, SelectUsedDepthThree, SelectUsedDepthFour, SelectUsedDepthFive, SelectUsedFP = Value
   }
 
   def ifConfig(p: ConfigParameter, v: ConfigValue) = (cfg: Configuration) => cfg.m.get(p).map(_ == v).getOrElse(false)

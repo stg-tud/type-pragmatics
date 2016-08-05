@@ -127,6 +127,10 @@ object SimplificationTrans extends Alternative(selectConfig(Simplification) {
 
 object SelectionTrans extends AlternativeSelection(selectConfig(Selection) {
   case Selection.SelectAll => SelectEverything
+  case Selection.SelectUsedDepthOne => UsedAxiomSelection(1)
+  case Selection.SelectUsedDepthTwo => UsedAxiomSelection(2)
+  case Selection.SelectUsedDepthThree => UsedAxiomSelection(3)
+  case Selection.SelectUsedDepthFour => UsedAxiomSelection(4)
   case Selection.SelectUsedDepthFive => UsedAxiomSelection(5)
   case Selection.SelectUsedFP => UsedAxiomsFP
 })
