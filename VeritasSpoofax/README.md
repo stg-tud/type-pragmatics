@@ -6,25 +6,26 @@ Veritas is a (still very young) prototype for (semi-)automatically proving type 
 
 "First-Order Theorem Proving and VAMPIRE" by Laura Kovács and Andrei Voronkov
 
-## How to install Veritas ##
+##NOTE: Restructuring Branch##
+
+Note that on this branch (restructuring), we started restructuring Veritas to a stand-alone SBT library which one can use independent of Spoofax. However, currently, the former Spoofax part of the project can still be used with the Veritas SBT project like previously. This README describes how to get the Spoofax part running with the new setup.
+
+## How to install VeritasSpoofax ##
 
 You need:
 
 1. Java 7 or higher
 2. Scala IDE (http://scala-ide.org/download/sdk.html). It includes Scala 2.11.
-3. First-Order Theorem Prover Vampire, at least Version 3.0 (official downloads of Vampire are currently disabled - you may obtain Vampire binaries by either contacting the authors of Vampire or by browsing the CASC webpages for the system sources: http://www.cs.miami.edu/~tptp/CASC/24/ and using the Systems' sources and executables link. Note: the compressed directory is 3GB large)
+3. Installation of SBT
+4. First-Order Theorem Prover Vampire, Version 3.0 or 4.0 (or both). Official downloads of Vampire are currently disabled - you may obtain Vampire binaries by either contacting the authors of Vampire or by browsing the CASC webpages for the system sources: http://www.cs.miami.edu/~tptp/CASC/24/ (Vampire 3.0) or http://www.cs.miami.edu/~tptp/CASC/25/ (Vampire 4.0) and using the Systems' sources and executables link. (Note: The compressed directories are several GB!)
 
 Installation steps:
 
-1. Install latest version of the Spoofax Language Workbench (http://strategoxt.org/Spoofax) as Eclipse plugin: In Eclipse, choose "Help - Install New Software". Copy the following link to the latest stable Spoofax build: http://download.spoofax.org/update/stable , hit enter, mark everything, and install. (Note: The nightly Spoofax versions http://download.spoofax.org/update/nightly do not work) Restart Eclipse and adapt the eclipse.ini according to the warning you might get during the start-up. After modifying the eclipse.ini, restart Eclipse again.
-2. Copy your Vampire binary into the Veritas folder. The binaries have to be named vampire-3.0 and vampire-4.0 according to version of the sources the binaries were compiled from.
-3. Clone the repository and import the Veritas and the scala-backend project into your Scala IDE (with Spoofax plugin) workspace. (The Veritas project will have a warning "Build path entry is missing: Veritas/include/scala-backend.jar", we will resolve this in the next step.)
-4. Build the scala-backend project in Scala IDE. (Manual build via "rightclick on scala-backend -> Build Project" might unavailable unless you uncheck "Project -> Build Automatically"). This should have generated a scala-backend.jar file in the scala-backend directory. Refresh the Veritas project (the "missing build path entry" warning should be resolved now, otherwise manually copy the scala-backend/scala-backend.jar file to Veritas/include/)
-5. Build the Veritas project in Eclipse (make sure the build is successful before continuing with further steps).
-
-Optional settings:
-
-- Whenever scala-backend is changed, a rebuild of the scala-backend.jar and reload of the Veritas editor component is triggered. If you only want to run the backend "standalone" and want save time during the development, you can uncheck the two Ant builders in "scala-backend -> Properties -> Builders". Note however, that this way, changes to the backend are no longer available when running it from the Veritas editor.
+0. Check out both the Veritas and the VeritasSpoofax folder somewhere in the same folder.
+1. In the Veritas folder, run "sbt assembly" to produce a .jar of the Veritas project (required by Veritas Spoofax).
+2. Install the latest version of the Spoofax Language Workbench (http://strategoxt.org/Spoofax) as Eclipse plugin in the Scala IDE: In the Scala IDE, choose "Help - Install New Software". Copy the following link to the latest stable Spoofax build: http://download.spoofax.org/update/stable , hit enter, mark everything, and install. (Note: The nightly Spoofax versions http://download.spoofax.org/update/nightly do not work) Restart Eclipse and adapt the eclipse.ini according to the warning you might get during the start-up. After modifying the eclipse.ini, restart Eclipse again.
+3. Copy your Vampire binaries into the VeritasSpoofax folder. The binaries have to be named vampire-3.0 and vampire-4.0 according to the version of the sources the binaries were compiled from.
+4. Build the VeritasSpoofax project in Eclipse (make sure the build is successful before continuing with further steps). The build should automatically copy the Veritas.jar from the first step to the include folder in VeritasSpoofax.
 
 
 ## Running the STLC case study ##
@@ -33,11 +34,11 @@ The STLC case study is in folder test/stlc.
 
 1. Open a .stl file with a proof goal
 2. Put the cursor inside the .stl file. In the top bar of Eclipse, there should appear several drop-down menus such as "Analysis", "Generation", "Verification".
-3. Click "Verification - Verify with Vampire" for running a proof using Vampire (with timeout 30 seconds). The symbols next to each goal in the editor indicate whether the proof was successful or not.
+3. Click "Verification - Verify with Vampire" for running a proof using Vampire. Choose a timeout from the menu entries as you like. The symbols next to each goal in the editor indicate whether the proof was successful or not.
 
 ## Some troubleshooting advice ##
 
-*  Sometimes Eclipse builds the whole workspace even when you try to build a single project. You can avoid this by cleaning the projects separately and building them immediately afterwards. This can be achieved by following this steps: Project -> Clean -> Clean projects selected below (Select only one project) -> Start a build immediately -> Build only selected projects -> OK.
+* The VeritasSpoofax will probably report some errors, especially when trying to run a proof. Errors like "missing Java project 'Veritas'" oder "incompatible .jar strategoxt.jar" can be safely ignored.
 
 * Vampire calls appear in the console when running "Verify with Vampire", but no time passes between the calls and the proofs don't work: Vampire is not really executable and probably not inside the PATH used by Eclipse. Re-check step 2 of the installation steps.
 
