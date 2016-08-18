@@ -21,6 +21,7 @@ You need:
 4. (optional) your favorite automated theorem prover that understands TPTP, if you would like to prove something, e.g. Vampire (This is currently not required for setting up the Veritas SBT part, but will probably soon be.)
 
 Some optional steps to try with the project:
+
 1. Build the project using SBT or your favorite IDE.
 2. Run "sbt assembly" to produce a standalone .jar of the project (currently not particularly useful in itself, only when using Veritas with VeritasSpoofax).
 3. Run the tests in test/scala, via your IDE or via "sbt test" (not all of them might work).
