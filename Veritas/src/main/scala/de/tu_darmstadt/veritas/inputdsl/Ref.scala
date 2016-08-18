@@ -5,6 +5,6 @@ package de.tu_darmstadt.veritas.inputdsl
  */
 class Ref[+S <: SpecConstruct](name: String, construct: S) {
   def getName() = name
-  def getConstruct() = name
+  def getConstruct() = construct
 }
 
