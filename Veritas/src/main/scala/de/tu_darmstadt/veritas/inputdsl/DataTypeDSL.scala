@@ -4,41 +4,47 @@ import de.tu_darmstadt.veritas.backend.ast.{DataType, DataTypeConstructor, SortR
 
 object DataTypeDSL {
 
-  implicit def _toConstr(s: Symbol): DataTypeConstructor = DataTypeConstructor(s.name, Seq())
+  import SortRefDSL._
 
-  implicit class _ConstrList(cons: Seq[DataTypeConstructor]) {
-    def |(next: DataTypeConstructor): Seq[DataTypeConstructor] = cons :+ next
-  }
-  implicit def _toConstrList(s: Symbol) = new _ConstrList(Seq(s))
+  // concrete syntax - open
+  def open = new _OpenDataTypePartial()
 
-  class _toC(c: DataTypeConstructor) {
-    def > :DataTypeConstructor = c
-  }
+  // concrete syntax - closed
+  def data(name: Symbol) = new _DataTypePartial(false, name)
 
-  implicit def _toSortRef(s: Symbol): SortRef = SortRef(s.name)
-
-  class _ParamList(name: Symbol) {
-    def < (params: Symbol*): _toC = new _toC(DataTypeConstructor(name.name, params map {_toSortRef(_)} ))
-  }
-
-  implicit def _toParamList(s: Symbol): _ParamList = new _ParamList(s)
-  implicit def _toConstrList(c: DataTypeConstructor): _ConstrList = new _ConstrList(Seq(c))
-
-
+  // supporting intermediate class - data type, being able to await list of constructors
   class _DataTypePartial(val open: Boolean, val name: Symbol) {
     def of(constr: Seq[DataTypeConstructor]): DataType = {
       DataType(open, name.name, constr)
     }
   }
 
+  // supporting intermediate class for open data types
   class _OpenDataTypePartial {
     def data(name: Symbol) = new _DataTypePartial(true, name)
   }
 
+  // support for empty data types
   implicit def _emptyToDataType(dt: _DataTypePartial): DataType =
     DataType(dt.open, dt.name.name, Seq())
 
-  def open = new _OpenDataTypePartial()
+  // support for creating a single data type constructor from a symbol
+  implicit def _toConstr(s: Symbol): DataTypeConstructor = DataTypeConstructor(s.name, Seq())
 
-  def data(name: Symbol) = new _DataTypePartial(false, name)
+  implicit def _toConstrL(s: Symbol): Seq[DataTypeConstructor] = Seq(DataTypeConstructor(s.name, Seq()))
+
+  implicit def _toConstrArgs(s: Symbol)(args: Seq[SortRef]) : DataTypeConstructor =
+    DataTypeConstructor(s.name, args)
+
+  // create a list of data type constructors - end point
+  implicit def _toConstrList(s: Symbol) = new _ConstrList(Seq(s))
+
+  // create a list of data type constructors - end point (from DataTypeConstructor)
+  implicit def _toConstrList(c: DataTypeConstructor): _ConstrList = new _ConstrList(Seq(c))
+
+  // create a list of data type constructors where new constructors can be added via | syntax
+  implicit class _ConstrList(cons: Seq[DataTypeConstructor]) {
+    def |(next: DataTypeConstructor): Seq[DataTypeConstructor] = cons :+ next
+  }
+
 }

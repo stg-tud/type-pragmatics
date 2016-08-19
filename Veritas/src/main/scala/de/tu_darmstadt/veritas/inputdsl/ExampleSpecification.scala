@@ -32,8 +32,14 @@ object ExampleSpecification {
       new SyntacticForm("arrow", Seq(typemv.getRef, typemv.getRef))))))
 
   import DataTypeDSL._
+  import SortRefDSL._
 
-  val testDT = data('nat) of
-    'zero | ('succ <'nat>)
+  val testDT = data ('nat) of
+     'zero | 'succ('nat)
+  import FunctionDSL._
+
+  val sortreftest: Seq[SortRef] = ('nat - 'nat)
+
+  val testsig: FunctionSig = 'plus >> 'nat - 'nat -> 'nat
 
 }
