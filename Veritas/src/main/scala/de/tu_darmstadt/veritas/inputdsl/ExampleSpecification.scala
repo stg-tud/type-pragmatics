@@ -40,6 +40,9 @@ object ExampleSpecification {
 
   val sortreftest: Seq[SortRef] = ('nat - 'nat)
 
-  val testsig: FunctionSig = 'plus >> 'nat - 'nat -> 'nat
+  val testfun: Functions = function ('plus >> 'nat - 'nat -> 'nat)
+    'plus(Seq(FunctionPatVar("x"), FunctionPatVar("zero"))) == FunctionExpVar("x") |
+    'plus(Seq(FunctionPatVar("x"), FunctionPatApp("succ", Seq(FunctionPatVar("y"))))) ==
+      FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y")))))
 
 }
