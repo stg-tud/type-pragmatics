@@ -42,6 +42,25 @@ object FunctionDSL {
   }
 }
 
-object FunctionPatDSL {
-
-}
+//object FunctionPatDSL {
+//
+//  // conversion to FunctionPatVar
+//  implicit def _toFunctionPatVar(v: Symbol): FunctionPatVar = FunctionPatVar(v.name)
+//
+//  //conversion to FunctionPatApplication
+//  implicit def _toFunctionPatApp(v: Symbol)(args: Seq[FunctionPattern]): FunctionPatApp = FunctionPatApp(v.name, args)
+//
+//  implicit def _toFunctionPatList(fp: FunctionPattern): Seq[FunctionPattern] = Seq(fp)
+//
+//  // create a list of function patterns - end point
+//  implicit def _toFPList(s: Symbol) = new _FPList(Seq(s))
+//
+//  // create a list of function patterns - end point (from FunctionPattern)
+//  implicit def _toFPList(fp: FunctionPattern): _FPList = new _FPList(Seq(fp))
+//
+//  // create a list of sort references where new sort refs can be added via - syntax
+//  implicit class _FPList(fp: Seq[FunctionPattern]) {
+//    def +(next: FunctionPattern): Seq[FunctionPattern] = fp :+ next
+//  }
+//
+//}
