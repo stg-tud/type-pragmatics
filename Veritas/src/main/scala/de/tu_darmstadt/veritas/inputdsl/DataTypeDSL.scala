@@ -2,6 +2,9 @@ package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast.{DataType, DataTypeConstructor, SortRef}
 
+/**
+  * DSL for data type definitions
+  */
 object DataTypeDSL {
 
   import SortRefDSL._

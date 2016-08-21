@@ -17,7 +17,7 @@ object SortRefDSL {
   // create a list of sort references - end point (from SortRef)
   implicit def _toSortRefList(c: SortRef): _SortRefList = new _SortRefList(Seq(c))
 
-  // create a list of sort references where new constructors can be added via | syntax
+  // create a list of sort references where new sort refs can be added via - syntax
   implicit class _SortRefList(cons: Seq[SortRef]) {
     def -(next: SortRef): Seq[SortRef] = cons :+ next
   }
