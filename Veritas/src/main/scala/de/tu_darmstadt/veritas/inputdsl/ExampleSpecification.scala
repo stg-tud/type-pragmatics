@@ -32,17 +32,18 @@ object ExampleSpecification {
       new SyntacticForm("arrow", Seq(typemv.getRef, typemv.getRef))))))
 
   import DataTypeDSL._
-  import SortRefDSL._
-
-  val testDT = data ('nat) of
-     'zero | 'succ('nat)
   import FunctionDSL._
+  import SymTreeDSL._
 
-  val sortreftest: Seq[SortRef] = ('nat - 'nat)
+  val testtree = 'zero | ('succ('nat - 'nat))
 
+  val testDT = data ('nat) of 'zero | 'succ('nat)
+
+
+  val funeqtest: FunctionEq = 'plus('x - 'zero) := (FunctionExpVar("x"))
+  val funeqtest2: FunctionEq = 'plus('x - 'succ('y)) := FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y")))))
   val testfun: Functions = function ('plus >> 'nat - 'nat -> 'nat)
-    'plus(Seq(FunctionPatVar("x"), FunctionPatVar("zero"))) == FunctionExpVar("x") |
-    'plus(Seq(FunctionPatVar("x"), FunctionPatApp("succ", Seq(FunctionPatVar("y"))))) ==
-      FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y")))))
+      ('plus('x - 'zero) := FunctionExpVar("x")) |
+      ('plus('x - 'succ('y)) := FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y"))))))
 
 }
