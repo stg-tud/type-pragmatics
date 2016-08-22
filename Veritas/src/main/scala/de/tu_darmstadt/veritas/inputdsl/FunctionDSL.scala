@@ -26,7 +26,7 @@ object FunctionDSL {
   }
 
   // adding the right-hand-side to a function equation
-  implicit class _FunctionEqPartial(st: SymTree) {
+  implicit class _FunctionEqPartialST(st: SymTree) {
     private def symTreeToFunctionPatSeq(st: SymTree): FunctionPattern = st match {
       case SymLeaf(s) => FunctionPatVar(s.name)
       case SymNode(s, children) => FunctionPatApp(s.name, children map {symTreeToFunctionPatSeq(_)})
@@ -45,7 +45,8 @@ object FunctionDSL {
     def :=(exp: FunctionExp): FunctionEq = FunctionEq(fn, functionPats, exp)
   }
 
-  //TODO: this is like constructor lists in DataTypeDSL - maybe abstract this further?
+
+    //TODO: this is like constructor lists in DataTypeDSL - maybe abstract this further?
 
   // create a list of function equations - end point
   implicit def _toFunEqList(feq: FunctionEq) = new _FunEqList(Seq(feq))

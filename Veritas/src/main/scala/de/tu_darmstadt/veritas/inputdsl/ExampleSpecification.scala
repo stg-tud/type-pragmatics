@@ -39,6 +39,8 @@ object ExampleSpecification {
 
   val testDT = data ('nat) of 'zero | 'succ('nat)
 
+  val rawDT = data ('nat) of DataTypeConstructor("zero", Seq()) | DataTypeConstructor("succ", Seq(SortRef("nat")))
+
 
   val funeqtest: FunctionEq = 'plus('x - 'zero) := (FunctionExpVar("x"))
   val funeqtest2: FunctionEq = 'plus('x - 'succ('y)) := FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y")))))

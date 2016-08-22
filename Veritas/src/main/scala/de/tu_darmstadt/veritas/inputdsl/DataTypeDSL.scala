@@ -58,6 +58,8 @@ object DataTypeDSL {
     s map {_toDataTypeConstructor(_)}
   }
 
+  implicit def _toDataTypeConstructorSeq(cons: DataTypeConstructor): _ConstrList = new _ConstrList(Seq(cons))
+
   // create a list of data type constructors where new constructors can be added via | syntax
   implicit class _ConstrList(cons: Seq[DataTypeConstructor]) {
     def |(next: DataTypeConstructor): Seq[DataTypeConstructor] = cons :+ next
