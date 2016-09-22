@@ -24,12 +24,6 @@ object ExampleSpecification {
     )
   )
 
-  val basemv = new UnderspecifiedMetaVar("Base")
-  val typemv = new SpecifiedMetaVar("Type")
-
-  val testsyntaxblock = new SyntaxBlock(Seq(basemv), Seq(typemv),
-    Seq(new MetaVarDefinition(typemv.getRef, Seq(new SyntacticForm("basetype", Seq(basemv.getRef)),
-      new SyntacticForm("arrow", Seq(typemv.getRef, typemv.getRef))))))
 
   import DataTypeDSL._
   import FunctionDSL._
