@@ -1,8 +1,10 @@
 package de.tu_darmstadt.veritas.inputdsl
 
 /**
-  * Common DSL syntax for writing lists of symbols, in next notation
+  * Common DSL syntax for writing flat symbol trees
+  * used for generating constructors of data types, function patterns, function expressions
   */
+
 object SymTreeDSL {
 
   sealed abstract class SymTree
@@ -12,20 +14,9 @@ object SymTreeDSL {
 
   implicit def _toSymLeaf(s: Symbol): SymLeaf = SymLeaf(s)
 
-  implicit def _toSymNode(s: Symbol)(symargs: Seq[SymTree]) = SymNode(s, symargs)
-
-  implicit def _toSymLeafSeq(s: Symbol): Seq[SymLeaf] = Seq(s)
-
-  implicit def _toSymTreeSeq(s: Symbol): _SymTreeSeq = new _SymTreeSeq(s)
-
-  implicit def _toSymTreeSeq(s: SymLeaf): _SymTreeSeq = new _SymTreeSeq(Seq(s))
-
-  implicit def _toSymTreeSeq(s: SymNode): _SymTreeSeq = new _SymTreeSeq(Seq(s))
-
-  // currently supports "-" and "|" for appending symbols to the list
-  implicit class _SymTreeSeq(elems: Seq[SymTree]) {
-    def -(next: SymTree): Seq[SymTree] = elems :+ next
-    def |(next: SymTree): Seq[SymTree] = elems :+ next
+  implicit class _toSymTree(sym: Symbol) {
+    def apply(argsym: SymTree*) = SymNode(sym, argsym)
   }
-
 }
+
+

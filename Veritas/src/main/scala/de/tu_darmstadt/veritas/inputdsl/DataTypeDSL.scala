@@ -19,6 +19,11 @@ object DataTypeDSL {
     def of(constr: Seq[DataTypeConstructor]): DataType = {
       DataType(open, name.name, constr)
     }
+
+    // support for single, non-argument constructor
+    def of(cons: Symbol): DataType = {
+      DataType(open, name.name, Seq(_toDataTypeConstructor(cons)))
+    }
   }
 
   // supporting intermediate class for open data types
@@ -30,39 +35,34 @@ object DataTypeDSL {
   implicit def _emptyToDataType(dt: _DataTypePartial): DataType =
     DataType(dt.open, dt.name.name, Seq())
 
-  // support for single, non-argument constructor
-  implicit def _toDataTypeConstructor(s: Symbol): Seq[DataTypeConstructor] = Seq(DataTypeConstructor(s.name, Seq()))
-
+  //construct DataTypeConstructor from SymTree
   implicit def _toDataTypeConstructor(s: SymTree): DataTypeConstructor = {
     s match {
       case SymLeaf(s) => DataTypeConstructor(s.name, Seq())
       case SymNode(s, children) => {
         // this mapping will fail if the child list does not consist of SymLeafs only!
+        // currently, this is intentional behavior, it shall not be possible to construct
+        // DataTypeConstructors where the child list consists of SymNodes
         val arglist = children map { case SymLeaf(sn) => SortRef(sn.name) }
         DataTypeConstructor(s.name, arglist)
       }
     }
   }
 
-  implicit def _toDataTypeConstructorSeq(s: SymTree): Seq[DataTypeConstructor] = {
-    s match {
-      case SymLeaf(s) => Seq(DataTypeConstructor(s.name, Seq()))
-      case SymNode(s, children) => {
-        val arglist = children map { case SymLeaf(sn) => SortRef(sn.name) }
-        Seq(DataTypeConstructor(s.name, arglist))
-      }
-    }
+  implicit class _ConstrListSingleSym(s: Symbol) {
+    def |(next: SymTree): Seq[DataTypeConstructor] = Seq(_toDataTypeConstructor(s)) :+ _toDataTypeConstructor(next)
   }
 
-  implicit def _toDataTypeConstructorSeq(s: Seq[SymTree]): Seq[DataTypeConstructor] = {
-    s map {_toDataTypeConstructor(_)}
+  implicit class _ConstrListSingleST(st: SymTree) {
+    def |(next: SymTree): Seq[DataTypeConstructor] = Seq(_toDataTypeConstructor(st)) :+ _toDataTypeConstructor(next)
   }
 
-  implicit def _toDataTypeConstructorSeq(cons: DataTypeConstructor): _ConstrList = new _ConstrList(Seq(cons))
+  implicit class _ConstrListSingle(dc: DataTypeConstructor) {
+    def |(next: SymTree): Seq[DataTypeConstructor] = Seq(dc) :+ _toDataTypeConstructor(next)
+  }
 
-  // create a list of data type constructors where new constructors can be added via | syntax
-  implicit class _ConstrList(cons: Seq[DataTypeConstructor]) {
-    def |(next: DataTypeConstructor): Seq[DataTypeConstructor] = cons :+ next
+  implicit class _ConstrList(st: Seq[DataTypeConstructor]) {
+    def |(next: SymTree): Seq[DataTypeConstructor] = st :+ _toDataTypeConstructor(next)
   }
 
 }

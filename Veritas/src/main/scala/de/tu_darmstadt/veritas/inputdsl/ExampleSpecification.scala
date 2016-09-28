@@ -29,17 +29,25 @@ object ExampleSpecification {
   import FunctionDSL._
   import SymTreeDSL._
 
-  val testtree = 'zero | ('succ('nat - 'nat))
+  val testtree1: SymNode = 'succ ('succ ('nat, 'nat, 'succ ('nat)))
 
-  val testDT = data ('nat) of 'zero | 'succ('nat)
+  val testopen1: DataType = open data 'test
+  val testopen2 = open data 'test of 'succ ('nat) | 'succ2 ('nat)
 
-  val rawDT = data ('nat) of DataTypeConstructor("zero", Seq()) | DataTypeConstructor("succ", Seq(SortRef("nat")))
+  val testsingle: DataType = data('single) of 'bla
+  val testsimple: DataType = data('color) of 'red | 'blue | 'green
+  val testclosednat: DataType = data('nat) of 'zero | 'succ ('nat)
 
+  val testfunctionsigsimple = 'test.>>('nat) -> 'nat
+  val testfunctionsig1: FunctionSig = 'plus.>>('nat, 'nat) -> 'nat
 
-  val funeqtest: FunctionEq = 'plus('x - 'zero) := (FunctionExpVar("x"))
-  val funeqtest2: FunctionEq = 'plus('x - 'succ('y)) := FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y")))))
-  val testfun: Functions = function ('plus >> 'nat - 'nat -> 'nat)
-      ('plus('x - 'zero) := FunctionExpVar("x")) |
-      ('plus('x - 'succ('y)) := FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y"))))))
+  val funeqtest1: FunctionEq = 'plus('x, 'zero) := FunctionExpVar("x")
+  val funeqtest1a: FunctionEq = 'plus('x, 'zero) := 'x
+  //val funeqtest1b: FunctionEq = 'plus('x, 'zero) := (<('x) && <('y).>).>
+  val funeqtest2: FunctionEq = 'plus('x, 'succ('y)) := FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y")))))
+
+  val fullfuntest: Functions = function ('plus.>>('nat, 'nat) -> 'nat)
+    ('plus('x, 'zero) := 'x) |
+    ('plus('x, 'succ('y)) := 'succ('plus('x, 'y)))
 
 }
