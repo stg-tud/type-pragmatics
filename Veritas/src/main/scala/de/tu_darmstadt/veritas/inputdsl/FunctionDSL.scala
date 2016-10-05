@@ -1,9 +1,8 @@
 package de.tu_darmstadt.veritas.inputdsl
 
-import de.tu_darmstadt.veritas.backend.ast.{Functions, SortRef}
+import de.tu_darmstadt.veritas.backend.ast.{Functions, MetaVar, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL._
-
+import de.tu_darmstadt.veritas.inputdsl.ASTTreeDSL._
 /**
   * DSL for top-level function definition syntax
   */
@@ -55,27 +54,55 @@ object FunctionDSL {
 
     def :=(exp: FunctionExp) = FunctionEq(fn, functionPats, exp)
 
+    private def _funExpTreeToFunExp(exptree: FunExpMetaTree): FunctionExp = exptree match {
+      case VarLeaf(s) => FunctionExpVar(s.name)
+      case AppNode(s, children) => FunctionExpApp(s.name, children map {_funExpTreeToFunExp(_)})
+    }
+
+    def :=(exptree: FunExpTree) = FunctionEq(fn, functionPats, _funExpTreeToFunExp(exptree))
+
+    //required extra support for function equations with just one symbol
+    def :=(s: Symbol) = FunctionEq(fn, functionPats, FunctionExpVar(s.name))
+
   }
 
-  implicit def _symtoFunctionExpSingle(s: Symbol): FunctionExp = FunctionExpVar(s.name)
-
-
-  implicit def _symtoFunctionExp(st: SymTree): FunctionExp = st match {
-    case SymLeaf(s) => FunctionExpVar(s.name)
-    case SymNode(s, children) => FunctionExpApp(s.name, children map {
-      _symtoFunctionExp(_)
-    })
+  implicit class MVSymbol(s: Symbol) {
+    def unary_~ : MetaVar = MetaVar(s.name)
   }
 
-  implicit class _FunctionExpPartial(exp: FunctionExp) {
-    //close parsing of a function expression and return to caller
-    //def >(): FunctionExp = exp
+  //required extra support for function expressions starting with just a symbol
+  implicit def _symToFunExpMetaTree(s: Symbol): FunExpMetaTree = VarLeaf(s)
 
-    def &&(expr: FunctionExp) = FunctionExpAnd(exp, expr)
+  abstract class FunExpMetaTree {
+    def ===(rexp: FunExpMetaTree) = EqNode(this, rexp)
+    def ~=(rexp: FunExpMetaTree) = NeqNode(this, rexp)
+  }
 
-    def ||(expr: FunctionExp) = FunctionExpOr(exp, expr)
+  case class MVarNode(mv: MetaVar) extends FunExpMetaTree
 
+  abstract class FunExpTree extends FunExpMetaTree {
+    def unary_! = NotNode(this)
+    def &&(rexp: FunExpTree) = AndNode(this, rexp)
+    def ||(rexp: FunExpTree) = OrNode(this, rexp)
+    def <=>(rexp: FunExpTree) = BiImplNode(this, rexp)
+  }
 
+  object FunExpTrue extends FunExpTree
+  object FunExpFalse extends FunExpTree
+  case class VarLeaf(s: Symbol) extends FunExpTree
+  case class AppNode(s: Symbol, childlist: Seq[FunExpMetaTree]) extends FunExpTree
+  case class NotNode(child: FunExpTree) extends FunExpTree
+  case class EqNode(left: FunExpMetaTree, right: FunExpMetaTree) extends FunExpTree
+  case class NeqNode(left: FunExpMetaTree, right: FunExpMetaTree) extends FunExpTree
+  case class AndNode(left: FunExpTree, right: FunExpTree) extends FunExpTree
+  case class OrNode(left: FunExpTree, right: FunExpTree) extends FunExpTree
+  case class BiImplNode(left: FunExpTree, right: FunExpTree) extends FunExpTree
+  //case class IfNode(guard: FunExpTree, th: FunExpMetaTree, els: FunExpMetaTree) extends FunExpTree
+  //case class LetNode(s: Symbol, named: FunExpMetaTree, in: FunExpMetaTree) extends FunExpTree
+
+  implicit def _symTreeToFunExpTree(st: SymTree): FunExpTree = st match {
+    case SymLeaf(sn) => VarLeaf(sn)
+    case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc : SymTree) => _symTreeToFunExpTree(stc)})
   }
 
 

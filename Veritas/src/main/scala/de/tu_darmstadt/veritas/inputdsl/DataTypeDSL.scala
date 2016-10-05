@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast.{DataType, DataTypeConstructor, SortRef}
-import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL.{SymLeaf, SymNode, SymTree}
+import de.tu_darmstadt.veritas.inputdsl.ASTTreeDSL.{SymLeaf, SymNode, SymTree}
 
 /**
   * DSL for data type definitions
