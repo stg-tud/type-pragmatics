@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast.{DataType, DataTypeConstructor, SortRef}
-import de.tu_darmstadt.veritas.inputdsl.ASTTreeDSL.{SymLeaf, SymNode, SymTree}
+import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL.{SymLeaf, SymNode, SymTree}
 
 /**
   * DSL for data type definitions
@@ -16,6 +16,10 @@ object DataTypeDSL {
 
   // supporting intermediate class - data type, being able to await list of constructors
   class _DataTypePartial(val open: Boolean, val name: Symbol) {
+    def of(constr: DataTypeConstructor): DataType = {
+      DataType(open, name.name, Seq(constr))
+    }
+
     def of(constr: Seq[DataTypeConstructor]): DataType = {
       DataType(open, name.name, constr)
     }

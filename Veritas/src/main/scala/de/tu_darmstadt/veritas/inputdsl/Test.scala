@@ -3,6 +3,8 @@ package de.tu_darmstadt.veritas.inputdsl
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import java.io.PrintWriter
 
+import de.tu_darmstadt.veritas.inputdsl.testexamples.ExampleSpecification
+
 object Test {
   
   def main(args: Array[String]) {

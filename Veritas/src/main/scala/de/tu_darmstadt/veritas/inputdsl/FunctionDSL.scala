@@ -1,12 +1,17 @@
 package de.tu_darmstadt.veritas.inputdsl
 
-import de.tu_darmstadt.veritas.backend.ast.{Functions, MetaVar, SortRef}
+import de.tu_darmstadt.veritas.backend.ast.{Functions, MetaVar, PartialFunctions, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.inputdsl.ASTTreeDSL._
+import de.tu_darmstadt.veritas.inputdsl.FunctionDSL.FunExpTrue
+import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL._
 /**
   * DSL for top-level function definition syntax
   */
 object FunctionDSL {
+
+  def partial(funcs: Functions) = funcs match {
+    case Functions(sfd) => PartialFunctions(sfd)
+  }
 
   // top-level syntax for creating a function definition
   def function(sig: FunctionSig, eqs: Seq[FunctionEq] = Seq()) = Functions(Seq(FunctionDef(sig, eqs)))
@@ -104,6 +109,8 @@ object FunctionDSL {
     case SymLeaf(sn) => VarLeaf(sn)
     case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc : SymTree) => _symTreeToFunExpTree(stc)})
   }
+
+  implicit def _boolToFunExp(b: Boolean): FunExpTree = if (b) FunExpTrue else FunExpFalse
 
 
 }
