@@ -60,4 +60,14 @@ object ExampleSpecification {
     ('plus('x, 'zero) := 'x) |
     ('plus('x, 'succ('y)) := 'succ('plus('x, 'y)))
 
+  val iffuntest: Functions = function ('plus.>>('nat, 'nat) -> 'nat)
+  ('plus('x, 'y) := iff ('y === 'zero) th 'x els 'succ('plus('x, 'y)))
+
+  val iftest: IfNode = iff ('y === 'zero) th 'x els 'y
+
+  val lettestpartial: LetNode = (let ('rec) := 'succ('plus('x, 'y))) in (iff ('y === 'zero) th 'x els 'rec)
+
+  val lettest: Functions = function ('plus.>>('nat, 'nat) -> 'nat)
+  ('plus('x, 'y) := (let ('rec) := 'succ('plus('x, 'y))) in (iff ('y === 'zero) th 'x els 'rec))
+
 }

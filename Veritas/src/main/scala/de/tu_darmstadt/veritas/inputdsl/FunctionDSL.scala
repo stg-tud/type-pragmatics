@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast.{Functions, MetaVar, PartialFunctions, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.inputdsl.FunctionDSL.FunExpTrue
 import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL._
+
 /**
   * DSL for top-level function definition syntax
   */
@@ -14,7 +14,9 @@ object FunctionDSL {
   }
 
   // top-level syntax for creating a function definition
-  def function(sig: FunctionSig, eqs: Seq[FunctionEq] = Seq()) = Functions(Seq(FunctionDef(sig, eqs)))
+  // first generates a function without any equations - keyword where may add equations (see _FunctionAwaitingEqs)
+  def function(sig: FunctionSig) = Functions(Seq(FunctionDef(sig, Seq())))
+
 
   // starting point for generating a function signature
   implicit class _FunctionSigPartial(name: Symbol) {
@@ -25,6 +27,16 @@ object FunctionDSL {
 
     def >>(args: Symbol*) = new _FunctionSigWithNameArgs(args.toSeq)
 
+  }
+
+  implicit class _FunctionAwaitingEqs(fun: Functions) {
+    def where(eq: FunctionEq) = fun match {
+      case Functions(Seq(FunctionDef(sig, preveq))) => Functions(Seq(FunctionDef(sig, preveq :+ eq)))
+    }
+
+    def where(eqs: Seq[FunctionEq]) = fun match {
+      case Functions(Seq(FunctionDef(sig, preveq))) => Functions(Seq(FunctionDef(sig, preveq ++ eqs)))
+    }
   }
 
   implicit class _FunctionEqListSingle(fe: FunctionEq) {
@@ -60,8 +72,20 @@ object FunctionDSL {
     def :=(exp: FunctionExp) = FunctionEq(fn, functionPats, exp)
 
     private def _funExpTreeToFunExp(exptree: FunExpMetaTree): FunctionExp = exptree match {
+      case FunExpTrue => FunctionExpTrue
+      case FunExpFalse => FunctionExpFalse
       case VarLeaf(s) => FunctionExpVar(s.name)
-      case AppNode(s, children) => FunctionExpApp(s.name, children map {_funExpTreeToFunExp(_)})
+      case AppNode(s, children) => FunctionExpApp(s.name, children map {
+        _funExpTreeToFunExp(_)
+      })
+      case NotNode(child) => FunctionExpNot(_funExpTreeToFunExp(child))
+      case EqNode(left, right) => FunctionExpEq(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+      case NeqNode(left, right) => FunctionExpNeq(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+      case AndNode(left, right) => FunctionExpAnd(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+      case OrNode(left, right) => FunctionExpOr(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+      case BiImplNode(left, right) => FunctionExpBiImpl(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+      case IfNode(guard, thenpart, elsepart) => FunctionExpIf(_funExpTreeToFunExp(guard), _funExpTreeToFunExp(thenpart), _funExpTreeToFunExp(elsepart))
+      case LetNode(s, bind, body) => FunctionExpLet(s.name, _funExpTreeToFunExp(bind), _funExpTreeToFunExp(body))
     }
 
     def :=(exptree: FunExpTree) = FunctionEq(fn, functionPats, _funExpTreeToFunExp(exptree))
@@ -80,6 +104,7 @@ object FunctionDSL {
 
   abstract class FunExpMetaTree {
     def ===(rexp: FunExpMetaTree) = EqNode(this, rexp)
+
     def ~=(rexp: FunExpMetaTree) = NeqNode(this, rexp)
   }
 
@@ -87,30 +112,65 @@ object FunctionDSL {
 
   abstract class FunExpTree extends FunExpMetaTree {
     def unary_! = NotNode(this)
+
     def &&(rexp: FunExpTree) = AndNode(this, rexp)
+
     def ||(rexp: FunExpTree) = OrNode(this, rexp)
+
     def <=>(rexp: FunExpTree) = BiImplNode(this, rexp)
   }
 
   object FunExpTrue extends FunExpTree
+
   object FunExpFalse extends FunExpTree
+
   case class VarLeaf(s: Symbol) extends FunExpTree
+
   case class AppNode(s: Symbol, childlist: Seq[FunExpMetaTree]) extends FunExpTree
+
   case class NotNode(child: FunExpTree) extends FunExpTree
+
   case class EqNode(left: FunExpMetaTree, right: FunExpMetaTree) extends FunExpTree
+
   case class NeqNode(left: FunExpMetaTree, right: FunExpMetaTree) extends FunExpTree
+
   case class AndNode(left: FunExpTree, right: FunExpTree) extends FunExpTree
+
   case class OrNode(left: FunExpTree, right: FunExpTree) extends FunExpTree
+
   case class BiImplNode(left: FunExpTree, right: FunExpTree) extends FunExpTree
-  //case class IfNode(guard: FunExpTree, th: FunExpMetaTree, els: FunExpMetaTree) extends FunExpTree
-  //case class LetNode(s: Symbol, named: FunExpMetaTree, in: FunExpMetaTree) extends FunExpTree
+
+  case class IfNode(guard: FunExpTree, th: FunExpMetaTree, els: FunExpMetaTree) extends FunExpTree
+
+  case class LetNode(s: Symbol, named: FunExpMetaTree, in: FunExpMetaTree) extends FunExpTree
 
   implicit def _symTreeToFunExpTree(st: SymTree): FunExpTree = st match {
     case SymLeaf(sn) => VarLeaf(sn)
-    case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc : SymTree) => _symTreeToFunExpTree(stc)})
+    case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc: SymTree) => _symTreeToFunExpTree(stc) })
   }
 
   implicit def _boolToFunExp(b: Boolean): FunExpTree = if (b) FunExpTrue else FunExpFalse
+
+  def iff(gexp: FunExpTree) = _PartialIf1(gexp)
+
+  case class _PartialIf1(gexp: FunExpTree) {
+    def th(texp: FunExpMetaTree) = _PartialIf2(gexp, texp)
+
+    case class _PartialIf2(gexp: FunExpTree, texp: FunExpMetaTree) {
+      def els(elexp: FunExpMetaTree) = IfNode(gexp, texp, elexp)
+    }
+  }
+
+  def let(s: Symbol) = _PartialLet1(s)
+
+  case class _PartialLet1(s: Symbol) {
+    def :=(bind: FunExpMetaTree) = _PartialLet2(s, bind)
+
+    case class _PartialLet2(s: Symbol, bind: FunExpMetaTree) {
+      def in(body: FunExpMetaTree) = LetNode(s, bind, body)
+    }
+  }
+
 
 
 }
