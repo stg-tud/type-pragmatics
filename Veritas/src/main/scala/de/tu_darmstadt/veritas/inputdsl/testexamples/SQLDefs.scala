@@ -12,6 +12,9 @@ object SQLDefs {
   import DataTypeDSL._
   import FunctionDSL._
   import SymTreeDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleJudgmentDSL._
+  import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
 
   //module Table
 
@@ -456,4 +459,116 @@ object SQLDefs {
     Seq(OptQuery, isSomeQuery, getQuery, findCol, projectEmptyCol, projectCols, projectTable,
       OptVal, OptRow, isSomeVal, getVal, evalExpRow, filterSingleRow, filterRows, filterTable,
       reduce))
+
+
+  //module sql.TypeSystem
+
+  //import sql.Tables
+  //import sql.TStore
+  //import sql.Syntax
+  //import sql.TContext
+
+  val OptFType = data('OptFType) of
+    'noFType |
+      'someFType ('FType)
+
+  val isSomeFType = function('isSomeFType.>>('OptFType) -> 'Bool) where
+    ('isSomeFType ('noFType) := false) |
+      ('isSomeFType ('someFType ('a)) := true)
+
+  val getFType = partial(function('getFType.>>('OptFType) -> 'FType) where
+    ('getFType ('someFType ('a)) := 'a)
+  )
+
+  val findColType = function('findColType.>>('Name, 'TType) -> 'OptFType) where
+    ('findColType ('an, 'ttempty) := 'noFType) |
+      ('findColType ('an, 'ttcons ('a, 'ft, 'ttr)) :=
+        (iff('an === 'a)
+          th 'someFType ('ft)
+          els 'findColType ('an, 'ttr)))
+
+  val projectType = function('projectType.>>('Select, 'TType) -> 'OptTType) where
+    ('projectType ('all, 'tt) := 'someTType ('tt)) |
+      ('projectType ('list ('al), 'tt) := 'projectTypeAttrL ('al, 'tt))
+
+  val projectTypeAttrL = function('projectTypeAttrL.>>('AttrL, 'TType) -> 'OptTType) where
+    ('projectTypeAttrL ('aempty, 'tt) := 'someTType ('ttempty)) |
+      ('projectTypeAttrL ('acons ('a, 'alr), 'tt) :=
+        (let('ft) := 'findColType ('a, 'tt)) in
+          ((let('tprest) := 'projectTypeAttrL ('alr, 'tt)) in
+            (iff('isSomeFType ('ft) && 'isSomeTType ('tprest))
+              th 'someTType ('ttcons ('a, 'getFType ('ft), 'getTType ('tprest)))
+              els 'noTType)))
+
+  val typeOfExp = function('typeOfExp.>>('Exp, 'TType) -> 'OptFType) where
+    ('typeOfExp ('constant ('fv), 'tt) := 'someFType ('fieldType ('fv))) |
+      ('typeOfExp ('lookup ('a), 'ttempty) := 'noFType) |
+      ('typeOfExp ('lookup ('a), 'ttcons ('a2, 'ft, 'tt)) :=
+        (iff('a === 'a2)
+          th 'someFType ('ft)
+          els 'typeOfExp ('lookup ('a), 'tt)))
+
+  val tcheckPred = function('tcheckPred.>>('Pred, 'TType) -> 'Bool) where
+    ('tcheckPred ('ptrue, 'tt) := true) |
+      ('tcheckPred ('and ('p1, 'p2), 'tt) := 'tcheckPred ('p1, 'tt) && 'tcheckPred ('p2, 'tt)) |
+      ('tcheckPred ('not ('p), 'tt) := 'tcheckPred ('p, 'tt)) |
+      ('tcheckPred ('eq ('e1, 'e2), 'tt) :=
+        ((let('t1) := 'typeOfExp ('e1, 'tt)) in
+          ((let('t2) := 'typeOfExp ('e2, 'tt)) in
+            ('isSomeFType ('t1) && 'isSomeFType ('t2) && ('getFType ('t1) === 'getFType ('t2)))))) |
+      ('tcheckPred ('gt ('e1, 'e2), 'tt) :=
+        ((let('t1) := 'typeOfExp ('e1, 'tt)) in
+          ((let('t2) := 'typeOfExp ('e2, 'tt)) in
+            (('isSomeFType ('t1) && 'isSomeFType ('t2) && ('getFType ('t1) === 'getFType ('t2))))))) |
+      ('tcheckPred ('lt ('e1, 'e2), 'tt) :=
+        ((let('t1) := 'typeOfExp ('e1, 'tt)) in
+          ((let('t2) := 'typeOfExp ('e2, 'tt)) in
+            ('isSomeFType ('t1) && 'isSomeFType ('t2) && ('getFType ('t1) === 'getFType ('t2))))))
+
+  /*
+  //axioms on behavior of table type context
+  val TTTContextDuplicate = axiom(
+    ((~'x === ~'y) &&
+      ('bindContext(~'x, ~'Tx, 'bindContext(~'y, ~'Ty, ~'C)) |- ~'e :: ~'T)
+      ).=====("T-TTContext-Duplicate")(
+      ('bindContext (~'x, ~'Tx, ~'C) |- ~'e :: (~'T))
+  ))
+
+  val TTTContextSwap = axiom(
+    ~ x != ~ y
+  bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e: ~ T
+    ================================================ T - TTContext - Swap
+    bindContext (~y, ~Ty, bindContext(~x, ~Tx, ~C)) |- ~ e: ~ T
+
+
+
+    axioms
+  //a table value with a well-typed table is typable
+  welltypedtable(~TT, table(~al, ~rt))
+  ====================================== T -tvalue
+  ~TTC |- tvalue(table(~al, ~rt)): ~ TT
+
+    lookupContext (~tn, ~TTC) == someTType (~TT)
+  tcheckPred(~p, ~TT)
+  projectType(~sel, ~TT) == someTType(~TTr)
+  =============================================== T -SelectFromWhere
+  ~TTC |- selectFromWhere(~sel, ~tn, ~p): ~ TTr
+
+    ~ TTC |- ~ q1: ~TT
+  ~TTC |- ~q2: ~ TT
+    ============================================ T - Union
+    ~ TTC |- Union (~ q1, ~ q2): ~TT
+
+  ~TTC |- ~q1: ~ TT
+    ~ TTC |- ~ q2: ~TT
+  ============================================ T -Intersection
+  ~TTC |- Intersection(~q1, ~q2): ~ TT
+
+    ~ TTC |- ~ q1: ~TT
+  ~TTC |- ~q2: ~ TT
+    ============================================ T - Difference
+    ~ TTC |- Difference (~ q1, ~ q2): ~TT
+
+
+  */
 }

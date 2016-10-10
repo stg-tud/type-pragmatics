@@ -78,10 +78,6 @@ object FunctionDSL {
 
   }
 
-  implicit class MVSymbol(s: Symbol) {
-    def unary_~ : MetaVar = MetaVar(s.name)
-  }
-
   //required extra support for function expressions starting with just a symbol
   implicit def _symToFunExpMetaTree(s: Symbol): FunExpMetaTree = VarLeaf(s)
 
@@ -154,21 +150,32 @@ object FunctionDSL {
     }
   }
 
-  def _funExpTreeToFunExp(exptree: FunExpMetaTree): FunctionExp = exptree match {
+  /*
+
+  implicit def _MVarNodetoFunExpMeta(mv: MVarNode): FunctionExpMeta = mv match {
+    case MVarNode(mv) => FunctionMeta(mv)
+  } */
+
+  def _funExpMetaTreeToFunExpMeta(mexptree: FunExpMetaTree): FunctionExpMeta = mexptree match {
+    case MVarNode(mv) => FunctionMeta(mv)
+    case e : FunExpTree => _funExpTreeToFunExp(e)
+  }
+
+  def _funExpTreeToFunExp(exptree: FunExpTree): FunctionExp = exptree match {
     case FunExpTrue => FunctionExpTrue
     case FunExpFalse => FunctionExpFalse
     case VarLeaf(s) => FunctionExpVar(s.name)
     case AppNode(s, children) => FunctionExpApp(s.name, children map {
-      _funExpTreeToFunExp(_)
+      _funExpMetaTreeToFunExpMeta(_)
     })
     case NotNode(child) => FunctionExpNot(_funExpTreeToFunExp(child))
-    case EqNode(left, right) => FunctionExpEq(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
-    case NeqNode(left, right) => FunctionExpNeq(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+    case EqNode(left, right) => FunctionExpEq(_funExpMetaTreeToFunExpMeta(left), _funExpMetaTreeToFunExpMeta(right))
+    case NeqNode(left, right) => FunctionExpNeq(_funExpMetaTreeToFunExpMeta(left), _funExpMetaTreeToFunExpMeta(right))
     case AndNode(left, right) => FunctionExpAnd(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
     case OrNode(left, right) => FunctionExpOr(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
     case BiImplNode(left, right) => FunctionExpBiImpl(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
-    case IfNode(guard, thenpart, elsepart) => FunctionExpIf(_funExpTreeToFunExp(guard), _funExpTreeToFunExp(thenpart), _funExpTreeToFunExp(elsepart))
-    case LetNode(s, bind, body) => FunctionExpLet(s.name, _funExpTreeToFunExp(bind), _funExpTreeToFunExp(body))
+    case IfNode(guard, thenpart, elsepart) => FunctionExpIf(_funExpTreeToFunExp(guard), _funExpMetaTreeToFunExpMeta(thenpart), _funExpMetaTreeToFunExpMeta(elsepart))
+    case LetNode(s, bind, body) => FunctionExpLet(s.name, _funExpMetaTreeToFunExpMeta(bind), _funExpMetaTreeToFunExpMeta(body))
   }
 
 

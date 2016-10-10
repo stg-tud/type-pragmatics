@@ -48,18 +48,18 @@ object TypingRuleJudgmentDSL {
   import FunctionDSL._
 
   implicit class _PartialTypingJudgmentSym(f1: Symbol) {
-    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpTreeToFunExp(f1), _funExpTreeToFunExp(f2))
-    def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpTreeToFunExp(f1), ts.f1, ts.f2)
+    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f1), _funExpMetaTreeToFunExpMeta(f2))
+    def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpMetaTreeToFunExpMeta(f1), ts.f1, ts.f2)
   }
 
   implicit class _PartialTypingJudgmentST(f1: SymTree) {
-    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpTreeToFunExp(f1), _funExpTreeToFunExp(f2))
+    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f1), _funExpMetaTreeToFunExpMeta(f2))
     def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpTreeToFunExp(f1), ts.f1, ts.f2)
   }
 
   implicit class _PartialTypingJudgment(f1: FunExpMetaTree) {
-    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpTreeToFunExp(f1), _funExpTreeToFunExp(f2))
-    def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpTreeToFunExp(f1), ts.f1, ts.f2)
+    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f1), _funExpMetaTreeToFunExpMeta(f2))
+    def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpMetaTreeToFunExpMeta(f1), ts.f1, ts.f2)
   }
 
   implicit def _toFunctionExpJudgment(f: FunctionExp) = FunctionExpJudgment(f)
