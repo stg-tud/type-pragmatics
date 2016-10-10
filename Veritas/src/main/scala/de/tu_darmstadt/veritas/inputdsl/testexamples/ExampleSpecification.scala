@@ -31,6 +31,7 @@ object ExampleSpecification {
   import SymTreeDSL._
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleJudgmentDSL._
+  import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
 
   val testtree1: SymNode = 'succ ('succ('nat, 'nat, 'succ ('nat)))
 
@@ -98,5 +99,14 @@ object ExampleSpecification {
   val ortest2: OrJudgment = OR (
     =>> (exists (~'C) | ('C |- 't :: 'T) && ('p('x) && 'q('x))) |
     =>> ('C |- 't :: 'T))
+
+  val axiomtest = axiom (
+    ===>("test")('C |- 't :: 'T))
+
+  val lemmatest = lemma (20,
+    ===>("test")('C |- 't :: 'T))
+
+  val testconsts = consts ('a ::> 'T, 'b ::> 'G)
+  val testdifferentconsts = differentconsts ('a ::> 'T)
 
 }

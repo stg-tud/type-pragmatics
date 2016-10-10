@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.inputdsl
 
-import de.tu_darmstadt.veritas.backend.ast.{DataType, DataTypeConstructor, SortRef}
+import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL.{SymLeaf, SymNode, SymTree}
 
 /**
@@ -68,5 +68,15 @@ object DataTypeDSL {
   implicit class _ConstrList(st: Seq[DataTypeConstructor]) {
     def |(next: SymTree): Seq[DataTypeConstructor] = st :+ _toDataTypeConstructor(next)
   }
+
+  //support for constant declarations
+  implicit class _PartialConstantDecl(cons: Symbol) {
+    def ::>(s: Symbol) = ConstDecl(cons.name, SortRef(s.name))
+  }
+
+  def consts(cds: ConstDecl*) = Consts(cds, false)
+
+  def differentconsts(cds: ConstDecl*) = Consts(cds, true)
+
 
 }
