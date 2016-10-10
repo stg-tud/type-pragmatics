@@ -71,23 +71,6 @@ object FunctionDSL {
 
     def :=(exp: FunctionExp) = FunctionEq(fn, functionPats, exp)
 
-    private def _funExpTreeToFunExp(exptree: FunExpMetaTree): FunctionExp = exptree match {
-      case FunExpTrue => FunctionExpTrue
-      case FunExpFalse => FunctionExpFalse
-      case VarLeaf(s) => FunctionExpVar(s.name)
-      case AppNode(s, children) => FunctionExpApp(s.name, children map {
-        _funExpTreeToFunExp(_)
-      })
-      case NotNode(child) => FunctionExpNot(_funExpTreeToFunExp(child))
-      case EqNode(left, right) => FunctionExpEq(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
-      case NeqNode(left, right) => FunctionExpNeq(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
-      case AndNode(left, right) => FunctionExpAnd(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
-      case OrNode(left, right) => FunctionExpOr(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
-      case BiImplNode(left, right) => FunctionExpBiImpl(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
-      case IfNode(guard, thenpart, elsepart) => FunctionExpIf(_funExpTreeToFunExp(guard), _funExpTreeToFunExp(thenpart), _funExpTreeToFunExp(elsepart))
-      case LetNode(s, bind, body) => FunctionExpLet(s.name, _funExpTreeToFunExp(bind), _funExpTreeToFunExp(body))
-    }
-
     def :=(exptree: FunExpTree) = FunctionEq(fn, functionPats, _funExpTreeToFunExp(exptree))
 
     //required extra support for function equations with just one symbol
@@ -169,6 +152,23 @@ object FunctionDSL {
     case class _PartialLet2(s: Symbol, bind: FunExpMetaTree) {
       def in(body: FunExpMetaTree) = LetNode(s, bind, body)
     }
+  }
+
+  def _funExpTreeToFunExp(exptree: FunExpMetaTree): FunctionExp = exptree match {
+    case FunExpTrue => FunctionExpTrue
+    case FunExpFalse => FunctionExpFalse
+    case VarLeaf(s) => FunctionExpVar(s.name)
+    case AppNode(s, children) => FunctionExpApp(s.name, children map {
+      _funExpTreeToFunExp(_)
+    })
+    case NotNode(child) => FunctionExpNot(_funExpTreeToFunExp(child))
+    case EqNode(left, right) => FunctionExpEq(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+    case NeqNode(left, right) => FunctionExpNeq(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+    case AndNode(left, right) => FunctionExpAnd(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+    case OrNode(left, right) => FunctionExpOr(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+    case BiImplNode(left, right) => FunctionExpBiImpl(_funExpTreeToFunExp(left), _funExpTreeToFunExp(right))
+    case IfNode(guard, thenpart, elsepart) => FunctionExpIf(_funExpTreeToFunExp(guard), _funExpTreeToFunExp(thenpart), _funExpTreeToFunExp(elsepart))
+    case LetNode(s, bind, body) => FunctionExpLet(s.name, _funExpTreeToFunExp(bind), _funExpTreeToFunExp(body))
   }
 
 

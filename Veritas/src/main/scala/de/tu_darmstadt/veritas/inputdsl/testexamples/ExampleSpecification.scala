@@ -29,6 +29,8 @@ object ExampleSpecification {
   import DataTypeDSL._
   import FunctionDSL._
   import SymTreeDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleJudgmentDSL._
 
   val testtree1: SymNode = 'succ ('succ('nat, 'nat, 'succ ('nat)))
 
@@ -69,5 +71,32 @@ object ExampleSpecification {
 
   val lettest: Functions = function ('plus.>>('nat, 'nat) -> 'nat)
   ('plus('x, 'y) := (let ('rec) := 'succ('plus('x, 'y))) in (iff ('y === 'zero) th 'x els 'rec))
+
+  val tjtest: TypingRuleJudgment = 'C |- 't :: 'T
+  val tjstest: TypingJudgmentSimple = 't :: 'T
+
+  val fjtest: FunctionExpJudgment = 'p('x) && 'q('x)
+
+  val existstest: ExistsJudgment = exists (~'C) | ('C |- 't :: 'T) && ('p('x) && 'q('x))
+  val foralltest: ForallJudgment = forall (~'C, ~'t, ~'T) | ('C |- 't :: 'T)
+
+  val premempty: TypingRule = ===>("test")('C |- 't :: 'T)
+  val typingruletest: TypingRule = ('C |- 't :: 'T).===>("test")('C |- 't :: 'T)
+  val typingruletest1: TypingRule =
+    ('C |- 't :: 'T
+      ).===>("test")(
+    ('C |- 't :: 'T) &&
+    ('C |- 't :: 'T))
+  val typingruletest2: TypingRule =
+    (('C |- 't :: 'T) &&
+      ('C |- 't :: 'T)
+      ).===>("test")(
+      'C |- 't :: 'T)
+
+  val ortest: OrJudgment = OR (=>> ('C |- 't :: 'T))
+  val ortest1: OrJudgment = OR (=>> (('C |- 't :: 'T) && ('C |- 't :: 'T)))
+  val ortest2: OrJudgment = OR (
+    =>> (exists (~'C) | ('C |- 't :: 'T) && ('p('x) && 'q('x))) |
+    =>> ('C |- 't :: 'T))
 
 }
