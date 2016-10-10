@@ -1,9 +1,8 @@
-package de.tu_darmstadt.veritas.inputdsl
+package de.tu_darmstadt.veritas.inputdsl.testexamples
 
-import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import java.io.PrintWriter
 
-import de.tu_darmstadt.veritas.inputdsl.testexamples.{ExampleSpecification, SQLDefs}
+import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
 object Test {
   
