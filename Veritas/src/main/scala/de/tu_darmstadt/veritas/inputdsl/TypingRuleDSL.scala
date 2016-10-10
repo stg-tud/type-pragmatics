@@ -91,8 +91,6 @@ object TypingRuleJudgmentDSL {
     def &&(next: TypingRuleJudgment): Seq[TypingRuleJudgment] = jdgs :+ next
   }
 
-
-  //TODO support OrJudgments
   def OR(orcases: Seq[Seq[TypingRuleJudgment]]) = OrJudgment(orcases)
 
   def =>> (tjdg: TypingRuleJudgment) = Seq(Seq(tjdg))
