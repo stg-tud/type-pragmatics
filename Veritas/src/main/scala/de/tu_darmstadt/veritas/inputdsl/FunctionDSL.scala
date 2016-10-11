@@ -87,7 +87,12 @@ object FunctionDSL {
     def ~=(rexp: FunExpMetaTree) = NeqNode(this, rexp)
   }
 
-  case class MVarNode(mv: MetaVar) extends FunExpMetaTree
+
+  implicit class MVSymbol(s: Symbol) {
+    def unary_~ : MVarNode = MVarNode(MetaVar(s.name))
+  }
+
+  case class MVarNode(mv: MetaVar) extends FunExpMetaTree with SymTree
 
   abstract class FunExpTree extends FunExpMetaTree {
     def unary_! = NotNode(this)
@@ -138,6 +143,7 @@ object FunctionDSL {
     case class _PartialIf2(gexp: FunExpTree, texp: FunExpMetaTree) {
       def els(elexp: FunExpMetaTree) = IfNode(gexp, texp, elexp)
     }
+
   }
 
   def let(s: Symbol) = _PartialLet1(s)
@@ -148,17 +154,13 @@ object FunctionDSL {
     case class _PartialLet2(s: Symbol, bind: FunExpMetaTree) {
       def in(body: FunExpMetaTree) = LetNode(s, bind, body)
     }
+
   }
 
-  /*
-
-  implicit def _MVarNodetoFunExpMeta(mv: MVarNode): FunctionExpMeta = mv match {
-    case MVarNode(mv) => FunctionMeta(mv)
-  } */
 
   def _funExpMetaTreeToFunExpMeta(mexptree: FunExpMetaTree): FunctionExpMeta = mexptree match {
     case MVarNode(mv) => FunctionMeta(mv)
-    case e : FunExpTree => _funExpTreeToFunExp(e)
+    case e: FunExpTree => _funExpTreeToFunExp(e)
   }
 
   def _funExpTreeToFunExp(exptree: FunExpTree): FunctionExp = exptree match {
@@ -177,7 +179,6 @@ object FunctionDSL {
     case IfNode(guard, thenpart, elsepart) => FunctionExpIf(_funExpTreeToFunExp(guard), _funExpMetaTreeToFunExpMeta(thenpart), _funExpMetaTreeToFunExpMeta(elsepart))
     case LetNode(s, bind, body) => FunctionExpLet(s.name, _funExpMetaTreeToFunExpMeta(bind), _funExpMetaTreeToFunExpMeta(body))
   }
-
 
 
 }

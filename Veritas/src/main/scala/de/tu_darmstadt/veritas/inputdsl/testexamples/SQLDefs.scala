@@ -13,7 +13,6 @@ object SQLDefs {
   import FunctionDSL._
   import SymTreeDSL._
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
-  import de.tu_darmstadt.veritas.inputdsl.TypingRuleJudgmentDSL._
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
 
   //module Table
@@ -431,7 +430,7 @@ object SQLDefs {
             th 'someQuery ('Union ('getQuery ('q1reduce), 'q2))
             els 'noQuery)) |
       ('reduce ('Intersection ('tvalue ('table ('al1, 'rt1)), 'tvalue ('table ('al2, 'rt2))), 'ts) :=
-        ('someQuery ('tvalue ('table ('al1, 'rawIntersection ('rt1, 'rt2)))))) |
+        'someQuery ('tvalue ('table ('al1, 'rawIntersection ('rt1, 'rt2))))) |
       ('reduce ('Intersection ('tvalue ('t), 'sql2), 'ts) :=
         (let('sql2reduce) := 'reduce ('sql2, 'ts)) in
           (iff('isSomeQuery ('sql2reduce))
@@ -519,56 +518,63 @@ object SQLDefs {
       ('tcheckPred ('gt ('e1, 'e2), 'tt) :=
         ((let('t1) := 'typeOfExp ('e1, 'tt)) in
           ((let('t2) := 'typeOfExp ('e2, 'tt)) in
-            (('isSomeFType ('t1) && 'isSomeFType ('t2) && ('getFType ('t1) === 'getFType ('t2))))))) |
+            'isSomeFType ('t1) && 'isSomeFType ('t2) && ('getFType ('t1) === 'getFType ('t2))))) |
       ('tcheckPred ('lt ('e1, 'e2), 'tt) :=
         ((let('t1) := 'typeOfExp ('e1, 'tt)) in
           ((let('t2) := 'typeOfExp ('e2, 'tt)) in
             ('isSomeFType ('t1) && 'isSomeFType ('t2) && ('getFType ('t1) === 'getFType ('t2))))))
 
-  /*
+
   //axioms on behavior of table type context
   val TTTContextDuplicate = axiom(
-    ((~'x === ~'y) &&
-      ('bindContext(~'x, ~'Tx, 'bindContext(~'y, ~'Ty, ~'C)) |- ~'e :: ~'T)
-      ).=====("T-TTContext-Duplicate")(
-      ('bindContext (~'x, ~'Tx, ~'C) |- ~'e :: (~'T))
-  ))
+    ((~'x === ~'y) &
+      ('bindContext (~'x, ~'Tx, 'bindContext (~'y, ~'Ty, ~'C)) |- ~'e :: ~'T)
+      ).===>("T-TTContext-Duplicate")(
+      'bindContext (~'x, ~'Tx, ~'C) |- ~'e :: (~'T)
+    ))
 
   val TTTContextSwap = axiom(
-    ~ x != ~ y
-  bindContext(~x, ~Tx, bindContext(~y, ~Ty, ~C)) |- ~e: ~ T
-    ================================================ T - TTContext - Swap
-    bindContext (~y, ~Ty, bindContext(~x, ~Tx, ~C)) |- ~ e: ~ T
+    ((~'x ~= ~'y) &
+      ('bindContext (~'x, ~'Tx, 'bindContext (~'y, ~'Ty, ~'C)) |- ~'e :: ~'T)
+      ).===>("T-TTContext-Swap")(
+      'bindContext (~'y, ~'Ty, 'bindContext (~'x, ~'Tx, ~'C)) |- ~'e :: ~'T
+    ))
 
-
-
-    axioms
   //a table value with a well-typed table is typable
-  welltypedtable(~TT, table(~al, ~rt))
-  ====================================== T -tvalue
-  ~TTC |- tvalue(table(~al, ~rt)): ~ TT
+  val Ttvalue = axiom(
+    'welltypedtable (~'TT, 'table (~'al, ~'rt)
+    ).===>("T-tvalue")(
+      ~'TTC |- 'tvalue ('table (~'al, ~'rt)) :: ~'TT
+    ))
 
-    lookupContext (~tn, ~TTC) == someTType (~TT)
-  tcheckPred(~p, ~TT)
-  projectType(~sel, ~TT) == someTType(~TTr)
-  =============================================== T -SelectFromWhere
-  ~TTC |- selectFromWhere(~sel, ~tn, ~p): ~ TTr
+  val TSelectFromWhere = axiom(
+    (('lookupContext (~'tn, ~'TTC) === 'someTType (~'TT)) &
+      ('tcheckPred (~'p, ~'TT)) &
+      ('projectType (~'sel, ~'TT) === 'someTType (~'TTr))
+      ).===>("T-SelectFromWhere")(
+      ~'TTC |- 'selectFromWhere (~'sel, ~'tn, ~'p) :: ~'TTr
+    )
+  )
 
-    ~ TTC |- ~ q1: ~TT
-  ~TTC |- ~q2: ~ TT
-    ============================================ T - Union
-    ~ TTC |- Union (~ q1, ~ q2): ~TT
+  val TUnion = axiom(
+    ((~'TTC |- ~'q1 :: ~'TT) &
+      (~'TTC |- ~'q2 :: ~'TT)
+      ).===>("T-Union")(
+      ~'TTC |- 'Union (~'q1, ~'q2) :: ~'TT
+    ))
 
-  ~TTC |- ~q1: ~ TT
-    ~ TTC |- ~ q2: ~TT
-  ============================================ T -Intersection
-  ~TTC |- Intersection(~q1, ~q2): ~ TT
+  val TIntersection = axiom(
+    ((~'TTC |- ~'q1 :: ~'TT) &
+      (~'TTC |- ~'q2 :: ~'TT)
+      ).===>("T-Intersection")(
+      ~'TTC |- 'Intersection (~'q1, ~'q2) :: ~'TT)
+  )
 
-    ~ TTC |- ~ q1: ~TT
-  ~TTC |- ~q2: ~ TT
-    ============================================ T - Difference
-    ~ TTC |- Difference (~ q1, ~ q2): ~TT
+  val TDifference = axiom(
+    ((~'TTC |- ~'q1 :: ~'TT) &
+      (~'TTC |- ~'q2 :: ~'TT)
+      ).===>("T-Difference")(
+      ~'TTC |- 'Difference (~'q1, ~'q2) :: ~'TT
+    ))
 
-
-  */
 }

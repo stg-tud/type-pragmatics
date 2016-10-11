@@ -30,7 +30,6 @@ object ExampleSpecification {
   import FunctionDSL._
   import SymTreeDSL._
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
-  import de.tu_darmstadt.veritas.inputdsl.TypingRuleJudgmentDSL._
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
 
   val testtree1: SymNode = 'succ ('succ('nat, 'nat, 'succ ('nat)))
@@ -50,7 +49,7 @@ object ExampleSpecification {
   val funeqtest2: FunctionEq = 'plus('x, 'succ('y)) := FunctionExpApp("succ", Seq(FunctionExpApp("plus", Seq(FunctionExpVar("x"), FunctionExpVar("y")))))
   val funeqtest2a: FunctionEq = 'plus('x, 'succ('y)) := 'succ('plus('x, 'y))
 
-  val mvtest: MetaVar = ~'bla
+  val mvtest: MVarNode = ~'bla
 
   val funexpeqtest: FunExpTree = 'x === 'p('y)
   val funexpneqtest: FunExpTree = 'x ~= 'y
@@ -78,7 +77,7 @@ object ExampleSpecification {
 
   val fjtest: FunctionExpJudgment = 'p('x) && 'q('x)
 
-  val existstest: ExistsJudgment = exists (~'C) | ('C |- 't :: 'T) && ('p('x) && 'q('x))
+  val existstest: ExistsJudgment = exists (~'C) | ('C |- 't :: 'T) & ('p('x) && 'q('x))
   val foralltest: ForallJudgment = forall (~'C, ~'t, ~'T) | ('C |- 't :: 'T)
 
   val premempty: TypingRule = ===>("test")('C |- 't :: 'T)
@@ -86,18 +85,18 @@ object ExampleSpecification {
   val typingruletest1: TypingRule =
     ('C |- 't :: 'T
       ).===>("test")(
-    ('C |- 't :: 'T) &&
+    ('C |- 't :: 'T) &
     ('C |- 't :: 'T))
   val typingruletest2: TypingRule =
-    (('C |- 't :: 'T) &&
+    (('C |- 't :: 'T) &
       ('C |- 't :: 'T)
       ).===>("test")(
       'C |- 't :: 'T)
 
   val ortest: OrJudgment = OR (=>> ('C |- 't :: 'T))
-  val ortest1: OrJudgment = OR (=>> (('C |- 't :: 'T) && ('C |- 't :: 'T)))
+  val ortest1: OrJudgment = OR (=>> (('C |- 't :: 'T) & ('C |- 't :: 'T)))
   val ortest2: OrJudgment = OR (
-    =>> (exists (~'C) | ('C |- 't :: 'T) && ('p('x) && 'q('x))) |
+    =>> (exists (~'C) | ('C |- 't :: 'T) & ('p('x) && 'q('x))) |
     =>> ('C |- 't :: 'T))
 
   val axiomtest = axiom (
@@ -108,5 +107,13 @@ object ExampleSpecification {
 
   val testconsts = consts ('a ::> 'T, 'b ::> 'G)
   val testdifferentconsts = differentconsts ('a ::> 'T)
+
+  val metavartest = 'f(~'a, ~'b)
+  val metavartest2 = 'f(~'a, ~'b) === 'g(~'b)
+
+  val tpjmetavartest = ~'t :: ~'T
+  val tpjmetavartest2 : TypingRuleJudgment = ~'C |- ~'t :: ~'T
+  
+  val morecomplexmetavartest: TypingJudgment = 'bindContext(~'x, ~'Tx, 'bindContext(~'y, ~'Ty, ~'C)) |- ~'e :: ~'T
 
 }
