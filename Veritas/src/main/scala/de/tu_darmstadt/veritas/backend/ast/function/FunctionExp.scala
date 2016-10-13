@@ -8,8 +8,6 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
-import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
 import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
 
 sealed trait FunctionExpMeta extends VeritasConstruct with PrettyPrintable

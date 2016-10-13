@@ -4,7 +4,6 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
-import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
 
 case class MetaVar(name: String) extends VeritasConstruct with SimplePrettyPrintable with Typeable {

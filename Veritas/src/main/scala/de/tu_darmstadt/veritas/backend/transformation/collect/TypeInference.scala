@@ -1,7 +1,6 @@
 package de.tu_darmstadt.veritas.backend.transformation.collect
 
 import TypeInference._
-import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.ast._

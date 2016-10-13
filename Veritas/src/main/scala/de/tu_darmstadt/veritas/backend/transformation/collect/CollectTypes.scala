@@ -1,12 +1,8 @@
 package de.tu_darmstadt.veritas.backend.transformation.collect
 
-import de.tu_darmstadt.veritas.backend.fof._
-import de.tu_darmstadt.veritas.backend.tff._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 
 trait CollectTypes extends ModuleTransformation {
   //TODO: do we allow different data types declarations with the same name?
