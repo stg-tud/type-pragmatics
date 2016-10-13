@@ -102,8 +102,7 @@ object ExampleSpecification {
   val axiomtest = axiom (
     ===>("test")('C |- 't :: 'T))
 
-  val lemmatest = lemma (20,
-    ===>("test")('C |- 't :: 'T))
+  val lemmatest = lemma (20) (===>("test")('C |- 't :: 'T))
 
   val testconsts = consts ('a ::> 'T, 'b ::> 'G)
   val testdifferentconsts = differentconsts ('a ::> 'T)

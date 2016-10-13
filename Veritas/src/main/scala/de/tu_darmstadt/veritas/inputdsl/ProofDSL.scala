@@ -12,11 +12,21 @@ object ProofDSL {
 
   def lemma(lem: TypingRule) = Lemmas(Seq(lem), None)
 
-  def lemma(timeout: Int, lem: TypingRule) = Lemmas(Seq(lem), Some(timeout))
+  def lemma(timeout: Int)(lem: TypingRule) = Lemmas(Seq(lem), Some(timeout))
 
   def goal(g: TypingRule) = Goals(Seq(g), None)
 
-  def goal(timeout: Int, g: TypingRule) = Goals(Seq(g), Some(timeout))
+  def goal(timeout: Int)(g: TypingRule) = Goals(Seq(g), Some(timeout))
 
-  def local(mds: Seq[ModuleDef]) = Local(mds)
+  def goal_verifywith(name: String)(g: TypingRule) = GoalsWithStrategy(name, Seq(g), None)
+
+  def goal_verifywith(timeout: Int)(name: String)(g: TypingRule) = GoalsWithStrategy(name, Seq(g), Some(timeout))
+
+  def local(mds: ModuleDef*) = Local(mds)
+
+  //TODO deal with non-empty Imports (do we need that?)
+  def strategy(name: String)(moddef: ModuleDef*) = Strategy(name, Seq(), moddef)
+
+  def hideall = HideAll
+
 }
