@@ -19,7 +19,6 @@ case class PrincessCascSlurmConfig() extends PrincessCascConfig {
     if (timeout > 0)
       call = call :+ ("-timeout=" + timeout.toString)
 
-    call = call :+ "+unsatCore"
     call = call :+ file.getAbsolutePath
     call
   }
@@ -41,7 +40,6 @@ class PrincessCascConfig()
     if (timeout > 0)
       call = call :+ ("-timeout=" + timeout.toString)
 
-    call = call :+ "+unsatCore"
     call = call :+ file.getAbsolutePath
     call
   }
