@@ -134,9 +134,11 @@ case class SlurmScriptMaker(proverconfigs: Seq[ProverConfig], provertimeout: Int
       val stderrpath = stdoutpath
       val inputpath = if (jobsize > 1) s"$inputpathHHLR$currentdate/${inputfilename}_$$$arrayindexref" else s"$inputpathHHLR$currentdate/${inputfilename}"
 
-      val provercall = (pc.makeCall(new File(inputpath), provertimeout, false))
-      val provercallHHLR = proverpath + provercall(0).split("/").last + " " + provercall.drop(1).mkString(" ")
+      val moduleloads = pc.modulesToLoad.map("module load " + _).mkString("\n") + "\n"
+      val provercall = pc.makeCall(new File(inputpath), provertimeout, false)
+      val provercallHHLR = pc.createProverCallHHlr(proverpath, provercall)
 
+      println(moduleloads + provercallHHLR)
 
       val slurmjob = SlurmScript(jobname, stdoutpath, stderrpath, timeoutbuffer, provercallHHLR, arraymax)
       slurmjob.writeScriptToFile(pathforHHLRJobscripts + jobname)
