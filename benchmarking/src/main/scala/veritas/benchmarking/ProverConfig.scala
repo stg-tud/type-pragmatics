@@ -5,7 +5,7 @@ import java.io._
 import scopt.OptionParser
 import veritas.benchmarking.beagle.BeagleConfig
 import veritas.benchmarking.vampire.{VampireConfig, VampireTraceAnalisis, VampireTraceAnalisisOptions}
-import veritas.benchmarking.princess.{PrincessCascConfig, PrincessCascSlurmConfig, PrincessStandardConfig}
+import veritas.benchmarking.princess.{PrincessCascConfig, PrincessCascSlurmConfig, PrincessStandardConfig, PrincessStandardSlurmConfig}
 import veritas.benchmarking.eprover.EproverConfig
 
 import scala.sys.process.{FileProcessLogger, ProcessLogger}
@@ -138,7 +138,8 @@ object ProverConfig {
 
   _configs += "princess" -> new PrincessCascConfig()
   _configs += "princessSlurm" -> PrincessCascSlurmConfig()
-  _configs += "princess-standard" -> PrincessStandardConfig()
+  _configs += "princessSlurm-standard" -> PrincessStandardSlurmConfig()
+  _configs += "princess-standard" -> new PrincessStandardConfig
   _configs += "eprover" -> EproverConfig()
   //_configs += "beagle" -> BeagleConfig() //doesn't work yet
 

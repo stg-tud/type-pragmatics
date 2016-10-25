@@ -138,9 +138,8 @@ case class SlurmScriptMaker(proverconfigs: Seq[ProverConfig], provertimeout: Int
       val provercall = pc.makeCall(new File(inputpath), provertimeout, false)
       val provercallHHLR = pc.createProverCallHHlr(proverpath, provercall)
 
-      println(moduleloads + provercallHHLR)
 
-      val slurmjob = SlurmScript(jobname, stdoutpath, stderrpath, timeoutbuffer, provercallHHLR, arraymax)
+      val slurmjob = SlurmScript(jobname, stdoutpath, stderrpath, timeoutbuffer, moduleloads + provercallHHLR, arraymax)
       slurmjob.writeScriptToFile(pathforHHLRJobscripts + jobname)
     }
   }
