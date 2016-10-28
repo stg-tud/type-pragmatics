@@ -56,9 +56,20 @@ object Backend {
   val consistencyOnlyTest = PartialVariability(Map(Problem -> Seq(Problem.Consistency)))
 
   /**
+    * This is the variability model for the extended journal study.
+    */
+  val journalStudyvarmod = PartialVariability(
+    Map(FinalEncoding -> Seq(FinalEncoding.BareFOF, FinalEncoding.GuardedFOF, FinalEncoding.TFF) ,
+    Problem -> Seq(Problem.Proof, Problem.Test, Problem.Counterexample, Problem.Execution, Problem.Synthesis),
+    VariableEncoding -> Seq(VariableEncoding.Unchanged, VariableEncoding.InlineEverything, VariableEncoding.NameEverything, VariableEncoding.NameParamsAndResults),
+    Simplification -> Seq(Simplification.None, Simplification.Logical, Simplification.LogicalAndConstructors),
+    Selection -> Seq(Selection.SelectAll, Selection.SelectUsedDepthFive, Selection.SelectUsedFP)))
+
+
+  /**
    * This variability model is used by the code below
    */
-  val variabilityModel = fullVariability //runs for at least several minutes!
+  val variabilityModel = journalStudyvarmod //runs for at least several minutes!
   //val variabilityModel = onlyGuardedFOFTest
 
   /**
