@@ -412,7 +412,7 @@ object NameEverythingButMetaVarsSubstituteNothing extends NameSubformulas {
  */
 object NameFunctionResultsOnly extends NameSubformulas {
   override def checkConstruct(vc: VeritasConstruct): Boolean = {
-    if (super.checkConstruct(vc)) {
+    if (super.checkConstruct(vc) && path.isDefinedAt(2)) {
       //only rename right-hand side of single equation in conclusion
       val grandgrandparent = path(2)
 
@@ -433,7 +433,7 @@ object NameFunctionResultsOnly extends NameSubformulas {
  */
 object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with CollectTypes {
   override def checkConstruct(vc: VeritasConstruct): Boolean = {
-    if (super.checkConstruct(vc)) {
+    if (super.checkConstruct(vc) && path.isDefinedAt(0) && path.isDefinedAt(1)) {
       //only rename in left-hand side of single equation in conclusion!
       val parent = path(0)
       val grandparent = path(1)
