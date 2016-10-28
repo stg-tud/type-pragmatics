@@ -36,7 +36,7 @@ if ! test "$timeout" ; then
 fi
 
 if ! test "$pathToCompiledSQLFiles" ; then
-    echo "Path to directory of encodings is obligatory (-d)"
+    echo "Path to directory of encodings is obligatory (-p)"
     exitLater=true
 fi
 
@@ -65,7 +65,7 @@ jobscripts=jobscripts.7z
 # zip proverinput (7z)
 pathToProverInputFiles=datasets/HHLRInputFiles
 proverinput=proverinput.7z
-now=`date +"%Y-%m-%d"`
+now=$(date +%Y-%m-%d)
 7z a $proverinput ${pathToProverInputFiles}/${now}
 
 # upload via sftp
@@ -91,3 +91,6 @@ mkdir $now
 7z e ${proverinput} -o${now} -aoa
 exit
 SSH
+
+#createDirs=`ssh $sshPath "for p in ${provers[@]}; do mkdir -p /work/scratch/groups/projects/${projectID}/2016-10-27/${timeout}s/${p}; done"`
+#echo "$createDirs"
