@@ -54,11 +54,11 @@ fi
 # sort logs
 for prover in "${provers[@]}"
 do
-    sbt "run --sortHHLRoutput ${pathToLogs}/${timeout}s/${prover} ${pathToCompiledFiles}"
+    sbt "run --sortHHLRoutput ${pathToLogs}/${timeout}s/${prover} ${pathToCompiledSQLFiles}"
 done
 
 # summarize
-sbt -mem 20148 "run --logxls ${summariesDir}/summary-raw.xls --logoverviewxls ${summariesDir}/summary-overview.xls --summarizelogs ${pathToLogs}"
+sbt -mem 2048 "run --logxls ${summariesDir}/summary-raw.xls --logoverviewxls ${summariesDir}/summary-overview.xls --summarizelogs ${pathToLogs}"
 
 # layout
 sbt "run --layoutData ${summariesDir}"
