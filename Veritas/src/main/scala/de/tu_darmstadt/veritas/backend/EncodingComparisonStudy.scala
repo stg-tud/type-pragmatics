@@ -126,9 +126,9 @@ object SimplificationTrans extends Alternative(selectConfig(Simplification) {
 })
 
 object SelectionTrans extends AlternativeSelection(selectConfig(Selection) {
-  case Selection.SelectAll => SelectEverything
-  case Selection.SelectUsedDepthFive => UsedAxiomSelection(5)
-  case Selection.SelectUsedFP => UsedAxiomsFP
+  //case Selection.SelectUsedDepthFive => UsedAxiomSelection(5)
+  case Selection.SelectUsedFP | Selection.NoInversionSelectUsedFP => UsedAxiomsFP
+  case _ => SelectEverything
 })
 
 object MainTrans extends SeqTrans(
@@ -137,7 +137,10 @@ object MainTrans extends SeqTrans(
   FunctionTrans,
   // determines whether and which inversion axioms are generated for functions/typing rules
   // update: always generate function inversion axioms!
-  TotalFunctionInversionAxioms, // ignored: InversionAll
+  Alternative(selectConfig(Selection) {
+    case Selection.NoInversion | Selection.NoInversionSelectUsedFP => Identity
+    case _ => TotalFunctionInversionAxioms
+  }),
   // generate ground guards for some problems
   Alternative(selectConfig(Problem) {
     case Problem.Execution | Problem.Counterexample | Problem.Synthesis =>

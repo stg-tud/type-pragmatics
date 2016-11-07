@@ -63,7 +63,7 @@ object Backend {
     Problem -> Seq(Problem.Proof, Problem.Test, Problem.Counterexample, Problem.Execution, Problem.Synthesis),
     VariableEncoding -> Seq(VariableEncoding.Unchanged, VariableEncoding.InlineEverything, VariableEncoding.NameEverything, VariableEncoding.NameParamsAndResults),
     Simplification -> Seq(Simplification.None, Simplification.Logical, Simplification.LogicalAndConstructors),
-    Selection -> Seq(Selection.SelectAll, Selection.SelectUsedDepthFive, Selection.SelectUsedFP)))
+    Selection -> Seq(Selection.SelectAll, Selection.NoInversion, Selection.SelectUsedFP, Selection.NoInversionSelectUsedFP)))
 
 
   /**
