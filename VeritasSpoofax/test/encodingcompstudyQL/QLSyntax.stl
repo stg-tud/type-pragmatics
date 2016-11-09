@@ -1,0 +1,59 @@
+module encodingcompstudyQL.QLSyntax
+
+import encodingcompstudyQL.BasicTypes
+
+// question identifiers
+open data QID
+
+// label (text) of questions, underspecified
+open data Label
+
+//answer type for questions
+data AType = YesNo | Number | Text
+
+//list of answer types
+data ATList = atempty | atcons(AType, ATList)
+	
+// expressions for conditional
+open data Exp
+//TODO refine
+
+//questionnaire expressions
+data Quest = 
+	qempty |
+	question(QID, AType, Label) |
+	seq(Quest, Quest) |
+	condquestion(Exp, Quest, Quest)
+	
+// sum type for answers 
+data Av = B(YN) | Num(nat) | T(string)
+
+// list of answers (input list)
+data AvList = avempty | avcons(Av, AvList)
+
+// map of answers to questions
+data AnsMap = aempty | abind(QID, Av, AnsMap)
+
+
+//will probably primarily use this to attach one element to the end of an AnsMap
+//maybe specify a more specialized function for this?
+function 
+appendAnsMap : AnsMap AnsMap -> AnsMap
+appendAnsMap(aempty, am) = am
+appendAnsMap(abind(qid, av, am), aml) = abind(qid, av, appendAnsMap(am, aml))
+
+//main expressions: combination of AnsMap (of already given answers) and remaining questions
+//this is the expression to be reduced!
+data QuestConfExp = C(AnsMap, Quest)
+
+function
+getAM : QuestConfExp -> AnsMap
+getAM(C(am, q)) = am
+
+function
+getQuest : QuestConfExp -> Quest
+getQuest(C(am, q)) = q
+
+
+
+

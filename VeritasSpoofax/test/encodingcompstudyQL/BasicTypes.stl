@@ -1,0 +1,13 @@
+module encodingcompstudyQL.BasicTypes
+
+//natural numbers
+data nat = zero | succ(nat)
+
+//yes/no (extra type for boolean)
+data YN = yes | no
+
+//underspecified type "chars"
+open data char
+
+//"strings" (list of chars)
+data string = sempty | scons(char, string)
