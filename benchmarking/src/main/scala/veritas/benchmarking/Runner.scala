@@ -6,6 +6,7 @@ import java.util.{Calendar, Date}
 import java.util.concurrent.Executors
 
 import veritas.benchmarking.Main.Config
+import veritas.benchmarking.util.FileUtil
 
 import scala.collection.parallel.ExecutionContextTaskSupport
 import scala.concurrent.ExecutionContext
@@ -215,15 +216,13 @@ case class Runner(config: Config) {
           if (File.separator == "\\") "\\\\"
           else File.separator
         val splitinputname = correspondinginput.split(fileSeparator)
-        val relevantnamepart = splitinputname.takeRight(5).mkString(fileSeparator)
-
+        val relevantnamepart = splitinputname.takeRight(6).mkString(fileSeparator)
         val destfile = new File(s"$filepath/${relevantnamepart}.proof")
 
         if (!destfile.getParentFile.exists())
           destfile.getParentFile.mkdirs()
 
-        new FileOutputStream(destfile) getChannel() transferFrom(new FileInputStream(hhlr) getChannel, 0, Long.MaxValue)
-
+        FileUtil.copyContentOfFile(hhlr, destfile)
         //afterwards, delete HHLR-file
         //flatIndexFileMap(index).delete()
 

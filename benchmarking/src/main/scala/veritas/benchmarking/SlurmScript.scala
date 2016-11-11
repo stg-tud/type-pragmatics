@@ -4,6 +4,8 @@ import java.io.{File, FileInputStream, FileOutputStream, PrintWriter}
 import java.text.SimpleDateFormat
 import java.util.Date
 
+import veritas.benchmarking.util.FileUtil
+
 
 /**
   * Class for printing a standard SLURM jobscript which can be run on the HHLR
@@ -120,7 +122,7 @@ case class SlurmScriptMaker(proverconfigs: Seq[ProverConfig], provertimeout: Int
       val destfile = new File(s"$pathforHHLRInput${inputfilename}_$i")
       if (!destfile.getParentFile.exists())
         destfile.getParentFile.mkdirs()
-      new FileOutputStream(destfile) getChannel() transferFrom(new FileInputStream(f) getChannel, 0, Long.MaxValue)
+      FileUtil.copyContentOfFile(f, destfile)
     }
 
   }
