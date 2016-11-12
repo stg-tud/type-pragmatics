@@ -14,7 +14,7 @@ import veritas.benchmarking.util.FileUtil
   * @param arraymaxindex : if script is a jobarray: maximum index of array (if not, pass 0)
   * @param commands      : complete command for calling a prover
   */
-case class SlurmScript(jobname: String, stdoutpath: String, stderrpath: String, timeout: Int, commands: String, arraymaxindex: Int = 0) {
+case class SlurmScript(jobname: String, stdoutpath: String, stderrpath: String, timeout: Int, commands: String, srunCommands: String, arraymaxindex: Int = 0) {
 
   // fixed script values, adapt if necessary
   val scripttag = "#SBATCH"
@@ -30,7 +30,7 @@ case class SlurmScript(jobname: String, stdoutpath: String, stderrpath: String, 
   val mempercpu = 2000
   //in MB
   val features = "avx2"
-  val benchmark_conf = "fixfreq" //values: "" - no special partition, "benchmark": exclusive use of nodes, "fixfreq": use nodes in benchmark partition, but no exclusive node use per job
+  val cpufreqConf = "highm1" // should prevent Turboboost
 
   //format timeout in seconds as hh:mm:ss
   private def timeoutToFormat(): String = {
@@ -79,9 +79,10 @@ case class SlurmScript(jobname: String, stdoutpath: String, stderrpath: String, 
            |$scripttag -C $features
       """.stripMargin
 
-      val benchmark = if (benchmark_conf != "") s"""\n$scripttag -p $benchmark_conf \n""" else ""
+      val cpufreq = if (cpufreqConf != "") s"""\n$scripttag --cpu-freq=$cpufreqConf \n""" else ""
       val calcindex = if (arraymaxindex == 0) s"$filenumber=$$SLURM_ARRAY_TASK_ID\n" else s"$filenumber=$$(($i*1000+SLURM_ARRAY_TASK_ID))\n"
-      scriptheader + arrayconf + config + benchmark + calcindex + commands + "\n"
+      val srunPrefixCommands = if (cpufreqConf != "") srunCommands.split("\n").map("srun " + _).mkString("\n")
+      scriptheader + arrayconf + config + cpufreq + calcindex + commands + srunPrefixCommands + "\n"
     }
 
   }
@@ -141,7 +142,7 @@ case class SlurmScriptMaker(proverconfigs: Seq[ProverConfig], provertimeout: Int
       val provercallHHLR = pc.createProverCallHHlr(proverpath, provercall)
 
 
-      val slurmjob = SlurmScript(jobname, stdoutpath, stderrpath, timeoutbuffer, moduleloads + provercallHHLR, arraymax)
+      val slurmjob = SlurmScript(jobname, stdoutpath, stderrpath, timeoutbuffer, moduleloads, provercallHHLR, arraymax)
       slurmjob.writeScriptToFile(pathforHHLRJobscripts + jobname)
     }
   }
