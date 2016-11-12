@@ -154,7 +154,7 @@ case class Runner(config: Config) {
         if (File.separator == "\\") "\\\\"
         else File.separator
       val pathParts = fp.split(fileSeparator)
-      val configname = pathParts(pathParts.length - 6)
+      val configname = pathParts(pathParts.length - 7)
       //assemble configuration from last two parts of path
       ProverConfig.configs(configname)
     }
@@ -168,7 +168,7 @@ case class Runner(config: Config) {
         if (File.separator == "\\") "\\\\"
         else File.separator
       val pathParts = fp.split(fileSeparator)
-      val stimeout = pathParts(pathParts.length - 7)
+      val stimeout = pathParts(pathParts.length - 8)
       val timeout = stimeout.dropRight(1)
       timeout.toInt
     }
