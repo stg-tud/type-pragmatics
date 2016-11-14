@@ -29,21 +29,15 @@ if ! test "$pathToDownloadTo" ; then
     echo "Download path is obligatory (-p)"
     exitLater=true
 fi
-
 if [ "$exitLater" = true ] ; then
     exit 1
 fi
-timeout=120s
-date=2016-10-24
-username=ka64uwek
 cluster=lcluster9
 projectID=proj_184
 sshPath=${username}@${cluster}.hrz.tu-darmstadt.de
 
 ssh $sshPath << SSH
 cd /work/scratch/groups/projects/${projectID}
-pwd
-ls
 rm -f ${date}.7z
 7z a ${date}.7z ${date}
 exit
