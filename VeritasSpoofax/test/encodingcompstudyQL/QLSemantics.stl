@@ -2,65 +2,47 @@ module encodingcompstudyQL.QLSemantics
 
 import encodingcompstudyQL.QLSyntax
 
-//type for (intermediate) results (IR) of questionnaire reduction
-data IR = error | final(QuestConfExp) | part(QuestConfExp, AvList)
-
-function 
-IRsuccess: IR -> Bool
-IRsuccess(error) = false
-IRsuccess(final(qce)) = true
-IRsuccess(part(qce, avl)) = true
+data OptQC = noQC | someQC(QC)
 
 function
-IRfinal: IR -> Bool
-IRfinal(error) = false
-IRfinal(final(qce)) = true
-IRfinal(part(qce, avl)) = false
+isSomeQC : OptQC -> Bool
+isSomeQC(noQC) = false
+isSomeQC(someQC(qc)) = true
 
-//functions for decomposing an IR
-//important: sensible values for final results!
 partial function 
-getQuestIR : IR -> Quest
-getQuestIR(final(qce)) = getQuest(qce)
-getQuestIR(part(qce, avl)) = getQuest(qce)
+getQC : OptQC -> QC
+getQC(someQC(qc)) = qc
 
-partial function
-getAv : IR -> AvList
-getAv(final(am)) = aempty
-getAv(part(qce, avl)) = avl
-
-partial function
-getAmIR : IR -> AnsMap
-getAmIR(final(qce)) = getAM(qce)
-getAmIR(part(qce, avl)) = getAM(qce)
 
 //function for evaluating expressions
-//TODO
+//TODO: this function should fail if it does not find an answer in the given AnsMap...?!
+//just returning a bool would mean that the semantics cannot ever fail...
 function
 evalExp : Exp AnsMap -> Bool
 
+
+
 //main reduction function, for reducing configurations of answermaps and questionnaires to configurations of answermaps and questionnaires
-//arguments: QuestConfExp: (remaining) questionnaire configuration (in which AnswerMap contains all previously given answers, and quest is the remaining questionnaire)
-//AvList: remaining input answer values (consumed during reduction)
+//argument QC: (remaining) questionnaire configuration (in which AnsMap contains all previously given answers - and qb is the remaining questionnaire block)
+//returns: Option of QC (where AnsMap contains all answers to the previous questions, qb the remaining questionnaire block)
 function
-reduce: QuestConfExp AvList -> IR
-reduce(C(am, qempty), avempty) = final(C(am, qempty)) //success case
-reduce(C(am, qempty), av) = part(C(am, qempty), av) //case: too many answers (for this subexpression at least) - should this be an error case? - but then reduction of sequences will not work when seq(qempty,q) was already in input program!
-reduce(C(am, q), avempty) = error //error case: too few answers
-reduce(C(am, question(qid, at, l)), avcons(av, avempty)) = final(C(appendAnsMap(am, abind(qid, av, aempty)), qempty))
-//blindly consume an answer - should this dynamically fail if types are not correct?
-reduce(C(am, question(qid, at, l)), avcons(av, avr)) = part(C(appendAnsMap(am, abind(qid, av, aempty)), qempty), avr)
-reduce(C(am, seq(q1, q2)), av) = 
-	let ir1 = reduce(C(am, q1), av) in 
-		if (IRsuccess(ir1))
-		then let rquest = getQuestIR(ir1) in
-			let avr = getAv(ir1) in
-			let amr = getAmIR(ir1) in
-				if (rquest = qempty)
-				then part(C(amr,q2), avr)
-				else part(C(amr,seq(rquest, q2)), avr)
-		else error
-reduce(C(am, condquestion(e, q1, q2)), av) =
-	if (evalExp(e, am))
-	then part(C(am, q1), av)
-	else part(C(am, q2), av)
+reduce: QC -> OptQC
+reduce(C(am, qempty)) = noQC //cannot reduce value further
+reduce(C(am, qcons(question(qid, at, l), qbr))) =
+	//look up the correctly typed answer in the magic allAnswers function 
+	let ans = allAnswers(qid, at) in 
+		//preserve the order of the questions in the answer map?
+		//important for type preservation (alternatively, typing could reverse answermap...)
+		someQC(C(appendAnsMap(am, abind(qid, ans, aempty)), qbr))
+reduce(C(am, qseq(qb1, qb2))) = 
+	if (isValue(qb1))
+	then someQC(C(am, qb2))
+	else let reduceqb1 = reduce(C(am, qb1)) in
+			if (isSomeQC(reduceqb1))
+			then let qc1n = getQC(reduceqb1) in
+				someQC(C(getAM(qc1n), qseq(getQuest(qc1n), qb2)))
+			else noQC
+reduce(C(am, qcond(exp, qb1, qb2))) = 
+	if (evalExp(exp, am))
+	then someQC(C(am, qb1))
+	else someQC(C(am, qb2))

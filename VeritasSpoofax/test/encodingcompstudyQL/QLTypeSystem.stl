@@ -2,15 +2,21 @@ module encodingcompstudyQL.QLTypeSystem
 
 import encodingcompstudyQL.QLSyntax
 
+//TODO: type system should satisfy progress and preservation!
+//How to come up with a semantics + type system s.t. reduction does not change the type?
+//If the type of a question block is an ATMap, then evaluating the block "shortens" the type
+//IDEA: type of AnsMap ++ type of remaining question block does not change during evaluation 
+//(i.e. type of QC is always the same)
+//PROBLEM: How to deal with types of conditional blocks??
+
 //Type of a questionnaire: QID -> AType map of already given answers
 //also serves as environment type for previously given answers
 data ATMap = atmempty | atmbind(QID, AType, ATMap)
 	
-
 function 
-append: ATList ATList -> ATList
-append(atempty, atl) = atl
-append(atcons(at, atlr), atl) = atcons(at, append(atlr, atl))
+appendATMap : ATMap ATMap -> ATMap
+appendATMap(atmempty, atm) = atm
+appendATMap(atmbind(qid, av, atm), atml) = atmbind(qid, av, appendATMap(atm, atml))
 
 //not yet sure whether this is "nice" like this...
 //typing judgment: ATMap |- Quest : ATMap
@@ -30,7 +36,7 @@ axiom
 ~atm1 |- ~q1 : ~atm2
 ~atm2 |- ~q2 : ~atm3
 =========================================== T-seq
-~atm1 |- seq(~q1, ~q2) : append(~atm2, ~atm3)
+~atm1 |- qseq(~q1, ~q2) : appendATMap(~atm2, ~atm3)
 
 
 //for now, just enforce that both questions in a conditional branch have
@@ -43,4 +49,4 @@ axiom
 ~atm |- ~q1 : ~atm1
 ~atm |- ~q2 : ~atm1
 ============================================= T-condquestion
-~atm |- condquestion(~e, ~q1, ~q2) : ~atm1
+~atm |- qcond(~e, ~q1, ~q2) : ~atm1
