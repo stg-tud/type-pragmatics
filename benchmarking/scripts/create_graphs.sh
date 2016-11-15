@@ -9,7 +9,7 @@ while getopts "l:c:p:t:s:" opt; do
             provers+=("$OPTARG")
             ;;
         t)
-            timeout=$OPTARG
+            timeouts+=("$OPTARG")
             ;;
         p)
             pathToCompiledSQLFiles=$OPTARG
@@ -28,8 +28,8 @@ if ! test "$pathToLogs" ; then
     exitLater=true
 fi
 
-if ! test "$timeout" ; then
-    echo "Timeout is obligatory (-t)"
+if [ ${#timeouts[@]} -eq 0 ]; then
+    echo "At least one Timeout needs to be provided (-t)"
     exitLater=true
 fi
 
@@ -54,9 +54,13 @@ fi
 # sort logs
 for prover in "${provers[@]}"
 do
-    sbt "run --sortHHLRoutput ${pathToLogs}/${timeout}s/${prover} ${pathToCompiledSQLFiles}"
+    for timeout in "${timeouts[@]}"
+    do
+        sbt "run --sortHHLRoutput ${pathToLogs}/${timeout}s/${prover} ${pathToCompiledSQLFiles}"
+    done
 done
 
+mkdir -p ${summariesDir}
 # summarize
 sbt -mem 2048 "run --logxls ${summariesDir}/summary-raw.xls --logoverviewxls ${summariesDir}/summary-overview.xls --summarizelogs ${pathToLogs}"
 
