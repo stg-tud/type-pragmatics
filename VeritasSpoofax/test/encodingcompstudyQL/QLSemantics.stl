@@ -1,38 +1,86 @@
 module encodingcompstudyQL.QLSemantics
 
 import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.BasicTypes
 
-data OptQC = noQC | someQC(QC)
+//the "answer brain": underspecified function that knows all the answers to all the questions
+function
+allAnswers : QID AType -> Aval
+
+//axiomatic specification of the allAnswers function: answer values always have the expected/requested type!
+axiom
+ 
+==================================== allAnswers-types
+~at == typeOf(allAnswers(~qid, ~at))
+
+
+data EBool = True | False | Error
 
 function
-isSomeQC : OptQC -> Bool
-isSomeQC(noQC) = false
-isSomeQC(someQC(qc)) = true
-
-partial function 
-getQC : OptQC -> QC
-getQC(someQC(qc)) = qc
-
+comparable: Aval Aval -> Bool
+comparable(av1, av2) = typeOf(av1) == typeOf(av2)
 
 //function for evaluating expressions
-//TODO: this function should fail if it does not find an answer in the given AnsMap...?!
-//just returning a bool would mean that the semantics cannot ever fail...
+//this function should fail if it does not find an answer in the given AnsMap
 function
-evalExp : Exp AnsMap -> Bool
+evalExp : Exp AnsMap -> EBool
+evalExp(Eq(qid, av), am) = 
+	let avo = lookupAnsMap(qid, am) in
+		if (isSomeAval(avo))
+		then let av2 = getAval(av2) in
+			if (comparable(av2, av))
+		 	then if (av2 == av) then True else False
+		 	else Error
+		 else Error 
+evalExp(Gt(qid, n), am) = 
+	let avo = lookupAnsMap(qid, am) in
+		if (isSomeAval(avo))
+		then let av2 = getAval(av2) in
+			if (typeOf(av2) == Number)
+			then if (gt(av2, n)) then True else False
+			else Error
+		else Error
+evalExp(Lt(qid, n), am) = 
+	let avo = lookupAnsMap(qid, am) in
+		if (isSomeAval(avo))
+		then let av2 = getAval(av2) in
+			if (typeOf(av2) == Number)
+			then if (lt(av2, n)) then True else False
+			else Error
+		else Error
+evalExp(ETrue, am) = True
+evalExp(Not(e), am) = 
+	let evale = evalExp(e, am) in
+	if (evale == True) 
+	then False
+	else if (evale == False)
+		then True
+		else Error
+evalExp(And(e1, e2), am) = 
+	let evale1 = evalExp(e1, am) in
+		let evale2 = evalExp(e2, am) in
+		 if ((evale1 == Error) || (evale2 == Error))
+		 then Error
+		 else if (evale1 == False)
+		 	then False
+		 	else evale2
+
 
 
 
 //main reduction function, for reducing configurations of answermaps and questionnaires to configurations of answermaps and questionnaires
-//argument QC: (remaining) questionnaire configuration (in which AnsMap contains all previously given answers - and qb is the remaining questionnaire block)
-//returns: Option of QC (where AnsMap contains all answers to the previous questions, qb the remaining questionnaire block)
+//argument QC: (remaining) questionnaire configuration 
+//(in which AnsMap contains all previously given answers - and qb is the remaining questionnaire block)
+//returns: Option of QC (where AnsMap contains all answers to the previous questions, 
+//qb the remaining questionnaire block)
 function
 reduce: QC -> OptQC
-reduce(C(am, qempty)) = noQC //cannot reduce value further
+reduce(C(am, qempty)) = noQC //cannot reduce value configuration further
 reduce(C(am, qcons(question(qid, at, l), qbr))) =
 	//look up the correctly typed answer in the magic allAnswers function 
 	let ans = allAnswers(qid, at) in 
 		//preserve the order of the questions in the answer map?
-		//important for type preservation (alternatively, typing could reverse answermap...)
+		//could be important for type preservation (alternatively, typing could reverse answermap...)
 		someQC(C(appendAnsMap(am, abind(qid, ans, aempty)), qbr))
 reduce(C(am, qseq(qb1, qb2))) = 
 	if (isValue(qb1))
@@ -42,7 +90,11 @@ reduce(C(am, qseq(qb1, qb2))) =
 			then let qc1n = getQC(reduceqb1) in
 				someQC(C(getAM(qc1n), qseq(getQuest(qc1n), qb2)))
 			else noQC
-reduce(C(am, qcond(exp, qb1, qb2))) = 
-	if (evalExp(exp, am))
-	then someQC(C(am, qb1))
-	else someQC(C(am, qb2))
+//qcond is the only case where evaluation can actually dynamically fail!
+reduce(C(am, qcond(exp, qb1, qb2))) =
+	let eExp = evalExp(exp, am) in
+		if (eExp == Error)
+		then Error
+		else if (eExp == True)
+			then someQC(C(am, qb1))
+			else someQC(C(am, qb2))

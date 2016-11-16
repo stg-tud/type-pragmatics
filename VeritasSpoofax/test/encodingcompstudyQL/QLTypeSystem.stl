@@ -6,7 +6,7 @@ import encodingcompstudyQL.QLSyntax
 //How to come up with a semantics + type system s.t. reduction does not change the type?
 //If the type of a question block is an ATMap, then evaluating the block "shortens" the type
 //IDEA: type of AnsMap ++ type of remaining question block does not change during evaluation 
-//(i.e. type of QC is always the same)
+//(i.e. type of QC does not change during reduction)
 //PROBLEM: How to deal with types of conditional blocks??
 
 //Type of a questionnaire: QID -> AType map of already given answers
@@ -16,37 +16,47 @@ data ATMap = atmempty | atmbind(QID, AType, ATMap)
 function 
 appendATMap : ATMap ATMap -> ATMap
 appendATMap(atmempty, atm) = atm
-appendATMap(atmbind(qid, av, atm), atml) = atmbind(qid, av, appendATMap(atm, atml))
+appendATMap(atmbind(qid, at, atm), atml) = atmbind(qid, at, appendATMap(atm, atml))
+
+//type an AnswerMap:
+function typeAM : AnsMap -> ATMap
+typeAM(aempty) = atmempty
+typeAM(abind(qid, av, am)) = atmbind(qid, typeOf(av), typeAM(am))
+
+
+
+// OLDER STUFF
 
 //not yet sure whether this is "nice" like this...
 //typing judgment: ATMap |- Quest : ATMap
 //where first ATMap is the environment of previously given answers, and the second ATMap the "type"
 //of Quest
-axiom
 
-========================== T-qempty
-~atm |- qempty : atmempty
-
-axiom
-
-=========================================== T-question
-~atm |- question(~qid, ~at, ~l) : atmbind(~qid, ~at, atmempty)
-
-axiom
-~atm1 |- ~q1 : ~atm2
-~atm2 |- ~q2 : ~atm3
-=========================================== T-seq
-~atm1 |- qseq(~q1, ~q2) : appendATMap(~atm2, ~atm3)
-
-
-//for now, just enforce that both questions in a conditional branch have
-//to have the same answer type
-//however, intuitively, the answer type could of course differ....
-//(which would complicate type checking a lot)
-
-//TODO: type expression, with regard to answer map!
-axiom
-~atm |- ~q1 : ~atm1
-~atm |- ~q2 : ~atm1
-============================================= T-condquestion
-~atm |- qcond(~e, ~q1, ~q2) : ~atm1
+// axiom
+// 
+// ========================== T-qempty
+// ~atm |- qempty : atmempty
+// 
+// axiom
+// 
+// =========================================== T-question
+// ~atm |- question(~qid, ~at, ~l) : atmbind(~qid, ~at, atmempty)
+// 
+// axiom
+// ~atm1 |- ~q1 : ~atm2
+// ~atm2 |- ~q2 : ~atm3
+// =========================================== T-seq
+// ~atm1 |- qseq(~q1, ~q2) : appendATMap(~atm2, ~atm3)
+// 
+// 
+// //for now, just enforce that both questions in a conditional branch have
+// //to have the same answer type
+// //however, intuitively, the answer type could of course differ....
+// //(which would complicate type checking a lot)
+// 
+// //TODO: type expression, with regard to answer map!
+// axiom
+// ~atm |- ~q1 : ~atm1
+// ~atm |- ~q2 : ~atm1
+// ============================================= T-condquestion
+// ~atm |- qcond(~e, ~q1, ~q2) : ~atm1

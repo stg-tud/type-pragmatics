@@ -11,6 +11,21 @@ open data Label
 // sum type for different concrete answers 
 data Aval = B(YN) | Num(nat) | T(string)
 
+//Option[Aval]
+
+data OptAval =
+	noAval |
+	someAval(Aval)
+
+function
+isSomeAval : OptAval -> Bool
+isSomeAval(noAval) = false
+isSomeAval(someAval(t)) = true
+
+partial function
+getAval : OptAval -> Aval
+getAval(someAval(t)) = t
+
 //answer type for questions
 data AType = YesNo | Number | Text
 
@@ -31,9 +46,14 @@ append(atempty, atl) = atl
 append(atcons(at, atlr), atl) = atcons(at, append(atlr, atl))
 
 	
-// expressions for conditional
-open data Exp
-//TODO refine
+// expressions for conditional guard
+data Exp = 
+	Eq(QID, Aval) | 
+	Gt(QID, nat) | 
+	Lt(QID, nat) |
+  	ETrue | 
+  	Not(Exp) | 
+  	And(Exp, Exp)
 
 // datatype for (simple) questions
 //QID: id of question, AType: type of answer, Label: question text
@@ -50,6 +70,13 @@ data QB =
 
 // map of answers to questions ("flat")
 data AnsMap = aempty | abind(QID, Aval, AnsMap)
+
+function lookupAnsMap : QID AnsMap -> OptAval
+lookupAnsMap(qid, aempty) = noAval
+lookupStore(qid1, abind(qid2, av, AM)) = 
+	if (qid1 == qid2)
+	then someAval(av)
+	else lookupAnsMap(qid1, AM)
 
 
 //will probably primarily use this to attach one element to the end of an AnsMap
@@ -76,15 +103,16 @@ isValue : QC -> Bool
 isValue(C(am, qempty)) = true
 isValue(C(am, qb)) = false
 
-//the "answer brain": underspecified function that knows all the answers to all the questions
-function
-allAnswers : QID AType -> Aval
+data OptQC = noQC | someQC(QC)
 
-//axiomatic specification of the allAnswers function: answer values always have the expected/requested type!
-axiom
- 
-==================================== allAnswers-types
-~at == typeOf(allAnswers(~qid, ~at))
+function
+isSomeQC : OptQC -> Bool
+isSomeQC(noQC) = false
+isSomeQC(someQC(qc)) = true
+
+partial function 
+getQC : OptQC -> QC
+getQC(someQC(qc)) = qc
 
 
 
