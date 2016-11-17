@@ -8,31 +8,75 @@ open data QID
 // label (text) of questions, underspecified
 open data Label
 
+// sum type for different concrete answers 
+data Aval = B(YN) | Num(nat) | T(string)
+
+//Option[Aval]
+
+data OptAval =
+	noAval |
+	someAval(Aval)
+
+function
+isSomeAval : OptAval -> Bool
+isSomeAval(noAval) = false
+isSomeAval(someAval(t)) = true
+
+partial function
+getAval : OptAval -> Aval
+getAval(someAval(t)) = t
+
 //answer type for questions
 data AType = YesNo | Number | Text
 
+//type of each Aval
+function
+typeOf : Aval -> AType
+typeOf(B(yn)) = YesNo
+typeOf(Num(n)) = Number
+typeOf(T(s)) = Text
+
 //list of answer types
 data ATList = atempty | atcons(AType, ATList)
-	
-// expressions for conditional
-open data Exp
-//TODO refine
 
-//questionnaire expressions
-data Quest = 
+
+function 
+append: ATList ATList -> ATList
+append(atempty, atl) = atl
+append(atcons(at, atlr), atl) = atcons(at, append(atlr, atl))
+
+	
+// expressions for conditional guard
+data Exp = 
+	Eq(QID, Aval) | 
+	Gt(QID, nat) | 
+	Lt(QID, nat) |
+  	ETrue | 
+  	Not(Exp) | 
+  	And(Exp, Exp)
+
+// datatype for (simple) questions
+//QID: id of question, AType: type of answer, Label: question text
+data Q = question(QID, AType, Label)
+
+//blocks of questions
+data QB = 
 	qempty |
-	question(QID, AType, Label) |
-	seq(Quest, Quest) |
-	condquestion(Exp, Quest, Quest)
+	qcons(Q, QB) |
+	qseq(QB, QB) |
+	qcond(Exp, QB, QB)
 	
-// sum type for answers 
-data Av = B(YN) | Num(nat) | T(string)
 
-// list of answers (input list)
-data AvList = avempty | avcons(Av, AvList)
 
-// map of answers to questions
-data AnsMap = aempty | abind(QID, Av, AnsMap)
+// map of answers to questions ("flat")
+data AnsMap = aempty | abind(QID, Aval, AnsMap)
+
+function lookupAnsMap : QID AnsMap -> OptAval
+lookupAnsMap(qid, aempty) = noAval
+lookupStore(qid1, abind(qid2, av, AM)) = 
+	if (qid1 == qid2)
+	then someAval(av)
+	else lookupAnsMap(qid1, AM)
 
 
 //will probably primarily use this to attach one element to the end of an AnsMap
@@ -42,17 +86,33 @@ appendAnsMap : AnsMap AnsMap -> AnsMap
 appendAnsMap(aempty, am) = am
 appendAnsMap(abind(qid, av, am), aml) = abind(qid, av, appendAnsMap(am, aml))
 
-//main expressions: combination of AnsMap (of already given answers) and remaining questions
+//main expressions ("questionnaire configurations"): combination of AnsMap (of already given answers) and remaining questions
 //this is the expression to be reduced!
-data QuestConfExp = C(AnsMap, Quest)
+data QC = C(AnsMap, QB)
 
 function
-getAM : QuestConfExp -> AnsMap
+getAM : QC -> AnsMap
 getAM(C(am, q)) = am
 
 function
-getQuest : QuestConfExp -> Quest
+getQuest : QC -> QB
 getQuest(C(am, q)) = q
+
+function
+isValue : QC -> Bool
+isValue(C(am, qempty)) = true
+isValue(C(am, qb)) = false
+
+data OptQC = noQC | someQC(QC)
+
+function
+isSomeQC : OptQC -> Bool
+isSomeQC(noQC) = false
+isSomeQC(someQC(qc)) = true
+
+partial function 
+getQC : OptQC -> QC
+getQC(someQC(qc)) = qc
 
 
 

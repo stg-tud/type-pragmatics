@@ -1,66 +1,109 @@
 module encodingcompstudyQL.QLSemantics
 
 import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.BasicTypes
 
-//type for (intermediate) results (IR) of questionnaire reduction
-data IR = error | final(QuestConfExp) | part(QuestConfExp, AvList)
-
+//answer oracle for Boolean questions
 function 
-IRsuccess: IR -> Bool
-IRsuccess(error) = false
-IRsuccess(final(qce)) = true
-IRsuccess(part(qce, avl)) = true
+askYesNo : Label -> YN
+
+//answer oracle for Numbers
+function
+askNumber : Label -> nat
+
+//answer orcale for strings
+function
+askString : Label -> string
+
+//convenience function for asking the right oracle, given a question label and an answer type
+function
+getAnswer : Label AType -> Aval
+getAnswer(l, YesNo) = B(askYesNo(l))
+getAnswer(l, Number) = Num(askNumber(l))
+getAnswer(l, Text) = T(askString(l))
+
+
+data EBool = True | False | Error
 
 function
-IRfinal: IR -> Bool
-IRfinal(error) = false
-IRfinal(final(qce)) = true
-IRfinal(part(qce, avl)) = false
-
-//functions for decomposing an IR
-//important: sensible values for final results!
-partial function 
-getQuestIR : IR -> Quest
-getQuestIR(final(qce)) = getQuest(qce)
-getQuestIR(part(qce, avl)) = getQuest(qce)
-
-partial function
-getAv : IR -> AvList
-getAv(final(am)) = aempty
-getAv(part(qce, avl)) = avl
-
-partial function
-getAmIR : IR -> AnsMap
-getAmIR(final(qce)) = getAM(qce)
-getAmIR(part(qce, avl)) = getAM(qce)
+comparable: Aval Aval -> Bool
+comparable(av1, av2) = typeOf(av1) == typeOf(av2)
 
 //function for evaluating expressions
-//TODO
+//this function should fail if it does not find an answer in the given AnsMap
 function
-evalExp : Exp AnsMap -> Bool
+evalExp : Exp AnsMap -> EBool
+evalExp(Eq(qid, av), am) = 
+	let avo = lookupAnsMap(qid, am) in
+		if (isSomeAval(avo))
+		then let av2 = getAval(av2) in
+			if (comparable(av2, av))
+		 	then if (av2 == av) then True else False
+		 	else Error
+		 else Error 
+evalExp(Gt(qid, n), am) = 
+	let avo = lookupAnsMap(qid, am) in
+		if (isSomeAval(avo))
+		then let av2 = getAval(av2) in
+			if (typeOf(av2) == Number)
+			then if (gt(av2, n)) then True else False
+			else Error
+		else Error
+evalExp(Lt(qid, n), am) = 
+	let avo = lookupAnsMap(qid, am) in
+		if (isSomeAval(avo))
+		then let av2 = getAval(av2) in
+			if (typeOf(av2) == Number)
+			then if (lt(av2, n)) then True else False
+			else Error
+		else Error
+evalExp(ETrue, am) = True
+evalExp(Not(e), am) = 
+	let evale = evalExp(e, am) in
+	if (evale == True) 
+	then False
+	else if (evale == False)
+		then True
+		else Error
+evalExp(And(e1, e2), am) = 
+	let evale1 = evalExp(e1, am) in
+		let evale2 = evalExp(e2, am) in
+		 if ((evale1 == Error) || (evale2 == Error))
+		 then Error
+		 else if (evale1 == False)
+		 	then False
+		 	else evale2
+
+
+
 
 //main reduction function, for reducing configurations of answermaps and questionnaires to configurations of answermaps and questionnaires
-//arguments: QuestConfExp: (remaining) questionnaire configuration (in which AnswerMap contains all previously given answers, and quest is the remaining questionnaire)
-//AvList: remaining input answer values (consumed during reduction)
+//argument QC: (remaining) questionnaire configuration 
+//(in which AnsMap contains all previously given answers - and qb is the remaining questionnaire block)
+//returns: Option of QC (where AnsMap contains all answers to the previous questions, 
+//qb the remaining questionnaire block)
 function
-reduce: QuestConfExp AvList -> IR
-reduce(C(am, qempty), avempty) = final(C(am, qempty)) //success case
-reduce(C(am, qempty), av) = part(C(am, qempty), av) //case: too many answers (for this subexpression at least) - should this be an error case? - but then reduction of sequences will not work when seq(qempty,q) was already in input program!
-reduce(C(am, q), avempty) = error //error case: too few answers
-reduce(C(am, question(qid, at, l)), avcons(av, avempty)) = final(C(appendAnsMap(am, abind(qid, av, aempty)), qempty))
-//blindly consume an answer - should this dynamically fail if types are not correct?
-reduce(C(am, question(qid, at, l)), avcons(av, avr)) = part(C(appendAnsMap(am, abind(qid, av, aempty)), qempty), avr)
-reduce(C(am, seq(q1, q2)), av) = 
-	let ir1 = reduce(C(am, q1), av) in 
-		if (IRsuccess(ir1))
-		then let rquest = getQuestIR(ir1) in
-			let avr = getAv(ir1) in
-			let amr = getAmIR(ir1) in
-				if (rquest = qempty)
-				then part(C(amr,q2), avr)
-				else part(C(amr,seq(rquest, q2)), avr)
-		else error
-reduce(C(am, condquestion(e, q1, q2)), av) =
-	if (evalExp(e, am))
-	then part(C(am, q1), av)
-	else part(C(am, q2), av)
+reduce: QC -> OptQC
+reduce(C(am, qempty)) = noQC //cannot reduce value configuration further
+reduce(C(am, qcons(question(qid, at, l), qbr))) =
+	//look up the correctly typed answer in the magic allAnswers function 
+	let ans = getAnswer(l, at) in 
+		//preserve the order of the questions in the answer map?
+		//could be important for type preservation (alternatively, typing could reverse answermap...)
+		someQC(C(appendAnsMap(am, abind(qid, ans, aempty)), qbr))
+reduce(C(am, qseq(qb1, qb2))) = 
+	if (isValue(qb1))
+	then someQC(C(am, qb2))
+	else let reduceqb1 = reduce(C(am, qb1)) in
+			if (isSomeQC(reduceqb1))
+			then let qc1n = getQC(reduceqb1) in
+				someQC(C(getAM(qc1n), qseq(getQuest(qc1n), qb2)))
+			else noQC
+//qcond is the only case where evaluation can actually dynamically fail!
+reduce(C(am, qcond(exp, qb1, qb2))) =
+	let eExp = evalExp(exp, am) in
+		if (eExp == Error)
+		then noQC
+		else if (eExp == True)
+			then someQC(C(am, qb1))
+			else someQC(C(am, qb2))
