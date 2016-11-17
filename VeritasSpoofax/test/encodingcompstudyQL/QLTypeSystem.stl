@@ -44,7 +44,7 @@ typeAM(abind(qid, av, am)) = atmbind(qid, typeOf(av), typeAM(am))
 // 
 // axiom
 // ~atm1 |- ~q1 : ~atm2
-// ~atm2 |- ~q2 : ~atm3
+// ~atm2 |- ~q2 : ~atm3 //~atm1 ++ ~atm2 |- ~q2: ~atm3
 // =========================================== T-seq
 // ~atm1 |- qseq(~q1, ~q2) : appendATMap(~atm2, ~atm3)
 // 
