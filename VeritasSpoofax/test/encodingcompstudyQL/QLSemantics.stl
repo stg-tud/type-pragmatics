@@ -3,15 +3,24 @@ module encodingcompstudyQL.QLSemantics
 import encodingcompstudyQL.QLSyntax
 import encodingcompstudyQL.BasicTypes
 
-//the "answer brain": underspecified function that knows all the answers to all the questions
-function
-allAnswers : QID AType -> Aval
+//answer oracle for Boolean questions
+function 
+askYesNo : Label -> YN
 
-//axiomatic specification of the allAnswers function: answer values always have the expected/requested type!
-axiom
- 
-==================================== allAnswers-types
-~at == typeOf(allAnswers(~qid, ~at))
+//answer oracle for Numbers
+function
+askNumber : Label -> nat
+
+//answer orcale for strings
+function
+askString : Label -> string
+
+//convenience function for asking the right oracle, given a question label and an answer type
+function
+getAnswer : Label AType -> Aval
+getAnswer(l, YesNo) = B(askYesNo(l))
+getAnswer(l, Number) = Num(askNumber(l))
+getAnswer(l, Text) = T(askString(l))
 
 
 data EBool = True | False | Error
@@ -78,7 +87,7 @@ reduce: QC -> OptQC
 reduce(C(am, qempty)) = noQC //cannot reduce value configuration further
 reduce(C(am, qcons(question(qid, at, l), qbr))) =
 	//look up the correctly typed answer in the magic allAnswers function 
-	let ans = allAnswers(qid, at) in 
+	let ans = getAnswer(l, at) in 
 		//preserve the order of the questions in the answer map?
 		//could be important for type preservation (alternatively, typing could reverse answermap...)
 		someQC(C(appendAnsMap(am, abind(qid, ans, aempty)), qbr))
@@ -94,7 +103,7 @@ reduce(C(am, qseq(qb1, qb2))) =
 reduce(C(am, qcond(exp, qb1, qb2))) =
 	let eExp = evalExp(exp, am) in
 		if (eExp == Error)
-		then Error
+		then noQC
 		else if (eExp == True)
 			then someQC(C(am, qb1))
 			else someQC(C(am, qb2))
