@@ -62,7 +62,7 @@ done
 
 mkdir -p ${summariesDir}
 # summarize
-sbt -mem 2048 "run --logxls ${summariesDir}/summary-raw.xls --logoverviewxls ${summariesDir}/summary-overview.xls --summarizelogs ${pathToLogs}"
+sbt -mem 4096 "run --logxls ${summariesDir}/summary-raw.xls --logoverviewxls ${summariesDir}/summary-overview.xls --summarizelogs ${pathToLogs}"
 
 # layout
 sbt "run --layoutData ${summariesDir}"

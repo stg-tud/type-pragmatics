@@ -34,9 +34,9 @@ case class Runner(config: Config) {
       else File.separator
     val pathParts = filePath.split(fileSeparator)
     //assemble configuration from last few parts of path
-    val goalcategory = pathParts(pathParts.length - 5)
-    val typing = pathParts(pathParts.length - 4)
-    val transformations = List(pathParts(pathParts.length - 3), pathParts(pathParts.length - 2))
+    val goalcategory = pathParts(pathParts.length - 6)
+    val typing = pathParts(pathParts.length - 5)
+    val transformations = List(pathParts(pathParts.length - 4), pathParts(pathParts.length - 3), pathParts(pathParts.length - 2))
 
     new VeritasConfig(goalcategory, typing, transformations)
   }
@@ -186,8 +186,8 @@ case class Runner(config: Config) {
       resultproc.processLogs()
 
       val filesummary = FileSummary(veritasconf, inputfile, proverconf, resultproc.result, timeout, resultproc.result.timeSeconds.getOrElse(0.0))
+      resultproc.close()
       summary +=(VeritasConfFile(veritasconf, inputfile), filesummary)
-
     }
   }
 
