@@ -33,6 +33,19 @@ getAval(someAval(t)) = t
 //answer type for questions
 data AType = YesNo | Number | Text
 
+data OptAType =
+	noAType |
+	someAType(AType)
+
+function
+isSomeAType : OptAType -> Bool
+isSomeAType(noAType) = false
+isSomeAType(someAType(t)) = true
+
+partial function
+getAType : OptAType -> AType
+getAType(someAType(t)) = t
+
 //type of each Aval
 function
 typeOf : Aval -> AType

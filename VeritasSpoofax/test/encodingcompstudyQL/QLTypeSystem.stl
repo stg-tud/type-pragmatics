@@ -2,6 +2,61 @@ module encodingcompstudyQL.QLTypeSystem
 
 import encodingcompstudyQL.QLSyntax
 import encodingcompstudyQL.QLSemanticsData
+import encodingcompstudyQL.QLSemantics
+
+// type map, used for answer types and question-definition types
+data TMap = tmempty | tmbind(QID, AType, TMap)
+
+function
+lookupTMap : QID TMap -> OptAType
+lookupTMap(qid, tmempty) = noAType
+lookupTMap(qid1, tmbind(qid2, at, tm)) = 
+	if (qid1 == qid2)
+	then someAType(at)
+	else lookupTMap(qid1, tm)
+
+function
+checkBinOp : BinOp AType AType -> OptAType
+checkBinOp(add(), Number(), Number()) = someAType(Number())
+checkBinOp(sub(), Number(), Number()) = someAType(Number())
+checkBinOp(mul(), Number(), Number()) = someAType(Number())
+checkBinOp(div(), Number(), Number()) = someAType(Number())
+checkBinOp(gt(), Number(), Number()) = someAType(YesNo())
+checkBinOp(lt(), Number(), Number()) = someAType(YesNo())
+checkBinOp(and(), YesNo(), YesNo()) = someAType(YesNo())
+checkBinOp(or(), YesNo(), YesNo()) = someAType(YesNo())
+checkBinOp(eq(), Number(), Number()) = someAType(YesNo())
+checkBinOp(eq(), YesNo(), YesNo()) = someAType(YesNo())
+checkBinOp(eq(), Text(), Text()) = someAType(YesNo())
+checkBinOp(op, t1, t2) = noAType
+
+function
+checkUnOp : UnOp AType -> OptAType
+checkUnOp(not(), YesNo()) = someAType(YesNo())
+checkUnOp(op, t) = noAType
+
+function
+echeck : TMap Exp -> OptAType
+
+echeck(tm, constant(B(n))) = someAType(YesNo)
+echeck(tm, constant(Num(n))) = someAType(Number)
+echeck(tm, constant(T(n))) = someAType(Text)
+
+echeck(tm, qvar(qid)) = lookupTMap(qid, tm)
+
+echeck(tm, binop(e1, op, e2)) =
+    let t1 = echeck(tm, e1) in
+    let t2 = echeck(tm, e2) in
+        if (isSomeAType(t1) && isSomeAType(t2))
+	then checkBinOp(op, getAType(t1), getAType(t2))
+	else noAType
+
+echeck(tm, unop(op, e)) =
+    let t = echeck(tm, e) in
+        if (isSomeAType(t))
+	then checkUnOp(op, getAType(t))
+	else noAType
+
 
 //TODO: type system should satisfy progress and preservation!
 //How to come up with a semantics + type system s.t. reduction does not change the type?

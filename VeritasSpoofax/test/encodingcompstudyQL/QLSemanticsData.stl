@@ -9,7 +9,7 @@ data AnsMap = aempty | abind(QID, Aval, AnsMap)
 
 function lookupAnsMap : QID AnsMap -> OptAval
 lookupAnsMap(qid, aempty) = noAval
-lookupStore(qid1, abind(qid2, av, AM)) = 
+lookupAnsMap(qid1, abind(qid2, av, AM)) = 
 	if (qid1 == qid2)
 	then someAval(av)
 	else lookupAnsMap(qid1, AM)
