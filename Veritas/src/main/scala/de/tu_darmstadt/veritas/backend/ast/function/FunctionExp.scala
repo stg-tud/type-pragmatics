@@ -92,7 +92,7 @@ object FunctionExpOr {
   def apply(args: Seq[FunctionExp]): FunctionExp = args match {
     case Seq()                => FunctionExpFalse
     case Seq(oneArg)          => oneArg
-    case Seq(head, rest @ _*) => FunctionExpOr(head, FunctionExpAnd(rest))
+    case Seq(head, rest @ _*) => FunctionExpOr(head, FunctionExpOr(rest))
   }
 }
 
