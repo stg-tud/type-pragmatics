@@ -1,0 +1,90 @@
+module encodingcompstudyQL.QLSemanticsData
+
+import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.BasicTypes
+
+// map of answers to questions ("flat")
+//ignores hierarchical answer structure of groups - TODO is that ok?
+data AnsMap = aempty | abind(QID, Aval, AnsMap)
+
+function lookupAnsMap : QID AnsMap -> OptAval
+lookupAnsMap(qid, aempty) = noAval
+lookupStore(qid1, abind(qid2, av, AM)) = 
+	if (qid1 == qid2)
+	then someAval(av)
+	else lookupAnsMap(qid1, AM)
+
+//will probably primarily use this to attach one element to the end of an AnsMap
+//maybe specify a more specialized function for this?
+function 
+appendAnsMap : AnsMap AnsMap -> AnsMap
+appendAnsMap(aempty, am) = am
+appendAnsMap(abind(qid, av, am), aml) = abind(qid, av, appendAnsMap(am, aml))
+
+
+
+// map of defined questions that can be asked later
+data QMap = qmempty | qmbind(QID, Label, AType, QMap)
+
+data OptQuestion = noQuestion | someQuestion(QID, Label, AType)
+
+function
+isSomeQuestion : OptQC -> Bool
+isSomeQuestion(noQuestion) = false
+isSomeQuestion(someQuestion(id, l, t)) = true
+
+partial function 
+getQuestionQID : OptQuestion -> QID
+getQuestionQID(someQuestion(qid, l, t)) = qid
+
+partial function 
+getQuestionLabel : OptQuestion -> Label
+getQuestionLabel(someQuestion(qid, l, t)) = l
+
+partial function 
+getQuestionAType : OptQuestion -> AType
+getQuestionAType(someQuestion(qid, l, t)) = t
+
+function lookupQMap : QID QMap -> OptQuestion
+lookupQMap(qid, qmempty) = noQuestion
+lookupQMap(qid1, qmbind(qid2, l, t, QM)) = 
+	if (qid1 == qid2)
+	then someQuestion(qid1, l, t)
+	else lookupQMap(qid1, QM)
+
+function appendQMap : QMap QMap -> QMap
+appendQMap(qmempty, qm) = qm
+appendQMap(qmbind(qid, l, t, qm1), qm2) = qmbind(qid, l, t, appendQMap(qm1, qm2))
+
+
+//questionnaire configurations: combination of AnsMap (of already given answers), QMap (of questions already defined), and the remaining questionnaire
+//this is the expression to be reduced!
+data QC = QC(AnsMap, QMap, Questionnaire)
+
+function
+getAM : QC -> AnsMap
+getAM(QC(am, qm, q)) = am
+
+function
+getQM : QC -> QMap
+getQM(QC(am, qm, q)) = qm
+
+function
+getQuest : QC -> Questionnaire
+getQuest(QC(am, q)) = q
+
+function
+isValue : QC -> Bool
+isValue(QC(am, qm, qempty)) = true
+isValue(QC(am, qm, q)) = false
+
+data OptQC = noQC | someQC(QC)
+
+function
+isSomeQC : OptQC -> Bool
+isSomeQC(noQC) = false
+isSomeQC(someQC(qc)) = true
+
+partial function 
+getQC : OptQC -> QC
+getQC(someQC(qc)) = qc
