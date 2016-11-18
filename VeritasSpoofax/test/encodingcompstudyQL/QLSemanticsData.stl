@@ -29,7 +29,7 @@ data QMap = qmempty | qmbind(QID, Label, AType, QMap)
 data OptQuestion = noQuestion | someQuestion(QID, Label, AType)
 
 function
-isSomeQuestion : OptQC -> Bool
+isSomeQuestion : OptQuestion -> Bool
 isSomeQuestion(noQuestion) = false
 isSomeQuestion(someQuestion(id, l, t)) = true
 
@@ -88,3 +88,7 @@ isSomeQC(someQC(qc)) = true
 partial function 
 getQC : OptQC -> QC
 getQC(someQC(qc)) = qc
+
+function
+qcappend : QC Questionnaire -> QC
+qcappend(QC(am, qm, qs1), qs2) = QC(am, qm, qseq(qs1, qs2))
