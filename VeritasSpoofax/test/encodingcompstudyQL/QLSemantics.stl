@@ -47,75 +47,75 @@ evalUnOp(op, a) = noExp
 
 //function for evaluating expressions
 //this function should fail if it does not find an answer in the given AnsMap
-// function
-// reduceExp : Exp AnsMap -> OptExp
-// reduceExp(constant(av), ams) = noExp
-// reduceExp(qvar(qid), am) =
-//     let avOpt = lookupAnsMap(qid, am) in
-//         if (isSomeAval(avOpt))
-// 	then someExp(constant(getAval(avOpt)))
-// 	else noExp
-// reduceExp(binop(e1, op, e2), am) =
-//     if (expIsValue(e1) && expIsValue(e2))
-//     then evalBinOp(op, getExpValue(e1), getExpValue(e2))
-//     else let eOpt1 = reduceExp(e1, am) in
-//         if (isSomeExp(eOpt1))
-//         then someExp(binop(getExp(eOpt1), op, e2))
-//         else let eOpt2 = reduceExp(e2, am) in
-//             if (isSomeExp(eOpt2))
-//             then someExp(binop(e1, op, getExp(eOpt2)))
-//             else noExp
-// reduceExp(unop(op, e), am) =
-//     if (expIsValue(e))
-//     then evalUnOp(op, getExpValue(e))
-//     else let eOpt = reduceExp(e, am) in
-//         if (isSomeExp(eOpt))
-// 	then someExp(unop(op, getExp(eOpt)))
-// 	else noExp
+function
+reduceExp : Exp AnsMap -> OptExp
+reduceExp(constant(av), ams) = noExp
+reduceExp(qvar(qid), am) =
+    let avOpt = lookupAnsMap(qid, am) in
+        if (isSomeAval(avOpt))
+	then someExp(constant(getAval(avOpt)))
+	else noExp
+reduceExp(binop(e1, op, e2), am) =
+    if (expIsValue(e1) && expIsValue(e2))
+    then evalBinOp(op, getExpValue(e1), getExpValue(e2))
+    else let eOpt1 = reduceExp(e1, am) in
+        if (isSomeExp(eOpt1))
+        then someExp(binop(getExp(eOpt1), op, e2))
+        else let eOpt2 = reduceExp(e2, am) in
+            if (isSomeExp(eOpt2))
+            then someExp(binop(e1, op, getExp(eOpt2)))
+            else noExp
+reduceExp(unop(op, e), am) =
+    if (expIsValue(e))
+    then evalUnOp(op, getExpValue(e))
+    else let eOpt = reduceExp(e, am) in
+        if (isSomeExp(eOpt))
+	then someExp(unop(op, getExp(eOpt)))
+	else noExp
 
 //main reduction function, for reducing configurations of answermaps and questionnaires to configurations of answermaps and questionnaires
 //argument QC: (remaining) questionnaire configuration 
 //(in which AnsMap contains all previously given answers - and qb is the remaining questionnaire block)
 //returns: Option of QC (where AnsMap contains all answers to the previous questions, 
 //qb the remaining questionnaire block)
-// function
-// reduce: QConf -> OptQConf
-// 
-// reduce(QC(am, qm, qempty)) = noQConf //cannot reduce value configuration further
-// 
-// reduce(QC(am, qm, qsingle(question(qid, l, t)))) =
-//     let av = getAnswer(l, t) in
-//         someQConf(QC(abind(qid, av, am), qm, qempty))
-// reduce(QC(am, qm, qsingle(value(qid, t, e)))) =
-//     if (expIsValue(e))
-//     then someQConf(QC(abind(qid, getExpValue(e), am), qm, qempty))
-//     else let eOpt = reduceExp(e, am) in
-//         if (isSomeExp(eOpt))
-// 	then someQConf(QC(am, qm, qsingle(value(qid, t, getExp(eOpt)))))
-// 	else noQConf
-// reduce(QC(am, qm, qsingle(defquestion(qid, l, t)))) =
-//     let av = getAnswer(l, t) in
-//         someQConf(QC(am, qmbind(qid, l, t, qm), qempty))
-// reduce(QC(am, qm, qsingle(ask(qid)))) =
-//     let qOpt = lookupQMap(qid, qm) in
-//         if (isSomeQuestion(qOpt))
-//         then someQConf(QC(am, qm, qsingle(question(qid, getQuestionLabel(qOpt), getQuestionAType(qOpt)))))
-//         else noQConf
-// 
-// reduce(QC(am, qm, qseq(qempty(), qs2))) = someQConf(QC(am, qm, qs2))
-// reduce(QC(am, qm, qseq(qs1, qs2))) =
-//     let qcOpt = reduce(QC(am, qm, qs1)) in
-//         if (isSomeQC(qcOpt))
-// 	then someQConf(qcappend(getQC(qcOpt), qs2))
-// 	else noQConf
-// 
-// reduce(QC(am, qm, qcond(constant(B(yes)), qs1, qs2))) = someQConf(QC(am, qm, qs1))
-// reduce(QC(am, qm, qcond(constant(B(no)), qs1, qs2))) = someQConf(QC(am, qm, qs2))
-// reduce(QC(am, qm, qcond(e, qs1, qs2))) =
-//     let eOpt = reduceExp(e, am) in
-//         if (isSomeExp(eOpt))
-// 	then someQConf(QC(am, qm, qcond(getExp(eOpt), qs1, qs2)))
-// 	else noQConf
-// 
-// reduce(QC(am, qm, qgroup(gid, qs))) = someQConf(QC(am, qm, qs))
+function
+reduce: QConf -> OptQConf
+
+reduce(QC(am, qm, qempty)) = noQConf //cannot reduce value configuration further
+
+reduce(QC(am, qm, qsingle(question(qid, l, t)))) =
+    let av = getAnswer(l, t) in
+        someQConf(QC(abind(qid, av, am), qm, qempty))
+reduce(QC(am, qm, qsingle(value(qid, t, e)))) =
+    if (expIsValue(e))
+    then someQConf(QC(abind(qid, getExpValue(e), am), qm, qempty))
+    else let eOpt = reduceExp(e, am) in
+        if (isSomeExp(eOpt))
+	then someQConf(QC(am, qm, qsingle(value(qid, t, getExp(eOpt)))))
+	else noQConf
+reduce(QC(am, qm, qsingle(defquestion(qid, l, t)))) =
+    let av = getAnswer(l, t) in
+        someQConf(QC(am, qmbind(qid, l, t, qm), qempty))
+reduce(QC(am, qm, qsingle(ask(qid)))) =
+    let qOpt = lookupQMap(qid, qm) in
+        if (isSomeQuestion(qOpt))
+        then someQConf(QC(am, qm, qsingle(question(qid, getQuestionLabel(qOpt), getQuestionAType(qOpt)))))
+        else noQConf
+
+reduce(QC(am, qm, qseq(qempty(), qs2))) = someQConf(QC(am, qm, qs2))
+reduce(QC(am, qm, qseq(qs1, qs2))) =
+    let qcOpt = reduce(QC(am, qm, qs1)) in
+        if (isSomeQC(qcOpt))
+	then someQConf(qcappend(getQC(qcOpt), qs2))
+	else noQConf
+
+reduce(QC(am, qm, qcond(constant(B(yes)), qs1, qs2))) = someQConf(QC(am, qm, qs1))
+reduce(QC(am, qm, qcond(constant(B(no)), qs1, qs2))) = someQConf(QC(am, qm, qs2))
+reduce(QC(am, qm, qcond(e, qs1, qs2))) =
+    let eOpt = reduceExp(e, am) in
+        if (isSomeExp(eOpt))
+	then someQConf(QC(am, qm, qcond(getExp(eOpt), qs1, qs2)))
+	else noQConf
+
+reduce(QC(am, qm, qgroup(gid, qs))) = someQConf(QC(am, qm, qs))
 
