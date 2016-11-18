@@ -23,14 +23,45 @@ getAnswer(l, Number) = Num(askNumber(l))
 getAnswer(l, Text) = T(askString(l))
 
 
-data EBool = True | False | Error
+function
+evalBinOp : BinOp Aval Aval -> OptAval
+evalBinOp(add(), Num(n1), Num(n2)) = someAval(Num(plus(n1, n2)))
+evalBinOp(sub(), Num(n1), Num(n2)) = someAval(Num(minus(n1, n2)))
+evalBinOp(mul(), Num(n1), Num(n2)) = someAval(Num(multiply(n1, n2)))
+evalBinOp(div(), Num(n1), Num(n2)) = someAval(Num(divide(n1, n2)))
+evalBinOp(gt(), Num(n1), Num(n2)) = someAval(B(gt(n1, n2)))
+evalBinOp(lt(), Num(n1), Num(n2)) = someAval(B(lt(n1, n2)))
+evalBinOp(and(), B(b1), B(b2)) = someAval(B(and(n1, n2)))
+evalBinOp(or(), B(b2), B(b2)) = someAval(B(or(n1, n2)))
+evalBinOp(eq(), Num(n1), Num(n2)) = if (n1 == n2) then someAval(B(yes)) else someAval(B(no))
+evalBinOp(eq(), B(b1), B(b2)) = if (b1 == b2) then someAval(B(yes)) else someAval(B(no))
+evalBinOp(eq(), T(t1), T(t2)) = if (t1 == t2) then someAval(B(yes)) else someAval(B(no))
+evalBinOp(op, a1, a2) = noAval
 
 function
-comparable: Aval Aval -> Bool
-comparable(av1, av2) = typeOf(av1) == typeOf(av2)
+evalUnOp : UnOp Aval -> OptAval
+evalUnOp(not(), B(b)) = someAval(B(not(b)))
+evalUnOp(op, a) = noAval
 
 //function for evaluating expressions
 //this function should fail if it does not find an answer in the given AnsMap
+function
+evalExp : Exp AnsMap -> OptAval
+evalExp(constant(av), am) = someAval(av)
+evalExp(qvar(qid), am) = lookupAnsMap(qid, am)
+evalExp(binop(e1, op, e2), am) =
+    let avOpt1 = evalExp(e1, am) in
+    let avOpt2 = evalExp(e2, am) in
+        if (isSomeAval(avOpt1) && isSomeAval(avOpt2))
+        then evalBinOp(op, getAval(avOpt1), getAval(avOpt2))
+	else noAval
+evalExp(unop(op, e), am) =
+    let avOpt = evalExp(e, am) in
+        if (isSomeAval(avOpt))
+        then evalUnOp(op, getAval(avOpt))
+	else noAval
+
+
 // function
 // evalExp : Exp AnsMap -> EBool
 // evalExp(Eq(qid, av), am) = 
