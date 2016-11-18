@@ -12,11 +12,11 @@ OR
 => exists ~al, ~rt
 		~q = tvalue(table(~al, ~rt))
 		welltypedtable(~TT, table(~al, ~rt))
-=> exists ~sel, ~tn, ~p, ~TTr
+=> exists ~sel, ~tn, ~p, ~TTa
 		~q == selectFromWhere(~sel, ~tn, ~p)
-		lookupContext(~tn, ~TTC) == someTType(~TT)
-		tcheckPred(~p, ~TT)
-		selectType(~sel, ~TT) == someTType(~TTr)
+		lookupContext(~tn, ~TTC) == someTType(~TTa)
+		tcheckPred(~p, ~TTa)
+		selectType(~sel, ~TTa) == someTType(~TT)
 => exists ~q1, ~q2
 		~q == Union(~q1, ~q2)
 		~TTC |- ~q1 : ~TT
@@ -43,11 +43,10 @@ lemma
 ~q == selectFromWhere(~sel, ~tn, ~p)
 ~TTC |- ~q : ~TT
 ==================================================== T-inv-SelectSomeFromWhere
-exists ~TTr
-	~q == selectFromWhere(~sel, ~tn, ~p)
-	lookupContext(~tn, ~TTC) == someTType(~TT)
-	tcheckPred(~p, ~TT)
-	selectType(~sel, ~TT) == someTType(~TTr)
+exists ~TTa
+	lookupContext(~tn, ~TTC) == someTType(~TTa)
+	tcheckPred(~p, ~TTa)
+	selectType(~sel, ~TTa) == someTType(~TT)
 		
 
 lemma
