@@ -71,24 +71,46 @@ getQM(QC(am, qm, q)) = qm
 
 function
 getQuest : QConf -> Questionnaire
-getQuest(QC(am, q)) = q
+getQuest(QC(am, qm, q)) = q
 
 function
 isValue : QConf -> Bool
 isValue(QC(am, qm, qempty)) = true
 isValue(QC(am, qm, q)) = false
 
-data OptQC = noQC | someQC(QConf)
+data OptQConf = noQConf | someQConf(QConf)
 
 function
-isSomeQC : OptQC -> Bool
-isSomeQC(noQC) = false
-isSomeQC(someQC(qc)) = true
+isSomeQC : OptQConf -> Bool
+isSomeQC(noQConf) = false
+isSomeQC(someQConf(qc)) = true
 
 partial function 
-getQC : OptQC -> QConf
-getQC(someQC(qc)) = qc
+getQC : OptQConf -> QConf
+getQC(someQConf(qc)) = qc
 
 function
 qcappend : QConf Questionnaire -> QConf
 qcappend(QC(am, qm, qs1), qs2) = QC(am, qm, qseq(qs1, qs2))
+
+
+data OptExp = noExp | someExp(Exp)
+
+function
+isSomeExp : OptExp -> Bool
+isSomeExp(noExp) = false
+isSomeExp(someExp(e)) = true
+
+partial function
+getExp : OptExp -> Exp
+getExp(someExp(e)) = e
+
+function
+expIsValue : Exp -> Bool
+expIsValue(constant(av)) = true
+expIsValue(e) = false
+
+partial function
+getExpValue : Exp -> Aval
+getExpValue(constant(av)) = av
+

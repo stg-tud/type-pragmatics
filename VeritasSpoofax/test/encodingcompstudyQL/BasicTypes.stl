@@ -50,7 +50,7 @@ multiply(n1, succ(n2)) = plus(n1, multiply(n1, n2))
 //integer division
 function divide : nat nat -> nat
 divide(n1, n2) = 
-	if (gt(n1, n2))
+	if (gt(n1, n2) = yes)
 	then succ(divide(minus(n1, n2), n2))
 	else zero
 	
