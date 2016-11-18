@@ -49,41 +49,38 @@ append: ATList ATList -> ATList
 append(atempty, atl) = atl
 append(atcons(at, atlr), atl) = atcons(at, append(atlr, atl))
 
-	
-// expressions for conditional guard
-data Exp = constant(Aval) | qvar(QID) | 
-	add(Exp, Exp) | sub(Exp, Exp) | mul(Exp, Exp) | div(Exp, Exp)
+data BinOp = add | sub | mul | div | eq | gt | lt | and | or
+data UnOp = not
 
-//no explicit constructs for <=, >=, != - can easily be constructed
-//with the constructs below
-data Pred = 
-	Eq(Exp, Exp) | 
-	Gt(Exp, Exp) | 
-	Lt(Exp, Exp) |
-  	ETrue | 
-  	Not(Pred) | 
-  	And(Pred, Pred) |
-  	Or(Pred, Pred)
+// expressions for conditional guards and derived values
+data Exp =
+     constant(Aval) |
+     qvar(QID) |
+     binop(Exp, BinOp, Exp) |
+     unop(UnOp, Exp)
 
 // datatype for (simple) questions
-//QID: id of question, Label: question text, AType: type of answer,
-//dquestion: question derived via an expression (will have type of that expression)
-//dpquestion: question derived via a predicate (must be checked to have Boolean type)
-data Q = question(QID, Label, AType) | dquestion(QID, Exp) | dpquestion(QID, Pred)
+// question: QID: id of question, Label: question text, AType: type of answer,
+// value: value derived via an expression (will have type of that expression)
+// defquestion: definition of a question (will not directly ask the question - but qid can be used later to actually ask it)
+// ask: ask a previously defined question
+data Entry =
+     question(QID, Label, AType) |
+     value(QID, AType, Exp) |
+     defquestion(QID, Label, AType) |
+     ask(QID)
 
 //Questionnaire
 //qempty: empty questionnaire
 //qsingle: single (derived) question
-//qdef: definition of a question (will not directly ask the question - but qid can be used later to actually ask it)
 //qseq: sequential composition of questionnaires
 //qcond: conditional questions (depend on evaluation of a predicate)
 //qgroup: grouping construct for hierarchical questionnaires
 data Questionnaire = 
 	qempty |
 	qsingle(Q) |
-	qdef(Q) |
 	qseq(Questionnaire, Questionnaire) |
-	qcond(Pred, Questionnaire, Questionnaire) |
+	qcond(Exp, Questionnaire, Questionnaire) |
 	qgroup(GID, Questionnaire)
 	
 
