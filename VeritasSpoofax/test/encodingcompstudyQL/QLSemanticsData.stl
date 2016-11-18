@@ -59,26 +59,26 @@ appendQMap(qmbind(qid, l, t, qm1), qm2) = qmbind(qid, l, t, appendQMap(qm1, qm2)
 
 //questionnaire configurations: combination of AnsMap (of already given answers), QMap (of questions already defined), and the remaining questionnaire
 //this is the expression to be reduced!
-data QC = QC(AnsMap, QMap, Questionnaire)
+data QConf = QC(AnsMap, QMap, Questionnaire)
 
 function
-getAM : QC -> AnsMap
+getAM : QConf -> AnsMap
 getAM(QC(am, qm, q)) = am
 
 function
-getQM : QC -> QMap
+getQM : QConf -> QMap
 getQM(QC(am, qm, q)) = qm
 
 function
-getQuest : QC -> Questionnaire
+getQuest : QConf -> Questionnaire
 getQuest(QC(am, q)) = q
 
 function
-isValue : QC -> Bool
+isValue : QConf -> Bool
 isValue(QC(am, qm, qempty)) = true
 isValue(QC(am, qm, q)) = false
 
-data OptQC = noQC | someQC(QC)
+data OptQC = noQC | someQC(QConf)
 
 function
 isSomeQC : OptQC -> Bool
@@ -86,9 +86,9 @@ isSomeQC(noQC) = false
 isSomeQC(someQC(qc)) = true
 
 partial function 
-getQC : OptQC -> QC
+getQC : OptQC -> QConf
 getQC(someQC(qc)) = qc
 
 function
-qcappend : QC Questionnaire -> QC
+qcappend : QConf Questionnaire -> QConf
 qcappend(QC(am, qm, qs1), qs2) = QC(am, qm, qseq(qs1, qs2))

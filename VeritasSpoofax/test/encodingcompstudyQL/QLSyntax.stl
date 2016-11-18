@@ -49,8 +49,8 @@ append: ATList ATList -> ATList
 append(atempty, atl) = atl
 append(atcons(at, atlr), atl) = atcons(at, append(atlr, atl))
 
-data BinOp = add | sub | mul | div | eq | gt | lt | and | or
-data UnOp = not
+data BinOp = addop | subop | mulop | divop | eqop | gtop | ltop | andop | orop
+data UnOp = notop
 
 // expressions for conditional guards and derived values
 data Exp =

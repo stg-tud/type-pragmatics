@@ -26,22 +26,22 @@ getAnswer(l, Text) = T(askString(l))
 
 function
 evalBinOp : BinOp Aval Aval -> OptExp
-evalBinOp(add(), Num(n1), Num(n2)) = someExp(constant(Num(plus(n1, n2))))
-evalBinOp(sub(), Num(n1), Num(n2)) = someExp(constant(Num(minus(n1, n2))))
-evalBinOp(mul(), Num(n1), Num(n2)) = someExp(constant(Num(multiply(n1, n2))))
-evalBinOp(div(), Num(n1), Num(n2)) = someExp(constant(Num(divide(n1, n2))))
-evalBinOp(gt(), Num(n1), Num(n2)) = someExp(constant(B(gt(n1, n2))))
-evalBinOp(lt(), Num(n1), Num(n2)) = someExp(constant(B(lt(n1, n2))))
-evalBinOp(and(), B(b1), B(b2)) = someExp(constant(B(and(b1, b2))))
-evalBinOp(or(), B(b1), B(b2)) = someExp(constant(B(or(b1, b2))))
-evalBinOp(eq(), Num(n1), Num(n2)) = if (n1 == n2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
-evalBinOp(eq(), B(b1), B(b2)) = if (b1 == b2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
-evalBinOp(eq(), T(t1), T(t2)) = if (t1 == t2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
+evalBinOp(addop, Num(n1), Num(n2)) = someExp(constant(Num(plus(n1, n2))))
+evalBinOp(subop, Num(n1), Num(n2)) = someExp(constant(Num(minus(n1, n2))))
+evalBinOp(mulop, Num(n1), Num(n2)) = someExp(constant(Num(multiply(n1, n2))))
+evalBinOp(divop, Num(n1), Num(n2)) = someExp(constant(Num(divide(n1, n2))))
+evalBinOp(gtop, Num(n1), Num(n2)) = someExp(constant(B(gt(n1, n2))))
+evalBinOp(ltop, Num(n1), Num(n2)) = someExp(constant(B(lt(n1, n2))))
+evalBinOp(andop, B(b1), B(b2)) = someExp(constant(B(and(b1, b2))))
+evalBinOp(orop, B(b1), B(b2)) = someExp(constant(B(or(b1, b2))))
+evalBinOp(eqop, Num(n1), Num(n2)) = if (n1 == n2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
+evalBinOp(eqop, B(b1), B(b2)) = if (b1 == b2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
+evalBinOp(eqop, T(t1), T(t2)) = if (t1 == t2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
 evalBinOp(op, a1, a2) = noExp
 
 function
 evalUnOp : UnOp Aval -> OptExp
-evalUnOp(not(), B(b)) = someExp(constant(B(not(b))))
+evalUnOp(notop, B(b)) = someExp(constant(B(not(b))))
 evalUnOp(op, a) = noExp
 
 
@@ -100,7 +100,7 @@ reduceExp(unop(op, e), am) =
 //returns: Option of QC (where AnsMap contains all answers to the previous questions, 
 //qb the remaining questionnaire block)
 function
-reduce: QC -> OptQC
+reduce: QConf -> OptQC
 
 reduce(QC(am, qm, qempty)) = noQC //cannot reduce value configuration further
 
