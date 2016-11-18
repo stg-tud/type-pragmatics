@@ -89,6 +89,7 @@ data Questionnaire =
 
 
 // map of answers to questions ("flat")
+//ignores hierarchical answer structure of groups - TODO is that ok?
 data AnsMap = aempty | abind(QID, Aval, AnsMap)
 
 function lookupAnsMap : QID AnsMap -> OptAval

@@ -82,6 +82,24 @@ comparable(av1, av2) = typeOf(av1) == typeOf(av2)
 //(in which AnsMap contains all previously given answers - and qb is the remaining questionnaire block)
 //returns: Option of QC (where AnsMap contains all answers to the previous questions, 
 //qb the remaining questionnaire block)
+function
+reduce: QC -> OptQC
+reduce(C(am, qempty)) = noQC //cannot reduce value configuration further
+reduce(C(am, qsingle(q))) = noQC
+reduce(C(am, qdef(q))) = noQC
+reduce(C(am, qseq(q1, q2))) = 
+	if (isValue(q1))
+	then someQC(C(am, q2))
+	else let reduceqb1 = reduce(C(am, q1)) in
+			if (isSomeQC(reduceqb1))
+			then let qc1n = getQC(reduceqb1) in
+				someQC(C(getAM(qc1n), qseq(getQuest(qc1n), q2)))
+			else noQC
+reduce(C(am, qcond(p, q1, q2))) = noQC
+reduce(C(am, qgroup(gid, q))) = noQC
+
+
+
 // function
 // reduce: QC -> OptQC
 // reduce(C(am, qempty)) = noQC //cannot reduce value configuration further
