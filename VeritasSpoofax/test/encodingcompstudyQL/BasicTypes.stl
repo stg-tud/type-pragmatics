@@ -4,11 +4,11 @@ module encodingcompstudyQL.BasicTypes
 data YN = yes | no
 
 function and : YN YN -> YN
-and(yes, yes) = yes
+and(yes(), yes()) = yes
 and(b1, b2) = no
 
 function or : YN YN -> YN
-or(no, no) = no
+or(no(), no()) = no
 or(b1, b2) = yes
 
 function not : YN -> YN

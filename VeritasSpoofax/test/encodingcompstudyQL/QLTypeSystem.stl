@@ -1,6 +1,7 @@
 module encodingcompstudyQL.QLTypeSystem
 
 import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.QLSemanticsData
 
 //TODO: type system should satisfy progress and preservation!
 //How to come up with a semantics + type system s.t. reduction does not change the type?
