@@ -78,7 +78,7 @@ data Entry =
 //qgroup: grouping construct for hierarchical questionnaires
 data Questionnaire = 
 	qempty |
-	qsingle(Q) |
+	qsingle(Entry) |
 	qseq(Questionnaire, Questionnaire) |
 	qcond(Exp, Questionnaire, Questionnaire) |
 	qgroup(GID, Questionnaire)
