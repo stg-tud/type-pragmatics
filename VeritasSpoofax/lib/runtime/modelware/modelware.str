@@ -1,8 +1,0 @@
-module runtime/modelware/modelware
-
-imports
-  
-  libstratego-lib
-  
-  runtime/modelware/-
-
