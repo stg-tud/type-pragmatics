@@ -5,10 +5,14 @@ import encodingcompstudyQL.BasicTypes
 // question identifiers
 open data QID
 
+// identifiers/titles for question groups
+open data GID
+
 // label (text) of questions, underspecified
 open data Label
 
 // sum type for different concrete answers 
+// so far omits date, decimal, and money/currency from the original spec
 data Aval = B(YN) | Num(nat) | T(string)
 
 //Option[Aval]
@@ -47,24 +51,40 @@ append(atcons(at, atlr), atl) = atcons(at, append(atlr, atl))
 
 	
 // expressions for conditional guard
-data Exp = 
-	Eq(QID, Aval) | 
-	Gt(QID, nat) | 
-	Lt(QID, nat) |
+data Exp = constant(Aval) | qvar(QID) | 
+	add(Exp, Exp) | sub(Exp, Exp) | mul(Exp, Exp) | div(Exp, Exp)
+
+//no explicit constructs for <=, >=, != - can easily be constructed
+//with the constructs below
+data Pred = 
+	Eq(Exp, Exp) | 
+	Gt(Exp, Exp) | 
+	Lt(Exp, Exp) |
   	ETrue | 
-  	Not(Exp) | 
-  	And(Exp, Exp)
+  	Not(Pred) | 
+  	And(Pred, Pred) |
+  	Or(Pred, Pred)
 
 // datatype for (simple) questions
-//QID: id of question, AType: type of answer, Label: question text
-data Q = question(QID, AType, Label)
+//QID: id of question, Label: question text, AType: type of answer,
+//dquestion: question derived via an expression (will have type of that expression)
+//dpquestion: question derived via a predicate (must be checked to have Boolean type)
+data Q = question(QID, Label, AType) | dquestion(QID, Exp) | dpquestion(QID, Pred)
 
-//blocks of questions
-data QB = 
+//Questionnaire
+//qempty: empty questionnaire
+//qsingle: single (derived) question
+//qdef: definition of a question (will not directly ask the question - but qid can be used later to actually ask it)
+//qseq: sequential composition of questionnaires
+//qcond: conditional questions (depend on evaluation of a predicate)
+//qgroup: grouping construct for hierarchical questionnaires
+data Questionnaire = 
 	qempty |
-	qcons(Q, QB) |
-	qseq(QB, QB) |
-	qcond(Exp, QB, QB)
+	qsingle(Q) |
+	qdef(Q) |
+	qseq(Questionnaire, Questionnaire) |
+	qcond(Pred, Questionnaire, Questionnaire) |
+	qgroup(GID, Questionnaire)
 	
 
 
@@ -88,14 +108,14 @@ appendAnsMap(abind(qid, av, am), aml) = abind(qid, av, appendAnsMap(am, aml))
 
 //main expressions ("questionnaire configurations"): combination of AnsMap (of already given answers) and remaining questions
 //this is the expression to be reduced!
-data QC = C(AnsMap, QB)
+data QC = C(AnsMap, Questionnaire)
 
 function
 getAM : QC -> AnsMap
 getAM(C(am, q)) = am
 
 function
-getQuest : QC -> QB
+getQuest : QC -> Questionnaire
 getQuest(C(am, q)) = q
 
 function

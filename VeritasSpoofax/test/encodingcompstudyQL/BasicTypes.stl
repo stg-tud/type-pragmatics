@@ -3,6 +3,12 @@ module encodingcompstudyQL.BasicTypes
 //natural numbers
 data nat = zero | succ(nat)
 
+//define as total function...?
+function pred : nat -> nat
+pred(zero) = zero
+pred(succ(n)) = n
+
+//nat comparisons
 function gt : nat nat -> Bool
 gt(zero, n) = false
 gt(succ(n), zero) = true
@@ -13,6 +19,25 @@ lt(n, zero) = false
 lt(zero, succ(n)) = true
 lt(succ(n1), succ(n2)) = lt(n1, n2)
 
+function plus : nat nat -> nat
+plus(n1, zero) = n1
+plus(n1, succ(n2)) = succ(plus(n1, n2))
+
+function minus : nat nat -> nat
+minus(n1, zero) = n1
+minus(n1, succ(n2)) = pred(minus(n1, n2))
+
+function multiply : nat nat -> nat
+multiply(n1, zero) = zero
+multiply(n1, succ(n2)) = plus(n1, multiply(n1, n2))
+
+//integer division
+function divide : nat nat -> nat
+divide(n1, n2) = 
+	if (gt(n1, n2))
+	then succ(divide(minus(n1, n2), n2))
+	else zero
+	
 //yes/no (extra type for boolean)
 data YN = yes | no
 
