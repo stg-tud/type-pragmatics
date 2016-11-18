@@ -33,6 +33,19 @@ getAval(someAval(t)) = t
 //answer type for questions
 data AType = YesNo | Number | Text
 
+data OptAType =
+	noAType |
+	someAType(AType)
+
+function
+isSomeAType : OptAType -> Bool
+isSomeAType(noAType) = false
+isSomeAType(someAType(t)) = true
+
+partial function
+getAType : OptAType -> AType
+getAType(someAType(t)) = t
+
 //type of each Aval
 function
 typeOf : Aval -> AType
@@ -49,92 +62,37 @@ append: ATList ATList -> ATList
 append(atempty, atl) = atl
 append(atcons(at, atlr), atl) = atcons(at, append(atlr, atl))
 
-	
-// expressions for conditional guard
-data Exp = constant(Aval) | qvar(QID) | 
-	add(Exp, Exp) | sub(Exp, Exp) | mul(Exp, Exp) | div(Exp, Exp)
+data BinOp = addop | subop | mulop | divop | eqop | gtop | ltop | andop | orop
+data UnOp = notop
 
-//no explicit constructs for <=, >=, != - can easily be constructed
-//with the constructs below
-data Pred = 
-	Eq(Exp, Exp) | 
-	Gt(Exp, Exp) | 
-	Lt(Exp, Exp) |
-  	ETrue | 
-  	Not(Pred) | 
-  	And(Pred, Pred) |
-  	Or(Pred, Pred)
+// expressions for conditional guards and derived values
+data Exp =
+     constant(Aval) |
+     qvar(QID) |
+     binop(Exp, BinOp, Exp) |
+     unop(UnOp, Exp)
 
 // datatype for (simple) questions
-//QID: id of question, Label: question text, AType: type of answer,
-//dquestion: question derived via an expression (will have type of that expression)
-//dpquestion: question derived via a predicate (must be checked to have Boolean type)
-data Q = question(QID, Label, AType) | dquestion(QID, Exp) | dpquestion(QID, Pred)
+// question: QID: id of question, Label: question text, AType: type of answer,
+// value: value derived via an expression (will have type of that expression)
+// defquestion: definition of a question (will not directly ask the question - but qid can be used later to actually ask it)
+// ask: ask a previously defined question
+data Entry =
+     question(QID, Label, AType) |
+     value(QID, AType, Exp) |
+     defquestion(QID, Label, AType) |
+     ask(QID)
 
 //Questionnaire
 //qempty: empty questionnaire
 //qsingle: single (derived) question
-//qdef: definition of a question (will not directly ask the question - but qid can be used later to actually ask it)
 //qseq: sequential composition of questionnaires
 //qcond: conditional questions (depend on evaluation of a predicate)
 //qgroup: grouping construct for hierarchical questionnaires
 data Questionnaire = 
 	qempty |
-	qsingle(Q) |
-	qdef(Q) |
+	qsingle(Entry) |
 	qseq(Questionnaire, Questionnaire) |
-	qcond(Pred, Questionnaire, Questionnaire) |
+	qcond(Exp, Questionnaire, Questionnaire) |
 	qgroup(GID, Questionnaire)
 	
-
-
-// map of answers to questions ("flat")
-//ignores hierarchical answer structure of groups - TODO is that ok?
-data AnsMap = aempty | abind(QID, Aval, AnsMap)
-
-function lookupAnsMap : QID AnsMap -> OptAval
-lookupAnsMap(qid, aempty) = noAval
-lookupStore(qid1, abind(qid2, av, AM)) = 
-	if (qid1 == qid2)
-	then someAval(av)
-	else lookupAnsMap(qid1, AM)
-
-
-//will probably primarily use this to attach one element to the end of an AnsMap
-//maybe specify a more specialized function for this?
-function 
-appendAnsMap : AnsMap AnsMap -> AnsMap
-appendAnsMap(aempty, am) = am
-appendAnsMap(abind(qid, av, am), aml) = abind(qid, av, appendAnsMap(am, aml))
-
-//main expressions ("questionnaire configurations"): combination of AnsMap (of already given answers) and remaining questions
-//this is the expression to be reduced!
-data QC = C(AnsMap, Questionnaire)
-
-function
-getAM : QC -> AnsMap
-getAM(C(am, q)) = am
-
-function
-getQuest : QC -> Questionnaire
-getQuest(C(am, q)) = q
-
-function
-isValue : QC -> Bool
-isValue(C(am, qempty)) = true
-isValue(C(am, qb)) = false
-
-data OptQC = noQC | someQC(QC)
-
-function
-isSomeQC : OptQC -> Bool
-isSomeQC(noQC) = false
-isSomeQC(someQC(qc)) = true
-
-partial function 
-getQC : OptQC -> QC
-getQC(someQC(qc)) = qc
-
-
-
-

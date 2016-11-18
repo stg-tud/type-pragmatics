@@ -2,6 +2,7 @@ module encodingcompstudyQL.QLSemantics
 
 import encodingcompstudyQL.QLSyntax
 import encodingcompstudyQL.BasicTypes
+import encodingcompstudyQL.QLSemanticsData
 
 //answer oracle for Boolean questions
 function 
@@ -23,105 +24,98 @@ getAnswer(l, Number) = Num(askNumber(l))
 getAnswer(l, Text) = T(askString(l))
 
 
-data EBool = True | False | Error
+function
+evalBinOp : BinOp Aval Aval -> OptExp
+evalBinOp(addop, Num(n1), Num(n2)) = someExp(constant(Num(plus(n1, n2))))
+evalBinOp(subop, Num(n1), Num(n2)) = someExp(constant(Num(minus(n1, n2))))
+evalBinOp(mulop, Num(n1), Num(n2)) = someExp(constant(Num(multiply(n1, n2))))
+evalBinOp(divop, Num(n1), Num(n2)) = someExp(constant(Num(divide(n1, n2))))
+evalBinOp(gtop, Num(n1), Num(n2)) = someExp(constant(B(gt(n1, n2))))
+evalBinOp(ltop, Num(n1), Num(n2)) = someExp(constant(B(lt(n1, n2))))
+evalBinOp(andop, B(b1), B(b2)) = someExp(constant(B(and(b1, b2))))
+evalBinOp(orop, B(b1), B(b2)) = someExp(constant(B(or(b1, b2))))
+evalBinOp(eqop, Num(n1), Num(n2)) = if (n1 == n2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
+evalBinOp(eqop, B(b1), B(b2)) = if (b1 == b2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
+evalBinOp(eqop, T(t1), T(t2)) = if (t1 == t2) then someExp(constant(B(yes))) else someExp(constant(B(no)))
+evalBinOp(op, a1, a2) = noExp
 
 function
-comparable: Aval Aval -> Bool
-comparable(av1, av2) = typeOf(av1) == typeOf(av2)
+evalUnOp : UnOp Aval -> OptExp
+evalUnOp(notop, B(b)) = someExp(constant(B(not(b))))
+evalUnOp(op, a) = noExp
+
 
 //function for evaluating expressions
 //this function should fail if it does not find an answer in the given AnsMap
 // function
-// evalExp : Exp AnsMap -> EBool
-// evalExp(Eq(qid, av), am) = 
-// 	let avo = lookupAnsMap(qid, am) in
-// 		if (isSomeAval(avo))
-// 		then let av2 = getAval(av2) in
-// 			if (comparable(av2, av))
-// 		 	then if (av2 == av) then True else False
-// 		 	else Error
-// 		 else Error 
-// evalExp(Gt(qid, n), am) = 
-// 	let avo = lookupAnsMap(qid, am) in
-// 		if (isSomeAval(avo))
-// 		then let av2 = getAval(av2) in
-// 			if (typeOf(av2) == Number)
-// 			then if (gt(av2, n)) then True else False
-// 			else Error
-// 		else Error
-// evalExp(Lt(qid, n), am) = 
-// 	let avo = lookupAnsMap(qid, am) in
-// 		if (isSomeAval(avo))
-// 		then let av2 = getAval(av2) in
-// 			if (typeOf(av2) == Number)
-// 			then if (lt(av2, n)) then True else False
-// 			else Error
-// 		else Error
-// evalExp(ETrue, am) = True
-// evalExp(Not(e), am) = 
-// 	let evale = evalExp(e, am) in
-// 	if (evale == True) 
-// 	then False
-// 	else if (evale == False)
-// 		then True
-// 		else Error
-// evalExp(And(e1, e2), am) = 
-// 	let evale1 = evalExp(e1, am) in
-// 		let evale2 = evalExp(e2, am) in
-// 		 if ((evale1 == Error) || (evale2 == Error))
-// 		 then Error
-// 		 else if (evale1 == False)
-// 		 	then False
-// 		 	else evale2
-
-
-
+// reduceExp : Exp AnsMap -> OptExp
+// reduceExp(constant(av), ams) = noExp
+// reduceExp(qvar(qid), am) =
+//     let avOpt = lookupAnsMap(qid, am) in
+//         if (isSomeAval(avOpt))
+// 	then someExp(constant(getAval(avOpt)))
+// 	else noExp
+// reduceExp(binop(e1, op, e2), am) =
+//     if (expIsValue(e1) && expIsValue(e2))
+//     then evalBinOp(op, getExpValue(e1), getExpValue(e2))
+//     else let eOpt1 = reduceExp(e1, am) in
+//         if (isSomeExp(eOpt1))
+//         then someExp(binop(getExp(eOpt1), op, e2))
+//         else let eOpt2 = reduceExp(e2, am) in
+//             if (isSomeExp(eOpt2))
+//             then someExp(binop(e1, op, getExp(eOpt2)))
+//             else noExp
+// reduceExp(unop(op, e), am) =
+//     if (expIsValue(e))
+//     then evalUnOp(op, getExpValue(e))
+//     else let eOpt = reduceExp(e, am) in
+//         if (isSomeExp(eOpt))
+// 	then someExp(unop(op, getExp(eOpt)))
+// 	else noExp
 
 //main reduction function, for reducing configurations of answermaps and questionnaires to configurations of answermaps and questionnaires
 //argument QC: (remaining) questionnaire configuration 
 //(in which AnsMap contains all previously given answers - and qb is the remaining questionnaire block)
 //returns: Option of QC (where AnsMap contains all answers to the previous questions, 
 //qb the remaining questionnaire block)
-function
-reduce: QC -> OptQC
-reduce(C(am, qempty)) = noQC //cannot reduce value configuration further
-reduce(C(am, qsingle(q))) = noQC
-reduce(C(am, qdef(q))) = noQC
-reduce(C(am, qseq(q1, q2))) = 
-	if (isValue(q1))
-	then someQC(C(am, q2))
-	else let reduceqb1 = reduce(C(am, q1)) in
-			if (isSomeQC(reduceqb1))
-			then let qc1n = getQC(reduceqb1) in
-				someQC(C(getAM(qc1n), qseq(getQuest(qc1n), q2)))
-			else noQC
-reduce(C(am, qcond(p, q1, q2))) = noQC
-reduce(C(am, qgroup(gid, q))) = noQC
-
-
-
 // function
-// reduce: QC -> OptQC
-// reduce(C(am, qempty)) = noQC //cannot reduce value configuration further
-// reduce(C(am, qcons(question(qid, at, l), qbr))) =
-// 	//look up the correctly typed answer in the magic allAnswers function 
-// 	let ans = getAnswer(l, at) in 
-// 		//preserve the order of the questions in the answer map?
-// 		//could be important for type preservation (alternatively, typing could reverse answermap...)
-// 		someQC(C(appendAnsMap(am, abind(qid, ans, aempty)), qbr))
-// reduce(C(am, qseq(qb1, qb2))) = 
-// 	if (isValue(qb1))
-// 	then someQC(C(am, qb2))
-// 	else let reduceqb1 = reduce(C(am, qb1)) in
-// 			if (isSomeQC(reduceqb1))
-// 			then let qc1n = getQC(reduceqb1) in
-// 				someQC(C(getAM(qc1n), qseq(getQuest(qc1n), qb2)))
-// 			else noQC
-// //qcond is the only case where evaluation can actually dynamically fail!
-// reduce(C(am, qcond(exp, qb1, qb2))) =
-// 	let eExp = evalExp(exp, am) in
-// 		if (eExp == Error)
-// 		then noQC
-// 		else if (eExp == True)
-// 			then someQC(C(am, qb1))
-// 			else someQC(C(am, qb2))
+// reduce: QConf -> OptQConf
+// 
+// reduce(QC(am, qm, qempty)) = noQConf //cannot reduce value configuration further
+// 
+// reduce(QC(am, qm, qsingle(question(qid, l, t)))) =
+//     let av = getAnswer(l, t) in
+//         someQConf(QC(abind(qid, av, am), qm, qempty))
+// reduce(QC(am, qm, qsingle(value(qid, t, e)))) =
+//     if (expIsValue(e))
+//     then someQConf(QC(abind(qid, getExpValue(e), am), qm, qempty))
+//     else let eOpt = reduceExp(e, am) in
+//         if (isSomeExp(eOpt))
+// 	then someQConf(QC(am, qm, qsingle(value(qid, t, getExp(eOpt)))))
+// 	else noQConf
+// reduce(QC(am, qm, qsingle(defquestion(qid, l, t)))) =
+//     let av = getAnswer(l, t) in
+//         someQConf(QC(am, qmbind(qid, l, t, qm), qempty))
+// reduce(QC(am, qm, qsingle(ask(qid)))) =
+//     let qOpt = lookupQMap(qid, qm) in
+//         if (isSomeQuestion(qOpt))
+//         then someQConf(QC(am, qm, qsingle(question(qid, getQuestionLabel(qOpt), getQuestionAType(qOpt)))))
+//         else noQConf
+// 
+// reduce(QC(am, qm, qseq(qempty(), qs2))) = someQConf(QC(am, qm, qs2))
+// reduce(QC(am, qm, qseq(qs1, qs2))) =
+//     let qcOpt = reduce(QC(am, qm, qs1)) in
+//         if (isSomeQC(qcOpt))
+// 	then someQConf(qcappend(getQC(qcOpt), qs2))
+// 	else noQConf
+// 
+// reduce(QC(am, qm, qcond(constant(B(yes)), qs1, qs2))) = someQConf(QC(am, qm, qs1))
+// reduce(QC(am, qm, qcond(constant(B(no)), qs1, qs2))) = someQConf(QC(am, qm, qs2))
+// reduce(QC(am, qm, qcond(e, qs1, qs2))) =
+//     let eOpt = reduceExp(e, am) in
+//         if (isSomeExp(eOpt))
+// 	then someQConf(QC(am, qm, qcond(getExp(eOpt), qs1, qs2)))
+// 	else noQConf
+// 
+// reduce(QC(am, qm, qgroup(gid, qs))) = someQConf(QC(am, qm, qs))
+

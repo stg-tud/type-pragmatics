@@ -1,5 +1,21 @@
 module encodingcompstudyQL.BasicTypes
 
+//yes/no (extra type for boolean)
+data YN = yes | no
+
+function and : YN YN -> YN
+and(yes(), yes()) = yes
+and(b1, b2) = no
+
+function or : YN YN -> YN
+or(no(), no()) = no
+or(b1, b2) = yes
+
+function not : YN -> YN
+not(yes) = no
+not(no) = yes
+
+
 //natural numbers
 data nat = zero | succ(nat)
 
@@ -9,14 +25,14 @@ pred(zero) = zero
 pred(succ(n)) = n
 
 //nat comparisons
-function gt : nat nat -> Bool
-gt(zero, n) = false
-gt(succ(n), zero) = true
+function gt : nat nat -> YN
+gt(zero, n) = no
+gt(succ(n), zero) = yes
 gt(succ(n1), succ(n2)) = gt(n1, n2)
 
-function lt : nat nat -> Bool
-lt(n, zero) = false
-lt(zero, succ(n)) = true
+function lt : nat nat -> YN
+lt(n, zero) = no
+lt(zero, succ(n)) = yes
 lt(succ(n1), succ(n2)) = lt(n1, n2)
 
 function plus : nat nat -> nat
@@ -34,13 +50,10 @@ multiply(n1, succ(n2)) = plus(n1, multiply(n1, n2))
 //integer division
 function divide : nat nat -> nat
 divide(n1, n2) = 
-	if (gt(n1, n2))
+	if (gt(n1, n2) = yes)
 	then succ(divide(minus(n1, n2), n2))
 	else zero
 	
-//yes/no (extra type for boolean)
-data YN = yes | no
-
 //underspecified type "chars"
 open data char
 
