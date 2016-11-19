@@ -1,0 +1,42 @@
+module pp
+
+imports
+
+  libstratego-gpp
+  runtime/refactoring/-
+  pp/VeritasSpoofax-parenthesize
+  pp/VeritasSpoofax-pp
+
+rules
+
+  editor-format:
+    (node, _, ast, path, project-path) -> (filename, result)
+    with
+      ext      := <get-extension> path
+    ; filename := <guarantee-extension(|$[pp.[ext]])> path
+    ; result   := <pp-debug> node
+
+rules
+  
+  pp-VeritasSpoofax-string =
+    parenthesize-VeritasSpoofax
+    ; prettyprint-VeritasSpoofax-start-symbols
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-partial-VeritasSpoofax-string =
+    parenthesize-VeritasSpoofax
+    ; prettyprint-VeritasSpoofax
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-debug :
+    ast -> result
+    with
+       result := <pp-VeritasSpoofax-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-VeritasSpoofax-string); debug(!"cannot pp ")))> ast
+    ;  result := ""
+
+rules
+  
+  construct-textual-change = construct-textual-change(pp-partial-VeritasSpoofax-string, parenthesize, override-reconstruction, resugar)
