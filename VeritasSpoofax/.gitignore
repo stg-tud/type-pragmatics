@@ -1,24 +1,14 @@
-.DS_Store
+/.cache
+/bin
+/src-gen
+/target
 
-.settings/org.eclipse.jdt.core.prefs
-.cache
-bin
-
-include/
-
-editor/java/trans
-editor/VeritasSpoofax-*.generated.esv
-editor/VeritasSpoofax-Outliner.generated.str
-syntax/VeritasSpoofax.generated.pp
-lib/*.generated.str
-lib-refactoring/*.generated.str
-trans/names.str
+/.classpath
+/.project
+/.settings
 
 *.aterm
 *.hash
 *.info
 *.proof
 *.smt2
-
-target/
-src-gen/
