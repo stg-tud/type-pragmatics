@@ -1,6 +1,6 @@
 module props
 
-imports include/VeritasSpoofax
+imports signatures/VeritasSpoofax-sig
 
 signature
 	sorts Prop FOF File

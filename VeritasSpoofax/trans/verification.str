@@ -4,17 +4,16 @@ imports
   libstratego-lib
   libstratego-gpp
   libstratego-aterm
-  include/VeritasSpoofax
+  signatures/VeritasSpoofax-sig
   generate
-  names
+  names/names
   fof-rewriting
   smt-rewriting
   props
-  veritasSpoofax
-  lib/editor-common.generated
+  veritasspoofax
   runtime/analysis/core
-  lib/runtime/index/core
-  lib/runtime/task/core
+  runtime/index/core
+  runtime/task/core
 
 signature 
 	constructors

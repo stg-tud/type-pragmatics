@@ -1,16 +1,15 @@
 module backend
 
 imports
-  include/VeritasSpoofax
+  signatures/VeritasSpoofax-sig
   
-  lib/editor-common.generated
-  lib/runtime/index/core
-  lib/runtime/index/query
-  lib/runtime/task/core
+  runtime/index/core
+  runtime/index/query
+  runtime/task/core
   
   libstratego-lib
   
-  names
+  names/names
   generate
   props
   verification

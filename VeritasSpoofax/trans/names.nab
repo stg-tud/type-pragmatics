@@ -1,7 +1,7 @@
 module names
 
 imports
-  include/VeritasSpoofax
+	signatures/VeritasSpoofax-sig
   
 namespaces Module Sort Symbol Axiom Rule
 

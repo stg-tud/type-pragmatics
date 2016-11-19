@@ -1,17 +1,15 @@
-module VeritasSpoofax
+module veritasspoofax
 
 imports
   libstratego-lib
   libstratego-gpp
   libstratego-aterm
-  lib/editor-common.generated
-  lib/runtime/analysis/-
-  lib/runtime/editor/-
+  runtime/analysis/-
+  runtime/editor/-
   
-  include/VeritasSpoofax
+  signatures/VeritasSpoofax-sig
   generate
-  editor/VeritasSpoofax-Outliner
-  names
+  names/names
   verification
 
 rules // Analysis

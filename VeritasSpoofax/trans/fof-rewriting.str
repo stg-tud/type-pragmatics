@@ -1,9 +1,10 @@
 module fof-rewriting
 
-imports include/VeritasSpoofax
-imports libstratego-lib
-imports names
-imports props
+imports 
+	signatures/VeritasSpoofax-sig
+	libstratego-lib
+	names/names
+	props
 
 
 rules

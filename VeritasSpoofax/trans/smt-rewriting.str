@@ -1,9 +1,9 @@
 module smt-rewriting
 
-imports include/VeritasSpoofax
+imports signatures/VeritasSpoofax-sig
 imports libstratego-lib
 imports trans/fof-rewriting
-imports names
+imports names/names
 imports props
 
 signature
