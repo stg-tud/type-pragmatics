@@ -26,7 +26,7 @@ appendATMap(atmbind(qid, at, atm), atml) = atmbind(qid, at, appendATMap(atm, atm
 
 
 //Pair of ATMap (for answer types of questions that have been or will be directly asked) and QMap (defined questions that can be asked later)
-data MapConf = MC(ATMap, QMap)
+data MapConf = MC(ATMap, ATMap)
 
 function 
 intersectATM : ATMap ATMap -> ATMap
@@ -37,19 +37,7 @@ intersectATM(atmbind(qid, at, atm1), atm2) =
 		then atmbind(qid, at, atm1atm2)
 		else atm1atm2
 
-function 
-intersectQM : QMap QMap -> QMap
-intersectQM(qmempty, qm2) = qmempty
-intersectQM(qmbind(qid, l, at, qm1), qm2) = 
-	let qm1qm2 = intersectQM(qm1, qm2) in
-		if (isSomeQuestion(lookupQMap(qid, qm2)))
-		then qmbind(qid, l, at, qm1qm2)
-		else qm1qm2
 
-function
-intersectMC : MapConf MapConf -> MapConf
-intersectMC(MC(atm1, qm1), MC(atm2, qm2)) = MC(intersectATM(atm1, atm2), intersectQM(qm1, qm2))
-	
 data OptMapConf = noMapConf | someMapConf(MapConf)
 
 function
@@ -109,21 +97,6 @@ echeck(tm, unop(op, e)) =
 	then checkUnOp(op, getAType(t))
 	else noAType
 	
-function
-entryCheck : ATMap QMap Entry -> OptMapConf
-entryCheck(atm, qm, question(qid, l, at)) = someMapConf(MC(atmbind(qid, at, atm), qm))
-entryCheck(atm, qm, value(qid, at, exp)) = 
-	let eco = echeck(atm, exp) in
-		if (isSomeAType(eco))
-		then someMapConf(MC(atmbind(qid, getAType(eco), atm), qm))
-		else noMapConf
-entryCheck(atm, qm, defquestion(qid, l, at)) = someMapConf(MC(atm, qmbind(qid, l, at, qm)))
-entryCheck(atm, qm, ask(qid)) = 
-	let lmqid = lookupQMap(qid, qm) in
-		if (isSomeQuestion(lmqid))
-		then someMapConf(MC(atmbind(getQuestionQID(lmqid), getQuestionAType(lmqid), atm), qm)) //do not remove question from QMap! (could be used again later)
-		else noMapConf
-	
 	
 //Typing judgment for questionnaires: MapConf |- Questionnaire : MapConf
 //first MapConf: MC(ATMap, QMap) that is valid *before* questionnaire
@@ -132,34 +105,49 @@ entryCheck(atm, qm, ask(qid)) =
 axiom
 
 ======================================== T-qempty
-~MC |- qempty : ~MC
+~MC |- qempty : MC(atmempty, atmempty)
 
 axiom
-entryCheck(~atm1, ~qm1, ~entry) == someMapConf(MC(~atm2, ~qm2))
-================================================================ T-qsingle
-MC(~atm1, ~qm1) |- qsingle(~entry) : MC(~atm2, ~qm2)
+lookupATMap(~qid, ~atm) == noAType
+============================================================================================== T-question
+MC(~atm, ~qm) |- qsingle(question(~qid, ~l, ~at)) : MC(atmbind(~qid, ~at, atmempty), atmempty)
+
+axiom
+lookupATMap(~qid, ~atm) == noAType
+echeck(~atm, ~exp) == someAType(~at)
+============================================================================================= T-value
+MC(~atm, ~qm) |- qsingle(value(~qid, ~at, ~exp)) : MC(atmbind(~qid, ~at, atmempty), atmempty)
+
+axiom
+lookupATMap(~qid, ~qm) == noAType
+================================================================================================= T-defquestion
+MC(~atm, ~qm) |- qsingle(defquestion(~qid, ~l, ~at)) : MC(atmempty, atmbind(~qid, ~at, atmempty))
+
+axiom
+lookupATMap(~qid, ~qm) == someAType(~at)
+================================================================================= T-ask
+MC(~atm, ~qm) |- qsingle(ask(~qid)) : MC(atmbind(~qid, ~at, atmempty), atmempty)
 
 
 axiom
-MC(~atm1, ~qm1) |- ~q1 : MC(~atm2, ~qm2)
-MC(~atm2, ~qm2) |- ~q2 : MC(~atm3, ~qm3)
-===================================================== T-qseq
-MC(~atm1, ~qm1) |- qseq(~q1, ~q2) : MC(~atm3, ~qm3)
+MC(~atm, ~qm) |- ~q1 : MC(~atm1, ~qm1)
+MC(appendATMap(~atm, ~atm1), appendATMap(~qm, ~qm1)) |- ~q2 : MC(~atm2, ~qm2)
+======================================================================================== T-qseq
+MC(~atm, ~qm) |- qseq(~q1, ~q2) : MC(appendATMap(~atm1, ~atm2, appendATMap(~qm1, ~qm2)))
 
 
 axiom 
-echeck(~atm1, ~exp) == someAType(~at)
-MC(~atm1, ~qm1) |- ~q1 : MC(~atm2, ~qm2)
-MC(~atm1, ~qm1) |- ~q2 : MC(~atm3, ~qm3)
-intersectMC(MC(~atm2, ~qm2), MC(~atm3, ~qm3)) == MC(~atm4, ~qm4) 
-==================================================================== T-qcond
-MC(~atm1, ~qm1) |- qcond(~exp, ~q1, ~q2) : MC(~atm4, ~qm4)
+echeck(~atm1, ~exp) == someAType(YesNo)
+MC(~atm, ~qm) |- ~q1 : MC(~atm1, ~qm1)
+MC(~atm, ~qm) |- ~q2 : MC(~atm2, ~qm2)
+================================================================================================= T-qcond
+MC(~atm, ~qm) |- qcond(~exp, ~q1, ~q2) : MC(intersectATM(~atm1, ~atm2), intersectATM(~qm1, ~qm2))
 
 
 axiom
-MC(~atm1, ~qm1) |- ~q : MC(~atm2, ~qm2)
+MC(~atm, ~qm) |- ~q : MC(~atm1, ~qm1)
 ======================================================== T-qgroup
-MC(~atm1, ~qm1) |- qgroup(~gid, ~q) : MC(~atm2, ~qm2)
+MC(~atm, ~qm) |- qgroup(~gid, ~q) : MC(~atm1, ~qm1)
 
 
 
