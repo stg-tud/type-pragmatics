@@ -69,6 +69,13 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     val Patsimpl = Value("patsimpl")
   }
 
+  object SelectionConfEnum extends ConfigOption {
+    val Selectall = Value("selectall")
+    val Selectusedfp = Value("selectusedfp")
+    val Noinversion = Value("noinversion")
+    val Noinversionselectusedfp = Value("noinversionselectusedfp")
+  }
+
   //Parametric class for translating a given String to a Configuration value such as the ones above
   case class ConfValueExtractor[E <: ConfigOption](val e: E) {
 
@@ -124,13 +131,15 @@ case class DataLayout(files: Seq[File], stimeout: String) {
                      val goalCategory: GoalCategoryEnum.Value,
                      val typingConf: TypingConfEnum.Value,
                      val variableConf: VariableConfEnum.Value,
-                     val simplConf: SimplConfEnum.Value) extends CSVTransformable {
+                     val simplConf: SimplConfEnum.Value,
+                     val selectConf: SelectionConfEnum.Value) extends CSVTransformable {
     override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
       makeCSVcell(b, proverConf.toString)
       makeCSVcell(b, goalCategory.toString)
       makeCSVcell(b, typingConf.toString)
       makeCSVcell(b, variableConf.toString)
-      makeCSVcell(b, simplConf.toString, end)
+      makeCSVcell(b, simplConf.toString)
+      makeCSVcell(b, selectConf.toString, end)
     }
   }
 
@@ -138,15 +147,17 @@ case class DataLayout(files: Seq[File], stimeout: String) {
                      override val goalCategory: GoalCategoryEnum.Value,
                      override val typingConf: TypingConfEnum.Value,
                      override val variableConf: VariableConfEnum.Value,
-                     override val simplConf: SimplConfEnum.Value)
-    extends Key(proverConf, goalCategory, typingConf, variableConf, simplConf)
+                     override val simplConf: SimplConfEnum.Value,
+                     override val selectConf: SelectionConfEnum.Value)
+    extends Key(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf)
 
   case class RawKey(override val proverConf: ProverConfEnum.Value,
                     override val goalCategory: GoalCategoryEnum.Value,
                     override val typingConf: TypingConfEnum.Value,
                     override val variableConf: VariableConfEnum.Value,
                     override val simplConf: SimplConfEnum.Value,
-                    filename: String) extends Key(proverConf, goalCategory, typingConf, variableConf, simplConf) {
+                    override val selectConf: SelectionConfEnum.Value,
+                    filename: String) extends Key(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf) {
     override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
       super.getCSVcells(b)
       makeCSVcell(b, filename, end)
@@ -191,11 +202,12 @@ case class DataLayout(files: Seq[File], stimeout: String) {
       val tc = extractAtIndex(TypingConfEnum, row, 3)
       val vc = extractAtIndex(VariableConfEnum, row, 4)
       val sc = extractAtIndex(SimplConfEnum, row, 5)
-      val filename = getCell(row, 6)
-      val pt = getCell(row, 7).toDouble
-      val stat = makeProverStatus(getCell(row, 8))
-      val det = getCell(row, 9)
-      RawKey(pc, gc, tc, vc, sc, filename) -> RawResult(pt, stat, det)
+      val selc = extractAtIndex(SelectionConfEnum, row, 6)
+      val filename = getCell(row, 7)
+      val pt = getCell(row, 8).toDouble
+      val stat = makeProverStatus(getCell(row, 9))
+      val det = getCell(row, 10)
+      RawKey(pc, gc, tc, vc, sc, selc, filename) -> RawResult(pt, stat, det)
     }).toMap
   }
 
@@ -208,12 +220,13 @@ case class DataLayout(files: Seq[File], stimeout: String) {
       val tc = extractAtIndex(TypingConfEnum, row, 3)
       val vc = extractAtIndex(VariableConfEnum, row, 4)
       val sc = extractAtIndex(SimplConfEnum, row, 5)
-      val succnum = getCell(row, 6).toDouble.toInt
-      val filenum = getCell(row, 7).toDouble.toInt
-      val succrate = getCell(row, 8).toDouble
-      val avgsucctime = getCell(row, 9).toDouble
-      val avgdev = getCell(row, 10).toDouble
-      ConfKey(pc, gc, tc, vc, sc) -> OverviewResult(succnum, filenum, succrate, avgsucctime, avgdev)
+      val selc = extractAtIndex(SelectionConfEnum, row, 6)
+      val succnum = getCell(row, 7).toDouble.toInt
+      val filenum = getCell(row, 8).toDouble.toInt
+      val succrate = getCell(row, 9).toDouble
+      val avgsucctime = getCell(row, 10).toDouble
+      val avgdev = getCell(row, 11).toDouble
+      ConfKey(pc, gc, tc, vc, sc, selc) -> OverviewResult(succnum, filenum, succrate, avgsucctime, avgdev)
     }).toMap
   }
 
@@ -300,6 +313,10 @@ case class DataLayout(files: Seq[File], stimeout: String) {
 
   def filterSimplConf[K <: Key, R <: Result](dataMap: K Map R, simplconf: List[SimplConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (simplconf contains k.simplConf)) yield (k, v)
+  }
+
+  def filterSelectionConf[K <: Key, R <: Result](dataMap: K Map R, selectConf: List[SelectionConfEnum.Value]): (K Map R) = {
+    for ((k, v) <- dataMap if (selectConf contains k.selectConf)) yield (k, v)
   }
 
   private def writeToFile(filepath: String, s: String) = {
@@ -413,7 +430,14 @@ case class DataLayout(files: Seq[File], stimeout: String) {
       case SimplConfEnum.Patsimpl => "p"
     }
 
-    s"$typshort$varshort$simplshort"
+    val selectshort = ck.selectConf match {
+      case SelectionConfEnum.Selectall => "a"
+      case SelectionConfEnum.Selectusedfp => "u"
+      case SelectionConfEnum.Noinversion => "ni"
+      case SelectionConfEnum.Noinversionselectusedfp => "niu"
+    }
+
+    s"$typshort$varshort$simplshort$selectshort"
   }
 
   private def layoutRawDetailedTime(filteredraw: (RawKey Map RawResult)) : String = {
@@ -452,18 +476,22 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
     doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
     doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
     doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_goalcategory.csv", layoutAvgSuccessTimeIndividualOpt(GoalCategoryEnum)(k => k.goalCategory))
     doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf))
     doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf))
     doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf))
+    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
 
     //Overview graphs per category for each prover, success rates & average success time
     doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf))
     doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf))
     doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
     doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf))
     doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf))
     doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf))
+    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
 
     //Detailed overview (based on raw data): performance of individual conf combinations in each category
     doForallProversCategories(s"datasets/layout/DetailedOverviewPerCat/$stimeout", "time_per_file.csv", layoutRawDetailedTime, rawMap)
@@ -497,6 +525,8 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     //layout for paper graph RQ4 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: proof + test)
     doForallProvers(
       s"datasets/layout/$stimeout/Graph4", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+
+    // TODO do i need to add a layout for axiomselection?
 
     //layout for paper graph RQ5 (influence of simplifications, success rate per simplification alternative, all provers except princess, all categories)
     val filteroutgoodtyping = filterTypingConf(overviewMap, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))

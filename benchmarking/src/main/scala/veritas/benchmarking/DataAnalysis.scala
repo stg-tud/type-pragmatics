@@ -34,7 +34,8 @@ object AnalysisHeader {
     StringCell(2, "Goal Category"),
     StringCell(3, "Veritas Config, typing"),
     StringCell(4, "Veritas Config, variable encoding"),
-    StringCell(5, "Veritas Config, logical optimization")
+    StringCell(5, "Veritas Config, logical optimization"),
+    StringCell(6, "Veritas Config, axiom selection")
   )
 
   val headerlength = getAnalysisHeaderCells().size
