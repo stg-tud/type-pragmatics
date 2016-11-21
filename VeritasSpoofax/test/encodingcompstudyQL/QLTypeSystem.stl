@@ -4,9 +4,6 @@ import encodingcompstudyQL.QLSyntax
 import encodingcompstudyQL.QLSemanticsData
 import encodingcompstudyQL.QLSemantics
 
-//TODO: should we explicitly specify all maps so that duplicate entries simply cannot occur?
-//e.g. one could simply not prepend an entry if lookup of the entry in the old map returns a result
-//or, more complicated, replace the old entry in the map with the new one (à la Scala maps) 
 
 // type map, used for answer types and types of answers to derived questions
 data ATMap = atmempty | atmbind(QID, AType, ATMap)
@@ -105,14 +102,15 @@ echeck(tm, unop(op, e)) =
 	
 	
 //Typing judgment for questionnaires: MapConf |- Questionnaire : MapConf
-//first MapConf: MC(ATMap, QMap) that is valid *before* questionnaire
-//second MapConf: MC(ATMap, QMap) that is valid *after* questionnaire (includes all bindings from first MapConf!!)
+//first MapConf: MC(ATMap, QMap) that is valid *before* questionnaire (environment)
+//second MapConf: MC(ATMap, QMap) contains the mapping the the Quesionnaire generates (does not include bindings from environment)
 
 axiom
 
 ======================================== T-qempty
 ~MC |- qempty : MC(atmempty, atmempty)
 
+//type system explicitly forbids duplicate qids
 axiom
 lookupATMap(~qid, ~atm) == noAType
 ============================================================================================== T-question
