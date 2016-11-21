@@ -89,6 +89,25 @@ cd /home/groups/projects/${projectID}/runprovers/SlurmScripts
 cd /home/groups/projects/${projectID}/Encodings
 mkdir $now
 7z e ${proverinput} -o${now} -aoa
+cd /work/scratch/groups/projects/${projectID}
+mkdir -p ${now}/120s/vampire-3.0
+mkdir -p ${now}/120s/vampire-4.0
+mkdir -p ${now}/120s/vampire-sat-3.0
+mkdir -p ${now}/120s/vampire-sat-4.0
+mkdir -p ${now}/120s/eprover
+mkdir -p ${now}/120s/princess
+mkdir -p ${now}/60s/vampire-3.0
+mkdir -p ${now}/60s/vampire-4.0
+mkdir -p ${now}/60s/eprover
+mkdir -p ${now}/60s/princess
+mkdir -p ${now}/30s/vampire-3.0
+mkdir -p ${now}/30s/vampire-4.0
+mkdir -p ${now}/30s/eprover
+mkdir -p ${now}/30s/princess
+mkdir -p ${now}/10s/vampire-3.0
+mkdir -p ${now}/10s/vampire-4.0
+mkdir -p ${now}/10s/eprover
+mkdir -p ${now}/10s/princess
 exit
 SSH
 
