@@ -1,4 +1,4 @@
-package lang.stlc
+package stlc
 
 import system.Syntax._
 

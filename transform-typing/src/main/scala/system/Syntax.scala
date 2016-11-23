@@ -52,32 +52,55 @@ object Syntax {
 
     override def isGround: Boolean = kids.forall(_.isGround)
 
-    override def toString: String = s"($sym ${kids.mkString(" ")})"
+    override def toString: String = {
+      val ks = kids.mkString(" ")
+      val space = if (ks.isEmpty) "" else " "
+      s"($sym$space$ks)"
+    }
 
-    override def freevars: Set[Var] = kids.toSet.flatMap(_.freevars)
+    override def freevars: Set[Var] = kids.toSet[Term].flatMap(_.freevars)
+  }
+  object App {
+    def apply(sym: Symbol, kids: Term*): App = App(sym, kids.toList)
   }
 
-  case class Judg(name: String, terms: List[Term]) {
+  case class Judg(sym: Symbol, terms: List[Term]) {
+    assert(sym.out == Prop)
+    assert(sym.in.size == terms.size)
+    assert(sym.in.zip(terms) forall (p => p._1 == p._2.sort))
+
     def apply(i: Int) = terms(i)
 
-    override def toString: String = s"$name(${terms.mkString(" ")})"
+    override def toString: String = s"$sym(${terms.mkString(" ")})"
 
     def toString(mark: Int): String = {
-      val start = s"$name("
+      val start = s"$sym("
       val end = ")"
       val mid1 = terms.slice(0, mark).mkString(" ")
-      val mid2 = if (mark < terms.size) s"[${terms(mark)}]" else ""
+      val markterm = terms(mark).toString
+      var mid2 = if (mark < terms.size) s" [${markterm.substring(1, markterm.size-1)}] " else ""
       val mid3 = terms.slice(mark + 1, terms.size).mkString(" ")
+      if (mid1.isEmpty)
+        mid2 = mid2.substring(1)
+      if (mid3.isEmpty)
+        mid2 = mid2.substring(0, mid2.size - 1)
       start + mid1 + mid2 + mid3 + end
     }
+  }
+  object Judg {
+    def apply(sym: Symbol, terms: Term*): Judg = Judg(sym, terms.toList)
   }
 
   case class Rule(name: String, conclusion: Judg, premises: List[Judg]) {
     override def toString: String = {
       val indent = "  "
       val ps = premises.mkString("\n" + indent)
-      s"$name:\n$indent$ps\n$indent=>\n$indent$conclusion"
+      val psn = if (ps.isEmpty) "" else "\n"
+      s"$name:\n$indent$ps$psn$indent=>\n$indent$conclusion"
     }
+  }
+  object Rule {
+    def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList)
   }
 
   case class Rewrite(pat: Term, gen: Term) {
@@ -105,9 +128,13 @@ object Syntax {
          |$scontract
          |
          |rewritings
-         |${rewrites.mkString("\n")}}
+         |${rewrites.mkString("\n")}
        """.stripMargin
     }
+  }
+
+  object Transform {
+    def apply(contract: Rule, pos: Int, rewrites: Rewrite*): Transform = new Transform(contract, pos, rewrites.toList)
   }
 
 }
