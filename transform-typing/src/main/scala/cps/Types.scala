@@ -45,4 +45,6 @@ object Types {
     tcps_nat,
     tcps_arr
   )
+
+  system.Soundness.transSoundness(tcps_transform, stlc.language)
 }

@@ -5,23 +5,23 @@ import system.Names._
 
 object Syntax {
   // sorts
-  val Num = Sort("Num")
-  val Typ = Sort("Typ")
-  val Ctx = Sort("Ctx")
-  val Exp = Sort("Exp")
+  val Num = sort("Num")
+  val Typ = sort("Typ")
+  val Ctx = sort("Ctx")
+  val Exp = sort("Exp")
 
   // types
-  val Nat = Symbol("Nat", in = List(), out = Typ)
-  val Arr = Symbol("Arr", in = List(Typ, Typ), out = Typ)
+  val Nat = symbol("Nat", in = List(), out = Typ)
+  val Arr = symbol("Arr", in = List(Typ, Typ), out = Typ)
 
   // contexts
-  val ∅ = Symbol("∅", in = List(), out = Ctx)
-  val bind = Symbol("bind", in = List(Ctx, Name, Typ), out = Ctx)
+  val ∅ = symbol("∅", in = List(), out = Ctx)
+  val bind = symbol("bind", in = List(Ctx, Name, Typ), out = Ctx)
 
   // expressions
-  val ref = Symbol("ref", in = List(Name), out = Exp)
-  val num = Symbol("num", in = List(Num), out = Exp)
-  val add = Symbol("add", in = List(Exp, Exp), out = Exp)
-  val lam = Symbol("lam", in = List(Name, Typ, Exp), out = Exp)
-  val app = Symbol("app", in = List(Exp, Exp), out = Exp)
+  val ref = symbol("ref", in = List(Name), out = Exp)
+  val num = symbol("num", in = List(Num), out = Exp)
+  val add = symbol("add", in = List(Exp, Exp), out = Exp)
+  val lam = symbol("lam", in = List(Name, Typ, Exp), out = Exp)
+  val app = symbol("app", in = List(Exp, Exp), out = Exp)
 }

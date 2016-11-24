@@ -40,6 +40,8 @@ object Syntax {
 
     def unify(t: Term): Either[Subst, Error] = unify(t, Map())
     def unify(t: Term, s: Subst): Either[Subst, Error] = unify(t, Map())
+
+    def findAll(p: Term => Boolean): Seq[Term]
   }
 
   case class Var(name: String, sort: ISort) extends Term {
@@ -50,8 +52,6 @@ object Syntax {
     override def toString: String = "$" + name
 
     override def freevars: Set[Var] = Set(this)
-
-
 
     override def subst(s: Subst): Term = s.getOrElse(this, this)
 
@@ -71,6 +71,7 @@ object Syntax {
         }
     }
 
+    override def findAll(p: (Term) => Boolean): Seq[Term] = if (p(this)) Seq(this) else Seq()
   }
 
   case class App(sym: Symbol, kids: List[Term]) extends Term {
@@ -105,6 +106,11 @@ object Syntax {
           }
         case _ => Right(s"Could not match $this against $t")
       }
+
+    override def findAll(p: (Term) => Boolean): Seq[Term] = {
+      val me = if (p(this)) Seq(this) else Seq()
+      me ++ kids.flatMap(_.findAll(p))
+    }
   }
   object App {
     def apply(sym: Symbol, kids: Term*): App = App(sym, kids.toList)
@@ -116,6 +122,10 @@ object Syntax {
     assert(sym.in.zip(terms) forall (p => p._1 == p._2.sort))
 
     def apply(i: Int) = terms(i)
+
+    def updatedCopy(i: Int, t: Term) = Judg(sym, terms.updated(i, t))
+
+    def subst(s: Subst): Judg = Judg(sym, terms.map(_.subst(s)))
 
     override def toString: String = s"$sym(${terms.mkString(" ")})"
 
@@ -158,7 +168,8 @@ object Syntax {
     assert(pos < contract.conclusion.terms.size)
     assert(contract.conclusion.terms(pos).isInstanceOf[App])
 
-    val contractedSym = contract.conclusion.terms(pos).asInstanceOf[App].sym
+    val contractedTerm = contract.conclusion.terms(pos).asInstanceOf[App]
+    val contractedSym = contractedTerm.sym
     rewrites.foreach(r =>
       assert(r.pat.isInstanceOf[App] && r.pat.asInstanceOf[App].sym == contractedSym, s"Rewrite $r does not match contracted symbol $contractedSym"))
 
