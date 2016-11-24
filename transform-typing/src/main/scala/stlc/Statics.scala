@@ -2,6 +2,7 @@ package stlc
 
 import system.Syntax._
 import Syntax._
+import system.Names._
 
 object Statics {
 
@@ -18,7 +19,22 @@ object Statics {
   )
 
 
-  val Lookup = Symbol("Lookup", in = List(Nam, Typ, Ctx), out = Prop)
-  // TODO rules
+  val Lookup = Symbol("Lookup", in = List(Name, Typ, Ctx), out = Prop)
+  val Lookup_Found = Rule("Lookup-Found",
+    Judg(Lookup,
+      Var("x", Name),
+      Var("T", Typ),
+      App(bind, Var("C", Ctx), Var("x", Name), Var("T", Typ)))
+    // if ----------------
+  )
+  val Lookup_Next = Rule("Lookup-Next",
+    Judg(Lookup,
+      Var("x", Name),
+      Var("T", Typ),
+      App(bind, Var("C", Ctx), Var("y", Name), Var("S", Typ))),
+    // if ----------------
+    Judg(NeqNam, Var("x", Name), Var("y", Name)),
+    Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C", Ctx))
+  )
 
 }

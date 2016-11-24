@@ -3,6 +3,7 @@ package cps
 import stlc.Syntax._
 import stlc.Statics._
 import system.Syntax._
+import system.Names._
 
 import cps.Types._
 
@@ -14,12 +15,12 @@ object Contexts {
 
   val ccps_contract = Rule("Lookup-ccps",
     Judg(Lookup,
-      Var("x", Nam),
+      Var("x", Name),
       App(tcps, Var("T", Typ), omega),
       App(ccps, Var("C", Ctx), omega)),
     // if ----------------
     Judg(Lookup,
-      Var("x", Nam),
+      Var("x", Name),
       Var("T", Typ),
       Var("C", Ctx))
   )
@@ -34,7 +35,7 @@ object Contexts {
     App(ccps,
       App(bind,
         Var("C", Ctx),
-        Var("x", Nam),
+        Var("x", Name),
         Var("T", Typ)),
       omega),
     // ~>
@@ -42,7 +43,7 @@ object Contexts {
       App(ccps,
         Var("C", Ctx),
         omega),
-      Var("x", Nam),
+      Var("x", Name),
       App(tcps,
         Var("T", Typ),
         omega
