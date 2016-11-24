@@ -5,6 +5,8 @@ import stlc.Syntax._
 import system.Syntax._
 
 object Types {
+  // for
+  stlc.language
 
   private val omega = Var("omega", Typ)
 
@@ -46,5 +48,5 @@ object Types {
     tcps_arr
   )
 
-  system.Soundness.transSoundness(tcps_transform, stlc.language)
+  val soundnessObligations = system.Soundness.transSoundness(tcps_transform, stlc.language)
 }

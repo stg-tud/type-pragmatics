@@ -32,15 +32,16 @@ object Soundness {
       case _ => false
     }
 
-    recApps.flatMap(deriveIH(_, r, trans))
+    recApps.zipWithIndex.flatMap {case (recApp, i) => deriveIH(recApp, r, i, trans)}
   }
 
-  def deriveIH(recApp: Term, r: Rewrite, trans: Transform): Option[Rule] = {
+  // TODO generate opaque symbols to prevent universally applicable IH
+  def deriveIH(recApp: Term, r: Rewrite, num: Int, trans: Transform): Option[Rule] = {
     val contract = trans.contract
     trans.contractedTerm.unify(recApp) match {
       case Left(s) =>
         val ihTerm = recApp.subst(s)
-        Some(Rule(contract.name,
+        Some(Rule(contract.name + s"-IH-$num",
           contract.conclusion.updatedCopy(trans.pos, ihTerm).subst(s),
           // if -------------
           contract.premises.map(_.subst(s))

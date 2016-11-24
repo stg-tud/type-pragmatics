@@ -8,6 +8,9 @@ import system.Names._
 import cps.Types._
 
 object Contexts {
+  // for
+  stlc.language
+
   private val omega = Var("omega", Typ)
 
   // CPS type transformation tcps

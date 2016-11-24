@@ -37,10 +37,12 @@ package object stlc {
       throw new RuntimeException(s"Cannot register rule $r because language was already initialized")
   }
 
-
   private var initialized = false
   lazy val language = {
     initialized = true
-    system.Verification.Language(sorts, syms, rules)
+    system.Verification.Language("STLC", sorts, syms, rules)
   }
+
+  Syntax
+  Statics
 }
