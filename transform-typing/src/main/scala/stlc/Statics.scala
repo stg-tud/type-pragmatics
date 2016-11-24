@@ -33,7 +33,7 @@ object Statics {
       Var("T", Typ),
       App(bind, Var("C", Ctx), Var("y", Name), Var("S", Typ))),
     // if ----------------
-    Judg(NeqNam, Var("x", Name), Var("y", Name)),
+    Judg(NameNeq, Var("x", Name), Var("y", Name)),
     Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C", Ctx))
   )
 

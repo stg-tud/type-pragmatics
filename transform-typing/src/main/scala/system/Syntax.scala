@@ -22,6 +22,9 @@ object Syntax {
         s"$name: ${in.mkString(" ")} -> $out"
   }
 
+  type Subst = Map[Var, Term]
+  type Error = String
+
   trait Term {
     val sort: ISort
 
@@ -30,6 +33,13 @@ object Syntax {
     def isGround: Boolean
 
     def freevars: Set[Var]
+
+    def subst(s: Subst): Term
+
+    def occurs(v: Var): Boolean
+
+    def unify(t: Term): Either[Subst, Error] = unify(t, Map())
+    def unify(t: Term, s: Subst): Either[Subst, Error] = unify(t, Map())
   }
 
   case class Var(name: String, sort: ISort) extends Term {
@@ -40,6 +50,27 @@ object Syntax {
     override def toString: String = "$" + name
 
     override def freevars: Set[Var] = Set(this)
+
+
+
+    override def subst(s: Subst): Term = s.getOrElse(this, this)
+
+    override def occurs(v: Var): Boolean = this == v
+
+    override def unify(t: Term, s: Subst): Either[Subst, Error] = s.get(this) match{
+      case Some(t2) => t2.unify(t, s)
+      case None =>
+        val tt = t.subst(s)
+        if (this == tt)
+          Left(Map())
+        else if (tt.occurs(this))
+          Right(s"Occurs check failed, $this occurs in $tt")
+        else {
+          val news = Map(this -> tt)
+          Left(s.mapValues(_.subst(news)) ++ news)
+        }
+    }
+
   }
 
   case class App(sym: Symbol, kids: List[Term]) extends Term {
@@ -59,6 +90,21 @@ object Syntax {
     }
 
     override def freevars: Set[Var] = kids.toSet[Term].flatMap(_.freevars)
+
+    override def subst(s: Subst): Term = App(sym, kids.map(_.subst(s)))
+
+    override def occurs(v: Var): Boolean = kids.exists(_.occurs(v))
+
+    override def unify(t: Term, s: Subst): Either[Subst, Error] =
+      t match {
+        case v: Var => t.unify(this, s)
+        case App(`sym`, tkids) =>
+          kids.zip(tkids).foldLeft[Either[Subst, Error]](Left(s)){
+            case (err@Right(_), _) => err
+            case (Left(s), (t1, t2)) => t1.unify(t2, s)
+          }
+        case _ => Right(s"Could not match $this against $t")
+      }
   }
   object App {
     def apply(sym: Symbol, kids: Term*): App = App(sym, kids.toList)
