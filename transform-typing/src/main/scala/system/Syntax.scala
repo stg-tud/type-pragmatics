@@ -39,7 +39,10 @@ object Syntax {
     def occurs(v: Var): Boolean
 
     def unify(t: Term): Either[Subst, Error] = unify(t, Map())
-    def unify(t: Term, s: Subst): Either[Subst, Error] = unify(t, Map())
+    def unify(t: Term, s: Subst): Either[Subst, Error]
+
+    def matchAgainst(t: Term): Either[Subst, Error] = matchAgainst(t, Map())
+    def matchAgainst(t: Term, s: Subst): Either[Subst, Error]
 
     def findAll(p: Term => Boolean): Seq[Term]
   }
@@ -61,14 +64,17 @@ object Syntax {
       case Some(t2) => t2.unify(t, s)
       case None =>
         val tt = t.subst(s)
-        if (this == tt)
-          Left(Map())
-        else if (tt.occurs(this))
+        if (tt.occurs(this))
           Right(s"Occurs check failed, $this occurs in $tt")
         else {
           val news = Map(this -> tt)
           Left(s.mapValues(_.subst(news)) ++ news)
         }
+    }
+
+    override def matchAgainst(t: Term, s: Subst): Either[Subst, Error] = s.get(this) match {
+      case Some(t2) => t2.matchAgainst(t, s)
+      case None => Left(s + (this -> t))
     }
 
     override def findAll(p: (Term) => Boolean): Seq[Term] = if (p(this)) Seq(this) else Seq()
@@ -96,16 +102,25 @@ object Syntax {
 
     override def occurs(v: Var): Boolean = kids.exists(_.occurs(v))
 
-    override def unify(t: Term, s: Subst): Either[Subst, Error] =
-      t match {
-        case v: Var => t.unify(this, s)
-        case App(`sym`, tkids) =>
-          kids.zip(tkids).foldLeft[Either[Subst, Error]](Left(s)){
-            case (err@Right(_), _) => err
-            case (Left(s), (t1, t2)) => t1.unify(t2, s)
-          }
-        case _ => Right(s"Could not match $this against $t")
-      }
+    override def unify(t: Term, s: Subst): Either[Subst, Error] = t match {
+      case v: Var => t.unify(this, s)
+      case App(`sym`, tkids) =>
+        kids.zip(tkids).foldLeft[Either[Subst, Error]](Left(s)){
+          case (err@Right(_), _) => err
+          case (Left(s), (t1, t2)) => t1.unify(t2, s)
+        }
+      case _ => Right(s"Could not unify $this with $t")
+    }
+
+    override def matchAgainst(t: Term, s: Subst): Either[Subst, Error] = t match {
+      case App(`sym`, tkids) =>
+        kids.zip(tkids).foldLeft[Either[Subst, Error]](Left(s)){
+          case (err@Right(_), _) => err
+          case (Left(s), (t1, t2)) => t1.matchAgainst(t2, s)
+        }
+      case _ => Right(s"Could not match $this against $t")
+    }
+
 
     override def findAll(p: (Term) => Boolean): Seq[Term] = {
       val me = if (p(this)) Seq(this) else Seq()
@@ -123,7 +138,7 @@ object Syntax {
 
     def apply(i: Int) = terms(i)
 
-    def updatedCopy(i: Int, t: Term) = Judg(sym, terms.updated(i, t))
+    def updated(i: Int, t: Term) = Judg(sym, terms.updated(i, t))
 
     def subst(s: Subst): Judg = Judg(sym, terms.map(_.subst(s)))
 

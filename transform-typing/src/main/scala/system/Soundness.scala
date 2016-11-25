@@ -6,46 +6,55 @@ import system.Verification._
 object Soundness {
 
   def transSoundness(trans: Transform, lang: Language): Seq[Obligation] =
-    trans.rewrites.map(r => rewriteSoundness(r, trans, lang))
+    trans.rewrites.map(r => rewriteSoundness(r, trans, lang)(new Gensym))
 
-  def rewriteSoundness(r: Rewrite, trans: Transform, lang: Language): Obligation =
-    trans.contractedTerm.unify(r.pat) match {
+  def rewriteSoundness(r: Rewrite, trans: Transform, lang: Language)(implicit gensym: Gensym): Obligation =
+    trans.contractedTerm.matchAgainst(r.pat) match {
       case Left(s) =>
+        val rhs = r.gen.subst(s)
+        val (ihs, opaques) = deriveIHs(rhs, r, trans)
+        val sopaques = s.mapValues(_.subst(opaques)) ++ opaques
+
         val name = trans.contract.name
-        val premises = trans.contract.premises.map(_.subst(s))
+        val premises = trans.contract.premises.map(_.subst(sopaques))
         val assumptions = premises.zipWithIndex.map { case (p, i) => Rule(s"$name-Pre-$i", p) }
 
-        val rhs = r.gen.subst(s)
-        val goal = trans.contract.conclusion.updatedCopy(trans.pos, rhs).subst(s)
+        val goal = trans.contract.conclusion.updated(trans.pos, rhs).subst(sopaques)
 
-        val ihs = deriveIHs(rhs, r, trans)
 
         ProofObligation(lang, assumptions ++ ihs, goals = Seq(goal))
       case Right(msg) =>
         FailedObligation(s"Rewrite rule\n$r\n does not match contract\n${trans.contract}\nbecause $msg")
     }
 
-  def deriveIHs(rhs: Term, r: Rewrite, trans: Transform): Seq[Rule] = {
+  def deriveIHs(rhs: Term, r: Rewrite, trans: Transform)(implicit gensym: Gensym): (Seq[Rule], Map[Var, Term]) = {
     val sym = trans.contractedSym
     val recApps = rhs.findAll {
       case App(`sym`, _) => true
       case _ => false
     }
 
-    recApps.zipWithIndex.flatMap {case (recApp, i) => deriveIH(recApp, r, i, trans)}
+    val recVars = recApps.flatMap(_.freevars).toSet
+    val opaques = recVars.map(v => v -> App(gensym.freshSymbol(v.name, List(), v.sort))).toMap
+
+    val rules = recApps.zipWithIndex.flatMap {case (recApp, i) =>
+      val recAppOpaque = recApp.subst(opaques)
+      deriveIH(recAppOpaque, r, i, trans)
+    }
+
+    (rules, opaques)
   }
 
-  // TODO generate opaque symbols to prevent universally applicable IH
-  def deriveIH(recApp: Term, r: Rewrite, num: Int, trans: Transform): Option[Rule] = {
+  def deriveIH(recApp: Term, r: Rewrite, num: Int, trans: Transform)(implicit gensym: Gensym): Option[Rule] = {
     val contract = trans.contract
-    trans.contractedTerm.unify(recApp) match {
+    trans.contractedTerm.matchAgainst(recApp) match {
       case Left(s) =>
-        val ihTerm = recApp.subst(s)
-        Some(Rule(contract.name + s"-IH-$num",
-          contract.conclusion.updatedCopy(trans.pos, ihTerm).subst(s),
+        val rule = Rule(contract.name + s"-IH-$num",
+          contract.conclusion.updated(trans.pos, recApp).subst(s),
           // if -------------
           contract.premises.map(_.subst(s))
-        ))
+        )
+        Some(rule)
       case Right(msg) =>
         print(s"WARNING could not generate IH for recursive call $recApp of $r")
         None

@@ -60,4 +60,6 @@ object Contexts {
     ccps_empty,
     ccps_bind
   )
+
+  val soundnessObligations = system.Soundness.transSoundness(ccps_transform, stlc.language)
 }
