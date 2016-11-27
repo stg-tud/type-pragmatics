@@ -1,11 +1,11 @@
-package system.tff
+package system
 
 import de.tu_darmstadt.veritas.backend.fof
 import de.tu_darmstadt.veritas.backend.fof.{Term => _, _}
 import de.tu_darmstadt.veritas.backend.tff._
 import system.Syntax._
 
-object Generate {
+object GenerateTFF {
 
   type Types = Map[ISort, TffAtomicType]
 
