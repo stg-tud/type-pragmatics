@@ -1,3 +1,4 @@
+import system.Language
 import system.Syntax._
 
 package object stlc {
@@ -40,7 +41,7 @@ package object stlc {
   private var initialized = false
   lazy val language = {
     initialized = true
-    system.Verification.Language("STLC", sorts, syms, rules)
+    Language("STLC", sorts, syms, rules)
   }
 
   Syntax

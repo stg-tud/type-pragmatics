@@ -39,7 +39,7 @@ class GenerateCtorAxioms(typed: Boolean) extends ModuleTransformation {
     }
   }
 
-  private def makeDomainAxiom(dataType: String, constrs: Seq[DataTypeConstructor]): TypingRule = {
+  def makeDomainAxiom(dataType: String, constrs: Seq[DataTypeConstructor]): TypingRule = {
     val name = s"dom-$dataType"
     val v = FunctionMeta(MetaVar("X"))
 
@@ -58,7 +58,7 @@ class GenerateCtorAxioms(typed: Boolean) extends ModuleTransformation {
     ExistsJudgment(vars, Seq(FunctionExpJudgment(eq)))
   }
 
-  private def makeEqAxiom(c: DataTypeConstructor) = {
+  def makeEqAxiom(c: DataTypeConstructor) = {
     val freshNames = new FreshNames
     val args = c.in map (_.name)
     val argsLeft = freshNames(args) map (x => FunctionMeta(MetaVar(x)))
@@ -73,7 +73,7 @@ class GenerateCtorAxioms(typed: Boolean) extends ModuleTransformation {
         FunctionExpAnd((argsLeft, argsRight).zipped map (FunctionExpEq(_, _))))))
   }
 
-  private def makeDiffAxioms(constrs: Seq[DataTypeConstructor]) =
+  def makeDiffAxioms(constrs: Seq[DataTypeConstructor]) =
     for (
       i <- 0 until constrs.size;
       j <- i + 1 until constrs.size

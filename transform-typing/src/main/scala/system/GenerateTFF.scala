@@ -1,8 +1,11 @@
 package system
 
+import de.tu_darmstadt.veritas.backend.ast.{DataTypeConstructor, SortRef}
 import de.tu_darmstadt.veritas.backend.fof
 import de.tu_darmstadt.veritas.backend.fof.{Term => _, _}
 import de.tu_darmstadt.veritas.backend.tff._
+import de.tu_darmstadt.veritas.backend.transformation.ToTff
+import de.tu_darmstadt.veritas.backend.transformation.defs.GenerateCtorAxiomsTyped
 import system.Syntax._
 
 object GenerateTFF {
@@ -40,5 +43,20 @@ object GenerateTFF {
       val all = ForAll(allvars, body)
       (name, all)
     }
+  }
+
+
+  def compileLanguage(lang: Language): Unit = {
+
+  }
+
+  def compileClosedDataType(sort: Sort, constrs: Set[Symbol]): Seq[TffAnnotated] = {
+    val dataConstrs = constrs.toSeq.map(c => DataTypeConstructor(c.name, c.in.map(s => SortRef(s.name))))
+
+    val domTR = GenerateCtorAxiomsTyped.makeDomainAxiom(sort.name, dataConstrs)
+    val eqTRs = dataConstrs.map(dc => GenerateCtorAxiomsTyped.makeEqAxiom(dc))
+    val diffTRs = GenerateCtorAxiomsTyped.makeDiffAxioms(dataConstrs)
+
+    (new ToTff).translateAxioms(domTR +: (eqTRs ++ diffTRs))
   }
 }

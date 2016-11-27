@@ -11,7 +11,7 @@ object Types {
   private val omega = Var("omega", Typ)
 
   // CPS type transformation tcps
-  val tcps = Symbol("tcps", in = List(Typ, Typ), out = Typ)
+  val tcps = Symbol("tcps", in = List(Typ, Typ), out = Typ, constr = false)
 
   val tcps_contract = Rule("TOk-tcps",
     Judg(TOk, App(tcps, Var("T", Typ), omega)),

@@ -2,22 +2,27 @@ package system
 
 object Syntax {
 
-  sealed trait ISort
+  sealed trait ISort {
+    val open: Boolean
+    val name: String
+    override def toString: Error = name
+  }
 
-  case class Sort(name: String) extends ISort {
+  case class Sort(name: String, open: Boolean = false) extends ISort {
     assert(name != "Prop" && name != "Name")
-    override def toString: String = name
   }
 
   case object Prop extends ISort {
-    override def toString: String = "Prop"
+    val open = false
+    override val name: String = "Prop"
   }
 
   case object Name extends ISort {
-    override def toString: String = "Name"
+    val open = true
+    override val name: String = "Name"
   }
 
-  case class Symbol(name: String, in: List[ISort], out: ISort) {
+  case class Symbol(name: String, in: List[ISort], out: ISort, constr: Boolean = true) {
     override def toString: String = name
     def sigString =
       if (in.isEmpty)

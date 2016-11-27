@@ -166,7 +166,7 @@ class ToTff {
   /**
    * translates axioms to Tff
    */
-  protected def translateAxioms(axs: Seq[TypingRule]): Seq[TffAnnotated] =
+  def translateAxioms(axs: Seq[TypingRule]): Seq[TffAnnotated] =
     axs map {
       case TypingRule(name, prems, conseqs) => TffAnnotated(name, Axiom, typingRuleToTff(prems, conseqs))
     }

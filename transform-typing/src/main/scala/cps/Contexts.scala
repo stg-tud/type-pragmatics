@@ -14,7 +14,7 @@ object Contexts {
   private val omega = Var("omega", Typ)
 
   // CPS type transformation tcps
-  val ccps = Symbol("ccps", in = List(Ctx, Typ), out = Ctx)
+  val ccps = Symbol("ccps", in = List(Ctx, Typ), out = Ctx, constr = false)
 
   val ccps_contract = Rule("Lookup-ccps",
     Judg(Lookup,
