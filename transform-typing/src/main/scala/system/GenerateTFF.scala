@@ -11,9 +11,12 @@ import system.Syntax._
 
 object GenerateTFF {
 
-  def compileSort(s: ISort): TffAtomicType = ???
+  def compileSort(s: ISort): TffAtomicType = s match {
+    case Prop => DefinedType("o")
+    case _ => SymbolType(TypedSymbol(s.name, DefinedType("tType")))
+  }
 
-  def compileSortRef(s: ISort): SortRef = ???
+  def compileSortRef(s: ISort): SortRef = SortRef(s.name)
 
   def compileSymbol(sym: Symbol): TypedSymbol =
     if (sym.in.isEmpty)
@@ -54,19 +57,6 @@ object GenerateTFF {
     }
   }
 
-
-  def compileLanguage(lang: Language): Seq[TffAnnotated] = {
-    val open = lang.openDataTypes.flatMap(compileOpenDataType(_))
-    val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs) }
-    val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
-    val rules = lang.rules.map { rule =>
-      val (name, body) = compileRule(rule)
-      TffAnnotated(name, Axiom, body)
-    }
-
-    open ++ closed ++ funs ++ rules
-  }
-
   def compileOpenDataType(sort: Sort): Seq[TffAnnotated] = {
     val toTFF = new ToTff
     val typeDecl = TffAnnotated(sort.name + "_type", Type, toTFF.makeTopLevelSymbol(sort.name))
@@ -99,5 +89,17 @@ object GenerateTFF {
     val axioms = toTFF.translateAxioms(domTR +: (eqTRs ++ diffTRs))
 
     typeDecl +: (constrDecls ++ axioms)
+  }
+
+  def compileLanguage(lang: Language): Seq[TffAnnotated] = {
+    val open = lang.openDataTypes.flatMap(compileOpenDataType(_))
+    val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs) }
+    val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
+    val rules = lang.rules.map { rule =>
+      val (name, body) = compileRule(rule)
+      TffAnnotated(name, Axiom, body)
+    }
+
+    open ++ closed ++ funs ++ rules
   }
 }
