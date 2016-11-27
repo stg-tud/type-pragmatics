@@ -2,7 +2,9 @@ package system
 
 import system.Syntax.{ISort, Rule, Sort, Symbol}
 
-case class Language(name: String, sorts: Set[_ <: ISort], syms: Set[Symbol], rules: Set[Rule]) {
+import scala.collection.immutable.ListMap
+
+case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rules: Seq[Rule]) {
   override def toString: String = {
     s"""sorts
         |${sorts.mkString(", ")}
@@ -15,11 +17,16 @@ case class Language(name: String, sorts: Set[_ <: ISort], syms: Set[Symbol], rul
        """.stripMargin
   }
 
-  def closedDataTypes: Map[Sort, Set[Symbol]] = {
+  val closedDataTypes: ListMap[Sort, Seq[Symbol]] = {
     val types = sorts.flatMap(s => if (s.isInstanceOf[Sort] && !s.open) Some(s.asInstanceOf[Sort]) else None)
-    types.map(s => s -> syms.filter(sym => sym.constr && sym.out == s)).toMap
+    ListMap() ++ types.map(s => s -> syms.filter(sym => sym.constr && sym.out == s))
   }
 
-  def openDataTypes: Set[Sort] =
+  val openDataTypes: Seq[Sort] =
     sorts.flatMap(s => if (s.isInstanceOf[Sort] && s.open) Some(s.asInstanceOf[Sort]) else None)
+
+  val funSymbols: Seq[Symbol] = {
+    val constrs = closedDataTypes.values.flatten.toSeq
+    syms.diff(constrs)
+  }
 }

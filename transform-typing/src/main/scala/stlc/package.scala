@@ -2,40 +2,43 @@ import system.Language
 import system.Syntax._
 
 package object stlc {
-  private var sorts = Set[ISort]()
+  private var sorts = Seq[ISort]()
   def sort(name: String): Sort =
     sort(Sort(name))
   def sort(sort: Sort): Sort =
     if (!initialized) {
-      sorts += sort
+      if (!sorts.contains(sort))
+        sorts +:= sort
       sort
     }
     else
       throw new RuntimeException(s"Cannot register sort $sort because language was already initialized")
 
-  private var syms = Set[Symbol]()
+  private var syms = Seq[Symbol]()
   def symbol(name: String, in: List[ISort], out: ISort): Symbol =
     symbol(Symbol(name, in, out))
   def symbol(sym: Symbol): Symbol =
     if (!initialized) {
-      syms += sym
+      if (!syms.contains(sym))
+        syms +:= sym
       sym
     }
     else
       throw new RuntimeException(s"Cannot register symbol $sym because language was already initialized")
 
-  private var rules = Set[Rule]()
+  private var rules = Seq[Rule]()
   def rule(name: String, conclusion: Judg, premises: List[Judg]): Rule =
     rule(Rule(name, conclusion, premises))
   def rule(name: String, conclusion: Judg, premises: Judg*): Rule =
     rule(name, conclusion, premises.toList)
-  def rule(r: Rule): Rule = {
+  def rule(rule: Rule): Rule = {
     if (!initialized) {
-      rules += r
-      r
+      if (!rules.contains(rule))
+        rules +:= rule
+      rule
     }
     else
-      throw new RuntimeException(s"Cannot register rule $r because language was already initialized")
+      throw new RuntimeException(s"Cannot register rule $rule because language was already initialized")
   }
 
   private var initialized = false
