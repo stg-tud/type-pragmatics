@@ -2,15 +2,19 @@ package system
 
 object Syntax {
 
-  trait ISort
+  sealed trait ISort
 
   case class Sort(name: String) extends ISort {
-    assert(name != "Prop")
+    assert(name != "Prop" && name != "Name")
     override def toString: String = name
   }
 
   case object Prop extends ISort {
     override def toString: String = "Prop"
+  }
+
+  case object Name extends ISort {
+    override def toString: String = "Name"
   }
 
   case class Symbol(name: String, in: List[ISort], out: ISort) {
@@ -25,7 +29,7 @@ object Syntax {
   type Subst = Map[Var, Term]
   type Error = String
 
-  trait Term {
+  sealed trait Term {
     val sort: ISort
 
     def apply(i: Int): Term
@@ -142,6 +146,8 @@ object Syntax {
 
     def subst(s: Subst): Judg = Judg(sym, terms.map(_.subst(s)))
 
+    def freevars: Set[Var] = terms.toSet[Term].flatMap(_.freevars)
+
     override def toString: String = s"$sym(${terms.mkString(" ")})"
 
     def toString(mark: Int): String = {
@@ -169,6 +175,8 @@ object Syntax {
       val psn = if (ps.isEmpty) "" else "\n"
       s"$name:\n$indent$ps$psn$indent=>\n$indent$conclusion"
     }
+
+    def freevars: Set[Var] = premises.toSet[Judg].flatMap(_.freevars) ++ conclusion.freevars
   }
   object Rule {
     def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList)

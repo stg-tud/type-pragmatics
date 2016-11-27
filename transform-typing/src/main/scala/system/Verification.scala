@@ -23,7 +23,7 @@ object Verification {
 
   case class FailedObligation(msg: String) extends Obligation
 
-  case class ProofObligation(lang: Language, assumptions: Seq[Rule], goals: Seq[Judg]) extends Obligation {
+  case class ProofObligation(lang: Language, opaques: Seq[Symbol], assumptions: Seq[Rule], goals: Seq[Judg]) extends Obligation {
     override def toString: String = {
       val indent = "  "
       val ps = assumptions.mkString("\n" + indent)
