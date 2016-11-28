@@ -546,6 +546,7 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     //Layouts for axiom selection study (new)
     //Overview graphs axiom selection strategies success rates & average success time summarizing all categories, for each prover
     // TODO: is possibly the most interesting graph of all
+    // RQ: "Does axiom selection strategy improve success rate? Which one works best?"
     doForallProvers(s"datasets/layout/AxiomSelection/PerProver/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
     doForallProvers(s"datasets/layout/AxiomSelection/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
 
@@ -554,5 +555,16 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
 
     // TODO: compare axiomselection without bad encoding strategies
+    // RQ: "Does axiom selection strategy improve success rate in combination with successful encoding strategies? Which one works best?"
+    val filteroutgoodtyping_all = filterTypingConf(overviewMap, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
+    val filteroutgoodinlining_all = filterVariableConf(filteroutgoodtyping_all, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
+    val filteredgood_all = filterProver(filteroutgoodinlining_all, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
+    doForallProvers(s"datasets/layout/AxiomSelection/PerProverGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgood_all)
+    doForallProvers(s"datasets/layout/AxiomSelection/PerProverGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgood_all)
+
+    // same again, but separately for each goal category
+    // RQ: "Does axiom selection strategy improve success rate in combination with successful encoding strategies? Which one works best?"
+    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategoryGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgood_all)
+    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategoryGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgood_all)
   }
 }
