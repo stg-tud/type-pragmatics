@@ -78,7 +78,7 @@ class ToTff {
   /**
    * create a top-level typed symbol
    */
-  protected def makeTopLevelSymbol(name: String): TypedSymbol =
+  def makeTopLevelSymbol(name: String): TypedSymbol =
     TypedSymbol(name, DefinedType("tType"))
 
   protected def addTSIfNew(ts: TypedSymbol): Unit =
