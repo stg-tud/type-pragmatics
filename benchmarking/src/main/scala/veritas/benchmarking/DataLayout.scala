@@ -545,6 +545,7 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     //second, use overviewmap everywhere to compare axiom selection strategies (ignoring the encoding dimensions)
     //Layouts for axiom selection study (new)
     //Overview graphs axiom selection strategies success rates & average success time summarizing all categories, for each prover
+    // TODO: is possibly the most interesting graph of all
     doForallProvers(s"datasets/layout/AxiomSelection/PerProver/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
     doForallProvers(s"datasets/layout/AxiomSelection/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
 
@@ -552,5 +553,6 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
     doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
 
+    // TODO: compare axiomselection without bad encoding strategies
   }
 }
