@@ -43,11 +43,10 @@ object Verification {
 
 
 
-  val vampireConfig = new VampireConfig(null)
+  val vampireConfig = new VampireConfig("4.0")
   val runConfig = benchmarking.Main.Config(
     proverConfigs = Seq(vampireConfig),
-    fullLogs = true,
-    logExec = false,
+    logExec = true,
     logPerFile = true,
     logProof = true,
     logDisproof = true,
@@ -55,7 +54,7 @@ object Verification {
     logSummary = true
   )
 
-  def verify(obl: Obligation): Unit = obl match {
+  def verify(obl: Obligation, timeout: Int = 30): Unit = obl match {
     case p: ProofObligation =>
       val tff = p.asTFF
 
@@ -63,7 +62,7 @@ object Verification {
       new PrintWriter(file) { tff.foreach(t => write(t.toPrettyString() + "\n")); close }
       println(s"Wrote TFF goal to $file")
 
-      val runner = new Runner(runConfig.copy(files = Seq(file)))
+      val runner = new Runner(runConfig.copy(files = Seq(file), timeout = timeout))
       runner.run()
 
     case FailedObligation(msg) => ???

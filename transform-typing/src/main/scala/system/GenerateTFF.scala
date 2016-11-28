@@ -20,6 +20,10 @@ object GenerateTFF {
 
   def compileSortRef(s: ISort): SortRef = SortRef(s.name)
 
+  def compileSortDecl(sort: ISort) =
+    TffAnnotated(sort.name + "_type", Type, TypedSymbol(sort.name, DefinedType("tType")))
+
+
   def compileSymbol(sym: Symbol): TypedSymbol =
     if (sym.in.isEmpty)
       TypedSymbol(sym.name, compileSort(sym.out))
@@ -66,8 +70,6 @@ object GenerateTFF {
 
 
   def compileOpenDataType(sort: ISort, toTFF: ToTff): Seq[TffAnnotated] = {
-    val typeDecl = TffAnnotated(sort.name + "_type", Type, toTFF.makeTopLevelSymbol(sort.name))
-
     val initName = sort.name + "_init"
     val enumName = sort.name + "_enum"
     val initSym = Symbol(initName, in = List(), out = sort)
@@ -80,11 +82,10 @@ object GenerateTFF {
     val diff = GenerateCtorAxiomsTyped.makeDiffAxioms(Seq(initConstr, enumConstr))
     val axioms = toTFF.translateAxioms(enumEq +: diff)
 
-    typeDecl +: (funDecls ++ axioms)
+    funDecls ++ axioms
   }
 
   def compileClosedDataType(sort: Sort, constrs: Seq[Symbol], toTFF: ToTff): Seq[TffAnnotated] = {
-    val typeDecl = TffAnnotated(sort.name + "_type", Type, toTFF.makeTopLevelSymbol(sort.name))
     val constrDecls = constrs.map(compileSymbolDeclaration(_))
 
     val dataConstrs = constrs.map(c => DataTypeConstructor(c.name, c.in.map(s => compileSortRef(s))))
@@ -93,18 +94,19 @@ object GenerateTFF {
     val diffTRs = GenerateCtorAxiomsTyped.makeDiffAxioms(dataConstrs)
     val axioms = toTFF.translateAxioms(domTR +: (eqTRs ++ diffTRs))
 
-    typeDecl +: (constrDecls ++ axioms)
+    constrDecls ++ axioms
   }
 
   def compileLanguage(lang: Language): Seq[TffAnnotated] = {
     val toTFF = makeToTFF(lang)
 
+    val types = lang.sorts.map(compileSortDecl(_))
     val open = lang.openDataTypes.flatMap(compileOpenDataType(_, toTFF))
     val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs, toTFF) }
     val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
     val rules = lang.rules.map(compileRuleDecl(_))
 
-    open ++ closed ++ funs ++ rules
+    types ++ open ++ closed ++ funs ++ rules
   }
 
   class LanguageCollectTypes(lang: Language) extends CollectTypesClass {

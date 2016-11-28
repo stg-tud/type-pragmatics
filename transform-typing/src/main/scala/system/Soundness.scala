@@ -23,7 +23,7 @@ object Soundness {
 
         val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 
-        ProofObligation(trans.lang, opaqueSyms, assumptions ++ ihs, goals = Seq(goal))
+        ProofObligation(trans.lang, opaqueSyms :+ trans.contractedSym, assumptions ++ ihs, goals = Seq(goal))
       case Right(msg) =>
         FailedObligation(s"Rewrite rule\n$r\n does not match contract\n${trans.contract}\nbecause $msg")
     }
