@@ -5,7 +5,9 @@ import system.Names._
 
 object Syntax {
   // sorts
-  val Num = sort("Num")
+  sort(Name)
+  sort(Prop)
+  val Num = sort(Sort("Num", open = true))
   val Typ = sort("Typ")
   val Ctx = sort("Ctx")
   val Exp = sort("Exp")
@@ -15,7 +17,7 @@ object Syntax {
   val Arr = symbol("Arr", in = List(Typ, Typ), out = Typ)
 
   // contexts
-  val ∅ = symbol("∅", in = List(), out = Ctx)
+  val empty = symbol("empty", in = List(), out = Ctx)
   val bind = symbol("bind", in = List(Ctx, Name, Typ), out = Ctx)
 
   // expressions

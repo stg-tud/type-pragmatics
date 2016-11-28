@@ -1,12 +1,14 @@
 package system
 
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionSig}
-import de.tu_darmstadt.veritas.backend.ast.{DataTypeConstructor, Functions, SortRef}
+import de.tu_darmstadt.veritas.backend.ast.{DataTypeConstructor, Functions, SortRef, TypingRule}
 import de.tu_darmstadt.veritas.backend.fof
 import de.tu_darmstadt.veritas.backend.fof.{Term => _, _}
 import de.tu_darmstadt.veritas.backend.tff._
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
 import de.tu_darmstadt.veritas.backend.transformation.defs.GenerateCtorAxiomsTyped
+import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 import system.Syntax._
 
 object GenerateTFF {
@@ -29,17 +31,17 @@ object GenerateTFF {
   def compileSymbolDeclaration(sym: Symbol): TffAnnotated =
     TffAnnotated(sym.name + "_type", Type, compileSymbol(sym))
 
-  def compileVar(v: Var): TypedVariable =
-    TypedVariable(v.name, compileSort(v.sort))
+  def compileVar(v: Var): Variable =
+    UntypedVariable(v.name)
 
   def compileTerm(t: Term): fof.Term = t match {
     case v: Var => compileVar(v)
-    case App(sym, kids) => Appl(compileSymbol(sym), kids.map(compileTerm(_)))
+    case App(sym, kids) => Appl(UntypedFunSymbol(sym.name), kids.map(compileTerm(_)))
   }
 
   def compileJudg(judg: Judg): FofUnitary = {
     val kids = judg.terms.map(compileTerm(_))
-    Appl(compileSymbol(judg.sym), kids)
+    Appl(UntypedFunSymbol(judg.sym.name), kids)
   }
 
   def compileRule(rule: Rule): (String, FofUnitary) = {
@@ -57,8 +59,7 @@ object GenerateTFF {
     }
   }
 
-  def compileOpenDataType(sort: Sort): Seq[TffAnnotated] = {
-    val toTFF = new ToTff
+  def compileOpenDataType(sort: ISort, toTFF: ToTff): Seq[TffAnnotated] = {
     val typeDecl = TffAnnotated(sort.name + "_type", Type, toTFF.makeTopLevelSymbol(sort.name))
 
     val initName = sort.name + "_init"
@@ -76,9 +77,7 @@ object GenerateTFF {
     typeDecl +: (funDecls ++ axioms)
   }
 
-  def compileClosedDataType(sort: Sort, constrs: Seq[Symbol]): Seq[TffAnnotated] = {
-    val toTFF = new ToTff
-
+  def compileClosedDataType(sort: Sort, constrs: Seq[Symbol], toTFF: ToTff): Seq[TffAnnotated] = {
     val typeDecl = TffAnnotated(sort.name + "_type", Type, toTFF.makeTopLevelSymbol(sort.name))
     val constrDecls = constrs.map(compileSymbolDeclaration(_))
 
@@ -92,8 +91,10 @@ object GenerateTFF {
   }
 
   def compileLanguage(lang: Language): Seq[TffAnnotated] = {
-    val open = lang.openDataTypes.flatMap(compileOpenDataType(_))
-    val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs) }
+    val toTFF = makeToTFF(lang)
+
+    val open = lang.openDataTypes.flatMap(compileOpenDataType(_, toTFF))
+    val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs, toTFF) }
     val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
     val rules = lang.rules.map { rule =>
       val (name, body) = compileRule(rule)
@@ -101,5 +102,27 @@ object GenerateTFF {
     }
 
     open ++ closed ++ funs ++ rules
+  }
+
+  class LanguageCollectTypes(lang: Language) extends CollectTypesClass {
+    private val syms: Map[String, Symbol] = {
+      val syms = lang.syms.map(sym => sym.name -> sym).toMap
+      val opens = lang.openDataTypes.flatMap(s => Seq(Symbol(s + "_init", List(), s), Symbol(s + "_enum", List(s), s)))
+      syms ++ opens.map(s => s.name -> s).toMap
+    }
+
+    override def symbolType(name: String): Option[(Seq[SortRef], SortRef)] = syms.get(name) match {
+      case None => super.symbolType(name)
+      case Some(sym) => Some((sym.in.map(compileSortRef(_)), compileSortRef(sym.out)))
+    }
+  }
+
+  def makeToTFF(lang: Language): ToTff = {
+    val types = new LanguageCollectTypes(lang)
+    val toTff = new ToTff
+    toTff.setTypes(types)
+    for (s <- lang.sorts)
+      toTff.addTSIfNew(toTff.makeTopLevelSymbol(s.name))
+    toTff
   }
 }

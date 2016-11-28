@@ -29,9 +29,9 @@ object Contexts {
   )
 
   val ccps_empty = Rewrite(
-    App(ccps, App(∅), omega),
+    App(ccps, App(empty), omega),
     // ~>
-    App(∅)
+    App(empty)
   )
 
   val ccps_bind = Rewrite(

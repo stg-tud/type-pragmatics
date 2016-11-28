@@ -4,8 +4,8 @@ import system.Syntax._
 package object stlc {
   private var sorts = Seq[ISort]()
   def sort(name: String): Sort =
-    sort(Sort(name))
-  def sort(sort: Sort): Sort =
+    sort(Sort(name)).asInstanceOf[Sort]
+  def sort(sort: ISort): ISort =
     if (!initialized) {
       if (!sorts.contains(sort))
         sorts +:= sort

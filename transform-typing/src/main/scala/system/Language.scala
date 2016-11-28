@@ -22,8 +22,8 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
     ListMap() ++ types.map(s => s -> syms.filter(sym => sym.constr && sym.out == s))
   }
 
-  val openDataTypes: Seq[Sort] =
-    sorts.flatMap(s => if (s.isInstanceOf[Sort] && s.open) Some(s.asInstanceOf[Sort]) else None)
+  val openDataTypes: Seq[ISort] =
+    sorts.filter(_.open)
 
   val funSymbols: Seq[Symbol] = {
     val constrs = closedDataTypes.values.flatten.toSeq
