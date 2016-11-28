@@ -53,6 +53,8 @@ barplot1topdf <- function(infile, title="", xlab="", ylab="", ylim=c(0,100), fon
 
 ### Complete boxplots for getting an overview of the data
 for (t in c(10, 30, 60, 120)) {
+
+    # graphs for comparing encoding strategies only, with axiom selection strategy = selectall
     listSuccRatePerProver <- list.files(paste("PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
     listAvgSuccTimePerProver <- list.files(paste("PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
 
@@ -85,7 +87,41 @@ for (t in c(10, 30, 60, 120)) {
     listStratPerformances <- list.files(paste("PerCompStrat/", t, "s", sep=""), pattern="*.csv", full.names=TRUE)
     lapply(listStratPerformances, partial(boxplot1topdf, ylab="Success rate (%)", las=2,
        fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
-    
+
+    # graphs for comparing axiom selection strategies
+    listSelSuccRatePerProver <- list.files(paste("AxiomSelection/PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
+    listSelAvgSuccTimePerProver <- list.files(paste("AxiomSelection/PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
+
+    listSelGoodEncSuccRatePerProver <- list.files(paste("AxiomSelection/PerProverGood/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
+    listSelGoodEncAvgSuccTimePerProver <- list.files(paste("AxiomSelection/PerProverGood/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
+
+    listSelSuccRatePerProverPerCategory <- list.files(paste("AxiomSelection/PerProverPerCategory/", t, "s/", "SuccRate", sep=""),
+                                                       pattern="*.csv", full.names=TRUE)
+    listSelAvgSuccTimePerProverPerCategory <- list.files(paste("AxiomSelection/PerProverPerCategory/", t, "s/", "AvgSuccTime", sep=""),
+                                                          pattern="*.csv", full.names=TRUE)
+
+    listSelGoodEncSuccRatePerProverPerCategory <- list.files(paste("AxiomSelection/PerProverPerCategoryGood/", t, "s/", "SuccRate", sep=""),
+                                                                                                                 pattern="*.csv", full.names=TRUE)
+    listSelGoodEncAvgSuccTimePerProverPerCategory <- list.files(paste("AxiomSelection/PerProverPerCategoryGood/", t, "s/", "AvgSuccTime", sep=""),
+                                                                                                                    pattern="*.csv", full.names=TRUE)
+    mstimeout <- t*1000
+    lapply(listSelSuccRatePerProver, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
+                                              fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
+    lapply(listSelAvgSuccTimePerProver, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
+                                                  fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
+    lapply(listSelGoodEncSuccRatePerProver, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
+                                                  fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
+    lapply(listSelGoodEncAvgSuccTimePerProver, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
+                                                  fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
+    lapply(listSelSuccRatePerProverPerCategory, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
+                                                  fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
+    lapply(listSelAvgSuccTimePerProverPerCategory, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
+                                                  fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
+    lapply(listSelGoodEncSuccRatePerProverPerCategory, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
+                                                  fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
+    lapply(listSelGoodEncAvgSuccTimePerProverPerCategory, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
+                                                  fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
+
     
 }
 
@@ -146,7 +182,14 @@ for (t in c("10s", "30s", "60s", "120s")) {
 ### Boxplots for sixth paper graph (performance of all comp strategies, all provers and categories together)
 for (t in c("10s", "30s", "60s", "120s")) {
     boxplot1topdf(paste(t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                  las=2, fontsizex=1, fontsizel=1, mary=4, line=3) 
+                  las=2, fontsizex=1, fontsizel=1, mary=4, line=3)
+}
+
+
+### Overview of all individual combinations (like graph for RQ6, but including all axiom selection strategies)
+for (t in c("10s", "30s", "60s", "120s")) {
+    boxplot1topdf(paste("AxiomSelection/", t, "/OverviewAll/allstratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
+                  las=2, fontsizex=0.3, fontsizel=1, mary=4, line=3)
 }
 
 

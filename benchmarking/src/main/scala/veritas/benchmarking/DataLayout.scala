@@ -558,13 +558,21 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     // RQ: "Does axiom selection strategy improve success rate in combination with successful encoding strategies? Which one works best?"
     val filteroutgoodtyping_all = filterTypingConf(overviewMap, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
     val filteroutgoodinlining_all = filterVariableConf(filteroutgoodtyping_all, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
-    val filteredgood_all = filterProver(filteroutgoodinlining_all, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
-    doForallProvers(s"datasets/layout/AxiomSelection/PerProverGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgood_all)
-    doForallProvers(s"datasets/layout/AxiomSelection/PerProverGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgood_all)
+    doForallProvers(s"datasets/layout/AxiomSelection/PerProverGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
+    doForallProvers(s"datasets/layout/AxiomSelection/PerProverGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
 
     // same again, but separately for each goal category
     // RQ: "Does axiom selection strategy improve success rate in combination with successful encoding strategies? Which one works best?"
-    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategoryGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgood_all)
-    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategoryGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgood_all)
+    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategoryGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
+    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategoryGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
+
+
+    // like previous, but do not distinguish between the different provers
+    val filteredgoodprovers = filterProver(filteroutgoodinlining_all, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
+    doSingle(s"datasets/layout/AxiomSelection/$stimeout/AllGoodProvers", "selectionperformance_allgoodprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgoodprovers)
+
+    //compare *each* combination of strategies (including axiom selection strategies)
+    doSingle(s"datasets/layout/AxiomSelection/$stimeout/OverviewAll", "allstratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat)
+
   }
 }
