@@ -3,6 +3,7 @@ package cps
 import stlc.Statics._
 import stlc.Syntax._
 import system.Syntax._
+import system.Transformation
 
 object Types {
   // for
@@ -41,12 +42,11 @@ object Types {
     )
   )
 
-  val tcps_transform = Transform(
+  val tcps_transform = Transformation(
+    stlc.language,
     tcps_contract,
     0,
     tcps_nat,
     tcps_arr
   )
-
-  val soundnessObligations = system.Soundness.transSoundness(tcps_transform, stlc.language)
 }

@@ -59,6 +59,12 @@ object GenerateTFF {
     }
   }
 
+  def compileRuleDecl(rule: Rule): TffAnnotated = {
+    val (name, body) = compileRule(rule)
+    TffAnnotated(name, Axiom, body)
+  }
+
+
   def compileOpenDataType(sort: ISort, toTFF: ToTff): Seq[TffAnnotated] = {
     val typeDecl = TffAnnotated(sort.name + "_type", Type, toTFF.makeTopLevelSymbol(sort.name))
 
@@ -96,10 +102,7 @@ object GenerateTFF {
     val open = lang.openDataTypes.flatMap(compileOpenDataType(_, toTFF))
     val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs, toTFF) }
     val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
-    val rules = lang.rules.map { rule =>
-      val (name, body) = compileRule(rule)
-      TffAnnotated(name, Axiom, body)
-    }
+    val rules = lang.rules.map(compileRuleDecl(_))
 
     open ++ closed ++ funs ++ rules
   }
@@ -117,7 +120,7 @@ object GenerateTFF {
     }
   }
 
-  def makeToTFF(lang: Language): ToTff = {
+  private def makeToTFF(lang: Language): ToTff = {
     val types = new LanguageCollectTypes(lang)
     val toTff = new ToTff
     toTff.setTypes(types)

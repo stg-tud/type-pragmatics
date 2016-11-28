@@ -44,6 +44,10 @@ class ToTff {
 
   private var types: CollectTypes = _
 
+  def setTypes(types: CollectTypes): Unit = {
+    this.types = types
+  }
+
   /**
    * top-level function for translating a Module to a TffFile
    */
@@ -81,7 +85,7 @@ class ToTff {
   def makeTopLevelSymbol(name: String): TypedSymbol =
     TypedSymbol(name, DefinedType("tType"))
 
-  protected def addTSIfNew(ts: TypedSymbol): Unit =
+  def addTSIfNew(ts: TypedSymbol): Unit =
     if (typedSymbols.contains(ts.name))
       throw TransformationError(s"Sort, Constructor, or function ${ts.name} has been defined twice!")
     else

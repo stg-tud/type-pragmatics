@@ -4,8 +4,8 @@ import stlc.Syntax._
 import stlc.Statics._
 import system.Syntax._
 import system.Names._
-
 import cps.Types._
+import system.Transformation
 
 object Contexts {
   // for
@@ -54,12 +54,11 @@ object Contexts {
     )
   )
 
-  val ccps_transform = Transform(
+  val ccps_transform = Transformation(
+    stlc.language + tcps_transform,
     ccps_contract,
     2,
     ccps_empty,
     ccps_bind
   )
-
-  val soundnessObligations = system.Soundness.transSoundness(ccps_transform, stlc.language)
 }

@@ -5,10 +5,10 @@ import system.Verification._
 
 object Soundness {
 
-  def transSoundness(trans: Transform, lang: Language): Seq[Obligation] =
-    trans.rewrites.map(r => rewriteSoundness(r, trans, lang)(new Gensym))
+  def transSoundness(trans: Transformation): Seq[Obligation] =
+    trans.rewrites.map(r => rewriteSoundness(r, trans)(new Gensym))
 
-  def rewriteSoundness(r: Rewrite, trans: Transform, lang: Language)(implicit gensym: Gensym): Obligation =
+  def rewriteSoundness(r: Rewrite, trans: Transformation)(implicit gensym: Gensym): Obligation =
     trans.contractedTerm.matchAgainst(r.pat) match {
       case Left(s) =>
         val rhs = r.gen.subst(s)
@@ -21,14 +21,14 @@ object Soundness {
 
         val goal = trans.contract.conclusion.updated(trans.pos, rhs).subst(sopaques)
 
-        val opaqueSyms = opaques.map(_.asInstanceOf[App].sym).toSeq
+        val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 
-        ProofObligation(lang, opaqueSyms, assumptions ++ ihs, goals = Seq(goal))
+        ProofObligation(trans.lang, opaqueSyms, assumptions ++ ihs, goals = Seq(goal))
       case Right(msg) =>
         FailedObligation(s"Rewrite rule\n$r\n does not match contract\n${trans.contract}\nbecause $msg")
     }
 
-  def deriveIHs(rhs: Term, r: Rewrite, trans: Transform)(implicit gensym: Gensym): (Seq[Rule], Map[Var, Term]) = {
+  def deriveIHs(rhs: Term, r: Rewrite, trans: Transformation)(implicit gensym: Gensym): (Seq[Rule], Map[Var, Term]) = {
     val sym = trans.contractedSym
     val recApps = rhs.findAll {
       case App(`sym`, _) => true
@@ -46,7 +46,7 @@ object Soundness {
     (rules, opaques)
   }
 
-  def deriveIH(recApp: Term, r: Rewrite, num: Int, trans: Transform)(implicit gensym: Gensym): Option[Rule] = {
+  def deriveIH(recApp: Term, r: Rewrite, num: Int, trans: Transformation)(implicit gensym: Gensym): Option[Rule] = {
     val contract = trans.contract
     trans.contractedTerm.matchAgainst(recApp) match {
       case Left(s) =>

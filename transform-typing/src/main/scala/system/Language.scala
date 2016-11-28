@@ -29,4 +29,13 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
     val constrs = closedDataTypes.values.flatten.toSeq
     syms.diff(constrs)
   }
+
+  def +(trans: Transformation): Language = {
+    val name = this.name + "-" + trans.contractedSym
+    val sorts = this.sorts
+    val syms = this.syms :+ trans.contractedSym
+    val rules = this.rules :+ trans.contract
+    Language(name, sorts, syms, rules)
+  }
+
 }

@@ -192,34 +192,4 @@ object Syntax {
     override def toString: String = s"$pat ~> $gen"
   }
 
-  case class Transform(contract: Rule, pos: Int, rewrites: List[Rewrite]) {
-    assert(pos < contract.conclusion.terms.size)
-    assert(contract.conclusion.terms(pos).isInstanceOf[App])
-
-    val contractedTerm = contract.conclusion.terms(pos).asInstanceOf[App]
-    val contractedSym = contractedTerm.sym
-    rewrites.foreach(r =>
-      assert(r.pat.isInstanceOf[App] && r.pat.asInstanceOf[App].sym == contractedSym, s"Rewrite $r does not match contracted symbol $contractedSym"))
-
-    override def toString: String = {
-      val premises = contract.premises
-      val name = contract.name
-      val indent = "  "
-      val ps = premises.mkString("\n" + indent)
-      val scontract = s"$name:\n$indent$ps\n$indent=>\n$indent${contract.conclusion.toString(pos)}"
-      s"""${contractedSym.sigString}
-         |
-         |contract
-         |$scontract
-         |
-         |rewritings
-         |${rewrites.mkString("\n")}
-       """.stripMargin
-    }
-  }
-
-  object Transform {
-    def apply(contract: Rule, pos: Int, rewrites: Rewrite*): Transform = new Transform(contract, pos, rewrites.toList)
-  }
-
 }
