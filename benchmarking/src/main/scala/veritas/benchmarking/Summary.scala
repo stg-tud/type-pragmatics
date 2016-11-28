@@ -20,6 +20,8 @@ case class FileSummary(veritasConfig: VeritasConfig, fileName: String, proverCon
 case class Summary(config: Config) {
   private var fileSummaries: ListMap[ProverConfig, ListMap[VeritasConfFile, FileSummary]] = ListMap()
 
+  def getFileSummaries = fileSummaries
+
   def +=(fileResult: (VeritasConfFile, FileSummary)): Unit = {
     val proverConfig = fileResult._2.proverConfig
     fileSummaries.get(proverConfig) match {
