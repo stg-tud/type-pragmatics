@@ -6,6 +6,8 @@ import system.Names._
 
 object Statics {
 
+  symbol(NameNeq)
+
   val Lookup = symbol("Lookup", in = List(Name, Typ, Ctx), out = Prop)
   val Lookup_Found = rule("Lookup-Found",
     Judg(Lookup,

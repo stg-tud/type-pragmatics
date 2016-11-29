@@ -1,15 +1,14 @@
 package system
 
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionSig}
-import de.tu_darmstadt.veritas.backend.ast.{DataTypeConstructor, Functions, SortRef, TypingRule}
+import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.fof
 import de.tu_darmstadt.veritas.backend.fof.{Term => _, _}
 import de.tu_darmstadt.veritas.backend.tff._
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
-import de.tu_darmstadt.veritas.backend.transformation.defs.GenerateCtorAxiomsTyped
-import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
+import de.tu_darmstadt.veritas.backend.transformation.defs.{AllFunctionInversionAxioms, CurrentFun, GenerateCtorAxiomsTyped}
 import system.Syntax._
+import system.GenerateVeritas._
 
 object GenerateTFF {
 
@@ -18,9 +17,7 @@ object GenerateTFF {
     case _ => SymbolType(TypedSymbol(s.name, DefinedType("tType")))
   }
 
-  def compileSortRef(s: ISort): SortRef = SortRef(s.name)
-
-  def compileSortDecl(sort: ISort) =
+  def compileSortDecl(sort: ISort): TffAnnotated =
     TffAnnotated(sort.name + "_type", Type, TypedSymbol(sort.name, DefinedType("tType")))
 
 
@@ -68,7 +65,6 @@ object GenerateTFF {
     TffAnnotated(name, Axiom, body)
   }
 
-
   def compileOpenDataType(sort: ISort, toTFF: ToTff): Seq[TffAnnotated] = {
     val initName = sort.name + "_init"
     val enumName = sort.name + "_enum"
@@ -97,6 +93,7 @@ object GenerateTFF {
     constrDecls ++ axioms
   }
 
+
   def compileLanguage(lang: Language): Seq[TffAnnotated] = {
     val toTFF = makeToTFF(lang)
 
@@ -106,8 +103,8 @@ object GenerateTFF {
     val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
 
     val rules = lang.rules.map(compileRuleDecl(_))
-    // TODO derive inversion rules for relations
-    val inversionRules = Seq[TffAnnotated]()
+    val groupedRules = lang.rules.groupBy(_.conclusion.sym)
+    val inversionRules = groupedRules.flatMap(r => compileInversionRule(r._1, r._2, toTFF))
 
     val transs = lang.transs.flatMap(compileTransformation(_))
 
@@ -130,9 +127,26 @@ object GenerateTFF {
     val sym = rewrites.head.pat.sym
 
 
-    ???
+    Seq()
   }
 
+
+  def compileInversionRule(sym: Symbol, rules: Seq[Rule], toTFF: ToTff): Seq[TffAnnotated] = {
+    val gensym = new Gensym
+    val inputVars = sym.in.map(s => gensym.freshVar(s.name, s))
+    val outputVar = gensym.freshVar(sym.out.name, sym.out)
+    val fun = CurrentFun(
+      sym.name,
+      sym.in.map(compileSortRef(_)),
+      compileSortRef(sym.out),
+      inputVars.map(v => MetaVar(v.name)),
+      MetaVar(outputVar.name)
+    )
+
+    val tseq = rules.map(compileRuleToVeritas(_))
+    val axioms = AllFunctionInversionAxioms.generateInversionAxiom(fun, tseq)
+    toTFF.translateAxioms(axioms.axioms)
+  }
 
 
 

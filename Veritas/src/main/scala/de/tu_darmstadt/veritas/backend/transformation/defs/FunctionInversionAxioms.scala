@@ -9,6 +9,14 @@ import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
 
+
+
+case class CurrentFun(
+   // saves the signature of the function for which an inversion axiom is to be generated
+   name: String, params: Seq[SortRef], result: SortRef,
+   // saves variable names for premise
+   genParamNames: Seq[MetaVar], genResultName: MetaVar)
+
 /**
  * generates inversion axioms for functions and partial functions
  * assumes that function equations have already been transformed to axioms!
@@ -17,18 +25,6 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
  *
  */
 trait FunctionInversionAxioms extends CollectTypes {
-  val freshNames = new FreshNames
-
-  /**
-   * saves the signature of the function for which an inversion axiom is to be generated
-   */
-  var currfs: (String, (Seq[SortRef], SortRef)) = ("", (Seq(), SortRef("")))
-
-  /**
-   * saves variable names for premise
-   */
-  var genNames: (Seq[MetaVar], MetaVar) = (Seq(), MetaVar(""))
-
   /**
    * override to control for which functions inversion axioms are generated!
    * default: all! (even partial functions)
@@ -43,25 +39,25 @@ trait FunctionInversionAxioms extends CollectTypes {
    *
    * parameter: none, uses currfs to generate names (sets genNames)
    */
-  def newMetaVars(): Unit = {
+  def newMetaVars(params: Seq[SortRef]): (Seq[MetaVar], MetaVar) = {
     val freshNames = new FreshNames
-    currfs match {
-      case (_, (pars, res)) =>
-        genNames = (for (sr <- pars) yield MetaVar(freshNames.freshName(sr.name)), MetaVar("RESULT"))
-    }
+    (for (sr <- params) yield MetaVar(freshNames.freshName(sr.name)), MetaVar("RESULT"))
   }
 
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] =
     withSuper(super.transModuleDefs(mdef)) {
-      case as @ Axioms(tseq) if (isFunctionDef(tseq)) =>
-        Seq(as, generateInversionAxiom(tseq))
+      case as @ Axioms(tseq) =>
+        isFunctionDef(tseq) match {
+          case None => Seq(as)
+          case Some(current) => Seq(as, generateInversionAxiom(current, tseq))
+        }
     }
 
   /**
    * assumption: if all axioms in a block start with a function name, then these axioms belong to
    * the same function definition
    */
-  private def isFunctionDef(tseq: Seq[TypingRule]): Boolean = {
+  private def isFunctionDef(tseq: Seq[TypingRule]): Option[CurrentFun] = {
     val rulenames = for (tr <- tseq) yield tr match {
       case TypingRule(n, _, _) => n
     }
@@ -79,69 +75,78 @@ trait FunctionInversionAxioms extends CollectTypes {
         (for { fn <- pfunctypes.keys if (rulenames.forall { rn => nameMatches(rn, fn) }) } yield fn)).toSeq
 
       func match {
-        case Seq()                          => false
-        case Seq(fn) if (checkFunction(fn)) => { currfs = (fn, functypes.getOrElse(fn, pfunctypes(fn))); newMetaVars(); true }
-        case _                              => false
+        case Seq()                          => None
+        case Seq(fn) if (checkFunction(fn)) =>
+          val (params, res) = functypes.getOrElse(fn, pfunctypes(fn))
+          val (genParamNames, genResultName) = newMetaVars(params)
+          Some(CurrentFun(fn, params, res, genParamNames, genResultName))
+        case _                              => None
       }
-    } else false
+    } else None
   }
 
-  private def generateInversionAxiom(tseq: Seq[TypingRule]): Axioms = {
-    val name = currfs._1
-    val params = currfs._2._1
-    val res = currfs._2._2
-    if (res.name != "Bool") {
-      val orcases = for (ts <- tseq) yield makeInvCase(ts)
+  def generateInversionAxiom(currentFun: CurrentFun, tseq: Seq[TypingRule]): Axioms = {
+    if (currentFun.result.name != "Bool") {
+      val orcases = for (ts <- tseq) yield makeInvCase(currentFun, ts)
       val conc = if (orcases.size > 1) Seq(OrJudgment(orcases)) else orcases.head
-      Axioms(Seq(TypingRule(name + "-INV", Seq(makeInvFunPremise()), conc)))
+      Axioms(Seq(TypingRule(currentFun.name + "-INV", Seq(makeInvFunPremise(currentFun)), conc)))
     } else {
-      val truerules = filterTrue(tseq)
-      val truecases = for (ts <- truerules) yield makeInvTrueCase(ts)
-      val tconc = if (truecases.size > 1) Seq(OrJudgment(truecases)) else truecases.head
-      val falserules = filterFalse(tseq)
-      val falsecases = for (ts <- falserules) yield makeInvFalseCase(ts)
-      val fconc = if (falsecases.size > 1) Seq(OrJudgment(falsecases)) else falsecases.head
-      Axioms(Seq(TypingRule(name + "-true-INV", Seq(makeInvTruePremise()), tconc),
-        TypingRule(name + "-false-INV", Seq(makeInvFalsePremise()), fconc)))
+      val truerules = filterTrue(currentFun, tseq)
+      val truecases = for (ts <- truerules) yield makeInvTrueCase(currentFun, ts)
+      val tconc = truecases.size match {
+        case 0 => Seq()
+        case 1 => truecases.head
+        case _ => Seq(OrJudgment(truecases))
+      }
+      val trueRule = if(tconc.isEmpty) Seq() else Seq(TypingRule(currentFun.name + "-true-INV", Seq(makeInvTruePremise(currentFun)), tconc))
+      val falserules = filterFalse(currentFun, tseq)
+      val falsecases = for (ts <- falserules) yield makeInvFalseCase(currentFun, ts)
+      val fconc = falsecases.size match {
+        case 0 => Seq()
+        case 1 => falsecases.head
+        case _ => Seq(OrJudgment(falsecases))
+      }
+      val falseRule = if(fconc.isEmpty) Seq() else Seq(TypingRule(currentFun.name + "-false-INV", Seq(makeInvFalsePremise(currentFun)), fconc))
+      Axioms(trueRule ++ falseRule)
     }
   }
 
-  private def makeInvTruePremise(): FunctionExpJudgment =
+  private def makeInvTruePremise(currentFun: CurrentFun): FunctionExpJudgment =
     FunctionExpJudgment(
-      FunctionExpApp(currfs._1, genNames._1 map { m => FunctionMeta(m) }))
+      FunctionExpApp(currentFun.name, currentFun.genParamNames map { m => FunctionMeta(m) }))
 
-  private def makeInvFalsePremise(): FunctionExpJudgment =
+  private def makeInvFalsePremise(currentFun: CurrentFun): FunctionExpJudgment =
     FunctionExpJudgment(
-      FunctionExpNot(FunctionExpApp(currfs._1, genNames._1 map { m => FunctionMeta(m) })))
+      FunctionExpNot(FunctionExpApp(currentFun.name, currentFun.genParamNames map { m => FunctionMeta(m) })))
 
-  private def makeInvFunPremise(): FunctionExpJudgment =
+  private def makeInvFunPremise(currentFun: CurrentFun): FunctionExpJudgment =
     FunctionExpJudgment(FunctionExpEq(
-      FunctionExpApp(currfs._1, genNames._1 map { m => FunctionMeta(m) }),
-      FunctionMeta(genNames._2)))
+      FunctionExpApp(currentFun.name, currentFun.genParamNames map { m => FunctionMeta(m) }),
+      FunctionMeta(currentFun.genResultName)))
 
-  private def filterTrue(tseq: Seq[TypingRule]): Seq[TypingRule] =
+  private def filterTrue(currentFun: CurrentFun, tseq: Seq[TypingRule]): Seq[TypingRule] =
     tseq filter {
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpApp(fn, _)))) if (fn == currfs._1) => true
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, _), _)))) if (fn == currfs._1) => true
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpApp(fn, _)))) if (fn == currentFun.name) => true
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, _), _)))) if (fn == currentFun.name) => true
       case _ => false
     }
 
-  private def filterFalse(tseq: Seq[TypingRule]): Seq[TypingRule] =
+  private def filterFalse(currentFun: CurrentFun, tseq: Seq[TypingRule]): Seq[TypingRule] =
     tseq filter {
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(fn, _))))) if (fn == currfs._1) => true
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, _), _)))) if (fn == currfs._1) => true
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(fn, _))))) if (fn == currentFun.name) => true
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, _), _)))) if (fn == currentFun.name) => true
       case _ => false
     }
 
-  private def makeInvCase(ts: TypingRule): Seq[TypingRuleJudgment] = {
+  private def makeInvCase(currentFun: CurrentFun, ts: TypingRule): Seq[TypingRuleJudgment] = {
     val (params, res) = ts match {
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(fn, pars), r)))) if (fn == currfs._1) => (pars, r)
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpEq(FunctionExpApp(fn, pars), r)))) if (fn == currentFun.name) => (pars, r)
       case _ => throw TransformationError("Generation of inversion axioms: Wrong shape of definition axiom")
     }
-    val parambind = for ((n, p) <- genNames._1 zip params) yield FunctionExpJudgment(FunctionExpEq(FunctionMeta(n), p))
-    val resbind = FunctionExpJudgment(FunctionExpEq(FunctionMeta(genNames._2), res))
+    val parambind = for ((n, p) <- currentFun.genParamNames zip params) yield FunctionExpJudgment(FunctionExpEq(FunctionMeta(n), p))
+    val resbind = FunctionExpJudgment(FunctionExpEq(FunctionMeta(currentFun.genResultName), res))
     val existsbody = ts.premises ++ parambind :+ resbind
-    val genNamesSet = ((genNames._1) :+ genNames._2).toSet
+    val genNamesSet = ((currentFun.genParamNames) :+ currentFun.genResultName).toSet
     val freevars = FreeVariables.freeVariables(ts.premises, genNamesSet) ++
       FreeVariables.freeVariables(parambind, genNamesSet) ++
       FreeVariables.freeVariables(resbind, genNamesSet)
@@ -151,20 +156,20 @@ trait FunctionInversionAxioms extends CollectTypes {
       Seq(ExistsJudgment(freevars.toSeq, existsbody))
   }
 
-  private def makeInvTrueCase(ts: TypingRule): Seq[TypingRuleJudgment] = {
+  private def makeInvTrueCase(currentFun: CurrentFun, ts: TypingRule): Seq[TypingRuleJudgment] = {
     val params = ts match {
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpApp(fn, pars)))) if (fn == currfs._1) => pars
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, pars), _)))) if (fn == currfs._1) => pars
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpApp(fn, pars)))) if (fn == currentFun.name) => pars
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, pars), _)))) if (fn == currentFun.name) => pars
       case _ => throw TransformationError("Generation of inversion axioms: Wrong shape of Boolean definition axiom")
     }
     val cond = ts match {
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, _), c)))) if (fn == currfs._1) => Some(c)
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, _), c)))) if (fn == currentFun.name) => Some(c)
       case _ => None
     }
-    val parambind = for ((n, p) <- genNames._1 zip params) yield FunctionExpJudgment(FunctionExpEq(FunctionMeta(n), p))
+    val parambind = for ((n, p) <- currentFun.genParamNames zip params) yield FunctionExpJudgment(FunctionExpEq(FunctionMeta(n), p))
     val existsbody = if (cond == None) ts.premises ++ parambind else ts.premises ++
       parambind :+ FunctionExpJudgment(cond.get)
-    val genNamesSet = (genNames._1).toSet
+    val genNamesSet = currentFun.genParamNames.toSet
     val freevars = FreeVariables.freeVariables(ts.premises, genNamesSet) ++
       FreeVariables.freeVariables(parambind, genNamesSet) ++
       FreeVariables.freeVariables(cond.getOrElse(FunctionExpTrue), genNamesSet)
@@ -174,22 +179,22 @@ trait FunctionInversionAxioms extends CollectTypes {
       Seq(ExistsJudgment(freevars.toSeq, existsbody))
   }
 
-  private def makeInvFalseCase(ts: TypingRule): Seq[TypingRuleJudgment] = {
+  private def makeInvFalseCase(currentFun: CurrentFun, ts: TypingRule): Seq[TypingRuleJudgment] = {
     val params = ts match {
       //look for negated conclusion
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(fn, pars))))) if (fn == currfs._1) => pars
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, pars), _)))) if (fn == currfs._1) => pars
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpNot(FunctionExpApp(fn, pars))))) if (fn == currentFun.name) => pars
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, pars), _)))) if (fn == currentFun.name) => pars
       case _ => throw TransformationError("Generation of inversion axioms: Wrong shape of Boolean definition axiom")
     }
     val cond = ts match {
-      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, _), c)))) if (fn == currfs._1) => Some(c)
+      case TypingRule(_, _, Seq(FunctionExpJudgment(FunctionExpBiImpl(FunctionExpApp(fn, _), c)))) if (fn == currentFun.name) => Some(c)
       case _ => None
     }
-    val parambind = for ((n, p) <- genNames._1 zip params) yield FunctionExpJudgment(FunctionExpEq(FunctionMeta(n), p))
+    val parambind = for ((n, p) <- currentFun.genParamNames zip params) yield FunctionExpJudgment(FunctionExpEq(FunctionMeta(n), p))
     //negate condition
     val existsbody = if (cond == None) ts.premises ++ parambind else ts.premises ++
       parambind :+ FunctionExpJudgment(FunctionExpNot(cond.get))
-    val genNamesSet = (genNames._1).toSet
+    val genNamesSet = currentFun.genParamNames.toSet
     val freevars = FreeVariables.freeVariables(ts.premises, genNamesSet) ++
       FreeVariables.freeVariables(parambind, genNamesSet) ++
       FreeVariables.freeVariables(cond.getOrElse(FunctionExpTrue), genNamesSet)

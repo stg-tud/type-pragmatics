@@ -17,13 +17,11 @@ object Soundness {
 
         val name = trans.contract.name
         val premises = trans.contract.premises.map(_.subst(sopaques))
-        val assumptions = premises.zipWithIndex.map { case (p, i) => Rule(s"$name-Pre-$i", p) }
-
         val goal = trans.contract.conclusion.updated(trans.contractPos, rhs).subst(sopaques)
 
         val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 
-        ProofObligation(trans.lang, opaqueSyms, assumptions ++ ihs, trans, goals = Seq(goal))
+        ProofObligation(trans.lang, opaqueSyms, ihs, trans, premises, goals = Seq(goal))
       case Right(msg) =>
         FailedObligation(s"Rewrite rule\n$r\n does not match contract\n${trans.contract}\nbecause $msg")
     }

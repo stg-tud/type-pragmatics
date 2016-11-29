@@ -1,6 +1,6 @@
 package system
 
-import system.Syntax.{ISort, Symbol}
+import system.Syntax.{ISort, Symbol, Var}
 
 class Gensym {
   private var counters = Map[String, Int]()
@@ -18,4 +18,7 @@ class Gensym {
 
   def freshSymbol(name: String, in: List[ISort], out: ISort): Symbol =
     Symbol(getNextAndSet(name), in, out)
+
+  def freshVar(name: String, sort: ISort): Var =
+    Var(getNextAndSet(name), sort)
 }

@@ -2,7 +2,7 @@ package system
 
 import java.io.{File, PrintWriter}
 
-import de.tu_darmstadt.veritas.backend.fof.{And, Conjecture}
+import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff.TffAnnotated
 import system.Syntax._
 import veritas.benchmarking
@@ -17,14 +17,15 @@ object Verification {
   case class FailedObligation(msg: String) extends Obligation
 
   case class ProofObligation(
-      lang: Language,
-      opaques: Seq[Symbol],
-      assumptions: Seq[Rule],
-      trans: Transformation,
-      goals: Seq[Judg]) extends Obligation {
+    lang: Language,
+    opaques: Seq[Symbol],
+    axioms: Seq[Rule],
+    trans: Transformation,
+    assumptions: Seq[Judg],
+    goals: Seq[Judg]) extends Obligation {
     override def toString: String = {
       val indent = "  "
-      val ps = assumptions.mkString("\n" + indent)
+      val ps = axioms.mkString("\n" + indent)
       val psn = if (ps.isEmpty) "" else "\n"
       s"""
          |Proof obligation in ${lang.name}:
@@ -33,16 +34,24 @@ object Verification {
          |${goals.mkString("\n")}
          |
          |assumptions
-         |${assumptions.mkString("\n")}
+         |${axioms.mkString("\n")}
        """.stripMargin
     }
 
     lazy val asTFF: Seq[TffAnnotated] = {
       var tff: Seq[TffAnnotated] = GenerateTFF.compileLanguage(lang)
-      tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
-      tff ++= assumptions.map(GenerateTFF.compileRuleDecl(_))
       tff ++= GenerateTFF.compileTransformation(trans, false)
-      tff :+= TffAnnotated("Goal", Conjecture, And(goals.map(GenerateTFF.compileJudg(_))))
+      tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
+      tff ++= axioms.map(GenerateTFF.compileRuleDecl(_))
+
+      val assumptionVars = assumptions.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_)))
+      val goalVars = goals.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_)))
+
+      val assumptionFormula = Parenthesized(And(assumptions.map(GenerateTFF.compileJudg(_))))
+      val goalFormula = Parenthesized(And(goals.map(GenerateTFF.compileJudg(_))))
+      val goalBody = Parenthesized(Impl(assumptionFormula, goalFormula))
+      tff :+= TffAnnotated("Goal", Conjecture, ForAll((assumptionVars ++ goalVars).toSeq, goalBody))
+
       tff
     }
   }
