@@ -94,8 +94,7 @@ reduce(QC(am, qm, qsingle(value(qid, t, e)))) =
 	then someQConf(QC(am, qm, qsingle(value(qid, t, getExp(eOpt)))))
 	else noQConf
 reduce(QC(am, qm, qsingle(defquestion(qid, l, t)))) =
-    let av = getAnswer(l, t) in
-        someQConf(QC(am, qmbind(qid, l, t, qm), qempty))
+    someQConf(QC(am, qmbind(qid, l, t, qm), qempty))
 reduce(QC(am, qm, qsingle(ask(qid)))) =
     let qOpt = lookupQMap(qid, qm) in
         if (isSomeQuestion(qOpt))
