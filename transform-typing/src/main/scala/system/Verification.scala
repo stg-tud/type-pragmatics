@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.backend.fof.{And, Conjecture}
 import de.tu_darmstadt.veritas.backend.tff.TffAnnotated
 import system.Syntax._
 import veritas.benchmarking
-import veritas.benchmarking.Runner
+import veritas.benchmarking.{ProverResult, Runner}
 import veritas.benchmarking.vampire.VampireConfig
 
 object Verification {
@@ -16,7 +16,12 @@ object Verification {
 
   case class FailedObligation(msg: String) extends Obligation
 
-  case class ProofObligation(lang: Language, opaques: Seq[Symbol], assumptions: Seq[Rule], goals: Seq[Judg]) extends Obligation {
+  case class ProofObligation(
+      lang: Language,
+      opaques: Seq[Symbol],
+      assumptions: Seq[Rule],
+      rewrites: Seq[Rewrite],
+      goals: Seq[Judg]) extends Obligation {
     override def toString: String = {
       val indent = "  "
       val ps = assumptions.mkString("\n" + indent)
@@ -36,6 +41,7 @@ object Verification {
       var tff: Seq[TffAnnotated] = GenerateTFF.compileLanguage(lang)
       tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
       tff ++= assumptions.map(GenerateTFF.compileRuleDecl(_))
+      // TODO rewrites
       tff :+= TffAnnotated("Goal", Conjecture, And(goals.map(GenerateTFF.compileJudg(_))))
       tff
     }
@@ -50,11 +56,10 @@ object Verification {
     logPerFile = true,
     logProof = true,
     logDisproof = true,
-    logInconclusive = true,
-    logSummary = true
+    logInconclusive = true
   )
 
-  def verify(obl: Obligation, timeout: Int = 30): Unit = obl match {
+  def verify(obl: Obligation, timeout: Int = 30): ProverResult = obl match {
     case p: ProofObligation =>
       val tff = p.asTFF
 
@@ -64,6 +69,10 @@ object Verification {
 
       val runner = new Runner(runConfig.copy(files = Seq(file), timeout = timeout))
       runner.run()
+      val summaries = runner.summary.getFileSummaries
+      assert(summaries.size == 1 && summaries.head._2.size == 1)
+      val result = summaries.head._2.head._2.proverResult
+      result
 
     case FailedObligation(msg) => ???
   }

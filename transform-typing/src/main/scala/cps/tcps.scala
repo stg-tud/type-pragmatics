@@ -5,21 +5,22 @@ import stlc.Syntax._
 import system.Syntax._
 import system.Transformation
 
-object Types {
-  // for
-  stlc.language
-
-  private val omega = Var("omega", Typ)
+object tcps extends Transformation(stlc.language) {
 
   // CPS type transformation tcps
   val tcps = Symbol("tcps", in = List(Typ, Typ), out = Typ, constr = false)
 
-  val tcps_contract = Rule("TOk-tcps",
+  private val omega = Var("omega", Typ)
+
+  override val contract = Rule("TOk-tcps",
     Judg(TOk, App(tcps, Var("T", Typ), omega)),
     // if ----------------
     Judg(TOk, Var("T", Typ)),
     Judg(TOk, omega)
   )
+
+  override val contractPos = 0
+
 
   val tcps_nat = Rewrite(
     App(tcps, App(Nat), omega),
@@ -42,11 +43,5 @@ object Types {
     )
   )
 
-  val tcps_transform = Transformation(
-    stlc.language,
-    tcps_contract,
-    0,
-    tcps_nat,
-    tcps_arr
-  )
+  override val rewrites = Seq(tcps_nat, tcps_arr)
 }

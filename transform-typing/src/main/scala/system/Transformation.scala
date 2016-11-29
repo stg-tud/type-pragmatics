@@ -2,25 +2,31 @@ package system
 
 import system.Syntax._
 import system.Verification.Obligation
+import veritas.benchmarking.Proved
 
-case class Transformation(lang: Language, contract: Rule, pos: Int, rewrites: List[Rewrite]) {
-  assert(pos < contract.conclusion.terms.size)
-  assert(contract.conclusion.terms(pos).isInstanceOf[App])
+abstract class Transformation(val lang: Language) {
+  val contract: Rule
+  val contractPos: Int
+  val rewrites: Seq[Rewrite]
 
-  val contractedTerm = contract.conclusion.terms(pos).asInstanceOf[App]
-  val contractedSym = contractedTerm.sym
+  final lazy val contractedTerm = contract.conclusion.terms(contractPos).asInstanceOf[App]
+  final lazy val contractedSym = contractedTerm.sym
 
-  rewrites.foreach(r =>
-    assert(
-      r.pat.isInstanceOf[App] && r.pat.asInstanceOf[App].sym == contractedSym,
-      s"Rewrite $r does not match contracted symbol $contractedSym"))
+  def checkSyntax(): Unit = {
+    assert(contractPos < contract.conclusion.terms.size)
+    assert(contract.conclusion.terms(contractPos).isInstanceOf[App])
+    rewrites.foreach(r =>
+      assert(
+        r.pat.isInstanceOf[App] && r.pat.asInstanceOf[App].sym == contractedSym,
+        s"Rewrite $r does not match contracted symbol $contractedSym"))
+  }
 
   override def toString: String = {
     val premises = contract.premises
     val name = contract.name
     val indent = "  "
     val ps = premises.mkString("\n" + indent)
-    val scontract = s"$name:\n$indent$ps\n$indent=>\n$indent${contract.conclusion.toString(pos)}"
+    val scontract = s"$name:\n$indent$ps\n$indent=>\n$indent${contract.conclusion.toString(contractPos)}"
     s"""${contractedSym.sigString}
        |
          |contract
@@ -31,13 +37,9 @@ case class Transformation(lang: Language, contract: Rule, pos: Int, rewrites: Li
        """.stripMargin
   }
 
-
   lazy val soundnessObligations: Seq[Obligation] = Soundness.transSoundness(this)
-  lazy val soundnessResults = ???
-  def isSound: Boolean = ???
+  lazy val soundnessResults = soundnessObligations.map(Verification.verify(_))
+  lazy val isSound = soundnessResults.forall(_.status == Proved)
 }
 
-object Transformation {
-  def apply(lang: Language, contract: Rule, pos: Int, rewrites: Rewrite*): Transformation =
-    new Transformation(lang, contract, pos, rewrites.toList)
-}
+

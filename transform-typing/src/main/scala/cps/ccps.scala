@@ -3,20 +3,16 @@ package cps
 import stlc.Syntax._
 import stlc.Statics._
 import system.Syntax._
-import system.Names._
-import cps.Types._
 import system.Transformation
 
-object Contexts {
-  // for
-  stlc.language
+object ccps extends Transformation(stlc.language + tcps) {
+
+  // CPS context transformation ccps
+  val ccps = Symbol("ccps", in = List(Ctx, Typ), out = Ctx, constr = false)
 
   private val omega = Var("omega", Typ)
 
-  // CPS type transformation tcps
-  val ccps = Symbol("ccps", in = List(Ctx, Typ), out = Ctx, constr = false)
-
-  val ccps_contract = Rule("Lookup-ccps",
+  override val contract = Rule("Lookup-ccps",
     Judg(Lookup,
       Var("x", Name),
       App(tcps, Var("T", Typ), omega),
@@ -27,6 +23,9 @@ object Contexts {
       Var("T", Typ),
       Var("C", Ctx))
   )
+
+  override val contractPos: Int = 2
+
 
   val ccps_empty = Rewrite(
     App(ccps, App(empty), omega),
@@ -54,11 +53,5 @@ object Contexts {
     )
   )
 
-  val ccps_transform = Transformation(
-    stlc.language + tcps_transform,
-    ccps_contract,
-    2,
-    ccps_empty,
-    ccps_bind
-  )
+  override val rewrites: Seq[Rewrite] = Seq(ccps_empty, ccps_bind)
 }

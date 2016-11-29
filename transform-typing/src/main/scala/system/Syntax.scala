@@ -138,6 +138,7 @@ object Syntax {
   }
   object App {
     def apply(sym: Symbol, kids: Term*): App = App(sym, kids.toList)
+    def apply(trans: Transformation, kids: Term*): App = App(trans.contractedSym, kids.toList)
   }
 
   case class Judg(sym: Symbol, terms: List[Term]) {
@@ -191,5 +192,4 @@ object Syntax {
     assert(gen.freevars.subsetOf(pat.freevars))
     override def toString: String = s"$pat ~> $gen"
   }
-
 }

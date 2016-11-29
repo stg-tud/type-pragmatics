@@ -6,19 +6,6 @@ import system.Names._
 
 object Statics {
 
-  val TOk = symbol("TOk", in = List(Typ), out = Prop)
-  val TOk_Nat = rule("TOk-Nat",
-    Judg(TOk, App(Nat))
-    // if ----------------
-  )
-  val TOk_Arr = rule("TOk-Arr",
-    Judg(TOk, App(Arr, Var("t1", Typ), Var("t2", Typ))),
-    // if ----------------
-    Judg(TOk, Var("t1", Typ)),
-    Judg(TOk, Var("t2", Typ))
-  )
-
-
   val Lookup = symbol("Lookup", in = List(Name, Typ, Ctx), out = Prop)
   val Lookup_Found = rule("Lookup-Found",
     Judg(Lookup,
@@ -37,4 +24,20 @@ object Statics {
     Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C", Ctx))
   )
 
+
+  val TOk = symbol("TOk", in = List(Typ), out = Prop)
+  val TOk_Nat = rule("TOk-Nat",
+    Judg(TOk, App(Nat))
+    // if ----------------
+  )
+  val TOk_Arr = rule("TOk-Arr",
+    Judg(TOk, App(Arr, Var("t1", Typ), Var("t2", Typ))),
+    // if ----------------
+    Judg(TOk, Var("t1", Typ)),
+    Judg(TOk, Var("t2", Typ))
+  )
+
+
+  val Typed = symbol("Typed", in = List(Ctx, Exp, Typ), out = Prop)
+  // TODO type rules
 }
