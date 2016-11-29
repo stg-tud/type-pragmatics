@@ -192,7 +192,7 @@ object Syntax {
     def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList)
   }
 
-  case class Rewrite(pat: Term, gen: Term, where: ListMap[Term, Term] = ListMap()) {
+  case class Rewrite(pat: App, gen: Term, where: ListMap[Term, Term] = ListMap()) {
     def locallyBoundVars = pat.freevars ++ where.keys.flatMap(_.freevars)
     def usedVars = gen.freevars ++ where.values.flatMap(_.freevars)
 

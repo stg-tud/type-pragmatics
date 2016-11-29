@@ -4,7 +4,7 @@ import system.Syntax.{ISort, Rule, Sort, Symbol}
 
 import scala.collection.immutable.ListMap
 
-case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rules: Seq[Rule]) {
+case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rules: Seq[Rule], transs: Seq[Transformation] = Seq()) {
   override def toString: String = {
     s"""sorts
         |${sorts.mkString(", ")}
@@ -30,30 +30,18 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
     syms.diff(constrs)
   }
 
-  def +(lang: Language): Language = {
-    val name = this.name
-    var sorts = this.sorts
-    var syms = this.syms
-    var rules = this.rules
-
-    for (s <- lang.sorts if !this.sorts.contains(s))
-      sorts :+= s
-    for (s <- lang.syms if !this.syms.contains(s))
-      syms :+= s
-    for (r <- lang.rules if !this.rules.contains(r))
-      rules :+= r
-
-    Language(name, sorts, syms, rules)
-  }
-
   def +(trans: Transformation): Language = {
-    val base = this + trans.lang
+//    val name = this.name + "+" + trans.contractedSym
+//    val sorts = this.sorts
+//    val syms = this.syms :+ trans.contractedSym
+//    val rules = this.rules :+ trans.contract
 
-    val name = base.name + "-" + trans.contractedSym
-    val sorts = base.sorts
-    val syms = base.syms :+ trans.contractedSym
-    val rules = base.rules :+ trans.contract
-    Language(name, sorts, syms, rules)
+    var newtranss = transs
+    for (t <- trans.lang.transs if !transs.contains(t))
+      newtranss :+= t
+    newtranss :+= trans
+
+    Language(name + "+" + trans.contractedSym, sorts, syms, rules, newtranss)
   }
 
 }

@@ -104,10 +104,37 @@ object GenerateTFF {
     val open = lang.openDataTypes.flatMap(compileOpenDataType(_, toTFF))
     val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs, toTFF) }
     val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
-    val rules = lang.rules.map(compileRuleDecl(_))
 
-    types ++ open ++ closed ++ funs ++ rules
+    val rules = lang.rules.map(compileRuleDecl(_))
+    // TODO derive inversion rules for relations
+    val inversionRules = Seq[TffAnnotated]()
+
+    val transs = lang.transs.flatMap(compileTransformation(_))
+
+    types ++ open ++ closed ++ funs ++ rules ++ inversionRules ++ transs
   }
+
+  def compileTransformation(trans: Transformation, withContract: Boolean = true): Seq[TffAnnotated] = {
+    val sym = compileSymbolDeclaration(trans.contractedSym)
+    val contract = if (withContract) Seq(compileRuleDecl(trans.contract)) else Seq()
+    sym +: (contract ++ compileRewrites(trans.contractVars.toSeq, trans.rewrites))
+  }
+
+  def compileRewrites(contextVars: Seq[Var], rewrites: Seq[Rewrite]): Seq[TffAnnotated] = {
+    // TODO generate rewrite rules
+    // TODO   linear patterns -> function
+    // TODO   otherwise -> relation
+
+    // TODO generate inversion rule
+
+    val sym = rewrites.head.pat.sym
+
+
+    ???
+  }
+
+
+
 
   class LanguageCollectTypes(lang: Language) extends CollectTypesClass {
     private val syms: Map[String, Symbol] = {

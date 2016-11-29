@@ -20,7 +20,7 @@ object Verification {
       lang: Language,
       opaques: Seq[Symbol],
       assumptions: Seq[Rule],
-      rewrites: Seq[Rewrite],
+      trans: Transformation,
       goals: Seq[Judg]) extends Obligation {
     override def toString: String = {
       val indent = "  "
@@ -41,7 +41,7 @@ object Verification {
       var tff: Seq[TffAnnotated] = GenerateTFF.compileLanguage(lang)
       tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
       tff ++= assumptions.map(GenerateTFF.compileRuleDecl(_))
-      // TODO rewrites
+      tff ++= GenerateTFF.compileTransformation(trans, false)
       tff :+= TffAnnotated("Goal", Conjecture, And(goals.map(GenerateTFF.compileJudg(_))))
       tff
     }
