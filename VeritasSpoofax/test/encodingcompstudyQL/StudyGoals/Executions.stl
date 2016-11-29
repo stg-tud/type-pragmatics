@@ -1,0 +1,129 @@
+module encodingcompstudyQL.Executions
+
+import encodingcompstudyQL.BasicTypes
+import encodingcompstudyQL.QLSemantics
+import encodingcompstudyQL.QLSemanticsData
+import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.QLTypeSystem
+
+local {
+	different consts
+	qid : QID
+	l : Label
+
+	goal 
+	~singleq = qsingle(question(qid, l, Number))
+	~am = aempty
+	~qm = qmempty
+	================================================ execution-1
+	exists ~result
+		reduce(QC(~am, ~qm, ~singleq)) == ~result
+}
+	
+goal
+
+================================================================ execution-2
+exists ~result
+	reduceExp(unop(notop, constant(B(yes))), aempty) == ~result
+	
+	
+goal
+
+================================================================= execution-3
+exists ~result
+	evalBinOp(divop, Num(succ(zero)), Num(succ(zero))) == ~result
+	
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	qid3 : QID
+	av1 : Aval
+	av2 : Aval
+	av3 : Aval
+	
+	goal
+	~am1 = abind(qid1, av1, abind(qid2, av2, aempty))
+	~am2 = abind(qid3, av3, aempty)	
+	================================================================= execution-4
+	exists ~result
+		appendAnsMap(~am1, ~am2) == ~result
+}	
+	
+	
+goal
+~qcconf = someQConf(~qc)
+============================================ execution-5
+exists ~result
+	getQC(~qcconf) == ~result
+	
+	
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	l1 : Label
+	l2 : Label
+	
+	goal
+	~qm = qmbind(qid1, l1, YesNo, qmbind(qid2, l2, Number, qmempty))
+	~q = qsingle(ask(qid2))
+	======================================== execution-6
+	exists ~result
+		reduce(QC(~am, ~qm, ~q)) == ~result
+}
+
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	l1 : Label
+	l2 : Label
+	
+	goal
+	~q1 = qsingle(question(qid1, l1, Number))
+	~q2 = qsingle(question(qid2, l2, Number))
+	~q = qcond(constant(B(yes)), ~q1, ~q2)
+	=============================================== execution-7
+	exists ~result
+		reduce(QC(aempty, ~qmempty, ~q)) == ~result
+	
+}
+
+goal
+~e1 = constant(B(no))
+~e2 = constant(B(no))
+~am = aempty
+======================================================== execution-8
+exists ~result
+	reduceExp(binop(~e1, andop, ~e2), ~am) == ~result
+	
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	qid3 : QID
+	l1 : Label
+	l2 : Label
+	l3 : Label
+	
+	goal
+	~qm = qmbind(qid1, l1, Number, qmbind(qid2, l2, Text, qmbind(qid3, l3, YesNo)))
+	=============================================================================== execution-9
+	exists ~result
+		lookupQMap(qid3, ~qm) == ~result
+
+}	
+
+local {
+	different consts
+	t1 : string
+	t2 : string
+
+	goal
+
+	=============================================== execution-10
+	exists ~result
+		evalBinOp(eqop, T(t1), T(t2)) == ~result
+}
+	
