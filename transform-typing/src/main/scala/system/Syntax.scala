@@ -192,13 +192,14 @@ object Syntax {
     def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList)
   }
 
-  case class Rewrite(pat: Term, gen: Term, where: ListMap[Var, Term] = ListMap()) {
-    def locallyBoundVars = pat.freevars ++ where.keys
+  case class Rewrite(pat: Term, gen: Term, where: ListMap[Term, Term] = ListMap()) {
+    def locallyBoundVars = pat.freevars ++ where.keys.flatMap(_.freevars)
+    def usedVars = gen.freevars ++ where.values.flatMap(_.freevars)
 
     override def toString: String = s"$pat ~> $gen"
 
     def checkSyntax(contextVars: Iterable[Var]): Unit = {
-      assert(gen.freevars.subsetOf(locallyBoundVars ++ contextVars), s"Unbound variables ${gen.freevars -- locallyBoundVars -- contextVars} in rewriting $this")
+      assert(usedVars.subsetOf(locallyBoundVars ++ contextVars), s"Unbound variables ${usedVars -- locallyBoundVars -- contextVars} in rewriting $this")
     }
   }
 }
