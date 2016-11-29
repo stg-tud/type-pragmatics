@@ -3,7 +3,10 @@ package cps
 import stlc.Syntax._
 import stlc.Statics._
 import system.Syntax._
-import system.Transformation
+import system.Names._
+import system.{Names, Transformation}
+
+import scala.collection.immutable.ListMap
 
 object ecps extends Transformation(stlc.language + tcps + ccps) {
 
@@ -14,9 +17,9 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
 
   override val contract: Rule = Rule("T-ecps",
     Judg(Typed,
-      App(ccps, Var("C", Ctx), omega),
-      App(ecps, Var("e", Exp), omega),
-      App(tcps, Var("T", Typ), omega)
+      ccps(Var("C", Ctx), omega),
+      ecps(Var("e", Exp), omega),
+      tcps(Var("T", Typ), omega)
     ),
     // if ----------------
     Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
@@ -24,6 +27,67 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
 
   override val contractPos: Int = 1
 
+  val ecps_ref = Rewrite(
+    ecps(
+      ref(Var("x", Name)),
+      omega
+    ),
+    // ~>
+    lam(
+      Var("k", Name),
+      Arr(tcps(Var("T", Typ), omega), omega),
+      app(ref(Var("k", Name)), ref(Var("x", Name)))
+    ),
+    where = ListMap(
+      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx))
+    )
+  )
+
+  val ecps_num = Rewrite(
+    ecps(
+      num(Var("n", Num)),
+      omega
+    ),
+    // ~>
+    lam(
+      Var("k", Name),
+      Arr(tcps(Nat(), omega), omega),
+      app(ref(Var("k", Name)), num(Var("n", Num)))
+    ),
+    where = ListMap(
+      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx))
+    )
+  )
+
+  val ecps_add = Rewrite(
+    ecps(
+      add(Var("e1", Exp), Var("e2", Exp)),
+      omega
+    ),
+    // ~>
+    lam(
+      Var("k", Name),
+      Arr(Nat(), omega),
+      app(ecps(Var("e1", Exp), omega),
+        lam(Var("x1", Name), Nat(),
+          app(ecps(Var("e2", Exp), omega),
+            lam(Var("x2", Name), Nat(),
+              app(ref(Var("k", Name)),
+                add(ref(Var("x1", Name)), ref(Var("x2", Name))))))))
+    ),
+    where = ListMap(
+      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx)),
+      Var("x1", Name) -> fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega))),
+      Var("x2", Name) -> fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)), Var("x1", Name), Nat()))
+    )
+  )
+
+  
+
   // TODO rewrites
-  override val rewrites: Seq[Rewrite] = Seq()
+  override val rewrites: Seq[Rewrite] = Seq(
+    ecps_ref,
+    ecps_num,
+    ecps_add
+  )
 }

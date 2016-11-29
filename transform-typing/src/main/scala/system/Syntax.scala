@@ -1,5 +1,7 @@
 package system
 
+import scala.collection.immutable.ListMap
+
 object Syntax {
 
   sealed trait ISort {
@@ -24,11 +26,14 @@ object Syntax {
 
   case class Symbol(name: String, in: List[ISort], out: ISort, constr: Boolean = true) {
     override def toString: String = name
+
     def sigString =
       if (in.isEmpty)
         s"$name: $out"
       else
         s"$name: ${in.mkString(" ")} -> $out"
+
+    def apply(kids: Term*): App = App(this, kids.toList)
   }
 
   type Subst = Map[Var, Term]
@@ -100,9 +105,8 @@ object Syntax {
     override def isGround: Boolean = kids.forall(_.isGround)
 
     override def toString: String = {
-      val ks = kids.mkString(" ")
-      val space = if (ks.isEmpty) "" else " "
-      s"($sym$space$ks)"
+      val ks = kids.mkString(", ")
+      s"$sym($ks)"
     }
 
     override def freevars: Set[Var] = kids.toSet[Term].flatMap(_.freevars)
@@ -188,8 +192,13 @@ object Syntax {
     def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList)
   }
 
-  case class Rewrite(pat: Term, gen: Term) {
-    assert(gen.freevars.subsetOf(pat.freevars))
+  case class Rewrite(pat: Term, gen: Term, where: ListMap[Var, Term] = ListMap()) {
+    def locallyBoundVars = pat.freevars ++ where.keys
+
     override def toString: String = s"$pat ~> $gen"
+
+    def checkSyntax(contextVars: Iterable[Var]): Unit = {
+      assert(gen.freevars.subsetOf(locallyBoundVars ++ contextVars), s"Unbound variables ${gen.freevars -- locallyBoundVars -- contextVars} in rewriting $this")
+    }
   }
 }

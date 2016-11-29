@@ -11,14 +11,17 @@ abstract class Transformation(val lang: Language) {
 
   final lazy val contractedTerm = contract.conclusion.terms(contractPos).asInstanceOf[App]
   final lazy val contractedSym = contractedTerm.sym
+  final lazy val contractVars = contract.premises.foldLeft(Set[Var]())((vars, j) => vars ++ j.freevars)
 
   def checkSyntax(): Unit = {
     assert(contractPos < contract.conclusion.terms.size)
     assert(contract.conclusion.terms(contractPos).isInstanceOf[App])
-    rewrites.foreach(r =>
+    rewrites.foreach { r =>
+      r.checkSyntax(contractVars)
       assert(
         r.pat.isInstanceOf[App] && r.pat.asInstanceOf[App].sym == contractedSym,
-        s"Rewrite $r does not match contracted symbol $contractedSym"))
+        s"Rewrite $r does not match contracted symbol $contractedSym")
+    }
   }
 
   override def toString: String = {
@@ -40,6 +43,8 @@ abstract class Transformation(val lang: Language) {
   lazy val soundnessObligations: Seq[Obligation] = Soundness.transSoundness(this)
   lazy val soundnessResults = soundnessObligations.map(Verification.verify(_))
   lazy val isSound = soundnessResults.forall(_.status == Proved)
+
+  def apply(kids: Term*): App = App(contractedSym, kids.toList)
 }
 
 
