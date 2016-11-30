@@ -1,0 +1,122 @@
+module encodingcompstudyQL.Syntheses
+
+import encodingcompstudyQL.BasicTypes
+import encodingcompstudyQL.QLSemantics
+import encodingcompstudyQL.QLSemanticsData
+import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.QLTypeSystem
+
+
+// there is a questionnaire configuration that does not reduce further
+goal
+true
+====================================== synthesis-1
+exists ~qc
+	reduce(~qc) == noQConf
+	
+	
+// there is an expression that is a value, but does not reduce further 
+goal 
+true
+=========================================== synthesis-2
+exists ~exp
+	!expIsValue(~exp)
+	reduceExp(~exp, aempty) == noExp
+	
+	
+// there are answer values for which addition does not evaluate
+goal
+true
+========================================== synthesis-3
+exists ~av1, ~av2
+	evalBinOp(addop, ~av1, ~av2) == noExp
+	
+	
+// there is a questionnaire configuration whose reduction modifies neither
+// the answer map, nor the question map	(e.g. qgroup, qcond)
+local {
+	consts
+	am : AnsMap
+	qm : QMap
+	sq : Questionnaire
+	
+	goal
+	true
+	========================================= synthesis-4
+	exists ~q
+		reduce(QC(am, qm, ~q)) = someQConf(QC(am, qm, sq))
+}
+
+// there are answer type maps whose intersection is empty
+// (even though the original maps are not)
+goal
+true
+============================================ synthesis-5
+exists ~atm1, ~atm2
+	~atm1 != atmempty
+	~atm2 != atmempty
+	intersectATM(~atm1, ~atm2) = atmempty
+	
+// there is an answer map in which a specific QID and a specific answer can be looked up
+local {
+	different consts
+	qid : QID
+	av : Aval
+	
+	goal
+	true
+	============================================ synthesis-6
+	exists ~am
+		lookupAnsMap(qid, ~am) = someAval(av) 
+	
+}
+
+// there is a question map with a specific (given) type
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	qid3 : QID
+	
+	
+	goal 
+	~atm = atmbind(qid1, Number, atmbind(qid2, Text, atmbind(qid3, YesNo, atmempty)))
+	================================================================================== synthesis-7
+	exists ~qm
+		typeQM(~qm) = ~atm
+	
+}
+
+// there is q questionnaire configuration whose reduction 
+// produces the given questionnaire configuration
+local {
+	consts
+	am : AnsMap
+	qm : QMap
+	qid : QID
+	
+	goal 
+	~e = binop(constant(Num(zero)), addop, constant(Num(succ(zero))))
+	~qcres = someQConf(QC(am, qm, qsingle(value(qid, Number, ~e))))
+	===================================================================== synthesis-8
+	exists ~qc
+		reduce(~qc) == ~qcres
+}
+
+// there are arguments to minus that produce zero
+goal
+true
+======================================== synthesis-9
+exists ~n1, ~n2
+	minus(~n1, ~n2) = zero
+	
+
+// there are expressions that do not type check in an empty answer type map
+goal
+true
+========================================== synthesis-10
+exists ~e
+	echeck(atmempty, ~e) = noAType
+
+
+
