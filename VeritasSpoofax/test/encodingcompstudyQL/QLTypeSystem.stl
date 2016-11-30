@@ -28,6 +28,7 @@ data MapConf = MC(ATMap, ATMap)
 function 
 intersectATM : ATMap ATMap -> ATMap
 intersectATM(atmempty, atm2) = atmempty
+intersectATM(atm1, atmempty) = atmempty
 intersectATM(atmbind(qid, at, atm1), atm2) = 
 	let atm1atm2 = intersectATM(atm1, atm2) in
 		let lAT = lookupATMap(qid, atm2) in 
