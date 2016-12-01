@@ -130,6 +130,7 @@ MC(~atm, ~qm) |- qsingle(defquestion(~qid, ~l, ~at)) : MC(atmempty, atmbind(~qid
 
 axiom
 lookupATMap(~qid, ~qm) == someAType(~at)
+lookupATMap(~qid, ~atm) == noAType
 ================================================================================= T-ask
 MC(~atm, ~qm) |- qsingle(ask(~qid)) : MC(atmbind(~qid, ~at, atmempty), atmempty)
 
