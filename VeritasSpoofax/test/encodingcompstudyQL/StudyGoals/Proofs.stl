@@ -1,0 +1,125 @@
+module encodingcompstudyQL.Proofs
+
+import encodingcompstudyQL.BasicTypes
+import encodingcompstudyQL.QLSemantics
+import encodingcompstudyQL.QLSemanticsData
+import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.QLTypeSystem
+import encodingcompstudyQL.QLTypeSystemInv
+
+// order of two different qid entries in map does not influence result of lookup
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	
+	goal
+	~am1 = abind(qid1, ~av1, abind(qid2, ~av2, aempty))
+	~am2 = abind(qid2, ~av2, abind(qid1, ~av1, aempty))
+	====================================================== proof-1
+	lookupAnsMap(qid1, ~am1) == lookupAnsMap(qid1, ~am2)
+}
+
+
+// if a question has been asked, looking up the answer to that question in the answer map 
+// will be successful and the answer will have the expected type
+goal
+~q = qsingle(question(~qid, ~l, ~t))
+reduce(QC(~am1, ~qm1, ~q)) == someQConf(QC(~am2, ~qm2, qempty))
+============================================================================== proof-2
+isSomeAval(lookupAnsMap(~qid, ~am2))
+typeOf(getAval(lookupAnsMap(~qid, ~am2))) == ~t
+
+// if a question has been defined, it can be asked
+// (within a configuration answer map/question map resulting from the definition step)
+goal
+~dq == qsingle(defquestion(~qid, ~l, ~t))
+reduce(QC(~am, ~qm, ~dq)) == someQConf(QC(~am1, ~qm1, ~eq))
+~aq == qsingle(ask(~qid))
+============================================================================= proof-3
+isSomeQC(reduce(QC(~am1, ~qm1, ~aq)))
+
+// if an answer value was put into the answer map, an expression that refers
+// to that answer will successfully evaluate
+goal
+~q = qsingle(question(~qid1, ~l, Number))
+reduce(QC(~am1, ~qm1, ~q)) == someQConf(QC(~am2, ~qm2, qempty))
+~exp = binop(qvar(~qid1), addop, constant(Num(succ(zero))))
+~qexp = qsingle(value(~qid2, Number, ~exp))
+=================================================================== proof-4
+isSomeQC(reduce(QC(~am2, ~qm2, ~qexp)))
+
+
+// if a questionnaire with two consecutive questions is typable,
+// then the qids have to be different
+// requires type inversion lemma!
+goal
+~q1 = qsingle(question(~qid1, ~l1, ~t1))
+~q2 = qsingle(question(~qid2, ~l2, ~t2))
+~qs = qseq(~q1, ~q2)
+MC(atmempty, atmempty) |- ~qs : MC(~atm, ~qm)
+=========================================================== proof-5
+~qid1 != ~qid2
+
+// same for question definitions:
+// if two consecutive question definitions are typable,
+// then their qids have to be different
+// requires type inversion lemma!
+goal
+~dq1 = qsingle(defquestion(~qid1, ~l1, ~t1))
+~dq2 = qsingle(defquestion(~qid2, ~l2, ~t2))
+~qs = qseq(~dq1, ~dq2)
+MC(atmempty, atmempty) |- ~qs : MC(~atm, ~qm)
+===================================================== proof-6
+~qid1 != ~qid2
+
+// concrete instance of preservation:
+// if I type a questionnaire that consists of one question
+// and execute it one step, then the type that 
+// qcCheck will compute for the final configuration corresponds to the 
+// type of the original questionnaire
+goal
+~q1 = qsingle(question(~qid1, ~l1, ~t1))
+~menv = MC(atmempty, atmempty)
+~menv |- ~q1 : MC(~atm, ~qm)
+reduce(QC(aempty, qmempty, ~q1)) == someQConf(~qc)
+======================================================= proof-7
+qcCheck(~menv, ~qc) == ~atm
+
+// intersection of answer maps with just one binding each:
+// order of intersection does not matter
+goal
+~atm1 = atmbind(~qid1, ~t1, atmempty)
+~atm2 = atmbind(~qid2, ~t2, atmempty)
+========================================================= proof-8
+intersectATM(~atm1, ~atm2) == intersectATM(~atm2, ~atm1)
+
+// conditional question: if two branches contain different questions,
+// the type of the questionnaire will be empty
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	
+	goal
+	~q1 = qsingle(question(qid1, ~l1, ~t1))
+	~q2 = qsingle(question(qid2, ~l2, ~t2))
+	~qcond = qcond(~exp, ~q1, ~q2)
+	echeck(atmempty, ~exp) == someAType(YesNo)
+	========================================================== proof-9
+	MC(atmempty, atmempty) |- ~qcond : MC(atmempty, atmempty)
+
+}
+
+// evalBinOp only produces results for arguments with equal type
+// and the result has the same type as the arguments
+goal
+evalBinOp(~op, ~av1, ~av2) == someExp(constant(~avr))
+======================================================== proof-10
+typeOf(~av1) == typeOf(~av2)
+typeOf(~avr) == typeOf(~avr)
+
+
+
+
+
