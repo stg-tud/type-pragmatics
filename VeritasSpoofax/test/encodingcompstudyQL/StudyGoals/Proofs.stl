@@ -84,7 +84,7 @@ goal
 ~menv |- ~q1 : MC(~atm, ~qm)
 reduce(QC(aempty, qmempty, ~q1)) == someQConf(~qc)
 ======================================================= proof-7
-qcCheck(~menv, ~qc) == ~atm
+qcCheck(~menv, ~qc, ~atm)
 
 // intersection of answer maps with just one binding each:
 // order of intersection does not matter

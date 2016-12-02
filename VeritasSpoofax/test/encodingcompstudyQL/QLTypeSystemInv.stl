@@ -131,7 +131,7 @@ MC(~atm1, ~qm1) |- ~q1 : MC(~atm2, ~qm2)
 		
 //Do we need this axiom?		
 axiom
-qcCheck(MC(~atm0, ~qm0), QC(~am, ~qm, ~q)) == ~atm
+qcCheck(MC(~atm0, ~qm0), QC(~am, ~qm, ~q), ~atm)
 ======================================================================================= T-inv-qcCheck
 exists ~atm1, ~atm2, ~qm2
 	typeAM(~am) == ~atm1
