@@ -68,7 +68,7 @@ object Verification {
     logInconclusive = true
   )
 
-  def verify(obl: Obligation, timeout: Int = 30): ProverResult = obl match {
+  def verify(obl: Obligation, timeout: Int = 10): ProverResult = obl match {
     case p: ProofObligation =>
       val tff = p.asTFF
 

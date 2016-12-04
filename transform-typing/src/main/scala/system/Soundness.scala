@@ -17,7 +17,7 @@ object Soundness {
         val freshContract = trans.contract // TODO fresh contract
         val name = freshContract.name
         val premises = freshContract.premises.map(_.subst(sopaques))
-        val goal = freshContract.conclusion.updated(trans.contractPos, r.gen).subst(sopaques)
+        val goal = freshContract.conclusion.subst(sopaques).updated(trans.contractPos, r.gen.subst(opaques))
 
         val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 
