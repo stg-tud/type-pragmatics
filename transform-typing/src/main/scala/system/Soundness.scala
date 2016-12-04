@@ -11,13 +11,13 @@ object Soundness {
   def rewriteSoundness(r: Rewrite, trans: Transformation)(implicit gensym: Gensym): Obligation =
     trans.contractedTerm.matchAgainst(r.pat) match {
       case Left(s) =>
-        val rhs = r.gen.subst(s)
-        val (ihs, opaques) = deriveIHs(rhs, r, trans)
+        val (ihs, opaques) = deriveIHs(r.gen, r, trans)
         val sopaques = s.mapValues(_.subst(opaques)) ++ opaques
 
-        val name = trans.contract.name
-        val premises = trans.contract.premises.map(_.subst(sopaques))
-        val goal = trans.contract.conclusion.updated(trans.contractPos, rhs).subst(sopaques)
+        val freshContract = trans.contract // TODO fresh contract
+        val name = freshContract.name
+        val premises = freshContract.premises.map(_.subst(sopaques))
+        val goal = freshContract.conclusion.updated(trans.contractPos, r.gen).subst(sopaques)
 
         val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 

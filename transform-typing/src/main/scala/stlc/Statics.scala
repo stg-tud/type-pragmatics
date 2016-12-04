@@ -6,7 +6,7 @@ import system.Names._
 
 object Statics {
 
-  symbol(NameNeq)
+  symbol(Neq(Name))
 
   val Lookup = symbol("Lookup", in = List(Name, Typ, Ctx), out = Prop)
   val Lookup_Found = rule("Lookup-Found",
@@ -22,7 +22,7 @@ object Statics {
       Var("T", Typ),
       App(bind, Var("C", Ctx), Var("y", Name), Var("S", Typ))),
     // if ----------------
-    Judg(NameNeq, Var("x", Name), Var("y", Name)),
+    Judg(Neq(Name), Var("x", Name), Var("y", Name)),
     Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C", Ctx))
   )
 

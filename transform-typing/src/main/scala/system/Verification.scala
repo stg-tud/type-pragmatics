@@ -44,8 +44,8 @@ object Verification {
       tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
       tff ++= axioms.map(GenerateTFF.compileRuleDecl(_))
 
-      val assumptionVars = assumptions.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_)))
-      val goalVars = goals.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_)))
+      val assumptionVars = assumptions.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_, typed = true)))
+      val goalVars = goals.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_, typed = true)))
 
       val assumptionFormula = Parenthesized(And(assumptions.map(GenerateTFF.compileJudg(_))))
       val goalFormula = Parenthesized(And(goals.map(GenerateTFF.compileJudg(_))))

@@ -37,7 +37,7 @@ object ccps extends Transformation(stlc.language + tcps) {
     App(ccps,
       App(bind,
         Var("C", Ctx),
-        Var("x", Name),
+        Var("y", Name),
         Var("T", Typ)),
       omega),
     // ~>
@@ -45,7 +45,7 @@ object ccps extends Transformation(stlc.language + tcps) {
       App(ccps,
         Var("C", Ctx),
         omega),
-      Var("x", Name),
+      Var("y", Name),
       App(tcps,
         Var("T", Typ),
         omega

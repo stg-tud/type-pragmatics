@@ -34,7 +34,13 @@ object Syntax {
         s"$name: ${in.mkString(" ")} -> $out"
 
     def apply(kids: Term*): App = App(this, kids.toList)
+
+    def isEq = name.startsWith("Eq")
+    def isNeq = name.startsWith("Neq")
   }
+
+  def Eq(sort: ISort): Symbol = Symbol("Eq"+sort.name, in = List(sort, sort), out = Prop)
+  def Neq(sort: ISort): Symbol = Symbol("Neq"+sort.name, in = List(sort, sort), out = Prop)
 
   type Subst = Map[Var, Term]
   type Error = String
@@ -48,7 +54,7 @@ object Syntax {
 
     def freevars: Set[Var]
 
-    def subst(s: Subst): Term
+    def subst(s: Subst, capturing: Boolean = false): Term
 
     def occurs(v: Var): Boolean
 
@@ -70,7 +76,7 @@ object Syntax {
 
     override def freevars: Set[Var] = Set(this)
 
-    override def subst(s: Subst): Term = s.getOrElse(this, this)
+    override def subst(s: Subst, capturing: Boolean = false): Term = s.getOrElse(this, this)
 
     override def occurs(v: Var): Boolean = this == v
 
@@ -111,7 +117,15 @@ object Syntax {
 
     override def freevars: Set[Var] = kids.toSet[Term].flatMap(_.freevars)
 
-    override def subst(s: Subst): Term = App(sym, kids.map(_.subst(s)))
+    override def subst(s: Subst, capturing: Boolean = false): Term = {
+      if (!capturing) {
+        val newvars = s.values.foldLeft(Set[Var]())((vars, t) => vars ++ t.freevars)
+        val oldvars = freevars -- s.keys
+        for (v <- oldvars if newvars.contains(v))
+          throw new IllegalArgumentException(s"Substitution $s captures variable $v in $this")
+      }
+      App(sym, kids.map(_.subst(s, capturing)))
+    }
 
     override def occurs(v: Var): Boolean = kids.exists(_.occurs(v))
 
@@ -154,7 +168,13 @@ object Syntax {
 
     def updated(i: Int, t: Term) = Judg(sym, terms.updated(i, t))
 
-    def subst(s: Subst): Judg = Judg(sym, terms.map(_.subst(s)))
+    def subst(s: Subst): Judg = {
+      val newvars = s.values.foldLeft(Set[Var]())((vars, t) => vars ++ t.freevars)
+      val oldvars = freevars -- s.keys
+      for (v <- oldvars if newvars.contains(v))
+        throw new IllegalArgumentException(s"Substitution $s captures variable $v in $this")
+      Judg(sym, terms.map(_.subst(s)))
+    }
 
     def freevars: Set[Var] = terms.toSet[Term].flatMap(_.freevars)
 

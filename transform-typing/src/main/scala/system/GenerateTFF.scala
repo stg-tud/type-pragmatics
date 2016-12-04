@@ -32,17 +32,23 @@ object GenerateTFF {
   def compileSymbolDeclaration(sym: Symbol): TffAnnotated =
     TffAnnotated(sym.name + "_type", Type, compileSymbol(sym))
 
-  def compileVar(v: Var): Variable =
-    UntypedVariable(v.name)
+  def compileVar(v: Var, typed: Boolean = false): Variable =
+    if (typed)
+      TypedVariable(v.name, compileSort(v.sort))
+    else
+      UntypedVariable(v.name)
 
   def compileTerm(t: Term): fof.Term = t match {
     case v: Var => compileVar(v)
     case App(sym, kids) => Appl(UntypedFunSymbol(sym.name), kids.map(compileTerm(_)))
   }
 
-  def compileJudg(judg: Judg): FofUnitary = {
-    val kids = judg.terms.map(compileTerm(_))
-    Appl(UntypedFunSymbol(judg.sym.name), kids)
+  def compileJudg(judg: Judg): FofUnitary = judg.sym match {
+    case sym if sym.isEq => fof.Eq(compileTerm(judg.terms(0)), compileTerm(judg.terms(1)))
+    case sym if sym.isNeq => fof.NeqEq(compileTerm(judg.terms(0)), compileTerm(judg.terms(1)))
+    case _ =>
+      val kids = judg.terms.map(compileTerm(_))
+      Appl(UntypedFunSymbol(judg.sym.name), kids)
   }
 
   def compileRule(rule: Rule): (String, FofUnitary) = {
@@ -54,7 +60,7 @@ object GenerateTFF {
     if (vars.isEmpty)
       (name, body)
     else {
-      val allvars = vars.toList.map(compileVar(_))
+      val allvars = vars.toList.map(compileVar(_, typed = true))
       val all = ForAll(allvars, body)
       (name, all)
     }
