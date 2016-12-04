@@ -41,5 +41,37 @@ object Statics {
 
 
   val Typed = symbol("Typed", in = List(Ctx, Exp, Typ), out = Prop)
-  // TODO type rules
+  val Typed_ref = rule("Typed-ref",
+    Judg(Typed, Var("C", Ctx), ref(Var("x", Name)), Var("T", Typ)),
+    // if ----------------
+    Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C", Ctx))
+  )
+  val Typed_num = rule("Typed-num",
+    Judg(Typed, Var("C", Ctx), num(Var("n", Num)), Nat())
+    // if ----------------
+  )
+  val Typed_add = rule("Typed-add",
+    Judg(Typed, Var("C", Ctx), add(Var("e1", Exp), Var("e2", Exp)), Nat()),
+    // if ----------------
+    Judg(Typed, Var("C", Ctx), Var("e1", Exp), Nat()),
+    Judg(Typed, Var("C", Ctx), Var("e2", Exp), Nat())
+  )
+  val Typed_lam = rule("Typed-lam",
+    Judg(Typed,
+      Var("C", Ctx),
+      lam(Var("x", Name), Var("T1", Typ), Var("e", Exp)),
+      Arr(Var("T1", Typ), Var("T2", Typ))),
+    // if ----------------
+    Judg(Typed,
+      bind(Var("C", Ctx), Var("x", Name), Var("T1", Typ)),
+      Var("e", Exp),
+      Var("T2", Typ))
+  )
+  val Typed_app = rule("Typed-app",
+    Judg(Typed, Var("C", Ctx), app(Var("e1", Exp), Var("e2", Exp)), Var("T2", Typ)),
+    // if ----------------
+    Judg(Typed, Var("C", Ctx), Var("e1", Exp), Arr(Var("T1", Typ), Var("T2", Typ))),
+    Judg(Typed, Var("C", Ctx), Var("e2", Exp), Var("T1", Typ))
+  )
+
 }

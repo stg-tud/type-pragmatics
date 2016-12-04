@@ -178,7 +178,7 @@ object Syntax {
 
     def freevars: Set[Var] = terms.toSet[Term].flatMap(_.freevars)
 
-    override def toString: String = s"$sym(${terms.mkString(" ")})"
+    override def toString: String = s"$sym(${terms.mkString(", ")})"
 
     def toString(mark: Int): String = {
       val start = s"$sym("

@@ -8,7 +8,7 @@ package object stlc {
   def sort(sort: ISort): ISort =
     if (!initialized) {
       if (!sorts.contains(sort))
-        sorts +:= sort
+        sorts :+= sort
       sort
     }
     else
@@ -20,7 +20,7 @@ package object stlc {
   def symbol(sym: Symbol): Symbol =
     if (!initialized) {
       if (!syms.contains(sym))
-        syms +:= sym
+        syms :+= sym
       sym
     }
     else
@@ -34,7 +34,7 @@ package object stlc {
   def rule(rule: Rule): Rule = {
     if (!initialized) {
       if (!rules.contains(rule))
-        rules +:= rule
+        rules :+= rule
       rule
     }
     else
