@@ -1,0 +1,22 @@
+module encodingcompstudyQL.CounterExamples
+
+import encodingcompstudyQL.BasicTypes
+import encodingcompstudyQL.QLSemantics
+import encodingcompstudyQL.QLSemanticsData
+import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.QLTypeSystem
+
+
+// given an ATMap with one qid, there is a second ATMap so that the intersection is not empty 
+goal
+~atm = atmbind(~qid1, ~t, atmempty)
+=========================================== counterexample-1
+exists ~atm2
+	intersectATM(~atm, ~atm2) != atmempty
+	
+// in a non-empty ATMap, there is a qid for which lookup does not fail
+goal
+~atm != atmempty
+======================================== counterexample-2
+exists ~qid
+	lookupATMap(~qid, ~atm) != noAType
