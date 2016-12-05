@@ -35,12 +35,14 @@ object Syntax {
 
     def apply(kids: Term*): App = App(this, kids.toList)
 
-    def isEq = name.startsWith("Eq")
-    def isNeq = name.startsWith("Neq")
+    def isEq = name.startsWith("eq")
+    def isNeq = name.startsWith("neq")
+    def isFresh = name.startsWith("fresh")
+    def isNotin = name.startsWith("notin")
   }
 
-  def Eq(sort: ISort): Symbol = Symbol("Eq"+sort.name, in = List(sort, sort), out = Prop)
-  def Neq(sort: ISort): Symbol = Symbol("Neq"+sort.name, in = List(sort, sort), out = Prop)
+  def Eq(sort: ISort): Symbol = Symbol("eq"+sort.name, in = List(sort, sort), out = Prop)
+  def Neq(sort: ISort): Symbol = Symbol("neq"+sort.name, in = List(sort, sort), out = Prop)
 
   type Subst = Map[Var, Term]
   type Error = String
@@ -53,6 +55,8 @@ object Syntax {
     def isGround: Boolean
 
     def freevars: Set[Var]
+
+    def symbols: Set[Symbol]
 
     def subst(s: Subst, capturing: Boolean = false): Term
 
@@ -75,6 +79,8 @@ object Syntax {
     override def toString: String = "$" + name
 
     override def freevars: Set[Var] = Set(this)
+
+    override def symbols: Set[Symbol] = Set()
 
     override def subst(s: Subst, capturing: Boolean = false): Term = s.getOrElse(this, this)
 
@@ -115,7 +121,9 @@ object Syntax {
       s"$sym($ks)"
     }
 
-    override def freevars: Set[Var] = kids.toSet[Term].flatMap(_.freevars)
+    override def freevars: Set[Var] = kids.foldLeft(Set[Var]())((set, t) => set ++ t.freevars)
+
+    override def symbols: Set[Symbol] = kids.foldLeft(Set[Symbol]())((set, t) => set ++ t.symbols) + sym
 
     override def subst(s: Subst, capturing: Boolean = false): Term = {
       if (!capturing) {
@@ -176,7 +184,9 @@ object Syntax {
       Judg(sym, terms.map(_.subst(s)))
     }
 
-    def freevars: Set[Var] = terms.toSet[Term].flatMap(_.freevars)
+    def freevars: Set[Var] = terms.foldLeft(Set[Var]())((set, t) => set ++ t.freevars)
+
+    def symbols: Set[Symbol] = terms.foldLeft(Set[Symbol]())((set, t) => set ++ t.symbols) + sym
 
     override def toString: String = s"$sym(${terms.mkString(", ")})"
 
@@ -206,7 +216,9 @@ object Syntax {
       s"$name:\n$indent$ps$psn$indent=>\n$indent$conclusion"
     }
 
-    def freevars: Set[Var] = premises.toSet[Judg].flatMap(_.freevars) ++ conclusion.freevars
+    def freevars: Set[Var] = conclusion.freevars ++ premises.foldLeft(Set[Var]())((set, j) => set ++ j.freevars)
+
+    def symbols: Set[Symbol] = conclusion.symbols ++ premises.foldLeft(Set[Symbol]())((set, j) => set ++ j.symbols)
   }
   object Rule {
     def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList)
@@ -215,6 +227,15 @@ object Syntax {
   case class Rewrite(pat: App, gen: Term, where: ListMap[Term, Term] = ListMap()) {
     def locallyBoundVars = pat.freevars ++ where.keys.flatMap(_.freevars)
     def usedVars = gen.freevars ++ where.values.flatMap(_.freevars)
+
+    def symbols: Set[Symbol] = {
+      var syms = pat.symbols ++ gen.symbols
+      where.foreach { case (k,v) =>
+        syms ++= k.symbols
+        syms ++= v.symbols
+      }
+      syms
+    }
 
     override def toString: String = s"$pat ~> $gen"
 

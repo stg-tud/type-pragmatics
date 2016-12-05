@@ -2,11 +2,8 @@ package stlc
 
 import system.Syntax._
 import Syntax._
-import system.Names._
 
 object Statics {
-
-  symbol(Neq(Name))
 
   val Lookup = symbol("Lookup", in = List(Name, Typ, Ctx), out = Prop)
   val Lookup_Found = rule("Lookup-Found",

@@ -13,6 +13,12 @@ abstract class Transformation(val lang: Language) {
   final lazy val contractedSym = contractedTerm.sym
   final lazy val contractVars = contract.premises.foldLeft(Set[Var]())((vars, j) => vars ++ j.freevars)
 
+  final lazy val undeclaredSymbols = {
+    val syms = contract.symbols ++ rewrites.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
+    val otherTransSyms = lang.transs.map(_.contractedSym).toSet
+    syms.diff(lang.syms.toSet).diff(lang.undeclaredSymbols).diff(otherTransSyms) - contractedSym
+  }
+
   def checkSyntax(): Unit = {
     assert(contractPos < contract.conclusion.terms.size)
     rewrites.foreach { r =>

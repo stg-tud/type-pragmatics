@@ -99,6 +99,12 @@ object GenerateTFF {
     constrDecls ++ axioms
   }
 
+  def compileImplicitSymbol(sym: Symbol): Seq[TffAnnotated] = sym match {
+    case _ if sym.isEq || sym.isNeq => Seq()
+    case _ =>
+      // TODO handle
+      Seq(compileSymbolDeclaration(sym))
+  }
 
   def compileLanguage(lang: Language): Seq[TffAnnotated] = {
     val toTFF = makeToTFF(lang)
@@ -107,6 +113,7 @@ object GenerateTFF {
     val open = lang.openDataTypes.flatMap(compileOpenDataType(_, toTFF))
     val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs, toTFF) }
     val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
+    val implicits = lang.undeclaredSymbols.flatMap(compileImplicitSymbol(_))
 
     val rules = lang.rules.map(compileRuleDecl(_))
     val groupedRules = lang.rules.groupBy(_.conclusion.sym)
@@ -114,7 +121,7 @@ object GenerateTFF {
 
     val transs = lang.transs.flatMap(compileTransformation(_))
 
-    types ++ open ++ closed ++ funs ++ rules ++ inversionRules ++ transs
+    types ++ open ++ closed ++ funs ++ implicits ++ rules ++ inversionRules ++ transs
   }
 
   def compileTransformation(trans: Transformation, withContract: Boolean = true): Seq[TffAnnotated] = {
@@ -122,6 +129,8 @@ object GenerateTFF {
     val contract = if (withContract) Seq(compileRuleDecl(trans.contract)) else Seq()
     sym +: (contract ++ compileRewrites(trans.contractVars.toSeq, trans.rewrites))
   }
+
+
 
   def compileRewrites(contextVars: Seq[Var], rewrites: Seq[Rewrite]): Seq[TffAnnotated] = {
     // TODO generate rewrite rules
@@ -159,8 +168,10 @@ object GenerateTFF {
   class LanguageCollectTypes(lang: Language) extends CollectTypesClass {
     private val syms: Map[String, Symbol] = {
       val syms = lang.syms.map(sym => sym.name -> sym).toMap
-      val opens = lang.openDataTypes.flatMap(s => Seq(Symbol(s + "_init", List(), s), Symbol(s + "_enum", List(s), s)))
-      syms ++ opens.map(s => s.name -> s).toMap
+      val openSyms = lang.openDataTypes.flatMap(s => Seq(Symbol(s + "_init", List(), s), Symbol(s + "_enum", List(s), s)))
+      val opens = openSyms.map(s => s.name -> s).toMap
+      val undeclared = lang.undeclaredSymbols.map(s => s.name -> s).toMap
+      syms ++ opens ++ undeclared
     }
 
     override def symbolType(name: String): Option[(Seq[SortRef], SortRef)] = syms.get(name) match {

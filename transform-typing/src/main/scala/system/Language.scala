@@ -30,6 +30,13 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
     syms.diff(constrs)
   }
 
+  val undeclaredSymbols: Set[Symbol] = {
+    val rsyms = rules.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
+    val transSyms = transs.map(_.contractedSym).toSet
+    val transUndeclared = transs.flatMap(_.undeclaredSymbols).toSet
+    (rsyms ++ transUndeclared).diff(syms.toSet).diff(transSyms)
+  }
+
   def +(trans: Transformation): Language = {
 //    val name = this.name + "+" + trans.contractedSym
 //    val sorts = this.sorts
