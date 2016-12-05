@@ -14,14 +14,15 @@ object Soundness {
         val (ihs, opaques) = deriveIHs(r.gen, r, trans)
         val sopaques = s.mapValues(_.subst(opaques)) ++ opaques
 
-        val freshContract = trans.contract // TODO fresh contract
+        val freshContract = trans.contract // TODO should use fresh contract?
         val name = freshContract.name
         val premises = freshContract.premises.map(_.subst(sopaques))
         val goal = freshContract.conclusion.subst(sopaques).updated(trans.contractPos, r.gen.subst(opaques))
+        val where = r.where.map(kv => Judg(Eq(kv._1.sort), kv._1, kv._2))
 
         val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 
-        ProofObligation(trans.lang, opaqueSyms, ihs, trans, premises, goals = Seq(goal))
+        ProofObligation(trans.lang, opaqueSyms, ihs, trans, premises ++ where, goals = Seq(goal))
       case Right(msg) =>
         FailedObligation(s"Rewrite rule\n$r\n does not match contract\n${trans.contract}\nbecause $msg")
     }

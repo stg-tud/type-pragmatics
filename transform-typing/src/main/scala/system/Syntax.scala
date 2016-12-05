@@ -237,7 +237,9 @@ object Syntax {
       syms
     }
 
-    override def toString: String = s"$pat ~> $gen"
+    override def toString: String =
+      s"$pat ~> $gen" + (if(where.isEmpty) "" else "\n  where " + where.mkString(",\n        "))
+
 
     def checkSyntax(contextVars: Iterable[Var]): Unit = {
       assert(usedVars.subsetOf(locallyBoundVars ++ contextVars), s"Unbound variables ${usedVars -- locallyBoundVars -- contextVars} in rewriting $this")
