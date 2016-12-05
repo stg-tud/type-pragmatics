@@ -20,3 +20,77 @@ goal
 ======================================== counterexample-2
 exists ~qid
 	lookupATMap(~qid, ~atm) != noAType
+	
+// executing the same questionnaire (consisting e.g. of a question value) 
+// under two different answer maps
+// does not necessarily generate the same resulting qc
+goal
+~q = qsingle(value(~qid1, Number, qvar(~qid2)))
+~am1 = abind(~qid2, Num(zero), aempty)
+=========================================================== counterexample-3
+exists ~am2
+	reduce(QC(~am1, ~qm, ~q)) != reduce(QC(~am2, ~qm, ~q))
+	
+// the same expression will not necessarily reduce to the same 
+// expression under another answer map
+goal
+~exp = binop(qvar(~qid1), mulop, qvar(~qid2))
+~am1 = abind(~qid1, Num(zero), abind(~qid2, Num(succ(zero)), aempty))
+========================================================================= counterexample-4
+exists ~am2
+	reduceExp(~exp, ~am1) != reduceExp(~exp, ~am2)
+	
+// there is an answer map with ~qid1 in which a single question with QID ~qid1 can 
+// successfully be reduced
+// (dynamic semantics does not prevent reduction in that case!)
+goal
+~q1 = qsingle(question(~qid1, ~l1, ~t1))
+=============================================== counterexample-5
+exists ~am
+	lookupAnsMap(~qid1, ~am) != noAval
+	reduce(QC(~am, qmempty, ~q1)) != noQConf
+	
+// there is a question map in which an "ask"-expression 
+// can successfully be reduced
+goal
+~q = qsingle(ask(~qid))
+============================================= counterexample-6
+exists ~qm
+	reduce(QC(aempty, ~qm, ~q)) != noQConf
+	
+// there is an answer type map in which an expression
+// that looks up a qid does not fail
+goal
+true
+============================================= counterexample-7
+exists ~atm
+	echeck(~atm, qvar(~qid)) != noAType
+	
+	
+// there are arguments for which checkBinOp does not fail
+goal
+true
+============================================ counterexample-8
+exists ~bo, ~at1, ~at2
+	checkBinOp(~bo, ~at1, ~at2) != noAType
+	
+// reducing the same "ask"-expression under two different question maps
+// can yield different results
+goal
+~q = qsingle(ask(~qid))
+====================================================================== counterexample-9
+exists ~qm1, ~qm2
+	reduce(QC(aempty, ~qm1, ~q)) != reduce(QC(aempty, ~qm2, ~q)) 
+	
+	
+//looking up a question in two QMaps can yield different results
+goal
+true
+===================================================== counterexample-10
+exists ~qm1, ~qm2
+	lookupQMap(~qid, ~qm1) != lookupQMap(~qid, ~qm2)
+
+
+
+	
+
