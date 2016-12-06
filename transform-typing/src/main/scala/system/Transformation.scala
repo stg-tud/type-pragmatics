@@ -22,7 +22,6 @@ abstract class Transformation(val lang: Language) {
   def checkSyntax(): Unit = {
     assert(contractPos < contract.conclusion.terms.size)
     rewrites.foreach { r =>
-      r.checkSyntax(contractVars)
       assert(
         r.pat.isInstanceOf[App] && r.pat.sym == contractedSym,
         s"Rewrite $r does not match contracted symbol $contractedSym")

@@ -11,7 +11,7 @@ object Syntax {
   }
 
   case class Sort(name: String, open: Boolean = false) extends ISort {
-    assert(name != "Prop" && name != "Name")
+    assert(name != "Prop" && name != "Name", s"Must not construct sort with reserved name Prop or Name, in $name")
   }
 
   case object Prop extends ISort {
@@ -107,8 +107,8 @@ object Syntax {
   }
 
   case class App(sym: Symbol, kids: List[Term]) extends Term {
-    assert(sym.in.size == kids.size)
-    assert(sym.in.zip(kids) forall (p => p._1 == p._2.sort))
+    assert(sym.in.size == kids.size, s"Wrong number of kids for symbol $this")
+    assert(sym.in.zip(kids) forall (p => p._1 == p._2.sort), s"Wrong argument type of kids for symbol $this")
 
     override val sort: ISort = sym.out
 
@@ -168,9 +168,9 @@ object Syntax {
   }
 
   case class Judg(sym: Symbol, terms: List[Term]) {
-    assert(sym.out == Prop)
-    assert(sym.in.size == terms.size)
-    assert(sym.in.zip(terms) forall (p => p._1 == p._2.sort))
+    assert(sym.out == Prop, s"Judgments must use a symbol yielding sort Prop, but got $sym yielding ${sym.out}")
+    assert(sym.in.size == terms.size, s"Wrong number of kids for symbol $this")
+    assert(sym.in.zip(terms) forall (p => p._1 == p._2.sort), s"Wrong argument type of kids for symbol $this")
 
     def apply(i: Int) = terms(i)
 
@@ -225,8 +225,9 @@ object Syntax {
   }
 
   case class Rewrite(pat: App, gen: Term, where: ListMap[Term, Term] = ListMap()) {
-    def locallyBoundVars = pat.freevars ++ where.keys.flatMap(_.freevars)
-    def usedVars = gen.freevars ++ where.values.flatMap(_.freevars)
+    val boundVars = pat.freevars ++ where.keys.flatMap(_.freevars)
+    val usedVars = gen.freevars ++ where.values.flatMap(_.freevars)
+    assert(usedVars.subsetOf(boundVars), s"Unbound variables ${usedVars.diff(boundVars)} in rewriting $this")
 
     def symbols: Set[Symbol] = {
       var syms = pat.symbols ++ gen.symbols
@@ -239,10 +240,5 @@ object Syntax {
 
     override def toString: String =
       s"$pat ~> $gen" + (if(where.isEmpty) "" else "\n  where " + where.mkString(",\n        "))
-
-
-    def checkSyntax(contextVars: Iterable[Var]): Unit = {
-      assert(usedVars.subsetOf(locallyBoundVars ++ contextVars), s"Unbound variables ${usedVars -- locallyBoundVars -- contextVars} in rewriting $this")
-    }
   }
 }
