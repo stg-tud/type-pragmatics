@@ -44,6 +44,7 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
       Var("k", Name) -> fresh(Ctx)(Var("C", Ctx))
     )
   )
+  // 'Goal', 'Typed-app', 'Lookup-Found', 'Typed-true-INV', 'Notin-empty', 'Notin-bind', 'Typed-lam', 'Lookup-true-INV', 'EQ-ref', 'dom-Exp', 'DIFF-ref-app', 'DIFF-ref-lam', 'DIFF-ref-add', 'DIFF-ref-num', 'DIFF-empty-bind', 'Lookup-Notin', 'Typed-ref', 'dom-Ctx', 'EQ-bind', 'freshCtx-notinCtx', 'notinCtx-true-INV', 'Lookup-ccps', 'Lookup-Next'
 
   val ecps_num = Rewrite(
     ecps(
@@ -62,6 +63,7 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
       Var("k", Name) -> fresh(Ctx)(Var("C", Ctx))
     )
   )
+  // 'EQ-Arr', 'Notin-empty', 'dom-Typ', 'TOk-Arr', 'TOk-tcps', 'tcps-1', 'TOk-true-INV', 'TOk-Nat', 'DIFF-Nat-Arr', 'notinCtx-true-INV', 'freshCtx-notinCtx', 'DIFF-num-lam', 'DIFF-num-app', 'DIFF-ref-num', 'Typed-true-INV', 'Goal', 'tcps-0', 'Typed-app', 'Typed-num', 'Typed-ref', 'Lookup-Found', 'Typed-lam'
 
   val ecps_add = Rewrite(
     ecps(

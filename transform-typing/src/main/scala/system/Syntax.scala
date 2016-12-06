@@ -208,7 +208,7 @@ object Syntax {
     def apply(sym: Symbol, terms: Term*): Judg = Judg(sym, terms.toList)
   }
 
-  case class Rule(name: String, conclusion: Judg, premises: List[Judg]) {
+  case class Rule(name: String, conclusion: Judg, premises: List[Judg], lemma: Boolean = false) {
     override def toString: String = {
       val indent = "  "
       val ps = premises.mkString("\n" + indent)
@@ -221,14 +221,19 @@ object Syntax {
     def symbols: Set[Symbol] = conclusion.symbols ++ premises.foldLeft(Set[Symbol]())((set, j) => set ++ j.symbols)
   }
   object Rule {
-    def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList)
+    def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList, false)
+  }
+  object Lemma {
+    def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList, true)
   }
 
   case class Rewrite(pat: App, gen: Term, where: ListMap[Term, Term] = ListMap()) {
     val boundVars = pat.freevars ++ where.keys.flatMap(_.freevars)
     val usedVars = gen.freevars ++ where.values.flatMap(_.freevars)
     assert(usedVars.subsetOf(boundVars), s"Unbound variables ${usedVars.diff(boundVars)} in rewriting $this")
+    where.foreach(kv => assert(kv._1.sort == kv._2.sort, s"Type mismatch in where binding $kv of $this"))
 
+    def sym = pat.sym
     def symbols: Set[Symbol] = {
       var syms = pat.symbols ++ gen.symbols
       where.foreach { case (k,v) =>

@@ -22,9 +22,8 @@ object GenerateVeritas {
     case sym => FunctionExpJudgment(FunctionExpApp(sym.name, judg.terms.map(compileTermToVeritas(_))))
   }
 
-  def compileRuleToVeritas(rule: Rule): TypingRule = rule match {
-    case Rule(name, conc, prems) =>
-      TypingRule(name, prems.map(compileJudgToVeritas(_)), Seq(compileJudgToVeritas(conc)))
-  }
+  def compileRuleToVeritas(rule: Rule): TypingRule =
+    TypingRule(rule.name, rule.premises.map(compileJudgToVeritas(_)), Seq(compileJudgToVeritas(rule.conclusion)))
+
 
 }

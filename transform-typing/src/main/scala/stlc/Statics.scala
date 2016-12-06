@@ -35,12 +35,12 @@ object Statics {
     Judg(notin(Ctx), Var("x", Name), Var("C", Ctx))
   )
 
-  val Lookup_Notin = rule("Lookup-Notin",
+  val Lookup_Notin = rule(Lemma("Lookup-Notin",
     Judg(neq(Ctx), Var("C1", Ctx), Var("C2", Ctx)),
     // if ----------------
     Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C1", Ctx)),
     Judg(notin(Ctx), Var("x", Name), Var("C2", Ctx))
-  )
+  ))
 
   val TOk = symbol("TOk", in = List(Typ), out = Prop)
   val TOk_Nat = rule("TOk-Nat",
@@ -89,4 +89,10 @@ object Statics {
     Judg(Typed, Var("C", Ctx), Var("e2", Exp), Var("T1", Typ))
   )
 
+  val Typed_weak = rule(Lemma("Typed-weak",
+    Judg(Typed, bind(Var("C", Ctx), Var("x", Name), Var("Tx", Typ)), Var("e", Exp), Var("T", Typ)),
+    // if ----------------
+    Judg(notin(Ctx), Var("x", Name), Var("C", Ctx)),
+    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
+  ))
 }

@@ -125,7 +125,7 @@ object GenerateTFF {
     val implicits = compileImplicitSymbols(lang.undeclaredSymbols)
 
     val rules = lang.rules.map(compileRuleDecl(_))
-    val groupedRules = lang.rules.groupBy(_.conclusion.sym)
+    val groupedRules = lang.rules.filter(!_.lemma).groupBy(_.conclusion.sym)
     val inversionRules = groupedRules.flatMap(r => compileInversionRule(r._1, r._2, toTFF))
 
     val transs = lang.transs.flatMap(compileTransformation(_))
@@ -151,8 +151,11 @@ object GenerateTFF {
 
     val sym = rewrites.head.pat.sym
 
-
-    Seq()
+    rewrites.zipWithIndex.map { case (r, i) =>
+      val premises = r.where.map(kv => Judg(equ(kv._1.sort), kv._1, kv._2))
+      val conclusion = Judg(equ(r.sym.out), r.pat, r.gen)
+      compileRuleDecl(Rule(s"${r.sym.name}-$i", conclusion, premises.toList))
+    }
   }
 
 
