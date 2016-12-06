@@ -2,6 +2,7 @@ package stlc
 
 import system.Syntax._
 import Syntax._
+import system.Names.notin
 
 object Statics {
 
@@ -19,10 +20,27 @@ object Statics {
       Var("T", Typ),
       App(bind, Var("C", Ctx), Var("y", Name), Var("S", Typ))),
     // if ----------------
-    Judg(Neq(Name), Var("x", Name), Var("y", Name)),
+    Judg(neq(Name), Var("x", Name), Var("y", Name)),
     Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C", Ctx))
   )
 
+  val Notin_Empty = rule("Notin-empty",
+    Judg(notin(Ctx), Var("x", Name), empty())
+    // if ----------------
+  )
+  val Notin_Bind = rule("Notin-bind",
+    Judg(notin(Ctx), Var("x", Name), bind(Var("C", Ctx), Var("y", Name), Var("T", Typ))),
+    // if ----------------
+    Judg(neq(Name), Var("x", Name), Var("y", Name)),
+    Judg(notin(Ctx), Var("x", Name), Var("C", Ctx))
+  )
+
+  val Lookup_Notin = rule("Lookup-Notin",
+    Judg(neq(Ctx), Var("C1", Ctx), Var("C2", Ctx)),
+    // if ----------------
+    Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C1", Ctx)),
+    Judg(notin(Ctx), Var("x", Name), Var("C2", Ctx))
+  )
 
   val TOk = symbol("TOk", in = List(Typ), out = Prop)
   val TOk_Nat = rule("TOk-Nat",

@@ -99,11 +99,20 @@ object GenerateTFF {
     constrDecls ++ axioms
   }
 
-  def compileImplicitSymbol(sym: Symbol): Seq[TffAnnotated] = sym match {
-    case _ if sym.isEq || sym.isNeq => Seq()
-    case _ =>
-      // TODO handle
-      Seq(compileSymbolDeclaration(sym))
+  def compileImplicitSymbols(syms: Set[Symbol]): Seq[TffAnnotated] = {
+    syms.toSeq.flatMap {
+      case sym if sym.isFresh =>
+        val sort = sym.in(0)
+        val freshSym = Names.fresh(sort)
+        val freshIsNotin = Names.freshNotin(sort)
+        // we assume symbol `notinSym` is already declared as part of the language
+        Seq(compileSymbolDeclaration(freshSym), compileRuleDecl(freshIsNotin))
+      case sym if sym.isNotin =>
+        Seq(compileSymbolDeclaration(sym))
+      case _ =>
+        // ignore isEq and isNeq since they translate to TFF-native `=` and `!=`
+        None
+    }
   }
 
   def compileLanguage(lang: Language): Seq[TffAnnotated] = {
@@ -113,7 +122,7 @@ object GenerateTFF {
     val open = lang.openDataTypes.flatMap(compileOpenDataType(_, toTFF))
     val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs, toTFF) }
     val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
-    val implicits = lang.undeclaredSymbols.flatMap(compileImplicitSymbol(_))
+    val implicits = compileImplicitSymbols(lang.undeclaredSymbols)
 
     val rules = lang.rules.map(compileRuleDecl(_))
     val groupedRules = lang.rules.groupBy(_.conclusion.sym)
@@ -125,9 +134,11 @@ object GenerateTFF {
   }
 
   def compileTransformation(trans: Transformation, withContract: Boolean = true): Seq[TffAnnotated] = {
+    val implicits = compileImplicitSymbols(trans.undeclaredSymbols)
     val sym = compileSymbolDeclaration(trans.contractedSym)
     val contract = if (withContract) Seq(compileRuleDecl(trans.contract)) else Seq()
-    sym +: (contract ++ compileRewrites(trans.contractVars.toSeq, trans.rewrites))
+    val rewrites = compileRewrites(trans.contractVars.toSeq, trans.rewrites)
+    implicits ++ (sym +: (contract ++ rewrites))
   }
 
 
@@ -136,7 +147,6 @@ object GenerateTFF {
     // TODO generate rewrite rules
     // TODO   linear patterns -> function
     // TODO   otherwise -> relation
-
     // TODO generate inversion rule
 
     val sym = rewrites.head.pat.sym

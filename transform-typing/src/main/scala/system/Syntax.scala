@@ -41,8 +41,8 @@ object Syntax {
     def isNotin = name.startsWith("notin")
   }
 
-  def Eq(sort: ISort): Symbol = Symbol("eq"+sort.name, in = List(sort, sort), out = Prop)
-  def Neq(sort: ISort): Symbol = Symbol("neq"+sort.name, in = List(sort, sort), out = Prop)
+  def equ(sort: ISort): Symbol = Symbol("eq"+sort.name, in = List(sort, sort), out = Prop)
+  def neq(sort: ISort): Symbol = Symbol("neq"+sort.name, in = List(sort, sort), out = Prop)
 
   type Subst = Map[Var, Term]
   type Error = String
