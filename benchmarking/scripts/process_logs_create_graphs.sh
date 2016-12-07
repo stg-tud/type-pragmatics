@@ -15,7 +15,7 @@ while getopts "l:c:p:t:s:" opt; do
             pathToCompiledSQLFiles=$OPTARG
             ;;
         s)
-            summariesDir=$OPTARG
+            casestudy=$OPTARG
             ;;
     esac
 done
@@ -38,12 +38,13 @@ if ! test "$pathToCompiledSQLFiles" ; then
     exitLater=true
 fi
 
-if ! test "$summariesDir" ; then
-    echo "Path to directory where the summaries should be stored is obligatory (-s)"
-    exitLater=true
-fi
 if [ ${#provers[@]} -eq 0 ]; then
     echo "At least one prover has to be selected (-c)"
+    exitLater=true
+fi
+
+if [ "$casestudy" != "QL" ] && [ "$casestudy" != "SQL" ]; then
+    echo "The choosen casestudy should be QL or SQL (-s)"
     exitLater=true
 fi
 
@@ -60,15 +61,7 @@ do
     done
 done
 
-mkdir -p ${summariesDir}
 # summarize
+summariesDir="datasets/Extended${casestudy}StudyResults"
 sbt -mem 4096 "run --logxls ${summariesDir}/summary-raw.xls --logoverviewxls ${summariesDir}/summary-overview.xls --summarizelogs ${pathToLogs}"
-
-# layout
-sbt "run --layoutData ${summariesDir}"
-
-# execute GraphScript.r
-cd datasets/layout
-# need to install pryr and ggplot2 r packages
-Rscript GraphScript.r
-
+./scripts/layout_create_graphs.sh -s ${casestudy}
