@@ -100,6 +100,7 @@ object Syntax {
 
     override def matchAgainst(t: Term, s: Subst): Either[Subst, Error] = s.get(this) match {
       case Some(t2) => t2.matchAgainst(t, s)
+      case None if t == this => Left(s)
       case None => Left(s + (this -> t))
     }
 
@@ -193,10 +194,10 @@ object Syntax {
     def toString(mark: Int): String = {
       val start = s"$sym("
       val end = ")"
-      val mid1 = terms.slice(0, mark).mkString(" ")
+      val mid1 = terms.slice(0, mark).mkString(", ")
       val markterm = terms(mark).toString
-      var mid2 = if (mark < terms.size) s" [${markterm.substring(1, markterm.size-1)}] " else ""
-      val mid3 = terms.slice(mark + 1, terms.size).mkString(" ")
+      var mid2 = if (mark < terms.size) s" [${markterm.substring(1, markterm.size)}] " else ""
+      val mid3 = terms.slice(mark + 1, terms.size).mkString(", ")
       if (mid1.isEmpty)
         mid2 = mid2.substring(1)
       if (mid3.isEmpty)
@@ -216,7 +217,11 @@ object Syntax {
       s"$name:\n$indent$ps$psn$indent=>\n$indent$conclusion"
     }
 
+    def contractedTerm(pos: Int) = conclusion.terms(pos).asInstanceOf[App]
+
     def freevars: Set[Var] = conclusion.freevars ++ premises.foldLeft(Set[Var]())((set, j) => set ++ j.freevars)
+
+    def subst(s: Subst) = Rule(name, conclusion.subst(s), premises.map(_.subst(s)), lemma)
 
     def symbols: Set[Symbol] = conclusion.symbols ++ premises.foldLeft(Set[Symbol]())((set, j) => set ++ j.symbols)
   }

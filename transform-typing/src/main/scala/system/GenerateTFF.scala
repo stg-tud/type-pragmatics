@@ -136,14 +136,14 @@ object GenerateTFF {
   def compileTransformation(trans: Transformation, withContract: Boolean = true): Seq[TffAnnotated] = {
     val implicits = compileImplicitSymbols(trans.undeclaredSymbols)
     val sym = compileSymbolDeclaration(trans.contractedSym)
-    val contract = if (withContract) Seq(compileRuleDecl(trans.contract)) else Seq()
-    val rewrites = compileRewrites(trans.contractVars.toSeq, trans.rewrites)
-    implicits ++ (sym +: (contract ++ rewrites))
+    val contracts = if (withContract) trans.contracts.keys.map(compileRuleDecl(_)) else Seq()
+    val rewrites = compileRewrites(trans.rewrites)
+    implicits ++ Seq(sym) ++ contracts ++ rewrites
   }
 
 
 
-  def compileRewrites(contextVars: Seq[Var], rewrites: Seq[Rewrite]): Seq[TffAnnotated] = {
+  def compileRewrites(rewrites: Seq[Rewrite]): Seq[TffAnnotated] = {
     // TODO generate rewrite rules
     // TODO   linear patterns -> function
     // TODO   otherwise -> relation

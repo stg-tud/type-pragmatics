@@ -5,6 +5,8 @@ import stlc.Syntax._
 import system.Syntax._
 import system.Transformation
 
+import scala.collection.immutable.ListMap
+
 object tcps extends Transformation(stlc.language) {
 
   // CPS type transformation tcps
@@ -12,14 +14,14 @@ object tcps extends Transformation(stlc.language) {
 
   private val omega = Var("omega", Typ)
 
-  override val contract = Rule("TOk-tcps",
-    Judg(TOk, App(tcps, Var("T", Typ), omega)),
-    // if ----------------
-    Judg(TOk, Var("T", Typ)),
-    Judg(TOk, omega)
+  override val contracts = ListMap(
+    Rule("TOk-tcps",
+      Judg(TOk, App(tcps, Var("T", Typ), omega)),
+      // if ----------------
+      Judg(TOk, Var("T", Typ)),
+      Judg(TOk, omega)
+    ) -> 0
   )
-
-  override val contractPos = 0
 
 
   val tcps_nat = Rewrite(

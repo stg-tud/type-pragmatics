@@ -4,6 +4,9 @@ import stlc.Syntax._
 import stlc.Statics._
 import system.Syntax._
 import system.Transformation
+import system.Names.notin
+
+import scala.collection.immutable.ListMap
 
 object ccps extends Transformation(stlc.language + tcps) {
 
@@ -12,20 +15,25 @@ object ccps extends Transformation(stlc.language + tcps) {
 
   private val omega = Var("omega", Typ)
 
-  override val contract = Rule("Lookup-ccps",
-    Judg(Lookup,
-      Var("x", Name),
-      App(tcps, Var("T", Typ), omega),
-      App(ccps, Var("C", Ctx), omega)),
-    // if ----------------
-    Judg(Lookup,
-      Var("x", Name),
-      Var("T", Typ),
-      Var("C", Ctx))
+  override val contracts = ListMap(
+    Rule("Lookup-ccps",
+      Judg(Lookup,
+        Var("x", Name),
+        tcps(Var("T", Typ), omega),
+        ccps(Var("C", Ctx), omega)),
+      // if ----------------
+      Judg(Lookup,
+        Var("x", Name),
+        Var("T", Typ),
+        Var("C", Ctx))
+    ) -> 2,
+
+    Rule("Notin-ccps",
+      Judg(notin(Ctx), Var("x", Name), ccps(Var("C", Ctx), omega)),
+      // if ----------------
+      Judg(notin(Ctx), Var("x", Name), Var("C", Ctx))
+    ) -> 1
   )
-
-  override val contractPos: Int = 2
-
 
   val ccps_empty = Rewrite(
     App(ccps, App(empty), omega),
@@ -34,22 +42,14 @@ object ccps extends Transformation(stlc.language + tcps) {
   )
 
   val ccps_bind = Rewrite(
-    App(ccps,
-      App(bind,
-        Var("C", Ctx),
-        Var("y", Name),
-        Var("T", Typ)),
+    ccps(
+      bind(Var("C", Ctx), Var("y", Name), Var("T", Typ)),
       omega),
     // ~>
-    App(bind,
-      App(ccps,
-        Var("C", Ctx),
-        omega),
+    bind(
+      ccps(Var("C", Ctx), omega),
       Var("y", Name),
-      App(tcps,
-        Var("T", Typ),
-        omega
-      )
+      tcps(Var("T", Typ), omega)
     )
   )
 

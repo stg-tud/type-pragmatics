@@ -15,17 +15,17 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
 
   private val omega = Var("omega", Typ)
 
-  override val contract: Rule = Rule("T-ecps",
-    Judg(Typed,
-      ccps(Var("C", Ctx), omega),
-      ecps(Var("e", Exp), omega, Var("C", Ctx), Var("T", Typ)),
-      Arr(Arr(tcps(Var("T", Typ), omega), omega), omega)
-    ),
-    // if ----------------
-    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
+  override val contracts = ListMap(
+    Rule("T-ecps",
+      Judg(Typed,
+        ccps(Var("C", Ctx), omega),
+        ecps(Var("e", Exp), omega, Var("C", Ctx), Var("T", Typ)),
+        Arr(Arr(tcps(Var("T", Typ), omega), omega), omega)
+      ),
+      // if ----------------
+      Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
+    ) -> 1
   )
-
-  override val contractPos: Int = 1
 
   val ecps_ref = Rewrite(
     ecps(
