@@ -23,7 +23,7 @@ object Soundness {
         val name = freshContract.name
         val premises = freshContract.premises.map(_.subst(sopaques))
         val goal = freshContract.conclusion.subst(sopaques).updated(contractPos, r.gen.subst(opaques))
-        val where = r.where.map(kv => Judg(equ(kv._1.sort), kv._1, kv._2))
+        val where = r.where.map(kv => Judg(equ(kv._1.sort), kv._1, kv._2).subst(opaques))
 
         val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 

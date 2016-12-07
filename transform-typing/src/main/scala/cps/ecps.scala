@@ -103,10 +103,15 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
       Arr(tcps(Var("T", Typ), omega), omega),
       app(ref(Var("k", Name)),
         lam(Var("x", Name), tcps(Var("T1", Typ), omega),
-          ecps(Var("e1", Exp), omega, Var("C", Ctx), Var("T", Typ))))
+          ecps(
+            Var("e1", Exp),
+            omega,
+            bind(Var("C", Ctx), Var("x", Name), Var("T1", Typ)),
+            Var("T2", Typ))))
     ),
     where = ListMap(
-      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx))
+      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx)),
+      Arr(Var("T1", Typ), Var("T2", Typ)) -> Var("T", Typ)
     )
   )
 
@@ -121,9 +126,9 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
     lam(
       Var("k", Name),
       Arr(tcps(Var("T2", Typ), omega), omega),
-      app(ecps(Var("e1", Exp), omega, Var("C", Ctx), Var("T", Typ)),
+      app(ecps(Var("e1", Exp), omega, Var("C", Ctx), Arr(Var("T1", Typ), Var("T2", Typ))),
         lam(Var("xf", Name), tcps(Arr(Var("T1", Typ), Var("T2", Typ)), omega),
-          app(ecps(Var("e2", Exp), omega, Var("C", Ctx), Var("T", Typ)),
+          app(ecps(Var("e2", Exp), omega, Var("C", Ctx), Var("T1", Typ)),
             lam(Var("xv", Name), tcps(Var("T1", Typ), omega),
               app(
                 app(ref(Var("xf", Name)), ref(Var("xv", Name))),
