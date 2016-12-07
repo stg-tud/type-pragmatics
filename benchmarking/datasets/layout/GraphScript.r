@@ -51,16 +51,27 @@ barplot1topdf <- function(infile, title="", xlab="", ylab="", ylim=c(0,100), fon
     dev.off()
 }
 
+### Parse command line arguments
+# expected 1 argument: folder with layouted .csv files
+args <- commandArgs(trailingOnly = TRUE)
+
+# test if there is at least one argument: if not, return an error
+if (length(args)==0) {
+  stop("At least one argument must be supplied (folder with layouted .csv files)", call.=FALSE)
+}
+
+layoutpath <- args[1]
+
 ### Complete boxplots for getting an overview of the data
 for (t in c(10, 30, 60, 120)) {
 
     # graphs for comparing encoding strategies only, with axiom selection strategy = selectall
-    listSuccRatePerProver <- list.files(paste("PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
-    listAvgSuccTimePerProver <- list.files(paste("PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
+    listSuccRatePerProver <- list.files(paste(layoutpath, "/PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
+    listAvgSuccTimePerProver <- list.files(paste(layoutpath, "/PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
 
-    listSuccRatePerProverPerCategory <- list.files(paste("PerProverPerCategory/", t, "s/", "SuccRate", sep=""),
+    listSuccRatePerProverPerCategory <- list.files(paste(layoutpath, "/PerProverPerCategory/", t, "s/", "SuccRate", sep=""),
                                                    pattern="*.csv", full.names=TRUE)
-    listAvgSuccTimePerProverPerCategory <- list.files(paste("PerProverPerCategory/", t, "s/", "AvgSuccTime", sep=""),
+    listAvgSuccTimePerProverPerCategory <- list.files(paste(layoutpath, "/PerProverPerCategory/", t, "s/", "AvgSuccTime", sep=""),
                                                       pattern="*.csv", full.names=TRUE)
 
     mstimeout <- t*1000
@@ -74,35 +85,35 @@ for (t in c(10, 30, 60, 120)) {
     lapply(listAvgSuccTimePerProverPerCategory, partial(boxplot1topdf, ylab="Average time (ms) for successful proofs",
                                                     ylim=c(0,mstimeout), fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
 
-    listTimesPerProverPerCategory <- list.files(paste("DetailedOverviewPerCat/", t, "s", sep=""),
+    listTimesPerProverPerCategory <- list.files(paste(layoutpath, "/DetailedOverviewPerCat/", t, "s", sep=""),
                            pattern="*.csv", full.names=TRUE)
     lapply(listTimesPerProverPerCategory, partial(boxplot1topdf, ylab="Prover time (ms) per goal", ylim=c(0,mstimeout), las=2,
                                                   fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
 
 
-    listIndividualSuccessRatesPerProverPerCategory <- list.files(paste("IndividualConfSuccessRatesPerCat/", t, "s", sep=""),
+    listIndividualSuccessRatesPerProverPerCategory <- list.files(paste(layoutpath, "/IndividualConfSuccessRatesPerCat/", t, "s", sep=""),
                         pattern="*.csv", full.names=TRUE)
     lapply(listIndividualSuccessRatesPerProverPerCategory, partial(barplot1topdf, ylab="Success rate (%)", las=2))
 
-    listStratPerformances <- list.files(paste("PerCompStrat/", t, "s", sep=""), pattern="*.csv", full.names=TRUE)
+    listStratPerformances <- list.files(paste(layoutpath, "/PerCompStrat/", t, "s", sep=""), pattern="*.csv", full.names=TRUE)
     lapply(listStratPerformances, partial(boxplot1topdf, ylab="Success rate (%)", las=2,
        fontsizex=1, fontsizel=1, fontsizem=1, mary=4, line=3))
 
     # graphs for comparing axiom selection strategies
-    listSelSuccRatePerProver <- list.files(paste("AxiomSelection/PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
-    listSelAvgSuccTimePerProver <- list.files(paste("AxiomSelection/PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
+    listSelSuccRatePerProver <- list.files(paste(layoutpath, "/AxiomSelection/PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
+    listSelAvgSuccTimePerProver <- list.files(paste(layoutpath, "/AxiomSelection/PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
 
-    listSelGoodEncSuccRatePerProver <- list.files(paste("AxiomSelection/PerProverGood/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
-    listSelGoodEncAvgSuccTimePerProver <- list.files(paste("AxiomSelection/PerProverGood/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
+    listSelGoodEncSuccRatePerProver <- list.files(paste(layoutpath, "/AxiomSelection/PerProverGood/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
+    listSelGoodEncAvgSuccTimePerProver <- list.files(paste(layoutpath, "/AxiomSelection/PerProverGood/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
 
-    listSelSuccRatePerProverPerCategory <- list.files(paste("AxiomSelection/PerProverPerCategory/", t, "s/", "SuccRate", sep=""),
+    listSelSuccRatePerProverPerCategory <- list.files(paste(layoutpath, "/AxiomSelection/PerProverPerCategory/", t, "s/", "SuccRate", sep=""),
                                                        pattern="*.csv", full.names=TRUE)
-    listSelAvgSuccTimePerProverPerCategory <- list.files(paste("AxiomSelection/PerProverPerCategory/", t, "s/", "AvgSuccTime", sep=""),
+    listSelAvgSuccTimePerProverPerCategory <- list.files(paste(layoutpath, "/AxiomSelection/PerProverPerCategory/", t, "s/", "AvgSuccTime", sep=""),
                                                           pattern="*.csv", full.names=TRUE)
 
-    listSelGoodEncSuccRatePerProverPerCategory <- list.files(paste("AxiomSelection/PerProverPerCategoryGood/", t, "s/", "SuccRate", sep=""),
+    listSelGoodEncSuccRatePerProverPerCategory <- list.files(paste(layoutpath, "/AxiomSelection/PerProverPerCategoryGood/", t, "s/", "SuccRate", sep=""),
                                                                                                                  pattern="*.csv", full.names=TRUE)
-    listSelGoodEncAvgSuccTimePerProverPerCategory <- list.files(paste("AxiomSelection/PerProverPerCategoryGood/", t, "s/", "AvgSuccTime", sep=""),
+    listSelGoodEncAvgSuccTimePerProverPerCategory <- list.files(paste(layoutpath, "/AxiomSelection/PerProverPerCategoryGood/", t, "s/", "AvgSuccTime", sep=""),
                                                                                                                     pattern="*.csv", full.names=TRUE)
     mstimeout <- t*1000
     lapply(listSelSuccRatePerProver, partial(boxplot1topdf, ylab="Success rate in each configuration (%)",
@@ -127,68 +138,68 @@ for (t in c(10, 30, 60, 120)) {
 
 ### Boxplots for first paper graph (goal categories overview), for all different timeouts
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph1/eprover-successrate_per_goalcategory.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph1/eprover-successrate_per_goalcategory.csv", sep=""),
                   title="Eprover", ylab="Success rate (%)", xaxislab=c("cex", "ex", "ver", "syn", "test"))
-    boxplot1topdf(paste(t, "/", "Graph1/princess-successrate_per_goalcategory.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph1/princess-successrate_per_goalcategory.csv", sep=""),
                   title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("cex", "ex", "ver", "syn", "test"))
-    boxplot1topdf(paste(t, "/", "Graph1/vampire-4.0-successrate_per_goalcategory.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph1/vampire-4.0-successrate_per_goalcategory.csv", sep=""),
                   title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("cex", "ex", "ver", "syn", "test"))
-    boxplot1topdf(paste(t, "/", "Graph1/vampire-3.0-successrate_per_goalcategory.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph1/vampire-3.0-successrate_per_goalcategory.csv", sep=""),
                   title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("cex", "ex", "ver", "syn", "test"))
 }
 
 ### Boxplots for second paper graph (sorting alternatives overview all categories), for all different timeouts
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph2/eprover-successrate_per_typingconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/eprover-successrate_per_typingconfiguration.csv", sep=""),
                   title="Eprover", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
-    boxplot1topdf(paste(t, "/", "Graph2/princess-successrate_per_typingconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/princess-successrate_per_typingconfiguration.csv", sep=""),
                   title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
-    boxplot1topdf(paste(t, "/", "Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", sep=""),
                   title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
-    boxplot1topdf(paste(t, "/", "Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", sep=""),
                   title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
 }
 
 ### Boxplots for third paper graph (variable alternatives overview, counterexample and synthesis), for all different timeouts
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph3/eprover-successrate_per_variableconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph3/eprover-successrate_per_variableconfiguration.csv", sep=""),
                   title="Eprover", ylab="Success rate (%)", xaxislab=c("in", "ne", "np", "u"))
-    boxplot1topdf(paste(t, "/", "Graph3/princess-successrate_per_variableconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph3/princess-successrate_per_variableconfiguration.csv", sep=""),
                   title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("in", "ne", "np", "u"))
-    boxplot1topdf(paste(t, "/", "Graph3/vampire-3.0-successrate_per_variableconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph3/vampire-3.0-successrate_per_variableconfiguration.csv", sep=""),
                   title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("in", "ne", "np", "u"))
-    boxplot1topdf(paste(t, "/", "Graph3/vampire-4.0-successrate_per_variableconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph3/vampire-4.0-successrate_per_variableconfiguration.csv", sep=""),
                   title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("in", "ne", "np", "u"))
 }
 
 ### Boxplots for fourth paper graph (simplification alternatives overview), for all different timeouts
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph4/eprover-successrate_per_simplificationconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/eprover-successrate_per_simplificationconfiguration.csv", sep=""),
                   title="Eprover", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
-    boxplot1topdf(paste(t, "/", "Graph4/princess-successrate_per_simplificationconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/princess-successrate_per_simplificationconfiguration.csv", sep=""),
                   title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
-    boxplot1topdf(paste(t, "/", "Graph4/vampire-3.0-successrate_per_simplificationconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/vampire-3.0-successrate_per_simplificationconfiguration.csv", sep=""),
                   title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
-    boxplot1topdf(paste(t, "/", "Graph4/vampire-4.0-successrate_per_simplificationconfiguration.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/vampire-4.0-successrate_per_simplificationconfiguration.csv", sep=""),
                   title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
 }
 
 ### Boxplots for fifth paper graph (simplification alternatives, timeout-wise, all categories and all provers)
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph5/simplificationperformance_allprovers_allcategories.csv", sep=""),
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph5/simplificationperformance_allprovers_allcategories.csv", sep=""),
                   title=t, ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
 }
 
 ### Boxplots for sixth paper graph (performance of all comp strategies, all provers and categories together)
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
+    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
                   las=2, fontsizex=1, fontsizel=1, mary=4, line=3)
 }
 
 
 ### Overview of all individual combinations (like graph for RQ6, but including all axiom selection strategies)
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste("AxiomSelection/", t, "/OverviewAll/allstratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
+    boxplot1topdf(paste(layoutpath, "/", "AxiomSelection/", t, "/OverviewAll/allstratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
                   las=2, fontsizex=0.3, fontsizel=1, mary=4, line=3)
 }
 
