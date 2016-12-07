@@ -24,13 +24,13 @@ object Main extends App {
                      parallelism: Int = 0,
                      logFilePath: String = "",
                      summarizeLogs: Boolean = false,
-                     layoutData: Boolean = false,
+                     layoutData: String = "",
                      generateSLURM: Boolean = false,
                      sortHHLRoutput: File = null
                    ) {
     def ensureDefaultOptions: Config = {
       if (!logExec && !logPerFile && !logProof && !logDisproof && !logInconclusive && !logSummary && logCSV == null &&
-        logXLS == null && !summarizeLogs && !layoutData && !generateSLURM && sortHHLRoutput == null)
+        logXLS == null && !summarizeLogs && layoutData.length == 0 && !generateSLURM && sortHHLRoutput == null)
         copy(logPerFile = true, logSummary = true)
       else
         this
@@ -100,9 +100,9 @@ object Main extends App {
     opt[Unit]("summarizelogs") action { (b, config) =>
       config.copy(summarizeLogs = true)
     } text ("indicates that given files are already proof logs, generates summary")
-    opt[Unit]("layoutData") action { (b, config) =>
-      config.copy(layoutData = true)
-    } text ("indicates that argument file is excel file for producing various data layouts")
+    opt[String]("layoutData") action { (s, config) =>
+      config.copy(layoutData = s)
+    } text ("given path is output directory for layout; final argument is path to excel files for producing various data layouts")
     opt[Unit]("generateSLURM") action { (b, config) =>
       config.copy(generateSLURM = true)
     } text ("argument indicates path to prover input files - generates job array SLURM script for executing the prover calls on the HHLR")
@@ -174,7 +174,7 @@ object Main extends App {
         //mode for layouting data - directory with Excel files that are to be layouted
         //all the files in the folder should have names like this:
         // {timeout}s-[...]-[overview|raw].xls
-      } else if (config.layoutData) {
+      } else if (config.layoutData.length > 0) {
         val excelfiles = for (f <- config.files) yield f.listFiles(new FilenameFilter {
           override def accept(dir: File, name: String): Boolean = name.endsWith(".xls")
         })
@@ -209,7 +209,7 @@ object Main extends App {
         runner.run()
 
         //only execute the last steps if tool was not called for laying out data
-        if (!config.layoutData) {
+        if (config.layoutData.length == 0) {
           val summary = runner.summary
 
           if (config.logSummary)

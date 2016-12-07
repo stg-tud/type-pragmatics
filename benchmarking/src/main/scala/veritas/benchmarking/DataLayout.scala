@@ -468,7 +468,7 @@ case class DataLayout(files: Seq[File], stimeout: String) {
   }
 
 
-  def layoutAll(): Unit = {
+  def layoutAll(outputPath: String): Unit = {
     println("Layouting!")
 
     //first, ignore axiom selection (generates data for original PPDP paper)
@@ -476,38 +476,38 @@ case class DataLayout(files: Seq[File], stimeout: String) {
 
 
     //Overview graphs all categories for each prover, success rates & average success time
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory), filterselectall)
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_goalcategory.csv", layoutAvgSuccessTimeIndividualOpt(GoalCategoryEnum)(k => k.goalCategory), filterselectall)
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
-    doForallProvers(s"datasets/layout/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
+    doForallProvers(s"$outputPath/PerProver/$stimeout/SuccRate", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory), filterselectall)
+    doForallProvers(s"$outputPath/PerProver/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
+    doForallProvers(s"$outputPath/PerProver/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
+    doForallProvers(s"$outputPath/PerProver/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
+    doForallProvers(s"$outputPath/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_goalcategory.csv", layoutAvgSuccessTimeIndividualOpt(GoalCategoryEnum)(k => k.goalCategory), filterselectall)
+    doForallProvers(s"$outputPath/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
+    doForallProvers(s"$outputPath/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
+    doForallProvers(s"$outputPath/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
 
     //Overview graphs per category for each prover, success rates & average success time
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
-    doForallProversCategories(s"datasets/layout/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
+    doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
+    doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
+    doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
+    doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
+    doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
+    doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
 
 
 
     //TODO: is it sensible to compare encoding strategies *including* the axiom selection domain?
 
     //Detailed overview (based on raw data): performance of individual conf combinations in each category
-    //doForallProversCategories(s"datasets/layout/DetailedOverviewPerCat/$stimeout", "time_per_file.csv", layoutRawDetailedTime, rawMap)
+    //doForallProversCategories(s"$outputPath/DetailedOverviewPerCat/$stimeout", "time_per_file.csv", layoutRawDetailedTime, rawMap)
 
     //Detailed layout (based on overview data): success rates per individual conf combination in each category
-    //doForallProversCategories(s"datasets/layout/IndividualConfSuccessRatesPerCat/$stimeout", "individual_conf_succ_rate.csv", layoutIndividualSuccessRates)
+    //doForallProversCategories(s"$outputPath/IndividualConfSuccessRatesPerCat/$stimeout", "individual_conf_succ_rate.csv", layoutIndividualSuccessRates)
 
     //Success rates for individual combinations
-    //doSingle(s"datasets/layout/PerCompStrat/$stimeout", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat) //all provers and all categories together
-    //doForallProvers(s"datasets/layout/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
-    //doForallCategories(s"datasets/layout/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
-    //doForallProversCategories(s"datasets/layout/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
+    //doSingle(s"$outputPath/PerCompStrat/$stimeout", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat) //all provers and all categories together
+    //doForallProvers(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
+    //doForallCategories(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
+    //doForallProversCategories(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
 
 
     //val allpbutprincess = List(ProverConfEnum.Vampire_4, ProverConfEnum.Vampire_3, ProverConfEnum.Eprover)
@@ -515,64 +515,64 @@ case class DataLayout(files: Seq[File], stimeout: String) {
 
     //layout for paper graph RQ1 (success rate per goal category, all provers)
     doForProvers(ProverConfEnum.iterator.toList,
-      s"datasets/layout/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory), filterselectall)
+      s"$outputPath/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory), filterselectall)
 
 
     //layout for paper graph RQ2 (influence of sort encoding, success rate per sort encoding alternative, all provers except princess, all categories together except execution)
     doForallProvers(
-      s"datasets/layout/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
+      s"$outputPath/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
 
     //layout for paper graph RQ3 (influence of variable encoding, success rate per sort encoding alternative, all provers and all categories)
     doForallProvers(
-      s"datasets/layout/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
+      s"$outputPath/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
 
     //layout for paper graph RQ4 (influence of variable encoding, success rate per sort encoding alternative, all provers except princess, categories: proof + test)
     doForallProvers(
-      s"datasets/layout/$stimeout/Graph4", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
+      s"$outputPath/$stimeout/Graph4", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
 
 
     //layout for paper graph RQ5 (influence of simplifications, success rate per simplification alternative, all provers except princess, all categories)
     val filteroutgoodtyping = filterTypingConf(filterselectall, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
     val filteroutgoodinlining = filterVariableConf(filteroutgoodtyping, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
     val filtered = filterProver(filteroutgoodinlining, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
-    doSingle(s"datasets/layout/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filtered)
+    doSingle(s"$outputPath/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filtered)
 
-    //doForProvers(allpbutprincess, s"datasets/layout/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
+    //doForProvers(allpbutprincess, s"$outputPath/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
 
     //layout for paper graph RQ6 (performance of all comp strategies for all provers and categories together)
-    doSingle(s"datasets/layout/$stimeout/Graph6", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat, filterselectall)
+    doSingle(s"$outputPath/$stimeout/Graph6", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat, filterselectall)
 
     //second, use overviewmap everywhere to compare axiom selection strategies (ignoring the encoding dimensions)
     //Layouts for axiom selection study (new)
     //Overview graphs axiom selection strategies success rates & average success time summarizing all categories, for each prover
     // TODO: is possibly the most interesting graph of all
     // RQ: "Does axiom selection strategy improve success rate? Which one works best?"
-    doForallProvers(s"datasets/layout/AxiomSelection/PerProver/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
-    doForallProvers(s"datasets/layout/AxiomSelection/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
+    doForallProvers(s"$outputPath/AxiomSelection/PerProver/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
+    doForallProvers(s"$outputPath/AxiomSelection/PerProver/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
 
     //Overview graphs axiom selection strategies per category for each prover, success rates & axiom selection strategies
-    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
-    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
+    doForallProversCategories(s"$outputPath/AxiomSelection/PerProverPerCategory/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf))
+    doForallProversCategories(s"$outputPath/AxiomSelection/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf))
 
     // TODO: compare axiomselection without bad encoding strategies
     // RQ: "Does axiom selection strategy improve success rate in combination with successful encoding strategies? Which one works best?"
     val filteroutgoodtyping_all = filterTypingConf(overviewMap, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
     val filteroutgoodinlining_all = filterVariableConf(filteroutgoodtyping_all, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
-    doForallProvers(s"datasets/layout/AxiomSelection/PerProverGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
-    doForallProvers(s"datasets/layout/AxiomSelection/PerProverGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
+    doForallProvers(s"$outputPath/AxiomSelection/PerProverGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
+    doForallProvers(s"$outputPath/AxiomSelection/PerProverGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
 
     // same again, but separately for each goal category
     // RQ: "Does axiom selection strategy improve success rate in combination with successful encoding strategies? Which one works best?"
-    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategoryGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
-    doForallProversCategories(s"datasets/layout/AxiomSelection/PerProverPerCategoryGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
+    doForallProversCategories(s"$outputPath/AxiomSelection/PerProverPerCategoryGood/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
+    doForallProversCategories(s"$outputPath/AxiomSelection/PerProverPerCategoryGood/$stimeout/AvgSuccTime", "avgsuccesstime_per_axiomselectionconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteroutgoodinlining_all)
 
 
     // like previous, but do not distinguish between the different provers
     val filteredgoodprovers = filterProver(filteroutgoodinlining_all, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
-    doSingle(s"datasets/layout/AxiomSelection/$stimeout/AllGoodProvers", "selectionperformance_allgoodprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgoodprovers)
+    doSingle(s"$outputPath/AxiomSelection/$stimeout/AllGoodProvers", "selectionperformance_allgoodprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgoodprovers)
 
     //compare *each* combination of strategies (including axiom selection strategies)
-    doSingle(s"datasets/layout/AxiomSelection/$stimeout/OverviewAll", "allstratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat)
+    doSingle(s"$outputPath/AxiomSelection/$stimeout/OverviewAll", "allstratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat)
 
   }
 }

@@ -232,8 +232,8 @@ case class Runner(config: Config) {
 
 
   def run(): Unit = {
-    if (config.layoutData)
-      DataLayout(allFiles, s"${config.timeout}s").layoutAll
+    if (config.layoutData.length > 0)
+      DataLayout(allFiles, s"${config.timeout}s").layoutAll(config.layoutData)
     else if (config.summarizeLogs)
       processProofLogs()
     else if (config.generateSLURM)
