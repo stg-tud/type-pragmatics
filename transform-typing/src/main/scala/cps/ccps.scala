@@ -16,7 +16,7 @@ object ccps extends Transformation(stlc.language + tcps) {
   private val omega = Var("omega", Typ)
 
   override val contracts = ListMap(
-    Rule("Lookup-ccps",
+    Lemma("Lookup-ccps",
       Judg(Lookup,
         Var("x", Name),
         tcps(Var("T", Typ), omega),
@@ -25,12 +25,12 @@ object ccps extends Transformation(stlc.language + tcps) {
       Judg(Lookup,
         Var("x", Name),
         Var("T", Typ),
-        Var("C", Ctx)),
+        Var("C", Ctx))
 //      Judg(TOk, Var("T", Typ)),
 //      Judg(TOk, omega)
     ) -> 2,
 
-    Rule("Notin-ccps",
+    Lemma("Notin-ccps",
       Judg(notin(Ctx), Var("x", Name), ccps(Var("C", Ctx), omega)),
       // if ----------------
       Judg(notin(Ctx), Var("x", Name), Var("C", Ctx))
@@ -56,4 +56,6 @@ object ccps extends Transformation(stlc.language + tcps) {
   )
 
   override val rewrites: Seq[Rewrite] = Seq(ccps_empty, ccps_bind)
+
+  checkSyntax()
 }

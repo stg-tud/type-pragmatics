@@ -22,6 +22,8 @@ abstract class Transformation(val lang: Language) {
   }
 
   def checkSyntax(): Unit = {
+    contracts.foreach(kv => assert(!contractedSym.constr, s"Transformation symbol must not be marked as constructor"))
+    contracts.foreach(kv => assert(kv._1.lemma, s"Transformation contracts must be marked as lemmas"))
     assert(rewrites.nonEmpty, s"Transformation requires at least one rewrited rule")
     contracts.foreach { case (c, pos) =>
       assert(c.contractedTerm(pos).sym == contractedSym)

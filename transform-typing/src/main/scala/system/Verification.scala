@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff.TffAnnotated
 import system.Syntax._
 import veritas.benchmarking
-import veritas.benchmarking.{ProverResult, Runner}
+import veritas.benchmarking.{Proved, ProverResult, Runner}
 import veritas.benchmarking.vampire.VampireConfig
 
 object Verification {
@@ -61,11 +61,11 @@ object Verification {
   val vampireConfig = new VampireConfig("4.0")
   val runConfig = benchmarking.Main.Config(
     proverConfigs = Seq(vampireConfig),
-    logExec = true,
-    logPerFile = true,
-    logProof = true,
-    logDisproof = true,
-    logInconclusive = true
+    logExec = true
+//    logPerFile = true,
+//    logProof = true,
+//    logDisproof = true,
+//    logInconclusive = true
   )
 
   def verify(p: ProofObligation, timeout: Int = 30): ProverResult = {
@@ -73,13 +73,18 @@ object Verification {
 
     val file = File.createTempFile("transform-typing", ".fof")
     new PrintWriter(file) { tff.foreach(t => write(t.toPrettyString() + "\n")); close }
-    println(s"Wrote TFF goal to $file")
+    println(s"Verifying ${p.name} via TFF $file")
 
     val runner = new Runner(runConfig.copy(files = Seq(file), timeout = timeout))
     runner.run()
     val summaries = runner.summary.getFileSummaries
     assert(summaries.size == 1 && summaries.head._2.size == 1)
+
     val result = summaries.head._2.head._2.proverResult
+    if (result.status == Proved)
+      println(s"SUCCESS ${p.name}")
+    else
+      println(s"FAILURE ${p.name}")
     result
   }
 }

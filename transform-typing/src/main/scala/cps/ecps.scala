@@ -11,12 +11,12 @@ import scala.collection.immutable.ListMap
 object ecps extends Transformation(stlc.language + tcps + ccps) {
 
   // CPS expression transformation ecps
-  val ecps = Symbol("ecps", in = List(Exp, Typ, Ctx, Typ), out = Exp)
+  val ecps = Symbol("ecps", in = List(Exp, Typ, Ctx, Typ), out = Exp, constr = false)
 
   private val omega = Var("omega", Typ)
 
   override val contracts = ListMap(
-    Rule("T-ecps",
+    Lemma("T-ecps",
       Judg(Typed,
         ccps(Var("C", Ctx), omega),
         ecps(Var("e", Exp), omega, Var("C", Ctx), Var("T", Typ)),
@@ -149,6 +149,8 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
     ecps_lam,
     ecps_app
   )
+
+  checkSyntax()
 }
 
 

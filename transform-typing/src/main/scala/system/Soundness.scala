@@ -52,7 +52,7 @@ object Soundness {
   def deriveIH(recApp: Term, r: Rewrite, num: Int, contract: Rule, contractPos: Int)(implicit gensym: Gensym): Option[Rule] = {
     contract.contractedTerm(contractPos).matchAgainst(recApp) match {
       case Left(s) =>
-        val rule = Rule(contract.name + s"-IH-$num",
+        val rule = Lemma(contract.name + s"-IH-$num",
           contract.conclusion.updated(contractPos, recApp).subst(s)
           // if -------------
           // no preconditions because we check the wellformedness of transformation calls separately

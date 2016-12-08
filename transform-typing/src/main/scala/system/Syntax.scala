@@ -45,6 +45,8 @@ object Syntax {
   def neq(sort: ISort): Symbol = Symbol("neq"+sort.name, in = List(sort, sort), out = Prop)
 
   type Subst = Map[Var, Term]
+  type Diff = Seq[(Term, Term)]
+  type Match = (Subst, Diff)
   type Error = String
 
   sealed trait Term {
@@ -65,8 +67,15 @@ object Syntax {
     def unify(t: Term): Either[Subst, Error] = unify(t, Map())
     def unify(t: Term, s: Subst): Either[Subst, Error]
 
-    def matchAgainst(t: Term): Either[Subst, Error] = matchAgainst(t, Map())
-    def matchAgainst(t: Term, s: Subst): Either[Subst, Error]
+    def matchAgainst(t: Term): Either[Subst, Error] = {
+      val m = matchAgainst(t, (Map(), Seq()))
+      if (m._2.isEmpty)
+        Left(m._1)
+      else
+        Right(s"Could not match the following pairs\n  ${m._2.mkString("\n  ")}")
+    }
+    def matchTerm(t: Term): Match = matchAgainst(t, (Map(), Seq()))
+    def matchAgainst(t: Term, m: Match): Match
 
     def findAll(p: Term => Boolean): Seq[Term]
   }
@@ -98,10 +107,10 @@ object Syntax {
         }
     }
 
-    override def matchAgainst(t: Term, s: Subst): Either[Subst, Error] = s.get(this) match {
-      case Some(t2) => t2.matchAgainst(t, s)
-      case None if t == this => Left(s)
-      case None => Left(s + (this -> t))
+    override def matchAgainst(t: Term, m: Match): Match = m._1.get(this) match {
+      case Some(t2) => t2.matchAgainst(t, m)
+      case None if t == this => m
+      case None => (m._1 + (this -> t), m._2)
     }
 
     override def findAll(p: (Term) => Boolean): Seq[Term] = if (p(this)) Seq(this) else Seq()
@@ -148,13 +157,14 @@ object Syntax {
       case _ => Right(s"Could not unify $this with $t")
     }
 
-    override def matchAgainst(t: Term, s: Subst): Either[Subst, Error] = t match {
+    override def matchAgainst(t: Term, m: Match): Match = t match {
       case App(`sym`, tkids) =>
-        kids.zip(tkids).foldLeft[Either[Subst, Error]](Left(s)){
-          case (err@Right(_), _) => err
-          case (Left(s), (t1, t2)) => t1.matchAgainst(t2, s)
+        kids.zip(tkids).foldLeft[Match](m){
+          case (m, (t1, t2)) => t1.matchAgainst(t2, m)
         }
-      case _ => Right(s"Could not match $this against $t")
+      case App(sym2, _) if sym.constr && sym2.constr =>
+        throw new MatchError(s"Cannot match $this against $t")
+      case _ => (m._1, m._2 :+ (this, t))
     }
 
 
@@ -188,6 +198,15 @@ object Syntax {
     def freevars: Set[Var] = terms.foldLeft(Set[Var]())((set, t) => set ++ t.freevars)
 
     def symbols: Set[Symbol] = terms.foldLeft(Set[Symbol]())((set, t) => set ++ t.symbols) + sym
+
+    def matchTerm(t: Judg): Match = matchAgainst(t, (Map(), Seq()))
+    def matchAgainst(j: Judg, m: Match): Match = j match {
+      case Judg(`sym`, jterms) =>
+        terms.zip(jterms).foldLeft[Match](m){
+          case (m, (t1, t2)) => t1.matchAgainst(t2, m)
+        }
+      case _ => throw new MatchError(s"Cannot match $this against $j")
+    }
 
     override def toString: String = s"$sym(${terms.mkString(", ")})"
 

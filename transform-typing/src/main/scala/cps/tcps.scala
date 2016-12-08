@@ -15,7 +15,7 @@ object tcps extends Transformation(stlc.language) {
   private val omega = Var("omega", Typ)
 
   override val contracts = ListMap(
-    Rule("TOk-tcps",
+    Lemma("TOk-tcps",
       Judg(TOk, App(tcps, Var("T", Typ), omega)),
       // if ----------------
       Judg(TOk, Var("T", Typ)),
@@ -46,4 +46,6 @@ object tcps extends Transformation(stlc.language) {
   )
 
   override val rewrites = Seq(tcps_nat, tcps_arr)
+
+  checkSyntax()
 }
