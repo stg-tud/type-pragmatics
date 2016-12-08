@@ -40,14 +40,15 @@ object GoalUnpacking {
       val eqObls = eqGoals.map(nextObligation(_, obl))
       val premiseGoals = rule.premises.map(_.subst(s))
       val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl))
-      val (closedPremiseObls, openPremiseObls) = premiseObls.partition(_.goals.flatMap(_.freevars).toSet.subsetOf(judg.freevars))
-      if (openPremiseObls.isEmpty)
-        eqObls ++ closedPremiseObls
+      val obls = eqObls ++ premiseObls
+      val (closedObls, openObls) = obls.partition(_.goals.flatMap(_.freevars).toSet.subsetOf(judg.freevars))
+      if (openObls.isEmpty)
+        eqObls ++ closedObls
       else {
-        val mergedObl: ProofObligation = openPremiseObls.reduce((g1, g2) => g1.copy(name = s"${obl.name}-open", goals = g1.goals ++ g2.goals))
+        val mergedObl: ProofObligation = openObls.reduce((g1, g2) => g1.copy(name = s"${obl.name}-open", goals = g1.goals ++ g2.goals))
         val freevars = (mergedObl.goals.flatMap(_.freevars)).toSet.diff(judg.freevars)
         val existentialMergedObl = mergedObl.copy(existentials = mergedObl.existentials ++ freevars)
-        eqObls ++ closedPremiseObls :+ existentialMergedObl
+        eqObls ++ closedObls :+ existentialMergedObl
       }
 
     }

@@ -40,8 +40,8 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
       Arr(tcps(Var("T", Typ), omega), omega),
       app(ref(Var("k", Name)), ref(Var("x", Name)))
     ),
-    where = ListMap(
-      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx))
+    where = Seq(
+      Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx)))
     )
   )
   // 'Goal', 'Typed-app', 'Lookup-Found', 'Typed-true-INV', 'Notin-empty', 'Notin-bind', 'Typed-lam', 'Lookup-true-INV', 'EQ-ref', 'dom-Exp', 'DIFF-ref-app', 'DIFF-ref-lam', 'DIFF-ref-add', 'DIFF-ref-num', 'DIFF-empty-bind', 'Lookup-Notin', 'Typed-ref', 'dom-Ctx', 'EQ-bind', 'freshCtx-notinCtx', 'notinCtx-true-INV', 'Lookup-ccps', 'Lookup-Next'
@@ -59,8 +59,8 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
       Arr(tcps(Nat(), omega), omega),
       app(ref(Var("k", Name)), num(Var("n", Num)))
     ),
-    where = ListMap(
-      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx))
+    where = Seq(
+      Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx)))
     )
   )
   // 'EQ-Arr', 'Notin-empty', 'dom-Typ', 'TOk-Arr', 'TOk-tcps', 'tcps-1', 'TOk-true-INV', 'TOk-Nat', 'DIFF-Nat-Arr', 'notinCtx-true-INV', 'freshCtx-notinCtx', 'DIFF-num-lam', 'DIFF-num-app', 'DIFF-ref-num', 'Typed-true-INV', 'Goal', 'tcps-0', 'Typed-app', 'Typed-num', 'Typed-ref', 'Lookup-Found', 'Typed-lam'
@@ -83,10 +83,10 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
               app(ref(Var("k", Name)),
                 add(ref(Var("x1", Name)), ref(Var("x2", Name))))))))
     ),
-    where = ListMap(
-      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx)),
-      Var("x1", Name) -> fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega))),
-      Var("x2", Name) -> fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)), Var("x1", Name), Nat()))
+    where = Seq(
+      Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx))),
+      Judg(equ(Name), Var("x1", Name), fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)))),
+      Judg(equ(Name), Var("x2", Name), fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)), Var("x1", Name), Nat())))
     )
   )
 
@@ -109,9 +109,9 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
             bind(Var("C", Ctx), Var("x", Name), Var("T1", Typ)),
             Var("T2", Typ))))
     ),
-    where = ListMap(
-      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx)),
-      Arr(Var("T1", Typ), Var("T2", Typ)) -> Var("T", Typ)
+    where = Seq(
+      Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx))),
+      Judg(equ(Typ), Arr(Var("T1", Typ), Var("T2", Typ)), Var("T", Typ))
     )
   )
 
@@ -125,20 +125,20 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
     // ~>
     lam(
       Var("k", Name),
-      Arr(tcps(Var("T2", Typ), omega), omega),
-      app(ecps(Var("e1", Exp), omega, Var("C", Ctx), Arr(Var("T1", Typ), Var("T2", Typ))),
-        lam(Var("xf", Name), tcps(Arr(Var("T1", Typ), Var("T2", Typ)), omega),
+      Arr(tcps(Var("T", Typ), omega), omega),
+      app(ecps(Var("e1", Exp), omega, Var("C", Ctx), Arr(Var("T1", Typ), Var("T", Typ))),
+        lam(Var("xf", Name), tcps(Arr(Var("T1", Typ), Var("T", Typ)), omega),
           app(ecps(Var("e2", Exp), omega, Var("C", Ctx), Var("T1", Typ)),
             lam(Var("xv", Name), tcps(Var("T1", Typ), omega),
               app(
                 app(ref(Var("xf", Name)), ref(Var("xv", Name))),
                 ref(Var("k", Name)))))))
     ),
-    where = ListMap(
-      Arr(Var("T1", Typ), Var("T2", Typ)) -> Var("T", Typ),
-      Var("k", Name) -> fresh(Ctx)(Var("C", Ctx)),
-      Var("xf", Name) -> fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega))),
-      Var("xv", Name) -> fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)), Var("xf", Name), Nat()))
+    where = Seq(
+      Judg(Typed, Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ))),
+      Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx))),
+      Judg(equ(Name), Var("xf", Name), fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)))),
+      Judg(equ(Name), Var("xv", Name), fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)), Var("xf", Name), Nat())))
     )
   )
 

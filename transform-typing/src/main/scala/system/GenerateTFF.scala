@@ -152,7 +152,7 @@ object GenerateTFF {
     val sym = rewrites.head.pat.sym
 
     rewrites.zipWithIndex.map { case (r, i) =>
-      val premises = r.where.map(kv => Judg(equ(kv._1.sort), kv._1, kv._2))
+      val premises = r.where
       val conclusion = Judg(equ(r.sym.out), r.pat, r.gen)
       compileRuleDecl(Rule(s"${r.sym.name}-$i", conclusion, premises.toList))
     }

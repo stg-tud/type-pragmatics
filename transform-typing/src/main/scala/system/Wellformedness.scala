@@ -23,7 +23,7 @@ object Wellformedness {
       contract.contractedTerm(pos).matchAgainst(r.pat) match {
         case Left(s) =>
           premises ++= contract.premises.map(_.subst(s))
-          premises ++= r.where.map(kv => Judg(equ(kv._1.sort), kv._1, kv._2).subst(s))
+          premises ++= r.where.map(_.subst(s))
         case Right(msg) =>
           throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n$contract\nbecause $msg")
       }

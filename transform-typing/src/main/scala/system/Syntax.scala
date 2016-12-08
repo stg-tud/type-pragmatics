@@ -256,21 +256,13 @@ object Syntax {
     def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList, true)
   }
 
-  case class Rewrite(pat: App, gen: Term, where: ListMap[Term, Term] = ListMap()) {
-    val boundVars = pat.freevars ++ where.keys.flatMap(_.freevars)
-    val usedVars = gen.freevars ++ where.values.flatMap(_.freevars)
+  case class Rewrite(pat: App, gen: Term, where: Seq[Judg] = Seq()) {
+    val boundVars = pat.freevars ++ where.flatMap(_.freevars)
+    val usedVars = gen.freevars // ++ where.values.flatMap(_.freevars)
     assert(usedVars.subsetOf(boundVars), s"Unbound variables ${usedVars.diff(boundVars)} in rewriting $this")
-    where.foreach(kv => assert(kv._1.sort == kv._2.sort, s"Type mismatch in where binding $kv of $this"))
 
     def sym = pat.sym
-    def symbols: Set[Symbol] = {
-      var syms = pat.symbols ++ gen.symbols
-      where.foreach { case (k,v) =>
-        syms ++= k.symbols
-        syms ++= v.symbols
-      }
-      syms
-    }
+    def symbols: Set[Symbol] = pat.symbols ++ gen.symbols ++ where.flatMap(_.symbols)
 
     override def toString: String =
       s"$pat ~> $gen" + (if(where.isEmpty) "" else "\n  where " + where.mkString(",\n        "))
