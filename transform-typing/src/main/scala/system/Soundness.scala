@@ -25,7 +25,7 @@ object Soundness {
 
         val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 
-        ProofObligation(s"${contract.name}-$rnum", trans.lang, opaqueSyms, ihs, trans, premises ++ where, goals = Seq(goal))
+        ProofObligation(s"${contract.name}-$rnum", trans.lang, opaqueSyms, Set(), ihs, trans, premises ++ where, goals = Seq(goal), gensym)
       case Right(msg) =>
         throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n${freshContract}\nbecause $msg")
     }
@@ -52,10 +52,12 @@ object Soundness {
   def deriveIH(recApp: Term, r: Rewrite, num: Int, contract: Rule, contractPos: Int)(implicit gensym: Gensym): Option[Rule] = {
     contract.contractedTerm(contractPos).matchAgainst(recApp) match {
       case Left(s) =>
-        val rule = Lemma(contract.name + s"-IH-$num",
-          contract.conclusion.updated(contractPos, recApp).subst(s)
-          // if -------------
-          // no preconditions because we check the wellformedness of transformation calls separately
+        val rule = Rule(contract.name + s"-IH-$num",
+          contract.conclusion.updated(contractPos, recApp).subst(s),
+          // if ------------
+          // TODO: no preconditions needed because we check the wellformedness of transformation calls separately
+          contract.premises.map(_.subst(s)),
+          lemma = true
         )
         Some(rule)
       case Right(msg) =>

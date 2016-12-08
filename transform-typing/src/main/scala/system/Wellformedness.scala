@@ -30,7 +30,7 @@ object Wellformedness {
     }
 
     checks.zipWithIndex.map { case (check, i) =>
-      ProofObligation(s"wf-${trans.contractedSym}-$rnum-$i", trans.lang, Seq(), Seq(), trans, premises, check)
+      ProofObligation(s"wf-${trans.contractedSym}-$rnum-$i", trans.lang, Seq(), Set(), Seq(), trans, premises, check, gensym)
     }
   }
 

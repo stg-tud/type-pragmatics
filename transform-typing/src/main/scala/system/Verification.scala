@@ -16,18 +16,21 @@ object Verification {
     name: String,
     lang: Language,
     opaques: Seq[Symbol],
+    existentials: Set[Var],
     axioms: Seq[Rule],
     trans: Transformation,
     assumptions: Seq[Judg],
-    goals: Seq[Judg]) {
+    goals: Seq[Judg],
+    gensym: Gensym) {
     override def toString: String = {
       val indent = "  "
       val ps = axioms.mkString("\n" + indent)
       val psn = if (ps.isEmpty) "" else "\n"
+      val exists = if (existentials.isEmpty) "" else existentials.mkString(" where exists ", ",", "")
       s"""
          |Proof obligation $name in ${lang.name}:
          |
-         |goals
+         |goals$exists
          |${goals.mkString("\n")}
          |
          |axioms
@@ -46,11 +49,16 @@ object Verification {
 
       val assumptionVars = assumptions.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_, typed = true)))
       val goalVars = goals.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_, typed = true)))
+      val existentialVars = existentials.map(GenerateTFF.compileVar(_, typed = true))
+      val universalVars = (assumptionVars ++ goalVars).diff(existentialVars)
 
       val assumptionFormula = Parenthesized(And(assumptions.map(GenerateTFF.compileJudg(_))))
       val goalFormula = Parenthesized(And(goals.map(GenerateTFF.compileJudg(_))))
       val goalBody = Parenthesized(Impl(assumptionFormula, goalFormula))
-      tff :+= TffAnnotated(s"Goal-$name", Conjecture, ForAll((assumptionVars ++ goalVars).toSeq, goalBody))
+      tff :+= TffAnnotated(s"Goal-$name", Conjecture,
+        ForAll(universalVars.toSeq,
+          Exists(existentialVars.toSeq,
+            goalBody)))
 
       tff
     }
@@ -61,9 +69,9 @@ object Verification {
   val vampireConfig = new VampireConfig("4.0")
   val runConfig = benchmarking.Main.Config(
     proverConfigs = Seq(vampireConfig),
-    logExec = true
+    logExec = true,
 //    logPerFile = true,
-//    logProof = true,
+    logProof = true
 //    logDisproof = true,
 //    logInconclusive = true
   )
@@ -77,6 +85,7 @@ object Verification {
 
     val runner = new Runner(runConfig.copy(files = Seq(file), timeout = timeout))
     runner.run()
+    println()
     val summaries = runner.summary.getFileSummaries
     assert(summaries.size == 1 && summaries.head._2.size == 1)
 

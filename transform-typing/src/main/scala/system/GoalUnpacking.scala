@@ -16,6 +16,8 @@ object GoalUnpacking {
 
   def nextObligation(goal: Judg, obl: ProofObligation)(implicit counter: Counter) =
     obl.copy(name = s"${obl.name}-${counter.next()}", goals = Seq(goal))
+  def nextObligation(goals: Seq[Judg], obl: ProofObligation)(implicit counter: Counter) =
+    obl.copy(name = s"${obl.name}-${counter.next()}", goals = goals)
 
   def unpackObligation(obl: ProofObligation): Seq[ProofObligation] = {
     implicit val counter = new Counter
@@ -26,7 +28,7 @@ object GoalUnpacking {
     val rules = obl.lang.rules ++ obl.lang.transs.flatMap(_.contracts.keys) ++ obl.axioms
     val filteredRules = rules.filter(rule => rule.conclusion.sym == judg.sym && !rule.lemma)
     val candidates = filteredRules.flatMap{ rule =>
-      val freshRule = rule.fresh(new Gensym)
+      val freshRule = rule.fresh(obl.gensym)
       try { Some(freshRule -> freshRule.conclusion.matchTerm(judg)) }
       catch { case _: MatchError => None }
     }
@@ -36,9 +38,18 @@ object GoalUnpacking {
       val (rule, (s, eqs)) = candidates.head
       val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1.subst(s), t2) }
       val eqObls = eqGoals.map(nextObligation(_, obl))
-      val premiseGoals = rule.premises.zipWithIndex.map { case(prem, i) => prem.subst(s) }
+      val premiseGoals = rule.premises.map(_.subst(s))
       val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl))
-      eqObls ++ premiseObls
+      val (closedPremiseObls, openPremiseObls) = premiseObls.partition(_.goals.flatMap(_.freevars).toSet.subsetOf(judg.freevars))
+      if (openPremiseObls.isEmpty)
+        eqObls ++ closedPremiseObls
+      else {
+        val mergedObl: ProofObligation = openPremiseObls.reduce((g1, g2) => g1.copy(name = s"${obl.name}-open", goals = g1.goals ++ g2.goals))
+        val freevars = (mergedObl.goals.flatMap(_.freevars)).toSet.diff(judg.freevars)
+        val existentialMergedObl = mergedObl.copy(existentials = mergedObl.existentials ++ freevars)
+        eqObls ++ closedPremiseObls :+ existentialMergedObl
+      }
+
     }
   }
 }
