@@ -1,7 +1,7 @@
 package system
 
 import system.Syntax._
-import system.Verification.Obligation
+import system.Verification.ProofObligation
 import veritas.benchmarking.Proved
 
 import scala.collection.immutable.ListMap
@@ -55,9 +55,13 @@ abstract class Transformation(val lang: Language) {
        """.stripMargin
   }
 
-  lazy val soundnessObligations: Seq[Obligation] = Soundness.transSoundness(this)
+  lazy val soundnessObligations: Seq[ProofObligation] = Soundness.transSoundness(this)
   lazy val soundnessResults = soundnessObligations.map(Verification.verify(_))
   lazy val isSound = soundnessResults.forall(_.status == Proved)
+
+  lazy val wellformednessObligations: Seq[ProofObligation] = Wellformedness.wellformedTrans(this)
+  lazy val wellformednessResults = wellformednessObligations.map(Verification.verify(_))
+  lazy val isWellformed = wellformednessResults.forall(_.status == Proved)
 
   def apply(kids: Term*): App = App(contractedSym, kids.toList)
 }

@@ -25,7 +25,9 @@ object ccps extends Transformation(stlc.language + tcps) {
       Judg(Lookup,
         Var("x", Name),
         Var("T", Typ),
-        Var("C", Ctx))
+        Var("C", Ctx)),
+//      Judg(TOk, Var("T", Typ)),
+//      Judg(TOk, omega)
     ) -> 2,
 
     Rule("Notin-ccps",

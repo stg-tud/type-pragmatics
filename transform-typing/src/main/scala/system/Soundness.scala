@@ -5,20 +5,18 @@ import system.Verification._
 
 object Soundness {
 
-  def transSoundness(trans: Transformation): Seq[Obligation] =
+  def transSoundness(trans: Transformation): Seq[ProofObligation] =
     trans.contracts.flatMap { case (contract, contractPos) =>
-      trans.rewrites.map(r => rewriteSoundness(r, contract, contractPos, trans)(new Gensym))
+      trans.rewrites.zipWithIndex.map{ case (r, i) => rewriteSoundness(r, i, contract, contractPos, trans)(new Gensym) }
     }.toSeq
 
-  def rewriteSoundness(r: Rewrite, contract: Rule, contractPos: Int, trans: Transformation)(implicit gensym: Gensym): Obligation = {
-    val contractFreshness = contract.freevars.map(v => v -> gensym.freshVar(v.name, v.sort)).toMap
-    val freshContract = contract.subst(contractFreshness)
+  def rewriteSoundness(r: Rewrite, rnum: Int, contract: Rule, contractPos: Int, trans: Transformation)(implicit gensym: Gensym): ProofObligation = {
+    val freshContract = contract.fresh
 
     freshContract.contractedTerm(contractPos).matchAgainst(r.pat) match {
       case Left(s) =>
         val (ihs, opaques) = deriveIHs(r.gen, r, freshContract, contractPos)
         val sopaques = s.mapValues(_.subst(opaques)) ++ (opaques -- s.keys)
-
 
         val name = freshContract.name
         val premises = freshContract.premises.map(_.subst(sopaques))
@@ -27,9 +25,9 @@ object Soundness {
 
         val opaqueSyms = opaques.values.map(_.asInstanceOf[App].sym).toSeq
 
-        ProofObligation(trans.lang, opaqueSyms, ihs, trans, premises ++ where, goals = Seq(goal))
+        ProofObligation(s"${contract.name}-$rnum", trans.lang, opaqueSyms, ihs, trans, premises ++ where, goals = Seq(goal))
       case Right(msg) =>
-        FailedObligation(s"Rewrite rule\n$r\n does not match contract\n${freshContract}\nbecause $msg")
+        throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n${freshContract}\nbecause $msg")
     }
   }
 
@@ -55,9 +53,9 @@ object Soundness {
     contract.contractedTerm(contractPos).matchAgainst(recApp) match {
       case Left(s) =>
         val rule = Rule(contract.name + s"-IH-$num",
-          contract.conclusion.updated(contractPos, recApp).subst(s),
+          contract.conclusion.updated(contractPos, recApp).subst(s)
           // if -------------
-          contract.premises.map(_.subst(s))
+          // no preconditions because we check the wellformedness of transformation calls separately
         )
         Some(rule)
       case Right(msg) =>

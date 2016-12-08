@@ -221,6 +221,11 @@ object Syntax {
 
     def freevars: Set[Var] = conclusion.freevars ++ premises.foldLeft(Set[Var]())((set, j) => set ++ j.freevars)
 
+    def fresh(implicit gensym: Gensym): Rule = {
+      val sfresh = freevars.map(v => v -> gensym.freshVar(v.name, v.sort)).toMap
+      this.subst(sfresh)
+    }
+
     def subst(s: Subst) = Rule(name, conclusion.subst(s), premises.map(_.subst(s)), lemma)
 
     def symbols: Set[Symbol] = conclusion.symbols ++ premises.foldLeft(Set[Symbol]())((set, j) => set ++ j.symbols)
