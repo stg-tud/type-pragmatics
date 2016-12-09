@@ -21,7 +21,7 @@ object GoalUnpacking {
 
   def unpackObligation(obl: ProofObligation): Seq[ProofObligation] = {
     implicit val counter = new Counter
-    obl.goals.flatMap(unpackJudg(_, obl))
+    obl.goals.flatMap(unpackJudg(_, obl)).distinct
   }
 
   def unpackJudg(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Seq[ProofObligation] = {
@@ -47,7 +47,11 @@ object GoalUnpacking {
       else {
         val mergedObl: ProofObligation = openObls.reduce((g1, g2) => g1.copy(name = s"${obl.name}-open", goals = g1.goals ++ g2.goals))
         val freevars = (mergedObl.goals.flatMap(_.freevars)).toSet.diff(judg.freevars)
-        val existentialMergedObl = mergedObl.copy(existentials = mergedObl.existentials ++ freevars)
+        val closedGoals = closedObls.flatMap(_.goals)
+        val existentialMergedObl = mergedObl.copy(
+          existentials = mergedObl.existentials ++ freevars,
+          assumptions = (mergedObl.assumptions ++ closedGoals).distinct,
+          goals = mergedObl.goals.distinct)
         eqObls ++ closedObls :+ existentialMergedObl
       }
 

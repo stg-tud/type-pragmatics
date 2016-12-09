@@ -135,7 +135,7 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
                 ref(Var("k", Name)))))))
     ),
     where = Seq(
-      Judg(Typed, Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ))),
+      Judg(Typed, Var("C", Ctx), Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ))),
       Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx))),
       Judg(equ(Name), Var("xf", Name), fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)))),
       Judg(equ(Name), Var("xv", Name), fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)), Var("xf", Name), Nat())))
