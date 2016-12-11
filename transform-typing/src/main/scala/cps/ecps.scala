@@ -110,7 +110,7 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
             Var("T2", Typ))))
     ),
     where = Seq(
-      Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx))),
+      Judg(equ(Name), Var("k", Name), fresh(Ctx)(bind(Var("C", Ctx), Var("x", Name), Var("T1", Typ)))),
       Judg(equ(Typ), Arr(Var("T1", Typ), Var("T2", Typ)), Var("T", Typ))
     )
   )
@@ -137,8 +137,8 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
     where = Seq(
       Judg(Typed, Var("C", Ctx), Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ))),
       Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx))),
-      Judg(equ(Name), Var("xf", Name), fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)))),
-      Judg(equ(Name), Var("xv", Name), fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)), Var("xf", Name), Nat())))
+      Judg(equ(Name), Var("xf", Name), fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(tcps(Var("T", Typ), omega), omega)))),
+      Judg(equ(Name), Var("xv", Name), fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(tcps(Var("T", Typ), omega), omega)), Var("xf", Name), tcps(Arr(Var("T1", Typ), Var("T", Typ)), omega))))
     )
   )
 
@@ -157,4 +157,5 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
 /*
  * Bugs found during development:
  * 1) Contract of ecps was wrong. Instead of `Arr(Arr(tcps(Var("T", Typ), omega), omega), omega)` I only had `tcps(Var("T", Typ), omega)` at first
+ * 2) freshness condition of ecps-app were wrong, using wrong types for k and vf (copied from ecps-add)
  */

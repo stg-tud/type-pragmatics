@@ -89,10 +89,44 @@ object Statics {
     Judg(Typed, Var("C", Ctx), Var("e2", Exp), Var("T1", Typ))
   )
 
-  val Typed_weak = rule(Lemma("Typed-weak",
+  val Typed_weakening = rule(Lemma("Typed-weakening",
     Judg(Typed, bind(Var("C", Ctx), Var("x", Name), Var("Tx", Typ)), Var("e", Exp), Var("T", Typ)),
     // if ----------------
     Judg(notin(Ctx), Var("x", Name), Var("C", Ctx)),
     Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
+  ))
+  val Typed_exchange = rule(Lemma("Typed-exchange",
+    Judg(Typed,
+      bind(bind(
+        Var("C", Ctx),
+        Var("x", Name), Var("Tx", Typ)),
+        Var("y", Name), Var("Ty", Typ)),
+      Var("e", Exp),
+      Var("T", Typ)),
+    // if ----------------
+    Judg(neq(Name), Var("x", Name), Var("y", Name)),
+    Judg(Typed,
+      bind(bind(
+        Var("C", Ctx),
+        Var("y", Name), Var("Ty", Typ)),
+        Var("x", Name), Var("Tx", Typ)),
+      Var("e", Exp),
+      Var("T", Typ))
+  ))
+  val Typed_contraction = rule(Lemma("Typed-contraction",
+    Judg(Typed,
+      bind(
+        Var("C", Ctx),
+        Var("x", Name), Var("Tx", Typ)),
+      Var("e", Exp),
+      Var("T", Typ)),
+    // if ----------------
+    Judg(Typed,
+      bind(bind(
+        Var("C", Ctx),
+        Var("x", Name), Var("Tx", Typ)),
+        Var("x", Name), Var("Tx", Typ)),
+      Var("e", Exp),
+      Var("T", Typ))
   ))
 }
