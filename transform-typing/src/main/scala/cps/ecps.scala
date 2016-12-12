@@ -10,6 +10,8 @@ import scala.collection.immutable.ListMap
 
 object ecps extends Transformation(stlc.language + tcps + ccps) {
 
+  override val verificationTimeout: Int = 300
+
   // CPS expression transformation ecps
   val ecps = Symbol("ecps", in = List(Exp, Typ, Ctx, Typ), out = Exp, constr = false)
 
