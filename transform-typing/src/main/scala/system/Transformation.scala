@@ -57,9 +57,9 @@ abstract class Transformation(val lang: Language) {
        """.stripMargin
   }
 
-  lazy val soundnessObligations: Seq[ProofObligation] = Soundness.transSoundness(this)
-  lazy val soundnessResults = soundnessObligations.map(Verification.verify(_))
-  lazy val isSound = soundnessResults.forall(_.status == Proved)
+  lazy val soundnessObligations: Seq[Seq[ProofObligation]] = Soundness.transSoundness(this).map(GoalUnpacking.unpackObligation(_))
+  lazy val soundnessResults = soundnessObligations.map(_.map(Verification.verify(_)))
+  lazy val isSound = soundnessResults.flatten.forall(_.status == Proved)
 
   lazy val wellformednessObligations: Seq[ProofObligation] = Wellformedness.wellformedTrans(this)
   lazy val wellformednessResults = wellformednessObligations.map(Verification.verify(_))

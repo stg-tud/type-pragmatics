@@ -47,10 +47,15 @@ object Verification {
       tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
       tff ++= axioms.map(GenerateTFF.compileRuleDecl(_))
 
-      val assumptionVars = assumptions.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_, typed = true)))
-      val goalVars = goals.foldLeft(Set[Variable]())((vars, g) => vars ++ g.freevars.map(GenerateTFF.compileVar(_, typed = true)))
-      val existentialVars = existentials.map(GenerateTFF.compileVar(_, typed = true))
-      val universalVars = (assumptionVars ++ goalVars).diff(existentialVars)
+      val usedVars = (assumptions.flatMap(_.freevars) ++ goals.flatMap(_.freevars)).toSet
+      val assumptionVars = assumptions.foldLeft(Set[Var]())((vars, g) => vars ++ g.freevars)
+        .intersect(usedVars)
+        .diff(existentials)
+      val goalVars = goals.foldLeft(Set[Var]())((vars, g) => vars ++ g.freevars)
+        .intersect(usedVars)
+        .diff(existentials)
+      val universalVars = (assumptionVars.map(GenerateTFF.compileVar(_, typed = true)) ++ goalVars.map(GenerateTFF.compileVar(_, typed = true)))
+      val existentialVars = existentials.intersect(usedVars).map(GenerateTFF.compileVar(_, typed = true))
 
       val assumptionFormula = Parenthesized(And(assumptions.map(GenerateTFF.compileJudg(_))))
       val goalFormula = Parenthesized(And(goals.map(GenerateTFF.compileJudg(_))))
@@ -76,14 +81,15 @@ object Verification {
 //    logInconclusive = true
   )
 
-  def verify(p: ProofObligation, timeout: Int = 30): ProverResult = {
+  def verify(p: ProofObligation, mode: String = "casc", timeout: Int = 30): ProverResult = {
     val tff = p.asTFF
 
     val file = File.createTempFile("transform-typing", ".fof")
     new PrintWriter(file) { tff.foreach(t => write(t.toPrettyString() + "\n")); close }
     println(s"Verifying ${p.name} via TFF $file")
 
-    val runner = new Runner(runConfig.copy(files = Seq(file), timeout = timeout))
+    val runner = new Runner(
+      runConfig.copy(files = Seq(file), proverConfigs = Seq(vampireConfig.copy(mode = mode)), timeout = timeout))
     runner.run()
     println()
     val summaries = runner.summary.getFileSummaries
