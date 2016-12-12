@@ -14,41 +14,46 @@ object Wellformedness {
 
   def wellformedRewrite(r: Rewrite, rnum: Int, trans: Transformation)(implicit gensym: Gensym): Seq[ProofObligation] = {
 
-    val transContracts = trans.contracts.map(kv => kv._1.fresh -> kv._2)
-    val otherContracts = trans.lang.transs.map(t => t.contracts.map(kv => kv._1.fresh -> kv._2))
-    val checks = wellformedTerm(r.gen, otherContracts :+ transContracts)
+    val (contract, pos) = (trans.contract._1.fresh, trans.contract._2)
+    val otherContracts = trans.lang.transs.map(t => (t.contract._1.fresh, t.contract._2))
+    val checks = wellformedTerm(r.gen, otherContracts :+ (contract, pos))
 
-    var premises = Seq[Judg]()
-    transContracts foreach { case (contract, pos) =>
-      contract.contractedTerm(pos).matchAgainst(r.pat) match {
-        case Left(s) =>
-          premises ++= contract.premises.map(_.subst(s))
-          premises ++= r.where.map(_.subst(s))
-        case Right(msg) =>
-          throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n$contract\nbecause $msg")
-      }
+    val premises = contract.contractedTerm(pos).matchAgainst(r.pat) match {
+      case Left(s) =>
+        contract.premises.map(_.subst(s)) ++ r.where.map(_.subst(s))
+      case Right(msg) =>
+        throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n$contract\nbecause $msg")
     }
+    val premiseVars = premises.flatMap(_.freevars).toSet
 
     checks.zipWithIndex.map { case (check, i) =>
-      ProofObligation(s"wf-${trans.contractedSym}-$rnum-$i", trans.lang, Seq(), Set(), Seq(), trans, premises, check, gensym)
+      val checkVars = check.flatMap(_.freevars).toSet
+      val existentials = checkVars.diff(r.boundVars).diff(premiseVars)
+      ProofObligation(s"wf-${trans.contractedSym}-$rnum-$i", trans.lang, Seq(), existentials, Seq(), trans, premises, check, gensym)
     }
   }
 
-  def wellformedTerm(t: Term, transs: Seq[ListMap[Rule, Int]]): Seq[FormednessCheck] = t match {
+  def wellformedTerm(t: Term, transs: Seq[(Rule, Int)])(implicit gensym: Gensym): Seq[FormednessCheck] = t match {
     case v: Var => Seq()
     case t@App(sym, kids) =>
       val subs = kids.foldLeft(Seq[FormednessCheck]())((seq, t) => seq ++ wellformedTerm(t, transs))
-      transs.find(cs => cs.head._1.contractedTerm(cs.head._2).sym == sym) match {
+      transs.find{ case (contract, pos) => contract.contractedTerm(pos).sym == sym } match {
         case None => subs
-        case Some(contracts) =>
-          contracts.flatMap(kv => wellformedTransCall(kv._1, kv._2, t)).toSeq ++ subs
+        case Some((contract, pos)) =>
+          wellformedTransCall(contract, pos, t).toSeq ++ subs
       }
   }
 
-  def wellformedTransCall(contract: Rule, pos: Int, app: App): Option[FormednessCheck] = {
+  def wellformedTransCall(contract: Rule, pos: Int, app: App)(implicit gensym: Gensym): Option[FormednessCheck] = {
+    if (contract.premises.isEmpty)
+      return None
     contract.contractedTerm(pos).matchAgainst(app) match {
       case Left(s) =>
-        val goals = contract.premises.map(_.subst(s))
+        val vars = contract.premises.flatMap(_.freevars).toSet
+        val freeVars = vars.diff(s.keys.toSet)
+        val freshFreeVars = freeVars.map(v => v -> gensym.freshVar(v.name, v.sort)).toMap
+        val s2 = s ++ freshFreeVars
+        val goals = contract.premises.map(_.subst(s2))
         Some(goals)
       case Right(msg) =>
         print(s"WARNING could not generate well-formedness check for recursive call $app")

@@ -7,28 +7,31 @@ import veritas.benchmarking.Proved
 import scala.collection.immutable.ListMap
 
 abstract class Transformation(val lang: Language) {
-  val contracts: ListMap[Rule, Int]
+  val contract: (Rule, Int)
+  val lemmas: ListMap[Rule, Int] = ListMap()
   val rewrites: Seq[Rewrite]
+
+  lazy val rules: ListMap[Rule, Int] = ListMap(contract) ++ lemmas
 
 //  final lazy val contractedTerms = contracts.map{case (c,pos) => c.conclusion.terms(pos).asInstanceOf[App]}
   final lazy val contractedSym = rewrites.head.sym
 
 
   final lazy val undeclaredSymbols = {
-    val csyms = contracts.foldLeft(Set[Symbol]())((set, c) => set ++ c._1.symbols)
+    val lsyms = rules.foldLeft(Set[Symbol]())((set, c) => set ++ c._1.symbols)
     val rsyms = rewrites.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
     val otherTransSyms = lang.transs.map(_.contractedSym).toSet
-    (csyms++rsyms).diff(lang.syms.toSet).diff(lang.undeclaredSymbols).diff(otherTransSyms) - contractedSym
+    (lsyms++rsyms).diff(lang.syms.toSet).diff(lang.undeclaredSymbols).diff(otherTransSyms) - contractedSym
   }
 
   def checkSyntax(): Unit = {
-    contracts.foreach(kv => assert(!contractedSym.constr, s"Transformation symbol must not be marked as constructor"))
-    contracts.foreach(kv => assert(kv._1.lemma, s"Transformation contracts must be marked as lemmas"))
-    assert(rewrites.nonEmpty, s"Transformation requires at least one rewrited rule")
-    contracts.foreach { case (c, pos) =>
+    rules.foreach(kv => assert(!contractedSym.constr, s"Transformation symbol must not be marked as constructor"))
+    rules.foreach(kv => assert(kv._1.lemma, s"Transformation contracts must be marked as lemmas"))
+    rules.foreach { case (c, pos) =>
       assert(c.contractedTerm(pos).sym == contractedSym)
       assert(pos < c.conclusion.terms.size)
     }
+    assert(rewrites.nonEmpty, s"Transformation requires at least one rewrited rule")
     rewrites.foreach { r =>
       assert(
         r.pat.isInstanceOf[App] && r.pat.sym == contractedSym,
@@ -45,15 +48,19 @@ abstract class Transformation(val lang: Language) {
   }
 
   override def toString: String = {
-    val cs = contracts.map(kv => contractString(kv._1, kv._2))
+    val c = contractString(contract._1, contract._2)
+    val ls = lemmas.map(kv => contractString(kv._1, kv._2))
 
     s"""${contractedSym.sigString}
        |
-       |contracts
-       |${cs.mkString("\n\n")}
+       |contract
+       |$c
        |
        |rewritings
        |${rewrites.mkString("\n")}
+       |
+       |lemmas
+       |${ls.mkString("\n\n")}
        """.stripMargin
   }
 

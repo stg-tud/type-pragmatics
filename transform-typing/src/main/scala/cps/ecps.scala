@@ -17,7 +17,7 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
 
   private val omega = Var("omega", Typ)
 
-  override val contracts = ListMap(
+  override val contract =
     Lemma("T-ecps",
       Judg(Typed,
         ccps(Var("C", Ctx), omega),
@@ -27,7 +27,6 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
       // if ----------------
       Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
     ) -> 1
-  )
 
   val ecps_ref = Rewrite(
     ecps(

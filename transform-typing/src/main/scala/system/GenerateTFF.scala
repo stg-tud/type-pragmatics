@@ -136,9 +136,9 @@ object GenerateTFF {
   def compileTransformation(trans: Transformation, withContract: Boolean = true): Seq[TffAnnotated] = {
     val implicits = compileImplicitSymbols(trans.undeclaredSymbols)
     val sym = compileSymbolDeclaration(trans.contractedSym)
-    val contracts = if (withContract) trans.contracts.keys.map(compileRuleDecl(_)) else Seq()
+    val contractLemmas = if (withContract) trans.rules.keys.map(compileRuleDecl(_)) else Seq()
     val rewrites = compileRewrites(trans.rewrites)
-    implicits ++ Seq(sym) ++ contracts ++ rewrites
+    implicits ++ Seq(sym) ++ contractLemmas ++ rewrites
   }
 
 

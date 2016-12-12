@@ -14,14 +14,14 @@ object tcps extends Transformation(stlc.language) {
 
   private val omega = Var("omega", Typ)
 
-  override val contracts = ListMap(
+  override val contract =
     Lemma("TOk-tcps",
       Judg(TOk, App(tcps, Var("T", Typ), omega)),
       // if ----------------
       Judg(TOk, Var("T", Typ)),
       Judg(TOk, omega)
     ) -> 0
-  )
+
 
 
   val tcps_nat = Rewrite(

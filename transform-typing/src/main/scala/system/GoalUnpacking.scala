@@ -27,7 +27,7 @@ object GoalUnpacking {
   }
 
   def unpackJudg(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Seq[ProofObligation] = {
-    val rules = obl.lang.rules ++ obl.lang.transs.flatMap(_.contracts.keys) ++ obl.axioms
+    val rules = obl.lang.rules ++ obl.lang.transs.flatMap(_.rules.keys) ++ obl.axioms
     val filteredRules = rules.filter(rule => rule.conclusion.sym == judg.sym && !rule.lemma)
     val candidates = filteredRules.flatMap{ rule =>
       val freshRule = rule.fresh(obl.gensym)

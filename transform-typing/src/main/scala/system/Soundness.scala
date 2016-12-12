@@ -6,7 +6,7 @@ import system.Verification._
 object Soundness {
 
   def transSoundness(trans: Transformation): Seq[ProofObligation] =
-    trans.contracts.flatMap { case (contract, contractPos) =>
+    trans.rules.flatMap { case (contract, contractPos) =>
       trans.rewrites.zipWithIndex.map{ case (r, i) => rewriteSoundness(r, i, contract, contractPos, trans)(new Gensym) }
     }.toSeq
 

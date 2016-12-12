@@ -54,6 +54,17 @@ object Statics {
     Judg(TOk, Var("t2", Typ))
   )
 
+  val CtxOk = symbol("CtxOk", in = List(Ctx), out = Prop)
+  val CtxOk_Nat = rule("CtxOk-empty",
+    Judg(CtxOk, App(empty))
+    // if ----------------
+  )
+  val CtxOk_bind = rule("CtxOk-Arr",
+    Judg(CtxOk, bind(Var("C", Ctx), Var("x", Name), Var("T", Typ))),
+    // if ----------------
+    Judg(TOk, Var("T", Typ)),
+    Judg(CtxOk, Var("C", Ctx))
+  )
 
   val Typed = symbol("Typed", in = List(Ctx, Exp, Typ), out = Prop)
   val Typed_ref = rule("Typed-ref",
