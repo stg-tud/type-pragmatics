@@ -24,7 +24,7 @@ boxplot1topdf <- function(infile, xaxislab=NA, title="",
     boxplot(indata, data=indata, main=title,
             xlab=xlab, ylim=ylim, las=las,
             cex.main=fontsizem, cex.axis=fontsizex,
-            xaxt="n", ann=FALSE)
+            xaxt="n", ann=FALSE, outline=FALSE)
     if (identical(xaxislab,NA)) xaxislab <- colnames(indata)
     xaxisat=1:length(xaxislab)
     axis(1, at=xaxisat, labels=xaxislab, cex.axis=fontsizex, las=las)
@@ -193,7 +193,7 @@ for (t in c("10s", "30s", "60s", "120s")) {
 ### Boxplots for sixth paper graph (performance of all comp strategies, all provers and categories together)
 for (t in c("10s", "30s", "60s", "120s")) {
     boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                  las=2, fontsizex=1, fontsizel=1, mary=4, line=3)
+                  las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
 }
 
 
