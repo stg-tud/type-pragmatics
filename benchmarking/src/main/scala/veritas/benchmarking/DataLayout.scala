@@ -1,32 +1,18 @@
 package veritas.benchmarking
 
-import java.io.{PrintWriter, File}
-import java.util.NoSuchElementException
+import java.io.{File, PrintWriter}
+
 import info.folone.scala.poi._
 import info.folone.scala.poi.impure.load
 
+import scala.collection.mutable.ListBuffer
 import scala.reflect.NameTransformer
 import scala.util.matching.Regex
 
-
-/**
-  * Custom exception
-  * @param m message
-  */
 case class TransformationError(m: String) extends RuntimeException(m)
 
-/**
-  * Created by sylvia on 01/03/16.
-  *
-  * assumes that it receives two excel files:
-  * 1) raw data (base name)
-  * 2) overview data (base name)
-  *
-  */
-case class DataLayout(files: Seq[File], stimeout: String) {
-
+abstract class DataLayout(files: Seq[File], timeout: String) {
   type ConfigValue = Any
-
   trait ConfigOption extends Enumeration with Iterable[ConfigValue] {
     override def iterator = values.iterator
 
@@ -74,53 +60,6 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     val Selectusedfp = Value("selectusedfp")
     val Noinversion = Value("noinversion")
     val Noinversionselectusedfp = Value("noinversionselectusedfp")
-  }
-
-  //Parametric class for translating a given String to a Configuration value such as the ones above
-  case class ConfValueExtractor[E <: ConfigOption](val e: E) {
-
-    def extractConfVal(s: String): e.Value = {
-      try {
-        (for (v <- e.values if (v.toString == s)) yield v).head
-      } catch {
-        case e: NoSuchElementException => throw TransformationError(s"$s was not of type $e")
-        case e: Exception => throw e
-      }
-    }
-  }
-
-  private def makeProverStatus(s: String): ProverStatus = {
-    val stat = """([a-zA-Z]+)([\\(.+\\)]?)""".r.unanchored
-    s match {
-      case stat(ps, det) if (ps == "Proved") => Proved
-      case stat(ps, det) if (ps == "Disproved") => Disproved
-      case stat(ps, det) if (ps == "Inconclusive") => Inconclusive(det)
-    }
-  }
-
-  private def extractString[E <: ConfigOption](e: E, s: String) = ConfValueExtractor(e).extractConfVal(s)
-
-  private def getCell(row: Row, i: Int): String = row.cells.find(c => c.index == i).getOrElse(null) match {
-    case StringCell(i, s) => s
-    case NumericCell(i, n) => n.toString
-    case c => c.toString()
-  }
-
-  private def extractAtIndex[E <: ConfigOption](e: E, row: Row, i: Int) = extractString(e, getCell(row, i))
-
-  val sep = ","
-
-  private def escape(s: String, avoid: String, quote: String): String = {
-    if (!s.contains(avoid) && !s.contains("\n"))
-      s.trim
-    else
-      quote + s.trim.replace("\"", "\\\"").replace("\n", "\t\t") + quote
-  }
-
-  private def makeCSVcell(b: StringBuilder, s: String, end: Boolean = false) = {
-    b ++= escape(s, sep, "\"")
-    if (end) b ++= "\n"
-    else b ++= sep
   }
 
   trait CSVTransformable {
@@ -184,18 +123,37 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     }
   }
 
+  //Parametric class for translating a given String to a Configuration value such as the ones above
+  case class ConfValueExtractor[E <: ConfigOption](val e: E) {
 
-  val workbooks = for (f <- files) yield load(f.getAbsolutePath)
+    def extractConfVal(s: String): e.Value = {
+      try {
+        (for (v <- e.values if (v.toString == s)) yield v).head
+      } catch {
+        case e: NoSuchElementException => throw TransformationError(s"$s was not of type $e")
+        case e: Exception => throw e
+      }
+    }
+  }
 
-  val rawworkbook = workbooks.head
-  val overviewworkbook = workbooks.last
 
-  val rawMap: RawKey Map RawResult = extractRawMap()
+  protected def makeCSVcell(b: StringBuilder, s: String, end: Boolean = false) = {
+    b ++= escape(s, sep, "\"")
+    if (end) b ++= "\n"
+    else b ++= sep
+  }
 
-  val overviewMap: ConfKey Map OverviewResult = extractOverviewMap()
+  val sep = ","
 
-  def extractRawMap() = {
-    (for {sh <- rawworkbook.sheets
+  private def escape(s: String, avoid: String, quote: String): String = {
+    if (!s.contains(avoid) && !s.contains("\n"))
+      s.trim
+    else
+      quote + s.trim.replace("\"", "\\\"").replace("\n", "\t\t") + quote
+  }
+
+  def extractRawMap(workbook: Workbook) = {
+    (for {sh <- workbook.sheets
           row <- sh.rows if (row.index != 0)} yield {
       val pc = extractString(ProverConfEnum, sh.name)
       val gc = extractAtIndex(GoalCategoryEnum, row, 2)
@@ -212,8 +170,8 @@ case class DataLayout(files: Seq[File], stimeout: String) {
   }
 
 
-  def extractOverviewMap() = {
-    (for {sh <- overviewworkbook.sheets
+  def extractOverviewMap(workbook: Workbook) = {
+    (for {sh <- workbook.sheets
           row <- sh.rows if (row.index != 0)} yield {
       val pc = extractAtIndex(ProverConfEnum, row, 0)
       val gc = extractAtIndex(GoalCategoryEnum, row, 2)
@@ -230,35 +188,72 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     }).toMap
   }
 
-  class SingleCSVWrapper[K](value: K) extends CSVTransformable {
-    override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
-      makeCSVcell(b, value.toString, end)
+  private def makeProverStatus(s: String): ProverStatus = {
+    val stat = """([a-zA-Z]+)([\\(.+\\)]?)""".r.unanchored
+    s match {
+      case stat(ps, det) if (ps == "Proved") => Proved
+      case stat(ps, det) if (ps == "Disproved") => Disproved
+      case stat(ps, det) if (ps == "Inconclusive") => Inconclusive(det)
     }
   }
 
-  //keys of maps designate rows
-  private def makeCSVRowBased[K, V](dataMap: (K Map V), sortValues: ((K, V), (K, V)) => Boolean): String = {
-    val b = StringBuilder.newBuilder
-    val orderedMap = dataMap.toList.sortWith(sortValues)
+  private def extractString[E <: ConfigOption](e: E, s: String) = ConfValueExtractor(e).extractConfVal(s)
 
-    for ((k, v) <- orderedMap) {
-      val csvtransformablek =
-        if (k.isInstanceOf[CSVTransformable])
-          k.asInstanceOf[CSVTransformable]
-        else new SingleCSVWrapper[K](k)
-      val csvtransformablev =
-        if (v.isInstanceOf[CSVTransformable])
-          v.asInstanceOf[CSVTransformable]
-        else new SingleCSVWrapper[V](v)
-      csvtransformablek.getCSVcells(b)
-      csvtransformablev.getCSVcells(b, true)
+  private def getCell(row: Row, i: Int): String = row.cells.find(c => c.index == i).getOrElse(null) match {
+    case StringCell(i, s) => s
+    case NumericCell(i, n) => n.toString
+    case c => c.toString()
+  }
+
+  private def extractAtIndex[E <: ConfigOption](e: E, row: Row, i: Int) = extractString(e, getCell(row, i))
+
+  def filterProver[K <: Key, R <: Result](dataMap: K Map R, prover: List[ProverConfEnum.Value]): (K Map R) = {
+    for ((k, v) <- dataMap if (prover contains k.proverConf)) yield (k, v)
+  }
+
+  def filterGoalCategory[K <: Key, R <: Result](dataMap: K Map R, goalcats: List[GoalCategoryEnum.Value]): (K Map R) = {
+    for ((k, v) <- dataMap if (goalcats contains k.goalCategory)) yield (k, v)
+  }
+
+  def filterTypingConf[K <: Key, R <: Result](dataMap: K Map R, typingconf: List[TypingConfEnum.Value]): (K Map R) = {
+    for ((k, v) <- dataMap if (typingconf contains k.typingConf)) yield (k, v)
+  }
+
+  def filterVariableConf[K <: Key, R <: Result](dataMap: K Map R, variableconf: List[VariableConfEnum.Value]): (K Map R) = {
+    for ((k, v) <- dataMap if (variableconf contains k.variableConf)) yield (k, v)
+  }
+
+  def filterSimplConf[K <: Key, R <: Result](dataMap: K Map R, simplconf: List[SimplConfEnum.Value]): (K Map R) = {
+    for ((k, v) <- dataMap if (simplconf contains k.simplConf)) yield (k, v)
+  }
+
+  def filterSelectionConf[K <: Key, R <: Result](dataMap: K Map R, selectConf: List[SelectionConfEnum.Value]): (K Map R) = {
+    for ((k, v) <- dataMap if (selectConf contains k.selectConf)) yield (k, v)
+  }
+
+  protected def writeToFile(filepath: String, s: String) = {
+    val filehandler = new File(filepath)
+    if (!filehandler.getParentFile.exists())
+      filehandler.getParentFile.mkdirs()
+    filehandler.createNewFile()
+    new PrintWriter(filehandler) {
+      write(s);
+      close
     }
+  }
 
-    b.toString()
+  protected def layoutSuccessRateIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult) : String = {
+    val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
+      val succRateList = (for ((k, v) <- filteredoverview
+                               if (accessConfKey(k) == opt)) yield v.succrate).toList
+      (opt -> succRateList)
+    }).toMap
+
+    makeCSVColBased(intermediateMap, sortConfsFunction[confopt.Value])
   }
 
   //keys of maps designate columns
-  private def makeCSVColBased[K, V](dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
+  protected def makeCSVColBased[K, V](dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
     val b = StringBuilder.newBuilder
     val orderedkeys = dataMap.keys.toList.sortWith(lt)
     def maxvlength: Int = {
@@ -295,52 +290,68 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     b.toString()
   }
 
-  def filterProver[K <: Key, R <: Result](dataMap: K Map R, prover: List[ProverConfEnum.Value]): (K Map R) = {
-    for ((k, v) <- dataMap if (prover contains k.proverConf)) yield (k, v)
-  }
+  protected def sortConfsFunction[K] = (k1: K, k2: K) => k1.toString < k2.toString
 
-  def filterGoalCategory[K <: Key, R <: Result](dataMap: K Map R, goalcats: List[GoalCategoryEnum.Value]): (K Map R) = {
-    for ((k, v) <- dataMap if (goalcats contains k.goalCategory)) yield (k, v)
-  }
-
-  def filterTypingConf[K <: Key, R <: Result](dataMap: K Map R, typingconf: List[TypingConfEnum.Value]): (K Map R) = {
-    for ((k, v) <- dataMap if (typingconf contains k.typingConf)) yield (k, v)
-  }
-
-  def filterVariableConf[K <: Key, R <: Result](dataMap: K Map R, variableconf: List[VariableConfEnum.Value]): (K Map R) = {
-    for ((k, v) <- dataMap if (variableconf contains k.variableConf)) yield (k, v)
-  }
-
-  def filterSimplConf[K <: Key, R <: Result](dataMap: K Map R, simplconf: List[SimplConfEnum.Value]): (K Map R) = {
-    for ((k, v) <- dataMap if (simplconf contains k.simplConf)) yield (k, v)
-  }
-
-  def filterSelectionConf[K <: Key, R <: Result](dataMap: K Map R, selectConf: List[SelectionConfEnum.Value]): (K Map R) = {
-    for ((k, v) <- dataMap if (selectConf contains k.selectConf)) yield (k, v)
-  }
-
-  private def writeToFile(filepath: String, s: String) = {
-    val filehandler = new File(filepath)
-    if (!filehandler.getParentFile.exists())
-      filehandler.getParentFile.mkdirs()
-    filehandler.createNewFile()
-    new PrintWriter(filehandler) {
-      write(s);
-      close
+  class SingleCSVWrapper[K](value: K) extends CSVTransformable {
+    override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
+      makeCSVcell(b, value.toString, end)
     }
   }
 
-  def doSingle[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
-    val file = s"$filepath/$filename"
-    writeToFile(file, layoutfun(data))
-  }
-
-  def doForProvers[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
+  def doForProvers[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R)) = {
     for (prover <- proverlist) {
       val file = s"$filepath/${prover.toString}-$filename"
       val filteredoverview = filterProver(data, List(prover))
       writeToFile(file, layoutfun(filteredoverview))
     }
+  }
+
+  def doSingle[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R)) = {
+    val file = s"$filepath/$filename"
+    writeToFile(file, layoutfun(data))
+  }
+
+  def layoutAll(outputPath: String): Unit
+}
+
+/**
+  * Created by sylvia on 01/03/16.
+  *
+  * assumes that it receives two excel files:
+  * 1) raw data (base name)
+  * 2) overview data (base name)
+  *
+  */
+
+case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayout(files, stimeout) {
+  val workbooks = for (f <- files) yield load(f.getAbsolutePath)
+
+  val rawworkbook = workbooks.head
+  val overviewworkbook = workbooks.last
+
+  val rawMap: RawKey Map RawResult = extractRawMap(rawworkbook)
+
+  val overviewMap: ConfKey Map OverviewResult = extractOverviewMap(overviewworkbook)
+
+  //keys of maps designate rows
+  private def makeCSVRowBased[K, V](dataMap: (K Map V), sortValues: ((K, V), (K, V)) => Boolean): String = {
+    val b = StringBuilder.newBuilder
+    val orderedMap = dataMap.toList.sortWith(sortValues)
+
+    for ((k, v) <- orderedMap) {
+      val csvtransformablek =
+        if (k.isInstanceOf[CSVTransformable])
+          k.asInstanceOf[CSVTransformable]
+        else new SingleCSVWrapper[K](k)
+      val csvtransformablev =
+        if (v.isInstanceOf[CSVTransformable])
+          v.asInstanceOf[CSVTransformable]
+        else new SingleCSVWrapper[V](v)
+      csvtransformablek.getCSVcells(b)
+      csvtransformablev.getCSVcells(b, true)
+    }
+
+    b.toString()
   }
 
   def doForCategories[K <: Key, R <: Result](catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
@@ -373,19 +384,6 @@ case class DataLayout(files: Seq[File], stimeout: String) {
   def doForProversCategoriesMerge[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
     val filtereddata = filterGoalCategory(data, catlist)
     doForProvers(proverlist, filepath, filename, layoutfun, filtereddata)
-  }
-
-  private def sortConfsFunction[K] = (k1: K, k2: K) => k1.toString < k2.toString
-
-  private def layoutSuccessRateIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult) : String = {
-
-    val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
-      val succRateList = (for ((k, v) <- filteredoverview
-                               if (accessConfKey(k) == opt)) yield v.succrate).toList
-      (opt -> succRateList)
-    }).toMap
-
-    makeCSVColBased(intermediateMap, sortConfsFunction[confopt.Value])
   }
 
 
@@ -530,7 +528,6 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     doForallProvers(
       s"$outputPath/$stimeout/Graph4", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
 
-
     //layout for paper graph RQ5 (influence of simplifications, success rate per simplification alternative, all provers except princess, all categories)
     val filteroutgoodtyping = filterTypingConf(filterselectall, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
     val filteroutgoodinlining = filterVariableConf(filteroutgoodtyping, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
@@ -572,7 +569,155 @@ case class DataLayout(files: Seq[File], stimeout: String) {
     doSingle(s"$outputPath/AxiomSelection/$stimeout/AllGoodProvers", "selectionperformance_allgoodprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgoodprovers)
 
     //compare *each* combination of strategies (including axiom selection strategies)
-    doSingle(s"$outputPath/AxiomSelection/$stimeout/OverviewAll", "allstratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat)
+    doSingle(s"$outputPath/AxiomSelection/$stimeout/OverviewAll", "allstratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat, overviewMap)
 
+  }
+}
+
+case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends DataLayout(files, stimeout) {
+  val workbooks = for (f <- files) yield load(f.getAbsolutePath)
+
+  val overviews = Seq(workbooks(2), workbooks(3))
+  val raws = Seq(workbooks(0), workbooks(1))
+  val overviewMaps = overviews map extractOverviewMap _
+  val rawMaps = raws map extractRawMap _
+
+
+  def addOverviewResult(x: OverviewResult, y: OverviewResult): OverviewResult = {
+    OverviewResult(x.succnum + y.succnum, x.filenum + y.filenum, (x.succnum + y.succnum) / (x.filenum + y.filenum), (x.avgSuccTime + y.avgSuccTime) / 2, (x.avgDev + y.avgDev) / 2)
+  }
+
+  def addMapValues(maps: Seq[ConfKey Map OverviewResult]): ConfKey Map OverviewResult = {
+    val flattendMap = scala.collection.mutable.Map() ++ maps.head
+    for {
+      map <- maps.tail
+      (k, v) <- map
+    } {
+      flattendMap(k) = addOverviewResult(flattendMap(k), v)
+    }
+    Map.empty ++ flattendMap
+  }
+
+  case class MergedConfKey(val caseStudy: String,
+                           override val proverConf: ProverConfEnum.Value,
+                           override val goalCategory: GoalCategoryEnum.Value,
+                           override val typingConf: TypingConfEnum.Value,
+                           override val variableConf: VariableConfEnum.Value,
+                           override val simplConf: SimplConfEnum.Value,
+                           override val selectConf: SelectionConfEnum.Value)
+    extends Key(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf) {
+    override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
+      makeCSVcell(b, caseStudy)
+      super.getCSVcells(b, end)
+    }
+  }
+
+  def mergeMaps(maps: Seq[ConfKey Map OverviewResult]): MergedConfKey Map OverviewResult = {
+    val sqlMap = maps(0)
+    val qlMap = maps(1)
+    val mergedMap = scala.collection.mutable.Map[MergedConfKey, OverviewResult]()
+    def addElements(caseStudy: String, map: ConfKey Map OverviewResult): Unit = {
+      for ((k, v) <- map) {
+        val newKey = MergedConfKey(caseStudy,k.proverConf, k.goalCategory, k.typingConf, k.variableConf, k.simplConf, k.selectConf)
+        mergedMap(newKey) = v
+      }
+    }
+    addElements("SQL", sqlMap)
+    addElements("QL", qlMap)
+    Map.empty ++ mergedMap
+  }
+
+  private def layoutSuccessRateIndividualOptMerged[K <: ConfigOption](confopt: K)(accessConfKey: MergedConfKey => confopt.Value)(filteredoverview: MergedConfKey Map OverviewResult) : String = {
+    val casestudyList = ListBuffer[String]()
+    val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
+      val succRateList =
+        (for ((k, v) <- filteredoverview
+              if (accessConfKey(k) == opt)) yield {
+          if(confopt.toSeq.head == opt) {
+            casestudyList += k.caseStudy
+          }
+        v.succrate
+      }).toList
+
+      (opt -> succRateList)
+    }).toMap
+    makeCSVColBased(casestudyList.toSeq, intermediateMap, sortConfsFunction[confopt.Value])
+  }
+
+  protected def makeCSVColBased[K, V](casestudyList: Seq[String], dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
+    val b = StringBuilder.newBuilder
+    val orderedkeys = dataMap.keys.toList.sortWith(lt)
+    def maxvlength: Int = {
+      var max = 0
+      for (v <- dataMap.values)
+        if ((v.length) > max)
+          max = v.length
+      max
+    }
+
+    def makeCaseStudyRow(i: Int): Unit = {
+      if (casestudyList.isDefinedAt(i)) {
+        val csvtransformablev = new SingleCSVWrapper[String](casestudyList(i))
+        csvtransformablev.getCSVcells(b, false)
+      } else
+        makeCSVcell(b, "", false)
+    }
+
+    def makeRow(i: Int): Unit = {
+      for (k <- orderedkeys) {
+        val last = (k == orderedkeys.last)
+        if (dataMap(k).isDefinedAt(i)) {
+          val csvtransformablev = new SingleCSVWrapper[V](dataMap(k)(i))
+          csvtransformablev.getCSVcells(b, last)
+        } else //make an empty cell
+          makeCSVcell(b, "", last)
+      }
+    }
+
+    //make key row first
+    val csvtransformablek = new SingleCSVWrapper[String]("casestudy")
+    csvtransformablek.getCSVcells(b, false)
+    for (k <- orderedkeys) {
+      val csvtransformablek = new SingleCSVWrapper[K](k)
+      val last = (k == orderedkeys.last)
+      csvtransformablek.getCSVcells(b, last)
+    }
+
+    //attach value rows
+    for (i <- 0 until maxvlength) {
+      makeCaseStudyRow(i)
+      makeRow(i)
+    }
+
+    b.toString()
+  }
+
+  def layoutAll(outputPath: String): Unit = {
+    val filterselectall = overviewMaps map { filterSelectionConf(_, List(SelectionConfEnum.Selectall)) }
+    val addedfilterselectall = addMapValues(filterselectall)
+    val mergedfilterselectall = mergeMaps(filterselectall)
+
+    // RQ1 merged from QL and SQL
+    doForProvers(ProverConfEnum.iterator.toList,
+      s"$outputPath/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory), addedfilterselectall)
+    // RQ2 merged from QL and SQL but indicating to which case study values belong
+    doForProvers(ProverConfEnum.iterator.toList,
+      s"$outputPath/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOptMerged(TypingConfEnum)(k => k.typingConf), mergedfilterselectall)
+    // RQ3 merged from QL and SQL
+    doForProvers(ProverConfEnum.iterator.toList,
+      s"$outputPath/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf), addedfilterselectall)
+    // RQ4 merged from QL and SQL but indicating to which case study values belong
+    doForProvers(ProverConfEnum.iterator.toList,
+      s"$outputPath/$stimeout/Graph4", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOptMerged(SimplConfEnum)(k => k.simplConf), mergedfilterselectall)
+    // RQ5 merged from QL and SQL
+    val filteroutgoodtyping = filterTypingConf(addedfilterselectall, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
+    val filteroutgoodinlining = filterVariableConf(filteroutgoodtyping, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
+    val filtered = filterProver(filteroutgoodinlining, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
+    doSingle(s"$outputPath/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), addedfilterselectall)
+
+    // RQ: "Does axiom selection strategy improve success rate? Which one works best?"
+    val addedMaps = addMapValues(overviewMaps)
+    doForProvers(ProverConfEnum.iterator.toList,
+      s"$outputPath/AxiomSelection/PerProver/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), addedMaps)
   }
 }
