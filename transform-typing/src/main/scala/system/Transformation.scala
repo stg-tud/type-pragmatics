@@ -64,14 +64,16 @@ abstract class Transformation(val lang: Language) {
        """.stripMargin
   }
 
-  val verificationTimeout = 10
-
+  val soundnessTimeout = 10
+  val soundnessMode = "casc"
   lazy val soundnessObligations: Seq[Seq[ProofObligation]] = Soundness.transSoundness(this).map(GoalUnpacking.unpackObligation(_))
-  lazy val soundnessResults = soundnessObligations.map(_.map(Verification.verify(_, timeout = verificationTimeout)))
+  lazy val soundnessResults = soundnessObligations.map(_.map(Verification.verify(_, soundnessMode, soundnessTimeout)))
   lazy val isSound = soundnessResults.flatten.forall(_.status == Proved)
 
+  val wellformednessTimeout = 10
+  val wellformednessMode = "casc"
   lazy val wellformednessObligations: Seq[ProofObligation] = Wellformedness.wellformedTrans(this)
-  lazy val wellformednessResults = wellformednessObligations.map(Verification.verify(_, timeout = verificationTimeout))
+  lazy val wellformednessResults = wellformednessObligations.map(Verification.verify(_, wellformednessMode, wellformednessTimeout))
   lazy val isWellformed = wellformednessResults.forall(_.status == Proved)
 
   def apply(kids: Term*): App = App(contractedSym, kids.toList)

@@ -10,7 +10,8 @@ import scala.collection.immutable.ListMap
 
 object ecps extends Transformation(stlc.language + tcps + ccps) {
 
-  override val verificationTimeout: Int = 300
+  override val soundnessTimeout: Int = 300
+  override val wellformednessTimeout: Int = 40
 
   // CPS expression transformation ecps
   val ecps = Symbol("ecps", in = List(Exp, Typ, Ctx, Typ), out = Exp, constr = false)
@@ -25,7 +26,8 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
         Arr(Arr(tcps(Var("T", Typ), omega), omega), omega)
       ),
       // if ----------------
-      Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
+      Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ)),
+      Judg(TOk, omega)
     ) -> 1
 
   val ecps_ref = Rewrite(

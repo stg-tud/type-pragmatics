@@ -146,4 +146,9 @@ object Statics {
       Var("e", Exp),
       Var("T", Typ))
   ))
+  val Typed_TOk = rule(Lemma("Typed-TOk",
+    Judg(TOk, Var("T", Typ)),
+    // if ----------------
+    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
+  ))
 }

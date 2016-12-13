@@ -20,7 +20,7 @@ object Wellformedness {
 
     val premises = contract.contractedTerm(pos).matchAgainst(r.pat) match {
       case Left(s) =>
-        contract.premises.map(_.subst(s)) ++ r.where.map(_.subst(s))
+        contract.premises.map(_.subst(s)) ++ r.where
       case Right(msg) =>
         throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n$contract\nbecause $msg")
     }
