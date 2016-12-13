@@ -13,6 +13,7 @@ case class TransformationError(m: String) extends RuntimeException(m)
 
 abstract class DataLayout(files: Seq[File], timeout: String) {
   type ConfigValue = Any
+
   trait ConfigOption extends Enumeration with Iterable[ConfigValue] {
     override def iterator = values.iterator
 
@@ -242,7 +243,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     }
   }
 
-  protected def layoutSuccessRateIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult) : String = {
+  protected def layoutSuccessRateIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult): String = {
     val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
       val succRateList = (for ((k, v) <- filteredoverview
                                if (accessConfKey(k) == opt)) yield v.succrate).toList
@@ -256,6 +257,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
   protected def makeCSVColBased[K, V](dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
     val b = StringBuilder.newBuilder
     val orderedkeys = dataMap.keys.toList.sortWith(lt)
+
     def maxvlength: Int = {
       var max = 0
       for (v <- dataMap.values)
@@ -386,9 +388,9 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     doForProvers(proverlist, filepath, filename, layoutfun, filtereddata)
   }
 
-
-  private def layoutSuccessRateOfCompStrat(filteredoverview: ConfKey Map OverviewResult) : String = {
-    val groupedoverview = filteredoverview.groupBy[String](kr => createShortenedConfCell(kr._1))
+  // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
+  private def layoutSuccessRateOfCompStrat(axsel: Boolean)(filteredoverview: ConfKey Map OverviewResult): String = {
+    val groupedoverview = filteredoverview.groupBy[String](kr => createShortenedConfCell(kr._1, axsel))
     val intermediateMap: (String Map List[Double]) = for ((cnf, confmap) <- groupedoverview) yield
       cnf -> (confmap.toList map (kr => kr._2.succrate))
 
@@ -396,7 +398,7 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
   }
 
 
-  private def layoutAvgSuccessTimeIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: Key => confopt.Value)(filteredoverview: ConfKey Map OverviewResult) : String = {
+  private def layoutAvgSuccessTimeIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: Key => confopt.Value)(filteredoverview: ConfKey Map OverviewResult): String = {
 
     val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
       val avgSuccTimeList = (for ((k, v) <- filteredoverview
@@ -408,7 +410,8 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     makeCSVColBased(intermediateMap, sortConfsFunction[confopt.Value])
   }
 
-  private def createShortenedConfCell(ck: Key): String = {
+  // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
+  private def createShortenedConfCell(ck: Key, axsel: Boolean = true): String = {
     val typshort = ck.typingConf match {
       case TypingConfEnum.Barefof => "b"
       case TypingConfEnum.Tff => "t"
@@ -428,17 +431,19 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
       case SimplConfEnum.Patsimpl => "p"
     }
 
-    val selectshort = ck.selectConf match {
-      case SelectionConfEnum.Selectall => "a"
-      case SelectionConfEnum.Selectusedfp => "u"
-      case SelectionConfEnum.Noinversion => "ni"
-      case SelectionConfEnum.Noinversionselectusedfp => "niu"
-    }
+    val selectshort = if (axsel)
+      ck.selectConf match {
+        case SelectionConfEnum.Selectall => "a"
+        case SelectionConfEnum.Selectusedfp => "u"
+        case SelectionConfEnum.Noinversion => "ni"
+        case SelectionConfEnum.Noinversionselectusedfp => "niu"
+      }
+    else ""
 
     s"$typshort$varshort$simplshort$selectshort"
   }
 
-  private def layoutRawDetailedTime(filteredraw: (RawKey Map RawResult)) : String = {
+  private def layoutRawDetailedTime(filteredraw: (RawKey Map RawResult)): String = {
 
     //transform into triple with (filename, config, time)
     val intermediateList: Iterable[(String, String, Double)] = for ((k, v) <- filteredraw) yield {
@@ -449,7 +454,7 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
 
     //throw away parts of value that are not needed
     //yields shortconf -> List of provertimes (one for each file)
-    val intermediateMap: (String Map List[Double]) = for ((k,v) <- confgrouped) yield
+    val intermediateMap: (String Map List[Double]) = for ((k, v) <- confgrouped) yield
       (k -> (for (t <- v) yield t._3).toList)
 
 
@@ -457,12 +462,12 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
 
   }
 
-  private def layoutIndividualSuccessRates(filteredoverview: (ConfKey Map OverviewResult)) : String = {
+  private def layoutIndividualSuccessRates(filteredoverview: (ConfKey Map OverviewResult)): String = {
     val intermediateMap: (String Map Double) = for ((k, v) <- filteredoverview) yield {
       (createShortenedConfCell(k) -> v.succrate)
     }
 
-    makeCSVRowBased(intermediateMap, (p1 : (String, Double), p2: (String, Double)) => p1._2 > p2._2) //sort descending
+    makeCSVRowBased(intermediateMap, (p1: (String, Double), p2: (String, Double)) => p1._2 > p2._2) //sort descending
   }
 
 
@@ -490,7 +495,6 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_typingconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(TypingConfEnum)(k => k.typingConf), filterselectall)
     doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_variableconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(VariableConfEnum)(k => k.variableConf), filterselectall)
     doForallProversCategories(s"$outputPath/PerProverPerCategory/$stimeout/AvgSuccTime", "avgsuccesstime_per_simplificationconfiguration.csv", layoutAvgSuccessTimeIndividualOpt(SimplConfEnum)(k => k.simplConf), filterselectall)
-
 
 
     //TODO: is it sensible to compare encoding strategies *including* the axiom selection domain?
@@ -537,7 +541,7 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     //doForProvers(allpbutprincess, s"$outputPath/$stimeout/Graph5", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf))
 
     //layout for paper graph RQ6 (performance of all comp strategies for all provers and categories together)
-    doSingle(s"$outputPath/$stimeout/Graph6", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat, filterselectall)
+    doSingle(s"$outputPath/$stimeout/Graph6", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat(false), filterselectall)
 
     //second, use overviewmap everywhere to compare axiom selection strategies (ignoring the encoding dimensions)
     //Layouts for axiom selection study (new)
@@ -569,7 +573,7 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     doSingle(s"$outputPath/AxiomSelection/$stimeout/AllGoodProvers", "selectionperformance_allgoodprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), filteredgoodprovers)
 
     //compare *each* combination of strategies (including axiom selection strategies)
-    doSingle(s"$outputPath/AxiomSelection/$stimeout/OverviewAll", "allstratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat, overviewMap)
+    doSingle(s"$outputPath/AxiomSelection/$stimeout/OverviewAll", "allstratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat(true), overviewMap)
 
   }
 }
@@ -616,28 +620,30 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
     val sqlMap = maps(0)
     val qlMap = maps(1)
     val mergedMap = scala.collection.mutable.Map[MergedConfKey, OverviewResult]()
+
     def addElements(caseStudy: String, map: ConfKey Map OverviewResult): Unit = {
       for ((k, v) <- map) {
-        val newKey = MergedConfKey(caseStudy,k.proverConf, k.goalCategory, k.typingConf, k.variableConf, k.simplConf, k.selectConf)
+        val newKey = MergedConfKey(caseStudy, k.proverConf, k.goalCategory, k.typingConf, k.variableConf, k.simplConf, k.selectConf)
         mergedMap(newKey) = v
       }
     }
+
     addElements("SQL", sqlMap)
     addElements("QL", qlMap)
     Map.empty ++ mergedMap
   }
 
-  private def layoutSuccessRateIndividualOptMerged[K <: ConfigOption](confopt: K)(accessConfKey: MergedConfKey => confopt.Value)(filteredoverview: MergedConfKey Map OverviewResult) : String = {
+  private def layoutSuccessRateIndividualOptMerged[K <: ConfigOption](confopt: K)(accessConfKey: MergedConfKey => confopt.Value)(filteredoverview: MergedConfKey Map OverviewResult): String = {
     val casestudyList = ListBuffer[String]()
     val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
       val succRateList =
         (for ((k, v) <- filteredoverview
               if (accessConfKey(k) == opt)) yield {
-          if(confopt.toSeq.head == opt) {
+          if (confopt.toSeq.head == opt) {
             casestudyList += k.caseStudy
           }
-        v.succrate
-      }).toList
+          v.succrate
+        }).toList
 
       (opt -> succRateList)
     }).toMap
@@ -647,6 +653,7 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
   protected def makeCSVColBased[K, V](casestudyList: Seq[String], dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
     val b = StringBuilder.newBuilder
     val orderedkeys = dataMap.keys.toList.sortWith(lt)
+
     def maxvlength: Int = {
       var max = 0
       for (v <- dataMap.values)
@@ -693,7 +700,9 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
   }
 
   def layoutAll(outputPath: String): Unit = {
-    val filterselectall = overviewMaps map { filterSelectionConf(_, List(SelectionConfEnum.Selectall)) }
+    val filterselectall = overviewMaps map {
+      filterSelectionConf(_, List(SelectionConfEnum.Selectall))
+    }
     val addedfilterselectall = addMapValues(filterselectall)
     val mergedfilterselectall = mergeMaps(filterselectall)
 
