@@ -34,6 +34,34 @@ boxplot1topdf <- function(infile, xaxislab=NA, title="",
     dev.off()
 }
 
+mergedboxplot1topdf <- function(infile, xaxislab=NA, title="",
+                          xlab="", ylab="", ylim=c(0,100),
+                          fontsizex=2, fontsizel=2, fontsizem=2.5, las=1,
+                          mary=6, line=4.5) {
+    outfilesplit <- unlist(strsplit(infile, "[/]"))
+    filename <- tail(outfilesplit, 1) # assume that last element is filename
+    filenamenoending <- substr(filename,1,nchar(filename)-4)
+    prepath <- paste(outfilesplit[1:(length(outfilesplit)-1)], sep="/", collapse="/")
+    outputpath <- file.path(prepath, "graphs")
+    dir.create(outputpath, recursive=TRUE, showWarnings=FALSE)
+    fulloutputpath <- paste(outputpath, "/", filenamenoending, ".pdf", sep="")
+    indata <- read.csv(infile, header=TRUE, sep=",")
+    par(mar=c(5,mary,4,2) + 0.1)
+    pdf(fulloutputpath)
+    sqldata <- indata[indata$casestudy=="SQL", c('barefof', 'guardedfof', 'tff')]
+    qldata <- indata[indata$casestudy=="QL", c('barefof', 'guardedfof', 'tff')]
+    boxplot(indata[,-1], ylim=ylim, xlim = c(0.5, ncol(indata[,-1])+0.5), boxfill=rgb(1, 1, 1, alpha=1), border=rgb(1, 1, 1, alpha=1), yaxt="n", xaxt="n") #invisible boxes
+    boxplot(sqldata, ylim=ylim, las=las, xaxt = "n", add = TRUE, boxfill="white", boxwex=0.25, at = 1:ncol(indata[,-1]) - 0.15, yaxt="n") #shift these left by -0.15
+    boxplot(qldata, main=title, xlab=xlab, ylim=ylim, las=las, cex.main=fontsizem, cex.axis=fontsizex, xaxt = "n", add = TRUE, boxfill="grey", boxwex=0.25, at = 1:ncol(indata[,-1]) + 0.15) #shift these right by +0.15
+    if (identical(xaxislab,NA)) xaxislab <- colnames(indata)
+    xaxisat=1:length(xaxislab)
+    axis(1, at=xaxisat, labels=xaxislab, cex.axis=fontsizex, las=las)
+    title(ylab=ylab, cex.lab = fontsizel, line=line)
+    # las=1: horizontal (normal) label orientation x axis
+    # las=2: vertical label orientation x-axis
+    dev.off()
+}
+
 barplot1topdf <- function(infile, title="", xlab="", ylab="", ylim=c(0,100), fontsizex=1, las=1) {
     outfilesplit <- unlist(strsplit(infile, "[/]"))
     filename <- tail(outfilesplit, 1) # assume that last element is filename
