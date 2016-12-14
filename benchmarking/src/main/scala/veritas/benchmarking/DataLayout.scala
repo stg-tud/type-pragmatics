@@ -588,7 +588,7 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
 
 
   def addOverviewResult(x: OverviewResult, y: OverviewResult): OverviewResult = {
-    OverviewResult(x.succnum + y.succnum, x.filenum + y.filenum, (x.succnum + y.succnum) / (x.filenum + y.filenum), (x.avgSuccTime + y.avgSuccTime) / 2, (x.avgDev + y.avgDev) / 2)
+    OverviewResult(x.succnum + y.succnum, x.filenum + y.filenum, (x.succrate + y.succrate) / 2, (x.avgSuccTime + y.avgSuccTime) / 2, (x.avgDev + y.avgDev) / 2)
   }
 
   def addMapValues(maps: Seq[ConfKey Map OverviewResult]): ConfKey Map OverviewResult = {
