@@ -48,11 +48,11 @@ mergedboxplot1topdf <- function(infile, xaxislab=NA, title="",
     indata <- read.csv(infile, header=TRUE, sep=",")
     par(mar=c(5,mary,4,2) + 0.1)
     pdf(fulloutputpath)
-    sqldata <- indata[indata$casestudy=="SQL", c('barefof', 'guardedfof', 'tff')]
-    qldata <- indata[indata$casestudy=="QL", c('barefof', 'guardedfof', 'tff')]
+    sqldata <- indata[indata$casestudy=="SQL", -1]
+    qldata <- indata[indata$casestudy=="QL", -1]
     boxplot(indata[,-1], ylim=ylim, xlim = c(0.5, ncol(indata[,-1])+0.5), boxfill=rgb(1, 1, 1, alpha=1), border=rgb(1, 1, 1, alpha=1), yaxt="n", xaxt="n") #invisible boxes
-    boxplot(sqldata, ylim=ylim, las=las, xaxt = "n", add = TRUE, boxfill="white", boxwex=0.25, at = 1:ncol(indata[,-1]) - 0.15, yaxt="n") #shift these left by -0.15
-    boxplot(qldata, main=title, xlab=xlab, ylim=ylim, las=las, cex.main=fontsizem, cex.axis=fontsizex, xaxt = "n", add = TRUE, boxfill="grey", boxwex=0.25, at = 1:ncol(indata[,-1]) + 0.15) #shift these right by +0.15
+    boxplot(sqldata, ylim=ylim, las=las, xaxt = "n", add = TRUE, boxfill="white", boxwex=0.25, at = 1:ncol(indata[,-1]) - 0.15, yaxt="n", outline=FALSE) #shift these left by -0.15
+    boxplot(qldata, main=title, xlab=xlab, ylim=ylim, las=las, cex.main=fontsizem, cex.axis=fontsizex, xaxt = "n", add = TRUE, boxfill="grey", boxwex=0.25, at = 1:ncol(indata[,-1]) + 0.15, outline=FALSE) #shift these right by +0.15
     if (identical(xaxislab,NA)) xaxislab <- colnames(indata)
     xaxisat=1:length(xaxislab)
     axis(1, at=xaxisat, labels=xaxislab, cex.axis=fontsizex, las=las)
@@ -92,7 +92,6 @@ layoutpath <- args[1]
 
 ### Complete boxplots for getting an overview of the data
 for (t in c(10, 30, 60, 120)) {
-
     # graphs for comparing encoding strategies only, with axiom selection strategy = selectall
     listSuccRatePerProver <- list.files(paste(layoutpath, "/PerProver/", t, "s/", "SuccRate", sep=""), pattern="*.csv", full.names=TRUE)
     listAvgSuccTimePerProver <- list.files(paste(layoutpath, "/PerProver/", t, "s/", "AvgSuccTime", sep=""), pattern="*.csv", full.names=TRUE)
@@ -176,16 +175,29 @@ for (t in c("10s", "30s", "60s", "120s")) {
                   title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("cex", "ex", "ver", "syn", "test"))
 }
 
+
+
 ### Boxplots for second paper graph (sorting alternatives overview all categories), for all different timeouts
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/eprover-successrate_per_typingconfiguration.csv", sep=""),
-                  title="Eprover", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/princess-successrate_per_typingconfiguration.csv", sep=""),
-                  title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", sep=""),
-                  title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", sep=""),
-                  title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+    if (args[1] == "Merged") {
+        mergedboxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/eprover-successrate_per_typingconfiguration.csv", sep=""),
+                      title="Eprover", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+        mergedboxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/princess-successrate_per_typingconfiguration.csv", sep=""),
+                      title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+        mergedboxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", sep=""),
+                      title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+        mergedboxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", sep=""),
+                      title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+    } else {
+         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/eprover-successrate_per_typingconfiguration.csv", sep=""),
+                       title="Eprover", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/princess-successrate_per_typingconfiguration.csv", sep=""),
+                       title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/vampire-3.0-successrate_per_typingconfiguration.csv", sep=""),
+                       title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph2/vampire-4.0-successrate_per_typingconfiguration.csv", sep=""),
+                       title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("b", "g", "t"))
+    }
 }
 
 ### Boxplots for third paper graph (variable alternatives overview, counterexample and synthesis), for all different timeouts
@@ -202,14 +214,25 @@ for (t in c("10s", "30s", "60s", "120s")) {
 
 ### Boxplots for fourth paper graph (simplification alternatives overview), for all different timeouts
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/eprover-successrate_per_simplificationconfiguration.csv", sep=""),
-                  title="Eprover", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/princess-successrate_per_simplificationconfiguration.csv", sep=""),
-                  title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/vampire-3.0-successrate_per_simplificationconfiguration.csv", sep=""),
-                  title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/vampire-4.0-successrate_per_simplificationconfiguration.csv", sep=""),
-                  title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+    if (args[1] == "Merged") {
+        mergedboxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/eprover-successrate_per_simplificationconfiguration.csv", sep=""),
+                                        title="Eprover", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+        mergedboxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/princess-successrate_per_simplificationconfiguration.csv", sep=""),
+                                        title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+        mergedboxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/vampire-3.0-successrate_per_simplificationconfiguration.csv", sep=""),
+                                        title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+        mergedboxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/vampire-4.0-successrate_per_simplificationconfiguration.csv", sep=""),
+                                        title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+    } else {
+        boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/eprover-successrate_per_simplificationconfiguration.csv", sep=""),
+                                        title="Eprover", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+        boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/princess-successrate_per_simplificationconfiguration.csv", sep=""),
+                                        title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+        boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/vampire-3.0-successrate_per_simplificationconfiguration.csv", sep=""),
+                                        title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+        boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph4/vampire-4.0-successrate_per_simplificationconfiguration.csv", sep=""),
+                                        title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("l", "n", "p"))
+    }
 }
 
 ### Boxplots for fifth paper graph (simplification alternatives, timeout-wise, all categories and all provers)
@@ -220,21 +243,22 @@ for (t in c("10s", "30s", "60s", "120s")) {
 
 ### Boxplots for sixth paper graph (performance of all comp strategies, all provers and categories together)
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                  las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
+    if (args[1] == "Merged") {
+        boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/sql_stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
+                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
+        boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/ql_stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
+                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
+    } else {
+        boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
+                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
+    }
 }
 
 
 ### Overview of all individual combinations (like graph for RQ6, but including all axiom selection strategies)
 for (t in c("10s", "30s", "60s", "120s")) {
-    boxplot1topdf(paste(layoutpath, "/", "AxiomSelection/", t, "/OverviewAll/allstratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                  las=2, fontsizex=0.3, fontsizel=1, mary=4, line=3)
+    if (args[1] != "Merged") {
+        boxplot1topdf(paste(layoutpath, "/", "AxiomSelection/", t, "/OverviewAll/allstratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
+                      las=2, fontsizex=0.3, fontsizel=1, mary=4, line=3)
+    }
 }
-
-
-
-
-
-
-
-
