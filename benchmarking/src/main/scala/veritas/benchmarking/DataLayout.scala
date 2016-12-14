@@ -347,13 +347,15 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     for (prover <- proverlist) {
       val file = s"$filepath/${prover.toString}-$filename"
       val filteredoverview = filterProver(data, List(prover))
-      writeToFile(file, layoutfun(filteredoverview))
+      val layouted = layoutfun(filteredoverview)
+      if (!layouted.isEmpty) writeToFile(file, layouted)
     }
   }
 
   def doSingle[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R)) = {
     val file = s"$filepath/$filename"
-    writeToFile(file, layoutfun(data))
+    val layouted = layoutfun(data)
+    if (!layouted.isEmpty) writeToFile(file, layouted)
   }
 
   def layoutAll(outputPath: String): Unit
@@ -403,7 +405,8 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     for (cat <- catlist) {
       val file = s"$filepath/${cat.toString}-$filename"
       val filteredoverview = filterGoalCategory(data, List(cat))
-      writeToFile(file, layoutfun(filteredoverview))
+      val layouted = layoutfun(filteredoverview)
+      if (!layouted.isEmpty) writeToFile(file, layouted)
     }
   }
 
@@ -418,7 +421,8 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
          cat <- catlist} {
       val file = s"$filepath/${prover.toString}-${cat.toString}-$filename"
       val filteredoverview = filterGoalCategory(filterProver(data, List(prover)), List(cat))
-      writeToFile(file, layoutfun(filteredoverview))
+      val layouted = layoutfun(filteredoverview)
+      if (!layouted.isEmpty) writeToFile(file, layouted)
     }
   }
 
@@ -464,9 +468,9 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
 
   }
 
-  private def layoutIndividualSuccessRates(filteredoverview: (ConfKey Map OverviewResult)): String = {
+  private def layoutIndividualSuccessRates(axsel: Boolean)(filteredoverview: (ConfKey Map OverviewResult)): String = {
     val intermediateMap: (String Map Double) = for ((k, v) <- filteredoverview) yield {
-      (createShortenedConfCell(k) -> v.succrate)
+      (createShortenedConfCell(k, axsel) -> v.succrate)
     }
 
     makeCSVRowBased(intermediateMap, (p1: (String, Double), p2: (String, Double)) => p1._2 > p2._2) //sort descending
@@ -505,13 +509,13 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     //doForallProversCategories(s"$outputPath/DetailedOverviewPerCat/$stimeout", "time_per_file.csv", layoutRawDetailedTime, rawMap)
 
     //Detailed layout (based on overview data): success rates per individual conf combination in each category
-    //doForallProversCategories(s"$outputPath/IndividualConfSuccessRatesPerCat/$stimeout", "individual_conf_succ_rate.csv", layoutIndividualSuccessRates)
+    doForallProversCategories(s"$outputPath/IndividualConfSuccessRatesPerCat/$stimeout", "individual_conf_succ_rate.csv", layoutIndividualSuccessRates(false), filterselectall)
 
     //Success rates for individual combinations
     //doSingle(s"$outputPath/PerCompStrat/$stimeout", "stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat) //all provers and all categories together
-    //doForallProvers(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
-    //doForallCategories(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
-    //doForallProversCategories(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat)
+    doForallProvers(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat(false), filterselectall)
+    doForallCategories(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat(false), filterselectall)
+    doForallProversCategories(s"$outputPath/PerCompStrat/$stimeout", "stratperformance.csv", layoutSuccessRateOfCompStrat(false), filterselectall)
 
 
     //val allpbutprincess = List(ProverConfEnum.Vampire_4, ProverConfEnum.Vampire_3, ProverConfEnum.Eprover)
