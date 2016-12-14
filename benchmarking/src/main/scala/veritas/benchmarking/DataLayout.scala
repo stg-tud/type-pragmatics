@@ -253,6 +253,49 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     makeCSVColBased(intermediateMap, sortConfsFunction[confopt.Value])
   }
 
+  // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
+  protected def layoutSuccessRateOfCompStrat(axsel: Boolean)(filteredoverview: ConfKey Map OverviewResult): String = {
+    val groupedoverview = filteredoverview.groupBy[String](kr => createShortenedConfCell(kr._1, axsel))
+    val intermediateMap: (String Map List[Double]) = for ((cnf, confmap) <- groupedoverview) yield
+      cnf -> (confmap.toList map (kr => kr._2.succrate))
+
+    makeCSVColBased(intermediateMap, sortConfsFunction[String])
+  }
+
+  // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
+  protected def createShortenedConfCell(ck: Key, axsel: Boolean = true): String = {
+    val typshort = ck.typingConf match {
+      case TypingConfEnum.Barefof => "b"
+      case TypingConfEnum.Tff => "t"
+      case TypingConfEnum.Guardedfof => "g"
+    }
+
+    val varshort = ck.variableConf match {
+      case VariableConfEnum.Inlievery => "in"
+      case VariableConfEnum.Nameevery => "ne"
+      case VariableConfEnum.Namparres => "np"
+      case VariableConfEnum.Unchanged => "u"
+    }
+
+    val simplshort = ck.simplConf match {
+      case SimplConfEnum.Nonsimpl => "n"
+      case SimplConfEnum.Logsimpl => "l"
+      case SimplConfEnum.Patsimpl => "p"
+    }
+
+    val selectshort = if (axsel)
+      ck.selectConf match {
+        case SelectionConfEnum.Selectall => "a"
+        case SelectionConfEnum.Selectusedfp => "u"
+        case SelectionConfEnum.Noinversion => "ni"
+        case SelectionConfEnum.Noinversionselectusedfp => "niu"
+      }
+    else ""
+
+    s"$typshort$varshort$simplshort$selectshort"
+  }
+
+
   //keys of maps designate columns
   protected def makeCSVColBased[K, V](dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
     val b = StringBuilder.newBuilder
@@ -388,15 +431,6 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     doForProvers(proverlist, filepath, filename, layoutfun, filtereddata)
   }
 
-  // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
-  private def layoutSuccessRateOfCompStrat(axsel: Boolean)(filteredoverview: ConfKey Map OverviewResult): String = {
-    val groupedoverview = filteredoverview.groupBy[String](kr => createShortenedConfCell(kr._1, axsel))
-    val intermediateMap: (String Map List[Double]) = for ((cnf, confmap) <- groupedoverview) yield
-      cnf -> (confmap.toList map (kr => kr._2.succrate))
-
-    makeCSVColBased(intermediateMap, sortConfsFunction[String])
-  }
-
 
   private def layoutAvgSuccessTimeIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: Key => confopt.Value)(filteredoverview: ConfKey Map OverviewResult): String = {
 
@@ -410,38 +444,6 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     makeCSVColBased(intermediateMap, sortConfsFunction[confopt.Value])
   }
 
-  // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
-  private def createShortenedConfCell(ck: Key, axsel: Boolean = true): String = {
-    val typshort = ck.typingConf match {
-      case TypingConfEnum.Barefof => "b"
-      case TypingConfEnum.Tff => "t"
-      case TypingConfEnum.Guardedfof => "g"
-    }
-
-    val varshort = ck.variableConf match {
-      case VariableConfEnum.Inlievery => "in"
-      case VariableConfEnum.Nameevery => "ne"
-      case VariableConfEnum.Namparres => "np"
-      case VariableConfEnum.Unchanged => "u"
-    }
-
-    val simplshort = ck.simplConf match {
-      case SimplConfEnum.Nonsimpl => "n"
-      case SimplConfEnum.Logsimpl => "l"
-      case SimplConfEnum.Patsimpl => "p"
-    }
-
-    val selectshort = if (axsel)
-      ck.selectConf match {
-        case SelectionConfEnum.Selectall => "a"
-        case SelectionConfEnum.Selectusedfp => "u"
-        case SelectionConfEnum.Noinversion => "ni"
-        case SelectionConfEnum.Noinversionselectusedfp => "niu"
-      }
-    else ""
-
-    s"$typshort$varshort$simplshort$selectshort"
-  }
 
   private def layoutRawDetailedTime(filteredraw: (RawKey Map RawResult)): String = {
 
@@ -647,10 +649,10 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
 
       (opt -> succRateList)
     }).toMap
-    makeCSVColBased(casestudyList.toSeq, intermediateMap, sortConfsFunction[confopt.Value])
+    makeCSVColBasedMerged(casestudyList.toSeq, intermediateMap, sortConfsFunction[confopt.Value])
   }
 
-  protected def makeCSVColBased[K, V](casestudyList: Seq[String], dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
+  protected def makeCSVColBasedMerged[K, V](casestudyList: Seq[String], dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
     val b = StringBuilder.newBuilder
     val orderedkeys = dataMap.keys.toList.sortWith(lt)
 
@@ -723,6 +725,12 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
     val filteroutgoodinlining = filterVariableConf(filteroutgoodtyping, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
     val filtered = filterProver(filteroutgoodinlining, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
     doSingle(s"$outputPath/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), addedfilterselectall)
+
+    //layout for paper graph RQ6 (performance of all comp strategies for all provers and categories together)
+    val filterselectallsql = filterselectall(0)
+    val filterselectallql = filterselectall(1)
+    doSingle(s"$outputPath/$stimeout/Graph6", "sql_stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat(false), filterselectallsql)
+    doSingle(s"$outputPath/$stimeout/Graph6", "ql_stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat(false), filterselectallql)
 
     // RQ: "Does axiom selection strategy improve success rate? Which one works best?"
     val addedMaps = addMapValues(overviewMaps)
