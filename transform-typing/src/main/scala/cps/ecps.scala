@@ -10,7 +10,7 @@ import scala.collection.immutable.ListMap
 
 object ecps extends Transformation(stlc.language + tcps + ccps) {
 
-  override val soundnessTimeout: Int = 300
+  override val soundnessTimeout: Int = 600
   override val wellformednessTimeout: Int = 40
 
   // CPS expression transformation ecps

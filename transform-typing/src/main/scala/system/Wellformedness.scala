@@ -9,6 +9,8 @@ object Wellformedness {
 
   type FormednessCheck = Seq[Judg]
 
+  // TODO contract and lemmas need to be checked for well-formedness too, since they can call transformations
+
   def wellformedTrans(trans: Transformation): Seq[ProofObligation] =
     trans.rewrites.zipWithIndex.flatMap{ case (r, i) => wellformedRewrite(r, i, trans)(new Gensym) }
 

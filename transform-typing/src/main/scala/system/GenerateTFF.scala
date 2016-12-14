@@ -55,7 +55,7 @@ object GenerateTFF {
     val name = rule.name
     val pre = Parenthesized(And(rule.premises.map(compileJudg(_))))
     val con = compileJudg(rule.conclusion)
-    val body = Parenthesized(Impl(pre, con))
+    val body = if (fof.True == pre) con else Parenthesized(Impl(pre, con))
     val vars = rule.freevars
     if (vars.isEmpty)
       (name, body)
