@@ -709,26 +709,27 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
     val filterselectall = overviewMaps map {
       filterSelectionConf(_, List(SelectionConfEnum.Selectall))
     }
-    val addedfilterselectall = addMapValues(filterselectall)
+    //val addedfilterselectall = addMapValues(filterselectall) //this computes the average success rates of QL/SQL for the same compilation strategy (not what we want)
+
     val mergedfilterselectall = mergeMaps(filterselectall)
 
     // RQ1 merged from QL and SQL
     doForProvers(ProverConfEnum.iterator.toList,
-      s"$outputPath/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOpt(GoalCategoryEnum)(k => k.goalCategory), addedfilterselectall)
+      s"$outputPath/$stimeout/Graph1", "successrate_per_goalcategory.csv", layoutSuccessRateIndividualOptMerged(GoalCategoryEnum)(k => k.goalCategory), mergedfilterselectall)
     // RQ2 merged from QL and SQL but indicating to which case study values belong
     doForProvers(ProverConfEnum.iterator.toList,
       s"$outputPath/$stimeout/Graph2", "successrate_per_typingconfiguration.csv", layoutSuccessRateIndividualOptMerged(TypingConfEnum)(k => k.typingConf), mergedfilterselectall)
     // RQ3 merged from QL and SQL
     doForProvers(ProverConfEnum.iterator.toList,
-      s"$outputPath/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOpt(VariableConfEnum)(k => k.variableConf), addedfilterselectall)
+      s"$outputPath/$stimeout/Graph3", "successrate_per_variableconfiguration.csv", layoutSuccessRateIndividualOptMerged(VariableConfEnum)(k => k.variableConf), mergedfilterselectall)
     // RQ4 merged from QL and SQL but indicating to which case study values belong
     doForProvers(ProverConfEnum.iterator.toList,
       s"$outputPath/$stimeout/Graph4", "successrate_per_simplificationconfiguration.csv", layoutSuccessRateIndividualOptMerged(SimplConfEnum)(k => k.simplConf), mergedfilterselectall)
     // RQ5 merged from QL and SQL
-    val filteroutgoodtyping = filterTypingConf(addedfilterselectall, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
+    val filteroutgoodtyping = filterTypingConf(mergedfilterselectall, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
     val filteroutgoodinlining = filterVariableConf(filteroutgoodtyping, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
     val filtered = filterProver(filteroutgoodinlining, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
-    doSingle(s"$outputPath/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOpt(SimplConfEnum)(k => k.simplConf), addedfilterselectall)
+    doSingle(s"$outputPath/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOptMerged(SimplConfEnum)(k => k.simplConf), mergedfilterselectall)
 
     //layout for paper graph RQ6 (performance of all comp strategies for all provers and categories together)
     val filterselectallsql = filterselectall(0)
@@ -737,8 +738,9 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
     doSingle(s"$outputPath/$stimeout/Graph6", "ql_stratperformance_allprovers_allcategories.csv", layoutSuccessRateOfCompStrat(false), filterselectallql)
 
     // RQ: "Does axiom selection strategy improve success rate? Which one works best?"
-    val addedMaps = addMapValues(overviewMaps)
+    //val addedMaps = addMapValues(overviewMaps)
+    val mergedMaps = mergeMaps(overviewMaps)
     doForProvers(ProverConfEnum.iterator.toList,
-      s"$outputPath/AxiomSelection/PerProver/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOpt(SelectionConfEnum)(k => k.selectConf), addedMaps)
+      s"$outputPath/AxiomSelection/PerProver/$stimeout/SuccRate", "successrate_per_axiomselectionconfiguration.csv", layoutSuccessRateIndividualOptMerged(SelectionConfEnum)(k => k.selectConf), mergedMaps)
   }
 }

@@ -3,6 +3,17 @@ library(ggplot2)
 library(pryr)
 
 ### Create various boxplots: ####
+### Parse command line arguments
+# expected 1 argument: folder with layouted .csv files
+# for merged SQL/QL results: expects "Merged" as parameter (should also be folder name of merged SQL/QL results)
+args <- commandArgs(trailingOnly = TRUE)
+
+# test if there is at least one argument: if not, return an error
+if (length(args)==0) {
+  stop("At least one argument must be supplied (folder with layouted .csv files)", call.=FALSE)
+}
+
+layoutpath <- args[1]
 
 # returns string w/o leading or trailing whitespace (from Stackoverflow)
 trim <- function (x) gsub("^\\s+|\\s+$", "", x)
@@ -19,6 +30,9 @@ boxplot1topdf <- function(infile, xaxislab=NA, title="",
     dir.create(outputpath, recursive=TRUE, showWarnings=FALSE)
     fulloutputpath <- paste(outputpath, "/", filenamenoending, ".pdf", sep="")
     indata <- read.csv(infile, header=TRUE, sep=",")
+    if (args[1] == "Merged") {
+        indata <- indata[,-c(1)] #deletes first column
+    }
     pdf(fulloutputpath)
     par(mar=c(5,mary,4,2) + 0.1)
     boxplot(indata, data=indata, main=title,
@@ -84,17 +98,6 @@ barplot1topdf <- function(infile, title="", xlab="", ylab="", ylim=c(0,100), fon
     # las=2: vertical label orientation x-axis
     dev.off()
 }
-
-### Parse command line arguments
-# expected 1 argument: folder with layouted .csv files
-args <- commandArgs(trailingOnly = TRUE)
-
-# test if there is at least one argument: if not, return an error
-if (length(args)==0) {
-  stop("At least one argument must be supplied (folder with layouted .csv files)", call.=FALSE)
-}
-
-layoutpath <- args[1]
 
 ### Complete boxplots for getting an overview of the data
 for (t in c(10, 30, 60, 120)) {
