@@ -46,17 +46,23 @@ mergedboxplot1topdf <- function(infile, xaxislab=NA, title="",
     dir.create(outputpath, recursive=TRUE, showWarnings=FALSE)
     fulloutputpath <- paste(outputpath, "/", filenamenoending, ".pdf", sep="")
     indata <- read.csv(infile, header=TRUE, sep=",")
-    par(mar=c(5,mary,4,2) + 0.1)
     pdf(fulloutputpath)
     sqldata <- indata[indata$casestudy=="SQL", -1]
     qldata <- indata[indata$casestudy=="QL", -1]
-    boxplot(indata[,-1], ylim=ylim, xlim = c(0.5, ncol(indata[,-1])+0.5), boxfill=rgb(1, 1, 1, alpha=1), border=rgb(1, 1, 1, alpha=1), yaxt="n", xaxt="n") #invisible boxes
-    boxplot(sqldata, ylim=ylim, las=las, xaxt = "n", add = TRUE, boxfill="white", boxwex=0.25, at = 1:ncol(indata[,-1]) - 0.15, yaxt="n", outline=FALSE) #shift these left by -0.15
-    boxplot(qldata, main=title, xlab=xlab, ylim=ylim, las=las, cex.main=fontsizem, cex.axis=fontsizex, xaxt = "n", add = TRUE, boxfill="grey", boxwex=0.25, at = 1:ncol(indata[,-1]) + 0.15, outline=FALSE) #shift these right by +0.15
+    par(mar=c(5,mary,4,2) + 0.1)
+    boxplot(indata[,-1], ylim=ylim, xlim = c(0.5, ncol(indata[,-1])+0.5),
+        boxfill=rgb(1, 1, 1, alpha=1), border=rgb(1, 1, 1, alpha=1),
+        yaxt="n", xaxt="n") #invisible boxes
+    boxplot(sqldata, ylim=ylim, las=las, xaxt = "n", add = TRUE,
+        boxfill="white", boxwex=0.25, at = 1:ncol(indata[,-1]) - 0.15,
+        yaxt="n", outline=FALSE) #shift these left by -0.15
+    boxplot(qldata, main=title, ylim=ylim, las=las, cex.main=fontsizem,
+        cex.axis=fontsizex, xaxt = "n", add = TRUE, boxfill="grey", boxwex=0.25,
+        at = 1:ncol(indata[,-1]) + 0.15, outline=FALSE) #shift these right by +0.15
     if (identical(xaxislab,NA)) xaxislab <- colnames(indata)
     xaxisat=1:length(xaxislab)
     axis(1, at=xaxisat, labels=xaxislab, cex.axis=fontsizex, las=las)
-    title(ylab=ylab, cex.lab = fontsizel, line=line)
+    title(ylab=ylab, cex.lab=fontsizel, line=line)
     # las=1: horizontal (normal) label orientation x axis
     # las=2: vertical label orientation x-axis
     dev.off()
@@ -245,9 +251,9 @@ for (t in c("10s", "30s", "60s", "120s")) {
 for (t in c("10s", "30s", "60s", "120s")) {
     if (args[1] == "Merged") {
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/sql_stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
+                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="SQL")
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/ql_stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
+                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="QL")
     } else {
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
                       las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
