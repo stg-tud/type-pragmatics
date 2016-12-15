@@ -104,23 +104,30 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     }
   }
 
-  abstract class Result extends CSVTransformable
+  // valid: Result is valid (not valid is for example eprover for typed logic, since eprover simply does not support typed logic)
+  abstract class Result(valid: Boolean) extends CSVTransformable {
+    def isValid: Boolean = valid
+  }
 
-  case class OverviewResult(succnum: Int, filenum: Int, succrate: Double, avgSuccTime: Double, avgDev: Double) extends Result {
+  val NAString = "NA"
+
+
+  case class OverviewResult(succnum: Int, filenum: Int, succrate: Double, avgSuccTime: Double, avgDev: Double, valid: Boolean = true) extends Result(valid) {
     override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
-      makeCSVcell(b, succnum.toString)
-      makeCSVcell(b, filenum.toString)
-      makeCSVcell(b, succrate.toString)
-      makeCSVcell(b, avgSuccTime.toString, end)
-      makeCSVcell(b, avgDev.toString)
+      makeCSVcell(b, if (valid) succnum.toString else NAString)
+      makeCSVcell(b, if (valid) filenum.toString else NAString)
+      makeCSVcell(b, if (valid) succrate.toString else NAString)
+      makeCSVcell(b, if (valid) avgSuccTime.toString else NAString, end)
+      makeCSVcell(b, if (valid) avgDev.toString else NAString)
     }
   }
 
-  case class RawResult(provertime: Double, status: ProverStatus, details: String) extends Result {
+
+  case class RawResult(provertime: Double, status: ProverStatus, details: String, valid: Boolean = true) extends Result(valid) {
     override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
-      makeCSVcell(b, provertime.toString)
-      makeCSVcell(b, status.toString)
-      makeCSVcell(b, details)
+      makeCSVcell(b, if (valid) provertime.toString else NAString)
+      makeCSVcell(b, if (valid) status.toString else NAString)
+      makeCSVcell(b, if (valid) details else NAString)
     }
   }
 
@@ -153,6 +160,8 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
       quote + s.trim.replace("\"", "\\\"").replace("\n", "\t\t") + quote
   }
 
+  def invalidResult(k: Key): Boolean = k.proverConf == ProverConfEnum.Eprover && k.typingConf == TypingConfEnum.Tff
+
   def extractRawMap(workbook: Workbook) = {
     (for {sh <- workbook.sheets
           row <- sh.rows if (row.index != 0)} yield {
@@ -166,7 +175,11 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
       val pt = getCell(row, 8).toDouble
       val stat = makeProverStatus(getCell(row, 9))
       val det = getCell(row, 10)
-      RawKey(pc, gc, tc, vc, sc, selc, filename) -> RawResult(pt, stat, det)
+      val rk = RawKey(pc, gc, tc, vc, sc, selc, filename)
+      if (invalidResult(rk))
+        rk -> RawResult(pt, stat, det, false)
+      else
+        rk -> RawResult(pt, stat, det)
     }).toMap
   }
 
@@ -185,7 +198,11 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
       val succrate = getCell(row, 9).toDouble
       val avgsucctime = getCell(row, 10).toDouble
       val avgdev = getCell(row, 11).toDouble
-      ConfKey(pc, gc, tc, vc, sc, selc) -> OverviewResult(succnum, filenum, succrate, avgsucctime, avgdev)
+      val ck = ConfKey(pc, gc, tc, vc, sc, selc)
+      if (invalidResult(ck))
+        ck -> OverviewResult(succnum, filenum, succrate, avgsucctime, avgdev, false)
+      else
+        ck -> OverviewResult(succnum, filenum, succrate, avgsucctime, avgdev)
     }).toMap
   }
 
@@ -244,9 +261,10 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
   }
 
   protected def layoutSuccessRateIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult): String = {
-    val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
+    val intermediateMap: (confopt.Value Map List[String]) = (for (opt <- confopt.iterator) yield {
       val succRateList = (for ((k, v) <- filteredoverview
-                               if (accessConfKey(k) == opt)) yield v.succrate).toList
+                               if (accessConfKey(k) == opt)) yield
+        if (v.isValid) v.succrate.toString else NAString).toList
       (opt -> succRateList)
     }).toMap
 
@@ -256,8 +274,8 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
   // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
   protected def layoutSuccessRateOfCompStrat(axsel: Boolean)(filteredoverview: ConfKey Map OverviewResult): String = {
     val groupedoverview = filteredoverview.groupBy[String](kr => createShortenedConfCell(kr._1, axsel))
-    val intermediateMap: (String Map List[Double]) = for ((cnf, confmap) <- groupedoverview) yield
-      cnf -> (confmap.toList map (kr => kr._2.succrate))
+    val intermediateMap: (String Map List[String]) = for ((cnf, confmap) <- groupedoverview) yield
+      cnf -> (confmap.toList map (kr => if(kr._2.isValid) kr._2.succrate.toString else NAString))
 
     makeCSVColBased(intermediateMap, sortConfsFunction[String])
   }
@@ -438,9 +456,10 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
 
   private def layoutAvgSuccessTimeIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: Key => confopt.Value)(filteredoverview: ConfKey Map OverviewResult): String = {
 
-    val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
+    val intermediateMap: (confopt.Value Map List[String]) = (for (opt <- confopt.iterator) yield {
       val avgSuccTimeList = (for ((k, v) <- filteredoverview
-                                  if (accessConfKey(k) == opt)) yield v.avgSuccTime).toList
+                                  if (accessConfKey(k) == opt)) yield
+        if (v.isValid) v.avgSuccTime.toString else NAString).toList
       val filterzeroes = avgSuccTimeList filter (p => p != 0.0)
       (opt -> filterzeroes)
     }).toMap
@@ -452,15 +471,15 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
   private def layoutRawDetailedTime(filteredraw: (RawKey Map RawResult)): String = {
 
     //transform into triple with (filename, config, time)
-    val intermediateList: Iterable[(String, String, Double)] = for ((k, v) <- filteredraw) yield {
-      (k.filename, createShortenedConfCell(k), v.provertime)
+    val intermediateList: Iterable[(String, String, String)] = for ((k, v) <- filteredraw) yield {
+      (k.filename, createShortenedConfCell(k), if (v.isValid) v.provertime.toString else NAString)
     }
 
     val confgrouped = intermediateList.groupBy(_._2) //group by configuration shorthand
 
     //throw away parts of value that are not needed
     //yields shortconf -> List of provertimes (one for each file)
-    val intermediateMap: (String Map List[Double]) = for ((k, v) <- confgrouped) yield
+    val intermediateMap: (String Map List[String]) = for ((k, v) <- confgrouped) yield
       (k -> (for (t <- v) yield t._3).toList)
 
 
@@ -469,11 +488,11 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
   }
 
   private def layoutIndividualSuccessRates(axsel: Boolean)(filteredoverview: (ConfKey Map OverviewResult)): String = {
-    val intermediateMap: (String Map Double) = for ((k, v) <- filteredoverview) yield {
-      (createShortenedConfCell(k, axsel) -> v.succrate)
+    val intermediateMap: (String Map String) = for ((k, v) <- filteredoverview) yield {
+      (createShortenedConfCell(k, axsel) -> (if (v.isValid) v.succrate.toString else NAString))
     }
 
-    makeCSVRowBased(intermediateMap, (p1: (String, Double), p2: (String, Double)) => p1._2 > p2._2) //sort descending
+    makeCSVRowBased(intermediateMap, (p1: (String, String), p2: (String, String)) => p1._2.length >= p2._2.length && p2._2 < p1._2) //sort descending //TODO this is maybe not correct with the strings
   }
 
 
@@ -641,14 +660,14 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
 
   private def layoutSuccessRateIndividualOptMerged[K <: ConfigOption](confopt: K)(accessConfKey: MergedConfKey => confopt.Value)(filteredoverview: MergedConfKey Map OverviewResult): String = {
     val casestudyList = ListBuffer[String]()
-    val intermediateMap: (confopt.Value Map List[Double]) = (for (opt <- confopt.iterator) yield {
+    val intermediateMap: (confopt.Value Map List[String]) = (for (opt <- confopt.iterator) yield {
       val succRateList =
         (for ((k, v) <- filteredoverview
               if (accessConfKey(k) == opt)) yield {
           if (confopt.toSeq.head == opt) {
             casestudyList += k.caseStudy
           }
-          v.succrate
+          if (v.isValid) v.succrate.toString else NAString
         }).toList
 
       (opt -> succRateList)
