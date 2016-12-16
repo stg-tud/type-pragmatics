@@ -748,7 +748,7 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
     val filteroutgoodtyping = filterTypingConf(mergedfilterselectall, List(TypingConfEnum.Barefof, TypingConfEnum.Tff))
     val filteroutgoodinlining = filterVariableConf(filteroutgoodtyping, List(VariableConfEnum.Inlievery, VariableConfEnum.Unchanged))
     val filtered = filterProver(filteroutgoodinlining, List(ProverConfEnum.Vampire_3, ProverConfEnum.Vampire_4, ProverConfEnum.Eprover))
-    doSingle(s"$outputPath/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOptMerged(SimplConfEnum)(k => k.simplConf), mergedfilterselectall)
+    doSingle(s"$outputPath/$stimeout/Graph5", "simplificationperformance_allprovers_allcategories.csv", layoutSuccessRateIndividualOptMerged(SimplConfEnum)(k => k.simplConf), filtered)
 
     //layout for paper graph RQ6 (performance of all comp strategies for all provers and categories together)
     val filterselectallsql = filterselectall(0)
