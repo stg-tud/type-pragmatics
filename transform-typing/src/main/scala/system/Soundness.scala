@@ -15,7 +15,7 @@ object Soundness {
     val freshContract = contract.fresh
 
     freshContract.contractedTerm(contractPos).matchAgainst(r.pat) match {
-      case Left(s) =>
+      case (s, diff) if diff.isEmpty =>
         val (ihs, opaques, wellformednessAssumptions) = deriveIHs(r.gen, r, freshContract, contractPos, isContract)
         val sopaques = s.mapValues(_.subst(opaques)) ++ (opaques -- s.keys)
 
@@ -28,7 +28,7 @@ object Soundness {
 
         val wellformednessRules =
           if (isContract)
-            wellformednessAssumptions.zipWithIndex.map { case (wf, i) => Rule(s"${r.sym}-$rnum-wellformedness-$i", wf)}
+            wellformednessAssumptions.zipWithIndex.map { case (wf, i) => Lemma(s"${r.sym}-$rnum-wellformedness-$i", wf)}
           else
             Seq()
 
@@ -42,8 +42,8 @@ object Soundness {
           premises ++ where,
           goals = Seq(goal),
           gensym)
-      case Right(msg) =>
-        throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n${freshContract}\nbecause $msg")
+      case m =>
+        throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n${freshContract}\nbecause ${matchDiffMsg(m)}")
     }
   }
 
@@ -69,7 +69,7 @@ object Soundness {
 
   def deriveIH(recApp: Term, r: Rewrite, num: Int, contract: Rule, contractPos: Int, isContract: Boolean)(implicit gensym: Gensym): Option[(Rule, Seq[Judg])] = {
     contract.contractedTerm(contractPos).matchAgainst(recApp) match {
-      case Left(s) =>
+      case (s, diff) if diff.isEmpty =>
         val premises = contract.premises.map(_.subst(s))
         val rule = Rule(contract.name + s"-IH-$num",
           contract.conclusion.updated(contractPos, recApp).subst(s),
@@ -79,8 +79,8 @@ object Soundness {
           lemma = true
         )
         Some(rule -> premises)
-      case Right(msg) =>
-        print(s"WARNING could not generate IH for recursive call $recApp of $r")
+      case m =>
+        print(s"WARNING could not generate IH for recursive call $recApp of $r, because ${matchDiffMsg(m)}")
         None
     }
   }

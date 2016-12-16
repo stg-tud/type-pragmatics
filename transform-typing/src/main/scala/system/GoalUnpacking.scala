@@ -4,6 +4,7 @@ import system.Syntax._
 import system.Verification.ProofObligation
 
 import scala.collection.mutable
+import scala.util.Try
 
 object GoalUnpacking {
 
@@ -34,17 +35,70 @@ object GoalUnpacking {
       try { Some(freshRule -> freshRule.conclusion.matchTerm(judg)) }
       catch { case _: MatchError => None }
     }
-    if (candidates.size == 0 || candidates.size > 1)
-      Seq(nextObligation(judg, obl))
-    else {
+
+    if (candidates.size == 0) {
+      if (judg.sym.isEq && judg.terms(0) == judg.terms(1))
+        // terms are syntactically equal => equality always holds
+        Seq()
+      else if (judg.sym.isEq && Try(judg.terms(0).unify(judg.terms(1))).isFailure)
+        // terms are not unifiable => equality never holds
+        Seq(nextObligation(Judg(FALSE), obl))
+      else if (judg.sym.isNeq && judg.terms(0) == judg.terms(1))
+        // terms are syntactically equal => inequality never holds
+        Seq(nextObligation(Judg(FALSE), obl))
+      else if (judg.sym.isNeq && Try(judg.terms(0).unify(judg.terms(1))).isFailure)
+        // terms are not unifiable => inequality always holds
+        Seq()
+      else
+        // no candidate rule found
+        Seq(nextObligation(judg, obl))
+    }
+    else if (candidates.size == 1) {
+      // exactly one candidate rule found, applying it
       val (rule, (s, eqs)) = candidates.head
-      val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1.subst(s), t2) }
+      val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1, t2) }
       val eqObls = eqGoals.map(nextObligation(_, obl))
       val premiseGoals = rule.premises.map(_.subst(s))
       val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl))
       val obls = mergeExistentialObligations(judg, eqObls ++ premiseObls)
       obls
     }
+    else if (candidates.exists(c => !c._2._1.isEmpty && c._2._2.forall{case (l,r) => !App.isFun(l) && !App.isFun(r)})) {
+      /*
+       * Multiple candidate rules found, but all of them are perfect matches
+       * without matching differences `_._2._2`. This means that we are not
+       * wildly guessing, but explore alternatives that must be considered
+       * anyways.
+       */
+      var alternatives = Seq[Seq[ProofObligation]]()
+      for ((rule, (s, eqs)) <- candidates) yield {
+        val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1, t2) }
+        val eqObls = eqGoals.flatMap(unpackJudg(_, obl))
+        val premiseGoals = rule.premises.map(_.subst(s))
+        val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl))
+        val obls = eqObls ++ premiseObls
+
+        if (obls.isEmpty)
+          // all premises discharged, meaning we just proved `judj`
+          return Seq()
+        else if (obls.exists(_.goals.exists(_.sym == FALSE))) {
+          // skip this alternative since one of its goals is FALSE
+        }
+        else
+          alternatives :+= obls
+      }
+
+      if (alternatives.isEmpty)
+        Seq(nextObligation(Judg(FALSE), obl))
+      else if (alternatives.size == 1)
+        alternatives.head
+      else
+        Seq(nextObligation(judg, obl))
+    }
+    else
+      // multiple candidate rules found
+      Seq(nextObligation(judg, obl))
+
   }
 
   /*

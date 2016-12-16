@@ -43,11 +43,19 @@ object Syntax {
 
   def equ(sort: ISort): Symbol = Symbol("eq"+sort.name, in = List(sort, sort), out = Prop)
   def neq(sort: ISort): Symbol = Symbol("neq"+sort.name, in = List(sort, sort), out = Prop)
+  val FALSE = Symbol("FALSE", in = List(), out = Prop)
 
   type Subst = Map[Var, Term]
   type Diff = Seq[(Term, Term)]
   type Match = (Subst, Diff)
   type Error = String
+
+  def matchProp(m: Match): Match = {
+    val (s, eqs) = m
+    val substedEqs = eqs.map(kv => (kv._1.subst(s, capturing = true), kv._2))
+    (s, substedEqs)
+  }
+  def matchDiffMsg(m: Match) = s"Could not match the following pairs\n  ${m._2.mkString("\n  ")}"
 
   sealed trait Term {
     val sort: ISort
@@ -64,17 +72,11 @@ object Syntax {
 
     def occurs(v: Var): Boolean
 
-    def unify(t: Term): Either[Subst, Error] = unify(t, Map())
-    def unify(t: Term, s: Subst): Either[Subst, Error]
+    def unify(t: Term): Match = unify(t, (Map(), Seq()))
+    def unify(t: Term, s: Match): Match
 
-    def matchAgainst(t: Term): Either[Subst, Error] = {
-      val m = matchAgainst(t, (Map(), Seq()))
-      if (m._2.isEmpty)
-        Left(m._1)
-      else
-        Right(s"Could not match the following pairs\n  ${m._2.mkString("\n  ")}")
-    }
-    def matchTerm(t: Term): Match = matchAgainst(t, (Map(), Seq()))
+    def matchAgainst(t: Term): Match = matchProp(matchAgainst(t, (Map(), Seq())))
+    def matchTerm(t: Term): Match = matchProp(matchAgainst(t, (Map(), Seq())))
     def matchAgainst(t: Term, m: Match): Match
 
     def findAll(p: Term => Boolean): Seq[Term]
@@ -95,20 +97,26 @@ object Syntax {
 
     override def occurs(v: Var): Boolean = this == v
 
-    override def unify(t: Term, s: Subst): Either[Subst, Error] = s.get(this) match{
-      case Some(t2) => t2.unify(t, s)
+    override def unify(t: Term, m: Match): Match = m._1.get(this) match{
+      case Some(t2) => t2.unify(t, m)
       case None =>
-        val tt = t.subst(s)
-        if (tt.occurs(this))
-          Right(s"Occurs check failed, $this occurs in $tt")
+        val tt = t.subst(m._1)
+        if (tt == this)
+          m
+        else if (tt.occurs(this))
+          throw new MatchError(s"Occurs check failed, $this occurs in $tt")
         else {
           val news = Map(this -> tt)
-          Left(s.mapValues(_.subst(news)) ++ news)
+          (m._1.mapValues(_.subst(news)) ++ news, m._2)
         }
     }
 
     override def matchAgainst(t: Term, m: Match): Match = m._1.get(this) match {
-      case Some(t2) => t2.matchAgainst(t, m)
+      case Some(t2) =>
+        if (t == t2)
+          m
+        else
+          (m._1, m._2 :+ (t, t2))
       case None if t == this => m
       case None => (m._1 + (this -> t), m._2)
     }
@@ -147,17 +155,19 @@ object Syntax {
 
     override def occurs(v: Var): Boolean = kids.exists(_.occurs(v))
 
-    override def unify(t: Term, s: Subst): Either[Subst, Error] = t match {
-      case v: Var => t.unify(this, s)
-      case App(`sym`, tkids) =>
-        kids.zip(tkids).foldLeft[Either[Subst, Error]](Left(s)){
-          case (err@Right(_), _) => err
-          case (Left(s), (t1, t2)) => t1.unify(t2, s)
+    override def unify(t: Term, m: Match): Match = t match {
+      case v: Var => t.unify(this, m)
+      case App(`sym`, tkids) if sym.constr =>
+        kids.zip(tkids).foldLeft(m){
+          case (m, (t1, t2)) => t1.unify(t2, m)
         }
-      case _ => Right(s"Could not unify $this with $t")
+      case App(sym2, _) if sym.constr && sym2.constr =>
+        throw new MatchError(s"Cannot unify $this with $t")
+      case _ => (m._1, m._2 :+ (this, t))
     }
 
     override def matchAgainst(t: Term, m: Match): Match = t match {
+        // TODO only match constructor syms and selected function syms (for deriving soundness goal)
       case App(`sym`, tkids) =>
         kids.zip(tkids).foldLeft[Match](m){
           case (m, (t1, t2)) => t1.matchAgainst(t2, m)
@@ -176,6 +186,7 @@ object Syntax {
   object App {
     def apply(sym: Symbol, kids: Term*): App = App(sym, kids.toList)
     def apply(trans: Transformation, kids: Term*): App = App(trans.contractedSym, kids.toList)
+    def isFun(t: Term) = t.isInstanceOf[App] && !t.asInstanceOf[App].sym.constr
   }
 
   case class Judg(sym: Symbol, terms: List[Term]) {
@@ -199,7 +210,7 @@ object Syntax {
 
     def symbols: Set[Symbol] = terms.foldLeft(Set[Symbol]())((set, t) => set ++ t.symbols) + sym
 
-    def matchTerm(t: Judg): Match = matchAgainst(t, (Map(), Seq()))
+    def matchTerm(t: Judg): Match = matchProp(matchAgainst(t, (Map(), Seq())))
     def matchAgainst(j: Judg, m: Match): Match = j match {
       case Judg(`sym`, jterms) =>
         terms.zip(jterms).foldLeft[Match](m){

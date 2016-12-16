@@ -7,7 +7,7 @@ import scala.collection.immutable.ListMap
 
 object Wellformedness {
 
-  type FormednessCheck = Seq[Judg]
+  type FormednessCheck = (Symbol, Seq[Judg])
 
   // TODO contract and lemmas need to be checked for well-formedness too, since they can call transformations
 
@@ -21,17 +21,18 @@ object Wellformedness {
     val checks = wellformedTerm(r.gen, otherContracts :+ (contract, pos))
 
     val premises = contract.contractedTerm(pos).matchAgainst(r.pat) match {
-      case Left(s) =>
+      case (s, diff) if diff.isEmpty =>
         contract.premises.map(_.subst(s)) ++ r.where
-      case Right(msg) =>
-        throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n$contract\nbecause $msg")
+      case m =>
+        throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n$contract\nbecause ${matchDiffMsg(m)}")
     }
     val premiseVars = premises.flatMap(_.freevars).toSet
 
-    checks.zipWithIndex.map { case (check, i) =>
+    for (symChecks <- checks.groupBy(_._1).values.toSeq;
+         ((sym, check), i) <- symChecks.zipWithIndex) yield {
       val checkVars = check.flatMap(_.freevars).toSet
       val existentials = checkVars.diff(r.boundVars).diff(premiseVars)
-      ProofObligation(s"wf-${trans.contractedSym}-$rnum-$i", trans.lang, Seq(), existentials, Seq(), trans, premises, check, gensym)
+      ProofObligation(s"wf-${trans.contractedSym}-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), trans, premises, check, gensym)
     }
   }
 
@@ -50,15 +51,15 @@ object Wellformedness {
     if (contract.premises.isEmpty)
       return None
     contract.contractedTerm(pos).matchAgainst(app) match {
-      case Left(s) =>
+      case (s, diff) if diff.isEmpty =>
         val vars = contract.premises.flatMap(_.freevars).toSet
         val freeVars = vars.diff(s.keys.toSet)
         val freshFreeVars = freeVars.map(v => v -> gensym.freshVar(v.name, v.sort)).toMap
         val s2 = s ++ freshFreeVars
         val goals = contract.premises.map(_.subst(s2))
-        Some(goals)
-      case Right(msg) =>
-        print(s"WARNING could not generate well-formedness check for recursive call $app")
+        Some((contract.contractedTerm(pos).sym, goals))
+      case m =>
+        print(s"WARNING could not generate well-formedness check for recursive call $app because ${matchDiffMsg(m)}")
         None
     }
   }

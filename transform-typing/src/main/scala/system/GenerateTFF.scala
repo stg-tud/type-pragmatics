@@ -46,6 +46,7 @@ object GenerateTFF {
   def compileJudg(judg: Judg): FofUnitary = judg.sym match {
     case sym if sym.isEq => fof.Eq(compileTerm(judg.terms(0)), compileTerm(judg.terms(1)))
     case sym if sym.isNeq => fof.NeqEq(compileTerm(judg.terms(0)), compileTerm(judg.terms(1)))
+    case sym if sym == FALSE => fof.False
     case _ =>
       val kids = judg.terms.map(compileTerm(_))
       Appl(UntypedFunSymbol(judg.sym.name), kids)

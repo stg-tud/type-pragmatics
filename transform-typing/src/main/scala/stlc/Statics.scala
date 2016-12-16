@@ -91,7 +91,8 @@ object Statics {
     Judg(Typed,
       bind(Var("C", Ctx), Var("x", Name), Var("T1", Typ)),
       Var("e", Exp),
-      Var("T2", Typ))
+      Var("T2", Typ)),
+    Judg(TOk, Var("T1", Typ))
   )
   val Typed_app = rule("Typed-app",
     Judg(Typed, Var("C", Ctx), app(Var("e1", Exp), Var("e2", Exp)), Var("T2", Typ)),
@@ -145,10 +146,5 @@ object Statics {
         Var("x", Name), Var("Tx", Typ)),
       Var("e", Exp),
       Var("T", Typ))
-  ))
-  val Typed_TOk = rule(Lemma("Typed-TOk",
-    Judg(TOk, Var("T", Typ)),
-    // if ----------------
-    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
   ))
 }
