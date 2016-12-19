@@ -63,7 +63,7 @@ mergedboxplot1topdf <- function(infile, xaxislab=NA, title="",
     pdf(fulloutputpath)
     sqldata <- indata[indata$casestudy=="SQL", -1]
     qldata <- indata[indata$casestudy=="QL", -1]
-    par(mar=c(5,mary,4,2) + 0.1)
+    par(mar=c(5,mary,4,2) + 0.1) #has to be directly before boxplot!
     boxplot(indata[,-1], ylim=ylim, xlim = c(0.5, ncol(indata[,-1])+0.5),
         boxfill=rgb(1, 1, 1, alpha=1), border=rgb(1, 1, 1, alpha=1),
         yaxt="n", xaxt="n") #invisible boxes
