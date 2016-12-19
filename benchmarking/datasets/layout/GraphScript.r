@@ -262,7 +262,18 @@ for (t in c("10s", "30s", "60s", "120s")) {
                       las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
     }
 }
+## Boxplots (axiomselection alternatives, for all timeouts)
+for (t in c("10s", "30s", "60s", "120s")) {
+        boxplot1topdf(paste(layoutpath, "/", "AxiomSelection/PerProver", "/", t, "/", "SuccRate", "/", "eprover-successrate_per_axiomselectionconfiguration.csv", sep=""),
+                                        title="Eprover", ylab="Success rate (%)", xaxislab=c("n", "nfp", "a", "nfp"))
+        boxplot1topdf(paste(layoutpath, "/", "AxiomSelection/PerProver", "/", t, "/", "SuccRate", "/", "princess-successrate_per_axiomselectionconfiguration.csv", sep=""),
+                                        title="Princess CASC version", ylab="Success rate (%)", xaxislab=c("n", "nfp", "a", "nfp"))
+        boxplot1topdf(paste(layoutpath, "/", "AxiomSelection/PerProver", "/", t, "/", "SuccRate", "/", "vampire-3.0-successrate_per_axiomselectionconfiguration.csv", sep=""),
+                                        title="Vampire 3.0", ylab="Success rate (%)", xaxislab=c("n", "nfp", "a", "nfp"))
+        boxplot1topdf(paste(layoutpath, "/", "AxiomSelection/PerProver", "/", t, "/", "SuccRate", "/", "vampire-4.0-successrate_per_axiomselectionconfiguration.csv", sep=""),
+                                        title="Vampire 4.0", ylab="Success rate (%)", xaxislab=c("n", "nfp", "a", "nfp"))
 
+}
 
 ### Overview of all individual combinations (like graph for RQ6, but including all axiom selection strategies)
 for (t in c("10s", "30s", "60s", "120s")) {
