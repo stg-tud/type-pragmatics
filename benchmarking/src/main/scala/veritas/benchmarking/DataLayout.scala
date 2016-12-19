@@ -14,13 +14,23 @@ case class TransformationError(m: String) extends RuntimeException(m)
 abstract class DataLayout(files: Seq[File], timeout: String) {
   type ConfigValue = Any
 
+
   trait ConfigOption extends Enumeration with Iterable[ConfigValue] {
     override def iterator = values.iterator
 
     override def toString =
       ((getClass.getName stripSuffix NameTransformer.MODULE_SUFFIX_STRING split '.').last split
         Regex.quote(NameTransformer.NAME_JOIN_STRING)).last
+
+    //sorting of a ConfigOption (converted to a string) - default: alphabetically
+    //individual ConfigOption can override either value order to specify a manual order, or sort
+    val order: Seq[Value] = iterator.toSeq
+
+    def isSmaller: (this.Value, this.Value) => Boolean = (s1, s2) => order.indexOf(s1) < order.indexOf(s2)
   }
+
+  //default sorting function
+  //protected def sortConfsFunction[K] = (k1: K, k2: K) => k1.toString < k2.toString
 
   object ProverConfEnum extends ConfigOption {
     val Vampire_3 = Value("vampire-3.0")
@@ -41,6 +51,8 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     val Barefof = Value("barefof")
     val Guardedfof = Value("guardedfof")
     val Tff = Value("tff")
+
+    override val order = Seq(Tff, Guardedfof, Barefof)
   }
 
   object VariableConfEnum extends ConfigOption {
@@ -48,12 +60,16 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     val Inlievery = Value("inlievery")
     val Nameevery = Value("nameevery")
     val Namparres = Value("namparres")
+
+    override val order = Seq(Unchanged, Inlievery, Nameevery, Namparres)
   }
 
   object SimplConfEnum extends ConfigOption {
     val Nonsimpl = Value("nonsimpl")
     val Logsimpl = Value("logsimpl")
     val Patsimpl = Value("patsimpl")
+
+    override val order = Seq(Nonsimpl, Logsimpl, Patsimpl)
   }
 
   object SelectionConfEnum extends ConfigOption {
@@ -61,18 +77,46 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     val Selectusedfp = Value("selectusedfp")
     val Noinversion = Value("noinversion")
     val Noinversionselectusedfp = Value("noinversionselectusedfp")
+
+    override val order = Seq(Selectall, Noinversion, Selectusedfp, Noinversionselectusedfp)
   }
 
   trait CSVTransformable {
     def getCSVcells(b: StringBuilder, end: Boolean = false)
   }
 
-  abstract class Key(val proverConf: ProverConfEnum.Value,
-                     val goalCategory: GoalCategoryEnum.Value,
-                     val typingConf: TypingConfEnum.Value,
+  abstract class Key(val typingConf: TypingConfEnum.Value,
                      val variableConf: VariableConfEnum.Value,
                      val simplConf: SimplConfEnum.Value,
-                     val selectConf: SelectionConfEnum.Value) extends CSVTransformable {
+                     val selectConf: SelectionConfEnum.Value)
+
+  //this class is used in immediate representations, which group individual data points by a configuration
+  //offers comparability method for configurations
+  case class CommonConfKey(override val typingConf: TypingConfEnum.Value,
+                           override val variableConf: VariableConfEnum.Value,
+                           override val simplConf: SimplConfEnum.Value,
+                           override val selectConf: SelectionConfEnum.Value)
+    extends Key(typingConf, variableConf, simplConf, selectConf)
+
+  object CommonConfKey {
+    def isSmallerConf: (CommonConfKey, CommonConfKey) => Boolean = (k1, k2) =>
+      (k1, k2) match {
+        case (kl, kr) if kl.typingConf != kr.typingConf => TypingConfEnum.isSmaller(kl.typingConf, kr.typingConf)
+        case (kl, kr) if k1.variableConf != k2.variableConf => VariableConfEnum.isSmaller(k1.variableConf, k2.variableConf)
+        case (kl, kr) if k1.simplConf != k2.simplConf => SimplConfEnum.isSmaller(k1.simplConf, k2.simplConf)
+        case (kl, kr) if k1.selectConf != k2.selectConf => SelectionConfEnum.isSmaller(k1.selectConf, k2.selectConf)
+        case _ => false
+      }
+  }
+
+  //abstraction for full keys of individual data points in overview tables
+  abstract class FullKey(val proverConf: ProverConfEnum.Value,
+                         val goalCategory: GoalCategoryEnum.Value,
+                         override val typingConf: TypingConfEnum.Value,
+                         override val variableConf: VariableConfEnum.Value,
+                         override val simplConf: SimplConfEnum.Value,
+                         override val selectConf: SelectionConfEnum.Value)
+    extends Key(typingConf, variableConf, simplConf, selectConf) with CSVTransformable {
     override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
       makeCSVcell(b, proverConf.toString)
       makeCSVcell(b, goalCategory.toString)
@@ -81,23 +125,27 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
       makeCSVcell(b, simplConf.toString)
       makeCSVcell(b, selectConf.toString, end)
     }
+
+    def commonKey = CommonConfKey(typingConf, variableConf, simplConf, selectConf)
+
   }
 
-  case class ConfKey(override val proverConf: ProverConfEnum.Value,
-                     override val goalCategory: GoalCategoryEnum.Value,
-                     override val typingConf: TypingConfEnum.Value,
-                     override val variableConf: VariableConfEnum.Value,
-                     override val simplConf: SimplConfEnum.Value,
-                     override val selectConf: SelectionConfEnum.Value)
-    extends Key(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf)
 
-  case class RawKey(override val proverConf: ProverConfEnum.Value,
-                    override val goalCategory: GoalCategoryEnum.Value,
-                    override val typingConf: TypingConfEnum.Value,
-                    override val variableConf: VariableConfEnum.Value,
-                    override val simplConf: SimplConfEnum.Value,
-                    override val selectConf: SelectionConfEnum.Value,
-                    filename: String) extends Key(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf) {
+  case class ConfFullKey(override val proverConf: ProverConfEnum.Value,
+                         override val goalCategory: GoalCategoryEnum.Value,
+                         override val typingConf: TypingConfEnum.Value,
+                         override val variableConf: VariableConfEnum.Value,
+                         override val simplConf: SimplConfEnum.Value,
+                         override val selectConf: SelectionConfEnum.Value)
+    extends FullKey(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf)
+
+  case class RawFullKey(override val proverConf: ProverConfEnum.Value,
+                        override val goalCategory: GoalCategoryEnum.Value,
+                        override val typingConf: TypingConfEnum.Value,
+                        override val variableConf: VariableConfEnum.Value,
+                        override val simplConf: SimplConfEnum.Value,
+                        override val selectConf: SelectionConfEnum.Value,
+                        filename: String) extends FullKey(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf) {
     override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
       super.getCSVcells(b)
       makeCSVcell(b, filename, end)
@@ -160,7 +208,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
       quote + s.trim.replace("\"", "\\\"").replace("\n", "\t\t") + quote
   }
 
-  def invalidResult(k: Key): Boolean = k.proverConf == ProverConfEnum.Eprover && k.typingConf == TypingConfEnum.Tff
+  def invalidResult(k: FullKey): Boolean = k.proverConf == ProverConfEnum.Eprover && k.typingConf == TypingConfEnum.Tff
 
   def extractRawMap(workbook: Workbook) = {
     (for {sh <- workbook.sheets
@@ -175,7 +223,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
       val pt = getCell(row, 8).toDouble
       val stat = makeProverStatus(getCell(row, 9))
       val det = getCell(row, 10)
-      val rk = RawKey(pc, gc, tc, vc, sc, selc, filename)
+      val rk = RawFullKey(pc, gc, tc, vc, sc, selc, filename)
       if (invalidResult(rk))
         rk -> RawResult(pt, stat, det, false)
       else
@@ -198,7 +246,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
       val succrate = getCell(row, 9).toDouble
       val avgsucctime = getCell(row, 10).toDouble
       val avgdev = getCell(row, 11).toDouble
-      val ck = ConfKey(pc, gc, tc, vc, sc, selc)
+      val ck = ConfFullKey(pc, gc, tc, vc, sc, selc)
       if (invalidResult(ck))
         ck -> OverviewResult(succnum, filenum, succrate, avgsucctime, avgdev, false)
       else
@@ -225,27 +273,27 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
 
   private def extractAtIndex[E <: ConfigOption](e: E, row: Row, i: Int) = extractString(e, getCell(row, i))
 
-  def filterProver[K <: Key, R <: Result](dataMap: K Map R, prover: List[ProverConfEnum.Value]): (K Map R) = {
+  def filterProver[K <: FullKey, R <: Result](dataMap: K Map R, prover: List[ProverConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (prover contains k.proverConf)) yield (k, v)
   }
 
-  def filterGoalCategory[K <: Key, R <: Result](dataMap: K Map R, goalcats: List[GoalCategoryEnum.Value]): (K Map R) = {
+  def filterGoalCategory[K <: FullKey, R <: Result](dataMap: K Map R, goalcats: List[GoalCategoryEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (goalcats contains k.goalCategory)) yield (k, v)
   }
 
-  def filterTypingConf[K <: Key, R <: Result](dataMap: K Map R, typingconf: List[TypingConfEnum.Value]): (K Map R) = {
+  def filterTypingConf[K <: FullKey, R <: Result](dataMap: K Map R, typingconf: List[TypingConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (typingconf contains k.typingConf)) yield (k, v)
   }
 
-  def filterVariableConf[K <: Key, R <: Result](dataMap: K Map R, variableconf: List[VariableConfEnum.Value]): (K Map R) = {
+  def filterVariableConf[K <: FullKey, R <: Result](dataMap: K Map R, variableconf: List[VariableConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (variableconf contains k.variableConf)) yield (k, v)
   }
 
-  def filterSimplConf[K <: Key, R <: Result](dataMap: K Map R, simplconf: List[SimplConfEnum.Value]): (K Map R) = {
+  def filterSimplConf[K <: FullKey, R <: Result](dataMap: K Map R, simplconf: List[SimplConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (simplconf contains k.simplConf)) yield (k, v)
   }
 
-  def filterSelectionConf[K <: Key, R <: Result](dataMap: K Map R, selectConf: List[SelectionConfEnum.Value]): (K Map R) = {
+  def filterSelectionConf[K <: FullKey, R <: Result](dataMap: K Map R, selectConf: List[SelectionConfEnum.Value]): (K Map R) = {
     for ((k, v) <- dataMap if (selectConf contains k.selectConf)) yield (k, v)
   }
 
@@ -260,7 +308,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     }
   }
 
-  protected def layoutSuccessRateIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: ConfKey => confopt.Value)(filteredoverview: ConfKey Map OverviewResult): String = {
+  protected def layoutSuccessRateIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: ConfFullKey => confopt.Value)(filteredoverview: ConfFullKey Map OverviewResult): String = {
     val intermediateMap: (confopt.Value Map List[String]) = (for (opt <- confopt.iterator) yield {
       val succRateList = (for ((k, v) <- filteredoverview
                                if (accessConfKey(k) == opt)) yield
@@ -268,22 +316,22 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
       (opt -> succRateList)
     }).toMap
 
-    makeCSVColBased(intermediateMap, sortConfsFunction[confopt.Value])
+    makeCSVColBased(intermediateMap, confopt.isSmaller)
   }
 
   // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
-  protected def layoutSuccessRateOfCompStrat(axsel: Boolean)(filteredoverview: ConfKey Map OverviewResult): String = {
-    val groupedoverview = filteredoverview.groupBy[String](kr => createShortenedConfCell(kr._1, axsel))
-    val intermediateMap: (String Map List[String]) = for ((cnf, confmap) <- groupedoverview) yield
-      cnf -> (confmap.toList map (kr => if(kr._2.isValid) kr._2.succrate.toString else NAString))
+  protected def layoutSuccessRateOfCompStrat(axsel: Boolean)(filteredoverview: ConfFullKey Map OverviewResult): String = {
+    val groupedoverview: Map[CommonConfKey, Map[ConfFullKey, OverviewResult]] = filteredoverview.groupBy[CommonConfKey](kr => kr._1.commonKey)
+    val intermediateMap: (CommonConfKey Map List[String]) = for ((cnf, confmap) <- groupedoverview) yield
+      cnf -> (confmap.toList map (kr => if (kr._2.isValid) kr._2.succrate.toString else NAString))
 
-    makeCSVColBased(intermediateMap, sortConfsFunction[String])
+    makeCSVColBased(intermediateMap, CommonConfKey.isSmallerConf, (k: CommonConfKey) => createShortenedConfCell(k, axsel))
   }
 
   // parameter axsel: true - also append key for axiom selection strategy, false - do not append key for axiom selection strategy
   protected def createShortenedConfCell(ck: Key, axsel: Boolean = true): String = {
     val typshort = ck.typingConf match {
-      case TypingConfEnum.Barefof => "b"
+      case TypingConfEnum.Barefof => "e"
       case TypingConfEnum.Tff => "t"
       case TypingConfEnum.Guardedfof => "g"
     }
@@ -297,16 +345,16 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
 
     val simplshort = ck.simplConf match {
       case SimplConfEnum.Nonsimpl => "n"
-      case SimplConfEnum.Logsimpl => "l"
-      case SimplConfEnum.Patsimpl => "p"
+      case SimplConfEnum.Logsimpl => "g"
+      case SimplConfEnum.Patsimpl => "d"
     }
 
     val selectshort = if (axsel)
       ck.selectConf match {
         case SelectionConfEnum.Selectall => "a"
-        case SelectionConfEnum.Selectusedfp => "u"
+        case SelectionConfEnum.Selectusedfp => "r"
         case SelectionConfEnum.Noinversion => "ni"
-        case SelectionConfEnum.Noinversionselectusedfp => "niu"
+        case SelectionConfEnum.Noinversionselectusedfp => "nir"
       }
     else ""
 
@@ -315,7 +363,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
 
 
   //keys of maps designate columns
-  protected def makeCSVColBased[K, V](dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
+  protected def makeCSVColBased[K, V](dataMap: (K Map Seq[V]), lt: (K, K) => Boolean, kToString : K => String = (k: K) => k.toString): String = {
     val b = StringBuilder.newBuilder
     val orderedkeys = dataMap.keys.toList.sortWith(lt)
 
@@ -342,7 +390,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     for (k <- orderedkeys) {
       val csvtransformablek = new SingleCSVWrapper[K](k)
       val last = (k == orderedkeys.last)
-      csvtransformablek.getCSVcells(b, last)
+      csvtransformablek.getCSVcells(b, kToString, last)
     }
 
     //attach value rows
@@ -353,15 +401,17 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     b.toString()
   }
 
-  protected def sortConfsFunction[K] = (k1: K, k2: K) => k1.toString < k2.toString
-
   class SingleCSVWrapper[K](value: K) extends CSVTransformable {
     override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
       makeCSVcell(b, value.toString, end)
     }
+
+    def getCSVcells(b: StringBuilder, confToString: K => String, end: Boolean) = {
+      makeCSVcell(b, confToString(value), end)
+    }
   }
 
-  def doForProvers[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R)) = {
+  def doForProvers[K <: FullKey, R <: Result](proverlist: List[ProverConfEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R)) = {
     for (prover <- proverlist) {
       val file = s"$filepath/${prover.toString}-$filename"
       val filteredoverview = filterProver(data, List(prover))
@@ -370,7 +420,7 @@ abstract class DataLayout(files: Seq[File], timeout: String) {
     }
   }
 
-  def doSingle[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R)) = {
+  def doSingle[K <: FullKey, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R)) = {
     val file = s"$filepath/$filename"
     val layouted = layoutfun(data)
     if (!layouted.isEmpty) writeToFile(file, layouted)
@@ -394,32 +444,26 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
   val rawworkbook = workbooks.head
   val overviewworkbook = workbooks.last
 
-  val rawMap: RawKey Map RawResult = extractRawMap(rawworkbook)
+  val rawMap: RawFullKey Map RawResult = extractRawMap(rawworkbook)
 
-  val overviewMap: ConfKey Map OverviewResult = extractOverviewMap(overviewworkbook)
+  val overviewMap: ConfFullKey Map OverviewResult = extractOverviewMap(overviewworkbook)
 
   //keys of maps designate rows
-  private def makeCSVRowBased[K, V](dataMap: (K Map V), sortValues: ((K, V), (K, V)) => Boolean): String = {
+  private def makeCSVRowBased[K, V](dataMap: (K Map V), sortValues: ((K, V), (K, V)) => Boolean, kToString: K => String = (k: K) => k.toString): String = {
     val b = StringBuilder.newBuilder
     val orderedMap = dataMap.toList.sortWith(sortValues)
 
     for ((k, v) <- orderedMap) {
-      val csvtransformablek =
-        if (k.isInstanceOf[CSVTransformable])
-          k.asInstanceOf[CSVTransformable]
-        else new SingleCSVWrapper[K](k)
-      val csvtransformablev =
-        if (v.isInstanceOf[CSVTransformable])
-          v.asInstanceOf[CSVTransformable]
-        else new SingleCSVWrapper[V](v)
-      csvtransformablek.getCSVcells(b)
+      val csvtransformablek = new SingleCSVWrapper[K](k)
+      val csvtransformablev = new SingleCSVWrapper[V](v)
+      csvtransformablek.getCSVcells(b, kToString, false)
       csvtransformablev.getCSVcells(b, true)
     }
 
     b.toString()
   }
 
-  def doForCategories[K <: Key, R <: Result](catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
+  def doForCategories[K <: FullKey, R <: Result](catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
     for (cat <- catlist) {
       val file = s"$filepath/${cat.toString}-$filename"
       val filteredoverview = filterGoalCategory(data, List(cat))
@@ -428,13 +472,13 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     }
   }
 
-  def doForallProvers[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
+  def doForallProvers[K <: FullKey, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
     doForProvers(ProverConfEnum.iterator.toList, filepath, filename, layoutfun, data)
 
-  def doForallCategories[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
+  def doForallCategories[K <: FullKey, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
     doForCategories(GoalCategoryEnum.iterator.toList, filepath, filename, layoutfun, data)
 
-  def doForProversCategories[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
+  def doForProversCategories[K <: FullKey, R <: Result](proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
     for {prover <- proverlist
          cat <- catlist} {
       val file = s"$filepath/${prover.toString}-${cat.toString}-$filename"
@@ -444,17 +488,17 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
     }
   }
 
-  def doForallProversCategories[K <: Key, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
+  def doForallProversCategories[K <: FullKey, R <: Result](filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) =
     doForProversCategories(ProverConfEnum.iterator.toList, GoalCategoryEnum.iterator.toList, filepath, filename, layoutfun, data)
 
   // merges data of the given categories in one table
-  def doForProversCategoriesMerge[K <: Key, R <: Result](proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
+  def doForProversCategoriesMerge[K <: FullKey, R <: Result](proverlist: List[ProverConfEnum.Value], catlist: List[GoalCategoryEnum.Value], filepath: String, filename: String, layoutfun: (K Map R) => String, data: (K Map R) = overviewMap) = {
     val filtereddata = filterGoalCategory(data, catlist)
     doForProvers(proverlist, filepath, filename, layoutfun, filtereddata)
   }
 
 
-  private def layoutAvgSuccessTimeIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: Key => confopt.Value)(filteredoverview: ConfKey Map OverviewResult): String = {
+  private def layoutAvgSuccessTimeIndividualOpt[K <: ConfigOption](confopt: K)(accessConfKey: FullKey => confopt.Value)(filteredoverview: ConfFullKey Map OverviewResult): String = {
 
     val intermediateMap: (confopt.Value Map List[String]) = (for (opt <- confopt.iterator) yield {
       val avgSuccTimeList = (for ((k, v) <- filteredoverview
@@ -464,35 +508,25 @@ case class SingleDataLayout(files: Seq[File], stimeout: String) extends DataLayo
       (opt -> filterzeroes)
     }).toMap
 
-    makeCSVColBased(intermediateMap, sortConfsFunction[confopt.Value])
+    makeCSVColBased(intermediateMap, confopt.isSmaller)
   }
 
 
-  private def layoutRawDetailedTime(filteredraw: (RawKey Map RawResult)): String = {
+  private def layoutRawDetailedTime(filteredraw: (RawFullKey Map RawResult)): String = {
+    val groupedraw: Map[CommonConfKey, Map[RawFullKey, RawResult]] = filteredraw.groupBy[CommonConfKey](kr => kr._1.commonKey)
+    val intermediateMap: (CommonConfKey Map List[String]) = for ((cnf, confmap) <- groupedraw) yield
+      cnf -> (confmap.toList map (kr => if (kr._2.isValid) kr._2.provertime.toString else NAString))
 
-    //transform into triple with (filename, config, time)
-    val intermediateList: Iterable[(String, String, String)] = for ((k, v) <- filteredraw) yield {
-      (k.filename, createShortenedConfCell(k), if (v.isValid) v.provertime.toString else NAString)
-    }
-
-    val confgrouped = intermediateList.groupBy(_._2) //group by configuration shorthand
-
-    //throw away parts of value that are not needed
-    //yields shortconf -> List of provertimes (one for each file)
-    val intermediateMap: (String Map List[String]) = for ((k, v) <- confgrouped) yield
-      (k -> (for (t <- v) yield t._3).toList)
-
-
-    makeCSVColBased(intermediateMap, sortConfsFunction[String])
-
+    makeCSVColBased(intermediateMap, CommonConfKey.isSmallerConf, (k: CommonConfKey) => createShortenedConfCell(k))
   }
 
-  private def layoutIndividualSuccessRates(axsel: Boolean)(filteredoverview: (ConfKey Map OverviewResult)): String = {
-    val intermediateMap: (String Map String) = for ((k, v) <- filteredoverview) yield {
-      (createShortenedConfCell(k, axsel) -> (if (v.isValid) v.succrate.toString else NAString))
+  private def layoutIndividualSuccessRates(axsel: Boolean)(filteredoverview: (ConfFullKey Map OverviewResult)): String = {
+    val intermediateMap: (CommonConfKey Map String) = for ((k, v) <- filteredoverview) yield {
+      (k.commonKey -> (if (v.isValid) v.succrate.toString else NAString))
     }
 
-    makeCSVRowBased(intermediateMap, (p1: (String, String), p2: (String, String)) => p1._2.length >= p2._2.length && p2._2 < p1._2) //sort descending //TODO this is maybe not correct with the strings
+    val valuesorting: (String, String) => Boolean = (s1, s2) => if (s1 == NAString) false else if (s2 == NAString) true else s1.toDouble > s2.toDouble //put NA-values to the end of the list, otherwise compare by number
+    makeCSVRowBased(intermediateMap, ((k1v1: (CommonConfKey, String), k2v2: (CommonConfKey, String)) => valuesorting(k1v1._2, k2v2._2)), (k: CommonConfKey) => createShortenedConfCell(k, axsel))
   }
 
 
@@ -616,7 +650,7 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
     OverviewResult(x.succnum + y.succnum, x.filenum + y.filenum, (x.succrate + y.succrate) / 2, (x.avgSuccTime + y.avgSuccTime) / 2, (x.avgDev + y.avgDev) / 2)
   }
 
-  def addMapValues(maps: Seq[ConfKey Map OverviewResult]): ConfKey Map OverviewResult = {
+  def addMapValues(maps: Seq[ConfFullKey Map OverviewResult]): ConfFullKey Map OverviewResult = {
     val flattendMap = scala.collection.mutable.Map() ++ maps.head
     for {
       map <- maps.tail
@@ -627,28 +661,28 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
     Map.empty ++ flattendMap
   }
 
-  case class MergedConfKey(val caseStudy: String,
-                           override val proverConf: ProverConfEnum.Value,
-                           override val goalCategory: GoalCategoryEnum.Value,
-                           override val typingConf: TypingConfEnum.Value,
-                           override val variableConf: VariableConfEnum.Value,
-                           override val simplConf: SimplConfEnum.Value,
-                           override val selectConf: SelectionConfEnum.Value)
-    extends Key(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf) {
+  case class MergedConfFullKey(val caseStudy: String,
+                               override val proverConf: ProverConfEnum.Value,
+                               override val goalCategory: GoalCategoryEnum.Value,
+                               override val typingConf: TypingConfEnum.Value,
+                               override val variableConf: VariableConfEnum.Value,
+                               override val simplConf: SimplConfEnum.Value,
+                               override val selectConf: SelectionConfEnum.Value)
+    extends FullKey(proverConf, goalCategory, typingConf, variableConf, simplConf, selectConf) {
     override def getCSVcells(b: StringBuilder, end: Boolean = false) = {
       makeCSVcell(b, caseStudy)
       super.getCSVcells(b, end)
     }
   }
 
-  def mergeMaps(maps: Seq[ConfKey Map OverviewResult]): MergedConfKey Map OverviewResult = {
+  def mergeMaps(maps: Seq[ConfFullKey Map OverviewResult]): MergedConfFullKey Map OverviewResult = {
     val sqlMap = maps(0)
     val qlMap = maps(1)
-    val mergedMap = scala.collection.mutable.Map[MergedConfKey, OverviewResult]()
+    val mergedMap = scala.collection.mutable.Map[MergedConfFullKey, OverviewResult]()
 
-    def addElements(caseStudy: String, map: ConfKey Map OverviewResult): Unit = {
+    def addElements(caseStudy: String, map: ConfFullKey Map OverviewResult): Unit = {
       for ((k, v) <- map) {
-        val newKey = MergedConfKey(caseStudy, k.proverConf, k.goalCategory, k.typingConf, k.variableConf, k.simplConf, k.selectConf)
+        val newKey = MergedConfFullKey(caseStudy, k.proverConf, k.goalCategory, k.typingConf, k.variableConf, k.simplConf, k.selectConf)
         mergedMap(newKey) = v
       }
     }
@@ -658,7 +692,7 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
     Map.empty ++ mergedMap
   }
 
-  private def layoutSuccessRateIndividualOptMerged[K <: ConfigOption](confopt: K)(accessConfKey: MergedConfKey => confopt.Value)(filteredoverview: MergedConfKey Map OverviewResult): String = {
+  private def layoutSuccessRateIndividualOptMerged[K <: ConfigOption](confopt: K)(accessConfKey: MergedConfFullKey => confopt.Value)(filteredoverview: MergedConfFullKey Map OverviewResult): String = {
     val casestudyList = ListBuffer[String]()
     val intermediateMap: (confopt.Value Map List[String]) = (for (opt <- confopt.iterator) yield {
       val succRateList =
@@ -672,7 +706,7 @@ case class MergedBaseDataLayout(files: Seq[File], stimeout: String) extends Data
 
       (opt -> succRateList)
     }).toMap
-    makeCSVColBasedMerged(casestudyList.toSeq, intermediateMap, sortConfsFunction[confopt.Value])
+    makeCSVColBasedMerged(casestudyList.toSeq, intermediateMap, confopt.isSmaller)
   }
 
   protected def makeCSVColBasedMerged[K, V](casestudyList: Seq[String], dataMap: (K Map Seq[V]), lt: (K, K) => Boolean): String = {
