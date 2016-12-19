@@ -21,7 +21,7 @@ trim <- function (x) gsub("^\\s+|\\s+$", "", x)
 boxplot1topdf <- function(infile, xaxislab=NA, title="",
                           xlab="", ylab="", ylim=c(0,100),
                           fontsizex=2, fontsizel=2, fontsizem=2.5, las=1,
-                          mary=6, line=4.5) {
+                          mary=6, line=4.5, col="white") {
     outfilesplit <- unlist(strsplit(infile, "[/]"))
     filename <- tail(outfilesplit, 1) # assume that last element is filename
     filenamenoending <- substr(filename,1,nchar(filename)-4)
@@ -38,7 +38,7 @@ boxplot1topdf <- function(infile, xaxislab=NA, title="",
     boxplot(indata, data=indata, main=title,
             xlab=xlab, ylim=ylim, las=las,
             cex.main=fontsizem, cex.axis=fontsizex,
-            xaxt="n", ann=FALSE, outline=FALSE)
+            xaxt="n", ann=FALSE, outline=FALSE, col=col)
     if (identical(xaxislab,NA)) xaxislab <- colnames(indata)
     xaxisat=1:length(xaxislab)
     axis(1, at=xaxisat, labels=xaxislab, cex.axis=fontsizex, las=las)
@@ -253,10 +253,12 @@ for (t in c("10s", "30s", "60s", "120s")) {
 ### Boxplots for sixth paper graph (performance of all comp strategies, all provers and categories together)
 for (t in c("10s", "30s", "60s", "120s")) {
     if (args[1] == "Merged") {
+        # Color Array is hardcoded
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/sql_stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="SQL")
+                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="SQL", col=c(rep("white", 24), "grey", rep("white", 10)))
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/ql_stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="QL")
+                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="QL",
+                      col=c("white", "grey", rep("white", 8), "grey", rep("white", 14), "grey", rep("white", 8), "grey"))
     } else {
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
                       las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
