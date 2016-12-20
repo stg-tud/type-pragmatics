@@ -30,8 +30,8 @@ boxplot1topdf <- function(infile, xaxislab=NA, title="",
     dir.create(outputpath, recursive=TRUE, showWarnings=FALSE)
     fulloutputpath <- paste(outputpath, "/", filenamenoending, ".pdf", sep="")
     indata <- read.csv(infile, header=TRUE, sep=",")
-    if (args[1] == "Merged") {
-        indata <- indata[,-c(1)] #deletes first column
+    if (colnames(indata)[1] == "casestudy") {
+        indata <- indata[,-c(1)] #deletes first column if that column just denotes the case study
     }
     pdf(fulloutputpath)
     par(mar=c(5,mary,4,2) + 0.1)
@@ -247,18 +247,20 @@ for (t in c("10s", "30s", "60s", "120s")) {
 ### Boxplots for fifth paper graph (simplification alternatives, timeout-wise, all categories and all provers)
 for (t in c("10s", "30s", "60s", "120s")) {
     boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph5/simplificationperformance_allprovers_allcategories.csv", sep=""),
-                  title=t, ylab="Success rate (%)", xaxislab=c("n", "l", "p"))
+                  title=t, ylab="Success rate (%)", xaxislab=c("n", "g", "d"))
 }
 
 ### Boxplots for sixth paper graph (performance of all comp strategies, all provers and categories together)
 for (t in c("10s", "30s", "60s", "120s")) {
     if (args[1] == "Merged") {
         # Color Array is hardcoded
+        # SQL graph + highlighting best (hardcoded)
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/sql_stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
-                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="SQL", col=c(rep("white", 24), "grey", rep("white", 10)))
+                      las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="SQL", col=c(rep("white", 3), "grey", rep("white", 32)))
+        # QL graph + highlighting best (hardcoded)
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/ql_stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
                       las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title="QL",
-                      col=c("white", "grey", rep("white", 8), "grey", rep("white", 14), "grey", rep("white", 8), "grey"))
+                      col=c(rep("white",2), "grey", rep("white", 2), "grey", rep("white", 20), "grey", rep("white", 2), "grey", rep("white", 6)))
     } else {
         boxplot1topdf(paste(layoutpath, "/", t, "/", "Graph6/stratperformance_allprovers_allcategories.csv", sep=""), ylab="Success rate (%)",
                       las=2, fontsizex=1, fontsizel=1, mary=4, line=3, title=layoutpath)
