@@ -2,13 +2,15 @@
 
 ## Short Description ##
 
-Veritas is a (still very young) prototype for (semi-)automatically proving type soundness using first-order theorem proving as support. It currently allows for specifying the syntax and semantics of very simple programming languages (such as the simply-typed lambda calculus (STLC)), type systems for this language, and proof goals and axioms, via using AST classes. The current version includes a compiler family which allows for translating such language specifications and proof goals on it into TPTP, using different compilation strategies (see "Exploration of Language Specifications by Compilation to First-Order Logic" by Sylvia Grewe, Sebastian Erdweg, Michael Raulf, and Mira Mezini. To appear in Principles and Practice of Declarative Programming (PPDP). ACM, 2016). 
+Veritas is a (still very young) prototype for (semi-)automatically proving type soundness using first-order theorem proving as support. It currently allows for specifying the syntax and semantics of very simple programming languages (such as the simply-typed lambda calculus (STLC)), type systems for this language, and proof goals and axioms, via using AST classes. The current version includes a compiler family which allows for translating such language specifications and proof goals on it into TPTP, using different compilation strategies (see "Exploration of Language Specifications by Compilation to First-Order Logic" by Sylvia Grewe, Sebastian Erdweg, Michael Raulf, and Mira Mezini. In: Principles and Practice of Declarative Programming (PPDP). ACM, 2016). 
 
-##NOTE: Restructuring Branch##
+##NOTE: Under construction##
 
-Note that on this branch (restructuring), we started restructuring Veritas to a stand-alone SBT library which one can use independent of Spoofax, on which the previous structure heavily relies. Currently, the Veritas project can already be used independent of Spoofax - but using it is not very comfortable (specifying languages by using AST classes, calling Vampire manually on the resulting files etc.). We are currently working on improving the usability of the standalone SBT library.
+Note that we are currently restructuring Veritas to a stand-alone SBT library which one can use independent of Spoofax, on which the previous version of Veritas heavily relied. Currently, the Veritas project can already be used independent of Spoofax - but using it is not very comfortable (specifying languages by using AST classes, calling Vampire manually on the resulting files etc.). We are currently working on improving the usability of the standalone SBT library.
 
-Meanwhile, the former Spoofax part of Veritas remains functional and provides some better usability (see folder VeritasSpoofax for setup instructions).
+Meanwhile, the former Spoofax part of Veritas remains functional (with an old Spoofax version, 1.5!) and provides some better usability (see folder VeritasSpoofax for setup instructions).
+
+The old version of Veritas, where the Scala and the Veritas-Spoofax project were still completely integrated with each other is available on the master branch under Tag "PreRestructuing" (including setup instructions). Note that the old version relied on an outdated Spoofax version (1.5).
 
 
 ## How to install Veritas (standalone) ##

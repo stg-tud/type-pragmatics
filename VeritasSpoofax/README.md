@@ -6,9 +6,12 @@ Veritas is a (still very young) prototype for (semi-)automatically proving type 
 
 "First-Order Theorem Proving and VAMPIRE" by Laura Kovács and Andrei Voronkov
 
-##NOTE: Restructuring Branch##
+##NOTE: This part of the project will be outdated soon##
 
-Note that on this branch (restructuring), we started restructuring Veritas to a stand-alone SBT library which one can use independent of Spoofax. However, currently, the former Spoofax part of the project can still be used with the Veritas SBT project like previously. This README describes how to get the Spoofax part running with the new setup.
+Note that we are currently restructuring Veritas to a stand-alone SBT library which one can use independent of Spoofax. However, currently, the former Spoofax part of the project can still be used with the Veritas SBT project like previously. This README describes how to get the Spoofax part running with the new setup.
+
+The old version of Veritas, where the Scala and the Veritas-Spoofax project were still completely integrated with each other is available on the master branch under Tag "PreRestructuing" (including setup instructions). Note that the old version also relied on an outdated Spoofax version (1.5).
+
 
 ## How to install VeritasSpoofax ##
 
@@ -23,7 +26,7 @@ Installation steps:
 
 0. Check out both the Veritas and the VeritasSpoofax folder somewhere in the same folder.
 1. In the Veritas folder, run "sbt assembly" to produce a .jar of the Veritas project (required by Veritas Spoofax).
-2. Install the latest version of the Spoofax Language Workbench (http://strategoxt.org/Spoofax) as Eclipse plugin in the Scala IDE: In the Scala IDE, choose "Help - Install New Software". Copy the following link to the latest stable Spoofax build: http://download.spoofax.org/update/stable , hit enter, mark everything, and install. (Note: The nightly Spoofax versions http://download.spoofax.org/update/nightly do not work) Restart Eclipse and adapt the eclipse.ini according to the warning you might get during the start-up. After modifying the eclipse.ini, restart Eclipse again.
+2. Install version 1.5 of the Spoofax Language Workbench. Restart Eclipse and adapt the eclipse.ini according to the warning you might get during the start-up. After modifying the eclipse.ini, restart Eclipse again.
 3. Copy your Vampire binaries into the VeritasSpoofax folder. The binaries have to be named vampire-3.0 and vampire-4.0 according to the version of the sources the binaries were compiled from.
 4. Build the VeritasSpoofax project in Eclipse (make sure the build is successful before continuing with further steps). The build should automatically copy the Veritas.jar from the first step to the include folder in VeritasSpoofax.
 
