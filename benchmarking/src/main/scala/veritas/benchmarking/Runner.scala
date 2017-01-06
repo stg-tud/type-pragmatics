@@ -6,6 +6,7 @@ import java.util.{Calendar, Date}
 import java.util.concurrent.Executors
 
 import veritas.benchmarking.Main.Config
+import veritas.benchmarking.util.FileUtil
 
 import scala.collection.parallel.ExecutionContextTaskSupport
 import scala.concurrent.ExecutionContext
@@ -33,9 +34,9 @@ case class Runner(config: Config) {
       else File.separator
     val pathParts = filePath.split(fileSeparator)
     //assemble configuration from last few parts of path
-    val goalcategory = pathParts(pathParts.length - 5)
-    val typing = pathParts(pathParts.length - 4)
-    val transformations = List(pathParts(pathParts.length - 3), pathParts(pathParts.length - 2))
+    val goalcategory = pathParts(pathParts.length - 6)
+    val typing = pathParts(pathParts.length - 5)
+    val transformations = List(pathParts(pathParts.length - 4), pathParts(pathParts.length - 3), pathParts(pathParts.length - 2))
 
     new VeritasConfig(goalcategory, typing, transformations)
   }
@@ -153,7 +154,7 @@ case class Runner(config: Config) {
         if (File.separator == "\\") "\\\\"
         else File.separator
       val pathParts = fp.split(fileSeparator)
-      val configname = pathParts(pathParts.length - 6)
+      val configname = pathParts(pathParts.length - 7)
       //assemble configuration from last two parts of path
       ProverConfig.configs(configname)
     }
@@ -167,7 +168,7 @@ case class Runner(config: Config) {
         if (File.separator == "\\") "\\\\"
         else File.separator
       val pathParts = fp.split(fileSeparator)
-      val stimeout = pathParts(pathParts.length - 7)
+      val stimeout = pathParts(pathParts.length - 8)
       val timeout = stimeout.dropRight(1)
       timeout.toInt
     }
@@ -185,8 +186,8 @@ case class Runner(config: Config) {
       resultproc.processLogs()
 
       val filesummary = FileSummary(veritasconf, inputfile, proverconf, resultproc.result, timeout, resultproc.result.timeSeconds.getOrElse(0.0))
+      resultproc.close()
       summary +=(VeritasConfFile(veritasconf, inputfile), filesummary)
-
     }
   }
 
@@ -215,15 +216,13 @@ case class Runner(config: Config) {
           if (File.separator == "\\") "\\\\"
           else File.separator
         val splitinputname = correspondinginput.split(fileSeparator)
-        val relevantnamepart = splitinputname.takeRight(5).mkString(fileSeparator)
-
+        val relevantnamepart = splitinputname.takeRight(6).mkString(fileSeparator)
         val destfile = new File(s"$filepath/${relevantnamepart}.proof")
 
         if (!destfile.getParentFile.exists())
           destfile.getParentFile.mkdirs()
 
-        new FileOutputStream(destfile) getChannel() transferFrom(new FileInputStream(hhlr) getChannel, 0, Long.MaxValue)
-
+        FileUtil.copyContentOfFile(hhlr, destfile)
         //afterwards, delete HHLR-file
         //flatIndexFileMap(index).delete()
 
@@ -233,8 +232,10 @@ case class Runner(config: Config) {
 
 
   def run(): Unit = {
-    if (config.layoutData)
-      DataLayout(allFiles, s"${config.timeout}s").layoutAll
+    if (config.layoutData.length > 0)
+      SingleDataLayout(allFiles, s"${config.timeout}s").layoutAll(config.layoutData)
+    else if(config.mergeLayoutData.length > 0)
+      MergedBaseDataLayout(allFiles, s"${config.timeout}s").layoutAll(config.mergeLayoutData)
     else if (config.summarizeLogs)
       processProofLogs()
     else if (config.generateSLURM)

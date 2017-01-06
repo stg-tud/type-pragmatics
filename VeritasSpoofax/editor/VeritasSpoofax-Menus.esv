@@ -1,0 +1,67 @@
+
+module VeritasSpoofax-Menus
+
+menus
+
+  menu: "Backend"
+    action: "Generate all encoding variants (single file)"  = invoke-backend (openeditor)
+    action: "Generate all encoding variants (folder)"   	= invoke-backend-folder
+    action: "Persist Index and Tasks" 						= index-and-task-persist
+  
+  menu: "Syntax"                       (openeditor)
+    
+    action: "Format"                 = editor-format (realtime) (source)
+    action: "Show abstract syntax"   = debug-show-aterm (realtime) (meta) (source)
+    action: "Show analyzed syntax"   = debug-show-analyzed (meta)
+    
+  menu: "Analysis"                     (meta)
+    
+    action: "Reset and reanalyze"    = debug-reanalyze  
+
+    submenu: "Show analysis"           (openeditor)
+      action: "Project"              = debug-project
+      action: "Partition"            = debug-partition
+    end
+    
+    submenu: "Show index"              (openeditor)
+      action: "Project"              = debug-index-project
+      action: "Project (resolved)"   = debug-index-project-resolve
+      action: "Partition"            = debug-index-partition
+      action: "Partition (resolved)" = debug-index-partition-resolve
+    end
+    
+    submenu: "Show tasks"              (openeditor)
+      action: "Project"              = debug-task-project
+      action: "Partition"            = debug-task-partition
+      action: "Selection"            = debug-task-selection
+    end
+  
+  menu: "FOF"
+    action: "Open FOF"			   = open-fof (openeditor) (realtime)
+  //   action: "Generate FOF"         = generate-fof (openeditor) (realtime)
+  //   action: "Generate all FOFs for folder" = gen-fof-for-folder
+    // action: "Generate SMT"         = generate-smt (openeditor) (realtime)
+
+  menu: "Verification"
+    // action: "Verify single file with Vampire (auto)" = invoke-backend-verify-vampire-auto
+    action: "Verify single file with Vampire 3.0 (5)" = invoke-backend-verify-vampire3-5
+    action: "Verify single file with Vampire 3.0 (30)" = invoke-backend-verify-vampire3-30
+    action: "Verify single file with Vampire 3.0 (60)" = invoke-backend-verify-vampire3-60
+    action: "Verify single file with Vampire 3.0 (120)" = invoke-backend-verify-vampire3-120
+     action: "Verify single file with Vampire 4.0 (5)" = invoke-backend-verify-vampire4-5
+    action: "Verify single file with Vampire 4.0 (30)" = invoke-backend-verify-vampire4-30
+    action: "Verify single file with Vampire 4.0 (60)" = invoke-backend-verify-vampire4-60
+    action: "Verify single file with Vampire 4.0 (120)" = invoke-backend-verify-vampire4-120
+    // action: "Vampire (auto) for entire folder" = invoke-backend-verify-vampire-folder
+    action: "Clean" = clean-proofs
+
+  menu: "Check consistency"
+    action: "Check consistency single file with Vampire 3.0 (5 seconds)" = invoke-backend-consistency-v3-5
+    action: "Check consistency single file with Vampire 3.0 (120 seconds)" = invoke-backend-consistency-v3-120
+    action: "Check consistency single file with Vampire 3.0 (300 seconds)" = invoke-backend-consistency-v3-300
+    action: "Check consistency single file with Vampire 4.0 (5 seconds)" = invoke-backend-consistency-v4-5
+    action: "Check consistency single file with Vampire 4.0 (120 seconds)" = invoke-backend-consistency-v4-120
+    action: "Check consistency single file with Vampire 4.0 (300 seconds)" = invoke-backend-consistency-v4-300
+	// action: "Check consistency of entire folder (5 seconds)" = invoke-backend-consistency-folder-5
+	// action: "Check consistency of entire folder (300 seconds)" = invoke-backend-consistency-folder-300
+

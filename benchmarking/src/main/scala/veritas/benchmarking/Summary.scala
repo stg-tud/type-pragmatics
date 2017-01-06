@@ -95,10 +95,11 @@ case class Summary(config: Config) {
           StringCell(3, "Veritas Config, Typing"),
           StringCell(4, "Veritas Config, variable encoding"),
           StringCell(5, "Veritas Config, logical optimization"),
-          StringCell(6, "File"),
-          StringCell(7, "Time-ms"),
-          StringCell(8, "Status"),
-          StringCell(9, "Details")
+          StringCell(6, "Veritas Config, axiom selection"),
+          StringCell(7, "File"),
+          StringCell(8, "Time-ms"),
+          StringCell(9, "Status"),
+          StringCell(10, "Details")
         )
       }
 

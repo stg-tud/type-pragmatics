@@ -1,0 +1,465 @@
+module fof-rewriting
+
+imports include/VeritasSpoofax
+imports libstratego-lib
+imports names
+imports props
+
+
+rules
+	R : FunctionExpVar(v) -> Var(v)
+	R : FunctionExpTrue() -> True()
+	R : FunctionExpFalse() -> False()
+	R : FunctionMeta(Meta(v)) -> Meta(v)
+	R : FunctionExpNeq(t1, t2) -> Neq(t1, t2)
+	R : FunctionExpEq(t1, t2) -> Eq(t1, t2)
+	R : FunctionExpNot(t) -> <make-not> (t)
+	R : FunctionExpApp(f, args) -> <make-termapp> (f, args)
+	
+	R : PremiseList(p) -> p
+	R : ConsequenceList(p) -> p
+	R : JudgementCons(j1, j2) -> <make-and> (j1, j2)
+	R : TypingJudgment(CTX, E, T) -> Pred("vtcheck", [CTX, E, T])
+	R : TypingJudgmentSimple(E, T) -> Pred("vtchecksimple", [E, T])
+	R : ReduceJudgment(e1, e2) -> Pred("vreduce", [e1, e2])
+	R : FunctionExpJudgment(e) -> e
+	R : ExistsJudgment(vars, prop) -> Exists(vars, prop)
+	R : ForallJudgment(vars, prop) -> All(vars, prop)
+	R : NotJudgment(j) -> <make-not> (j)
+	R : OrJudgement(p) -> p
+	R : OrEnd(p) -> p
+	R : OrCons(p1, p2) -> <make-or> (p1, p2)
+	
+	// R : Plus(e1, e2) -> TermApp("plus", [e1, e2])
+	// R : Rational(e1, e2) -> TermApp("rat", [e1, e2])
+	// R : App(e1, e2) -> TermApp("app", [e1, e2])
+	// R : FApp(name, es) -> TermApp(name, es)
+	// R : Abs(Meta(v), e2, e3) -> TermApp("abs", [Meta(v), e2, e3])
+	// R : Abs(e1, e2, e3) -> TermApp("abs", [Var(e1), e2, e3])
+	// R : TyFunction(e1, e2) -> TermApp("arrow", [e1, e2])
+	// R : TyFuture(e1) -> TermApp("future", [e1])
+	// R : TyNat() -> Var("nat")
+	// R : TyVar(v) -> Var(v)
+	// R : Meta(v) -> Var(v)
+	// R : MetaVariable(v) -> v
+	R : Var(v) -> Var(v2)
+		where
+			v2 := <string-as-chars(not(?['v'|_]); !['v'|<id>])> v;
+			<not(equal)> (v, v2)
+	R : Meta(v) -> Meta(v2)
+		where v2 := <string-as-chars(not(?['V'|_]); !['V'|<id>])> v
+		    ; <not(equal)> (v, v2)
+	
+	// R : Fork(x) -> TermApp("fork", [x])
+	// R : Join(x) -> TermApp("join", [x])
+	// R : Par(x) -> TermApp("par", [x])
+	
+
+	
+	R : TypingRule(name, CONSEQUENCE) -> TypingRule(True(), name, CONSEQUENCE)
+	R : TypingRule(PREMISES, RuleName(_, NAME), CONSEQUENCE) ->
+		Formula(NAME, <close-prop> body)
+	where
+		body := <make-impl> (PREMISES, CONSEQUENCE)
+			
+			
+	compose-formula-p :
+		(Formula(N1, P1), Formula(N2, P2)) -> Formula(N, P)
+	where
+		N := <conc-strings> (N1, " AND ", N2);
+		P := <make-and> (P1, P2)
+	compose-formula-p = debug(!"compose-formula-p failed: "); fail
+
+	compose-formulas = reduce-list(compose-formula-p)
+	
+	reduce-list(s) = ?[] <+ ?[<id>] <+ foldr1(s)
+	reduce-list(s|init) = (?[];!init) <+ ?[<id>] <+ foldr1(s)
+
+rules
+	// lookup-ctx-base = !Formula("lookup ctx base", Axiom(), All([Meta("X"), Meta("T"), Meta("T2"), Meta("CTX")],
+	//                      Impl(Pred("lookup", [Meta("X"), TermApp("bind", [Meta("X"), Meta("T2"), Meta("CTX")]), Meta("T")]),
+	//                           Eq(Meta("T"), Meta("T2")))))
+	// lookup-ctx-step = !Formula("lookup ctx step", Axiom(), All([Meta("X"), Meta("Y"), Meta("T"), Meta("T2"), Meta("CTX")],
+	//                      Impl(And(Neq(Meta("X"), Meta("Y")), Pred("lookup", [Meta("X"), Meta("CTX"), Meta("T")])),
+	//                           Pred("lookup", [Meta("X"), TermApp("bind", [Meta("Y"), Meta("T2"), Meta("CTX")]), Meta("T")]))))
+	// base-rules = ![<lookup-ctx-base>, <lookup-ctx-step>]
+
+	scoped-constructor-axiom = {|Fresh: constructor-axiom|}
+	constructor-axiom : ConstructorDecl(name, args, res) -> Formula(ax-name, Axiom(), <make-all> (vars, BiImpl(Eq(t1, t2), arg-eqs-and)))
+	where
+		ax-name := <conc-strings> ("EQ-", name);
+		args1 := <map(?SortRef(<id>); make-fresh; make-meta)> args;
+		args2 := <map(?SortRef(<id>); make-fresh; make-meta)> args;
+		vars := <conc> (args1, args2);
+		t1 := <make-termapp> (name, args1);
+		t2 := <make-termapp> (name, args2);
+		arg-eqs := <zip; map(\(a1, a2) -> Eq(a1, a2)\)> (args1, args2);
+		arg-eqs-and := <reduce-list(\(p1, p2) -> <make-and> (p1, p2)\|True())> arg-eqs
+	constructor-axiom = debug(!"constructor-axioms failed: "); fail
+
+	constructor-diff-axioms(|cons) : [] -> []
+	constructor-diff-axioms(|cons) : [c|cs] -> <conc> (c-axioms, others)
+	where
+		c-axioms := <map(\cons-c -> <scoped-constructor-diff-axiom> (cons-c, c)\); filter(not(?None()))> cons;
+		new-cons := <conc> (cons, [c]);
+		others := <constructor-diff-axioms(|new-cons)> cs
+	
+	scoped-constructor-diff-axiom = {|Fresh: constructor-diff-axiom|}
+	constructor-diff-axiom :
+		(ConstructorDecl(old-name, old-args, old-res), ConstructorDecl(new-name, new-args, new-res)) ->
+		Formula(ax-name, Axiom(), <make-all> (vars, Neq(old-t, new-t)))
+	where
+		<equal> (old-res, new-res);
+		ax-name := <conc-strings> ("DIFF-",old-name,"-",new-name);
+		old-vars := <map(?SortRef(<id>); make-fresh; make-meta)> old-args;
+		new-vars := <map(?SortRef(<id>); make-fresh; make-meta)> new-args;
+		vars := <conc> (old-vars, new-vars);
+		old-t := <make-termapp> (old-name, old-vars);
+		new-t := <make-termapp> (new-name, new-vars)
+	constructor-diff-axiom :
+		(ConstructorDecl(old-name, old-args, old-res), ConstructorDecl(new-name, new-args, new-res)) ->
+		None()
+	where
+		<not(equal)> (old-res, new-res)
+	constructor-diff-axiom = debug(!"constructor-diff-axiom failed: "); fail
+		
+		
+	scoped-function-axioms = {|Fresh: function-axioms|}
+	function-axioms : FunctionDef(FunctionSig(_,arg-types,res-type), eqs) -> result
+	where
+		arg-vars := <map(?SortRef(<id>); make-fresh; make-meta)> arg-types;
+		datas := <function-eqs-datas(|arg-vars, res-type, [])> eqs;
+		result := <map(make-function-formula)> datas
+	function-axioms(|cons) = debug(!"function-axioms failed: "); fail
+	
+	function-eqs-datas(|arg-vars, res-type, prepats) : [] -> []
+	function-eqs-datas(|arg-vars, res-type, prepats) : [f@FunctionEq(name, pats, exp) | fs] -> result
+	where
+		pat-props :=  <map(function-pat-prop)> pats;
+		pat-bind-props := <zip; map(\(a,b) -> Eq(a,b)\)> (arg-vars, pat-props);
+		pat-prop := <reduce-list(\(p1, p2) -> <make-and> (p1, p2)\|True())> pat-bind-props;
+		not-match-prepats-prop := <not-match-prepats-prop> (pats, prepats);
+		pat-notprepat-prop := <make-and> (pat-prop, not-match-prepats-prop);
+		function-data := <function-eq-data(|arg-vars, res-type, pat-notprepat-prop)> f;
+		rest-data := <function-eqs-datas(|arg-vars, res-type, [pats|prepats])> fs;
+		result := <conc> (function-data, rest-data)
+	function-eqs-datas(|arg-vars, res-type, prepats) =
+		strip-annos;debug(!"function-eqs-datas failed: ");
+		<debug(!"  arg-vars: ")> arg-vars;
+		<debug(!"  res-type: ")> res-type;
+		<debug(!"  prepats: ")> prepats;
+		fail
+	
+	function-eq-data(|arg-vars, res-type, pat-prop) : FunctionEq(name, pats, exp) -> result
+	where
+		<not(?RelBool() + ?SortRef("Bool"))> res-type;
+		result-term := <make-termapp> (name, arg-vars);
+		result-var := Meta("RESULT");
+		result-bind := Eq(result-var, result-term);
+		exp-props := <function-exp-props> exp;
+		result := <map(!(name, pat-prop, result-bind, result-var, <id>))> exp-props
+	function-eq-data(|arg-vars, res-type, pat-prop) : FunctionEq(name, pats, exp) -> result
+	where
+		<?RelBool() + ?SortRef("Bool")> res-type;
+		result-term := <make-termapp> (name, arg-vars);
+		exp-props := <function-exp-props> exp;
+		result := <map(!(name, pat-prop, True(), result-term{res-type}, <id>))> exp-props
+	function-eq-data(|arg-vars, res-type, pat-prop) = debug(!"function-eq-axioms failed: "); fail
+	
+	function-pat-prop : FunctionPatVar(v) -> <make-meta> v
+	function-pat-prop : FunctionPatApp(f, ts) -> <make-termapp> (f, args)
+	where
+		args := <map(function-pat-prop)> ts
+	function-pat-prop = debug(!"function-pat-prop failed: "); fail
+	
+	function-exp-props : FunctionExpUndefined() -> []
+	function-exp-props : FunctionExpTrue() -> [(True(), True())]
+	function-exp-props : FunctionExpFalse() -> [(True(), False())]
+	function-exp-props : FunctionExpVar(v) -> [(True(),<make-meta> v)]
+	function-exp-props : FunctionExpIf(c, t, e) -> <conc> (result1, result2)
+	where
+		[(True(), c-prop)] := <function-exp-props> c; // TODO support conditionals in condition
+		t-props := <function-exp-props> t;
+		e-props := <function-exp-props> e;
+		result1 := <map(\(a,b) -> (<make-and> (c-prop,a), b)\)> t-props;
+		result2 := <map(\(a,b) -> (<make-and> (<make-not> (c-prop),a), b)\)> e-props
+	function-exp-props : FunctionExpLet(x, e1, e2) -> res-props
+	where
+		var := <make-meta> x;
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in bound expression
+		eq-prop := Eq(var, e1-prop);
+		e2-props := <function-exp-props> e2;
+		res-props := <map(\(c,p) -> (<make-and> (eq-prop, c), p)\)> e2-props
+	function-exp-props : FunctionExpEq(e1, e2) -> [(True(), Eq(e1-prop, e2-prop))]
+	where
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props> e2; // TODO support conditionals in operands
+		id
+	function-exp-props : FunctionExpNeq(e1, e2) -> [(True(), Neq(e1-prop, e2-prop))]
+	where
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props> e2; // TODO support conditionals in operands
+		id
+	function-exp-props : FunctionExpAnd(e1, e2) -> [(True(), <make-and> (e1-prop, e2-prop))]
+	where
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props> e2; // TODO support conditionals in operands
+		id
+	function-exp-props : FunctionExpOr(e1, e2) -> [(True(), <make-or> (e1-prop, e2-prop))]
+	where
+		[(True(), e1-prop)] := <function-exp-props> e1; // TODO support conditionals in operands
+		[(True(), e2-prop)] := <function-exp-props> e2; // TODO support conditionals in operands
+		id
+	function-exp-props : FunctionExpNot(e) -> [(True(), <make-not> (e-prop))]
+	where
+		[(True(), e-prop)] := <function-exp-props> e; // TODO support conditionals in operands
+		id
+	function-exp-props : FunctionExpApp(f, es) -> [(True(), <make-termapp> (f, es-props))]
+	where
+		es-props := <map(function-exp-props; ?[(True(), <id>)])> es // TODO support conditionals as function arguments
+	function-exp-props = debug(!"function-exp-props(|name, pat-props) failed: "); fail
+
+
+	make-function-formula : 
+		(name, pat-prop, result-bind, result-var, (cond, p)) ->
+		Formula(fname, Axiom(), <close-prop> body)
+	where
+		fname := <make-fresh> name;
+		body := <make-impl>(pat-prop, <make-impl>(cond, <make-impl>(result-bind, <make-eq> (result-var, p))))
+	make-function-formula = debug(!"make-function-formula failed: "); fail
+
+
+
+	not-match-prepats-prop : (pats, prepats) -> result
+	where
+		not-prepats := <map(not-match-prepats(|pats))> prepats;
+		result := <reduce-list(make-and|True())> not-prepats
+
+	not-match-prepats(|pats) : pre-patterns -> result
+	where
+		not-match-args := <zip;map(not-match-prepat-arg)> (pats, pre-patterns);
+		result := <reduce-list(make-or|False())> not-match-args
+
+	not-match-prepat-arg = strip-annos; fail
+	not-match-prepat-arg : (pat1@FunctionPatApp(c1, xs), FunctionPatApp(c2, ys)) -> sub-prop
+	where
+		<strip-annos;equal> (c1,c2);
+		sub-props := <zip; map(\(x,y) -> <not-match-prepat-arg> (x,y)\)> (xs, ys);
+		sub-prop := <reduce-list(make-or|False())> sub-props // different if different for any sub-pat
+	not-match-prepat-arg : (pat1@FunctionPatApp(c1, xs), FunctionPatApp(c2, ys)) -> True()
+	where
+		<not(equal)> (c1, c2)
+	not-match-prepat-arg : (pat1@FunctionPatVar(t), pat2@FunctionPatApp(c, ys)) -> not-eq
+	where
+		var-prop := <function-pat-prop> pat1;
+		app-prop := <function-pat-prop> pat2;
+		app-vars := <collect-all(?Meta(<strip-annos>))> app-prop;
+		fresh-vars := <map(make-fresh; make-meta)> app-vars;
+		fresh-subst := <zip> (app-vars, fresh-vars);
+		fresh-app-prop := <bottomup(try(\Meta(v) -> <lookup> (<strip-annos> v, fresh-subst)\))> app-prop;
+		not-eq := <make-all> (fresh-vars, Neq(var-prop, fresh-app-prop))
+	not-match-prepat-arg : (pat1, FunctionPatVar(t)) -> False() 
+	not-match-prepat-arg = debug(!"not-match-prepat-arg failed: "); fail
+	
+
+
+	scoped-function-inversion-axioms = {|Fresh: function-inversion-axioms|}
+	function-inversion-axioms : FunctionDef(FunctionSig(name,arg-types,res-type), []) -> []
+	function-inversion-axioms : FunctionDef(FunctionSig(name,arg-types,res-type), eqs) -> []
+	where
+		<?RelBool() + ?SortRef("Bool")> res-type
+	function-inversion-axioms : FunctionDef(FunctionSig(name,arg-types,res-type), eqs) -> [axiom]
+	where
+		<not(?RelBool() + ?SortRef("Bool"))> res-type;
+		arg-vars := <map(?SortRef(<id>); make-fresh; make-meta)> arg-types;
+		result-var := Meta("RESULT");
+		result-prop := Eq(<make-termapp> (name, arg-vars), result-var);
+		datas := <function-eqs-datas(|arg-vars, res-type, [])> eqs;
+		disjuncts := <map(make-function-inversion-disjunct; close-prop-existential(|[result-var|arg-vars]))> datas;
+		function-eq-prop := <reduce-list(\(a,b) -> <make-or> (a,b)\)> disjuncts;
+		body := <make-impl>(result-prop, function-eq-prop);
+		fname := <conc-strings> (name, "-", "INV");
+		axiom := Formula(fname, Axiom(), <close-prop> body)
+	function-inversion-axioms = debug(!"function-inversion-axioms failed: "); fail 
+	
+	make-function-inversion-disjunct : 
+		(name, pat-prop, result-bind, result-var, (cond, p)) -> body
+	where
+		body := <make-and> (pat-prop, <make-and> (cond, <make-eq> (result-var, p)))
+	
+	crossproduct : ([], ys) -> []
+	crossproduct : (xs, []) -> []
+	crossproduct : ([x|xs], ys) -> <conc> (<map(\ y -> (x,y)\)> ys, <crossproduct> (xs, ys))
+	
+	elem(|t) = where(!(<strip-annos> t, <id>); elem)
+	
+	put-type(|t) = ?term; !term{t}
+
+strategies
+	to-prop = innermost(R)
+	fof-trans = generate-fof-goals
+	
+	// strats: hashtable with translated strategies, keys: strategy names!
+	// limps: list of module names of imported modules
+	generate-fof-goals : Module(_, imps, body) -> <conc; generate-fof-goals(|[], [], [], [], strats)> (imps, body) 
+		where
+			new-hashtable => strats
+	
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [] -> []
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Axioms(fs) | rest] -> others
+		where
+			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
+			axioms2 := <conc> (axioms, newAxioms);
+			usedaxioms2 := <conc> (usedaxioms, newAxioms); 
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Goals(_, fs) | rest] -> [goal | others]
+		where
+			formula := <to-prop; compose-formulas> fs;
+			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
+			goal := FOFGoal(usedaxioms, conjecture);
+			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [GoalsWithStrategy(n, _, fs) | rest] -> [goal | others]
+		where
+			formula := <to-prop; compose-formulas> fs;
+			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
+			//use axioms from named strategy!
+			strataxioms := <hashtable-get(|n) <+ <debug(!"Strategy could not be found")> n> strats;
+			goal := FOFGoal(strataxioms, conjecture);
+			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Lemmas(_, fs) | rest] -> [goal | others]
+		where
+			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
+			axioms2 := <conc> (axioms, newAxioms); 
+			usedaxioms2 := <conc> (usedaxioms, newAxioms); 
+			formula := <to-prop; compose-formulas> fs;
+			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
+			//important: take previous(!) axiom set for generating fof goal from lemma!
+			goal := FOFGoal(usedaxioms, conjecture);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [LemmasWithStrategy(n, _, fs) | rest] -> [goal | others]
+		where
+			newAxioms := <to-prop; map(\Formula(name,body) -> Formula(name, Axiom(), body)\)> fs;
+			axioms2 := <conc> (axioms, newAxioms); 
+			usedaxioms2 := <conc> (usedaxioms, newAxioms); 
+			formula := <to-prop; compose-formulas> fs;
+			conjecture := <\Formula(name,body) -> Formula(name, Conjecture(), body)\> formula;
+			//use axioms from named strategy!
+			strataxioms := <hashtable-get(|n) <+ <debug(!"Strategy could not be found: ")> n> strats;
+			goal := FOFGoal(strataxioms, conjecture);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Local(xs) | rest] -> <conc> (goals,  others)
+		where
+			goals := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> xs;
+			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Sorts(xs) | rest] -> others
+		where
+			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Constructors(cs) | rest] -> others
+		where
+			cs-axioms := <map(scoped-constructor-axiom)> cs;
+			cs-diff-axioms := <constructor-diff-axioms(|cons)> cs;
+			axioms2 := <conc> (axioms, cs-axioms, cs-diff-axioms); 
+			usedaxioms2 := <conc> (usedaxioms, cs-axioms, cs-diff-axioms); 
+			cons2 := <conc> (cons, cs);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons2, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Consts(_,cs) | rest] -> others
+		where
+			cs-axioms := <map(scoped-constructor-axiom)> cs;
+			axioms2 := <conc> (axioms, cs-axioms); 
+			usedaxioms2 := <conc> (usedaxioms, cs-axioms); 
+			others := <generate-fof-goals(|axioms2, usedaxioms2,cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [PartialFunctions(fs) | rest] -> others
+		where
+			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
+			resolved-fs := <resolve-vars(|cons-names)> fs;
+			fs-axioms := <mapconcat(scoped-function-axioms)> resolved-fs;
+			axioms2 := <conc> (axioms, fs-axioms);
+			usedaxioms2 := <conc> (usedaxioms, fs-axioms);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Functions(fs) | rest] -> others
+		where
+			cons-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
+			resolved-fs := <resolve-vars(|cons-names)> fs;
+			fs-axioms := <mapconcat(scoped-function-axioms)> resolved-fs;
+			fs-inv-axioms := <mapconcat(scoped-function-inversion-axioms)> resolved-fs;
+			axioms2 := <conc> (axioms, fs-axioms, fs-inv-axioms);
+			usedaxioms2 := <conc> (usedaxioms, fs-axioms, fs-inv-axioms);
+			others := <generate-fof-goals(|axioms2, usedaxioms2, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Import(m, annos) | rest] -> others
+		where
+			mname := <strip-annos> m;
+			<elem> (mname, limps);
+			//<debug(!"skip import: ")> mname;
+			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Import(m, annos) | rest] -> others
+		where
+			mname := <strip-annos> m;
+			newlimps := <concat> [[mname], limps];
+			Module(_, imps, body) := <get-module-ref> m;
+			filtered-body := <filter-import(|annos)> body;
+			new-rest := <conc> (imps, filtered-body, rest);
+			//<debug(!"import: ")> mname;
+			others := <generate-fof-goals(|axioms, usedaxioms, cons, newlimps, strats)> new-rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Include(names) | rest] -> others
+		where
+			included := <filter(\Formula(name,a,b) -> Formula(name,a,b) 
+				where(<strip-annos; elem> (name, names))\)> axioms;
+			includednames := <map(\Formula(name,a,b) -> name\)> included;
+			missing := <filter(\name -> name where not(<strip-annos; elem> (name, includednames))\)> names;
+			<?[] <+ debug(!"Axioms not found: ")> missing; 
+			usedaxioms2 := <conc> (usedaxioms, included);
+			others := <generate-fof-goals(|axioms, usedaxioms2, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Hide(names) | rest] -> others
+		where
+			usedaxioms2 := <filter(\Formula(name,a,b) -> Formula(name,a,b) 
+				where(not(<strip-annos; elem> (name, names)))\)> usedaxioms;
+			others := <generate-fof-goals(|axioms, usedaxioms2, cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [HideAll() | rest] -> others
+		where
+			others := <generate-fof-goals(|axioms, [], cons, limps, strats)> rest
+	generate-fof-goals(|axioms, usedaxioms, cons, limps, strats) : [Strategy(name, imps, mdefs) | rest] -> <conc> (goals, others)
+		where
+			// treat strategy blocks similar to local blocks
+			// 1) add some arbitrary "default goal" at the end of the strategy definitions
+			mdefsg := <conc> (imps, mdefs, [Goals(None(),[TypingRule(RuleName("=======", "FALSE"), ConsequenceList(FunctionExpJudgment(FunctionExpFalse())))])]);
+			// 2) take apart the "real" goals and the axioms for the strategy, which are the axioms from the very last (dummy) goal
+			allgoals := <generate-fof-goals(|axioms, usedaxioms, cons, limps, strats)> mdefsg;
+			(goals, last) := <split-init-last> allgoals;
+			<?FOFGoal(strataxioms, dummy) <+ !name; debug(!"Generating strategy axioms failed: ")> last;
+			// 3) add all axioms generated from strategy block to strats hashtable!
+			others := <generate-fof-goals(|axioms, usedaxioms, cons, limps, <hashtable-put(|name, strataxioms)> strats)> rest
+
+
+	generate-fof-goals(|axioms, usedaxioms, cons, strats) = debug(!"generate-fof-goals failed: "); fail
+
+	resolve-vars(|cons-names) =
+		bottomup(try(
+			\FunctionPatVar(v) -> FunctionPatApp(v, []) where <elem(|v)> cons-names\
+		<+	\FunctionExpVar(v) -> FunctionExpApp(v, []) where <elem(|v)> cons-names\))
+
+	filter-import(|annos) : xs -> <filter(not(?Goals(_,_) + ?GoalsWithStrategy(_,_,_) + ?Local(_) + ?Strategy(_,_,_))); 
+		innermost(\Lemmas(_,b) -> Axioms(b)\);
+		innermost(\LemmasWithStrategy(_,_,b) -> Axioms(b)\)> xs
+		where <?None()> annos
+	filter-import(|annos) : [] -> []
+	filter-import(|annos) : [x@Axioms(_)|xs] -> [x|<filter-import(|annos)>xs]
+		where <?Some(<elem(|ImportAnnoAxioms())>)> annos
+	filter-import(|annos) : [x@Goals(_,_)|xs] -> [x|<filter-import(|annos)>xs]
+		where <?Some(<elem(|ImportAnnoGoals())>)> annos
+	filter-import(|annos) : [x@Local(_)|xs] -> [x|<filter-import(|annos)>xs]
+		where <?Some(<elem(|ImportAnnoGoals())>)> annos
+	filter-import(|annos) : [x@Constructors(_)|xs] -> [x|<filter-import(|annos)>xs]
+		where <?Some(<elem(|ImportAnnoTypes())>)> annos
+	filter-import(|annos) : [x@DataType(_,_,_)|xs] -> [x|<filter-import(|annos)>xs]
+		where <?Some(<elem(|ImportAnnoTypes())>)> annos
+	filter-import(|annos) : [x@Consts(_,_)|xs] -> [x|<filter-import(|annos)>xs]
+		where <?Some(<elem(|ImportAnnoTypes())>)> annos
+	filter-import(|annos) : [x@PartialFunctions(_)|xs] -> [x|<filter-import(|annos)>xs]
+		where <?Some(<elem(|ImportAnnoFunctions())>)> annos
+	filter-import(|annos) : [x@Functions(_)|xs] -> [x|<filter-import(|annos)>xs]
+		where <?Some(<elem(|ImportAnnoFunctions())>)> annos
+	filter-import(|annos) : [x|xs] -> <filter-import(|annos)>xs
+	
+	
+	
+	

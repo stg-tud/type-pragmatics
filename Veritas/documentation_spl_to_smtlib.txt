@@ -1,0 +1,45 @@
+This document sketches roughly how to encode the coremodules into the smtlib format
+
+Types can be collected via CollectTypesClass just like in ToTff
+
+for every datatype create a sort declaration
+e.g. data Row = ... => (declare-sort Row 0)
+
+for every constructor type create a sort defintion
+e.g data Row = remtpy | rcons(Val, Row) =>
+    (define-sort rempty ()) and
+    (define-sort rcons (Val Row))
+
+for every function type create a (partial) function declaration
+e.g function append : AttrL AttrL -> AttrL =>
+    (declare-fun append (AttrL AttrL) Attrl)
+
+for every axiom create an assert command
+e.g. an axiom in tff tff('DIFF-initName-enumName', axiom, ![VName0: vName] : (vinitName != venumName(VName0))).
+should look like (assert (forall ((name0 Name)) (not (= initName enumName(name0)))))
+
+at the beginning a logic should be set via (set-logic ) currently not sure which
+at the end of the file there should a (check-sat) appear
+
+Judgements will be translated like:
+    FunctionExpJudgement(f) => translatefunexp(f)
+    ExistsJudgement(vars, jdglist) => (exists (for (type, symbol) <- mappedvars yield (symbol type)) jdglist map translatejudgement) // mappedvars need to be calculated beforehand
+    ForallJudgement(vars, jdglist) => (forall (for (type, symbol) <- mappedvars yield (symbol type)) jdglist map translatejudgement) // mappedvars need to be calculated beforehand
+    NotJudgement(jdg) => (not translatejudgement(jdg))
+    OrJudgement(ors) => (or ors map translatejudgmenet)
+
+FunctionExp will be translated like following:
+    FunctionExpNot(f) => (not translate(f))
+    FunctionExpEq(f1, f2) => (= translate(f1) translate(f2))
+    FunctionExpNeq(f1, f2) => (not (= translate(f1) translate(f2)))
+    FunctionExpAnd(l, r) => (and translate(l) translate(r))
+    FunctionExpOr(l, r) => (or translate(l) translate(r))
+    FunctionExpBiImpl(l, r) => (or (and translate(l) translate(r)) (and (not translate(l)) (not translate(r))))
+    FunctionExpApp(n, args) => (n for a <- args yield translate(a))
+    FunctionExpTrue => true
+    FunctionExpFalse => false
+
+Unanswered questions:
+    how to translate the goal
+    how to translate the typingrules
+    which logic should be used
