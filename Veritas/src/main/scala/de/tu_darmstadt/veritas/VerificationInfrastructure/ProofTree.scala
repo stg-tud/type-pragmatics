@@ -18,7 +18,7 @@ sealed abstract class ProofTree[S, P](val name: String,
     * @param strategy overall abstract VerificationStrategy for attempting verification of the current tree
     * @return VerificationStatus: status of verification of the proof tree
     */
-  def verifySingle(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy = Solve): this.type
+  def verifySingle(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy = Solve): ProofTree[S, P]
 
   def addChildren(children: Seq[ProofTree[S, P]], newedge: VerificationStrategy = Solve): ProofTree[S, P]
 
