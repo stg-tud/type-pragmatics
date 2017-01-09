@@ -13,4 +13,4 @@ object Solve extends VerificationStrategy
 
 object Induction extends VerificationStrategy
 
-//TODO further strategies for verifying proof trees?
+//TODO which other abstract strategies are there for verifying proof trees?

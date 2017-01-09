@@ -1,10 +1,19 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 /**
-  * Created by sylvia on 14/10/16.
+  * return status of a prover call
+  */
+sealed trait ProverStatus
+
+case object Proved extends ProverStatus
+
+case object Disproved extends ProverStatus
+
+case class Inconclusive(terminationReason: String) extends ProverStatus
+
+/**
+  * Interface for concrete provers
   */
 abstract class Prover[V](problem: V) {
-  def getResult(): Boolean
-  def makeCall()
-
+  def callProver(): ProverStatus
 }
