@@ -20,9 +20,28 @@ sealed abstract class ProofTree[S, P](val name: String,
     */
   def verifySingle(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy = Solve): ProofTree[S, P]
 
+  /**
+    * add children to a proof tree;
+    * method can either be used by a strategy that automatically creates a proof tree,
+    * or to manually manipulate a proof tree
+    *
+    * @param children
+    * @param newedge general strategy that should be used to verify the parent node from the children
+    * @return new proof tree with updated children and verification status
+    */
   def addChildren(children: Seq[ProofTree[S, P]], newedge: VerificationStrategy = Solve): ProofTree[S, P]
 
+  /**
+    * remove children from a proof tree (if they exist), by name
+    * method can either be used by a strategy that automatically creates a proof tree,
+    * or to manually manipulate a proof tree
+    *
+    * @param names
+    * @return new proof tree with updated children and verification status
+    */
   def removeChildren(names: String*): ProofTree[S, P]
+
+
 }
 
 case class ProofLeaf[S, P](override val name: String,
@@ -41,6 +60,7 @@ case class ProofLeaf[S, P](override val name: String,
     ProofNode(name, spec, goal, newedge, children)
 
   def removeChildren(names: String*): ProofTree[S, P] = this
+  def removeChildren(names: String*): ProofTree[S, P] = this //since a leaf has no children, nothing can be removed
 }
 
 case class ProofNode[S, P](override val name: String, override val spec: S, override val goal: P,

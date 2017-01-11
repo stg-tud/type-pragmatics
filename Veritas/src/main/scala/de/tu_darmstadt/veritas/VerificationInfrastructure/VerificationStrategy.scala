@@ -9,8 +9,10 @@ abstract class VerificationStrategy
   * default strategy: simply try to figure out a proof for a node of a proof tree given its children, e.g. calling an ATP
   */
 object Solve extends VerificationStrategy
+case object Solve extends VerificationStrategy
 
 
 object Induction extends VerificationStrategy
+case object Induction extends VerificationStrategy
 
 //TODO which other abstract strategies are there for verifying proof trees?
