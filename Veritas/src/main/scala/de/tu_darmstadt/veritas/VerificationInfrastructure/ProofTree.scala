@@ -29,20 +29,20 @@ sealed abstract class ProofTree[S, P](val name: String,
     * use the given verifiers to attempt to verify a single node or leaf (no propagation to children!);
     * specific proof trees may have different ways of calling the verifies
     *
-    * @param verifier sequence of verifiers (e.g. translating to TPTP and calling ATPs as provers)
+    * @param verifier (e.g. translating to TPTP and calling ATPs as provers)
     * @param strategy overall abstract VerificationStrategy for attempting verification of the current tree
     * @return VerificationStatus: status of verification of the proof tree
     */
-  def verifySingleStep(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy = Solve): ProofTree[S, P]
+  def verifySingleStep(verifier: Verifier[S, P], strategy: VerificationStrategy = Solve): ProofTree[S, P]
 
   /**
     * recursive verification of entire tree
     *
-    * @param verifier sequence of verifiers (e.g. translating to TPTP and calling ATPs as provers)
+    * @param verifier (e.g. translating to TPTP and calling ATPs as provers)
     * @param strategy overall abstract VerificationStrategy for attempting verification of the current tree
     * @return VerificationStatus: status of verification of the proof tree
     */
-  def verifyTree(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy = Solve): ProofTree[S, P]
+  def verifyTree(verifier: Verifier[S, P], strategy: VerificationStrategy = Solve): ProofTree[S, P]
 
   /**
     * add children to a proof tree;
@@ -94,16 +94,17 @@ case class ProofLeaf[S, P](override val name: String,
                            override val verificationStatus: VerificationStatus = NotStarted)
   extends ProofTree[S, P](name, spec, goal, verificationStatus) {
 
-  def verifySingleStep(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy = Solve): ProofLeaf[S, P] =
-    ???
+  override def verifySingleStep(verifier: Verifier[S, P], strategy: VerificationStrategy = Solve): ProofTree[S, P] =
+    ProofLeaf(name, spec, goal, verifier.verify(spec, Seq(), goal, strategy))
 
-  override def verifyTree(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy): ProofTree[S, P] = ???
+  override def verifyTree(verifier: Verifier[S, P], strategy: VerificationStrategy): ProofTree[S, P] =
+    verifySingleStep(verifier, strategy)
 
 
-  def addChildren(children: Seq[ProofTree[S, P]], newedge: VerificationStrategy = Solve): ProofTree[S, P] =
+  override def addChildren(children: Seq[ProofTree[S, P]], newedge: VerificationStrategy = Solve): ProofTree[S, P] =
     ProofNode(name, spec, goal, newedge, children, updatedVerificationStatus())
 
-  def removeChildren(names: String*): ProofTree[S, P] = this //since a leaf has no children, nothing can be removed
+  override def removeChildren(names: String*): ProofTree[S, P] = this //since a leaf has no children, nothing can be removed
 
 
   override def prettyPrint(): String = ???
@@ -113,19 +114,36 @@ case class ProofNode[S, P](override val name: String,
                            override val spec: S,
                            override val goal: P,
                            edge: VerificationStrategy,
-                           subgoals: Seq[ProofTree[S, P]],
+                           subgoals: GenSeq[ProofTree[S, P]],
                            override val verificationStatus: VerificationStatus = NotStarted)
   extends ProofTree[S, P](name, spec, goal, verificationStatus) {
-  def verifySingleStep(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy): ProofNode[S, P] =
-    ???
 
-  override def verifyTree(verifier: GenSeq[Verifier[S, P]], strategy: VerificationStrategy): ProofTree[S, P] = ???
+  val nodeVerified: Boolean = subgoals forall { pt =>
+    pt match {
+      case pn@ProofNode(_, _, _, _, _, _) => pn.nodeVerified
+      case ProofLeaf(_, _, _, Finished(Proved)) => true
+      case ProofLeaf(_, _, _, _) => false
+    }
+  }
+
+  override def verifySingleStep(verifier: Verifier[S, P], strategy: VerificationStrategy): ProofTree[S, P] =
+    ProofNode(name, spec, goal, strategy, subgoals,
+      verifier.verify(spec, subgoals.map(s => s.goal).seq, goal, strategy))
+
+  override def verifyTree(verifier: Verifier[S, P], strategy: VerificationStrategy): ProofTree[S, P] = {
+    val verifiedSubgoals = subgoals map { pt => pt.verifyTree(verifier, strategy) }
+    val verifiedNode = verifySingleStep(verifier, strategy)
+    verifiedNode match {
+      case ProofNode(n, s, g, e, sg, vs) => ProofNode(n, s, g, e, verifiedSubgoals, vs)
+      case ProofLeaf(_, _, _, _) => sys.error("Error in verifyTree: verified Node suddenly became a leaf!") //This case should not happen!
+    }
+  }
 
   //default: don't change the strategy edge when adding children
-  def addChildren(children: Seq[ProofTree[S, P]], newedge: VerificationStrategy = edge): ProofTree[S, P] =
+  override def addChildren(children: Seq[ProofTree[S, P]], newedge: VerificationStrategy = edge): ProofTree[S, P] =
     ProofNode(name, spec, goal, newedge, subgoals ++ children, updatedVerificationStatus())
 
-  def removeChildren(names: String*): ProofTree[S, P] =
+  override def removeChildren(names: String*): ProofTree[S, P] =
     ProofNode(name, spec, goal, edge,
       subgoals filter { (pt: ProofTree[S, P]) => !(names contains pt.name) },
       updatedVerificationStatus())
