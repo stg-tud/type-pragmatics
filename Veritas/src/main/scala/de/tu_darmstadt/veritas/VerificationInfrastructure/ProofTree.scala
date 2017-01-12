@@ -10,20 +10,24 @@ sealed trait VerificationStatus
 
 case object NotStarted extends VerificationStatus
 
+//TODO remember previous proof tree that created the previous verification status?
 case class Outdated[S, P](prevs: ProverStatus, usedVerifier: Verifier[S, P]) extends VerificationStatus
 
 case class Finished[S, P](ps: ProverStatus, usedVerifier: Verifier[S, P]) extends VerificationStatus
 
+//TODO: have this status or not?
 case class VerificationFailure[S, P](usedVerifier: Verifier[S, P]) extends VerificationStatus
 
 /**
   * Structure for representing proof trees with verified and unverified parts
+  * //TODO serialization of proof trees?
   */
 sealed abstract class ProofTree[S, P](val name: String,
                                       val spec: S,
                                       val goal: P,
                                       val edge: VerificationStrategy = Solve) {
 
+  //TODO: update methods also for spec / goal?
   /**
     * status of verification - publicly readable, but only verification methods should ever be able to set it!
     */
