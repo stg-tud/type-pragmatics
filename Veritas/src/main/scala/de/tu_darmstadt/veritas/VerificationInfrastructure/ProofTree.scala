@@ -147,23 +147,26 @@ object ProofLeaf {
   /*
   public constructor for a ProofLeaf
    */
-  def apply[S, P](name: String, spec: S, goal: P, edge: VerificationStrategy = Solve) =
+  def apply[S, P](name: String, spec: S, goal: P, edge: VerificationStrategy = Solve): ProofLeaf[S, P] =
     ProofLeaf(name, spec, goal, edge, NotStarted)
 
   /*
   private constructor for a proof leaf which may manipulate the verification status
    */
-  private def apply[S, P](n: String, s: S, g: P, e: VerificationStrategy, vs: VerificationStatus) =
+  private def apply[S, P](n: String, s: S, g: P, e: VerificationStrategy, vs: VerificationStatus): ProofLeaf[S, P] =
     new ProofLeaf[S, P](n, s, g, e) {
       override val verificationStatus = vs
     }
+
+  def unapply[S, P](arg: ProofLeaf[S, P]): Option[(String, S, P, VerificationStrategy)] =
+    Some((arg.name, arg.spec, arg.goal, arg.edge))
 }
 
 
-case class ProofNode[S, P](override val name: String,
+class ProofNode[S, P](override val name: String,
                            override val spec: S,
                            override val goal: P,
-                           subgoals: GenSeq[ProofTree[S, P]],
+                           val subgoals: GenSeq[ProofTree[S, P]],
                            override val edge: VerificationStrategy = Solve
                            )
   extends ProofTree[S, P](name, spec, goal, edge) {
@@ -208,15 +211,18 @@ object ProofNode {
   /*
   public constructor for a ProofNode
    */
-  def apply[S, P](name: String, spec: S, goal: P, sg: GenSeq[ProofTree[S, P]], edge: VerificationStrategy) =
+  def apply[S, P](name: String, spec: S, goal: P, sg: GenSeq[ProofTree[S, P]], edge: VerificationStrategy): ProofNode[S, P] =
   ProofNode(name, spec, goal, sg, edge, NotStarted)
 
   /*
   private constructor for a proof node which may manipulate the verification status
    */
-  private def apply[S, P](n: String, s: S, g: P, sg: GenSeq[ProofTree[S, P]], e: VerificationStrategy, vs: VerificationStatus) =
+  private def apply[S, P](n: String, s: S, g: P, sg: GenSeq[ProofTree[S, P]], e: VerificationStrategy, vs: VerificationStatus): ProofNode[S, P] =
     new ProofNode[S, P](n, s, g, sg, e) {
       override val verificationStatus = vs
     }
+
+  def unapply[S, P](arg: ProofNode[S, P]): Option[(String, S, P, GenSeq[ProofTree[S, P]], VerificationStrategy)] =
+    Some((arg.name, arg.spec, arg.goal, arg.subgoals, arg.edge))
 }
 
