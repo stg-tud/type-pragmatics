@@ -176,7 +176,7 @@ object ProofGraph {
   /**
     * private constructor for directly generating a new ProofGraph instance without having to reconstruct the graph
     */
-  private def apply[S, P](newgraph: Graph[String, ProofStep[S, P], VerificationStrategy]) =
+  private def apply[S, P](newgraph: Graph[String, ProofStep[S, P], VerificationStrategy]): ProofGraph[S, P] =
     new ProofGraph[S, P] {
       override val graph = newgraph
     }
