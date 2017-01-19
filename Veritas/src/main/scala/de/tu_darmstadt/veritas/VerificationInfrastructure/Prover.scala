@@ -4,9 +4,13 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
   * return status of a prover call
   * Proved and Disproved include information on which transformer and which  prover achieved this result
   */
-sealed trait ProverStatus
+sealed trait ProverStatus {
+  val isVerified: Boolean = false
+}
 
-case class Proved[S, P, V](t: Transformer[S, P, V], p: Prover[V]) extends ProverStatus
+case class Proved[S, P, V](t: Transformer[S, P, V], p: Prover[V]) extends ProverStatus {
+  override val isVerified: Boolean = true
+}
 
 case class Disproved[S, P, V](t: Transformer[S, P, V], p: Prover[V]) extends ProverStatus
 
