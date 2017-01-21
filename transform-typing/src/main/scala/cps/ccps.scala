@@ -33,13 +33,18 @@ object ccps extends Transformation(stlc.language + tcps) {
       Judg(Lookup,
         Var("x", Name),
         Var("T", Typ),
-        Var("C", Ctx))
+        Var("C", Ctx)),
+      Judg(CtxOk, Var("C", Ctx)),
+      Judg(TOk, Var("T", Typ)),
+      Judg(TOk, omega)
     ) -> 2,
 
     Lemma("Notin-ccps",
       Judg(notin(Ctx), Var("x", Name), ccps(Var("C", Ctx), omega)),
       // if ----------------
-      Judg(notin(Ctx), Var("x", Name), Var("C", Ctx))
+      Judg(notin(Ctx), Var("x", Name), Var("C", Ctx)),
+      Judg(CtxOk, Var("C", Ctx)),
+      Judg(TOk, omega)
     ) -> 1
   )
 

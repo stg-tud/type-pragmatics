@@ -15,6 +15,7 @@ abstract class Transformation(val lang: Language) {
 
 //  final lazy val contractedTerms = contracts.map{case (c,pos) => c.conclusion.terms(pos).asInstanceOf[App]}
   final lazy val contractedSym = rewrites.head.sym
+  final lazy val contractedTerm = contract._1.contractedTerm(contract._2)
 
 
   final lazy val undeclaredSymbols = {
@@ -66,15 +67,17 @@ abstract class Transformation(val lang: Language) {
 
   val soundnessTimeout = 30
   val soundnessMode = "casc"
-  lazy val soundnessObligations: Seq[Seq[ProofObligation]] = Soundness.transSoundness(this).map(GoalUnpacking.unpackObligation(_))
+  lazy val soundnessObligations: Seq[Seq[ProofObligation]] = Soundness.soundnessTrans(this).map(GoalUnpacking.unpackObligation(_))
   lazy val soundnessResults = soundnessObligations.map(_.map(Verification.verify(_, soundnessMode, soundnessTimeout)))
   lazy val isSound = soundnessResults.flatten.forall(_.status == Proved)
+  def soundnessFailure = soundnessResults.flatten.zip(soundnessObligations.flatten).filter(_._1.status != Proved).map(_._2)
 
   val wellformednessTimeout = 30
   val wellformednessMode = "casc"
   lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = Wellformedness.wellformedTrans(this).map(GoalUnpacking.unpackObligation(_))
   lazy val wellformednessResults = wellformednessObligations.map(_.map(Verification.verify(_, wellformednessMode, wellformednessTimeout)))
   lazy val isWellformed = wellformednessResults.flatten.forall(_.status == Proved)
+  def wellformednessFailure = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map(_._2)
 
   def apply(kids: Term*): App = App(contractedSym, kids.toList)
 }

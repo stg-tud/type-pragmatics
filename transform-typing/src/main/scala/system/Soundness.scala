@@ -5,13 +5,13 @@ import system.Verification._
 
 object Soundness {
 
-  def transSoundness(trans: Transformation): Seq[ProofObligation] =
-    transRule(trans.contract, trans, true) ++ trans.lemmas.flatMap(transRule(_, trans, false))
+  def soundnessTrans(trans: Transformation): Seq[ProofObligation] =
+    soundnessRule(trans.contract, trans, true) ++ trans.lemmas.flatMap(soundnessRule(_, trans, false))
 
-  def transRule(rule: (Rule, Int), trans: Transformation, isContract: Boolean): Seq[ProofObligation] =
-    trans.rewrites.zipWithIndex.map{ case (r, i) => rewriteSoundness(r, i, rule._1, rule._2, trans, isContract)(new Gensym) }
+  def soundnessRule(rule: (Rule, Int), trans: Transformation, isContract: Boolean): Seq[ProofObligation] =
+    trans.rewrites.zipWithIndex.map{ case (r, i) => soundnessRewrite(r, i, rule._1, rule._2, trans, isContract)(new Gensym) }
 
-  def rewriteSoundness(r: Rewrite, rnum: Int, contract: Rule, contractPos: Int, trans: Transformation, isContract: Boolean)(implicit gensym: Gensym): ProofObligation = {
+  def soundnessRewrite(r: Rewrite, rnum: Int, contract: Rule, contractPos: Int, trans: Transformation, isContract: Boolean)(implicit gensym: Gensym): ProofObligation = {
     val freshContract = contract.fresh
 
     freshContract.contractedTerm(contractPos).matchAgainst(r.pat) match {
