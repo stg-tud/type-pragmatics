@@ -1,4 +1,4 @@
-package system
+package system.optimize
 
 import system.Syntax._
 import system.Verification.ProofObligation

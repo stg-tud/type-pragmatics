@@ -1,9 +1,13 @@
-package system
+package system.optimize
 
 import system.Syntax._
+import system.Verification
 import system.Verification.ProofObligation
 import veritas.benchmarking.Proved
 
+/*
+ * Drop those axiom premises that follow from the current assumptions anyway.
+ */
 object RuleStrengthening {
 
   var strengthenedRules = 0

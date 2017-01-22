@@ -5,6 +5,7 @@ import java.io.{File, PrintWriter}
 import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff.TffAnnotated
 import system.Syntax._
+import system.optimize.{GoalUnpacking, RuleStrengthening}
 import veritas.benchmarking
 import veritas.benchmarking._
 import veritas.benchmarking.vampire.VampireConfig
