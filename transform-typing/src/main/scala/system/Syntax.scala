@@ -1,7 +1,5 @@
 package system
 
-import scala.collection.immutable.ListMap
-
 object Syntax {
 
   sealed trait ISort {

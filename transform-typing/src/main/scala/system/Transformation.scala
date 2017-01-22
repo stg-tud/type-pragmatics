@@ -65,19 +65,22 @@ abstract class Transformation(val lang: Language) {
        """.stripMargin
   }
 
+  def isOk = isWellformed && isSound
+  def failedProofs = wellformednessFailure ++ soundnessFailed
+
   val soundnessTimeout = 30
   val soundnessMode = "casc"
-  lazy val soundnessObligations: Seq[Seq[ProofObligation]] = Soundness.soundnessTrans(this).map(GoalUnpacking.unpackObligation(_))
+  lazy val soundnessObligations: Seq[Seq[ProofObligation]] = Soundness.soundnessTrans(this).map(_.optimized)
   lazy val soundnessResults = soundnessObligations.map(_.map(Verification.verify(_, soundnessMode, soundnessTimeout)))
   lazy val isSound = soundnessResults.flatten.forall(_.status == Proved)
-  def soundnessFailure = soundnessResults.flatten.zip(soundnessObligations.flatten).filter(_._1.status != Proved).map(_._2)
+  def soundnessFailed = soundnessResults.flatten.zip(soundnessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   val wellformednessTimeout = 30
   val wellformednessMode = "casc"
-  lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = Wellformedness.wellformedTrans(this).map(GoalUnpacking.unpackObligation(_))
+  lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = Wellformedness.wellformedTrans(this).map(_.optimized)
   lazy val wellformednessResults = wellformednessObligations.map(_.map(Verification.verify(_, wellformednessMode, wellformednessTimeout)))
   lazy val isWellformed = wellformednessResults.flatten.forall(_.status == Proved)
-  def wellformednessFailure = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map(_._2)
+  def wellformednessFailure = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   def apply(kids: Term*): App = App(contractedSym, kids.toList)
 }

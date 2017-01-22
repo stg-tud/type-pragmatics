@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff.TffAnnotated
 import system.Syntax._
 import veritas.benchmarking
-import veritas.benchmarking.{Proved, ProverResult, Runner}
+import veritas.benchmarking._
 import veritas.benchmarking.vampire.VampireConfig
 
 object Verification {
@@ -67,6 +67,8 @@ object Verification {
 
       tff
     }
+
+    def optimized: Seq[ProofObligation] = GoalUnpacking.unpackObligation(this).map(RuleStrengthening.strengthenObligation(_))
   }
 
 
@@ -80,6 +82,11 @@ object Verification {
 //    logDisproof = true,
 //    logInconclusive = true
   )
+
+  case class ProverResult(val file: File,
+                          val status: ProverStatus,
+                          val timeSeconds: Option[Double],
+                          val details: ResultDetails)
 
   def verify(p: ProofObligation, mode: String = "casc", timeout: Int = 30): ProverResult = {
     val tff = p.asTFF
@@ -100,6 +107,6 @@ object Verification {
       println(s"SUCCESS ${p.name}")
     else
       println(s"FAILURE ${p.name}")
-    result
+    ProverResult(file, result.status, result.timeSeconds, result.details)
   }
 }
