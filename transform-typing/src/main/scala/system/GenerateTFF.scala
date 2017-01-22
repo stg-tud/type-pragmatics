@@ -110,7 +110,7 @@ object GenerateTFF {
         Seq(compileSymbolDeclaration(freshSym), compileRuleDecl(freshIsNotin))
       case sym if sym.isNotin =>
         Seq(compileSymbolDeclaration(sym))
-      case _ =>
+      case sym if sym.isEq || sym.isNeq =>
         // ignore isEq and isNeq since they translate to TFF-native `=` and `!=`
         None
     }
@@ -136,10 +136,10 @@ object GenerateTFF {
 
   def compileTransformation(trans: Transformation, withContract: Boolean = true): Seq[TffAnnotated] = {
     val implicits = compileImplicitSymbols(trans.undeclaredSymbols)
-    val sym = compileSymbolDeclaration(trans.contractedSym)
+    val syms = compileSymbolDeclaration(trans.contractedSym) +: trans.extraSymbols.map(compileSymbolDeclaration(_))
     val contractLemmas = if (withContract) trans.rules.keys.map(compileRuleDecl(_)) else Seq()
     val rewrites = compileRewrites(trans.rewrites)
-    implicits ++ Seq(sym) ++ contractLemmas ++ rewrites
+    implicits ++ syms ++ contractLemmas ++ rewrites
   }
 
 

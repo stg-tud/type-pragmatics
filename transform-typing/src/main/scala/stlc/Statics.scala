@@ -55,7 +55,7 @@ object Statics {
   )
 
   val CtxOk = symbol("CtxOk", in = List(Ctx), out = Prop)
-  val CtxOk_Nat = rule("CtxOk-empty",
+  val CtxOk_empty = rule("CtxOk-empty",
     Judg(CtxOk, App(empty))
     // if ----------------
   )

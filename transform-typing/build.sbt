@@ -11,3 +11,5 @@ libraryDependencies += "veritas-benchmarking" %% "veritas-benchmarking" % "1.0"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+
+scalacOptions ++= Seq("-deprecation", "-feature")

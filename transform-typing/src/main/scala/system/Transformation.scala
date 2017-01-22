@@ -10,6 +10,7 @@ abstract class Transformation(val lang: Language) {
   val contract: (Rule, Int)
   val lemmas: ListMap[Rule, Int] = ListMap()
   val rewrites: Seq[Rewrite]
+  val extraSymbols: Seq[Symbol] = Seq()
 
   lazy val rules: ListMap[Rule, Int] = ListMap(contract) ++ lemmas
 
@@ -21,8 +22,8 @@ abstract class Transformation(val lang: Language) {
   final lazy val undeclaredSymbols = {
     val lsyms = rules.foldLeft(Set[Symbol]())((set, c) => set ++ c._1.symbols)
     val rsyms = rewrites.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
-    val otherTransSyms = lang.transs.map(_.contractedSym).toSet
-    (lsyms++rsyms).diff(lang.syms.toSet).diff(lang.undeclaredSymbols).diff(otherTransSyms) - contractedSym
+    val otherTransSyms = lang.transs.flatMap(t => t.contractedSym +: t.extraSymbols).toSet
+    (lsyms++rsyms).diff(lang.syms.toSet).diff(lang.undeclaredSymbols).diff(otherTransSyms) - contractedSym -- extraSymbols
   }
 
   def checkSyntax(): Unit = {

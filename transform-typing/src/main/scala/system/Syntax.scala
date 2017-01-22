@@ -1,6 +1,13 @@
 package system
 
+import scala.language.implicitConversions
+
 object Syntax {
+
+  implicit def stringOp(s: String) = new StringOp(s)
+  class StringOp(val s: String) extends AnyVal {
+    def ~(sort: ISort): Var = Var(s, sort)
+  }
 
   sealed trait ISort {
     val open: Boolean
@@ -266,6 +273,7 @@ object Syntax {
   }
 
   case class Rewrite(pat: App, gen: Term, where: Seq[Judg] = Seq()) {
+    assert(pat.sort == gen.sort)
     val boundVars = pat.freevars ++ where.flatMap(_.freevars)
     val usedVars = gen.freevars // ++ where.values.flatMap(_.freevars)
     assert(usedVars.subsetOf(boundVars), s"Unbound variables ${usedVars.diff(boundVars)} in rewriting $this")
