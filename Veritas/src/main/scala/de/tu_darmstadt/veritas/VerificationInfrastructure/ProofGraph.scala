@@ -65,6 +65,7 @@ class ProofStep[S, P](val spec: S, val goal: P) {
     ProofStep(spec, goal, verificationStatus, newfullyVerified)
   }
 
+  // TODO currently if a child of a child is making current node outdated we get a prev graph which is a nested outdated status, is this desirable?
   /**
     * mark a proof step as outdated, if there was a previous verification attempt
     * @param pg proof graph before the node became outdated
@@ -109,7 +110,9 @@ class ProofGraph[S, P] {
   protected val graph: Graph[String, ProofStep[S, P], VerificationStrategy] = mkGraph(Seq(), Seq())
 
   //all valid proof graphs have to be acyclic
-  require(!graph.hasLoop)
+//  require(!graph.hasLoop)
+
+  def get(nodename: String): Option[ProofStep[S, P]] = graph.label(nodename)
 
   /**
     * add a new node to the proof graph
@@ -118,7 +121,50 @@ class ProofGraph[S, P] {
     * @param edges
     * @return the new, updated proof graph
     */
-  def addNode(node: ProofNode[S, P], edges: Seq[VerificationEdge]): ProofGraph[S, P] = ???
+  def addNode(node: ProofNode[S, P], edges: Seq[VerificationEdge]): ProofGraph[S, P] = {
+    val tempGraph = graph.addNode(node).addEdges(edges)
+    val transitiveParents = getParentNodes(node, tempGraph)
+    ProofGraph(makeNodesOutdated(transitiveParents, tempGraph).graph)
+  }
+
+  /**
+    * collect the transitive hull of parents for a node
+    * @param node
+    * @return
+    */
+  private def getParentNodes(
+      node: ProofNode[S, P],
+      g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): Vector[ProofNode[S, P]] = {
+    def getParentNodesHelp(node: ProofNode[S, P], acc: Vector[ProofNode[S, P]]): Vector[ProofNode[S, P]] = {
+      val context = g.context(node.vertex)
+      if (context.inEdges.isEmpty)
+        return acc
+      val parentNodes = context.inEdges.map { in =>
+        val context = g.context(in.from)
+        LNode(context.vertex, context.label)
+      }
+      parentNodes ++ parentNodes.flatMap { getParentNodesHelp(_, acc) }
+    }
+    getParentNodesHelp(node, Vector.empty)
+  }
+
+  /**
+    * mark all proof steps as outdated which are contained in nodes
+    * @param nodes
+    * @return
+    */
+  private def makeNodesOutdated(
+      nodes: Vector[ProofNode[S, P]],
+      g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
+    val stepsToBeOutdated = nodes.map { _.label }
+    val outdatedGraph = g.nmap { n =>
+      if (stepsToBeOutdated.contains(n))
+        n.makeOutdated(ProofGraph(g))
+      else
+        n
+    }
+    ProofGraph(outdatedGraph)
+  }
 
   /**
     * remove a node from the proof graph
@@ -126,7 +172,11 @@ class ProofGraph[S, P] {
     * @param node
     * @return
     */
-  def removeNode(node: ProofNode[S, P]): ProofGraph[S, P] = ???
+  def removeNode(node: ProofNode[S, P]): ProofGraph[S, P] = {
+    val transitiveParents = getParentNodes(node)
+    val resultGraph = makeNodesOutdated(transitiveParents).graph.removeNode(node.vertex)
+    ProofGraph(resultGraph)
+  }
 
   /**
     * change a particular verification edge
@@ -134,7 +184,10 @@ class ProofGraph[S, P] {
     * @param newedge
     * @return
     */
-  def updateEdge(oldedge: VerificationEdge, newedge: VerificationEdge): ProofGraph[S, P] = ???
+  def updateEdge(oldedge: VerificationEdge, newedge: VerificationEdge): ProofGraph[S, P] = {
+    val tempGraph = graph.removeLEdge(oldedge).safeAddEdge(newedge)
+    ProofGraph(tempGraph)
+  }
 
   /**
     * using a given verifier, verify a given node (assume that every node name is unique for now...)
@@ -145,7 +198,57 @@ class ProofGraph[S, P] {
     * @param nodename
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
-  def verifySingle(verifier: Verifier[S, P], nodename: String): ProofGraph[S, P] = ???
+  def verifySingle(verifier: Verifier[S, P], nodename: String): ProofGraph[S, P] = {
+    val node = graph.context(nodename)
+    val proofstep = node.label
+    val isLeaf = node.outEdges.isEmpty
+    val updatedProofstep =
+      if (isLeaf) {
+        proofstep.verifyNode(verifier)
+      } else {
+        val subgoalsGrouped = getSubgoalsGroupedByStrategy(nodename)
+        val updatedSteps = subgoalsGrouped.map { case (strat, node) =>
+            proofstep.verifyNode(verifier, node.toSeq)
+        }.toSeq
+        // order is proved < disproved < inconclusive
+        val sortedSteps = updatedSteps.sortWith(sortByVerificationStatus)
+        // we can assume that at least one element exists because node is not a leave
+        sortedSteps(0)
+      }
+    val tempGraph = updateNode(nodename, updatedProofstep)
+    val transitiveParents = getParentNodes(LNode(node.vertex, node.label))
+    makeNodesOutdated(transitiveParents, tempGraph.graph)
+  }
+
+  private def getSubgoalsGroupedByStrategy(nodename: String): Map[VerificationStrategy, Vector[ProofStep[S, P]]] = {
+    val context = graph.context(nodename)
+    val grouped = context.outEdges.groupBy { _.label }
+    grouped.mapValues { edges =>
+      edges.map { e =>
+        graph.context(e.to).label
+      }
+    }
+  }
+
+  private def sortByVerificationStatus(x: ProofStep[S, P], y: ProofStep[S, P]): Boolean = {
+    if (x.verificationStatus.isVerified)
+      true
+    else
+      x.verificationStatus match {
+        case Finished(Inconclusive, _) => false
+        case Finished(Disproved(_, _), _) =>
+          !y.verificationStatus.isVerified
+        case _ => false
+      }
+  }
+
+  private def updateNode(nodename: String, newNode: ProofStep[S, P]): ProofGraph[S, P] = {
+    val node = graph.context(nodename)
+    val decomp = graph.decomp(node.vertex)
+    val newContext = Context(node.inAdj, node.vertex, newNode , node.outAdj)
+    val newGraph = decomp.rest & newContext
+    ProofGraph(newGraph)
+  }
 
   /**
     * try to verify the entire tree (maybe reuse verifySingle for this?)
