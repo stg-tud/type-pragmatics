@@ -17,32 +17,31 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
        """.stripMargin
   }
 
+  val allSyms = transs.foldLeft(syms)((seq, t) => t.contractedSym +: seq)
+
   val closedDataTypes: ListMap[Sort, Seq[Symbol]] = {
     val types = sorts.flatMap(s => if (s.isInstanceOf[Sort] && !s.open) Some(s.asInstanceOf[Sort]) else None)
-    ListMap() ++ types.map(s => s -> syms.filter(sym => sym.constr && sym.out == s))
+    ListMap() ++ types.map(s => s -> allSyms.filter(sym => sym.constr && sym.out == s))
   }
 
-  val openDataTypes: Seq[ISort] =
-    sorts.filter(_.open)
+  val openDataTypes: ListMap[ISort, Seq[Symbol]] = {
+    val types = sorts.filter(_.open)
+    ListMap() ++ types.map(s => s -> allSyms.filter(sym => sym.constr && sym.out == s))
+  }
 
   val funSymbols: Seq[Symbol] = {
-    val constrs = closedDataTypes.values.flatten.toSeq
+    val constrs = closedDataTypes.values.flatten.toSeq ++ openDataTypes.values.flatten
     syms.diff(constrs)
   }
 
   val undeclaredSymbols: Set[Symbol] = {
     val rsyms = rules.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
-    val transSyms = transs.flatMap(t => t.contractedSym +: t.extraSymbols).toSet
+    val transSyms = transs.map(t => t.contractedSym).toSet
     val transUndeclared = transs.flatMap(_.undeclaredSymbols).toSet
     (rsyms ++ transUndeclared).diff(syms.toSet).diff(transSyms)
   }
 
   def +(trans: Transformation): Language = {
-//    val name = this.name + "+" + trans.contractedSym
-//    val sorts = this.sorts
-//    val syms = this.syms :+ trans.contractedSym
-//    val rules = this.rules :+ trans.contract
-
     var newtranss = transs
     for (t <- trans.lang.transs if !transs.contains(t))
       newtranss :+= t
@@ -51,4 +50,8 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
     Language(name + "+" + trans.contractedSym, sorts, syms, rules, newtranss)
   }
 
+  def +(ext: LanguageExtension): Language =
+    Language(name + "+" + ext.name, sorts ++ ext.sorts, syms ++ ext.syms, rules ++ ext.rules, transs)
 }
+
+case class LanguageExtension(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rules: Seq[Rule])

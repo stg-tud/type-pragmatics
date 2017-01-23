@@ -5,21 +5,37 @@ import stlc.Syntax._
 import system.Syntax._
 import system.Transformation
 
-object cdelta extends Transformation(stlc.language + tdelta) {
+import scala.collection.immutable.ListMap
+
+object cdelta extends Transformation(stlc.language + ext + tdelta) {
 
   val cdelta = Symbol("cdelta", in = List(Ctx), out = Ctx, constr = false)
 
-  val d = Symbol("d", in = List(Name), out = Name, constr = true)
-  val v = Symbol("v", in = List(Name), out = Name, constr = true)
-
-  override val extraSymbols: Seq[Symbol] = Seq(d, v)
+  override val soundnessTimeout: Int = 90
 
   override val contract: (Rule, Int) =
-    Rule("CtxOk_cdelta",
+    Rule("CtxOk-cdelta",
       Judg(CtxOk, cdelta("C"~Ctx)),
       // if ----------------
       Judg(CtxOk, "C"~Ctx)
     ) -> 0
+
+  override val lemmas = ListMap(
+    Lemma("Lookup-cdelta-d",
+      Judg(Lookup, d("x"~Name), tdelta("T"~Typ), cdelta("C"~Ctx)),
+      // if ----------------
+      Judg(Lookup, "x"~Name, "T"~Typ, "C"~Ctx),
+      Judg(TOk, "T"~Typ),
+      Judg(CtxOk, "C"~Ctx)
+    ) -> 2,
+
+    Lemma("Lookup-cdelta-v",
+      Judg(Lookup, v("x"~Name), "T"~Typ, cdelta("C"~Ctx)),
+      // if ----------------
+      Judg(Lookup, "x"~Name, "T"~Typ, "C"~Ctx),
+      Judg(CtxOk, "C"~Ctx)
+    ) -> 2
+  )
 
   val cdelta_empty = Rewrite(
     cdelta(empty()),

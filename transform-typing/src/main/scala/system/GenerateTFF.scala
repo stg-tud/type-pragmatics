@@ -72,7 +72,7 @@ object GenerateTFF {
     TffAnnotated(name, Axiom, body)
   }
 
-  def compileOpenDataType(sort: ISort, toTFF: ToTff): Seq[TffAnnotated] = {
+  def compileOpenDataType(sort: ISort, constrs: Seq[Symbol], toTFF: ToTff): Seq[TffAnnotated] = {
     val initName = sort.name + "_init"
     val enumName = sort.name + "_enum"
     val initSym = Symbol(initName, in = List(), out = sort)
@@ -85,7 +85,13 @@ object GenerateTFF {
     val diff = GenerateCtorAxiomsTyped.makeDiffAxioms(Seq(initConstr, enumConstr))
     val axioms = toTFF.translateAxioms(enumEq +: diff)
 
-    funDecls ++ axioms
+    val constrDecls = constrs.map(compileSymbolDeclaration(_))
+    val dataConstrs = constrs.map(c => DataTypeConstructor(c.name, c.in.map(s => compileSortRef(s))))
+    val eqTRs = dataConstrs.map(dc => GenerateCtorAxiomsTyped.makeEqAxiom(dc))
+    val diffTRs = GenerateCtorAxiomsTyped.makeDiffAxioms(dataConstrs)
+    val constrAxioms = toTFF.translateAxioms(eqTRs ++ diffTRs)
+
+    funDecls ++ axioms ++ constrDecls ++ constrAxioms
   }
 
   def compileClosedDataType(sort: Sort, constrs: Seq[Symbol], toTFF: ToTff): Seq[TffAnnotated] = {
@@ -120,7 +126,7 @@ object GenerateTFF {
     val toTFF = makeToTFF(lang)
 
     val types = lang.sorts.map(compileSortDecl(_))
-    val open = lang.openDataTypes.flatMap(compileOpenDataType(_, toTFF))
+    val open = lang.openDataTypes.flatMap(t => compileOpenDataType(t._1, t._2, toTFF))
     val closed = lang.closedDataTypes.flatMap { case (sort, constrs) => compileClosedDataType(sort, constrs, toTFF) }
     val funs = lang.funSymbols.map(compileSymbolDeclaration(_))
     val implicits = compileImplicitSymbols(lang.undeclaredSymbols)
@@ -136,7 +142,7 @@ object GenerateTFF {
 
   def compileTransformation(trans: Transformation, withContract: Boolean = true): Seq[TffAnnotated] = {
     val implicits = compileImplicitSymbols(trans.undeclaredSymbols)
-    val syms = compileSymbolDeclaration(trans.contractedSym) +: trans.extraSymbols.map(compileSymbolDeclaration(_))
+    val syms = Seq(compileSymbolDeclaration(trans.contractedSym))
     val contractLemmas = if (withContract) trans.rules.keys.map(compileRuleDecl(_)) else Seq()
     val rewrites = compileRewrites(trans.rewrites)
     implicits ++ syms ++ contractLemmas ++ rewrites
@@ -182,7 +188,7 @@ object GenerateTFF {
   class LanguageCollectTypes(lang: Language) extends CollectTypesClass {
     private val syms: Map[String, Symbol] = {
       val syms = lang.syms.map(sym => sym.name -> sym).toMap
-      val openSyms = lang.openDataTypes.flatMap(s => Seq(Symbol(s + "_init", List(), s), Symbol(s + "_enum", List(s), s)))
+      val openSyms = lang.openDataTypes.flatMap { case (s, syms) => Seq(Symbol(s + "_init", List(), s), Symbol(s + "_enum", List(s), s)) }
       val opens = openSyms.map(s => s.name -> s).toMap
       val undeclared = lang.undeclaredSymbols.map(s => s.name -> s).toMap
       syms ++ opens ++ undeclared

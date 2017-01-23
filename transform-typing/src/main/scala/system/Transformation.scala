@@ -10,7 +10,6 @@ abstract class Transformation(val lang: Language) {
   val contract: (Rule, Int)
   val lemmas: ListMap[Rule, Int] = ListMap()
   val rewrites: Seq[Rewrite]
-  val extraSymbols: Seq[Symbol] = Seq()
 
   lazy val rules: ListMap[Rule, Int] = ListMap(contract) ++ lemmas
 
@@ -22,8 +21,8 @@ abstract class Transformation(val lang: Language) {
   final lazy val undeclaredSymbols = {
     val lsyms = rules.foldLeft(Set[Symbol]())((set, c) => set ++ c._1.symbols)
     val rsyms = rewrites.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
-    val otherTransSyms = lang.transs.flatMap(t => t.contractedSym +: t.extraSymbols).toSet
-    (lsyms++rsyms).diff(lang.syms.toSet).diff(lang.undeclaredSymbols).diff(otherTransSyms) - contractedSym -- extraSymbols
+    val otherTransSyms = lang.transs.map(t => t.contractedSym).toSet
+    (lsyms++rsyms).diff(lang.syms.toSet).diff(lang.undeclaredSymbols).diff(otherTransSyms) - contractedSym
   }
 
   def checkSyntax(): Unit = {
@@ -66,8 +65,8 @@ abstract class Transformation(val lang: Language) {
        """.stripMargin
   }
 
-  def isOk = isWellformed && isSound
-  def failedProofs = wellformednessFailure ++ soundnessFailed
+  def isOk = failedProofs.isEmpty
+  def failedProofs = wellformednessFailed ++ soundnessFailed
 
   val soundnessTimeout = 30
   val soundnessMode = "casc"
@@ -81,7 +80,7 @@ abstract class Transformation(val lang: Language) {
   lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = Wellformedness.wellformedTrans(this).map(_.optimized)
   lazy val wellformednessResults = wellformednessObligations.map(_.map(Verification.verify(_, wellformednessMode, wellformednessTimeout)))
   lazy val isWellformed = wellformednessResults.flatten.forall(_.status == Proved)
-  def wellformednessFailure = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
+  def wellformednessFailed = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   def apply(kids: Term*): App = App(contractedSym, kids.toList)
 }

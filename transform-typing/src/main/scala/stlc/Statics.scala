@@ -42,6 +42,38 @@ object Statics {
     Judg(notin(Ctx), Var("x", Name), Var("C2", Ctx))
   ))
 
+  val Notin_ref = rule("Notin-ref",
+    Judg(notin(Exp), "x"~Name, ref("y"~Name)),
+    // if ----------------
+    Judg(neq(Name), Var("x", Name), Var("y", Name))
+  )
+  val Notin_num = rule("Notin-num",
+    Judg(notin(Exp), "x"~Name, num("n"~Num))
+    // if ----------------
+  )
+  val Notin_add = rule("Notin-add",
+    Judg(notin(Exp), "x"~Name, add("e1"~Exp, "e2"~Exp)),
+    // if ----------------
+    Judg(notin(Exp), "x"~Name, "e1"~Exp),
+    Judg(notin(Exp), "x"~Name, "e2"~Exp)
+  )
+  val Notin_lam_shadow = rule("Notin-lam-shadow",
+    Judg(notin(Exp), "x"~Name, lam("x"~Name, "T"~Typ, "e"~Exp))
+    // if ----------------
+  )
+  val Notin_lam = rule("Notin-lam",
+    Judg(notin(Exp), "x"~Name, lam("y"~Name, "T"~Typ, "e"~Exp)),
+    // if ----------------
+    Judg(neq(Name), Var("x", Name), Var("y", Name)),
+    Judg(notin(Exp), "x"~Name, "e"~Exp)
+  )
+  val Notin_app = rule("Notin-app",
+    Judg(notin(Exp), "x"~Name, app("e1"~Exp, "e2"~Exp)),
+    // if ----------------
+    Judg(notin(Exp), "x"~Name, "e1"~Exp),
+    Judg(notin(Exp), "x"~Name, "e2"~Exp)
+  )
+
   val TOk = symbol("TOk", in = List(Typ), out = Prop)
   val TOk_Nat = rule("TOk-Nat",
     Judg(TOk, App(Nat))
@@ -146,5 +178,11 @@ object Statics {
         Var("x", Name), Var("Tx", Typ)),
       Var("e", Exp),
       Var("T", Typ))
+  ))
+  val Typed_strengthening = rule(Lemma("Typed-strengthening",
+    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ)),
+    // if ----------------
+    Judg(notin(Exp), Var("x", Name), Var("e", Exp)),
+    Judg(Typed, bind(Var("C", Ctx), Var("x", Name), Var("Tx", Typ)), Var("e", Exp), Var("T", Typ))
   ))
 }

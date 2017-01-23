@@ -4,14 +4,12 @@ import stlc.Statics._
 import stlc.Syntax._
 import system.Syntax._
 import system.Transformation
-import cdelta.{d,v}
 
-object edelta extends Transformation(stlc.language + tdelta + cdelta)  {
+import scala.collection.immutable.ListMap
+
+object edelta extends Transformation(stlc.language + ext + tdelta + cdelta + copyV)  {
 
   val edelta = Symbol("edelta", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
-
-  val zero = Symbol("zero", in = List(), out = Num, constr = false)
-  override val extraSymbols: Seq[Symbol] = Seq(zero)
 
   override val contract: (Rule, Int) =
     Rule("T-edelta",
@@ -57,9 +55,12 @@ object edelta extends Transformation(stlc.language + tdelta + cdelta)  {
     // ~>
     app(
       app(
-        edelta("e1"~Exp, "C"~Ctx, "T"~Typ),
-        "e2"~Exp),
-      edelta("e2"~Exp, "C"~Ctx, "T"~Typ))
+        edelta("e1"~Exp, "C"~Ctx, Arr("T1"~Typ, "T"~Typ)),
+        copyV("e2"~Exp, "C"~Ctx, "T1"~Typ)),
+      edelta("e2"~Exp, "C"~Ctx, "T1"~Typ)),
+    where = Seq(
+      Judg(Typed, Var("C", Ctx), Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ)))
+    )
   )
 
   override val rewrites: Seq[Rewrite] = Seq(edelta_ref, edelta_num, edelta_add, edelta_lam, edelta_app)
