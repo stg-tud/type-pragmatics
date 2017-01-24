@@ -268,7 +268,15 @@ class ProofGraph[S, P] {
     * @param verifier
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
-  def verifyAll(verifier: Verifier[S, P]): ProofGraph[S, P] = ???
+  def verifyAll(verifier: Verifier[S, P]): ProofGraph[S, P] = {
+    val roots = graph.roots.toSeq
+    // verification order is children before parents to correctly compute fullyVerified
+    val nodes = graph.bfsn(roots).reverse
+    val verifiedGraph = nodes.foldLeft(graph) { case (g, nodename) =>
+        ProofGraph(g).verifySingle(verifier, nodename).graph
+    }
+    ProofGraph(verifiedGraph)
+  }
 
   //TODO add functions for "pretty printing" the graph: simple ones that construct a string,
   // maybe functions that pretty print single nodes, etc.
