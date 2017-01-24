@@ -5,13 +5,18 @@ import system.Verification._
 
 object Soundness {
 
-  def soundnessTrans(trans: Transformation): Seq[ProofObligation] =
-    soundnessRule(trans.contract, trans, true) ++ trans.lemmas.flatMap(soundnessRule(_, trans, false))
+  def soundnessTrans(trans: Transformation): Seq[ProofObligation] = {
+    val lemmaObls = trans.lemmas.foldLeft[(Seq[ProofObligation], Seq[Rule])](Seq(), Seq()){ case ((obls, lemmas), rule) =>
+      (soundnessRule(rule, trans, lemmas, false), lemmas :+ rule._1)
+    }
+    val contractObls = soundnessRule(trans.contract, trans, trans.lemmas.keys.toSeq, true)
+    lemmaObls._1 ++ contractObls
+  }
 
-  def soundnessRule(rule: (Rule, Int), trans: Transformation, isContract: Boolean): Seq[ProofObligation] =
-    trans.rewrites.zipWithIndex.map{ case (r, i) => soundnessRewrite(r, i, rule._1, rule._2, trans, isContract)(new Gensym) }
+  def soundnessRule(rule: (Rule, Int), trans: Transformation, lemmas: Seq[Rule], isContract: Boolean): Seq[ProofObligation] =
+    trans.rewrites.zipWithIndex.map{ case (r, i) => soundnessRewrite(r, i, rule._1, rule._2, trans, lemmas, isContract)(new Gensym) }
 
-  def soundnessRewrite(r: Rewrite, rnum: Int, contract: Rule, contractPos: Int, trans: Transformation, isContract: Boolean)(implicit gensym: Gensym): ProofObligation = {
+  def soundnessRewrite(r: Rewrite, rnum: Int, contract: Rule, contractPos: Int, trans: Transformation, lemmas: Seq[Rule], isContract: Boolean)(implicit gensym: Gensym): ProofObligation = {
     val freshContract = contract.fresh
 
     freshContract.contractedTerm(contractPos).matchAgainst(r.pat) match {
@@ -37,7 +42,7 @@ object Soundness {
           trans.lang,
           opaqueSyms,
           Set(),
-          wellformednessRules ++ ihs,
+          lemmas ++ wellformednessRules ++ ihs,
           trans,
           premises ++ where,
           goals = Seq(goal),
