@@ -216,8 +216,14 @@ class ProofGraph[S, P] {
         sortedSteps(0)
       }
     val tempGraph = updateNode(nodename, updatedProofstep)
-    val transitiveParents = getParentNodes(LNode(node.vertex, node.label))
-    makeNodesOutdated(transitiveParents, tempGraph.graph)
+    val transitiveParents = getParentNodes(LNode(node.vertex, node.label), tempGraph.graph)
+    // recompute fully verfied for all parents
+    // needs to be done in correct order
+    val verifiedParents = transitiveParents.filter { _.label.verificationStatus.isVerified }
+    val propagatedGraph = verifiedParents.foldLeft(tempGraph.graph) { case (g, node) =>
+        computeFullyVerified(node, g).graph
+    }
+    ProofGraph(propagatedGraph)
   }
 
   private def getSubgoalsGroupedByStrategy(nodename: String): Map[VerificationStrategy, Vector[ProofStep[S, P]]] = {
@@ -242,12 +248,19 @@ class ProofGraph[S, P] {
       }
   }
 
-  private def updateNode(nodename: String, newNode: ProofStep[S, P]): ProofGraph[S, P] = {
-    val node = graph.context(nodename)
-    val decomp = graph.decomp(node.vertex)
+  private def updateNode(nodename: String, newNode: ProofStep[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
+    val node = g.context(nodename)
+    val decomp = g.decomp(node.vertex)
     val newContext = Context(node.inAdj, node.vertex, newNode , node.outAdj)
     val newGraph = decomp.rest & newContext
     ProofGraph(newGraph)
+  }
+
+  private def computeFullyVerified(node: ProofNode[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
+    val nodename = node.vertex
+    val subgoals = getSubgoalsGroupedByStrategy(nodename).values.flatten.toSeq
+    val recomputedStep = node.label.recomputefullyVerified(subgoals)
+    updateNode(nodename, recomputedStep)
   }
 
   /**
