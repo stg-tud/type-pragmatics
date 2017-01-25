@@ -14,7 +14,7 @@ class ProofGraphTest extends FunSuite {
   val child2 = LNode("Child2", ProofStep("Spec", "Goal"))
   val edge1: VerificationEdge = LEdge("Top", "Child1", Solve)
   val edge2: VerificationEdge = LEdge("Top", "Child2", Solve)
-  val provedVerifier = ProvedVerifier()
+  val provedVerifier = MockVerifier(MockProver())
   val testGraph = ProofGraph(
     Seq(topNode, child1, child2),
     Seq(edge1, edge2))
@@ -111,7 +111,7 @@ class ProofGraphTest extends FunSuite {
 
   test("Verify node with children") {
     val node = LNode("New", ProofStep("Spec", "Goal"))
-    val switchStatusVerifier = SwitchStatusVerifier()
+    val switchStatusVerifier = MockVerifier(SwitchStatusProver())
     val newGraph = testGraph
       .verifySingle(provedVerifier, "Child1")
       .verifySingle(provedVerifier, "Child2")
@@ -120,12 +120,24 @@ class ProofGraphTest extends FunSuite {
 
     assert(newGraph.get("Top").get.verificationStatus.isVerified)
   }
+
+  test("Verify node with contradicting proverstati") {
+    val node = LNode("New", ProofStep("Spec", "Goal"))
+    val switchStatusVerifier = MockVerifier(ContradictingStatusProver())
+    val newGraph = testGraph
+      .verifySingle(provedVerifier, "Child1")
+      .verifySingle(provedVerifier, "Child2")
+      .addNode(node, Seq(LEdge("Top", "New", Induction)))
+      .verifySingle(switchStatusVerifier, "Top")
+
+    assert(newGraph.get("Top").get.verificationStatus.isInstanceOf[VerificationFailure[String, String]])
+  }
 }
 
-case class ProvedVerifier() extends Verifier[String, String] {
+case class MockVerifier(prover: Prover[String]) extends Verifier[String, String] {
   override type V = this.type
-  override val transformer: GenSeq[Transformer[String, String, ProvedVerifier.this.type]] = Seq()
-  override val provers: GenSeq[Prover[ProvedVerifier.this.type]] = Seq()
+  override val transformer: GenSeq[Transformer[String, String, MockVerifier.this.type]] = Seq()
+  override val provers: GenSeq[Prover[MockVerifier.this.type]] = Seq()
   override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve)
 
   /**
@@ -137,29 +149,9 @@ case class ProvedVerifier() extends Verifier[String, String] {
     * @param strat      overall abstract strategy to be used for the current step
     * @return Verification summary
     */
-  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy): VerificationStatus = Finished(Proved(MockTransformer(), MockProver()), this)
+  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy): VerificationStatus = Finished(prover.callProver(), this)
 }
 
-case class SwitchStatusVerifier() extends Verifier[String, String] {
-  override type V = this.type
-  override val transformer: GenSeq[Transformer[String, String, SwitchStatusVerifier.this.type]] = Seq()
-  override val provers: GenSeq[Prover[SwitchStatusVerifier.this.type]] = Seq()
-  override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve, Induction)
-  val prover = SwitchStatusProver()
-
-  /**
-    * combine calling all transformers with all provers and compose results into a single VerificationStatus
-    *
-    * @param spec       specification axioms/definitions
-    * @param hypotheses verified lemmas/assumptions
-    * @param goal       property/step to be proved
-    * @param strat      overall abstract strategy to be used for the current step
-    * @return Verification summary
-    */
-  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy): VerificationStatus = {
-    Finished(prover.callProver(), this)
-  }
-}
 
 case class MockProver() extends Prover[String]("") {
   override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve)
@@ -180,6 +172,19 @@ case class SwitchStatusProver() extends Prover[String]("") {
   }
 }
 
-case class MockTransformer() extends Transformer[String, String, ProvedVerifier]("", "") {
-  override def transformProblem: ProvedVerifier = ProvedVerifier()
+case class ContradictingStatusProver() extends Prover[String]("") {
+  var count = -1
+  override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve, Induction)
+
+  override def callProver(): ProverStatus = {
+    count = count + 1
+    if (count == 0)
+      Proved(MockTransformer(), this)
+    else
+      Disproved(MockTransformer(), this)
+  }
+}
+
+case class MockTransformer() extends Transformer[String, String, MockVerifier]("", "") {
+  override def transformProblem: MockVerifier = MockVerifier(MockProver())
 }
