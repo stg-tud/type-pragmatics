@@ -20,7 +20,8 @@ case class Finished[S, P](ps: ProverStatus, usedVerifier: Verifier[S, P]) extend
   override val isVerified: Boolean = ps.isVerified
 }
 
-//TODO: have this status or not?
+//TODO: have status Verification Failure or not?
+//TODO: add a message to the status to report particular errors
 case class VerificationFailure[S, P](usedVerifier: Verifier[S, P]) extends VerificationStatus
 
 /**
@@ -30,7 +31,7 @@ case class VerificationFailure[S, P](usedVerifier: Verifier[S, P]) extends Verif
   * @tparam S type of the specification format
   * @tparam P type of the format for defining properties
   */
-//TODO: maybe put this class to a different file later?
+//TODO: maybe put ProofStep class to a separate file later?
 class ProofStep[S, P](val spec: S, val goal: P) {
   val verificationStatus: VerificationStatus = NotStarted
   val fullyVerified: Boolean = false
@@ -66,6 +67,7 @@ class ProofStep[S, P](val spec: S, val goal: P) {
   }
 
   // TODO currently if a child of a child is making current node outdated we get a prev graph which is a nested outdated status, is this desirable?
+  // -> Do you have an example? I would like to avoid nested Outdated stati.
   /**
     * mark a proof step as outdated, if there was a previous verification attempt
     * @param pg proof graph before the node became outdated
@@ -135,6 +137,8 @@ class ProofGraph[S, P] {
   private def getParentNodes(
       node: ProofNode[S, P],
       g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): Vector[ProofNode[S, P]] = {
+    //TODO What does the accumulator do here? Does it ever accumulate anything?
+    //TODO try to make getParentNodesHelp tail recursive?
     def getParentNodesHelp(node: ProofNode[S, P], acc: Vector[ProofNode[S, P]]): Vector[ProofNode[S, P]] = {
       val context = g.context(node.vertex)
       if (context.inEdges.isEmpty)
@@ -185,6 +189,7 @@ class ProofGraph[S, P] {
     * @return
     */
   def updateEdge(oldedge: VerificationEdge, newedge: VerificationEdge): ProofGraph[S, P] = {
+    //TODO updating an edge should also make parent nodes outdated!
     val tempGraph = graph.removeLEdge(oldedge).safeAddEdge(newedge)
     ProofGraph(tempGraph)
   }
@@ -199,6 +204,7 @@ class ProofGraph[S, P] {
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
   def verifySingle(verifier: Verifier[S, P], nodename: String): ProofGraph[S, P] = {
+    //TODO improve variable naming in verifySingle: "node" is a focused graph, not a single node, etc.
     val node = graph.context(nodename)
     val proofstep = node.label
     val isLeaf = node.outEdges.isEmpty
@@ -207,10 +213,12 @@ class ProofGraph[S, P] {
         proofstep.verifyNode(verifier)
       } else {
         val subgoalsGrouped = getSubgoalsGroupedByStrategy(nodename)
+        //TODO: why is strat not used here? could be different from Solve
         val updatedSteps = subgoalsGrouped.map { case (strat, node) =>
             proofstep.verifyNode(verifier, node.toSeq)
         }.toSeq
         // order is proved < disproved < inconclusive
+        //TODO if we get both proved and disproved, we may want to actually report a VerificationFailure (contradiction)
         val sortedSteps = updatedSteps.sortWith(sortByVerificationStatus)
         // we can assume that at least one element exists because node is not a leave
         sortedSteps(0)
@@ -248,6 +256,10 @@ class ProofGraph[S, P] {
       }
   }
 
+  //TODO for just updating a node in the graph, there is an API function in quiver -> use that?
+  // however, in our setting updating typically requires recomputing the verification status etc., so we
+  // might want to introduce our own variant of "updateNode" that actually does the up/outdating already too
+  // (save some code duplication)
   private def updateNode(nodename: String, newNode: ProofStep[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
     val node = g.context(nodename)
     val decomp = g.decomp(node.vertex)
@@ -264,7 +276,7 @@ class ProofGraph[S, P] {
   }
 
   /**
-    * try to verify the entire tree (maybe reuse verifySingle for this?)
+    * try to verify the entire tree
     * @param verifier
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
