@@ -20,9 +20,7 @@ case class Finished[S, P](ps: ProverStatus, usedVerifier: Verifier[S, P]) extend
   override val isVerified: Boolean = ps.isVerified
 }
 
-//TODO: have status Verification Failure or not?
-//TODO: add a message to the status to report particular errors
-case class VerificationFailure[S, P](usedVerifier: Verifier[S, P]) extends VerificationStatus
+case class VerificationFailure[S, P](errorMessage: String, usedVerifier: Verifier[S, P]) extends VerificationStatus
 
 /**
   * type of nodes in a proof graph, represents a single subgoal/step in a proof
@@ -81,6 +79,9 @@ class ProofStep[S, P](val spec: S, val goal: P) {
     }
   }
 
+  def makeFailed(message: String, usedVerifier: Verifier[S, P]): ProofStep[S, P] = {
+    ProofStep(spec, goal, VerificationFailure(message, usedVerifier))
+  }
 }
 
 object ProofStep {
@@ -124,9 +125,9 @@ class ProofGraph[S, P] {
     * @return the new, updated proof graph
     */
   def addNode(node: ProofNode[S, P], edges: Seq[VerificationEdge]): ProofGraph[S, P] = {
-    val tempGraph = graph.addNode(node).addEdges(edges)
-    val transitiveParents = getParentNodes(node, tempGraph)
-    ProofGraph(makeNodesOutdated(transitiveParents, tempGraph).graph)
+    val updatedGraph = graph.addNode(node).addEdges(edges)
+    val transitiveParents = getParentNodes(node, updatedGraph)
+    ProofGraph(makeNodesOutdated(transitiveParents, updatedGraph).graph)
   }
 
   /**
@@ -137,19 +138,14 @@ class ProofGraph[S, P] {
   private def getParentNodes(
       node: ProofNode[S, P],
       g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): Vector[ProofNode[S, P]] = {
-    //TODO What does the accumulator do here? Does it ever accumulate anything?
-    //TODO try to make getParentNodesHelp tail recursive?
-    def getParentNodesHelp(node: ProofNode[S, P], acc: Vector[ProofNode[S, P]]): Vector[ProofNode[S, P]] = {
-      val context = g.context(node.vertex)
-      if (context.inEdges.isEmpty)
-        return acc
-      val parentNodes = context.inEdges.map { in =>
-        val context = g.context(in.from)
-        LNode(context.vertex, context.label)
-      }
-      parentNodes ++ parentNodes.flatMap { getParentNodesHelp(_, acc) }
+    val context = g.context(node.vertex)
+    if (context.inEdges.isEmpty)
+      return Vector.empty
+    val parentNodes = context.inEdges.map { in =>
+      val context = g.context(in.from)
+      LNode(context.vertex, context.label)
     }
-    getParentNodesHelp(node, Vector.empty)
+    parentNodes ++ parentNodes.flatMap { getParentNodes(_) }
   }
 
   /**
@@ -189,9 +185,15 @@ class ProofGraph[S, P] {
     * @return
     */
   def updateEdge(oldedge: VerificationEdge, newedge: VerificationEdge): ProofGraph[S, P] = {
-    //TODO updating an edge should also make parent nodes outdated!
-    val tempGraph = graph.removeLEdge(oldedge).safeAddEdge(newedge)
-    ProofGraph(tempGraph)
+    // it is possible that the oldedge and newedge connection completley different node
+    // therefore we have to consider the origin of both edges
+    val newGraph = graph.removeLEdge(oldedge).safeAddEdge(newedge)
+    val parentOld = LNode(oldedge.from, newGraph.label(oldedge.from).get)
+    val parentNew = LNode(newedge.from, newGraph.label(newedge.from).get)
+    val transitiveParentsOld = getParentNodes(parentOld, graph)
+    val transitiveParentsNew = getParentNodes(parentNew, newGraph)
+    val mergedTransitiveParents = (transitiveParentsNew ++ transitiveParentsOld).distinct
+    makeNodesOutdated(mergedTransitiveParents, newGraph)
   }
 
   /**
@@ -204,27 +206,30 @@ class ProofGraph[S, P] {
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
   def verifySingle(verifier: Verifier[S, P], nodename: String): ProofGraph[S, P] = {
-    //TODO improve variable naming in verifySingle: "node" is a focused graph, not a single node, etc.
-    val node = graph.context(nodename)
-    val proofstep = node.label
-    val isLeaf = node.outEdges.isEmpty
+    val focusedGraph = graph.context(nodename)
+    val proofstep = focusedGraph.label
+    val isLeaf = focusedGraph.outEdges.isEmpty
     val updatedProofstep =
       if (isLeaf) {
         proofstep.verifyNode(verifier)
       } else {
         val subgoalsGrouped = getSubgoalsGroupedByStrategy(nodename)
-        //TODO: why is strat not used here? could be different from Solve
-        val updatedSteps = subgoalsGrouped.map { case (strat, node) =>
-            proofstep.verifyNode(verifier, node.toSeq)
+        val updatedSteps = subgoalsGrouped.map { case (strat, subgoals) =>
+            proofstep.verifyNode(verifier, subgoals.toSeq, strat)
         }.toSeq
-        // order is proved < disproved < inconclusive
-        //TODO if we get both proved and disproved, we may want to actually report a VerificationFailure (contradiction)
-        val sortedSteps = updatedSteps.sortWith(sortByVerificationStatus)
-        // we can assume that at least one element exists because node is not a leave
-        sortedSteps(0)
+        val stati = updatedSteps.map { _.verificationStatus }
+        val contradictingStati = containsContradictingStati(stati)
+        if (contradictingStati) {
+          proofstep.makeFailed("Verifier found a prove and a contradiction at the same time.", verifier)
+        } else {
+          // order is proved < disproved < inconclusive
+          val sortedSteps = updatedSteps.sortWith(sortByVerificationStatus)
+          // we can assume that at least one element exists because node is not a leave
+          sortedSteps(0)
+        }
       }
     val tempGraph = updateNode(nodename, updatedProofstep)
-    val transitiveParents = getParentNodes(LNode(node.vertex, node.label), tempGraph.graph)
+    val transitiveParents = getParentNodes(LNode(focusedGraph.vertex, focusedGraph.label), tempGraph.graph)
     // recompute fully verfied for all parents
     // needs to be done in correct order
     val verifiedParents = transitiveParents.filter { _.label.verificationStatus.isVerified }
@@ -244,6 +249,24 @@ class ProofGraph[S, P] {
     }
   }
 
+  private def containsContradictingStati(stati: Seq[VerificationStatus]): Boolean = {
+    val proverStati = stati.foldLeft(Seq.empty[ProverStatus]) { case (l, status) =>
+      status match {
+        case Finished(ps, _) => Seq(ps) ++ l
+        case _ => l
+      }
+    }
+    val containsProved = proverStati.exists {
+      case Proved(_, _) => true
+      case _ => false
+    }
+    val containsDisproved = proverStati.exists {
+      case Disproved(_, _) => true
+      case _ => false
+    }
+    containsProved && containsDisproved
+  }
+
   private def sortByVerificationStatus(x: ProofStep[S, P], y: ProofStep[S, P]): Boolean = {
     if (x.verificationStatus.isVerified)
       true
@@ -256,16 +279,11 @@ class ProofGraph[S, P] {
       }
   }
 
-  //TODO for just updating a node in the graph, there is an API function in quiver -> use that?
-  // however, in our setting updating typically requires recomputing the verification status etc., so we
-  // might want to introduce our own variant of "updateNode" that actually does the up/outdating already too
-  // (save some code duplication)
-  private def updateNode(nodename: String, newNode: ProofStep[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
-    val node = g.context(nodename)
-    val decomp = g.decomp(node.vertex)
-    val newContext = Context(node.inAdj, node.vertex, newNode , node.outAdj)
-    val newGraph = decomp.rest & newContext
-    ProofGraph(newGraph)
+  private def updateNode(nodename: String, newStep: ProofStep[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
+    val newNode = LNode(nodename, newStep)
+    val updatedGraph = g.updateNode(newNode)
+    val transitiveParents = getParentNodes(newNode, updatedGraph)
+    makeNodesOutdated(transitiveParents, updatedGraph)
   }
 
   private def computeFullyVerified(node: ProofNode[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {

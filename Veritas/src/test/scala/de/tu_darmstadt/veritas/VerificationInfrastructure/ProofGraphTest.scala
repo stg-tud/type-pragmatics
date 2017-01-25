@@ -176,7 +176,7 @@ case class SwitchStatusProver() extends Prover[String]("") {
     if (count == 0)
       Proved(MockTransformer(), this)
     else
-      Disproved(MockTransformer(), this)
+      Inconclusive
   }
 }
 
