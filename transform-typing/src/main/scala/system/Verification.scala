@@ -98,16 +98,22 @@ object Verification {
 
     val runner = new Runner(
       runConfig.copy(files = Seq(file), proverConfigs = Seq(vampireConfig.copy(mode = mode)), timeout = timeout))
-    runner.run()
+    try {runner.run()}
+    catch {case _: NullPointerException => }
     println()
-    val summaries = runner.summary.getFileSummaries
-    assert(summaries.size == 1 && summaries.head._2.size == 1)
 
-    val result = summaries.head._2.head._2.proverResult
-    if (result.status == Proved)
-      println(s"SUCCESS ${p.name}")
-    else
-      println(s"FAILURE ${p.name}")
-    ProverResult(file, result.status, result.timeSeconds, result.details)
+    val summaries = runner.summary.getFileSummaries
+    if (summaries.size == 1 && summaries.head._2.size == 1) {
+      val result = summaries.head._2.head._2.proverResult
+      if (result.status == Proved)
+        println(s"SUCCESS ${p.name}")
+      else
+        println(s"FAILURE ${p.name}")
+      ProverResult(file, result.status, result.timeSeconds, result.details)
+    }
+    else {
+      println(s"ERROR ${p.name}")
+      ProverResult(file, Inconclusive("ERROR"), None, null)
+    }
   }
 }

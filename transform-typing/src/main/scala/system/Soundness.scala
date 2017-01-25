@@ -20,7 +20,7 @@ object Soundness {
     val freshContract = contract.fresh
 
     freshContract.contractedTerm(contractPos).matchAgainst(r.pat) match {
-      case (s, diff) if diff.isEmpty =>
+      case (s, diff, _) if diff.isEmpty =>
         val (ihs, opaques, wellformednessAssumptions) = deriveIHs(r.gen, r, freshContract, contractPos, isContract)
         val sopaques = s.mapValues(_.subst(opaques)) ++ (opaques -- s.keys)
 
@@ -74,7 +74,7 @@ object Soundness {
 
   def deriveIH(recApp: Term, r: Rewrite, num: Int, contract: Rule, contractPos: Int, isContract: Boolean)(implicit gensym: Gensym): Option[(Rule, Seq[Judg])] = {
     contract.contractedTerm(contractPos).matchAgainst(recApp) match {
-      case (s, diff) if diff.isEmpty =>
+      case (s, diff, _) if diff.isEmpty =>
         val premises = contract.premises.map(_.subst(s))
         val rule = Rule(contract.name + s"-IH-$num",
           contract.conclusion.updated(contractPos, recApp).subst(s),

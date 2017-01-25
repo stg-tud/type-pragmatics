@@ -22,7 +22,10 @@ object copyV extends Transformation(stlc.language + ext + tdelta + cdelta) {
 
   override val lemmas: ListMap[Rule, Int] = ListMap(
     Rule("notin-d-copyV",
-      Judg(notin(Exp), d("x"~Name), copyV("e"~Exp, "C"~Ctx, "T"~Typ))
+      Judg(notin(Exp), d("x"~Name), copyV("e"~Exp, "C"~Ctx, "T"~Typ)),
+      // if ----------------
+      Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),
+      Judg(CtxOk, "C"~Ctx)
     ) -> 1
   )
 

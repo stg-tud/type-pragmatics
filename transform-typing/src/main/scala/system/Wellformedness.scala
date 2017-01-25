@@ -49,7 +49,7 @@ object Wellformedness {
     val checks = wellformedTerm(r.gen, contracts)
 
     val (conclusion, premises) = contract.contractedTerm(pos).matchAgainst(r.pat) match {
-      case (s, diff) if diff.isEmpty =>
+      case (s, diff, _) if diff.isEmpty =>
         (contract.conclusion.subst(s), contract.premises.map(_.subst(s)) ++ r.where)
       case m =>
         throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n$contract\nbecause ${matchDiffMsg(m)}")
@@ -83,7 +83,7 @@ object Wellformedness {
     if (contract.premises.isEmpty)
       return None
     contract.contractedTerm(pos).matchAgainst(app) match {
-      case (s, diff) if diff.isEmpty =>
+      case (s, diff, _) if diff.isEmpty =>
         val vars = contract.premises.flatMap(_.freevars).toSet
         val freeVars = vars.diff(s.keys.toSet)
         val freshFreeVars = freeVars.map(v => v -> gensym.freshVar(v.name, v.sort)).toMap
