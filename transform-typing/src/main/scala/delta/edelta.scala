@@ -9,13 +9,17 @@ import scala.collection.immutable.ListMap
 
 object edelta extends Transformation(stlc.language + ext + tdelta + cdelta + copyV)  {
 
+  override val wellformednessTimeout: Int = 120
+
   val edelta = Symbol("edelta", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
 
   override val contract: (Rule, Int) =
     Rule("T-edelta",
       Judg(Typed, cdelta("C"~Ctx), edelta("e"~Exp, "C"~Ctx, "T"~Typ), tdelta("T"~Typ)),
       // if ----------------
-      Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ)
+      Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),
+      Judg(TOk, "T"~Typ),
+      Judg(CtxOk, "C"~Ctx)
     ) -> 1
 
 
@@ -59,6 +63,7 @@ object edelta extends Transformation(stlc.language + ext + tdelta + cdelta + cop
         copyV("e2"~Exp, "C"~Ctx, "T1"~Typ)),
       edelta("e2"~Exp, "C"~Ctx, "T1"~Typ)),
     where = Seq(
+      Judg(TOk, Var("T1", Typ)),
       Judg(Typed, Var("C", Ctx), Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ)))
     )
   )
