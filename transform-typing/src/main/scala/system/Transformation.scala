@@ -65,6 +65,9 @@ abstract class Transformation(val lang: Language) {
        """.stripMargin
   }
 
+  def forall[T](f: Transformation => T): ListMap[Symbol, T] =
+    ListMap() ++ lang.transs.map(t => t.contractedSym -> f(t)) + (contractedSym -> f(this))
+
   def isOk = failedProofs.isEmpty
   def failedProofs = wellformednessFailed ++ soundnessFailed
 

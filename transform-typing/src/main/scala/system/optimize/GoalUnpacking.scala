@@ -17,6 +17,16 @@ object GoalUnpacking {
     }
   }
 
+  type CostCount = Map[String, Int]
+  def using(rule: Rule, cc: CostCount): CostCount = cc.get(rule.name) match {
+    case None => cc + (rule.name -> 1)
+    case Some(cost) => cc + (rule.name -> (cost + 1))
+  }
+  def canAfford(rule: Rule, cc: CostCount): Boolean = cc.get(rule.name) match {
+    case None => true
+    case Some(cost) => cost < 3
+  }
+
   def nextObligation(goal: Judg, obl: ProofObligation)(implicit counter: Counter) =
     obl.copy(name = s"${obl.name}-${counter.next()}", goals = Seq(goal))
   def nextObligation(goals: Seq[Judg], obl: ProofObligation)(implicit counter: Counter) =
@@ -24,7 +34,7 @@ object GoalUnpacking {
 
   def unpackObligation(obl: ProofObligation): Seq[ProofObligation] = {
     implicit val counter = new Counter
-    obl.goals.flatMap(unpackJudg(_, obl)).distinct
+    obl.goals.flatMap(unpackJudg(_, obl, Map())).distinct
   }
 
   def trySolveEquation(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Option[Seq[ProofObligation]] =
@@ -43,15 +53,15 @@ object GoalUnpacking {
     else
       None
 
-  def unpackJudg(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Seq[ProofObligation] = {
+  def unpackJudg(judg: Judg, obl: ProofObligation, cc: CostCount)(implicit counter: Counter): Seq[ProofObligation] = {
     trySolveEquation(judg, obl).foreach { return _ }
 
     val rules = obl.lang.rules ++ obl.lang.transs.flatMap(_.rules.keys) ++ obl.axioms
     val filteredRules = rules.filter(rule => rule.conclusion.sym == judg.sym && !rule.lemma)
     val candidates = filteredRules.flatMap{ rule =>
       val freshRule = rule.fresh(obl.gensym)
-      try { Some(freshRule -> freshRule.conclusion.matchTerm(judg)) }
-      catch { case _: MatchError => None }
+      val opt = Try(freshRule -> freshRule.conclusion.matchTerm(judg)).toOption
+      opt.filter{ case (_, (_, eqs, _)) => !eqs.exists{case (l,r) => App.isFun(l)} }
     }
 
     if (candidates.size == 0) {
@@ -63,20 +73,30 @@ object GoalUnpacking {
       val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1, t2) }
       val eqObls = eqGoals.map(nextObligation(_, obl))
       val premiseGoals = rule.premises.map(_.subst(s))
-      val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl))
+      val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl, cc))
       val obls = mergeExistentialObligations(judg, eqObls ++ premiseObls)
       obls
     }
     else {
       // multiple candidate rules found
-      candidates.exists(c => c._2._1.nonEmpty && c._2._2.forall{case (l,r) => !App.isFun(l) && !App.isFun(r)})
       var alternatives = Seq[Seq[ProofObligation]]()
       for ((rule, (s, eqs, num)) <- candidates) {
-        if (num > 0 || eqs.exists(eq => App.isConstr(eq._2))) {
+        if (eqs.exists{case (l,r) => App.isFun(l) && App.isFun(r)}) {
+          // skip this candidate since it requires an eq like `f(x) = g(y)`
+        }
+        else if (num <= 0 && !eqs.exists(eq => App.isConstr(eq._2))) {
+          // no constructors were matched
+          alternatives :+= Seq(nextObligation(judg, obl))
+        }
+        else if (!canAfford(rule, cc)) {
+          // stop looping
+          alternatives :+= Seq(nextObligation(judg, obl))
+        }
+        else {
           val eqGoals = eqs.map { case (t1, t2) => Judg(equ(t1.sort), t1, t2) }
-          val eqObls = eqGoals.flatMap(unpackJudg(_, obl))
+          val eqObls = eqGoals.flatMap(unpackJudg(_, obl, cc))
           val premiseGoals = rule.premises.map(_.subst(s))
-          val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl))
+          val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl, using(rule, cc)))
           val obls = eqObls ++ premiseObls
 
           if (obls.isEmpty)
@@ -88,9 +108,6 @@ object GoalUnpacking {
           else {
             alternatives :+= obls
           }
-        }
-        else {
-          alternatives :+= Seq(nextObligation(judg, obl))
         }
       }
 

@@ -160,10 +160,13 @@ object Syntax {
 
     override def occurs(v: Var): Boolean = kids.exists(_.occurs(v))
 
+    @inline
+    def matchCount = 1
+
     override def unify(t: Term, m: Match): Match = t match {
       case v: Var => t.unify(this, m)
       case App(`sym`, tkids) if sym.constr =>
-        kids.zip(tkids).foldLeft((m._1, m._2, m._3 + 1)){
+        kids.zip(tkids).foldLeft((m._1, m._2, m._3 + matchCount)){
           case (m, (t1, t2)) => t1.unify(t2, m)
         }
       case App(sym2, _) if sym.constr && sym2.constr =>
@@ -174,7 +177,7 @@ object Syntax {
     override def matchAgainst(t: Term, m: Match): Match = t match {
         // TODO only match constructor syms and selected function syms (for deriving soundness goal)
       case App(`sym`, tkids) =>
-        kids.zip(tkids).foldLeft((m._1, m._2, m._3 + 1)){
+        kids.zip(tkids).foldLeft((m._1, m._2, m._3 + matchCount)){
           case (m, (t1, t2)) => t1.matchAgainst(t2, m)
         }
       case App(sym2, _) if sym.constr && sym2.constr =>
@@ -240,6 +243,8 @@ object Syntax {
         mid2 = mid2.substring(0, mid2.size - 1)
       start + mid1 + mid2 + mid3 + end
     }
+
+    def constrs: Seq[Symbol] = terms.flatMap(_.findAll(t => App.isConstr(t))).map(_.asInstanceOf[App].sym)
   }
   object Judg {
     def apply(sym: Symbol, terms: Term*): Judg = Judg(sym, terms.toList)

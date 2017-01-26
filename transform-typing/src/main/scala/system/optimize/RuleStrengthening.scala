@@ -18,7 +18,7 @@ object RuleStrengthening {
   def strengthenRule(r: Rule, obl: ProofObligation): Rule = {
     val remainingPremises = r.premises.filter { premise =>
       val premiseObl = obl.copy(goals = Seq(premise), name = s"STRENGTHEN-${obl.name}")
-      val status = Verification.verify(premiseObl, timeout = 2).status
+      val status = Verification.verify(premiseObl, timeout = 1).status
       status != Proved
     }
     if (remainingPremises.size < r.premises.size)
