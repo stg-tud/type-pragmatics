@@ -31,6 +31,11 @@ class ProofGraph[S, P] {
   //all valid proof graphs have to be acyclic
 //  require(!graph.hasLoop)
 
+  /**
+    * Return the ProofStep associated with the given nodename
+    * @param nodename
+    * @return Is empty if there is no node with nodename otherwise it returns the ProofStep
+    */
   def get(nodename: String): Option[ProofStep[S, P]] = graph.label(nodename)
 
   /**
@@ -95,21 +100,17 @@ class ProofGraph[S, P] {
   }
 
   /**
-    * change a particular verification edge
-    * @param oldedge
-    * @param newedge
+    * change the strategy of a particular verification edge
+    * @param edge
+    * @param newStrategy
     * @return
     */
-  def updateEdge(oldedge: VerificationEdge, newedge: VerificationEdge): ProofGraph[S, P] = {
-    // it is possible that the oldedge and newedge connection completley different node
-    // therefore we have to consider the origin of both edges
-    val newGraph = graph.removeLEdge(oldedge).safeAddEdge(newedge)
-    val parentOld = LNode(oldedge.from, newGraph.label(oldedge.from).get)
-    val parentNew = LNode(newedge.from, newGraph.label(newedge.from).get)
-    val transitiveParentsOld = getParentNodes(parentOld, graph)
-    val transitiveParentsNew = getParentNodes(parentNew, newGraph)
-    val mergedTransitiveParents = (transitiveParentsNew ++ transitiveParentsOld).distinct
-    makeNodesOutdated(mergedTransitiveParents, newGraph)
+  def updateEdge(edge: VerificationEdge, newStrategy: VerificationStrategy): ProofGraph[S, P] = {
+    val updatedEdge = LEdge(edge.from, edge.to, newStrategy)
+    val updatedGraph = graph.updateEdge(updatedEdge)
+    val originNode = LNode(edge.from, updatedGraph.label(edge.from).get)
+    val transitiveParents = getParentNodes(originNode, updatedGraph)
+    makeNodesOutdated(transitiveParents, updatedGraph)
   }
 
   /**
@@ -198,8 +199,7 @@ class ProofGraph[S, P] {
   private def updateNode(nodename: String, newStep: ProofStep[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
     val newNode = LNode(nodename, newStep)
     val updatedGraph = g.updateNode(newNode)
-    val transitiveParents = getParentNodes(newNode, updatedGraph)
-    makeNodesOutdated(transitiveParents, updatedGraph)
+    ProofGraph(updatedGraph)
   }
 
   private def computeFullyVerified(node: ProofNode[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {

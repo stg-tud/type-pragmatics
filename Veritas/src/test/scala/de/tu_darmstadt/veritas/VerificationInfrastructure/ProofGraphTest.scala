@@ -62,8 +62,7 @@ class ProofGraphTest extends FunSuite {
   }
 
   test("VerificationStrategy of edge changed") {
-    val newEdge: VerificationEdge = LEdge("Top", "Child1", Induction)
-    val newGraph = testGraph.updateEdge(edge1, newEdge)
+    val newGraph = testGraph.updateEdge(edge1, Induction)
   }
 
   test("Verifying single node does set parent to outdated") {
