@@ -4,6 +4,7 @@ import org.scalatest.FunSuite
 import quiver.{LEdge, LNode}
 
 import scala.collection.GenSeq
+import scala.util.Random
 
 /**
   * Created by andiderp on 20/01/2017.
@@ -131,6 +132,53 @@ class ProofGraphTest extends FunSuite {
 
     assert(newGraph.get("Top").get.verificationStatus.isInstanceOf[VerificationFailure[String, String]])
   }
+
+  test("Verify all nodes") {
+    val node1 = LNode("Parent", ProofStep("Spec", "Goal"))
+    val node2 = LNode("New", ProofStep("Spec", "Goal"))
+    val node3 = LNode("Child3", ProofStep("Spec", "Goal"))
+
+    val newGraph = testGraph
+      .addNode(node1, Seq(LEdge("Child1", "Parent", Solve)))
+      .addNode(node3, Seq(LEdge("Top", "Child3", Solve)))
+      .addNode(node2, Seq(LEdge("Child2", "New", Solve), LEdge("Parent", "New", Solve)))
+      .verifyAll(provedVerifier)
+
+    assert(newGraph.get("Parent").get.verificationStatus.isVerified)
+    assert(newGraph.get("New").get.verificationStatus.isVerified)
+    assert(newGraph.get("Child1").get.verificationStatus.isVerified)
+    assert(newGraph.get("Child2").get.verificationStatus.isVerified)
+    assert(newGraph.get("Child3").get.verificationStatus.isVerified)
+    assert(newGraph.get("Parent").get.fullyVerified)
+    assert(newGraph.get("New").get.fullyVerified)
+    assert(newGraph.get("Child1").get.fullyVerified)
+    assert(newGraph.get("Child2").get.fullyVerified)
+    assert(newGraph.get("Child3").get.fullyVerified)
+  }
+
+  test("Verify all nodes parallel") {
+    val node1 = LNode("Parent", ProofStep("Spec", "Goal"))
+    val node2 = LNode("New", ProofStep("Spec", "Goal"))
+    val node3 = LNode("Child3", ProofStep("Spec", "Goal"))
+
+    val waitingVerifier = MockVerifier(WaitingProver())
+    val newGraph = testGraph
+      .addNode(node1, Seq(LEdge("Child1", "Parent", Solve)))
+      .addNode(node3, Seq(LEdge("Top", "Child3", Solve)))
+      .addNode(node2, Seq(LEdge("Child2", "New", Solve), LEdge("Parent", "New", Solve)))
+      .verifyAllPar(waitingVerifier)
+
+    assert(newGraph.get("Parent").get.verificationStatus.isVerified)
+    assert(newGraph.get("New").get.verificationStatus.isVerified)
+    assert(newGraph.get("Child1").get.verificationStatus.isVerified)
+    assert(newGraph.get("Child2").get.verificationStatus.isVerified)
+    assert(newGraph.get("Child3").get.verificationStatus.isVerified)
+    assert(newGraph.get("Parent").get.fullyVerified)
+    assert(newGraph.get("New").get.fullyVerified)
+    assert(newGraph.get("Child1").get.fullyVerified)
+    assert(newGraph.get("Child2").get.fullyVerified)
+    assert(newGraph.get("Child3").get.fullyVerified)
+  }
 }
 
 case class MockVerifier(prover: Prover[String]) extends Verifier[String, String] {
@@ -181,6 +229,17 @@ case class ContradictingStatusProver() extends Prover[String]("") {
       Proved(MockTransformer(), this)
     else
       Disproved(MockTransformer(), this)
+  }
+}
+
+case class WaitingProver() extends Prover[String]("") {
+  override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve, Induction)
+
+  override def callProver(): ProverStatus = {
+    val rnd = new Random()
+    val waiting = rnd.nextInt(3000)
+    Thread.sleep(waiting)
+    Proved(MockTransformer(), this)
   }
 }
 

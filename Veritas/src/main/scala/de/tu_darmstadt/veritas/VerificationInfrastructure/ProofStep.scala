@@ -21,9 +21,9 @@ class ProofStep[S, P](val spec: S, val goal: P) {
     * @param strat strategy that shall be used for verification -> typically, from edge label
     * @return updated ProofStep with new verification stati
     */
-  def verifyNode(verifier: Verifier[S, P],
-                 assumptions: Seq[ProofStep[S, P]] = Seq(),
-                 strat: VerificationStrategy = Solve): ProofStep[S, P] = {
+  def verify(verifier: Verifier[S, P],
+             assumptions: Seq[ProofStep[S, P]] = Seq(),
+             strat: VerificationStrategy = Solve): ProofStep[S, P] = {
     val allAssumptions = assumptions map (pp => pp.goal)
     val newverificationStatus = verifier.verify(spec, allAssumptions, goal, strat)
     ProofStep(spec, goal, newverificationStatus).recomputefullyVerified(assumptions)
