@@ -114,6 +114,24 @@ class ProofGraph[S, P] {
   }
 
   /**
+    * removes the edge from the graph
+    * @param edge
+    * @return
+    */
+  def removeEdge(edge: VerificationEdge): ProofGraph[S, P] = {
+    ProofGraph(graph.removeLEdge(edge))
+  }
+
+  /**
+    * Add a new edge to the graph if the source or the target of the edge does not exist return the previous graph
+    * @param edge
+    * @return
+    */
+  def addEdge(edge: VerificationEdge): ProofGraph[S, P] = {
+   ProofGraph(graph.safeAddEdge(edge))
+  }
+
+  /**
     * using a given verifier, verify a given node (assume that every node name is unique for now...)
     * if the node is a leaf, just attempt to verify the node directly via the Solve strategy
     * otherwise, call verifier once for each group of edges that have the same verification strategy as label,
