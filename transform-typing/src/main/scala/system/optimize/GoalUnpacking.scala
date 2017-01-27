@@ -34,38 +34,51 @@ object GoalUnpacking {
 
   def unpackObligation(obl: ProofObligation): Seq[ProofObligation] = {
     implicit val counter = new Counter
-    obl.goals.flatMap(unpackJudg(_, obl, Map())).distinct
+    obl.goals.flatMap(unpackJudg(_, obl, Map()) match {
+      case Proved => Seq()
+      case Disproved(steps) => throw new MatchError(s"Obligation was disproved:\n${steps.mkString("\n")}")
+      case DontKnow => Seq(obl)
+      case ProveThis(obls) => obls
+    }).distinct
   }
 
-  def trySolveEquation(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Option[Seq[ProofObligation]] =
+  private sealed trait Unpacked
+  private case object Proved extends Unpacked
+  private case object DontKnow extends Unpacked
+  private case class Disproved(steps: Seq[(String, Judg)]) extends Unpacked
+  private case class ProveThis(obls: Seq[ProofObligation]) extends Unpacked
+
+  private def trySolveEquation(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Unpacked =
     if (judg.sym.isEq && judg.terms(0) == judg.terms(1))
     // terms are syntactically equal => equality always holds
-      Some(Seq())
+      Proved
     else if (judg.sym.isEq && Try(judg.terms(0).unify(judg.terms(1))).isFailure)
     // terms are not unifiable => equality never holds
-      Some(Seq(nextObligation(Judg(FALSE), obl)))
+      Disproved(Seq("#EQ" -> judg))
     else if (judg.sym.isNeq && judg.terms(0) == judg.terms(1))
     // terms are syntactically equal => inequality never holds
-      Some(Seq(nextObligation(Judg(FALSE), obl)))
+      Disproved(Seq("#NEQ" -> judg))
     else if (judg.sym.isNeq && Try(judg.terms(0).unify(judg.terms(1))).isFailure)
     // terms are not unifiable => inequality always holds
-      Some(Seq())
+      Proved
     else
-      None
+      DontKnow
 
-  def unpackJudg(judg: Judg, obl: ProofObligation, cc: CostCount)(implicit counter: Counter): Seq[ProofObligation] = {
-    trySolveEquation(judg, obl).foreach { return _ }
+  private def unpackJudg(judg: Judg, obl: ProofObligation, cc: CostCount)(implicit counter: Counter): Unpacked = {
+    trySolveEquation(judg, obl) match {
+      case result@(Proved | Disproved(_) | ProveThis(_)) => return result
+      case DontKnow => // continue
+    }
 
     val rules = obl.lang.rules ++ obl.lang.transs.flatMap(_.rules.keys) ++ obl.axioms
     val filteredRules = rules.filter(rule => rule.conclusion.sym == judg.sym && !rule.lemma)
     val candidates = filteredRules.flatMap{ rule =>
       val freshRule = rule.fresh(obl.gensym)
-      val opt = Try(freshRule -> freshRule.conclusion.matchTerm(judg)).toOption
-      opt.filter{ case (_, (_, eqs, _)) => !eqs.exists{case (l,r) => App.isFun(l)} }
+      Try(freshRule -> freshRule.conclusion.matchTerm(judg)).toOption
     }
 
     if (candidates.size == 0) {
-      Seq(nextObligation(judg, obl))
+      DontKnow
     }
     else if (candidates.size == 1) {
       // exactly one candidate rule found, applying it
@@ -73,50 +86,64 @@ object GoalUnpacking {
       val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1, t2) }
       val eqObls = eqGoals.map(nextObligation(_, obl))
       val premiseGoals = rule.premises.map(_.subst(s))
-      val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl, cc))
+      val unpackedPremises = premiseGoals.map(p => unpackJudg(p, obl, cc) -> p)
+      val premiseObls = premiseGoals.flatMap { prem => unpackJudg(prem, obl, cc) match {
+        case Disproved(steps) => return Disproved((rule.name -> judg) +: steps)
+        case Proved => Seq()
+        case DontKnow => Seq(nextObligation(prem, obl))
+        case ProveThis(obls) => obls
+      }}
       val obls = mergeExistentialObligations(judg, eqObls ++ premiseObls)
-      obls
+      ProveThis(obls)
     }
     else {
       // multiple candidate rules found
-      var alternatives = Seq[Seq[ProofObligation]]()
+      var alternatives = Seq[Unpacked]()
       for ((rule, (s, eqs, num)) <- candidates) {
-        if (eqs.exists{case (l,r) => App.isFun(l) && App.isFun(r)}) {
-          // skip this candidate since it requires an eq like `f(x) = g(y)`
+        if (eqs.exists{case (l,r) => App.isFun(l)}) {
+          // skip this candidate since it has an eq like `f(x) == t`
+          alternatives :+= ProveThis(Seq(nextObligation(judg, obl)))
         }
         else if (num <= 0 && !eqs.exists(eq => App.isConstr(eq._2))) {
           // no constructors were matched
-          alternatives :+= Seq(nextObligation(judg, obl))
+          alternatives :+= ProveThis(Seq(nextObligation(judg, obl)))
         }
         else if (!canAfford(rule, cc)) {
           // stop looping
-          alternatives :+= Seq(nextObligation(judg, obl))
+          alternatives :+= ProveThis(Seq(nextObligation(judg, obl)))
         }
         else {
           val eqGoals = eqs.map { case (t1, t2) => Judg(equ(t1.sort), t1, t2) }
-          val eqObls = eqGoals.flatMap(unpackJudg(_, obl, cc))
           val premiseGoals = rule.premises.map(_.subst(s))
-          val premiseObls = premiseGoals.flatMap(unpackJudg(_, obl, using(rule, cc)))
-          val obls = eqObls ++ premiseObls
+          val goals = eqGoals ++ premiseGoals
+          var disproved = false
+          val obls = goals.flatMap { goal => unpackJudg(goal, obl, cc) match {
+            case Disproved(steps) => disproved = true; Seq()
+            case Proved => Seq()
+            case DontKnow => Seq(nextObligation(goal, obl))
+            case ProveThis(obls) => obls
+          }}
 
-          if (obls.isEmpty)
-          // all premises discharged, meaning we just proved `judj`
-            return Seq()
-          else if (obls.exists(_.goals.exists(_.sym == FALSE))) {
-            // this candidate turned out not useful since we disproved one of its premises
+          val mergedObls = mergeExistentialObligations(judg, obls)
+          if (disproved) {
+            // ignore this alternative
+          }
+          else if (mergedObls.isEmpty) {
+            // all premises discharged, meaning we just proved `judj`
+            return Proved
           }
           else {
-            alternatives :+= obls
+            alternatives :+= ProveThis(mergedObls)
           }
         }
       }
 
       if (alternatives.isEmpty)
-        Seq(nextObligation(Judg(FALSE), obl))
+        Disproved(Seq(candidates.map(_._1.name).mkString("Alt(",",",")") -> judg))
       else if (alternatives.size == 1)
         alternatives.head
       else
-        Seq(nextObligation(judg, obl))
+        ProveThis(Seq(nextObligation(judg, obl)))
     }
   }
 
