@@ -139,6 +139,11 @@ object Statics {
     Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T1", Typ)),
     Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T2", Typ))
   ))
+  val Typed_TOk = rule(Lemma("Typed-TOk",
+    Judg(TOk, "T"~Typ),
+    // if ----------------
+    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ))
+  ))
   val Typed_weakening = rule(Lemma("Typed-weakening",
     Judg(Typed, bind(Var("C", Ctx), Var("x", Name), Var("Tx", Typ)), Var("e", Exp), Var("T", Typ)),
     // if ----------------

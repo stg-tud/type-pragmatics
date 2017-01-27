@@ -89,7 +89,7 @@ object Verification {
                           val timeSeconds: Option[Double],
                           val details: ResultDetails)
 
-  def verify(p: ProofObligation, mode: String = "casc", timeout: Int = 30): ProverResult = {
+  def verify(p: ProofObligation, mode: String = "casc", timeout: Double = 30): ProverResult = {
     val tff = p.asTFF
 
     val file = File.createTempFile("transform-typing", ".fof")

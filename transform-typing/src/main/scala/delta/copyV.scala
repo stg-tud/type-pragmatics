@@ -13,7 +13,7 @@ object copyV extends Transformation(stlc.language + ext + tdelta + cdelta) {
   val copyV = Symbol("copyV", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
 
   override val contract =
-    Rule("T-copyV",
+    Rule("Typed-copyV",
       Judg(Typed, cdelta("C"~Ctx), copyV("e"~Exp, "C"~Ctx, "T"~Typ), "T"~Typ),
       // if ----------------
       Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),

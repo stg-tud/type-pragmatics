@@ -17,7 +17,7 @@ class Gensym {
   }
 
   def freshSymbol(name: String, in: List[ISort], out: ISort): Symbol =
-    Symbol(getNextAndSet(name), in, out)
+    Symbol(getNextAndSet(name), in, out, false)
 
   def freshVar(name: String, sort: ISort): Var =
     Var(getNextAndSet(name), sort)

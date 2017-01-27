@@ -196,6 +196,10 @@ object Syntax {
     def apply(trans: Transformation, kids: Term*): App = App(trans.contractedSym, kids.toList)
     def isFun(t: Term) = t.isInstanceOf[App] && !t.asInstanceOf[App].sym.constr
     def isConstr(t: Term) = t.isInstanceOf[App] && t.asInstanceOf[App].sym.constr
+    def is(p: (Symbol, List[Term]) => Boolean)(t: Term) = t match {
+      case App(sym, kids) => p(sym, kids)
+      case _ => false
+    }
   }
 
   case class Judg(sym: Symbol, terms: List[Term]) {
