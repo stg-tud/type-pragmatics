@@ -16,7 +16,7 @@ case object NotStarted extends VerificationStatus
 
 case class Outdated[S, P](prevs: VerificationStatus, previousProofGraph: ProofGraph[S, P]) extends VerificationStatus
 
-case class Finished[S, P](ps: ProverStatus, usedVerifier: Verifier[S, P]) extends VerificationStatus {
+case class Finished[S, P, +V](ps: ProverStatus, t: Transformer[S, P, V], usedVerifier: Verifier[S, P]) extends VerificationStatus {
   override val isVerified: Boolean = ps.isVerified
 }
 
@@ -195,16 +195,16 @@ class ProofGraph[S, P] {
   private def containsContradictingStati(stati: Seq[VerificationStatus]): Boolean = {
     val proverStati = stati.foldLeft(Seq.empty[ProverStatus]) { case (l, status) =>
       status match {
-        case Finished(ps, _) => Seq(ps) ++ l
+        case Finished(ps, _, _) => Seq(ps) ++ l
         case _ => l
       }
     }
     val containsProved = proverStati.exists {
-      case Proved(_, _) => true
+      case Proved(_) => true
       case _ => false
     }
     val containsDisproved = proverStati.exists {
-      case Disproved(_, _) => true
+      case Disproved(_) => true
       case _ => false
     }
     containsProved && containsDisproved
@@ -215,8 +215,8 @@ class ProofGraph[S, P] {
       true
     else
       x.verificationStatus match {
-        case Finished(Inconclusive, _) => false
-        case Finished(Disproved(_, _), _) =>
+        case Finished(Inconclusive, _, _) => false
+        case Finished(Disproved(_), _, _) =>
           !y.verificationStatus.isVerified
         case _ => false
       }

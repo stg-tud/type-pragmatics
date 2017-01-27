@@ -105,7 +105,7 @@ class ProofGraphTest extends FunSuite {
     assert(!newGraph.get("Parent").get.fullyVerified)
     assert(!newGraph.get("Child1").get.fullyVerified)
     assert(!newGraph.get("Child2").get.fullyVerified)
-    assert(newGraph.get("Child3").get.verificationStatus.isInstanceOf[Finished[String, String]])
+    assert(newGraph.get("Child3").get.verificationStatus.isInstanceOf[Finished[String, String, String]])
     assert(newGraph.get("Child3").get.fullyVerified)
   }
 
@@ -196,14 +196,14 @@ case class MockVerifier(prover: Prover[String]) extends Verifier[String, String]
     * @param strat      overall abstract strategy to be used for the current step
     * @return Verification summary
     */
-  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy): VerificationStatus = Finished(prover.callProver(), this)
+  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy): VerificationStatus = Finished(prover.callProver(), MockTransformer(), this)
 }
 
 
 case class MockProver() extends Prover[String]("") {
   override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve)
 
-  override def callProver(): ProverStatus = Proved(MockTransformer(), this)
+  override def callProver(): ProverStatus = Proved(this)
 }
 
 case class SwitchStatusProver() extends Prover[String]("") {
@@ -213,7 +213,7 @@ case class SwitchStatusProver() extends Prover[String]("") {
   override def callProver(): ProverStatus = {
     count = count + 1
     if (count == 0)
-      Proved(MockTransformer(), this)
+      Proved(this)
     else
       Inconclusive
   }
@@ -226,9 +226,9 @@ case class ContradictingStatusProver() extends Prover[String]("") {
   override def callProver(): ProverStatus = {
     count = count + 1
     if (count == 0)
-      Proved(MockTransformer(), this)
+      Proved(this)
     else
-      Disproved(MockTransformer(), this)
+      Disproved(this)
   }
 }
 
@@ -239,7 +239,7 @@ case class WaitingProver() extends Prover[String]("") {
     val rnd = new Random()
     val waiting = rnd.nextInt(3000)
     Thread.sleep(waiting)
-    Proved(MockTransformer(), this)
+    Proved(this)
   }
 }
 

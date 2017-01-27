@@ -8,11 +8,11 @@ sealed trait ProverStatus {
   val isVerified: Boolean = false
 }
 
-case class Proved[S, P, +V](t: Transformer[S, P, V], p: Prover[V]) extends ProverStatus {
+case class Proved[+V](p: Prover[V]) extends ProverStatus {
   override val isVerified: Boolean = true
 }
 
-case class Disproved[S, P, +V](t: Transformer[S, P, V], p: Prover[V]) extends ProverStatus
+case class Disproved[+V](p: Prover[V]) extends ProverStatus
 
 //TODO: maybe add some more detailed information here as well?
 case object Inconclusive extends ProverStatus
