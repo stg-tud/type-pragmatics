@@ -76,19 +76,29 @@ object GoalUnpacking {
       val freshRule = rule.fresh(obl.gensym)
       Try(freshRule -> freshRule.conclusion.matchTerm(judg)).toOption
     }
+    val relevantCanditates = candidates.filter{ case (_, (_, eqs, num)) =>
+      // only keep those candidates that have no equation like `f(x) == t`
+      !eqs.exists{case (l,r) => App.isFun(l)} &&
+      // and where some constructors were matched
+      (num > 0 || eqs.exists(eq => App.isConstr(eq._2)))
+    }
 
-    if (candidates.size == 0) {
+    if (relevantCanditates.size == 0) {
       DontKnow
     }
-    else if (candidates.size == 1) {
+    else if (relevantCanditates.size == 1) {
       // exactly one candidate rule found, applying it
-      val (rule, (s, eqs, _)) = candidates.head
+      val (rule, (s, eqs, _)) = relevantCanditates.head
       val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1, t2) }
       val eqObls = eqGoals.map(nextObligation(_, obl))
       val premiseGoals = rule.premises.map(_.subst(s))
       val unpackedPremises = premiseGoals.map(p => unpackJudg(p, obl, cc) -> p)
       val premiseObls = premiseGoals.flatMap { prem => unpackJudg(prem, obl, cc) match {
-        case Disproved(steps) => return Disproved((rule.name -> judg) +: steps)
+        case Disproved(steps) =>
+          if (relevantCanditates.size == candidates.size)
+            return Disproved((rule.name -> judg) +: steps)
+          else
+            Seq(nextObligation(prem, obl))
         case Proved => Seq()
         case DontKnow => Seq(nextObligation(prem, obl))
         case ProveThis(obls) => obls
@@ -99,16 +109,8 @@ object GoalUnpacking {
     else {
       // multiple candidate rules found
       var alternatives = Seq[Unpacked]()
-      for ((rule, (s, eqs, num)) <- candidates) {
-        if (eqs.exists{case (l,r) => App.isFun(l)}) {
-          // skip this candidate since it has an eq like `f(x) == t`
-          alternatives :+= ProveThis(Seq(nextObligation(judg, obl)))
-        }
-        else if (num <= 0 && !eqs.exists(eq => App.isConstr(eq._2))) {
-          // no constructors were matched
-          alternatives :+= ProveThis(Seq(nextObligation(judg, obl)))
-        }
-        else if (!canAfford(rule, cc)) {
+      for ((rule, (s, eqs, num)) <- relevantCanditates) {
+        if (!canAfford(rule, cc)) {
           // stop looping
           alternatives :+= ProveThis(Seq(nextObligation(judg, obl)))
         }
@@ -117,7 +119,7 @@ object GoalUnpacking {
           val premiseGoals = rule.premises.map(_.subst(s))
           val goals = eqGoals ++ premiseGoals
           var disproved = false
-          val obls = goals.flatMap { goal => unpackJudg(goal, obl, cc) match {
+          val obls = goals.flatMap { goal => unpackJudg(goal, obl, using(rule, cc)) match {
             case Disproved(steps) => disproved = true; Seq()
             case Proved => Seq()
             case DontKnow => Seq(nextObligation(goal, obl))
@@ -138,7 +140,7 @@ object GoalUnpacking {
         }
       }
 
-      if (alternatives.isEmpty)
+      if (alternatives.isEmpty && relevantCanditates.size == candidates.size)
         Disproved(Seq(candidates.map(_._1.name).mkString("Alt(",",",")") -> judg))
       else if (alternatives.size == 1)
         alternatives.head
