@@ -81,15 +81,16 @@ object GoalUnpacking {
       val freshRule = rule.fresh(obl.gensym)
       Try(freshRule -> freshRule.conclusion.matchTerm(judg)).toOption
     }
-    val relevantCanditates: Seq[(Rule, Subst, Diff)] = candidates.flatMap{ case (rule, (s, eqs, num)) =>
+    val relevantCanditates: Seq[(Rule, Subst, Diff)] = candidates.flatMap{ case (rule, (s, matchEqs, num)) =>
+      val eqPremises = rule.premises.filter(j => j.sym.isEq || j.sym.isNeq).map(_.subst(s))
+      val eqs = matchEqs.map{case (l,r) => Judg(equ(l.sort), l, r)} ++ eqPremises
       // only keep those candidates where some constructors were matched
-      val constrMatch = num > 0 || eqs.exists(eq => App.isConstr(eq._2))
+      val constrMatch = num > 0 || eqs.exists(eq => App.isConstr(eq.terms(0)) || App.isConstr(eq.terms(1)))
       if (!constrMatch)
         None
       else {
         var disproved = false
-        val eqGoals = eqs.flatMap { case(t1, t2) =>
-          val goal = Judg(equ(t1.sort), t1, t2)
+        val eqGoals = eqs.flatMap { goal =>
           trySolveEquation(goal) match {
             case Proved => Seq()
             case Disproved(_) => disproved = true; Seq(goal)

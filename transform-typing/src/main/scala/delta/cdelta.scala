@@ -44,9 +44,9 @@ object cdelta extends Transformation(stlc.language + ext + tdelta) {
   )
 
   val cdelta_bind = Rewrite(
-    cdelta(bind("C"~Ctx, "x"~Name, "T"~Typ)),
+    cdelta(bind("C"~Ctx, "y"~Name, "T"~Typ)),
     // ~>
-    bind(bind(cdelta("C"~Ctx), v("x"~Name), "T"~Typ), d("x"~Name), tdelta("T"~Typ))
+    bind(bind(cdelta("C"~Ctx), v("y"~Name), "T"~Typ), d("y"~Name), tdelta("T"~Typ))
   )
 
   override val rewrites: Seq[Rewrite] = Seq(cdelta_empty, cdelta_bind)
