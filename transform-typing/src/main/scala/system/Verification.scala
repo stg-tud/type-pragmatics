@@ -48,15 +48,10 @@ object Verification {
       tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
       tff ++= axioms.map(GenerateTFF.compileRuleDecl(_))
 
-      val usedVars = (assumptions.flatMap(_.freevars) ++ goals.flatMap(_.freevars)).toSet
-      val assumptionVars = assumptions.foldLeft(Set[Var]())((vars, g) => vars ++ g.freevars)
-        .intersect(usedVars)
-        .diff(existentials)
-      val goalVars = goals.foldLeft(Set[Var]())((vars, g) => vars ++ g.freevars)
-        .intersect(usedVars)
-        .diff(existentials)
+      val assumptionVars = assumptions.flatMap(_.freevars).toSet.diff(existentials)
+      val goalVars = goals.flatMap(_.freevars).toSet.diff(existentials)
       val universalVars = (assumptionVars.map(GenerateTFF.compileVar(_, typed = true)) ++ goalVars.map(GenerateTFF.compileVar(_, typed = true)))
-      val existentialVars = existentials.intersect(usedVars).map(GenerateTFF.compileVar(_, typed = true))
+      val existentialVars = existentials.map(GenerateTFF.compileVar(_, typed = true))
 
       val assumptionFormula = Parenthesized(And(assumptions.map(GenerateTFF.compileJudg(_))))
       val goalFormula = Parenthesized(And(goals.map(GenerateTFF.compileJudg(_))))
@@ -75,6 +70,8 @@ object Verification {
 
 
   val vampireConfig = new VampireConfig("4.0")
+  val vampireSilentArgs = Seq("--forced_options", "proof=off")
+
   val runConfig = benchmarking.Main.Config(
     proverConfigs = Seq(vampireConfig),
     logExec = true,
@@ -89,15 +86,19 @@ object Verification {
                           val timeSeconds: Option[Double],
                           val details: ResultDetails)
 
-  def verify(p: ProofObligation, mode: String = "casc", timeout: Double = 30): ProverResult = {
+  def verify(p: ProofObligation, mode: String = "casc", timeout: Double = 30, otherArgs: Seq[String] = Seq()): ProverResult = {
     val tff = p.asTFF
+    verify(p.name, tff, mode, timeout, otherArgs)
+  }
 
+  def verify(name: String, tff: Seq[TffAnnotated], mode: String, timeout: Double, otherArgs: Seq[String]): ProverResult = {
     val file = File.createTempFile("transform-typing", ".fof")
     new PrintWriter(file) { tff.foreach(t => write(t.toPrettyString() + "\n")); close }
-    println(s"Verifying ${p.name} via TFF $file")
+    println(s"Verifying $name via TFF $file")
 
+    val vconfig = vampireConfig.copy(mode = mode, otherArgs = otherArgs)
     val runner = new Runner(
-      runConfig.copy(files = Seq(file), proverConfigs = Seq(vampireConfig.copy(mode = mode)), timeout = timeout))
+      runConfig.copy(files = Seq(file), proverConfigs = Seq(vconfig), timeout = timeout))
     try {runner.run()}
     catch {case _: NullPointerException => }
     println()
@@ -106,13 +107,13 @@ object Verification {
     if (summaries.size == 1 && summaries.head._2.size == 1) {
       val result = summaries.head._2.head._2.proverResult
       if (result.status == Proved)
-        println(s"SUCCESS ${p.name}")
+        println(s"SUCCESS $name")
       else
-        println(s"FAILURE ${p.name}")
+        println(s"FAILURE $name")
       ProverResult(file, result.status, result.timeSeconds, result.details)
     }
     else {
-      println(s"ERROR ${p.name}")
+      println(s"ERROR $name")
       ProverResult(file, Inconclusive("ERROR"), None, null)
     }
   }

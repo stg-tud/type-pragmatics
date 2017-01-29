@@ -211,11 +211,13 @@ object Syntax {
 
     def updated(i: Int, t: Term) = Judg(sym, terms.updated(i, t))
 
-    def subst(s: Subst): Judg = {
-      val newvars = s.values.foldLeft(Set[Var]())((vars, t) => vars ++ t.freevars)
-      val oldvars = freevars -- s.keys
-      for (v <- oldvars if newvars.contains(v))
-        throw new IllegalArgumentException(s"Substitution $s captures variable $v in $this")
+    def subst(s: Subst, force: Boolean = false): Judg = {
+      if (!force) {
+        val newvars = s.values.foldLeft(Set[Var]())((vars, t) => vars ++ t.freevars)
+        val oldvars = freevars -- s.keys
+        for (v <- oldvars if newvars.contains(v))
+          throw new IllegalArgumentException(s"Substitution $s captures variable $v in $this")
+      }
       Judg(sym, terms.map(_.subst(s)))
     }
 

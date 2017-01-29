@@ -7,7 +7,7 @@ import veritas.benchmarking._
 import veritas.benchmarking.util.GrowingArray
 
 case class VampireConfig(version: String, confname: String = "vampire",
-                         mode: String = "casc") extends ProverConfig {
+                         mode: String = "casc", otherArgs: Seq[String] = Seq()) extends ProverConfig {
   def isValid = proverCommand != null
 
   override val name = if (version == null) confname else s"$confname-$version"
@@ -32,6 +32,8 @@ case class VampireConfig(version: String, confname: String = "vampire",
       call = call ++ Seq("--show_active", "on")
       call = call ++ Seq("--show_passive", "on")
     }
+
+    call = call ++ otherArgs
 
     call = call :+ file.getAbsolutePath
     call
