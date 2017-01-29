@@ -16,7 +16,7 @@ case class BeagleConfig()
 
   override val acceptedFileFormats = Set(".fof", ".tff")
 
-  def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
+  def makeCall(file: File, timeout: Double, fullLogs: Boolean): Seq[String] = {
     var call = Seq(proverCommand.getAbsolutePath)
     call = call ++ Seq("-jar", "beagle.jar")
     if (timeout > 0)

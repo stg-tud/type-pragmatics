@@ -9,7 +9,7 @@ object Main extends App {
   case class Config(
                      files: Seq[File] = Seq(),
                      repetitions: Int = 1,
-                     timeout: Int = 0,
+                     timeout: Double = 0,
                      proverConfigs: Seq[ProverConfig] = Seq(),
                      fullLogs: Boolean = false,
                      logExec: Boolean = false,

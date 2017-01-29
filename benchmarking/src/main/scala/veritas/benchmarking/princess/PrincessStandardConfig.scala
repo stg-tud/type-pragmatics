@@ -11,7 +11,7 @@ case class PrincessStandardSlurmConfig() extends PrincessStandardConfig {
   override def createProverCallHHlr(proverpath: String, provercall: Seq[String]) =
     super.createProverCallHHlr("", provercall)
 
-  override def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
+  override def makeCall(file: File, timeout: Double, fullLogs: Boolean): Seq[String] = {
     // TODO: Need a better way than hardcoding ath to the princess-all-casc.jar
     var call = Seq("java")
     var pathToPrincessJar = "/home/groups/projects/proj_184/provers/princess-all.jar"
@@ -34,7 +34,7 @@ class PrincessStandardConfig()
 
   override val acceptedFileFormats = Set(".fof")
 
-  def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
+  def makeCall(file: File, timeout: Double, fullLogs: Boolean): Seq[String] = {
     var call = Seq(proverCommand.getAbsolutePath)
     call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "-cp", "princess-all-standard.jar", "ap.CmdlMain", "-inputFormat=tptp")
     if (timeout > 0)

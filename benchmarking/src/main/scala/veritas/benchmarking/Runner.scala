@@ -44,8 +44,8 @@ case class Runner(config: Config) {
   private def callProverAndLog: (ProverConfig, File, File) => (VeritasConfFile, FileSummary) = {
     case (proverConfig, file, outfile) => {
       val call = proverConfig.makeCall(file, config.timeout, config.fullLogs)
-      val (result, proctime) = Runner.exec(call, config.timeout, config.logExec,
-        () => proverConfig.newResultProcessor(outfile, config.timeout))
+      val (result, proctime) = Runner.exec(call, config.timeout.round.toInt, config.logExec,
+        () => proverConfig.newResultProcessor(outfile, config.timeout.round.toInt))
       val tooltime = result.timeSeconds
       val time = tooltime match {
         case None => proctime
@@ -106,7 +106,7 @@ case class Runner(config: Config) {
                        if (proverConfig.acceptedFileFormats.exists(s => file.getName().endsWith(s)))}
       yield (proverConfig, file, makeOutputFile(proverConfig, file))
 
-    val estimatedDuration = Duration(joblist.length * config.timeout, "seconds")
+    val estimatedDuration = Duration(joblist.length * config.timeout.round.toInt, "seconds")
 
 
     // set up parallel calls to provers (careful, resources may differ significantly from sequential case!)
@@ -195,7 +195,7 @@ case class Runner(config: Config) {
   val flatIndexFileMap: Map[Int, File] = ((1 to allFiles.length) zip allFiles).toMap
 
   def makeSLURMScripts() = {
-    val ssm = SlurmScriptMaker(config.proverConfigs, config.timeout, flatIndexFileMap)
+    val ssm = SlurmScriptMaker(config.proverConfigs, config.timeout.round.toInt, flatIndexFileMap)
     ssm.writeFlattenedFileStructure()
     ssm.writeJobScripts()
   }

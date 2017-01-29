@@ -78,7 +78,7 @@ trait ProverConfig {
     null
   }
 
-  def makeCall(file: File, timeout: Int, fullLogs: Boolean): Seq[String]
+  def makeCall(file: File, timeout: Double, fullLogs: Boolean): Seq[String]
 
   def newResultProcessor(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean = false): ResultProcessor
 }

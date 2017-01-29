@@ -15,7 +15,7 @@ case class VampireConfig(version: String, confname: String = "vampire",
     findBinaryInPath(if (version == null) s"vampire" else s"vampire-$version")
   override val acceptedFileFormats = Set(".fof", ".tff")
 
-  def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
+  def makeCall(file: File, timeout: Double, fullLogs: Boolean): Seq[String] = {
     var call = Seq(proverCommand.getAbsolutePath)
 
     if (timeout > 0)
