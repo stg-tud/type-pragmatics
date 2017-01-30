@@ -85,93 +85,20 @@ object GoalUnpacking {
       val freshRule = rule.fresh(obl.gensym)
       Try(freshRule -> freshRule.conclusion.matchTerm(judg)).toOption
     }
-    val relevantCanditates: Seq[(Rule, Subst, Diff)] = candidates.flatMap{ case (rule, (s, matchEqs, num)) =>
-      val eqPremises = rule.premises.filter(j => j.sym.isEq || j.sym.isNeq).map(_.subst(s))
-      val eqs = matchEqs.map{case (l,r) => Judg(equ(l.sort), l, r)} ++ eqPremises
-      // only keep those candidates where some constructors were matched
-      val constrMatch = num > 0 || eqs.exists(eq => App.isConstr(eq.terms(0)) || App.isConstr(eq.terms(1)))
-      if (!constrMatch)
-        None
-      else {
-        var disproved = false
-        val eqGoals = eqs.flatMap { goal =>
-          trySolveEquation(goal) match {
-            case Proved => Seq()
-            case Disproved(_) => disproved = true; Seq(goal)
-            case DontKnow => Seq(goal)
-            case ProveThis(obls) => obls.flatMap(_.goals)
-          }
-        }
-        if (disproved)
-          None
-        else if (eqGoals.isEmpty)
-          Some((rule, s, Seq()))
-        else {
-          val tffNoGoal = obl.asTFF.dropRight(1)
 
-          val eqGoalVars = eqGoals.flatMap(_.freevars).toSet
-          val eqExVars = eqGoalVars -- judg.freevars
-          val exVars = eqExVars ++ obl.existentials
-          val altVarsMap = exVars.map(v => v -> obl.gensym.freshVar(v.name, v.sort)).toMap
-          val altVars = altVarsMap.values.toSeq
-          val eqGoalsAlt = eqGoals.map(_.subst(altVarsMap))
-
-          val assumptionVars = (obl.assumptions ++ ass).flatMap(_.freevars).toSet.diff(exVars)
-          val goalVars = eqGoalVars.diff(exVars)
-          val universalVars = (assumptionVars.map(GenerateTFF.compileVar(_, typed = true)) ++ goalVars.map(GenerateTFF.compileVar(_, typed = true)))
-          val existentialVars = obl.existentials.map(GenerateTFF.compileVar(_, typed = true))
-
-          val assumptionFormula = Parenthesized(And((obl.assumptions ++ ass).map(GenerateTFF.compileJudg(_))))
-
-          val goalFormula = Parenthesized(And(eqGoals.map(GenerateTFF.compileJudg(_))))
-          val goalFormulaAlt = Parenthesized(And(eqGoalsAlt.map(GenerateTFF.compileJudg(_))))
-          val eqAltSame = Parenthesized(And(altVarsMap.map{case (ex, alt) => fof.Eq(GenerateTFF.compileVar(ex), GenerateTFF.compileVar(alt))}.toSeq))
-          val uniqueFormula = Exists(exVars.toSeq.map(GenerateTFF.compileVar(_, true)),
-            Parenthesized(And(Seq(
-              goalFormula,
-              ForAll(altVars.map(GenerateTFF.compileVar(_, true)),
-                Parenthesized(Impl(goalFormulaAlt, eqAltSame))
-              )
-            )))
-          )
-          val goalBody = Parenthesized(Impl(assumptionFormula, uniqueFormula))
-
-          val name = s"UNPACK-${rule.name}-${obl.name}"
-          val tff = TffAnnotated(name, Conjecture,
-            ForAll(universalVars.toSeq,
-              Exists(existentialVars.toSeq,
-                goalBody)))
-
-          lazy val eqResult = Verification.verify(name, tffNoGoal :+ tff, mode = "casc", timeout = 0.2, Verification.vampireSilentArgs)
-          lazy val eqResultSat = Verification.verify("SAT-" + name, tffNoGoal :+ tff, mode = "casc_sat", timeout = 0.5, Verification.vampireSilentArgs)
-          if (eqResult.status == benchmarking.Proved || eqResultSat.status == benchmarking.Proved) {
-            // If there were existential variables in the equations, then we only proved satisfiability but not tautology.
-            // In such cases we propagate the equations such that we can check together with the rule premises when using this candidate
-            val existentialEqs = if (eqExVars.isEmpty) Seq() else eqGoals.map(j => (j.terms(0), j.terms(1)))
-            Some((rule, s, existentialEqs))
-          }
-          else
-            None
-        }
-      }
-    }
-
-    if (relevantCanditates.size == 0) {
+    if (candidates.size == 0) {
       DontKnow
     }
-    else if (relevantCanditates.size == 1) {
+    else if (candidates.size == 1) {
       // exactly one candidate rule found, applying it
-      val (rule, s, eqs) = relevantCanditates.head
+      val (rule, (s, eqs, _)) = candidates.head
       val asss = ass.map(_.subst(s, true))
       val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1, t2) }
       val premiseGoals = rule.premises.map(_.subst(s))
       val goals = eqGoals ++ premiseGoals
       val obls = goals.flatMap { prem => unpackJudg(prem, obl, asss ++ (goals diff Seq(prem)), cc) match {
         case Disproved(steps) =>
-          if (relevantCanditates.size == candidates.size)
-            return Disproved((rule.name -> judg) +: steps)
-          else
-            Seq(nextObligation(prem, obl))
+          return Disproved((rule.name -> judg) +: steps)
         case Proved => Seq()
         case DontKnow => Seq(nextObligation(prem, obl))
         case ProveThis(obls) => obls
@@ -180,6 +107,9 @@ object GoalUnpacking {
       ProveThis(mergedObls)
     }
     else {
+      val relevantCanditates: Seq[(Rule, Subst, Diff)] = candidates.flatMap{ case (rule, (s, matchEqs, num)) =>
+        relevantCandidate(judg, obl, ass, rule, s, matchEqs, num)
+      }
       // multiple candidate rules found
       var alternatives = Seq[Unpacked]()
       for ((rule, s, eqs) <- relevantCanditates) {
@@ -223,9 +153,46 @@ object GoalUnpacking {
     }
   }
 
+  def relevantCandidate(judg: Judg, obl: ProofObligation, ass: Seq[Judg], rule: Rule, s: Subst, matchEqs: Diff, num: Int)(implicit counter: Counter): Option[(Rule, Subst, Diff)] = {
+    val eqPremises = rule.premises.filter(j => j.sym.isEq || j.sym.isNeq).map(_.subst(s))
+    val eqs = matchEqs.map { case (l, r) => Judg(equ(l.sort), l, r) } ++ eqPremises
+    // only keep those candidates where some constructors were matched
+    val constrMatch = num > 0 || eqs.exists(eq => App.isConstr(eq.terms(0)) || App.isConstr(eq.terms(1)))
+    if (!constrMatch)
+      None
+    else {
+      var disproved = false
+      val eqGoals = eqs.flatMap { goal =>
+        trySolveEquation(goal) match {
+          case Proved => Seq()
+          case Disproved(_) => disproved = true; Seq(goal)
+          case DontKnow => Seq(goal)
+          case ProveThis(obls) => obls.flatMap(_.goals)
+        }
+      }
+      if (disproved)
+        None
+      else if (eqGoals.isEmpty)
+        Some((rule, s, Seq()))
+      else {
+        val (proven, eqExVars) = proveEqs(eqGoals, judg, rule, obl, ass)
+        if (proven) {
+          // If there were existential variables in the equations, then we only proved satisfiability but not tautology.
+          // In such cases we propagate the equations such that we can check together with the rule premises when using this candidate
+          val existentialEqs =
+            if (eqExVars.isEmpty) Seq()
+            else eqGoals.map(j => (j.terms(0), j.terms(1)))
+          Some((rule, s, existentialEqs))
+        }
+        else
+          None
+      }
+    }
+  }
+
   /*
-   * Merges those obligations that have overlapping sets of existentially quantified variables resulting from unpacking.
-   */
+     * Merges those obligations that have overlapping sets of existentially quantified variables resulting from unpacking.
+     */
   def mergeExistentialObligations(judg: Judg, goals: Seq[ProofObligation]): Seq[ProofObligation] = {
     var buckets = Seq[(mutable.Set[Var], mutable.ListBuffer[ProofObligation])]()
     val judgVars = judg.freevars
@@ -251,6 +218,48 @@ object GoalUnpacking {
     }
 
     merged
+  }
+
+  def proveEqs(eqGoals: Seq[Judg], judg: Judg, rule: Rule, obl: ProofObligation, ass: Seq[Judg]): (Boolean, Set[Var]) = {
+    val tffNoGoal = obl.asTFF.dropRight(1)
+
+    val eqGoalVars = eqGoals.flatMap(_.freevars).toSet
+    val eqExVars = eqGoalVars -- judg.freevars
+    val altVarsMap = eqExVars.map(v => v -> obl.gensym.freshVar(v.name, v.sort)).toMap
+    val altVars = altVarsMap.values.toSeq
+    val eqGoalsAlt = eqGoals.map(_.subst(altVarsMap))
+
+    val assumptionVars = (obl.assumptions ++ ass).flatMap(_.freevars).toSet.diff(eqExVars)
+    val goalVars = eqGoalVars.diff(eqExVars)
+    val universalVars = (assumptionVars.map(GenerateTFF.compileVar(_, typed = true)) ++ goalVars.map(GenerateTFF.compileVar(_, typed = true)))
+    val existentialVars = obl.existentials.map(GenerateTFF.compileVar(_, typed = true))
+
+    val assumptionFormula = Parenthesized(And((obl.assumptions ++ ass).distinct.map(GenerateTFF.compileJudg(_))))
+
+    val goalFormula = Parenthesized(BiImpl(GenerateTFF.compileJudg(judg), Parenthesized(And(eqGoals.map(GenerateTFF.compileJudg(_))))))
+    val goalFormulaAlt = Parenthesized(BiImpl(GenerateTFF.compileJudg(judg), Parenthesized(And(eqGoalsAlt.map(GenerateTFF.compileJudg(_))))))
+    val eqAltSame = Parenthesized(And(altVarsMap.map{case (ex, alt) => fof.Eq(GenerateTFF.compileVar(ex), GenerateTFF.compileVar(alt))}.toSeq))
+    val uniqueFormula = Exists(eqExVars.toSeq.map(GenerateTFF.compileVar(_, true)),
+      Parenthesized(And(Seq(
+        goalFormula,
+        ForAll(altVars.map(GenerateTFF.compileVar(_, true)),
+          Parenthesized(Impl(goalFormulaAlt, eqAltSame))
+        )
+      )))
+    )
+    val goalBody = Parenthesized(Impl(assumptionFormula, if (eqExVars.isEmpty) goalFormula else uniqueFormula))
+
+    val name = s"UNPACK-[${rule.name}]-${obl.name}"
+    val tffGoal = TffAnnotated(name, Conjecture,
+      ForAll(universalVars.toSeq,
+        Exists(existentialVars.toSeq,
+          goalBody)))
+    val tff = tffNoGoal :+ tffGoal
+
+    lazy val eqResult = Verification.verify(name, tff, mode = "casc", timeout = 0.2, Verification.vampireSilentArgs)
+    lazy val eqResultSat = Verification.verify("SAT-" + name, tff, mode = "casc_sat", timeout = 0.5, Verification.vampireSilentArgs)
+    val proven = eqResult.status == benchmarking.Proved || eqResultSat.status == benchmarking.Proved
+    (proven, eqExVars)
   }
 
 //  val (closedObls, openObls) = obls.partition(_.goals.flatMap(_.freevars).toSet.subsetOf(judg.freevars))
