@@ -13,7 +13,7 @@ object copyV extends Transformation(stlc.language + ext + tdelta + cdelta) {
   val copyV = Symbol("copyV", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
 
   override val contract =
-    Rule("Typed-copyV",
+    Lemma("Typed-copyV",
       Judg(Typed, cdelta("C"~Ctx), copyV("e"~Exp, "C"~Ctx, "T"~Typ), "T"~Typ),
       // if ----------------
       Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),
@@ -21,7 +21,7 @@ object copyV extends Transformation(stlc.language + ext + tdelta + cdelta) {
     ) -> 1
 
   override val lemmas: ListMap[Rule, Int] = ListMap(
-    Rule("notin-d-copyV",
+    Lemma("notin-d-copyV",
       Judg(notin(Exp), d("x"~Name), copyV("e"~Exp, "C"~Ctx, "T"~Typ)),
       // if ----------------
       Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),
@@ -71,4 +71,5 @@ object copyV extends Transformation(stlc.language + ext + tdelta + cdelta) {
 
   override val rewrites: Seq[Rewrite] = Seq(copyV_ref, copyV_num, copyV_add, copyV_lam, copyV_app)
 
+  checkSyntax()
 }

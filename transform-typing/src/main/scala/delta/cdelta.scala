@@ -14,7 +14,7 @@ object cdelta extends Transformation(stlc.language + ext + tdelta) {
   override val soundnessTimeout: Int = 90
 
   override val contract: (Rule, Int) =
-    Rule("CtxOk-cdelta",
+    Lemma("CtxOk-cdelta",
       Judg(CtxOk, cdelta("C"~Ctx)),
       // if ----------------
       Judg(CtxOk, "C"~Ctx)
@@ -50,4 +50,6 @@ object cdelta extends Transformation(stlc.language + ext + tdelta) {
   )
 
   override val rewrites: Seq[Rewrite] = Seq(cdelta_empty, cdelta_bind)
+
+  checkSyntax()
 }

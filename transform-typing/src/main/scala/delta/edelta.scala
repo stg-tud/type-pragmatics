@@ -14,7 +14,7 @@ object edelta extends Transformation(stlc.language + ext + tdelta + cdelta + cop
   val edelta = Symbol("edelta", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
 
   override val contract: (Rule, Int) =
-    Rule("T-edelta",
+    Lemma("T-edelta",
       Judg(Typed, cdelta("C"~Ctx), edelta("e"~Exp, "C"~Ctx, "T"~Typ), tdelta("T"~Typ)),
       // if ----------------
       Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),
@@ -69,4 +69,6 @@ object edelta extends Transformation(stlc.language + ext + tdelta + cdelta + cop
   )
 
   override val rewrites: Seq[Rewrite] = Seq(edelta_ref, edelta_num, edelta_add, edelta_lam, edelta_app)
+
+  checkSyntax()
 }

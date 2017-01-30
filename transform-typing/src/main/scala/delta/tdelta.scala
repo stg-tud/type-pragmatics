@@ -29,4 +29,6 @@ object tdelta extends Transformation(stlc.language + ext) {
   )
 
   override val rewrites: Seq[Rewrite] = Seq(tdelta_nat, tdelta_arr)
+
+  checkSyntax()
 }
