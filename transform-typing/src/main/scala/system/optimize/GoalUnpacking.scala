@@ -54,13 +54,17 @@ object GoalUnpacking {
   private case class Disproved(steps: Seq[(String, Judg)]) extends Unpacked
   private case class ProveThis(obls: Seq[ProofObligation]) extends Unpacked
 
-  private def trySolveEquation(judg: Judg)(implicit counter: Counter): Unpacked =
-    if (judg.sym.isEq && judg.terms(0) == judg.terms(1))
-    // terms are syntactically equal => equality always holds
-      Proved
-    else if (judg.sym.isEq && Try(judg.terms(0).unify(judg.terms(1))).isFailure)
-    // terms are not unifiable => equality never holds
-      Disproved(Seq("#EQ" -> judg))
+  private def trySolveEquation(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Unpacked =
+    if (judg.sym.isEq) {
+      Try(judg.terms(0).unify(judg.terms(1))).toOption match {
+        case None => Disproved(Seq("#EQ" -> judg))
+        case Some((s, eqs, _)) if s.isEmpty && eqs.isEmpty => Proved
+        case Some((s, eqs, _)) =>
+          val sGoals = s.map(kv => Judg(equ(kv._1.sort), kv._1, kv._2)).toSeq
+          val eqGoals = eqs.map(lr => Judg(equ(lr._1.sort), lr._1, lr._2))
+          ProveThis(Seq(nextObligation(sGoals ++ eqGoals, obl)))
+      }
+    }
     else if (judg.sym.isNeq && judg.terms(0) == judg.terms(1))
     // terms are syntactically equal => inequality never holds
       Disproved(Seq("#NEQ" -> judg))
@@ -74,7 +78,7 @@ object GoalUnpacking {
     if (obl.assumptions.contains(judg))
       return Proved
 
-    trySolveEquation(judg) match {
+    trySolveEquation(judg, obl) match {
       case result@(Proved | Disproved(_) | ProveThis(_)) => return result
       case DontKnow => // continue
     }
@@ -92,102 +96,70 @@ object GoalUnpacking {
     else if (candidates.size == 1) {
       // exactly one candidate rule found, applying it
       val (rule, (s, eqs, _)) = candidates.head
-      val asss = ass.map(_.subst(s, true))
-      val eqGoals = eqs.map { case(t1, t2) => Judg(equ(t1.sort), t1, t2) }
-      val premiseGoals = rule.premises.map(_.subst(s))
-      val goals = eqGoals ++ premiseGoals
-      val obls = goals.flatMap { prem => unpackJudg(prem, obl, asss ++ (goals diff Seq(prem)), cc) match {
-        case Disproved(steps) =>
-          return Disproved((rule.name -> judg) +: steps)
-        case Proved => Seq()
-        case DontKnow => Seq(nextObligation(prem, obl))
-        case ProveThis(obls) => obls
-      }}
-      val mergedObls = mergeExistentialObligations(judg, obls)
-      ProveThis(mergedObls)
+      unpackJudgUsingRule(judg, obl, ass, cc, rule, s, eqs)
     }
     else {
-      val relevantCanditates: Seq[(Rule, Subst, Diff)] = candidates.flatMap{ case (rule, (s, matchEqs, num)) =>
-        relevantCandidate(judg, obl, ass, rule, s, matchEqs, num)
+      val possibleCandidates = candidates.filter{ case (rule, (s, matchEqs, num)) =>
+        possibleCandidate(judg, obl, ass, rule, s, matchEqs, num)
       }
-      // multiple candidate rules found
-      var alternatives = Seq[Unpacked]()
-      for ((rule, s, eqs) <- relevantCanditates) {
-        if (!canAfford(rule, cc)) {
-          // stop looping
-          alternatives :+= ProveThis(Seq(nextObligation(judg, obl)))
-        }
-        else {
-          val asss = ass.map(_.subst(s, true))
-          val eqGoals = eqs.map { case (t1, t2) => Judg(equ(t1.sort), t1, t2) }
-          val premiseGoals = rule.premises.map(_.subst(s))
-          val goals = eqGoals ++ premiseGoals
-          var disproved = false
-          val obls = goals.flatMap { goal => unpackJudg(goal, obl, asss ++ (goals diff Seq(goal)), using(rule, cc)) match {
-            case Disproved(steps) => disproved = true; Seq()
-            case Proved => Seq()
-            case DontKnow => Seq(nextObligation(goal, obl))
-            case ProveThis(obls) => obls
-          }}
-
-          val mergedObls = mergeExistentialObligations(judg, obls)
-          if (disproved) {
-            // ignore this alternative
-          }
-          else if (mergedObls.isEmpty) {
-            // all premises discharged, meaning we just proved `judj`
-            return Proved
-          }
-          else {
-            alternatives :+= ProveThis(mergedObls)
-          }
-        }
+      if (possibleCandidates.size == 1) {
+        val (rule, (s, eqs, _)) = possibleCandidates.head
+        val res = unpackJudgUsingRule(judg, obl, ass, cc, rule, s, eqs)
+        res
       }
-
-      if (alternatives.isEmpty && relevantCanditates.size == candidates.size)
-        Disproved(Seq(candidates.map(_._1.name).mkString("Alt(",",",")") -> judg))
-      else if (alternatives.size == 1)
-        alternatives.head
       else
         ProveThis(Seq(nextObligation(judg, obl)))
     }
   }
 
-  def relevantCandidate(judg: Judg, obl: ProofObligation, ass: Seq[Judg], rule: Rule, s: Subst, matchEqs: Diff, num: Int)(implicit counter: Counter): Option[(Rule, Subst, Diff)] = {
-    val eqPremises = rule.premises.filter(j => j.sym.isEq || j.sym.isNeq).map(_.subst(s))
-    val eqs = matchEqs.map { case (l, r) => Judg(equ(l.sort), l, r) } ++ eqPremises
-    // only keep those candidates where some constructors were matched
-    val constrMatch = num > 0 || eqs.exists(eq => App.isConstr(eq.terms(0)) || App.isConstr(eq.terms(1)))
-    if (!constrMatch)
-      None
-    else {
-      var disproved = false
-      val eqGoals = eqs.flatMap { goal =>
-        trySolveEquation(goal) match {
-          case Proved => Seq()
-          case Disproved(_) => disproved = true; Seq(goal)
-          case DontKnow => Seq(goal)
-          case ProveThis(obls) => obls.flatMap(_.goals)
-        }
-      }
-      if (disproved)
-        None
-      else if (eqGoals.isEmpty)
-        Some((rule, s, Seq()))
-      else {
-        val (proven, eqExVars) = proveEqs(eqGoals, judg, rule, obl, ass)
-        if (proven) {
-          // If there were existential variables in the equations, then we only proved satisfiability but not tautology.
-          // In such cases we propagate the equations such that we can check together with the rule premises when using this candidate
-          val existentialEqs =
-            if (eqExVars.isEmpty) Seq()
-            else eqGoals.map(j => (j.terms(0), j.terms(1)))
-          Some((rule, s, existentialEqs))
-        }
-        else
-          None
+  private def unpackJudgUsingRule(judg: Judg, obl: ProofObligation, ass: Seq[Judg], cc: CostCount, rule: Rule, s: Subst, eqs: Diff)(implicit counter: Counter): Unpacked = {
+    val asss = ass.map(_.subst(s, true))
+    val eqGoals = eqs.map { case (t1, t2) => Judg(equ(t1.sort), t1, t2) }
+    val premiseGoals = rule.premises.map(_.subst(s))
+    val goals = eqGoals ++ premiseGoals
+    val obls = goals.flatMap { prem =>
+      unpackJudg(prem, obl, asss ++ (goals diff Seq(prem)), cc) match {
+        case Disproved(steps) =>
+          return Disproved((rule.name -> judg) +: steps)
+        case Proved => Seq()
+        case DontKnow => Seq(nextObligation(prem, obl))
+        case ProveThis(obls) => obls
       }
     }
+    if (obls.isEmpty)
+      return Proved
+    val mergedObls = mergeExistentialObligations(judg, obls)
+    ProveThis(mergedObls)
+  }
+
+  def possibleCandidate(judg: Judg, obl: ProofObligation, ass: Seq[Judg], rule: Rule, s: Subst, matchEqs: Diff, num: Int)(implicit counter: Counter): Boolean = {
+    // this candidate is possible if we fail to prove the match is impossible
+    // that is, this candidate is possible if negatedEqs is not Proved
+    val negatedPremises = rule.premises.flatMap { j =>
+      if (j.sym.isEq)
+        Some(Judg(neq(j.terms(0).sort), j.terms).subst(s))
+      else if (j.sym.isNeq)
+        Some(Judg(equ(j.terms(0).sort), j.terms).subst(s))
+      else
+        None
+    }
+    val negatedEqs = matchEqs.map { case (l, r) => Judg(neq(l.sort), l, r) } ++ negatedPremises
+    if (negatedEqs.isEmpty)
+      return true
+
+    val remainingNegatedEq = negatedEqs.flatMap { goal =>
+      trySolveEquation(goal, obl) match {
+        case Proved => return false
+        case Disproved(_) => Seq()
+        case DontKnow => Seq(goal)
+        case ProveThis(obls) => obls.flatMap(_.goals)
+      }
+    }
+    if (remainingNegatedEq.isEmpty)
+      return false
+
+    val (proven, eqExVars) = proveEqs(remainingNegatedEq, judg, rule, obl, ass)
+    !proven
   }
 
   /*
@@ -236,6 +208,7 @@ object GoalUnpacking {
 
     val assumptionFormula = Parenthesized(And((obl.assumptions ++ ass).distinct.map(GenerateTFF.compileJudg(_))))
 
+    val premiseFormula = Parenthesized(And(eqGoals.map(GenerateTFF.compileJudg(_))))
     val goalFormula = Parenthesized(BiImpl(GenerateTFF.compileJudg(judg), Parenthesized(And(eqGoals.map(GenerateTFF.compileJudg(_))))))
     val goalFormulaAlt = Parenthesized(BiImpl(GenerateTFF.compileJudg(judg), Parenthesized(And(eqGoalsAlt.map(GenerateTFF.compileJudg(_))))))
     val eqAltSame = Parenthesized(And(altVarsMap.map{case (ex, alt) => fof.Eq(GenerateTFF.compileVar(ex), GenerateTFF.compileVar(alt))}.toSeq))
