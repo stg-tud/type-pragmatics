@@ -47,7 +47,7 @@ class ProofGraph[S, P] {
     */
   def addNode(node: ProofNode[S, P], edges: Seq[VerificationEdge]): ProofGraph[S, P] = {
     val updatedGraph = graph.addNode(node).addEdges(edges)
-    val transitiveParents = getParentNodes(node, updatedGraph)
+    val transitiveParents = getParentPaths(node, updatedGraph)
     ProofGraph(makeNodesOutdated(transitiveParents, updatedGraph).graph)
   }
 
@@ -56,17 +56,17 @@ class ProofGraph[S, P] {
     * @param node
     * @return
     */
-  private def getParentNodes(
+  private def getParentPaths(
       node: ProofNode[S, P],
-      g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): Vector[ProofNode[S, P]] = {
+      g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): Vector[(ProofNode[S, P], VerificationStrategy)] = {
     val context = g.context(node.vertex)
     if (context.inEdges.isEmpty)
       return Vector.empty
-    val parentNodes = context.inEdges.map { in =>
+    val parentPaths = context.inEdges.map { in =>
       val context = g.context(in.from)
-      LNode(context.vertex, context.label)
+      (LNode(context.vertex, context.label), in.label)
     }
-    parentNodes ++ parentNodes.flatMap { getParentNodes(_) }
+    parentPaths ++ parentPaths.flatMap { path => getParentPaths(path._1) }
   }
 
   /**
@@ -75,14 +75,13 @@ class ProofGraph[S, P] {
     * @return
     */
   private def makeNodesOutdated(
-      nodes: Vector[ProofNode[S, P]],
+      nodes: Vector[(ProofNode[S, P], VerificationStrategy)],
       g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
-    val stepsToBeOutdated = nodes.map { _.label }
-    val outdatedGraph = g.nmap { n =>
-      if (stepsToBeOutdated.contains(n))
-        n.makeOutdated(ProofGraph(g))
-      else
-        n
+    println(nodes)
+    val outdatedGraph = nodes.foldLeft(g) { case (newGraph, (node, strat)) =>
+        val outdatedStep = node.label.makeOutdated(ProofGraph(newGraph), strat)
+        val outdatedNode = LNode(node.vertex, outdatedStep)
+        newGraph.updateNode(outdatedNode)
     }
     ProofGraph(outdatedGraph)
   }
@@ -94,7 +93,7 @@ class ProofGraph[S, P] {
     * @return
     */
   def removeNode(node: ProofNode[S, P]): ProofGraph[S, P] = {
-    val transitiveParents = getParentNodes(node)
+    val transitiveParents = getParentPaths(node)
     val resultGraph = makeNodesOutdated(transitiveParents).graph.removeNode(node.vertex)
     ProofGraph(resultGraph)
   }
@@ -109,7 +108,7 @@ class ProofGraph[S, P] {
     val updatedEdge = LEdge(edge.from, edge.to, newStrategy)
     val updatedGraph = graph.updateEdge(updatedEdge)
     val originNode = LNode(edge.from, updatedGraph.label(edge.from).get)
-    val transitiveParents = getParentNodes(originNode, updatedGraph)
+    val transitiveParents = getParentPaths(originNode, updatedGraph)
     makeNodesOutdated(transitiveParents, updatedGraph)
   }
 
@@ -146,12 +145,12 @@ class ProofGraph[S, P] {
     val isLeaf = focusedGraph.outEdges.isEmpty
     val updatedNode = verifyNode(verifier, LNode(nodename, proofstep))
     val updatedGraph = updateNode(nodename, updatedNode.label)
-    val transitiveParents = getParentNodes(LNode(focusedGraph.vertex, focusedGraph.label), updatedGraph.graph)
+    val transitiveParents = getParentPaths(LNode(focusedGraph.vertex, focusedGraph.label), updatedGraph.graph)
     // recompute fully verfied for all parents
     // needs to be done in correct order
-    val verifiedParents = transitiveParents.filter { _.label.verificationStatus.isVerified }
+    val verifiedParents = transitiveParents.filter { _._1.label.verificationStatus.isVerified }
     val propagatedGraph = verifiedParents.foldLeft(updatedGraph.graph) { case (g, node) =>
-        computeFullyVerified(node, g).graph
+        computeFullyVerified(node._1, g).graph
     }
     ProofGraph(propagatedGraph)
   }
@@ -165,18 +164,8 @@ class ProofGraph[S, P] {
         proofstep.verify(verifier)
       } else {
         val subgoalsGrouped = getSubgoalsGroupedByStrategy(node.vertex)
-        val updatedSteps = subgoalsGrouped.map { case (strat, subgoals) =>
-          proofstep.verify(verifier, subgoals.toSeq, strat)
-        }.toSeq
-        val stati = updatedSteps.map { _.verificationStatus }
-        val contradictingStati = containsContradictingStati(stati)
-        if (contradictingStati) {
-          proofstep.makeFailed("Verifier found a prove and a contradiction at the same time.", verifier)
-        } else {
-          // order is proved < disproved < inconclusive
-          val sortedSteps = updatedSteps.sortWith(sortByVerificationStatus)
-          // we can assume that at least one element exists because node is not a leave
-          sortedSteps(0)
+        subgoalsGrouped.foldLeft(proofstep) { case (step, (strategy, assumptions)) =>
+            step.verify(verifier, assumptions, strategy)
         }
       }
     LNode(node.vertex, updatedStep)
@@ -192,36 +181,6 @@ class ProofGraph[S, P] {
     }
   }
 
-  private def containsContradictingStati(stati: Seq[VerificationStatus]): Boolean = {
-    val proverStati = stati.foldLeft(Seq.empty[ProverStatus]) { case (l, status) =>
-      status match {
-        case Finished(ps, _, _) => Seq(ps) ++ l
-        case _ => l
-      }
-    }
-    val containsProved = proverStati.exists {
-      case Proved(_) => true
-      case _ => false
-    }
-    val containsDisproved = proverStati.exists {
-      case Disproved(_) => true
-      case _ => false
-    }
-    containsProved && containsDisproved
-  }
-
-  private def sortByVerificationStatus(x: ProofStep[S, P], y: ProofStep[S, P]): Boolean = {
-    if (x.verificationStatus.isVerified)
-      true
-    else
-      x.verificationStatus match {
-        case Finished(Inconclusive, _, _) => false
-        case Finished(Disproved(_), _, _) =>
-          !y.verificationStatus.isVerified
-        case _ => false
-      }
-  }
-
   private def updateNode(nodename: String, newStep: ProofStep[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
     val newNode = LNode(nodename, newStep)
     val updatedGraph = g.updateNode(newNode)
@@ -230,8 +189,10 @@ class ProofGraph[S, P] {
 
   private def computeFullyVerified(node: ProofNode[S, P], g: Graph[String, ProofStep[S, P], VerificationStrategy] = graph): ProofGraph[S, P] = {
     val nodename = node.vertex
-    val subgoals = getSubgoalsGroupedByStrategy(nodename, g).values.flatten.toSeq
-    val recomputedStep = node.label.recomputefullyVerified(subgoals)
+    val subgoalsGrouped = getSubgoalsGroupedByStrategy(nodename, g)
+    val recomputedStep = subgoalsGrouped.foldLeft(node.label) { case (step, (strat, assumptions)) =>
+        step.recomputefullyVerified(assumptions, strat)
+    }
     updateNode(nodename, recomputedStep, g)
   }
 
