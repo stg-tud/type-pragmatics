@@ -5,7 +5,7 @@ import java.io.{File, PrintWriter}
 import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff.TffAnnotated
 import system.Syntax._
-import system.optimize.{GoalUnpacking, RuleStrengthening}
+import system.optimize.{GoalNormalization, GoalUnpacking, RuleStrengthening}
 import veritas.benchmarking
 import veritas.benchmarking._
 import veritas.benchmarking.vampire.VampireConfig
@@ -42,6 +42,8 @@ object Verification {
        """.stripMargin
     }
 
+    def allTrans: Seq[Transformation] = lang.transs :+ trans
+
     lazy val asTFF: Seq[TffAnnotated] = {
       var tff: Seq[TffAnnotated] = GenerateTFF.compileLanguage(lang)
       tff ++= GenerateTFF.compileTransformation(trans, false)
@@ -64,7 +66,12 @@ object Verification {
       tff
     }
 
-    def optimized: Seq[ProofObligation] = GoalUnpacking.unpackObligation(this).map(RuleStrengthening.strengthenObligation(_))
+    def optimized: Seq[ProofObligation] = {
+      val obls1 = GoalUnpacking.unpackObligation(this)
+      val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
+      val obls3 = obls2.map(RuleStrengthening.strengthenObligation(_))
+      obls3
+    }
   }
 
 

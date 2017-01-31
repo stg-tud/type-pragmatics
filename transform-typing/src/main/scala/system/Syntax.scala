@@ -273,7 +273,8 @@ object Syntax {
       this.subst(sfresh)
     }
 
-    def subst(s: Subst) = Rule(name, conclusion.subst(s), premises.map(_.subst(s)), lemma)
+    def subst(s: Subst, capturing: Boolean = false) =
+      Rule(name, conclusion.subst(s, capturing), premises.map(_.subst(s, capturing)), lemma)
 
     def symbols: Set[Symbol] = conclusion.symbols ++ premises.foldLeft(Set[Symbol]())((set, j) => set ++ j.symbols)
   }
