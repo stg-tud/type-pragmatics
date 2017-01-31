@@ -99,10 +99,10 @@ object GoalUnpacking {
       unpackJudgUsingRule(judg, obl, ass, cc, rule, s, eqs)
     }
     else {
-      val possibleCandidates = candidates.filter{ case (rule, (s, matchEqs, num)) =>
+      val possibleCandidates = candidates.toStream.filter{ case (rule, (s, matchEqs, num)) =>
         possibleCandidate(judg, obl, ass, rule, s, matchEqs, num)
       }
-      if (possibleCandidates.size == 1) {
+      if (!possibleCandidates.isEmpty && possibleCandidates.tail.isEmpty) { // size == 1
         val (rule, (s, eqs, _)) = possibleCandidates.head
         val res = unpackJudgUsingRule(judg, obl, ass, cc, rule, s, eqs)
         res
@@ -192,14 +192,14 @@ object GoalUnpacking {
     merged
   }
 
-  def proveEqs(eqGoals: Seq[Judg], judg: Judg, rule: Rule, obl: ProofObligation, ass: Seq[Judg]): (Boolean, Set[Var]) = {
+  def proveEqs(orGoals: Seq[Judg], judg: Judg, rule: Rule, obl: ProofObligation, ass: Seq[Judg]): (Boolean, Set[Var]) = {
     val tffNoGoal = obl.asTFF.dropRight(1)
 
-    val eqGoalVars = eqGoals.flatMap(_.freevars).toSet
+    val eqGoalVars = orGoals.flatMap(_.freevars).toSet
     val eqExVars = eqGoalVars -- judg.freevars
     val altVarsMap = eqExVars.map(v => v -> obl.gensym.freshVar(v.name, v.sort)).toMap
     val altVars = altVarsMap.values.toSeq
-    val eqGoalsAlt = eqGoals.map(_.subst(altVarsMap))
+    val eqGoalsAlt = orGoals.map(_.subst(altVarsMap))
 
     val assumptionVars = (obl.assumptions ++ ass).flatMap(_.freevars).toSet.diff(eqExVars)
     val goalVars = eqGoalVars.diff(eqExVars)
@@ -207,20 +207,8 @@ object GoalUnpacking {
     val existentialVars = obl.existentials.map(GenerateTFF.compileVar(_, typed = true))
 
     val assumptionFormula = Parenthesized(And((obl.assumptions ++ ass).distinct.map(GenerateTFF.compileJudg(_))))
-
-    val premiseFormula = Parenthesized(And(eqGoals.map(GenerateTFF.compileJudg(_))))
-    val goalFormula = Parenthesized(BiImpl(GenerateTFF.compileJudg(judg), Parenthesized(And(eqGoals.map(GenerateTFF.compileJudg(_))))))
-    val goalFormulaAlt = Parenthesized(BiImpl(GenerateTFF.compileJudg(judg), Parenthesized(And(eqGoalsAlt.map(GenerateTFF.compileJudg(_))))))
-    val eqAltSame = Parenthesized(And(altVarsMap.map{case (ex, alt) => fof.Eq(GenerateTFF.compileVar(ex), GenerateTFF.compileVar(alt))}.toSeq))
-    val uniqueFormula = Exists(eqExVars.toSeq.map(GenerateTFF.compileVar(_, true)),
-      Parenthesized(And(Seq(
-        goalFormula,
-        ForAll(altVars.map(GenerateTFF.compileVar(_, true)),
-          Parenthesized(Impl(goalFormulaAlt, eqAltSame))
-        )
-      )))
-    )
-    val goalBody = Parenthesized(Impl(assumptionFormula, if (eqExVars.isEmpty) goalFormula else uniqueFormula))
+    val goalFormula = Parenthesized(Or(orGoals.map(GenerateTFF.compileJudg(_))))
+    val goalBody = Parenthesized(Impl(assumptionFormula, goalFormula ))
 
     val name = s"UNPACK-[${rule.name}]-${obl.name}"
     val tffGoal = TffAnnotated(name, Conjecture,
@@ -229,9 +217,9 @@ object GoalUnpacking {
           goalBody)))
     val tff = tffNoGoal :+ tffGoal
 
-    lazy val eqResult = Verification.verify(name, tff, mode = "casc", timeout = 0.2, Verification.vampireSilentArgs)
-    lazy val eqResultSat = Verification.verify("SAT-" + name, tff, mode = "casc_sat", timeout = 0.5, Verification.vampireSilentArgs)
-    val proven = eqResult.status == benchmarking.Proved || eqResultSat.status == benchmarking.Proved
+    lazy val eqResult = Verification.verify(name, tff, mode = "casc", timeout = 2, Verification.vampireSilentArgs)
+//    lazy val eqResultSat = Verification.verify("SAT-" + name, tff, mode = "casc_sat", timeout = 0.5, Verification.vampireSilentArgs)
+    val proven = eqResult.status == benchmarking.Proved  // || eqResultSat.status == benchmarking.Proved
     (proven, eqExVars)
   }
 
