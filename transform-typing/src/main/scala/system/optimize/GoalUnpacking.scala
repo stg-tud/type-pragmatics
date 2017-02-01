@@ -135,31 +135,14 @@ object GoalUnpacking {
   def possibleCandidate(judg: Judg, obl: ProofObligation, ass: Seq[Judg], rule: Rule, s: Subst, matchEqs: Diff, num: Int)(implicit counter: Counter): Boolean = {
     // this candidate is possible if we fail to prove the match is impossible
     // that is, this candidate is possible if negatedEqs is not Proved
-    val negatedPremises = rule.premises.flatMap { j =>
-      if (j.sym.isEq)
-        Some(Judg(neq(j.terms(0).sort), j.terms).subst(s))
-      else if (j.sym.isNeq)
-        Some(Judg(equ(j.terms(0).sort), j.terms).subst(s))
-      else
-        None
-    }
-    val negatedEqs = matchEqs.map { case (l, r) => Judg(neq(l.sort), l, r) } ++ negatedPremises
-    if (negatedEqs.isEmpty)
+    val eqPremises = rule.premises.filter { j => j.sym.isEq || j.sym.isNeq }
+    val applicabilityConditions = matchEqs.map { case (l, r) => Judg(equ(l.sort), l, r) } ++ eqPremises
+
+    if (applicabilityConditions.isEmpty)
       return true
 
-    val remainingNegatedEq = negatedEqs.flatMap { goal =>
-      trySolveEquation(goal, obl) match {
-        case Proved => return false
-        case Disproved(_) => Seq()
-        case DontKnow => Seq(goal)
-        case ProveThis(obls) => obls.flatMap(_.goals)
-      }
-    }
-    if (remainingNegatedEq.isEmpty)
-      return false
-
-    val (proven, eqExVars) = proveEqs(remainingNegatedEq, judg, rule, obl, ass)
-    !proven
+    val disproved = disproveApplicability(applicabilityConditions, judg, rule, obl, ass)
+    !disproved
   }
 
   /*
@@ -192,14 +175,15 @@ object GoalUnpacking {
     merged
   }
 
-  def proveEqs(orGoals: Seq[Judg], judg: Judg, rule: Rule, obl: ProofObligation, ass: Seq[Judg]): (Boolean, Set[Var]) = {
+  def disproveApplicability(applicabilityConditions: Seq[Judg], judg: Judg, rule: Rule, obl: ProofObligation, ass: Seq[Judg]): Boolean = {
     val tffNoGoal = obl.asTFF.dropRight(1)
 
-    val eqGoalVars = orGoals.flatMap(_.freevars).toSet
+    val eqGoalVars = applicabilityConditions.flatMap(_.freevars).toSet
     val eqExVars = eqGoalVars -- judg.freevars
+    val eqExVarsCompiled = eqExVars.map(GenerateTFF.compileVar(_, typed = true))
     val altVarsMap = eqExVars.map(v => v -> obl.gensym.freshVar(v.name, v.sort)).toMap
     val altVars = altVarsMap.values.toSeq
-    val eqGoalsAlt = orGoals.map(_.subst(altVarsMap))
+    val eqGoalsAlt = applicabilityConditions.map(_.subst(altVarsMap))
 
     val assumptionVars = (obl.assumptions ++ ass).flatMap(_.freevars).toSet.diff(eqExVars)
     val goalVars = eqGoalVars.diff(eqExVars)
@@ -207,8 +191,8 @@ object GoalUnpacking {
     val existentialVars = obl.existentials.map(GenerateTFF.compileVar(_, typed = true))
 
     val assumptionFormula = Parenthesized(And((obl.assumptions ++ ass).distinct.map(GenerateTFF.compileJudg(_))))
-    val goalFormula = Parenthesized(Or(orGoals.map(GenerateTFF.compileJudg(_))))
-    val goalBody = Parenthesized(Impl(assumptionFormula, goalFormula ))
+    val applicabilityFormula = Exists(eqExVarsCompiled.toSeq, Parenthesized(And(applicabilityConditions.map(GenerateTFF.compileJudg(_)))))
+    val goalBody = Parenthesized(Impl(assumptionFormula, Not(applicabilityFormula)))
 
     val name = s"UNPACK-[${rule.name}]-${obl.name}"
     val tffGoal = TffAnnotated(name, Conjecture,
@@ -220,7 +204,7 @@ object GoalUnpacking {
     lazy val eqResult = Verification.verify(name, tff, mode = "casc", timeout = 2, Verification.vampireSilentArgs)
 //    lazy val eqResultSat = Verification.verify("SAT-" + name, tff, mode = "casc_sat", timeout = 0.5, Verification.vampireSilentArgs)
     val proven = eqResult.status == benchmarking.Proved  // || eqResultSat.status == benchmarking.Proved
-    (proven, eqExVars)
+    proven
   }
 
 //  val (closedObls, openObls) = obls.partition(_.goals.flatMap(_.freevars).toSet.subsetOf(judg.freevars))
