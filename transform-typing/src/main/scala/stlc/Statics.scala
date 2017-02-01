@@ -23,6 +23,12 @@ object Statics {
     Judg(neq(Name), Var("x", Name), Var("y", Name)),
     Judg(Lookup, Var("x", Name), Var("T", Typ), Var("C", Ctx))
   )
+  val Lookup_Bind_Inv = rule(Lemma("Lookup-Bind-Inv",
+    Judg(Lookup, "x"~Name, "T"~Typ, "C"~Ctx),
+    // if ----------------
+    Judg(Lookup, "x"~Name, "T"~Typ, bind("C"~Ctx, "y"~Name, "Ty"~Typ)),
+    Judg(neq(Name), "x"~Name, "y"~Name)
+  ))
 
   val Notin_Empty = rule("Notin-empty",
     Judg(notin(Ctx), Var("x", Name), empty())
