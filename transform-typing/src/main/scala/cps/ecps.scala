@@ -28,7 +28,6 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
       // if ----------------
       Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T", Typ)),
       Judg(CtxOk, Var("C", Ctx)),
-      Judg(TOk, Var("T", Typ)),
       Judg(TOk, omega)
     ) -> 1
 

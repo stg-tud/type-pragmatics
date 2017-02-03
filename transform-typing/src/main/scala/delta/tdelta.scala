@@ -5,7 +5,7 @@ import stlc.Syntax._
 import system.Syntax._
 import system.Transformation
 
-object tdelta extends Transformation(stlc.language + ext) {
+object tdelta extends Transformation(stlc.language + deltaext) {
 
   val tdelta = Symbol("tdelta", in = List(Typ), out = Typ, constr = false)
 

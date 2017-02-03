@@ -7,7 +7,7 @@ import system.Transformation
 
 import scala.collection.immutable.ListMap
 
-object edelta extends Transformation(stlc.language + ext + tdelta + cdelta + copyV)  {
+object edelta extends Transformation(stlc.language + deltaext + tdelta + cdelta + copyV)  {
 
   override val wellformednessTimeout: Int = 120
 

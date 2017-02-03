@@ -119,6 +119,7 @@ object GenerateTFF {
       case sym if sym.isEq || sym.isNeq =>
         // ignore isEq and isNeq since they translate to TFF-native `=` and `!=`
         None
+//      case sym => Seq(compileSymbolDeclaration(sym))
     }
   }
 

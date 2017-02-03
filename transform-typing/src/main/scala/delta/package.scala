@@ -7,5 +7,5 @@ package object delta {
   val d = Symbol("d", in = List(Name), out = Name, constr = true)
   val v = Symbol("v", in = List(Name), out = Name, constr = true)
 
-  object ext extends LanguageExtension("delta-ext", Seq(), Seq(zero, d, v), Seq())
+  object deltaext extends LanguageExtension("delta-ext", Seq(), Seq(zero, d, v), Seq())
 }

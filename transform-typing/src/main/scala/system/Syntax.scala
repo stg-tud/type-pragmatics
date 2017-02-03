@@ -205,7 +205,9 @@ object Syntax {
   case class Judg(sym: Symbol, terms: List[Term]) {
     assert(sym.out == Prop, s"Judgments must use a symbol yielding sort Prop, but got $sym yielding ${sym.out}")
     assert(sym.in.size == terms.size, s"Wrong number of kids for symbol $this")
-    assert(sym.in.zip(terms) forall (p => p._1 == p._2.sort), s"Wrong argument type of kids for symbol $this")
+    sym.in.zip(terms).foreach { case (paramtype, arg) =>
+      assert(paramtype == arg.sort, s"Wrong argument type ${arg.sort} of $arg in $this")
+    }
 
     def apply(i: Int) = terms(i)
 

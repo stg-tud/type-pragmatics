@@ -26,7 +26,7 @@ abstract class Transformation(val lang: Language) {
   }
 
   def checkSyntax(): Unit = {
-    rules.foreach(kv => assert(!contractedSym.constr, s"Transformation symbol must not be marked as constructor"))
+    rules.foreach(kv => assert(!contractedSym.constr, s"Transformation symbol must not be marked as constructor $contractedSym"))
     rules.foreach(kv => assert(kv._1.lemma, s"Transformation contracts must be marked as lemmas"))
     rules.foreach { case (c, pos) =>
       assert(c.conclusion.terms(pos).isInstanceOf[App])
