@@ -1,0 +1,13 @@
+module editor/VeritasSpoofax-Outliner
+
+imports
+  
+  include/VeritasSpoofax
+  lib/runtime/editor/outline-library
+  lib/runtime/editor/origins
+  editor/VeritasSpoofax-Outliner.generated
+
+rules
+  
+  to-outline-label = fail
+  

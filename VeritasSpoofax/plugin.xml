@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   <extension
+         point="org.eclipse.imp.runtime.languageDescription">
+      <language
+            extensions="stl"
+            description="VeritasSpoofax"
+            language="VeritasSpoofax"
+            derivedFrom="DynamicRoot"
+            validator="VeritasSpoofax.VeritasSpoofaxValidator"
+            validatorClass="VeritasSpoofax.VeritasSpoofaxValidator"
+      ></language>
+   </extension>
+   <extension
+         id="VeritasSpoofax.parser"
+         name="VeritasSpoofax Parser"
+         point="org.eclipse.imp.runtime.parser">
+      <parser
+            class="VeritasSpoofax.VeritasSpoofaxParseController"
+            language="VeritasSpoofax">
+      </parser>
+   </extension>    
+</plugin>

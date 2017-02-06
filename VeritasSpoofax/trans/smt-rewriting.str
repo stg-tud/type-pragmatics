@@ -1,0 +1,244 @@
+module smt-rewriting
+
+imports include/VeritasSpoofax
+imports libstratego-lib
+imports trans/fof-rewriting
+imports names
+imports props
+
+signature
+	constructors
+		DeclFun : ID * List(Sort) * Sort -> Stmt
+		DefFun : ID * List(Tuple(ID, Sort)) * Sort * Expr -> Stmt
+		Assert : Prop -> Stmt
+		Term : Sort
+		Bool : Sort
+		SmtLit : String -> Expr
+		SmtList : List(Expr) -> Expr
+
+rules
+	main = io-wrap(smt-trans)
+	smt-trans = generate-smt-goals
+		
+	generate-smt-goals : Module(_, imps, body) -> <conc; generate-smt-goals(|[tcheck-cons]); prepend(|[tcheck-decl])> (imps, body)
+	where
+		tcheck-cons := ConstructorDecl("tcheck", ["Term","Term","Term"], "Bool");
+		tcheck-decl := DeclFun("tcheck", [Term(),Term(),Term()], Bool())
+	
+	generate-smt-goals(|cons) : [] -> []
+	generate-smt-goals(|cons) : [Axioms(fs) | rest] -> <conc> (defines, asserts, others)
+		where
+			// consts := <collect-all(?Var(_))> fs;
+			// const-decls := <mapconcat(const-to-function-decl(|cons))> consts;
+			formulas := <to-prop> fs;
+			defines := <map(formula-to-define)> formulas;
+			asserts := <map(formula-to-assert)> formulas;
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Goals(_,fs) | rest] -> <conc> ([<push>, define, assert, <check-sat>, <pop>], others)
+		where
+			// consts := <collect-all(?Var(_))> fs;
+			// const-decls := <mapconcat(const-to-function-decl(|cons))> consts;
+			formula := <to-prop; compose-formulas> fs;
+			define := <formula-to-define> formula;
+			assert := <\Formula(name,_) -> Assert(SmtList([Var("not"), Var(name)]))\> formula;
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Local(xs) | rest] -> <conc> ([<push>], goals, [<pop>],  others)
+		where
+			goals := <generate-smt-goals(|cons)> xs;
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Sorts(xs) | rest] -> others
+		where
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Constructors(cs) | rest] -> <conc> (cs-decls, cs-defines, cs-asserts, cs-diff-defines, cs-diff-asserts, others)
+		where
+			cs-decls := <map(constructor-to-fun-decl)> cs;
+			cs-formulas := <map(scoped-constructor-axiom)> cs;
+			cs-defines := <map(formula-to-define)> cs-formulas;
+			cs-asserts := <map(formula-to-assert)> cs-formulas;
+			cs-diff-formulas := <constructor-diff-axioms(|cons)> cs;
+			cs-diff-defines := <map(formula-to-define)> cs-diff-formulas;
+			cs-diff-asserts := <map(formula-to-assert)> cs-diff-formulas;
+			cons2 := <conc> (cons, cs);
+			others := <generate-smt-goals(|cons2)> rest
+	generate-smt-goals(|cons) : [Consts(_,cs) | rest] -> <conc> (cs-decls, cs-defines, cs-asserts, others)
+		where
+			cs-decls := <map(constructor-to-fun-decl)> cs;
+			cs-formulas := <map(scoped-constructor-axiom)> cs;
+			cs-defines := <map(formula-to-define)> cs-formulas;
+			cs-asserts := <map(formula-to-assert)> cs-formulas;
+			cons2 := <conc> (cons, cs);
+			others := <generate-smt-goals(|cons2)> rest
+	generate-smt-goals(|cons) : [PartialFunctions(fs) | rest] -> <conc> (fs-decls, defines, asserts, others)
+		where
+			fs-decls := <map(function-to-function-decl)> fs;
+			cs-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
+			resolved-fs := <resolve-vars(|cs-names)> fs;
+			formulas := <mapconcat(scoped-function-axioms)> resolved-fs;
+			defines := <map(formula-to-define)> formulas;
+			asserts := <map(formula-to-assert)> formulas;
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Functions(fs) | rest] -> <conc> (fs-decls, defines, asserts, defines-inv, asserts-inv, others)
+		where
+			fs-decls := <map(function-to-function-decl)> fs;
+			cs-names := <map(?ConstructorDecl(<id>, _, _); strip-annos)> cons;
+			resolved-fs := <resolve-vars(|cs-names)> fs;
+			formulas := <mapconcat(scoped-function-axioms)> resolved-fs;
+			inv-formulas := <mapconcat(scoped-function-inversion-axioms)> resolved-fs;
+			defines := <map(formula-to-define)> formulas;
+			asserts := <map(formula-to-assert)> formulas;
+			defines-inv := <map(formula-to-define)> inv-formulas;
+			asserts-inv := <map(formula-to-assert)> inv-formulas;
+			others := <generate-smt-goals(|cons)> rest
+	generate-smt-goals(|cons) : [Import(m,annos) | rest] -> others
+		where
+			Module(_, imps, body) := <get-module-ref> m;
+			filtered-body := <filter-import(|annos)> body;
+			new-rest := <conc> (imps, filtered-body, rest);
+			others := <generate-smt-goals(|cons)> new-rest
+
+
+	generate-smt-goals(|cons) = debug(!"generate-smt-goals failed: "); fail
+
+	
+rules
+	fof-to-smt :
+		(axioms,conjecture) -> 
+		// File(axioms, conjecture) -> 
+		<conc> (
+			booldecls,
+			termdecls, 
+			consttermdecls, 
+			axiom-defines, 
+			smt-axioms, 
+			conjecture-defines, 
+			conjecture-checks)
+	where
+		preds := <collect-all(?Pred(_,_))> (axioms, conjecture);
+		termapps := <collect-all(?TermApp(_,_))> (axioms, conjecture);
+		vars := <collect-all(?Var(_))> (axioms, conjecture);
+		booldecls := <map(pred-to-fun-decl); make-set> preds;
+		termdecls := <map(termapp-to-fun-decl); make-set> termapps;
+		consttermdecls := <map(var-to-fun-decl); make-set> vars;
+		axiom-defines := <map(formula-to-define)> axioms;
+		smt-axioms := <map(formula-to-assert)> axioms;
+		conjecture-defines := <map(formula-to-define)> conjecture;
+		conjecture-checks := <mapconcat(conjecture-define-to-check); try(?[];![SmtList([Var("check-sat")])])> conjecture-defines
+	fof-to-smt = debug(!"fof-to-smt failed: "); fail
+	
+	pred-to-fun-decl :
+		Pred(name,args) -> DeclFun(fname, <map(!Term())> args, Bool())
+	where
+		fname := <string-as-chars(!['v'|<id>])> name
+	pred-to-fun-decl = debug(!"pred-to-fun-decl failed: "); fail
+	
+	var-to-fun-decl : Var(v) -> <termapp-to-fun-decl> TermApp(v, [])
+	
+	termapp-to-fun-decl :
+		TermApp("abs",args) -> <termapp-to-fun-decl> TermApp("fabs", args)
+	termapp-to-fun-decl :
+		TermApp(name,args) -> DeclFun(name, <map(!Term())> args, Term())
+	termapp-to-fun-decl = debug(!"termapp-to-fun-decl failed: "); fail
+	
+	constructor-to-fun-decl :
+		ConstructorDecl("abs",args, res) -> <constructor-to-fun-decl> ConstructorDecl("fabs", args, res)
+	constructor-to-fun-decl : 
+		ConstructorDecl(name, args, res) -> DeclFun(name, <map(!Term())> args, Term())
+	
+	function-to-function-decl :
+		FunctionDef(FunctionSig("abs", args, res), defs) -> <function-to-function-decl> FunctionDef(FunctionSig("fabs", args, res), defs)
+	function-to-function-decl : 
+		FunctionDef(FunctionSig(name, args, res), defs) -> DeclFun(name, <map(sort-type)> args, <sort-type> res)
+	
+	const-to-function-decl(|cons) : Var(v) -> []
+	where
+		<elem(?ConstructorDecl(v, _, _))> cons
+	const-to-function-decl(|cons) : Var(v) -> [<constructor-to-fun-decl> ConstructorDecl(v, [], Term())]
+	where
+		<not(elem(?ConstructorDecl(v, _, _)))> cons
+	
+	formula-to-define :
+		Formula(name, _, prop) -> <formula-to-define> Formula(name, prop)
+	formula-to-define :
+		Formula(name, prop) -> DefFun(<fun-name> name, [], Bool(), <prop-to-smt> prop)
+	formula-to-define = debug(!"formula-to-define failed: "); fail
+	
+	formula-to-assert :
+		Formula(name, _, prop) -> <formula-to-assert> Formula(name, prop)
+	formula-to-assert :
+		Formula(name, prop) -> Assert(Var(<fun-name> name))
+	formula-to-assert = debug(!"formula-to-assert failed: "); fail
+	fun-name = string-as-chars(map(try(?' ';!	'-')))
+	
+	conjecture-define-to-check : 
+		DefFun(name, _, _, _) -> [push, assert, check, pop] // negated conjecture
+	where
+		push := SmtList([Var("push"), SmtLit("1")]);
+		assert := Assert(SmtList([Var("not"), Var(name)]));
+		check := SmtList([Var("check-sat")]);
+		pop := SmtList([Var("pop"), SmtLit("1")])
+	conjecture-define-to-check = debug(!"conjecture-defines-to-asserts failed: "); fail
+	
+	sort-type : RelBool() -> Bool()
+	sort-type : _ -> Term()
+
+rules
+	push = !SmtList([Var("push"), SmtLit("1")])
+	check-sat = !SmtList([Var("check-sat")])
+	pop = !SmtList([Var("pop"), SmtLit("1")])
+
+
+rules
+	prop-to-smt : True() -> Var("true")
+	prop-to-smt : False() -> Var("false")
+	prop-to-smt : Var(v) -> Var(v)
+	prop-to-smt : Meta(v) -> Meta(v)
+	prop-to-smt : Neq(e1, e2) -> SmtList([Var("distinct"), <prop-to-smt> e1, <prop-to-smt> e2])
+	prop-to-smt : TermApp("abs", args) -> <prop-to-smt> TermApp("fabs", args)
+	prop-to-smt : Pred(name, args) -> SmtList([Var(name) | <map(prop-to-smt)> args])
+	prop-to-smt : TermApp(name, args) -> SmtList([Var(name) | <map(prop-to-smt)> args])
+	prop-to-smt : Not(e) -> SmtList([Var("not"), <prop-to-smt> e])
+	prop-to-smt : Eq(e1, e2) -> SmtList([Var("="), <prop-to-smt> e1, <prop-to-smt> e2])
+	prop-to-smt : Or(e1, e2) -> SmtList([Var("or"), <prop-to-smt> e1, <prop-to-smt> e2])
+	prop-to-smt : And(e1, e2) -> SmtList([Var("and"), <prop-to-smt> e1, <prop-to-smt> e2])
+	prop-to-smt : Impl(e1, e2) -> SmtList([Var("=>"), <prop-to-smt> e1, <prop-to-smt> e2])
+	prop-to-smt : BiImpl(e1, e2) -> SmtList([Var("="), <prop-to-smt> e1, <prop-to-smt> e2])
+	prop-to-smt : All(vars, prop) -> SmtList([Var("forall"), SmtList(all-vars), <prop-to-smt> prop])
+		where all-vars := <map(make-typed-var)> vars
+	prop-to-smt : Exists(vars, prop) -> SmtList([Var("exists"), SmtList(exists-vars), <prop-to-smt> prop])
+		where exists-vars := <map(\ v -> SmtList([v, Term()]) \)> vars
+	prop-to-smt = debug(!"prop-to-smt failed: "); fail
+
+	make-typed-var : v{type} -> SmtList([v, <sort-type> type])
+	make-typed-var : v -> SmtList([v, Term()])
+
+rules
+	pp-smt = 
+		map(pp-smt-inner); 
+		prepend(|<smt-prelude>);
+		map(append-string(|"\n")); 
+		concat-strings
+	
+	pp-smt-inner : 
+		DeclFun(name, args, res) -> $[(declare-fun [name] ([<pp-smt-list(|" ")> args]) [<pp-smt-inner> res])]
+	pp-smt-inner : 
+		DefFun(name, args, res, body) -> $[(define-fun [name] ([<pp-smt-list(|" ")> args]) [<pp-smt-inner> res] [<pp-smt-inner> body])]
+	pp-smt-inner :
+		Assert(e) -> $[(assert [<pp-smt-inner> e])]
+	pp-smt-inner : SmtLit(s) -> s
+	pp-smt-inner : SmtList(k) -> $[([<pp-smt-list(|" ")> k])]
+	pp-smt-inner : Term() -> "Term"
+	pp-smt-inner : Bool() -> "Bool"
+	pp-smt-inner : Var(v) -> v
+	pp-smt-inner : Meta(v) -> v
+	pp-smt-inner = debug(!"pp-smt-inner failed: "); fail
+	
+	pp-smt-list(|sep) : [] -> ""
+	pp-smt-list(|sep) : [arg] -> <pp-smt-inner> arg
+	pp-smt-list(|sep) : [arg|args] -> <concat-strings> [<pp-smt-inner> arg, sep, <pp-smt-list(|sep)> args]
+	pp-smt-list(|sep) = debug(!"pp-smt-list failed: "); fail
+
+rules
+	smt-prelude = ![<set-logic>, <decl-term-sort>]
+	set-logic = !"" // TODO explicitly set logic
+	decl-term-sort = !"(declare-sort Term 0)"
+	

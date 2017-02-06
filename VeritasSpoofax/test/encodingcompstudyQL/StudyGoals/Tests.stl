@@ -1,0 +1,123 @@
+module encodingcompstudyQL.Tests
+
+import encodingcompstudyQL.BasicTypes
+import encodingcompstudyQL.QLSemantics
+import encodingcompstudyQL.QLSemanticsData
+import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.QLTypeSystem
+
+
+goal
+~two = succ(succ(zero))
+~four = succ(succ(~two))
+================================ test-1
+multiply(~two, ~two) == ~four
+
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+
+	goal 
+	~am = abind(qid1, Num(zero), abind(qid2, Num(succ(zero)), aempty))
+	===================================================================== test-2
+	lookupAnsMap(qid2, ~am) = someAval(Num(succ(zero)))
+}
+
+local {
+	different consts
+	qid1 : QID
+	l : Label
+
+	goal
+	~am = aempty
+	~qm = qmbind(qid1, l, YesNo, qmempty)
+	~q = qsingle(question(qid1, l, YesNo))
+	========================================================================= test-3
+	reduce(QC(~am, ~qm, qsingle(ask(qid1)))) == someQConf(QC(~am, ~qm, ~q)) 
+}
+
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	l : Label
+
+	goal
+	~am = aempty
+	~qm = qmbind(qid1, l, YesNo, qmempty)
+	~q = qsingle(question(qid1, ~l, YesNo))
+	========================================================================= test-4
+	reduce(QC(~am, ~qm, qsingle(ask(qid2)))) == noQConf
+}
+
+goal 
+~am = abind(~qid, B(yes), aempty)
+======================================================= test-5
+reduceExp(qvar(~qid), ~am) == someExp(constant(B(yes)))
+
+
+goal 
+
+=============================================================== test-6
+evalBinOp(andop, B(yes), B(no)) = someExp(constant(B(no)))
+
+
+local {
+	different consts
+	qid1 : QID
+	qid2 : QID
+	l : Label
+
+	goal
+	~e1 = qvar(qid1)
+	~e2 = qvar(qid2)
+	~am = abind(qid1, B(yes), abind(qid2, B(yes), aempty))
+	===================================================================================== test-7
+	reduceExp(binop(~e1, orop, ~e2), ~am) == someExp(binop(constant(B(yes)), orop, ~e2))
+}
+
+local {
+	different consts
+	qid : QID
+	l : Label
+	
+	goal
+	~q = qsingle(defquestion(qid, l, Text))
+	~nqm = qmbind(qid, l, Text, ~qm)
+	============================================================ test-8
+	reduce(QC(~am, ~qm, ~q)) = someQConf(QC(~am, ~nqm, qempty))
+}
+
+local {
+	different consts
+	qid : QID
+	l : Label
+
+	goal 
+	~q = qsingle(question(qid, l, Number))
+	~atmr = atmbind(qid, Number, atmempty)
+	============================================================= test-9 
+	MC(atmempty, atmempty) |- ~q : MC(~atmr, atmempty)
+}
+
+local {
+	different consts
+	qid : QID
+	l : Label
+	
+	goal
+	~q1 = qsingle(defquestion(qid, l, YesNo))
+	~q2 = qsingle(ask(qid))
+	~qs = qseq(~q1, ~q2)
+	~atm1 = atmempty
+	~atm2 = atmbind(qid, YesNo, atmempty)
+	~qm1 = atmbind(qid, YesNo, atmempty)
+	~qm2 = atmempty
+	================================================================================================= test-10
+	MC(atmempty, atmempty) |- qseq(~q1, ~q2) : MC(appendATMap(~atm1, ~atm2), appendATMap(~qm1, ~qm2))
+}
+
+
+
+

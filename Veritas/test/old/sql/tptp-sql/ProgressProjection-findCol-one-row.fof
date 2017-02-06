@@ -1,3 +1,0 @@
-
-fof('findCol-one-row-ind', axiom, (![Va,Val,Vf,Vrt1,Vrt] : ((vfindCol(Va,vtable(Val,Vrt))=vsome(vtcons(vrcons(Vf,vrempty),Vrt1))) => (?[Vr,Vtrest] : (Vrt=vtcons(Vr,Vtrest)))))).
-fof('findCol-one-row', conjecture, (![Va,Val,Vf,Vrt1,Vrt] : ((vfindCol(Va,vtable(Val,Vrt))=vsome(vtcons(vrcons(Vf,vrempty),Vrt1))) => (?[Vr,Vtrest] : (Vrt=vtcons(Vr,Vtrest)))))).

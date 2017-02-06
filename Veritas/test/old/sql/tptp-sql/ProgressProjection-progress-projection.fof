@@ -1,3 +1,0 @@
-
-fof('progress-projection-ind', axiom, (![VTTC,Vtn,VTS,VTT1,VTT2,Val,Vt] : ((vStoreContextConsistent(VTS,VTTC) & ((vclookup(Vtn,VTTC)=vsome(VTT1)) & ((vlookup(Vtn,VTS)=vsome(Vt)) & (vprojectType(Val,VTT1)=vsome(VTT2))))) => (?[Vrt] : (vproject(Val,Vt)=vsome(Vrt)))))).
-fof('progress-projection', conjecture, (![VTTC,Vtn,VTS,VTT1,VTT2,Val,Vt] : ((vStoreContextConsistent(VTS,VTTC) & ((vclookup(Vtn,VTTC)=vsome(VTT1)) & ((vlookup(Vtn,VTS)=vsome(Vt)) & (vprojectType(Val,VTT1)=vsome(VTT2))))) => (?[Vrt] : (vproject(Val,Vt)=vsome(Vrt)))))).

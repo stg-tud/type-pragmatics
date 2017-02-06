@@ -1,3 +1,0 @@
-
-fof('SQL-Progress-ind', axiom, (![Vq,VTT,VTS,VTTC,Vcin] : (((Vcin=vconf(Vq,VTS)) & ((~visValue(Vq)) & (vtcheck(VTTC,Vq,VTT) & vStoreContextConsistent(VTS,VTTC)))) => (?[Vcout] : (vreduce(Vcin)=vsome(Vcout)))))).
-fof('SQL-Progress', conjecture, (![Vq,VTT,VTS,VTTC,Vcin] : (((Vcin=vconf(Vq,VTS)) & ((~visValue(Vq)) & (vtcheck(VTTC,Vq,VTT) & vStoreContextConsistent(VTS,VTTC)))) => (?[Vcout] : (vreduce(Vcin)=vsome(Vcout)))))).

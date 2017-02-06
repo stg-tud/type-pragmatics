@@ -4,11 +4,11 @@ import java.io._
 
 import scopt.OptionParser
 import veritas.benchmarking.beagle.BeagleConfig
-import veritas.benchmarking.vampire.{VampireTraceAnalisisOptions, VampireTraceAnalisis, VampireConfig}
-import veritas.benchmarking.princess.{PrincessStandardConfig, PrincessCascConfig}
+import veritas.benchmarking.vampire.{VampireConfig, VampireTraceAnalisis, VampireTraceAnalisisOptions}
+import veritas.benchmarking.princess.{PrincessCascConfig, PrincessCascSlurmConfig, PrincessStandardConfig, PrincessStandardSlurmConfig}
 import veritas.benchmarking.eprover.EproverConfig
 
-import scala.sys.process.{ProcessLogger, FileProcessLogger}
+import scala.sys.process.{FileProcessLogger, ProcessLogger}
 
 sealed trait ProverStatus
 
@@ -58,6 +58,10 @@ trait ProverConfig {
   val name: String
   val proverCommand: File
   val acceptedFileFormats: Set[String]
+  val modulesToLoad: Set[String] = Set()
+
+  def createProverCallHHlr(proverpath: String, provercall: Seq[String]) =
+    proverpath + provercall(0).split("/").last + " " + provercall.drop(1).mkString(" ")
 
   // todo: automatically append .exe under windows systems
   def findBinaryInPath(command: String): File = {
@@ -132,8 +136,10 @@ object ProverConfig {
     _configs += c_sat.name -> c_sat
   }
 
-  _configs += "princess" -> PrincessCascConfig()
-  _configs += "princess-standard" -> PrincessStandardConfig()
+  _configs += "princess" -> new PrincessCascConfig()
+  _configs += "princessSlurm" -> PrincessCascSlurmConfig()
+  _configs += "princessSlurm-standard" -> PrincessStandardSlurmConfig()
+  _configs += "princess-standard" -> new PrincessStandardConfig
   _configs += "eprover" -> EproverConfig()
   //_configs += "beagle" -> BeagleConfig() //doesn't work yet
 

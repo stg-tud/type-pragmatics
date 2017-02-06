@@ -1,0 +1,173 @@
+module encodingcompstudyQL.QLTypeSystem
+
+import encodingcompstudyQL.QLSyntax
+import encodingcompstudyQL.QLSemanticsData
+import encodingcompstudyQL.QLSemantics
+
+
+// type map, used for answer types and types of answers to derived questions
+data ATMap = atmempty | atmbind(QID, AType, ATMap)
+
+function
+lookupATMap : QID ATMap -> OptAType
+lookupATMap(qid, atmempty) = noAType
+lookupATMap(qid1, atmbind(qid2, at, tm)) = 
+	if (qid1 == qid2)
+	then someAType(at)
+	else lookupATMap(qid1, tm)
+	
+function 
+appendATMap : ATMap ATMap -> ATMap
+appendATMap(atmempty, atm) = atm
+appendATMap(atmbind(qid, at, atm), atml) = atmbind(qid, at, appendATMap(atm, atml))
+
+
+//Pair of ATMap (for answer types of questions that have been or will be directly asked) and QMap (defined questions that can be asked later)
+data MapConf = MC(ATMap, ATMap)
+
+function 
+intersectATM : ATMap ATMap -> ATMap
+intersectATM(atmempty, atm2) = atmempty
+intersectATM(atm1, atmempty) = atmempty
+intersectATM(atmbind(qid, at, atm1), atm2) = 
+	let atm1atm2 = intersectATM(atm1, atm2) in
+		let lAT = lookupATMap(qid, atm2) in 
+			if (isSomeAType(lAT) && (getAType(lAT) == at))
+			then atmbind(qid, at, atm1atm2)
+			else atm1atm2
+
+
+data OptMapConf = noMapConf | someMapConf(MapConf)
+
+function
+isSomeMapConf : OptMapConf -> Bool
+isSomeMapConf(noMapConf) = false
+isSomeMapConf(someMapConf(mc)) = true
+
+partial function 
+getMapConf : OptMapConf -> MapConf
+getMapConf(someMapConf(mc)) = mc
+
+//type an AnswerMap:
+function typeAM : AnsMap -> ATMap
+typeAM(aempty) = atmempty
+typeAM(abind(qid, av, am)) = atmbind(qid, typeOf(av), typeAM(am))
+
+//type a QMap:
+function typeQM : QMap -> ATMap
+typeQM(qmempty) = atmempty
+typeQM(qmbind(qid, l, at, qm)) = atmbind(qid, at, typeQM(qm))
+
+
+function
+checkBinOp : BinOp AType AType -> OptAType
+checkBinOp(addop, Number(), Number()) = someAType(Number())
+checkBinOp(subop, Number(), Number()) = someAType(Number())
+checkBinOp(mulop, Number(), Number()) = someAType(Number())
+checkBinOp(divop, Number(), Number()) = someAType(Number())
+checkBinOp(gtop, Number(), Number()) = someAType(YesNo())
+checkBinOp(ltop, Number(), Number()) = someAType(YesNo())
+checkBinOp(andop, YesNo(), YesNo()) = someAType(YesNo())
+checkBinOp(orop, YesNo(), YesNo()) = someAType(YesNo())
+checkBinOp(eqop, Number(), Number()) = someAType(YesNo())
+checkBinOp(eqop, YesNo(), YesNo()) = someAType(YesNo())
+checkBinOp(eqop, Text(), Text()) = someAType(YesNo())
+checkBinOp(op, t1, t2) = noAType
+
+function
+checkUnOp : UnOp AType -> OptAType
+checkUnOp(notop, YesNo()) = someAType(YesNo())
+checkUnOp(op, t) = noAType
+
+function
+echeck : ATMap Exp -> OptAType
+
+echeck(tm, constant(B(n))) = someAType(YesNo)
+echeck(tm, constant(Num(n))) = someAType(Number)
+echeck(tm, constant(T(n))) = someAType(Text)
+
+echeck(tm, qvar(qid)) = lookupATMap(qid, tm)
+
+echeck(tm, binop(e1, op, e2)) =
+    let t1 = echeck(tm, e1) in
+    let t2 = echeck(tm, e2) in
+        if (isSomeAType(t1) && isSomeAType(t2))
+	then checkBinOp(op, getAType(t1), getAType(t2))
+	else noAType
+
+echeck(tm, unop(op, e)) =
+    let t = echeck(tm, e) in
+        if (isSomeAType(t))
+	then checkUnOp(op, getAType(t))
+	else noAType
+	
+	
+//Typing judgment for questionnaires: MapConf |- Questionnaire : MapConf
+//first MapConf: MC(ATMap, QMap) that is valid *before* questionnaire (environment)
+//second MapConf: MC(ATMap, QMap) contains the mapping the the Quesionnaire generates (does not include bindings from environment)
+
+axiom
+
+======================================== T-qempty
+~MC |- qempty : MC(atmempty, atmempty)
+
+//type system explicitly forbids duplicate qids
+axiom
+lookupATMap(~qid, ~atm) == noAType
+============================================================================================== T-question
+MC(~atm, ~qm) |- qsingle(question(~qid, ~l, ~at)) : MC(atmbind(~qid, ~at, atmempty), atmempty)
+
+axiom
+lookupATMap(~qid, ~atm) == noAType
+echeck(~atm, ~exp) == someAType(~at)
+============================================================================================= T-value
+MC(~atm, ~qm) |- qsingle(value(~qid, ~at, ~exp)) : MC(atmbind(~qid, ~at, atmempty), atmempty)
+
+axiom
+lookupATMap(~qid, ~qm) == noAType
+================================================================================================= T-defquestion
+MC(~atm, ~qm) |- qsingle(defquestion(~qid, ~l, ~at)) : MC(atmempty, atmbind(~qid, ~at, atmempty))
+
+axiom
+lookupATMap(~qid, ~qm) == someAType(~at)
+lookupATMap(~qid, ~atm) == noAType
+================================================================================= T-ask
+MC(~atm, ~qm) |- qsingle(ask(~qid)) : MC(atmbind(~qid, ~at, atmempty), atmempty)
+
+
+axiom
+MC(~atm, ~qm) |- ~q1 : MC(~atm1, ~qm1)
+MC(appendATMap(~atm, ~atm1), appendATMap(~qm, ~qm1)) |- ~q2 : MC(~atm2, ~qm2)
+======================================================================================== T-qseq
+MC(~atm, ~qm) |- qseq(~q1, ~q2) : MC(appendATMap(~atm1, ~atm2), appendATMap(~qm1, ~qm2))
+
+
+axiom 
+echeck(~atm, ~exp) == someAType(YesNo)
+MC(~atm, ~qm) |- ~q1 : MC(~atm1, ~qm1)
+MC(~atm, ~qm) |- ~q2 : MC(~atm2, ~qm2)
+================================================================================================= T-qcond
+MC(~atm, ~qm) |- qcond(~exp, ~q1, ~q2) : MC(intersectATM(~atm1, ~atm2), intersectATM(~qm1, ~qm2))
+
+
+axiom
+MC(~atm, ~qm) |- ~q : MC(~atm1, ~qm1)
+======================================================== T-qgroup
+MC(~atm, ~qm) |- qgroup(~gid, ~q) : MC(~atm1, ~qm1)
+
+
+
+
+//Main typing function for questionnaire configurations (axiomatic specification?)
+function
+qcCheck : MapConf QConf ATMap -> Bool
+
+axiom
+typeAM(~am) == ~atm1
+MC(appendATMap(~atm0, ~atm1), appendATMap(~qm0, typeQM(~qm))) |- ~q : MC(~atm2, ~qm2)
+======================================================================================== T-qcCheck
+qcCheck(MC(~atm0, ~qm0), QC(~am, ~qm, ~q), appendATMap(~atm1, ~atm2)) 
+//<<-- the third argument is the ATMap that shall stay "equal" during reduction, 
+// where "equal" means "if a binding in the map was present before a step, 
+// it has to be present after the step" (after a step, a map potentially contains more bindings!)
+

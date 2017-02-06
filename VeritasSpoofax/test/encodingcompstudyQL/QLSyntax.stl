@@ -1,0 +1,98 @@
+module encodingcompstudyQL.QLSyntax
+
+import encodingcompstudyQL.BasicTypes
+
+// question identifiers
+open data QID
+
+// identifiers/titles for question groups
+open data GID
+
+// label (text) of questions, underspecified
+open data Label
+
+// sum type for different concrete answers 
+// so far omits date, decimal, and money/currency from the original spec
+data Aval = B(YN) | Num(nat) | T(string)
+
+//Option[Aval]
+
+data OptAval =
+	noAval |
+	someAval(Aval)
+
+function
+isSomeAval : OptAval -> Bool
+isSomeAval(noAval) = false
+isSomeAval(someAval(t)) = true
+
+partial function
+getAval : OptAval -> Aval
+getAval(someAval(t)) = t
+
+//answer type for questions
+data AType = YesNo | Number | Text
+
+data OptAType =
+	noAType |
+	someAType(AType)
+
+function
+isSomeAType : OptAType -> Bool
+isSomeAType(noAType) = false
+isSomeAType(someAType(t)) = true
+
+partial function
+getAType : OptAType -> AType
+getAType(someAType(t)) = t
+
+//type of each Aval
+function
+typeOf : Aval -> AType
+typeOf(B(yn)) = YesNo
+typeOf(Num(n)) = Number
+typeOf(T(s)) = Text
+
+//list of answer types
+data ATList = atempty | atcons(AType, ATList)
+
+
+function 
+append: ATList ATList -> ATList
+append(atempty, atl) = atl
+append(atcons(at, atlr), atl) = atcons(at, append(atlr, atl))
+
+data BinOp = addop | subop | mulop | divop | eqop | gtop | ltop | andop | orop
+data UnOp = notop
+
+// expressions for conditional guards and derived values
+data Exp =
+     constant(Aval) |
+     qvar(QID) |
+     binop(Exp, BinOp, Exp) |
+     unop(UnOp, Exp)
+
+// datatype for (simple) questions
+// question: QID: id of question, Label: question text, AType: type of answer,
+// value: value derived via an expression (will have type of that expression)
+// defquestion: definition of a question (will not directly ask the question - but qid can be used later to actually ask it)
+// ask: ask a previously defined question
+data Entry =
+     question(QID, Label, AType) |
+     value(QID, AType, Exp) |
+     defquestion(QID, Label, AType) |
+     ask(QID)
+
+//Questionnaire
+//qempty: empty questionnaire
+//qsingle: single (derived) question
+//qseq: sequential composition of questionnaires
+//qcond: conditional questions (depend on evaluation of a predicate)
+//qgroup: grouping construct for hierarchical questionnaires
+data Questionnaire = 
+	qempty |
+	qsingle(Entry) |
+	qseq(Questionnaire, Questionnaire) |
+	qcond(Exp, Questionnaire, Questionnaire) |
+	qgroup(GID, Questionnaire)
+	

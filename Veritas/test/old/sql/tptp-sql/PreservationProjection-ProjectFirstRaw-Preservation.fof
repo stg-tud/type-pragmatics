@@ -1,3 +1,0 @@
-
-fof('ProjectFirstRaw-Preservation-ind', axiom, (![VRT,VcolType,Vrt] : (vwelltypedRawtable(vrtcons(VcolType,VRT),Vrt) => vwelltypedRawtable(vrtcons(VcolType,vrtempty),vprojectFirstRaw(Vrt))))).
-fof('ProjectFirstRaw-Preservation', conjecture, (![VRT,VcolType,Vrt] : (vwelltypedRawtable(vrtcons(VcolType,VRT),Vrt) => vwelltypedRawtable(vrtcons(VcolType,vrtempty),vprojectFirstRaw(Vrt))))).

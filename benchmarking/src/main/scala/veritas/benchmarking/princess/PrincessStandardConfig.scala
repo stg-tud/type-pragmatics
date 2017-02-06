@@ -5,7 +5,26 @@ import java.util.regex.Pattern
 
 import veritas.benchmarking._
 
-case class PrincessStandardConfig()
+case class PrincessStandardSlurmConfig() extends PrincessStandardConfig {
+  override val modulesToLoad = Set("java")
+
+  override def createProverCallHHlr(proverpath: String, provercall: Seq[String]) =
+    super.createProverCallHHlr("", provercall)
+
+  override def makeCall(file: File, timeout: Int, fullLogs: Boolean) = {
+    // TODO: Need a better way than hardcoding ath to the princess-all-casc.jar
+    var call = Seq("java")
+    var pathToPrincessJar = "/home/groups/projects/proj_184/provers/princess-all.jar"
+    call = call ++ Seq("-Xss20000k", "-Xmx1500m", "-noverify", "-cp", pathToPrincessJar, "ap.CmdlMain", "-inputFormat=tptp")
+    if (timeout > 0)
+      call = call :+ ("-timeout=" + timeout.toString)
+
+    call = call :+ "+unsatCore"
+    call = call :+ file.getAbsolutePath
+    call
+  }
+}
+class PrincessStandardConfig()
   extends ProverConfig {
 
   def isValid = proverCommand != null
