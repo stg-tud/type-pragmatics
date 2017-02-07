@@ -5,13 +5,13 @@ import stlc.Statics._
 import stlc.Syntax._
 import system.Transformation
 
-object letdesugar extends Transformation(stlc.language + letext) {
+object let_desugar extends Transformation(stlc.language + let_ext) {
 
   // desugaring transformation
   val letdesugar = Symbol("letdesugar", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
 
   override val contract: (Rule, Int) =
-    Lemma("Typed-letdesugar",
+    Lemma("Typed-let-desugar",
       Judg(Typed, "C"~Ctx, letdesugar("e"~Exp, "C"~Ctx, "T"~Typ), "T"~Typ),
       // if ----------------
       Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ)
