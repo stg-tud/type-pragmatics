@@ -13,11 +13,15 @@ import scala.collection.mutable
 object DropUnreachableDefinitions {
 
   type Reach = mutable.Set[Symbol]
+  type LangInfo = (Seq[Rule], Map[Symbol, Seq[Rewrite]])
 
   def dropUnreachable(obl: ProofObligation): ProofObligation = {
     val reach: Reach = mutable.Set()
-    implicit val irules = obl.lang.allRules ++ obl.trans.map(t => Seq(t.contract._1) ++ t.lemmas.keys).getOrElse(Seq())
+    val irules = obl.lang.allRules ++ obl.trans.map(t => Seq(t.contract._1) ++ t.lemmas.keys).getOrElse(Seq())
+    val irewrites = obl.allTrans.map(t => t.contractedSym -> t.rewrites).toMap
+    implicit val linfo = (irules, irewrites)
 
+    reach ++= obl.opaques
     obl.goals.foreach(reachableJudg(_, reach))
     val axioms = obl.axioms.filter{ ax =>
       if (ax.conclusion.symbols.subsetOf(reach)) {
@@ -51,25 +55,31 @@ object DropUnreachableDefinitions {
     Language(lang.name, lang.sorts, syms, rules, transs)
   }
 
-  def reachableJudg(judg: Judg, r: Reach)(implicit rules: Seq[Rule]): Unit = {
+  def reachableJudg(judg: Judg, r: Reach)(implicit linfo: LangInfo): Unit = {
     reachableSymbol(judg.sym, r)
     judg.terms.foreach(reachableTerm(_, r))
   }
 
-  def reachableTerm(t: Term, r: Reach)(implicit rules: Seq[Rule]): Unit = t match {
+  def reachableTerm(t: Term, r: Reach)(implicit linfo: LangInfo): Unit = t match {
     case v: Var =>
     case App(sym, kids) =>
       reachableSymbol(sym, r)
       kids.foreach(reachableTerm(_, r))
   }
 
-  def reachableSymbol(sym: Symbol, r: Reach)(implicit rules: Seq[Rule]): Unit =
+  def reachableSymbol(sym: Symbol, r: Reach)(implicit linfo: LangInfo): Unit =
     if (!r.contains(sym)) {
       r += sym
-      val rules2 = rules.filter(canReachRule(_, sym))
-      rules2.foreach { rule =>
+      val rules = linfo._1.filter(canReachRule(_, sym))
+      rules.foreach { rule =>
         reachableJudg(rule.conclusion, r)
         rule.premises.foreach(reachableJudg(_, r))
+      }
+      val rewrites = linfo._2.getOrElse(sym, Seq())
+      rewrites.foreach { rew =>
+        reachableTerm(rew.pat, r)
+        reachableTerm(rew.gen, r)
+        rew.where.foreach(reachableJudg(_, r))
       }
     }
 

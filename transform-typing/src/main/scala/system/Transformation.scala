@@ -71,6 +71,7 @@ abstract class Transformation(val lang: Language) {
 
   def isOk = failedProofs.isEmpty
   def failedProofs = wellformednessFailed ++ soundnessFailed
+  def allOk = forall(_.isOk).forall(_._2)
 
   val soundnessTimeout = 30
   val soundnessMode = "casc"
