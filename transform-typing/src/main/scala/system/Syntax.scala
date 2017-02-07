@@ -42,6 +42,7 @@ object Syntax {
 
     def isEq = name.startsWith("eq")
     def isNeq = name.startsWith("neq")
+    def isEqNeq = isEq || isNeq
     def isFresh = name.startsWith("fresh")
     def isNotin = name.startsWith("notin")
   }
@@ -243,12 +244,12 @@ object Syntax {
       val end = ")"
       val mid1 = terms.slice(0, mark).mkString(", ")
       val markterm = terms(mark).toString
-      var mid2 = if (mark < terms.size) s" [${markterm.substring(1, markterm.size)}] " else ""
+      var mid2 = s", [$markterm], "
       val mid3 = terms.slice(mark + 1, terms.size).mkString(", ")
       if (mid1.isEmpty)
-        mid2 = mid2.substring(1)
+        mid2 = mid2.substring(2)
       if (mid3.isEmpty)
-        mid2 = mid2.substring(0, mid2.size - 1)
+        mid2 = mid2.substring(0, mid2.size - 2)
       start + mid1 + mid2 + mid3 + end
     }
 

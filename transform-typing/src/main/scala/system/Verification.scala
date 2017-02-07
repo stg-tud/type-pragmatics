@@ -5,7 +5,7 @@ import java.io.{File, PrintWriter}
 import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff.TffAnnotated
 import system.Syntax._
-import system.optimize.{GoalNormalization, GoalUnpacking, RuleStrengthening}
+import system.optimize.{DropUnreachableDefinitions, GoalNormalization, GoalUnpacking, RuleStrengthening}
 import veritas.benchmarking
 import veritas.benchmarking._
 import veritas.benchmarking.vampire.VampireConfig
@@ -19,7 +19,7 @@ object Verification {
     opaques: Seq[Symbol],
     existentials: Set[Var],
     axioms: Seq[Rule],
-    trans: Transformation,
+    trans: Option[Transformation],
     assumptions: Seq[Judg],
     goals: Seq[Judg],
     gensym: Gensym) {
@@ -42,11 +42,12 @@ object Verification {
        """.stripMargin
     }
 
-    def allTrans: Seq[Transformation] = lang.transs :+ trans
+    def allTrans: Seq[Transformation] = lang.transs ++ trans
 
     lazy val asTFF: Seq[TffAnnotated] = {
       var tff: Seq[TffAnnotated] = GenerateTFF.compileLanguage(lang)
-      tff ++= GenerateTFF.compileTransformation(trans, false)
+      if (trans.isDefined)
+        tff ++= GenerateTFF.compileTransformation(trans.get, false)
       tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
       tff ++= axioms.map(GenerateTFF.compileRuleDecl(_))
 
@@ -70,7 +71,8 @@ object Verification {
       val obls1 = GoalUnpacking.unpackObligation(this)
       val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
       val obls3 = obls2.map(RuleStrengthening.strengthenObligation(_))
-      obls3
+      val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
+      obls4
     }
   }
 

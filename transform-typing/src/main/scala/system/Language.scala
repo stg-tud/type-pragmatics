@@ -19,6 +19,8 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
 
   val allSyms = transs.foldLeft(syms)((seq, t) => t.contractedSym +: seq)
 
+  def allRules = transs.foldLeft(rules)((seq, t) => (seq :+ t.contract._1) ++ t.lemmas.keys)
+
   val closedDataTypes: ListMap[Sort, Seq[Symbol]] = {
     val types = sorts.flatMap(s => if (s.isInstanceOf[Sort] && !s.open) Some(s.asInstanceOf[Sort]) else None)
     ListMap() ++ types.map(s => s -> allSyms.filter(sym => sym.constr && sym.out == s))

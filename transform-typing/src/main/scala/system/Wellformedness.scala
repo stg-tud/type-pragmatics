@@ -38,7 +38,7 @@ object Wellformedness {
          ((sym, check), i) <- symChecks.zipWithIndex if !skipSymbol.isDefined || skipSymbol.get != sym) yield {
       val checkVars = check.flatMap(_.freevars).toSet
       val existentials = checkVars.diff(ruleVars)
-      ProofObligation(s"wf-${trans.contractedSym}-rule-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), trans, r.premises, check, gensym)
+      ProofObligation(s"wf-${trans.contractedSym}-rule-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), Some(trans), r.premises, check, gensym)
     }
   }
 
@@ -60,7 +60,7 @@ object Wellformedness {
          ((sym, check), i) <- symChecks.zipWithIndex) yield {
       val checkVars = check.flatMap(_.freevars).toSet
       val existentials = checkVars.diff(r.boundVars).diff(contractVars)
-      ProofObligation(s"wf-${trans.contractedSym}-rewrite-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), trans, premises, check, gensym)
+      ProofObligation(s"wf-${trans.contractedSym}-rewrite-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), Some(trans), premises, check, gensym)
     }
   }
 

@@ -43,7 +43,7 @@ object Soundness {
           opaqueSyms,
           Set(),
           lemmas ++ wellformednessRules ++ ihs,
-          trans,
+          Some(trans),
           premises ++ where,
           goals = Seq(goal),
           gensym)
