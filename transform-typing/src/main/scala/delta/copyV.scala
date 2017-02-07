@@ -9,7 +9,7 @@ import system.Names.notin
 
 import scala.collection.immutable.ListMap
 
-object copyV extends Transformation(stlc.language + deltaext + tdelta + cdelta) {
+object copyV extends Transformation(stlc.language + delta_ext + tdelta + cdelta) {
   val copyV = Symbol("copyV", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
 
   override val contract =

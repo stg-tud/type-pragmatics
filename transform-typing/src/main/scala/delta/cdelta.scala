@@ -7,7 +7,7 @@ import system.Transformation
 
 import scala.collection.immutable.ListMap
 
-object cdelta extends Transformation(stlc.language + deltaext + tdelta) {
+object cdelta extends Transformation(stlc.language + delta_ext + tdelta) {
 
   val cdelta = Symbol("cdelta", in = List(Ctx), out = Ctx, constr = false)
 
