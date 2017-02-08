@@ -6,22 +6,31 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
   */
 sealed trait ProverStatus {
   val isVerified: Boolean = false
+  val proverLog: String //TODO have this string or not?
 }
 
-case class Proved[+V](p: Prover[V]) extends ProverStatus {
+case class Proved(plog: String) extends ProverStatus {
   override val isVerified: Boolean = true
+  override val proverLog: String = plog
 }
 
-case class Disproved[+V](p: Prover[V]) extends ProverStatus
+case class Disproved(plog: String) extends ProverStatus {
+  override val proverLog: String = plog
+}
+
 
 //TODO: maybe add some more detailed information here as well?
-case object Inconclusive extends ProverStatus
+case class Inconclusive(plog: String) extends ProverStatus {
+  override val proverLog: String = plog
+}
+
+case class ProverFailure(plog: String) extends ProverStatus {
+  override val proverLog: String = plog
+}
 
 /**
   * Interface for concrete provers
   */
-// TODO need a transformer otherwise we can not create a ProverStatus object
-// -> why? can we somehow separate this? Prover should not have to care about transforming a problem...
 abstract class Prover[+V](problem: V) {
 
   val supportedStrategies: Seq[VerificationStrategy]

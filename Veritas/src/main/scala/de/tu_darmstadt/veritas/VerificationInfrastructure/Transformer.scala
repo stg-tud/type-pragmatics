@@ -1,8 +1,9 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 /**
-  * Created by sylvia on 14/10/16.
+  * transform a problem specification (S) and a goal (P) into a verification format (V) that
+  * one or more provers can process
   */
 abstract class Transformer[S, P, +V](spec: S, goal: P) {
- def transformProblem : V
+  def transformProblem: V
 }
