@@ -26,7 +26,7 @@ abstract class ProofStep[S, P](val name: String) {
   */
 class SingleProofStep[S, P](name: String,
                             val spec: S, val goal: P,
-                            val edges: Seq[VerificationEdge[S, P]])
+                            val edges: Seq[StrategyEdge])
   extends ProofStep(name) {
 
   require(edges.nonEmpty) // a SingleProofStep must have edges, otherwise it is a LeafProofStep
