@@ -9,10 +9,6 @@ import quiver.{LEdge, LNode}
 package object VerificationInfrastructure {
 
   type ProofNode[S, P] = LNode[String, ProofStep[S, P]]
-  type StrategyEdge[S, P] = LEdge[String, VerificationStrategy]
-  type VerificationEdge[S, P] = LEdge[String, VerificationEdgeLabel[S, P]]
-
-  def makeProofNode[S, P](ps: ProofStep[S, P]): ProofNode[S, P] = LNode(ps.name, ps)
-
+  type VerificationEdge = LEdge[String, VerificationStrategy]
 
 }

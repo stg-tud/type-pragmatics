@@ -14,7 +14,4 @@ case object Solve extends VerificationStrategy
 //TODO maybe refine this later
 case object Induction extends VerificationStrategy
 
-case object CaseDistinction extends VerificationStrategy
-
 //TODO which other abstract strategies are there for verifying proof trees?
-
