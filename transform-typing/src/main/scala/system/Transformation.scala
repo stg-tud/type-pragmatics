@@ -69,8 +69,8 @@ abstract class Transformation(val lang: Language) {
   def forall[T](f: Transformation => T): ListMap[Symbol, T] =
     ListMap() ++ lang.transs.map(t => t.contractedSym -> f(t)) + (contractedSym -> f(this))
 
+  def failedProofs = wellformednessFailed ++ soundnessFailed ++ completenessFailed
   def isOk = failedProofs.isEmpty
-  def failedProofs = wellformednessFailed ++ soundnessFailed
   def allOk = forall(_.isOk).forall(_._2)
 
   val soundnessTimeout = 30
@@ -86,6 +86,13 @@ abstract class Transformation(val lang: Language) {
   lazy val wellformednessResults = wellformednessObligations.map(_.map(Verification.verify(_, wellformednessMode, wellformednessTimeout)))
   lazy val isWellformed = wellformednessResults.flatten.forall(_.status == Proved)
   def wellformednessFailed = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
+
+  val completenessTimeout = 30
+  val completenessMode = "casc"
+  lazy val completenessObligations: Seq[ProofObligation] = Completeness.completenessTrans(this).optimized
+  lazy val completenessResults = completenessObligations.map(o => Verification.verify(o, completenessMode, completenessTimeout))
+  lazy val isComplete = completenessResults.forall(_.status == Proved)
+  def completenessFailed = completenessResults.zip(wellformednessObligations).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   def apply(kids: Term*): App = App(contractedSym, kids.toList)
 }

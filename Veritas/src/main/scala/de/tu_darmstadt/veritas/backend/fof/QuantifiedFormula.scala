@@ -41,6 +41,11 @@ final class Exists private(val variableList: Seq[Variable], val formula: FofUnit
 object Exists {
   def apply(variableList: Seq[Variable], formula: FofUnitary): FofUnitary = variableList match {
     case Seq() => formula
-    case _ => new Exists(variableList, formula)
+    case _ => formula match {
+      case Exists(vars, subformula) => new Exists(variableList ++ vars, subformula)
+      case _ => new Exists(variableList, formula)
+    }
   }
+
+  def unapply(ex: Exists): Option[(Seq[Variable], FofUnitary)] = Some((ex.variableList, ex.formula))
 }

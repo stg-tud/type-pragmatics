@@ -22,7 +22,12 @@ object Or {
     args match {
       case Seq()       => False
       case Seq(single) => single
-      case s           => new Or(s)
+      case ss           =>
+        val flattenedArgs = ss.flatMap(s =>
+          if (s.isInstanceOf[Parenthesized] && s.asInstanceOf[Parenthesized].formula.isInstanceOf[Or])
+            s.asInstanceOf[Parenthesized].formula.asInstanceOf[Or].args
+          else Seq(s))
+        new Or(flattenedArgs)
     }
 
   //    if (args contains True) True
@@ -49,7 +54,12 @@ object And {
     args match {
       case Seq()       => True
       case Seq(single) => single
-      case s           => new And(s)
+      case ss           =>
+        val flattenedArgs = ss.flatMap(s =>
+          if (s.isInstanceOf[Parenthesized] && s.asInstanceOf[Parenthesized].formula.isInstanceOf[And])
+            s.asInstanceOf[Parenthesized].formula.asInstanceOf[And].args
+          else Seq(s))
+        new And(flattenedArgs)
     }
 
   //    if (args contains False) False

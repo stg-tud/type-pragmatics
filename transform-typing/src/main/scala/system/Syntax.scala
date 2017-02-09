@@ -45,11 +45,28 @@ object Syntax {
     def isEqNeq = isEq || isNeq
     def isFresh = name.startsWith("fresh")
     def isNotin = name.startsWith("notin")
+    def isExists = name.startsWith("EXISTS")
   }
 
   def equ(sort: ISort): Symbol = Symbol("eq"+sort.name, in = List(sort, sort), out = Prop)
   def neq(sort: ISort): Symbol = Symbol("neq"+sort.name, in = List(sort, sort), out = Prop)
   val FALSE = Symbol("FALSE", in = List(), out = Prop)
+  val TRUE = Symbol("TRUE", in = List(), out = Prop)
+  def EXISTS(sort: ISort) = Symbol("EXISTS"+sort.name, in = List(sort, Prop), out = Prop)
+  val AND = Symbol("AND", in = List(Prop, Prop), out = Prop)
+  val OR = Symbol("OR", in = List(Prop, Prop), out = Prop)
+
+  def mkExists(vs: Seq[Var], t: Term): Term = vs.foldRight(t)((v, t) => EXISTS(v.sort)(v, t))
+
+  def mkAnd(ps: Seq[Term]): Term =
+    if (ps.isEmpty) TRUE()
+    else if (ps.tail.isEmpty) ps.head
+    else AND(ps.head, mkAnd(ps.tail))
+
+  def mkOr(ps: Seq[Term]): Term =
+    if (ps.isEmpty) FALSE()
+    else if (ps.tail.isEmpty) ps.head
+    else OR(ps.head, mkOr(ps.tail))
 
   type Subst = Map[Var, Term]
   type Diff = Seq[(Term, Term)]
@@ -145,7 +162,9 @@ object Syntax {
       s"$sym($ks)"
     }
 
-    override def freevars: Set[Var] = kids.foldLeft(Set[Var]())((set, t) => set ++ t.freevars)
+    override def freevars: Set[Var] =
+      if (sym.isExists) kids(1).freevars - kids(0).asInstanceOf[Var]
+      else kids.foldLeft(Set[Var]())((set, t) => set ++ t.freevars)
 
     override def symbols: Set[Symbol] = kids.foldLeft(Set[Symbol]())((set, t) => set ++ t.symbols) + sym
 
@@ -176,7 +195,6 @@ object Syntax {
     }
 
     override def matchAgainst(t: Term, m: Match): Match = t match {
-        // TODO only match constructor syms and selected function syms (for deriving soundness goal)
       case App(`sym`, tkids) =>
         kids.zip(tkids).foldLeft((m._1, m._2, m._3 + matchCount)){
           case (m, (t1, t2)) => t1.matchAgainst(t2, m)
@@ -191,6 +209,8 @@ object Syntax {
       val me = if (p(this)) Seq(this) else Seq()
       me ++ kids.flatMap(_.findAll(p))
     }
+
+    def toJudg: Judg = Judg(sym, kids)
   }
   object App {
     def apply(sym: Symbol, kids: Term*): App = App(sym, kids.toList)
@@ -224,7 +244,9 @@ object Syntax {
       Judg(sym, terms.map(_.subst(s, capturing)))
     }
 
-    def freevars: Set[Var] = terms.foldLeft(Set[Var]())((set, t) => set ++ t.freevars)
+    def freevars: Set[Var] =
+      if (sym.isExists) terms(1).freevars - terms(0).asInstanceOf[Var]
+      else terms.foldLeft(Set[Var]())((set, t) => set ++ t.freevars)
 
     def symbols: Set[Symbol] = terms.foldLeft(Set[Symbol]())((set, t) => set ++ t.symbols) + sym
 
@@ -254,9 +276,11 @@ object Syntax {
     }
 
     def constrs: Seq[Symbol] = terms.flatMap(_.findAll(t => App.isConstr(t))).map(_.asInstanceOf[App].sym)
+
+    def toApp: App = App(sym, terms)
   }
   object Judg {
-    def apply(sym: Symbol, terms: Term*): Judg = Judg(sym, terms.toList)
+    def apply(sym: Symbol, terms: Term*): Judg = new Judg(sym, terms.toList)
   }
 
   case class Rule(name: String, conclusion: Judg, premises: List[Judg], lemma: Boolean = false) {

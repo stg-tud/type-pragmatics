@@ -40,13 +40,22 @@ object GenerateTFF {
 
   def compileTerm(t: Term): fof.Term = t match {
     case v: Var => compileVar(v)
+    case App(sym, _) if sym.out == Prop => throw new MatchError(s"Cannot use compileTerm on Prop term $t")
     case App(sym, kids) => Appl(UntypedFunSymbol(sym.name), kids.map(compileTerm(_)))
+  }
+
+  def compilePropTerm(t: Term): FofUnitary = t match {
+    case t: App => compileJudg(t.toJudg)
   }
 
   def compileJudg(judg: Judg): FofUnitary = judg.sym match {
     case sym if sym.isEq => fof.Eq(compileTerm(judg.terms(0)), compileTerm(judg.terms(1)))
     case sym if sym.isNeq => fof.NeqEq(compileTerm(judg.terms(0)), compileTerm(judg.terms(1)))
-    case sym if sym == FALSE => fof.False
+    case FALSE => fof.False
+    case TRUE => fof.True
+    case AND => Parenthesized(fof.And(Seq(compilePropTerm(judg.terms(0)), compilePropTerm(judg.terms(1)))))
+    case OR => Parenthesized(fof.Or(Seq(compilePropTerm(judg.terms(0)), compilePropTerm(judg.terms(1)))))
+    case sym if sym.isExists => fof.Exists(Seq(compileVar(judg.terms(0).asInstanceOf[Var], true)), compilePropTerm(judg.terms(1)))
     case _ =>
       val kids = judg.terms.map(compileTerm(_))
       Appl(UntypedFunSymbol(judg.sym.name), kids)
