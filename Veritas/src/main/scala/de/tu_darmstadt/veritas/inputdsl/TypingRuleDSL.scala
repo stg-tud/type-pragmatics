@@ -11,7 +11,7 @@ import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL.SymTree
 object TypingRuleDSL {
 
   //support for typing rules without premises
-  def ===>(name: String) = _Concmissing(name)
+  def ===>(name: String): _Concmissing = _Concmissing(name)
 
   case class _Concmissing(name: String) {
     def apply(conc: TypingRuleJudgment): TypingRule = TypingRule(name, Seq(), Seq(conc))
@@ -20,7 +20,7 @@ object TypingRuleDSL {
 
   //support for typing rules with just one premise
   implicit class _TypingRulePartial(prem: TypingRuleJudgment) {
-    def ===>(name: String) = _Concmissing(name)
+    def ===>(name: String): _Concmissing = _Concmissing(name)
 
     case class _Concmissing(name: String) {
       def apply(conc: TypingRuleJudgment): TypingRule = TypingRule(name, Seq(prem), Seq(conc))
@@ -30,7 +30,7 @@ object TypingRuleDSL {
 
 
   implicit class _TypingRulePartialFET(prem: FunExpTree) {
-    def ===>(name: String) = _Concmissing(name)
+    def ===>(name: String): _Concmissing = _Concmissing(name)
 
     case class _Concmissing(name: String) {
       def apply(conc: TypingRuleJudgment): TypingRule = TypingRule(name, Seq(_toFunctionExpJudgment(prem)), Seq(conc))
@@ -39,7 +39,7 @@ object TypingRuleDSL {
   }
 
   implicit class _TypingRulePartialST(prem: SymTree) {
-    def ===>(name: String) = _Concmissing(name)
+    def ===>(name: String): _Concmissing = _Concmissing(name)
 
     case class _Concmissing(name: String) {
       def apply(conc: TypingRuleJudgment): TypingRule = TypingRule(name, Seq(_toFunctionExpJudgment(prem)), Seq(conc))
@@ -49,7 +49,7 @@ object TypingRuleDSL {
 
   //support for typing rules with multiple premises
   implicit class _TypingRulePartialSeq(prems: Seq[TypingRuleJudgment]) {
-    def ===>(name: String) = _Concmissing(name)
+    def ===>(name: String): _Concmissing = _Concmissing(name)
 
     case class _Concmissing(name: String) {
       def apply(conc: TypingRuleJudgment): TypingRule = TypingRule(name, prems, Seq(conc))
@@ -60,14 +60,53 @@ object TypingRuleDSL {
   import SymTreeDSL._
   import FunctionDSL._
 
+  implicit class _PartialTypingJudgmentSimpleSym(f1: Symbol) {
+    //careful: method name ending with colon turns the order around!
+    def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+  }
+
+  implicit class _PartialTypingJudgmentSimpleMV(f1: MVarNode) {
+    //careful: method name ending with colon turns the order around!
+    def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+  }
+
+  implicit class _PartialTypingJudgmentSimpleST(f1: SymTree) {
+    //careful: method name ending with colon turns the order around!
+    def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+  }
+
+  implicit class _PartialTypingJudgmentSimpleFMT(f1: FunExpMetaTree) {
+    //careful: method name ending with colon turns the order around!
+    def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+  }
+
   implicit class _PartialTypingJudgmentSym(f1: Symbol) {
-    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f1), _funExpMetaTreeToFunExpMeta(f2))
+    def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpMetaTreeToFunExpMeta(f1), ts.f1, ts.f2)
+  }
+
+  //need to have this specific class to deal with MVarNode, who are both SymTree and FunExpMetaTree
+  implicit class _PartialTypingJudgmentMV(f1: MVarNode) {
     def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpMetaTreeToFunExpMeta(f1), ts.f1, ts.f2)
   }
 
   implicit class _PartialTypingJudgmentST(f1: SymTree) {
-    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f1), _funExpMetaTreeToFunExpMeta(f2))
-    def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpTreeToFunExp(f1), ts.f1, ts.f2)
+    def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f1)), ts.f1, ts.f2)
+  }
+
+  implicit class _PartialTypingJudgmentFMT(f1: FunExpMetaTree) {
+    def |- (ts: TypingJudgmentSimple) = TypingJudgment(_funExpMetaTreeToFunExpMeta(f1), ts.f1, ts.f2)
   }
 
   /* //This would be needed if complex function expressions shall be supported as arguments of typing judgments
@@ -81,14 +120,14 @@ object TypingRuleDSL {
 
   implicit def _toFunctionExpJudgment(f: FunExpTree): FunctionExpJudgment = FunctionExpJudgment(_funExpTreeToFunExp(f))
 
-  def exists(mvs: MVarNode*) = _existsJudgmentPartial(mvs map {_.mv})
+  def exists(mvs: MVarNode*): _existsJudgmentPartial = _existsJudgmentPartial(mvs map {_.mv})
 
   case class _existsJudgmentPartial(mvs: Seq[MetaVar]) {
     def |(jdg: TypingRuleJudgment) = ExistsJudgment(mvs, Seq(jdg))
     def |(jdglist: Seq[TypingRuleJudgment]) = ExistsJudgment(mvs, jdglist)
   }
 
-  def forall(mvs: MVarNode*) = _forallJudgmentPartial(mvs map {_.mv})
+  def forall(mvs: MVarNode*): _forallJudgmentPartial = _forallJudgmentPartial(mvs map {_.mv})
 
   case class _forallJudgmentPartial(mvs: Seq[MetaVar]) {
     def |(jdg: TypingRuleJudgment) = ForallJudgment(mvs, Seq(jdg))
@@ -121,6 +160,6 @@ object TypingRuleDSL {
   def =>> (tjdgs: Seq[TypingRuleJudgment]) = Seq(tjdgs)
 
   implicit class _appendOrcase(orcases: Seq[Seq[TypingRuleJudgment]]) {
-    def |(next: Seq[Seq[TypingRuleJudgment]]) = orcases ++ next
+    def |(next: Seq[Seq[TypingRuleJudgment]]): Seq[Seq[TypingRuleJudgment]] = orcases ++ next
   }
 }

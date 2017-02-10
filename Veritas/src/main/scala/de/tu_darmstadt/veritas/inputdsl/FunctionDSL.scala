@@ -131,6 +131,13 @@ object FunctionDSL {
   implicit def _symTreeToFunExpTree(st: SymTree): FunExpTree = st match {
     case SymLeaf(sn) => VarLeaf(sn)
     case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc: SymTree) => _symTreeToFunExpTree(stc) })
+    case MVarNode(mv) => sys.error(s"Cannot accept a meta variable $mv here!")
+  }
+
+  def _symTreeToFunExpMetaTree(st: SymTree): FunExpMetaTree = st match {
+    case SymLeaf(sn) => VarLeaf(sn)
+    case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc: SymTree) => _symTreeToFunExpMetaTree(stc) })
+    case mv@MVarNode(_) => mv
   }
 
   implicit def _boolToFunExp(b: Boolean): FunExpTree = if (b) FunExpTrue else FunExpFalse

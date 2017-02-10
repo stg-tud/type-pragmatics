@@ -35,13 +35,13 @@ object ExampleSpecification {
   val testtree1: SymNode = 'succ ('succ('nat, 'nat, 'succ ('nat)))
 
   val testopen1: DataType = open data 'test
-  val testopen2 = open data 'test of 'succ('nat) | 'succ2 ('nat)
+  val testopen2: DataType = open data 'test of 'succ('nat) | 'succ2 ('nat)
 
   val testsingle: DataType = data('single) of 'bla
   val testsimple: DataType = data('color) of 'red | 'blue | 'green
   val testclosednat: DataType = data('nat) of 'zero | 'succ ('nat)
 
-  val testfunctionsigsimple = 'test.>>('nat) -> 'nat
+  val testfunctionsigsimple: FunctionSig = 'test.>>('nat) -> 'nat
   val testfunctionsig1: FunctionSig = 'plus.>>('nat, 'nat) -> 'nat
 
   val funeqtest1: FunctionEq = 'plus('x, 'zero) := FunctionExpVar("x")
@@ -63,14 +63,14 @@ object ExampleSpecification {
     ('plus('x, 'succ('y)) := 'succ('plus('x, 'y)))
 
   val iffuntest: Functions = function ('plus.>>('nat, 'nat) -> 'nat)
-  ('plus('x, 'y) := iff ('y === 'zero) th 'x els 'succ('plus('x, 'y)))
+  'plus('x, 'y) := iff ('y === 'zero) th 'x els 'succ('plus('x, 'y))
 
   val iftest: IfNode = iff ('y === 'zero) th 'x els 'y
 
   val lettestpartial: LetNode = (let ('rec) := 'succ('plus('x, 'y))) in (iff ('y === 'zero) th 'x els 'rec)
 
   val lettest: Functions = function ('plus.>>('nat, 'nat) -> 'nat)
-  ('plus('x, 'y) := (let ('rec) := 'succ('plus('x, 'y))) in (iff ('y === 'zero) th 'x els 'rec))
+  'plus ('x, 'y) := (let('rec) := 'succ ('plus ('x, 'y))) in (iff('y === 'zero) th 'x els 'rec)
 
   val tjtest: TypingRuleJudgment = 'C |- 't :: 'T
   val tjstest: TypingJudgmentSimple = 't :: 'T
@@ -99,18 +99,18 @@ object ExampleSpecification {
     =>> (exists (~'C) | ('C |- 't :: 'T) & ('p('x) && 'q('x))) |
     =>> ('C |- 't :: 'T))
 
-  val axiomtest = axiom (
+  val axiomtest: Axioms = axiom (
     ===>("test")('C |- 't :: 'T))
 
-  val lemmatest = lemma (20) (===>("test")('C |- 't :: 'T))
+  val lemmatest: Lemmas = lemma (20) (===>("test")('C |- 't :: 'T))
 
-  val testconsts = consts ('a ::> 'T, 'b ::> 'G)
-  val testdifferentconsts = differentconsts ('a ::> 'T)
+  val testconsts: Consts = consts ('a ::> 'T, 'b ::> 'G)
+  val testdifferentconsts: Consts = differentconsts ('a ::> 'T)
 
-  val metavartest = 'f(~'a, ~'b)
-  val metavartest2 = 'f(~'a, ~'b) === 'g(~'b)
+  val metavartest: SymNode = 'f(~'a, ~'b)
+  val metavartest2: EqNode = 'f(~'a, ~'b) === 'g(~'b)
 
-  val tpjmetavartest = ~'t :: ~'T
+  val tpjmetavartest: TypingJudgmentSimple = ~'t :: ~'T
   val tpjmetavartest2 : TypingRuleJudgment = ~'C |- ~'t :: ~'T
   
   val morecomplexmetavartest: TypingJudgment = 'bindContext(~'x, ~'Tx, 'bindContext(~'y, ~'Ty, ~'C)) |- ~'e :: ~'T
