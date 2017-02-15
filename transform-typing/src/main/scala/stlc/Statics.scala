@@ -139,12 +139,12 @@ object Statics {
     Judg(Typed, Var("C", Ctx), Var("e2", Exp), Var("T1", Typ))
   )
 
-  val Typed_uniqueness = rule(Lemma("Typed-uniqueness",
-    Judg(equ(Typ), Var("T1", Typ), Var("T2", Typ)),
-    // if ----------------
-    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T1", Typ)),
-    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T2", Typ))
-  ))
+//  val Typed_uniqueness = rule(Lemma("Typed-uniqueness",
+//    Judg(equ(Typ), Var("T1", Typ), Var("T2", Typ)),
+//    // if ----------------
+//    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T1", Typ)),
+//    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T2", Typ))
+//  ))
   val Typed_TOk = rule(Lemma("Typed-TOk",
     Judg(TOk, "T"~Typ),
     // if ----------------

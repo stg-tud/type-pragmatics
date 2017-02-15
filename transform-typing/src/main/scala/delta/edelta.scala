@@ -7,7 +7,7 @@ import system.Transformation
 
 import scala.collection.immutable.ListMap
 
-object edelta extends Transformation(stlc.language + delta_ext + tdelta + cdelta + copyV)  {
+object edelta extends Transformation(stlc.language + delta_ext + tdelta + cdelta + fit)  {
 
   override val wellformednessTimeout: Int = 120
 
@@ -60,7 +60,7 @@ object edelta extends Transformation(stlc.language + delta_ext + tdelta + cdelta
     app(
       app(
         edelta("e1"~Exp, "C"~Ctx, Arr("T1"~Typ, "T"~Typ)),
-        copyV("e2"~Exp, "C"~Ctx, "T1"~Typ)),
+        fit("e2"~Exp, "C"~Ctx, "T1"~Typ)),
       edelta("e2"~Exp, "C"~Ctx, "T1"~Typ)),
     where = Seq(
       Judg(TOk, Var("T1", Typ)),

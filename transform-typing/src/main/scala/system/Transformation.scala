@@ -29,7 +29,7 @@ abstract class Transformation(val lang: Language) {
     rules.foreach(kv => assert(!contractedSym.constr, s"Transformation symbol must not be marked as constructor $contractedSym"))
     rules.foreach(kv => assert(kv._1.lemma, s"Transformation contracts must be marked as lemmas"))
     rules.foreach { case (c, pos) =>
-      assert(c.conclusion.terms(pos).isInstanceOf[App])
+      assert(c.conclusion.terms(pos).isInstanceOf[App], s"contracted term should be an application but was ${c.conclusion.terms(pos)} in ${c.name}")
       assert(c.contractedTerm(pos).sym == contractedSym)
       assert(pos < c.conclusion.terms.size)
     }
@@ -75,21 +75,21 @@ abstract class Transformation(val lang: Language) {
 
   val soundnessTimeout = 30
   val soundnessMode = "casc"
-  lazy val soundnessObligations: Seq[Seq[ProofObligation]] = Soundness.soundnessTrans(this).map(_.optimized)
+  lazy val soundnessObligations: Seq[Seq[ProofObligation]] = Soundness.soundnessTrans(this).toStream.map(_.optimized)
   lazy val soundnessResults = soundnessObligations.map(_.map(Verification.verify(_, soundnessMode, soundnessTimeout)))
   lazy val isSound = soundnessResults.flatten.forall(_.status == Proved)
   def soundnessFailed = soundnessResults.flatten.zip(soundnessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   val wellformednessTimeout = 30
   val wellformednessMode = "casc"
-  lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = Wellformedness.wellformedTrans(this).map(_.optimized)
+  lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = Wellformedness.wellformedTrans(this).toStream.map(_.optimized)
   lazy val wellformednessResults = wellformednessObligations.map(_.map(Verification.verify(_, wellformednessMode, wellformednessTimeout)))
   lazy val isWellformed = wellformednessResults.flatten.forall(_.status == Proved)
   def wellformednessFailed = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   val completenessTimeout = 30
   val completenessMode = "casc"
-  lazy val completenessObligations: Seq[ProofObligation] = Completeness.completenessTrans(this).optimized
+  lazy val completenessObligations: Seq[ProofObligation] = Completeness.completenessTrans(this).optimized.toStream
   lazy val completenessResults = completenessObligations.map(o => Verification.verify(o, completenessMode, completenessTimeout))
   lazy val isComplete = completenessResults.forall(_.status == Proved)
   def completenessFailed = completenessResults.zip(wellformednessObligations).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
