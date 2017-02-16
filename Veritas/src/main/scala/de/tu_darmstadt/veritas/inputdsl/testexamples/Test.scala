@@ -16,8 +16,8 @@ object Test {
     SQLDefs.TContext.prettyPrint(outputPrettyPrinter)
     SQLDefs.Syntax.prettyPrint(outputPrettyPrinter)
     SQLDefs.Semantics.prettyPrint(outputPrettyPrinter)
-    //SQLDefs.TypeSystem.prettyPrint(outputPrettyPrinter)
-    //SQLDefs.TypeSystemInv.prettyPrint(outputPrettyPrinter)
+    SQLDefs.TypeSystem.prettyPrint(outputPrettyPrinter)
+    SQLDefs.TypeSystemInv.prettyPrint(outputPrettyPrinter)
     outputPrettyPrinter.close()
   }
 

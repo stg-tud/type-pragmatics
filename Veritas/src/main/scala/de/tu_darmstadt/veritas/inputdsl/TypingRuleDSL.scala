@@ -2,13 +2,16 @@ package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExp
-import de.tu_darmstadt.veritas.inputdsl.FunctionDSL.FunExpTree
+import de.tu_darmstadt.veritas.inputdsl.FunctionDSL.{FunExpTree, MVarNode}
 import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL.SymTree
 
 /**
   * DSL for creating typing rule constructs
   */
 object TypingRuleDSL {
+
+  import SymTreeDSL._
+  import FunctionDSL._
 
   //support for typing rules without premises
   def ===>(name: String): _Concmissing = _Concmissing(name)
@@ -39,11 +42,22 @@ object TypingRuleDSL {
   }
 
   implicit class _TypingRulePartialST(prem: SymTree) {
+
+    //this is not so nice - what it does is:
+    // 1) convert prem SymTree to a FunExpMetaTree first (so that it can contain meta variables!
+    // 2) catch the corner case where the entire premise is a meta variable by itself, which is forbidden
+    // 3) otherwise, cast into a FunExpTree, which is what we require to build a FuntionExpJudgment
+    val premFunExpTree : FunExpTree = _symTreeToFunExpMetaTree(prem) match {
+      case mv@MVarNode(_) => sys.error("Meta variables cannot appear as individual premise: " + mv)
+      case fet : FunExpTree => fet
+      case _ => sys.error("When trying to create a TypingRule premise, encountered an unsupported function construct")
+    }
+
     def ===>(name: String): _Concmissing = _Concmissing(name)
 
     case class _Concmissing(name: String) {
-      def apply(conc: TypingRuleJudgment): TypingRule = TypingRule(name, Seq(_toFunctionExpJudgment(prem)), Seq(conc))
-      def apply(concs: Seq[TypingRuleJudgment]): TypingRule = TypingRule(name, Seq(_toFunctionExpJudgment(prem)), concs)
+      def apply(conc: TypingRuleJudgment): TypingRule = TypingRule(name, Seq(_toFunctionExpJudgment(premFunExpTree)), Seq(conc))
+      def apply(concs: Seq[TypingRuleJudgment]): TypingRule = TypingRule(name, Seq(_toFunctionExpJudgment(premFunExpTree)), concs)
     }
   }
 
@@ -57,14 +71,14 @@ object TypingRuleDSL {
     }
   }
 
-  import SymTreeDSL._
-  import FunctionDSL._
+  //Careful: in the context of typing rules, you have to manually ensure that SymTree's are always converted to FunExpMetaTree's
+  // and not to FunExpTree (which the implicit conversion would do!)
 
   implicit class _PartialTypingJudgmentSimpleSym(f1: Symbol) {
     //careful: method name ending with colon turns the order around!
     def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
     def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
-    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f2)), _funExpMetaTreeToFunExpMeta(f1))
     def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
   }
 
@@ -72,23 +86,23 @@ object TypingRuleDSL {
     //careful: method name ending with colon turns the order around!
     def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
     def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
-    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f2)), _funExpMetaTreeToFunExpMeta(f1))
     def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
   }
 
   implicit class _PartialTypingJudgmentSimpleST(f1: SymTree) {
     //careful: method name ending with colon turns the order around!
-    def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
-    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
-    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
-    def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f1)))
+    def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f1)))
+    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f2)), _funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f1)))
+    def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f1)))
   }
 
   implicit class _PartialTypingJudgmentSimpleFMT(f1: FunExpMetaTree) {
     //careful: method name ending with colon turns the order around!
     def :: (f2: MVarNode) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
     def :: (f2: FunExpMetaTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
-    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
+    def :: (f2: SymTree) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(_symTreeToFunExpMetaTree(f2)), _funExpMetaTreeToFunExpMeta(f1))
     def :: (f2: Symbol) = TypingJudgmentSimple(_funExpMetaTreeToFunExpMeta(f2), _funExpMetaTreeToFunExpMeta(f1))
   }
 
@@ -142,16 +156,34 @@ object TypingRuleDSL {
   implicit class _toTypingRuleJudgmentSeqSingle(jdg: TypingRuleJudgment) {
     def &(next: TypingRuleJudgment): Seq[TypingRuleJudgment] = Seq(jdg) :+ next
     def &(next: FunExpTree): Seq[TypingRuleJudgment] = Seq(jdg) :+ _toFunctionExpJudgment(next)
+    def &(next: FunExpMetaTree): Seq[TypingRuleJudgment] =
+      next match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => Seq(jdg) :+ _toFunctionExpJudgment(re)
+        case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+      }
   }
 
   implicit class _toTypingRuleJudgmentSeqSingleFET(jdg: FunExpTree) {
     def &(next: TypingRuleJudgment): Seq[TypingRuleJudgment] = Seq(_toFunctionExpJudgment(jdg)) :+ next
     def &(next: FunExpTree): Seq[TypingRuleJudgment] = Seq(_toFunctionExpJudgment(jdg)) :+ _toFunctionExpJudgment(next)
+    def &(next: FunExpMetaTree): Seq[TypingRuleJudgment] =
+      next match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => Seq(_toFunctionExpJudgment(jdg)) :+ _toFunctionExpJudgment(re)
+        case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+      }
   }
 
   implicit class _toTypingRuleJudgmentSeq(jdgs: Seq[TypingRuleJudgment]) {
     def &(next: TypingRuleJudgment): Seq[TypingRuleJudgment] = jdgs :+ next
     def &(next: FunExpTree): Seq[TypingRuleJudgment] = jdgs :+ _toFunctionExpJudgment(next)
+    def &(next: FunExpMetaTree): Seq[TypingRuleJudgment] =
+      next match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => jdgs :+ _toFunctionExpJudgment(re)
+        case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+      }
   }
 
   def OR(orcases: Seq[Seq[TypingRuleJudgment]]) = OrJudgment(orcases)

@@ -115,4 +115,8 @@ object ExampleSpecification {
   
   val morecomplexmetavartest: TypingJudgment = 'bindContext(~'x, ~'Tx, 'bindContext(~'y, ~'Ty, ~'C)) |- ~'e :: ~'T
 
+  val andnode: FunExpMetaTree = ('matchingAttrL ('tt, 'al) && 'welltypedRawtable ('tt, 't))
+  val funeq: FunctionEq = 'matchingAttrL ('ttcons ('a1, 'f, 'tt), 'acons ('a2, 'al)) := ('a1 === 'a2) && 'matchingAttrL ('tt, 'al)
+  val functioneq: FunctionEq = 'welltypedtable ('tt, 'table ('al, 't)) := ('matchingAttrL ('tt, 'al) && 'welltypedRawtable ('tt, 't))
+
 }

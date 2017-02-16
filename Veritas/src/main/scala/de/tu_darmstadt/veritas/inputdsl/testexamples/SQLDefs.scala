@@ -78,7 +78,7 @@ object SQLDefs {
       ('matchingAttrL ('tt, 'al) := false)
 
   val welltypedtable = function('welltypedtable.>>('TType, 'Table) -> 'Bool) where
-    ('welltypedtable ('tt, 'table ('al, 't)) := 'matchingAttrL ('tt, 'al) && 'welltypedRawtable ('tt, 't))
+    ('welltypedtable ('tt, 'table ('al, 't)) := ('matchingAttrL ('tt, 'al) && 'welltypedRawtable ('tt, 't)))
 
   val welltypedRawtable = function('welltypedRawtable.>>('TType, 'RawTable) -> 'Bool) where
     ('welltypedRawtable ('tt, 'tempty) := true) |
@@ -378,7 +378,7 @@ object SQLDefs {
     ('filterSingleRow ('ptrue, 'al, 'r) := true) |
       ('filterSingleRow ('and ('p1, 'p2), 'al, 'r) :=
         ('filterSingleRow ('p1, 'al, 'r) && 'filterSingleRow ('p2, 'al, 'r))) |
-      ('filterSingleRow ('not ('p), 'al, 'r) := !'filterSingleRow ('p, 'al, 'r)) |
+      ('filterSingleRow ('not ('p), 'al, 'r) := (!'filterSingleRow ('p, 'al, 'r))) |
       ('filterSingleRow ('eq ('e1, 'e2), 'al, 'r) :=
         (let('v1) := 'evalExpRow ('e1, 'al, 'r)) in
           ((let('v2) := 'evalExpRow ('e2, 'al, 'r)) in
@@ -468,8 +468,7 @@ object SQLDefs {
   //import sql.TContext
 
   val OptFType = data('OptFType) of
-    'noFType |
-      'someFType ('FType)
+    'noFType | 'someFType ('FType)
 
   val isSomeFType = function('isSomeFType.>>('OptFType) -> 'Bool) where
     ('isSomeFType ('noFType) := false) |
@@ -541,46 +540,46 @@ object SQLDefs {
     ))
 
   //a table value with a well-typed table is typable
-//  val Ttvalue = axiom(
-//    'welltypedtable (~'TT, 'table (~'al, ~'rt)
-//    ).===>("T-tvalue")(
-//      ~'TTC |- 'tvalue ('table (~'al, ~'rt)) :: ~'TT
-//    ))
-//
-//  val TSelectFromWhere = axiom(
-//    (('lookupContext (~'tn, ~'TTC) === 'someTType (~'TT)) &
-//      'tcheckPred (~'p, ~'TT) &
-//      ('projectType (~'sel, ~'TT) === 'someTType (~'TTr))
-//      ).===>("T-SelectFromWhere")(
-//      ~'TTC |- 'selectFromWhere (~'sel, ~'tn, ~'p) :: ~'TTr
-//    )
-//  )
-//
-//  val TUnion = axiom(
-//    ((~'TTC |- ~'q1 :: ~'TT) &
-//      (~'TTC |- ~'q2 :: ~'TT)
-//      ).===>("T-Union")(
-//      ~'TTC |- 'Union (~'q1, ~'q2) :: ~'TT
-//    ))
-//
-//  val TIntersection = axiom(
-//    ((~'TTC |- ~'q1 :: ~'TT) &
-//      (~'TTC |- ~'q2 :: ~'TT)
-//      ).===>("T-Intersection")(
-//      ~'TTC |- 'Intersection (~'q1, ~'q2) :: ~'TT)
-//  )
-//
-//  val TDifference = axiom(
-//    ((~'TTC |- ~'q1 :: ~'TT) &
-//      (~'TTC |- ~'q2 :: ~'TT)
-//      ).===>("T-Difference")(
-//      ~'TTC |- 'Difference (~'q1, ~'q2) :: ~'TT
-//    ))
-//
-//  val TypeSystem = Module("TypeSystem", Seq(Resolved(Tables), Resolved(TStore), Resolved(Syntax), Resolved(TContext)),
-//    Seq(OptFType, isSomeFType, getFType, findColType, projectType, projectTypeAttrL,
-//      typeOfExp, tcheckPred, TTTContextDuplicate, TTTContextSwap, Ttvalue, TSelectFromWhere,
-//      TUnion, TIntersection, TDifference))
+  val Ttvalue = axiom(
+    'welltypedtable (~'TT, 'table (~'al, ~'rt)
+    ).===>("T-tvalue")(
+      ~'TTC |- 'tvalue ('table (~'al, ~'rt)) :: ~'TT
+    ))
+
+  val TSelectFromWhere = axiom(
+    (('lookupContext (~'tn, ~'TTC) === 'someTType (~'TT)) &
+      'tcheckPred (~'p, ~'TT) &
+      ('projectType (~'sel, ~'TT) === 'someTType (~'TTr))
+      ).===>("T-SelectFromWhere")(
+      ~'TTC |- 'selectFromWhere (~'sel, ~'tn, ~'p) :: ~'TTr
+    )
+  )
+
+  val TUnion = axiom(
+    ((~'TTC |- ~'q1 :: ~'TT) &
+      (~'TTC |- ~'q2 :: ~'TT)
+      ).===>("T-Union")(
+      ~'TTC |- 'Union (~'q1, ~'q2) :: ~'TT
+    ))
+
+  val TIntersection = axiom(
+    ((~'TTC |- ~'q1 :: ~'TT) &
+      (~'TTC |- ~'q2 :: ~'TT)
+      ).===>("T-Intersection")(
+      ~'TTC |- 'Intersection (~'q1, ~'q2) :: ~'TT)
+  )
+
+  val TDifference = axiom(
+    ((~'TTC |- ~'q1 :: ~'TT) &
+      (~'TTC |- ~'q2 :: ~'TT)
+      ).===>("T-Difference")(
+      ~'TTC |- 'Difference (~'q1, ~'q2) :: ~'TT
+    ))
+
+  val TypeSystem = Module("TypeSystem", Seq(Resolved(Tables), Resolved(TStore), Resolved(Syntax), Resolved(TContext)),
+    Seq(OptFType, isSomeFType, getFType, findColType, projectType, projectTypeAttrL,
+      typeOfExp, tcheckPred, TTTContextDuplicate, TTTContextSwap, Ttvalue, TSelectFromWhere,
+      TUnion, TIntersection, TDifference))
 //
 //  //module sql.TypeSystemInv
 //
@@ -589,31 +588,31 @@ object SQLDefs {
 //  //import sql.Tables
 //  //import sql.TContext
 //
-//  val Tinv = axiom(
-//    (~'TTC |- ~'q :: ~'TT
-//      ).===>("T-inv")(
-//      OR(
-//        =>>(exists(~'al, ~'rt) |
-//          (~'q === 'tvalue ('table (~'al, ~'rt))) &
-//            'welltypedtable (~'TT, 'table (~'al, ~'rt))) |
-//          =>>(exists(~'sel, ~'tn, ~'p, ~'TTr) |
-//            (~'q === 'selectFromWhere (~'sel, ~'tn, ~'p)) &
-//              ('lookupContext (~'tn, ~'TTC) === 'someTType (~'TTr)) &
-//              'tcheckPred (~'p, ~'TTr) &
-//              ('projectType (~'sel, ~'TTr) === 'someTType (~'TT))) |
-//          =>>(exists(~'q1, ~'q2) |
-//            (~'q === 'Union (~'q1, ~'q2)) &
-//              (~'TTC |- ~'q1 :: ~'TT) &
-//              (~'TTC |- ~'q2 :: ~'TT)) |
-//          =>>(exists(~'q1, ~'q2) |
-//            (~'q === 'Intersection (~'q1, ~'q2)) &
-//              (~'TTC |- ~'q1 :: ~'TT) &
-//              (~'TTC |- ~'q2 :: ~'TT)) |
-//          =>>(exists(~'q1, ~'q2) |
-//            (~'q === 'Difference (~'q1, ~'q2)) &
-//              (~'TTC |- ~'q1 :: ~'TT) &
-//              (~'TTC |- ~'q2 :: ~'TT)))
-//    ))
+  val Tinv = axiom(
+    (~'TTC |- ~'q :: ~'TT
+      ).===>("T-inv")(
+      OR(
+        =>>(exists(~'al, ~'rt) |
+          (~'q === 'tvalue ('table (~'al, ~'rt))) &
+            'welltypedtable (~'TT, 'table (~'al, ~'rt))) |
+          =>>(exists(~'sel, ~'tn, ~'p, ~'TTr) |
+            (~'q === 'selectFromWhere (~'sel, ~'tn, ~'p)) &
+              ('lookupContext (~'tn, ~'TTC) === 'someTType (~'TTr)) &
+              'tcheckPred (~'p, ~'TTr) &
+              ('projectType (~'sel, ~'TTr) === 'someTType (~'TT))) |
+          =>>(exists(~'q1, ~'q2) |
+            (~'q === 'Union (~'q1, ~'q2)) &
+              (~'TTC |- ~'q1 :: ~'TT) &
+              (~'TTC |- ~'q2 :: ~'TT)) |
+          =>>(exists(~'q1, ~'q2) |
+            (~'q === 'Intersection (~'q1, ~'q2)) &
+              (~'TTC |- ~'q1 :: ~'TT) &
+              (~'TTC |- ~'q2 :: ~'TT)) |
+          =>>(exists(~'q1, ~'q2) |
+            (~'q === 'Difference (~'q1, ~'q2)) &
+              (~'TTC |- ~'q1 :: ~'TT) &
+              (~'TTC |- ~'q2 :: ~'TT)))
+    ))
 
   //variant of inversion lemma in several different lemmas
   //(seems to be helpful for progress proof)
@@ -625,43 +624,43 @@ object SQLDefs {
   // welltypedtable(~TT, table(~al, ~rt))
 
 
-//  val TinvSelectSomeFromWhere = lemma(
-//    ((~'q === 'selectFromWhere (~'sel, ~'tn, ~'p)) &
-//      (~'TTC |- ~'q :: ~'TT)
-//      ).===>("T-inv-SelectSomeFromWhere")(
-//      exists(~'TTr) |
-//        ('lookupContext (~'tn, ~'TTC) === 'someTType (~'TTr)) &
-//          ('tcheckPred (~'p, ~'TTr)) &
-//          ('projectType (~'sel, ~'TTr) === 'someTType (~'TT)))
-//  )
-//
-//
-//  val TinvUnion = lemma(
-//    ((~'q === 'Union (~'q1, ~'q2)) &
-//      (~'TTC |- ~'q :: ~'TT)
-//      ).===>("T-inv-Union")(
-//      (~'TTC |- ~'q1 :: ~'TT) &
-//        (~'TTC |- ~'q2 :: ~'TT))
-//  )
-//
-//  val TinvIntersection = lemma(
-//    ((~'q === 'Intersection (~'q1, ~'q2)) &
-//      (~'TTC |- ~'q :: ~'TT)
-//      ).===>("T-inv-Intersection")(
-//      (~'TTC |- ~'q1 :: ~'TT) &
-//        (~'TTC |- ~'q2 :: ~'TT))
-//  )
-//
-//  val TinvDifference = lemma(
-//    ((~'q === 'Difference (~'q1, ~'q2)) &
-//      (~'TTC |- ~'q :: ~'TT)
-//      ).===>("T-inv-Difference")(
-//      (~'TTC |- ~'q1 :: ~'TT) &
-//        (~'TTC |- ~'q2 :: ~'TT))
-//  )
-//
-//  val TypeSystemInv = Module("TypeSystemInv", Seq(Resolved(Syntax), Resolved(TypeSystem), Resolved(Tables), Resolved(TContext)),
-//    Seq(Tinv, TinvSelectSomeFromWhere, TinvUnion, TinvIntersection, TinvDifference))
+  val TinvSelectSomeFromWhere = lemma(
+    ((~'q === 'selectFromWhere (~'sel, ~'tn, ~'p)) &
+      (~'TTC |- ~'q :: ~'TT)
+      ).===>("T-inv-SelectSomeFromWhere")(
+      exists(~'TTr) |
+        ('lookupContext (~'tn, ~'TTC) === 'someTType (~'TTr)) &
+          ('tcheckPred (~'p, ~'TTr)) &
+          ('projectType (~'sel, ~'TTr) === 'someTType (~'TT)))
+  )
+
+
+  val TinvUnion = lemma(
+    ((~'q === 'Union (~'q1, ~'q2)) &
+      (~'TTC |- ~'q :: ~'TT)
+      ).===>("T-inv-Union")(
+      (~'TTC |- ~'q1 :: ~'TT) &
+        (~'TTC |- ~'q2 :: ~'TT))
+  )
+
+  val TinvIntersection = lemma(
+    ((~'q === 'Intersection (~'q1, ~'q2)) &
+      (~'TTC |- ~'q :: ~'TT)
+      ).===>("T-inv-Intersection")(
+      (~'TTC |- ~'q1 :: ~'TT) &
+        (~'TTC |- ~'q2 :: ~'TT))
+  )
+
+  val TinvDifference = lemma(
+    ((~'q === 'Difference (~'q1, ~'q2)) &
+      (~'TTC |- ~'q :: ~'TT)
+      ).===>("T-inv-Difference")(
+      (~'TTC |- ~'q1 :: ~'TT) &
+        (~'TTC |- ~'q2 :: ~'TT))
+  )
+
+  val TypeSystemInv = Module("TypeSystemInv", Seq(Resolved(Syntax), Resolved(TypeSystem), Resolved(Tables), Resolved(TContext)),
+    Seq(Tinv, TinvSelectSomeFromWhere, TinvUnion, TinvIntersection, TinvDifference))
 
 
 //  //module sql.SoundnessAuxDefs
