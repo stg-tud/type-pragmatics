@@ -2,20 +2,21 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 /**
   * return status of a prover call
-  * Proved and Disproved include information on which transformer and which prover achieved this result
   */
 sealed trait ProverStatus {
   val isVerified: Boolean = false
+  val proverLog: String
 }
 
-case class Proved[+V](p: Prover[V]) extends ProverStatus {
+case class Proved(proverLog: String) extends ProverStatus {
   override val isVerified: Boolean = true
 }
 
-case class Disproved[+V](p: Prover[V]) extends ProverStatus
+case class Disproved(proverLog: String) extends ProverStatus
 
-//TODO: maybe add some more detailed information here as well?
-case object Inconclusive extends ProverStatus
+case class Inconclusive(proverLog: String) extends ProverStatus
+
+case class ProverFailure(proverLog: String) extends ProverStatus
 
 /**
   * Interface for concrete provers
@@ -24,7 +25,7 @@ case object Inconclusive extends ProverStatus
 // -> why? can we somehow separate this? Prover should not have to care about transforming a problem...
 abstract class Prover[+V](problem: V) {
 
-  val supportedStrategies: Seq[VerificationStrategy]
+  def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]]
 
   def callProver(): ProverStatus
 }

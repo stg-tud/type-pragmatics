@@ -10,11 +10,11 @@ import scala.util.Random
   * Created by andiderp on 20/01/2017.
   */
 class ProofGraphTest extends FunSuite {
-  val topNode = LNode("Top", ProofStep("Spec", "Goal"))
-  val child1 = LNode("Child1", ProofStep("Spec", "Goal"))
-  val child2 = LNode("Child2", ProofStep("Spec", "Goal"))
-  val edge1: VerificationEdge = LEdge("Top", "Child1", Solve)
-  val edge2: VerificationEdge = LEdge("Top", "Child2", Solve)
+  val topNode = LNode("Top", ProofStep("Spec", "Goal", Solve()))
+  val child1 = LNode("Child1", ProofStep("Spec", "Goal", Solve()))
+  val child2 = LNode("Child2", ProofStep("Spec", "Goal", Solve()))
+  val edge1: VerificationEdge = LEdge("Top", "Child1", NoInfoEdgeLabel)
+  val edge2: VerificationEdge = LEdge("Top", "Child2", NoInfoEdgeLabel)
   val provedVerifier = MockVerifier(MockProver())
   val testGraph = ProofGraph(
     Seq(topNode, child1, child2),
@@ -24,29 +24,29 @@ class ProofGraphTest extends FunSuite {
   .verifySingle(provedVerifier, "Top")
 
   test("Graph should contain a new node and the defined edges after adding a node") {
-    val node = LNode("New", ProofStep("Spec", "Goal"))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", Solve)))
+    val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
     val step = newGraph.get("New")
     assert(step.nonEmpty)
   }
 
   test("Parents of added node should be set to outdated") {
-    val node = LNode("New", ProofStep("Spec", "Goal"))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", Solve)))
+    val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
     val step = newGraph.get("Top")
-    assert(!step.get.fullyVerified)
-    assert(step.get.verificationStatus.isInstanceOf[Outdated[String, String]])
+//    assert(!step.get.fullyVerified)
+    assert(step.get.getVerificationStatus().isInstanceOf[Outdated[String, String]])
   }
 
   test("Parents of added node should be set to outdated 2") {
-    val node = LNode("New", ProofStep("Spec", "Goal"))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", Solve)))
+    val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoEdgeLabel)))
     val top = newGraph.get("Top")
     val child1 = newGraph.get("Child1")
-    assert(!top.get.fullyVerified)
-    assert(!child1.get.fullyVerified)
-    assert(top.get.verificationStatus.isInstanceOf[Outdated[String, String]])
-    assert(child1.get.verificationStatus.isInstanceOf[Outdated[String, String]])
+//    assert(!top.get.fullyVerified)
+//    assert(!child1.get.fullyVerified)
+    assert(top.get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
+    assert(child1.get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
   }
 
   test("Graph should be missing a node after removing a node") {
@@ -58,126 +58,123 @@ class ProofGraphTest extends FunSuite {
   test("Parents of removed node should be set to outdated") {
     val newGraph = testGraph.removeNode(child1)
     val step = newGraph.get("Top")
-    assert(!step.get.fullyVerified)
-    assert(step.get.verificationStatus.isInstanceOf[Outdated[String, String]])
-  }
-
-  test("VerificationStrategy of edge changed") {
-    val newGraph = testGraph.updateEdge(edge1, Induction)
+//    assert(!step.get.fullyVerified)
+    assert(step.get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
   }
 
   test("Verifying single node does set parent to outdated") {
-    val node = LNode("New", ProofStep("Spec", "Goal"))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", Solve)))
+    val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
         .verifySingle(provedVerifier, "New")
-    assert(newGraph.get("Top").get.verificationStatus.isInstanceOf[Outdated[String, String]])
-    assert(!newGraph.get("Top").get.fullyVerified)
-    assert(!newGraph.get("Child1").get.verificationStatus.isInstanceOf[Outdated[String, String]])
-    assert(!newGraph.get("Child2").get.verificationStatus.isInstanceOf[Outdated[String, String]])
-    assert(!newGraph.get("New").get.verificationStatus.isInstanceOf[Outdated[String, String]])
+    assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
+//    assert(!newGraph.get("Top").get.fullyVerified)
+    assert(!newGraph.get("Child1").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
+    assert(!newGraph.get("Child2").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
+    assert(!newGraph.get("New").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
   }
 
   test("Verifying single node does set transitive hull of parents to outdated") {
-    val node = LNode("New", ProofStep("Spec", "Goal"))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", Solve)))
+    val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoEdgeLabel)))
       .verifySingle(provedVerifier, "New")
-    assert(!newGraph.get("Top").get.fullyVerified)
-    assert(newGraph.get("Top").get.verificationStatus.isInstanceOf[Outdated[String, String]])
-    assert(!newGraph.get("Child1").get.fullyVerified)
-    assert(newGraph.get("Child1").get.verificationStatus.isInstanceOf[Outdated[String, String]])
+//    assert(!newGraph.get("Top").get.fullyVerified)
+    assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
+//    assert(!newGraph.get("Child1").get.fullyVerified)
+    assert(newGraph.get("Child1").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
   }
 
   test("Both parents are set to be outdated") {
-    val node1 = LNode("Parent", ProofStep("Spec", "Goal"))
-    val node2 = LNode("New", ProofStep("Spec", "Goal"))
-    val node3 = LNode("Child3", ProofStep("Spec", "Goal"))
+    val node1 = LNode("Parent", ProofStep("Spec", "Goal", Solve()))
+    val node2 = LNode("New", ProofStep("Spec", "Goal", Solve()))
+    val node3 = LNode("Child3", ProofStep("Spec", "Goal", Solve()))
 
     val newGraph = testGraph
-      .addNode(node1, Seq(LEdge("Child1", "Parent", Solve)))
-      .addNode(node3, Seq(LEdge("Top", "Child3", Solve)))
+      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoEdgeLabel)))
+      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoEdgeLabel)))
       .verifySingle(provedVerifier, "Parent")
       .verifySingle(provedVerifier, "Child3")
-      .addNode(node2, Seq(LEdge("Child2", "New", Solve), LEdge("Parent", "New", Solve)))
+      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoEdgeLabel), LEdge("Parent", "New", NoInfoEdgeLabel)))
 
-    assert(newGraph.get("Parent").get.verificationStatus.isInstanceOf[Outdated[String, String]])
-    assert(newGraph.get("Child1").get.verificationStatus.isInstanceOf[Outdated[String, String]])
-    assert(newGraph.get("Child2").get.verificationStatus.isInstanceOf[Outdated[String, String]])
-    assert(!newGraph.get("Parent").get.fullyVerified)
-    assert(!newGraph.get("Child1").get.fullyVerified)
-    assert(!newGraph.get("Child2").get.fullyVerified)
-    assert(newGraph.get("Child3").get.verificationStatus.isInstanceOf[Finished[String, String, String]])
-    assert(newGraph.get("Child3").get.fullyVerified)
+    assert(newGraph.get("Parent").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
+    assert(newGraph.get("Child1").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
+    assert(newGraph.get("Child2").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
+//    assert(!newGraph.get("Parent").get.fullyVerified)
+//    assert(!newGraph.get("Child1").get.fullyVerified)
+//    assert(!newGraph.get("Child2").get.fullyVerified)
+    assert(newGraph.get("Child3").get.getVerificationStatus.isInstanceOf[Finished[String, String, String]])
+//    assert(newGraph.get("Child3").get.fullyVerified)
   }
 
   test("Verify node with children") {
-    val node = LNode("New", ProofStep("Spec", "Goal"))
+    val node = LNode("New", ProofStep("Spec", "Goal", Induction()))
     val switchStatusVerifier = MockVerifier(SwitchStatusProver())
     val newGraph = testGraph
       .verifySingle(provedVerifier, "Child1")
       .verifySingle(provedVerifier, "Child2")
-      .addNode(node, Seq(LEdge("Top", "New", Induction)))
+      .addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
       .verifySingle(switchStatusVerifier, "Top")
 
-    assert(newGraph.get("Top").get.verificationStatus.isVerified)
+    assert(newGraph.get("Top").get.getVerificationStatus.isVerified)
   }
 
-  test("Verify node with contradicting proverstati") {
-    val node = LNode("New", ProofStep("Spec", "Goal"))
-    val switchStatusVerifier = MockVerifier(ContradictingStatusProver())
-    val newGraph = testGraph
-      .verifySingle(provedVerifier, "Child1")
-      .verifySingle(provedVerifier, "Child2")
-      .addNode(node, Seq(LEdge("Top", "New", Induction)))
-      .verifySingle(switchStatusVerifier, "Top")
-
-    assert(newGraph.get("Top").get.verificationStatus.isInstanceOf[VerificationFailure[String, String]])
-  }
+  // TODO: currently has no meaning
+//  test("Verify node with contradicting proverstati") {
+//    val node = LNode("New", ProofStep("Spec", "Goal", Induction()))
+//    val switchStatusVerifier = MockVerifier(ContradictingStatusProver())
+//    val newGraph = testGraph
+//      .verifySingle(provedVerifier, "Child1")
+//      .verifySingle(provedVerifier, "Child2")
+//      .addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
+//      .verifySingle(switchStatusVerifier, "Top")
+//
+//    assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[VerificationFailure[String, String]])
+//  }
 
   test("Verify all nodes") {
-    val node1 = LNode("Parent", ProofStep("Spec", "Goal"))
-    val node2 = LNode("New", ProofStep("Spec", "Goal"))
-    val node3 = LNode("Child3", ProofStep("Spec", "Goal"))
+    val node1 = LNode("Parent", ProofStep("Spec", "Goal", Solve()))
+    val node2 = LNode("New", ProofStep("Spec", "Goal", Solve()))
+    val node3 = LNode("Child3", ProofStep("Spec", "Goal", Solve()))
 
     val newGraph = testGraph
-      .addNode(node1, Seq(LEdge("Child1", "Parent", Solve)))
-      .addNode(node3, Seq(LEdge("Top", "Child3", Solve)))
-      .addNode(node2, Seq(LEdge("Child2", "New", Solve), LEdge("Parent", "New", Solve)))
+      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoEdgeLabel)))
+      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoEdgeLabel)))
+      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoEdgeLabel), LEdge("Parent", "New", NoInfoEdgeLabel)))
       .verifyAll(provedVerifier)
 
-    assert(newGraph.get("Parent").get.verificationStatus.isVerified)
-    assert(newGraph.get("New").get.verificationStatus.isVerified)
-    assert(newGraph.get("Child1").get.verificationStatus.isVerified)
-    assert(newGraph.get("Child2").get.verificationStatus.isVerified)
-    assert(newGraph.get("Child3").get.verificationStatus.isVerified)
-    assert(newGraph.get("Parent").get.fullyVerified)
-    assert(newGraph.get("New").get.fullyVerified)
-    assert(newGraph.get("Child1").get.fullyVerified)
-    assert(newGraph.get("Child2").get.fullyVerified)
-    assert(newGraph.get("Child3").get.fullyVerified)
+    assert(newGraph.get("Parent").get.getVerificationStatus.isVerified)
+    assert(newGraph.get("New").get.getVerificationStatus.isVerified)
+    assert(newGraph.get("Child1").get.getVerificationStatus.isVerified)
+    assert(newGraph.get("Child2").get.getVerificationStatus.isVerified)
+    assert(newGraph.get("Child3").get.getVerificationStatus.isVerified)
+    //    assert(newGraph.get("Parent").get.fullyVerified)
+    //    assert(newGraph.get("New").get.fullyVerified)
+    //    assert(newGraph.get("Child1").get.fullyVerified)
+    //    assert(newGraph.get("Child2").get.fullyVerified)
+    //    assert(newGraph.get("Child3").get.fullyVerified)
   }
 
   test("Verify all nodes parallel") {
-    val node1 = LNode("Parent", ProofStep("Spec", "Goal"))
-    val node2 = LNode("New", ProofStep("Spec", "Goal"))
-    val node3 = LNode("Child3", ProofStep("Spec", "Goal"))
+    val node1 = LNode("Parent", ProofStep("Spec", "Goal", Solve()))
+    val node2 = LNode("New", ProofStep("Spec", "Goal", Solve()))
+    val node3 = LNode("Child3", ProofStep("Spec", "Goal", Solve()))
 
     val waitingVerifier = MockVerifier(WaitingProver())
     val newGraph = testGraph
-      .addNode(node1, Seq(LEdge("Child1", "Parent", Solve)))
-      .addNode(node3, Seq(LEdge("Top", "Child3", Solve)))
-      .addNode(node2, Seq(LEdge("Child2", "New", Solve), LEdge("Parent", "New", Solve)))
+      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoEdgeLabel)))
+      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoEdgeLabel)))
+      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoEdgeLabel), LEdge("Parent", "New", NoInfoEdgeLabel)))
       .verifyAllPar(waitingVerifier)
 
-    assert(newGraph.get("Parent").get.verificationStatus.isVerified)
-    assert(newGraph.get("New").get.verificationStatus.isVerified)
-    assert(newGraph.get("Child1").get.verificationStatus.isVerified)
-    assert(newGraph.get("Child2").get.verificationStatus.isVerified)
-    assert(newGraph.get("Child3").get.verificationStatus.isVerified)
-    assert(newGraph.get("Parent").get.fullyVerified)
-    assert(newGraph.get("New").get.fullyVerified)
-    assert(newGraph.get("Child1").get.fullyVerified)
-    assert(newGraph.get("Child2").get.fullyVerified)
-    assert(newGraph.get("Child3").get.fullyVerified)
+    assert(newGraph.get("Parent").get.getVerificationStatus.isVerified)
+    assert(newGraph.get("New").get.getVerificationStatus.isVerified)
+    assert(newGraph.get("Child1").get.getVerificationStatus.isVerified)
+    assert(newGraph.get("Child2").get.getVerificationStatus.isVerified)
+    assert(newGraph.get("Child3").get.getVerificationStatus.isVerified)
+//    assert(newGraph.get("Parent").get.fullyVerified)
+//    assert(newGraph.get("New").get.fullyVerified)
+//    assert(newGraph.get("Child1").get.fullyVerified)
+//    assert(newGraph.get("Child2").get.fullyVerified)
+//    assert(newGraph.get("Child3").get.fullyVerified)
   }
 }
 
@@ -185,7 +182,7 @@ case class MockVerifier(prover: Prover[String]) extends Verifier[String, String]
   override type V = this.type
   override val transformer: GenSeq[Transformer[String, String, MockVerifier.this.type]] = Seq()
   override val provers: GenSeq[Prover[MockVerifier.this.type]] = Seq()
-  override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve)
+  override val supportedStrategies: Seq[VerificationStrategy[String, String]] = Seq(Solve())
 
   /**
     * combine calling all transformers with all provers and compose results into a single VerificationStatus
@@ -196,50 +193,54 @@ case class MockVerifier(prover: Prover[String]) extends Verifier[String, String]
     * @param strat      overall abstract strategy to be used for the current step
     * @return Verification summary
     */
-  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy): VerificationStatus = Finished(prover.callProver(), MockTransformer(), this)
+  override def verify(spec: String, hypotheses: Seq[(EdgeLabel, String)], goal: String, strat: VerificationStrategy[String, String]): VerificationStatus =
+    // TODO: usedEdges cannot be passed because we only have the used goals
+    Finished(Map(VerificationConfiguration(MockTransformer(), strat, prover, Nil, this) -> prover.callProver()))
 }
 
 
 case class MockProver() extends Prover[String]("") {
-  override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve)
+  override def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]] = ???
 
-  override def callProver(): ProverStatus = Proved(this)
+  override def callProver(): ProverStatus = Proved("")
+
 }
 
 case class SwitchStatusProver() extends Prover[String]("") {
   var count = -1
-  override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve, Induction)
+  override def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]] = ???
 
   override def callProver(): ProverStatus = {
     count = count + 1
     if (count == 0)
-      Proved(this)
+      Proved("")
     else
-      Inconclusive
+      Inconclusive("")
   }
 }
 
 case class ContradictingStatusProver() extends Prover[String]("") {
   var count = -1
-  override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve, Induction)
+  override def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]] = ???
 
   override def callProver(): ProverStatus = {
     count = count + 1
     if (count == 0)
-      Proved(this)
+      Proved("")
     else
-      Disproved(this)
+      Disproved("")
   }
+
 }
 
 case class WaitingProver() extends Prover[String]("") {
-  override val supportedStrategies: Seq[VerificationStrategy] = Seq(Solve, Induction)
+  override def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]] = ???
 
   override def callProver(): ProverStatus = {
     val rnd = new Random()
     val waiting = rnd.nextInt(3000)
     Thread.sleep(waiting)
-    Proved(this)
+    Proved("")
   }
 }
 

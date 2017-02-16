@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas
 
-import quiver.{LEdge, LNode}
+import quiver.{Graph, LEdge, LNode}
 
 /**
   * Created by sylvia on 19/01/17.
@@ -9,6 +9,7 @@ import quiver.{LEdge, LNode}
 package object VerificationInfrastructure {
 
   type ProofNode[S, P] = LNode[String, ProofStep[S, P]]
-  type VerificationEdge = LEdge[String, VerificationStrategy]
+  type VerificationEdge = LEdge[String, EdgeLabel]
+  type InternalGraph[S, P] = Graph[String, ProofStep[S, P], EdgeLabel]
 
 }
