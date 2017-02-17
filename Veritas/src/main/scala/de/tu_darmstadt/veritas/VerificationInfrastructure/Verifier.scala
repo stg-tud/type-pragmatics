@@ -8,7 +8,6 @@ import scala.collection.GenSeq
   * Verifiers "manage" verification attempts (i.e. compiling the problem, calling one or more provers,
   * starting/stopping a proof attempt...)
   *
-  * //TODO should this rather be a concrete case class?
   */
 abstract class Verifier[S, P] {
   type V //Representation of Verification format
@@ -17,7 +16,6 @@ abstract class Verifier[S, P] {
   val supportedStrategies: Seq[VerificationStrategy[S, P]] //general verification strategies that the provers can be called with
   // TODO: compute intersection of strategies that are supported
 
-  //TODO: calls to prover can fail - maybe include exception propagation
   /**
     * combine calling all transformers with all provers and compose results into a single VerificationStatus
     * @param spec specification axioms/definitions

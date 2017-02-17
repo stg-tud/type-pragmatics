@@ -1,42 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import scala.collection.GenSeq
-
 import quiver._
-
-/**
-  * status of a particular verification attempt (for a node/leaf in a proof tree)
-  *
-  */
-sealed trait VerificationStatus {
-  val isVerified: Boolean = false
-}
-
-case object NotStarted extends VerificationStatus
-
-case class Outdated[S, P](prevs: VerificationStatus, previousProofGraph: ProofGraph[S, P]) extends VerificationStatus
-
-case class Finished[S, P, V](report: Map[VerificationConfiguration[S, P, V], ProverStatus]) extends VerificationStatus {
-  private def bestAttempt(): (VerificationConfiguration[S, P, V], ProverStatus) = {
-    def sortByProverStatus(ps: ProverStatus): Int = ps match {
-      // proved <- disproved <- inconclusive <- ProverFailure
-      case Proved(_) => 0
-      case Disproved(_) => 1
-      case Inconclusive(_) => 3
-      case ProverFailure(_) => 4
-    }
-    report.toSeq.sortBy{ case (_, ps) => sortByProverStatus(ps) }.head
-  }
-
-  // TODO: not sure if it should be def or val because it is immutable. more leaning to val
-  val bestConf: VerificationConfiguration[S, P, V] = bestAttempt()._1
-
-  val bestStatus: ProverStatus = bestAttempt()._2
-
-  override val isVerified = bestStatus.isVerified
-}
-
-case class VerificationFailure[S, P](errorMessage: String, usedVerifier: Verifier[S, P]) extends VerificationStatus
 
 class ProofGraph[S, P] {
 
@@ -45,6 +9,7 @@ class ProofGraph[S, P] {
   protected val graph: InternalGraph[S, P] = mkGraph(Seq(), Seq())
 
   //all valid proof graphs have to be acyclic
+  // Why comment this? Does it not work?
 //  require(!graph.hasLoop)
 
   /**
@@ -116,11 +81,11 @@ class ProofGraph[S, P] {
   /**
     * change the strategy of a particular verification edge
     * @param edge
-    * @param newStrategy
+    * @param newEdgeLabel
     * @return
     */
-  def updateEdge(edge: VerificationEdge, newStrategy: EdgeLabel): ProofGraph[S, P] = {
-    val updatedEdge = LEdge(edge.from, edge.to, newStrategy)
+  def updateEdge(edge: VerificationEdge, newEdgeLabel: EdgeLabel): ProofGraph[S, P] = {
+    val updatedEdge = LEdge(edge.from, edge.to, newEdgeLabel)
     val updatedGraph = graph.updateEdge(updatedEdge)
     val originNode = LNode(edge.from, updatedGraph.label(edge.from).get)
     val transitiveParents = getParentPaths(originNode, updatedGraph)
@@ -162,6 +127,8 @@ class ProofGraph[S, P] {
     updateNode(nodename, updatedNode.label)
   }
 
+  //TODO There seems to be some redundancy with the code from above - is this necessary?
+  // e.g. verifyNode computes again the focusedGraph etc.
   private def verifyNode(verifier: Verifier[S, P], node: ProofNode[S, P]): ProofNode[S, P] = {
     val focusedGraph = graph.context(node.vertex)
     val step = node.label
@@ -201,6 +168,8 @@ class ProofGraph[S, P] {
   }
 
   /**
+    * //TODO modify this implementation: take usedEdges from best verification configuration into account for determining which node to call!
+    * //also, verifyAll could be lazy: if there is already a finished verification status, don't recompute!
     * try to verify the entire tree
     * @param verifier
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
@@ -208,6 +177,7 @@ class ProofGraph[S, P] {
   def verifyAll(verifier: Verifier[S, P]): ProofGraph[S, P] = {
     val roots = graph.roots.toSeq
     // verification order is children before parents to correctly compute fullyVerified
+    //TODO the above does not matter anymore, right? since fullyVerified became a def now...?
     val nodes = graph.bfsn(roots).reverse
     val verifiedGraph = nodes.foldLeft(graph) { case (g, nodename) =>
         ProofGraph(g).verifySingle(verifier, nodename).graph

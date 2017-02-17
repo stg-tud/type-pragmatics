@@ -21,8 +21,6 @@ case class ProverFailure(proverLog: String) extends ProverStatus
 /**
   * Interface for concrete provers
   */
-// TODO need a transformer otherwise we can not create a ProverStatus object
-// -> why? can we somehow separate this? Prover should not have to care about transforming a problem...
 abstract class Prover[+V](problem: V) {
 
   def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]]

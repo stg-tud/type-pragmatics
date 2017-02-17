@@ -41,8 +41,8 @@ case class Induction[S, P]() extends VerificationStrategy[S, P] {
 //TODO which other abstract strategies are there for verifying proof trees?
 
 case class VerificationConfiguration[S, P, V](
-  val transformer: Transformer[S, P, V],
-  val strat: VerificationStrategy[S, P],
-  val prover: Prover[V],
-  val usedEdges: Seq[(EdgeLabel, ProofStep[S, P])],
-  val verifier: Verifier[S, P])
+  transformer: Transformer[S, P, V],
+  strat: VerificationStrategy[S, P],
+  prover: Prover[V],
+  usedEdges: Seq[(EdgeLabel, ProofStep[S, P])],
+  verifier: Verifier[S, P])
