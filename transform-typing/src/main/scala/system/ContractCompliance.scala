@@ -8,19 +8,19 @@ import scala.collection.immutable.ListMap
 /*
  * Wellformedness checks ensure that calls to transformations only occur with arguments satisfying the contract.
  */
-object Wellformedness {
+object ContractCompliance {
 
   type FormednessCheck = (Symbol, Seq[Judg])
 
-  def wellformedTrans(trans: Transformation): Seq[ProofObligation] = {
+  def complianceTrans(trans: Transformation): Seq[ProofObligation] = {
     implicit val gensym = new Gensym
     val otherContracts = trans.lang.transs.map(t => t.contractedSym -> (t.contract._1.fresh, t.contract._2)).toMap
     val (contract, pos) = (trans.contract._1.fresh, trans.contract._2)
     val contracts = otherContracts + (trans.contractedSym -> (contract, pos))
-    val wfRewrites = trans.rewrites.zipWithIndex.flatMap { case (r, i) => wellformedRewrite(r, i, contract, pos, contracts, trans) }
-    val wfContract = wellformedRule(trans.contract._1, 0, Some(trans.contractedSym), contracts, trans)
+    val wfRewrites = trans.rewrites.zipWithIndex.flatMap { case (r, i) => complianceRewrite(r, i, contract, pos, contracts, trans) }
+    val wfContract = complianceRule(trans.contract._1, 0, Some(trans.contractedSym), contracts, trans)
     val wfLemmas = trans.lemmas.zipWithIndex.flatMap { case (lem, ix) =>
-      wellformedRule(lem._1, ix+1, None, contracts, trans)
+      complianceRule(lem._1, ix+1, None, contracts, trans)
     }
     wfRewrites ++ wfContract ++ wfLemmas
   }
@@ -29,8 +29,8 @@ object Wellformedness {
   /*
    * Transformation calls in the rules conclusion and premises must be well-formed given the rule's premises
    */
-  def wellformedRule(r: Rule, rnum: Int, skipSymbol: Option[Symbol], contracts: Map[Symbol, (Rule, Int)], trans: Transformation)(implicit gensym: Gensym): Seq[ProofObligation] = {
-    val checks = wellformedJudg(r.conclusion, contracts) ++ r.premises.flatMap(wellformedJudg(_, contracts))
+  def complianceRule(r: Rule, rnum: Int, skipSymbol: Option[Symbol], contracts: Map[Symbol, (Rule, Int)], trans: Transformation)(implicit gensym: Gensym): Seq[ProofObligation] = {
+    val checks = complianceJudg(r.conclusion, contracts) ++ r.premises.flatMap(complianceJudg(_, contracts))
 
     val ruleVars = r.conclusion.freevars ++ r.premises.flatMap(_.freevars)
 
@@ -45,8 +45,8 @@ object Wellformedness {
   /*
    * Transformation calls in the rewrite template have to be well-formed assuming the rewrite's contract holds
    */
-  def wellformedRewrite(r: Rewrite, rnum: Int, contract: Rule, pos: Int, contracts: Map[Symbol, (Rule, Int)], trans: Transformation)(implicit gensym: Gensym): Seq[ProofObligation] = {
-    val checks = wellformedTerm(r.gen, contracts)
+  def complianceRewrite(r: Rewrite, rnum: Int, contract: Rule, pos: Int, contracts: Map[Symbol, (Rule, Int)], trans: Transformation)(implicit gensym: Gensym): Seq[ProofObligation] = {
+    val checks = complianceTerm(r.gen, contracts)
 
     val (conclusion, premises) = contract.contractedTerm(pos).matchAgainst(r.pat) match {
       case (s, diff, _) if diff.isEmpty =>
@@ -64,22 +64,22 @@ object Wellformedness {
     }
   }
 
-  def wellformedJudg(j: Judg, contracts: Map[Symbol, (Rule, Int)])(implicit gensym: Gensym): Seq[FormednessCheck] =
-    j.terms.foldLeft(Seq[FormednessCheck]())((seq, t) => seq ++ wellformedTerm(t, contracts))
+  def complianceJudg(j: Judg, contracts: Map[Symbol, (Rule, Int)])(implicit gensym: Gensym): Seq[FormednessCheck] =
+    j.terms.foldLeft(Seq[FormednessCheck]())((seq, t) => seq ++ complianceTerm(t, contracts))
 
 
-  def wellformedTerm(t: Term, contracts: Map[Symbol, (Rule, Int)])(implicit gensym: Gensym): Seq[FormednessCheck] = t match {
+  def complianceTerm(t: Term, contracts: Map[Symbol, (Rule, Int)])(implicit gensym: Gensym): Seq[FormednessCheck] = t match {
     case v: Var => Seq()
     case t@App(sym, kids) =>
-      val subs = kids.foldLeft(Seq[FormednessCheck]())((seq, t) => seq ++ wellformedTerm(t, contracts))
+      val subs = kids.foldLeft(Seq[FormednessCheck]())((seq, t) => seq ++ complianceTerm(t, contracts))
       contracts.get(sym) match {
         case None => subs
         case Some((contract, pos)) =>
-          wellformedTransCall(contract, pos, t).toSeq ++ subs
+          complianceTransCall(contract, pos, t).toSeq ++ subs
       }
   }
 
-  def wellformedTransCall(contract: Rule, pos: Int, app: App)(implicit gensym: Gensym): Option[FormednessCheck] = {
+  def complianceTransCall(contract: Rule, pos: Int, app: App)(implicit gensym: Gensym): Option[FormednessCheck] = {
     if (contract.premises.isEmpty)
       return None
     contract.contractedTerm(pos).matchAgainst(app) match {

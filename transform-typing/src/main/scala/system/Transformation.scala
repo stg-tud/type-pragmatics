@@ -83,7 +83,7 @@ abstract class Transformation(val lang: Language) {
 
   val wellformednessTimeout = 30
   val wellformednessMode = "casc"
-  lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = Wellformedness.wellformedTrans(this).toStream.map(_.optimized)
+  lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = ContractCompliance.complianceTrans(this).toStream.map(_.optimized)
   lazy val wellformednessResults = wellformednessObligations.map(_.map(Verification.verify(_, wellformednessMode, wellformednessTimeout)))
   lazy val isWellformed = wellformednessResults.flatten.forall(_.status == Proved)
   def wellformednessFailed = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
