@@ -663,208 +663,208 @@ object SQLDefs {
     Seq(Tinv, TinvSelectSomeFromWhere, TinvUnion, TinvIntersection, TinvDifference))
 
 
-//  //module sql.SoundnessAuxDefs
-//
-//  //import sql.Tables
-//  //import sql.TStore
-//  //import sql.Syntax
-//  //  import sql.TContext
-//  //  import sql.TypeSystem
-//
-//  // determines whether a given TTContext is consistent with a given TStore
-//  // and whether the table in the store is well-typed with regard to the table type in the context
-//  // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
-//  val StoreContextConsistent = function('StoreContextConsistent.>>('TStore, 'TTContext) -> 'Bool) where
-//    ('StoreContextConsistent ('emptyStore, 'emptyContext) := true) |
-//      ('StoreContextConsistent ('bindStore ('tn1, 't, 'tsr), 'bindContext ('tn2, 'tt, 'ttcr)) :=
-//        (('tn1 === 'tn2) && 'welltypedtable ('tt, 't)) && 'StoreContextConsistent ('tsr, 'ttcr)) |
-//      ('StoreContextConsistent ('ts, 'ttc) := false)
-//
-//  val SoundnessAuxDefs = Module("SoundnessAuxDefs", Seq(Resolved(Tables), Resolved(TStore), Resolved(Syntax), Resolved(TContext), Resolved(TypeSystem)),
-//    Seq(StoreContextConsistent))
-//
-//  //module sql.Progress
-//
-//  //import sql.Tables
-//  //import sql.TStore
-//  //import sql.Syntax
-//  //import sql.Semantics
-//  //import sql.TContext
-//  //import sql.TypeSystem
-//  //import sql.TypeSystemInv
-//  //import sql.SoundnessAuxDefs
-//
-//
-//  //prove progress by induction on the typing derivation of an sql command
-//  //for union/intersection/difference, you actually need induction on typing derivations!
-//  //(because of type equality...)
-//
-//  //strategy induction-Progress {
-//
-//  val SQLProgressTtvalue = goal(
-//    ((~'q === 'tvalue (~'t)) &
-//      (!'isValue (~'q)) &
-//      (~'TTC |- ~'q :: ~'TT) &
-//      'StoreContextConsistent (~'TS, ~'TTC)
-//      ).===>("SQL-Progress-T-tvalue")(
-//      exists(~'qo) |
-//        ('reduce (~'q, ~'TS) === 'someQuery (~'qo))
-//    ))
-//
-//  val SQLProgressTselectFromWhere = goal(
-//    ((~'q === 'selectFromWhere (~'s, ~'tn, ~'p)) &
-//      (!'isValue (~'q)) &
-//      (~'TTC |- ~'q :: ~'TT) &
-//      'StoreContextConsistent (~'TS, ~'TTC)
-//      ).===>("SQL-Progress-T-selectFromWhere-test")(
-//      exists(~'qo) |
-//        ('reduce (~'q, ~'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val unionconsts = consts('q1 ::> 'Query,
-//    'q2 ::> 'Query,
-//    'TS ::> 'TStore,
-//    'TTC ::> 'TTContext,
-//    'TT ::> 'TType)
-//
-//  val SQLProgressTUnionIH1 = axiom(
-//    ((!'isValue ('q1)) &
-//      ('TTC |- 'q1 :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Union-IH1")(
-//      exists(~'qo) |
-//        ('reduce ('q1, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val SQLProgressTUnionIH2 = axiom(
-//    ((!'isValue ('q2)) &
-//      ('TTC |- 'q2 :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Union-IH2")(
-//      exists(~'qo) |
-//        ('reduce ('q2, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val SQLProgressTUnion = goal(
-//    ((~'q === 'Union ('q1, 'q2)) &
-//      (!'isValue (~'q)) &
-//      ('TTC |- ~'q :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Union")(
-//      exists(~'qo) |
-//        ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val localblockunion = local(unionconsts, SQLProgressTUnionIH1, SQLProgressTUnionIH2, SQLProgressTUnion)
-//
-//
-//  val intersectionconsts = consts('q1 ::> 'Query,
-//    'q2 ::> 'Query,
-//    'TS ::> 'TStore,
-//    'TTC ::> 'TTContext,
-//    'TT ::> 'TType)
-//
-//  val SQLProgressTIntersectionIH1 = axiom(
-//    ((!'isValue ('q1)) &
-//      ('TTC |- 'q1 :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Intersection-IH1")(
-//      exists(~'qo) |
-//        ('reduce ('q1, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val SQLProgressTIntersectionIH2 = axiom(
-//    ((!'isValue ('q2)) &
-//      ('TTC |- 'q2 :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Intersection-IH2")(
-//      exists(~'qo) |
-//        ('reduce ('q2, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val SQLProgressTIntersection = goal(
-//    ((~'q === 'Intersection ('q1, 'q2)) &
-//      (!'isValue (~'q)) &
-//      ('TTC |- ~'q :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Intersection")(
-//      exists(~'qo) |
-//        ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val localblockintersection = local(intersectionconsts, SQLProgressTIntersectionIH1, SQLProgressTIntersectionIH2, SQLProgressTIntersection)
-//
-//  val differenceconsts = consts('q1 ::> 'Query,
-//    'q2 ::> 'Query,
-//    'TS ::> 'TStore,
-//    'TTC ::> 'TTContext,
-//    'TT ::> 'TType)
-//
-//  val SQLProgressTDifferenceIH1 = axiom(
-//    ((!'isValue ('q1)) &
-//      ('TTC |- 'q1 :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Difference-IH1")(
-//      exists(~'qo) |
-//        ('reduce ('q1, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val SQLProgressTDifferenceIH2 = axiom(
-//    ((!'isValue ('q2)) &
-//      ('TTC |- 'q2 :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Difference-IH2")(
-//      exists(~'qo) |
-//        ('reduce ('q2, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val SQLProgressTDifference = goal(
-//    ((~'q === 'Difference ('q1, 'q2)) &
-//      (!'isValue (~'q)) &
-//      ('TTC |- ~'q :: 'TT) &
-//      'StoreContextConsistent ('TS, 'TTC)
-//      ).===>("SQL-Progress-T-Difference")(
-//      exists(~'qo) |
-//        ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
-//  )
-//
-//  val localblockdifference = local(differenceconsts, SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2, SQLProgressTDifference)
-//
-//  val ha = hideall
-//
-//  val SQLProgressind = axiom(
-//    ((!'isValue(~'q)) &
-//      (~'TTC |- ~'q :: ~'TT) &
-//      'StoreContextConsistent (~'TS, ~'TTC)
-//      ).===>("SQL-Progress-ind")(
-//    exists (~'qo) |
-//      ('reduce(~'q, ~'TS) === 'someQuery(~'qo)))
-//  )
-//
-//  val strategy_inductionProgress = strategy("induction-Progress")(
-//    SQLProgressTtvalue,
-//    SQLProgressTselectFromWhere,
-//    localblockunion,
-//    localblockintersection,
-//    localblockdifference,
-//    ha,
-//    SQLProgressind
-//  )
-//
-//
-//  //final progress theorem
-//  val SQLProgress = goal_verifywith("induction-Progress")(
-//    ((!'isValue (~'q)) &
-//      (~'TTC |- ~'q :: ~'TT) &
-//      'StoreContextConsistent (~'TS, ~'TTC)
-//      ).===>("SQL-Progress")(
-//      exists (~'qo) |
-//        ('reduce (~'q, ~'TS) === 'someQuery (~'qo)))
-//  )
-//
-//
-//  val Progress = Module("Progress", Seq(Resolved(Tables), Resolved(TStore), Resolved(Syntax),
-//    Resolved(Semantics), Resolved(TContext), Resolved(TypeSystem), Resolved(TypeSystemInv), Resolved(SoundnessAuxDefs)),
-//    Seq(strategy_inductionProgress, SQLProgress))
+  //module sql.SoundnessAuxDefs
+
+  //import sql.Tables
+  //import sql.TStore
+  //import sql.Syntax
+  //  import sql.TContext
+  //  import sql.TypeSystem
+
+  // determines whether a given TTContext is consistent with a given TStore
+  // and whether the table in the store is well-typed with regard to the table type in the context
+  // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
+  val StoreContextConsistent = function('StoreContextConsistent.>>('TStore, 'TTContext) -> 'Bool) where
+    ('StoreContextConsistent ('emptyStore, 'emptyContext) := true) |
+      ('StoreContextConsistent ('bindStore ('tn1, 't, 'tsr), 'bindContext ('tn2, 'tt, 'ttcr)) :=
+        (('tn1 === 'tn2) && 'welltypedtable ('tt, 't)) && 'StoreContextConsistent ('tsr, 'ttcr)) |
+      ('StoreContextConsistent ('ts, 'ttc) := false)
+
+  val SoundnessAuxDefs = Module("SoundnessAuxDefs", Seq(Resolved(Tables), Resolved(TStore), Resolved(Syntax), Resolved(TContext), Resolved(TypeSystem)),
+    Seq(StoreContextConsistent))
+
+  //module sql.Progress
+
+  //import sql.Tables
+  //import sql.TStore
+  //import sql.Syntax
+  //import sql.Semantics
+  //import sql.TContext
+  //import sql.TypeSystem
+  //import sql.TypeSystemInv
+  //import sql.SoundnessAuxDefs
+
+
+  //prove progress by induction on the typing derivation of an sql command
+  //for union/intersection/difference, you actually need induction on typing derivations!
+  //(because of type equality...)
+
+  //strategy induction-Progress {
+
+  val SQLProgressTtvalue = goal(
+    ((~'q === 'tvalue (~'t)) &
+      (!'isValue (~'q)) &
+      (~'TTC |- ~'q :: ~'TT) &
+      'StoreContextConsistent (~'TS, ~'TTC)
+      ).===>("SQL-Progress-T-tvalue")(
+      exists(~'qo) |
+        ('reduce (~'q, ~'TS) === 'someQuery (~'qo))
+    ))
+
+  val SQLProgressTselectFromWhere = goal(
+    ((~'q === 'selectFromWhere (~'s, ~'tn, ~'p)) &
+      (!'isValue (~'q)) &
+      (~'TTC |- ~'q :: ~'TT) &
+      'StoreContextConsistent (~'TS, ~'TTC)
+      ).===>("SQL-Progress-T-selectFromWhere-test")(
+      exists(~'qo) |
+        ('reduce (~'q, ~'TS) === 'someQuery (~'qo)))
+  )
+
+  val unionconsts = consts('q1 ::> 'Query,
+    'q2 ::> 'Query,
+    'TS ::> 'TStore,
+    'TTC ::> 'TTContext,
+    'TT ::> 'TType)
+
+  val SQLProgressTUnionIH1 = axiom(
+    ((!'isValue ('q1)) &
+      ('TTC |- 'q1 :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Union-IH1")(
+      exists(~'qo) |
+        ('reduce ('q1, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val SQLProgressTUnionIH2 = axiom(
+    ((!'isValue ('q2)) &
+      ('TTC |- 'q2 :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Union-IH2")(
+      exists(~'qo) |
+        ('reduce ('q2, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val SQLProgressTUnion = goal(
+    ((~'q === 'Union ('q1, 'q2)) &
+      (!'isValue (~'q)) &
+      ('TTC |- ~'q :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Union")(
+      exists(~'qo) |
+        ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val localblockunion = local(unionconsts, SQLProgressTUnionIH1, SQLProgressTUnionIH2, SQLProgressTUnion)
+
+
+  val intersectionconsts = consts('q1 ::> 'Query,
+    'q2 ::> 'Query,
+    'TS ::> 'TStore,
+    'TTC ::> 'TTContext,
+    'TT ::> 'TType)
+
+  val SQLProgressTIntersectionIH1 = axiom(
+    ((!'isValue ('q1)) &
+      ('TTC |- 'q1 :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Intersection-IH1")(
+      exists(~'qo) |
+        ('reduce ('q1, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val SQLProgressTIntersectionIH2 = axiom(
+    ((!'isValue ('q2)) &
+      ('TTC |- 'q2 :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Intersection-IH2")(
+      exists(~'qo) |
+        ('reduce ('q2, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val SQLProgressTIntersection = goal(
+    ((~'q === 'Intersection ('q1, 'q2)) &
+      (!'isValue (~'q)) &
+      ('TTC |- ~'q :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Intersection")(
+      exists(~'qo) |
+        ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val localblockintersection = local(intersectionconsts, SQLProgressTIntersectionIH1, SQLProgressTIntersectionIH2, SQLProgressTIntersection)
+
+  val differenceconsts = consts('q1 ::> 'Query,
+    'q2 ::> 'Query,
+    'TS ::> 'TStore,
+    'TTC ::> 'TTContext,
+    'TT ::> 'TType)
+
+  val SQLProgressTDifferenceIH1 = axiom(
+    ((!'isValue ('q1)) &
+      ('TTC |- 'q1 :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Difference-IH1")(
+      exists(~'qo) |
+        ('reduce ('q1, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val SQLProgressTDifferenceIH2 = axiom(
+    ((!'isValue ('q2)) &
+      ('TTC |- 'q2 :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Difference-IH2")(
+      exists(~'qo) |
+        ('reduce ('q2, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val SQLProgressTDifference = goal(
+    ((~'q === 'Difference ('q1, 'q2)) &
+      (!'isValue (~'q)) &
+      ('TTC |- ~'q :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Difference")(
+      exists(~'qo) |
+        ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
+  )
+
+  val localblockdifference = local(differenceconsts, SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2, SQLProgressTDifference)
+
+  val ha = hideall
+
+  val SQLProgressind = axiom(
+    ((!'isValue(~'q)) &
+      (~'TTC |- ~'q :: ~'TT) &
+      'StoreContextConsistent (~'TS, ~'TTC)
+      ).===>("SQL-Progress-ind")(
+    exists (~'qo) |
+      ('reduce(~'q, ~'TS) === 'someQuery(~'qo)))
+  )
+
+  val strategy_inductionProgress = strategy("induction-Progress")(
+    SQLProgressTtvalue,
+    SQLProgressTselectFromWhere,
+    localblockunion,
+    localblockintersection,
+    localblockdifference,
+    ha,
+    SQLProgressind
+  )
+
+
+  //final progress theorem
+  val SQLProgress = goal_verifywith("induction-Progress")(
+    ((!'isValue (~'q)) &
+      (~'TTC |- ~'q :: ~'TT) &
+      'StoreContextConsistent (~'TS, ~'TTC)
+      ).===>("SQL-Progress")(
+      exists (~'qo) |
+        ('reduce (~'q, ~'TS) === 'someQuery (~'qo)))
+  )
+
+
+  val Progress = Module("Progress", Seq(Resolved(Tables), Resolved(TStore), Resolved(Syntax),
+    Resolved(Semantics), Resolved(TContext), Resolved(TypeSystem), Resolved(TypeSystemInv), Resolved(SoundnessAuxDefs)),
+    Seq(strategy_inductionProgress, SQLProgress))
 
 }
