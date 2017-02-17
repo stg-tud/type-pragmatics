@@ -7,7 +7,7 @@ object Syntax {
   // sorts
   sort(Name)
   sort(Prop)
-  val Num = sort(Sort("Num", open = true))
+  val Num = sort(Sort("Num", abstractEnum = true))
   val Typ = sort("Typ")
   val Ctx = sort("Ctx")
   val Exp = sort("Exp")

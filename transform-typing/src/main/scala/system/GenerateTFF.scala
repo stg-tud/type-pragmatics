@@ -55,6 +55,8 @@ object GenerateTFF {
     case TRUE => fof.True
     case AND => Parenthesized(fof.And(Seq(compilePropTerm(judg.terms(0)), compilePropTerm(judg.terms(1)))))
     case OR => Parenthesized(fof.Or(Seq(compilePropTerm(judg.terms(0)), compilePropTerm(judg.terms(1)))))
+    case XOR => Parenthesized(fof.Xor(Seq(compilePropTerm(judg.terms(0)), compilePropTerm(judg.terms(1)))))
+    case NOT => Parenthesized(fof.Not(compilePropTerm(judg.terms(0))))
     case sym if sym.isExists => fof.Exists(Seq(compileVar(judg.terms(0).asInstanceOf[Var], true)), compilePropTerm(judg.terms(1)))
     case _ =>
       val kids = judg.terms.map(compileTerm(_))

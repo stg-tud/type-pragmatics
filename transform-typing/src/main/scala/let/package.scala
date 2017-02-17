@@ -11,7 +11,7 @@ package object let {
     Judg(Typed, "C"~Ctx, let("x"~Name, "e1"~Exp, "e2"~Exp), "T"~Typ),
     // if ----------------
     Judg(Typed, "C"~Ctx, "e1"~Exp, "T1"~Typ),
-    Judg(Typed, bind("C"~Ctx, "x"~Name, "T1"~Typ), "e"~Exp, "T"~Typ)
+    Judg(Typed, bind("C"~Ctx, "x"~Name, "T1"~Typ), "e2"~Exp, "T"~Typ)
   )
 
   object let_ext extends LanguageExtension("let-ext", Seq(), Seq(let), Seq(Typed_let))

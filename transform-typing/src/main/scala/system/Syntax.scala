@@ -10,22 +10,22 @@ object Syntax {
   }
 
   sealed trait ISort {
-    val open: Boolean
+    val abstractEnum: Boolean
     val name: String
     override def toString: Error = name
   }
 
-  case class Sort(name: String, open: Boolean = false) extends ISort {
+  case class Sort(name: String, abstractEnum: Boolean = false) extends ISort {
     assert(name != "Prop" && name != "Name", s"Must not construct sort with reserved name Prop or Name, in $name")
   }
 
   case object Prop extends ISort {
-    val open = false
+    val abstractEnum = false
     override val name: String = "Prop"
   }
 
   case object Name extends ISort {
-    val open = true
+    val abstractEnum = true
     override val name: String = "Name"
   }
 
@@ -55,6 +55,8 @@ object Syntax {
   def EXISTS(sort: ISort) = Symbol("EXISTS"+sort.name, in = List(sort, Prop), out = Prop)
   val AND = Symbol("AND", in = List(Prop, Prop), out = Prop)
   val OR = Symbol("OR", in = List(Prop, Prop), out = Prop)
+  val XOR = Symbol("XOR", in = List(Prop, Prop), out = Prop)
+  val NOT = Symbol("NOT", in = List(Prop), out = Prop)
 
   def mkExists(vs: Seq[Var], t: Term): Term = vs.foldRight(t)((v, t) => EXISTS(v.sort)(v, t))
 
@@ -67,6 +69,12 @@ object Syntax {
     if (ps.isEmpty) FALSE()
     else if (ps.tail.isEmpty) ps.head
     else OR(ps.head, mkOr(ps.tail))
+
+  def mkXor(ps: Seq[Term]): Term =
+    if (ps.isEmpty) FALSE()
+    else if (ps.tail.isEmpty) ps.head
+    else XOR(ps.head, mkXor(ps.tail))
+
 
   type Subst = Map[Var, Term]
   type Diff = Seq[(Term, Term)]

@@ -46,6 +46,10 @@ object Or {
   def unapply(e: Or): Option[Seq[FofUnitary]] = Some(e.args)
 }
 
+final case class Xor private (val args: Seq[FofUnitary]) extends FofBinaryAssoc(args, " <~> ") {
+  override def toString = args.mkString("Xor(", ", ", ")")
+}
+
 final class And private (val args: Seq[FofUnitary]) extends FofBinaryAssoc(args, " & ") {
   override def toString = args.mkString("And(", ", ", ")")
 }

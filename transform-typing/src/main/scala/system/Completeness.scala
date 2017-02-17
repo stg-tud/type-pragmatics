@@ -15,9 +15,14 @@ object Completeness {
     val pos = trans.contract._2
     val inputs = freshContract.contractedTerm(pos).kids
 
-    val rewriteConds = trans.rewrites.map(completenessRewrite(_, inputs))
-    val goal = mkOr(rewriteConds).asInstanceOf[App].toJudg
     val premises = freshContract.premises
+    val rewriteConds = trans.rewrites.map(completenessRewrite(_, inputs))
+
+    val atLeastOne = mkOr(rewriteConds).asInstanceOf[App].toJudg
+    val noOverlap: Seq[Judg] =
+      for (i <- 0 until rewriteConds.size;
+           j <- i+1 until rewriteConds.size)
+        yield OR(NOT(rewriteConds(i)), NOT(rewriteConds(j))).toJudg
 
 
     ProofObligation(
@@ -28,7 +33,7 @@ object Completeness {
       Seq(),
       Some(trans),
       premises,
-      goals = Seq(goal),
+      goals = atLeastOne +: noOverlap,
       gensym)
   }
 

@@ -48,38 +48,6 @@ object Statics {
     Judg(notin(Ctx), Var("x", Name), Var("C2", Ctx))
   ))
 
-  val Notin_ref = rule("Notin-ref",
-    Judg(notin(Exp), "x"~Name, ref("y"~Name)),
-    // if ----------------
-    Judg(neq(Name), Var("x", Name), Var("y", Name))
-  )
-  val Notin_num = rule("Notin-num",
-    Judg(notin(Exp), "x"~Name, num("n"~Num))
-    // if ----------------
-  )
-  val Notin_add = rule("Notin-add",
-    Judg(notin(Exp), "x"~Name, add("e1"~Exp, "e2"~Exp)),
-    // if ----------------
-    Judg(notin(Exp), "x"~Name, "e1"~Exp),
-    Judg(notin(Exp), "x"~Name, "e2"~Exp)
-  )
-  val Notin_lam_shadow = rule("Notin-lam-shadow",
-    Judg(notin(Exp), "x"~Name, lam("x"~Name, "T"~Typ, "e"~Exp))
-    // if ----------------
-  )
-  val Notin_lam = rule("Notin-lam",
-    Judg(notin(Exp), "x"~Name, lam("y"~Name, "T"~Typ, "e"~Exp)),
-    // if ----------------
-    Judg(neq(Name), Var("x", Name), Var("y", Name)),
-    Judg(notin(Exp), "x"~Name, "e"~Exp)
-  )
-  val Notin_app = rule("Notin-app",
-    Judg(notin(Exp), "x"~Name, app("e1"~Exp, "e2"~Exp)),
-    // if ----------------
-    Judg(notin(Exp), "x"~Name, "e1"~Exp),
-    Judg(notin(Exp), "x"~Name, "e2"~Exp)
-  )
-
   val TOk = symbol("TOk", in = List(Typ), out = Prop)
   val TOk_Nat = rule("TOk-Nat",
     Judg(TOk, App(Nat))
@@ -139,12 +107,12 @@ object Statics {
     Judg(Typed, Var("C", Ctx), Var("e2", Exp), Var("T1", Typ))
   )
 
-//  val Typed_uniqueness = rule(Lemma("Typed-uniqueness",
-//    Judg(equ(Typ), Var("T1", Typ), Var("T2", Typ)),
-//    // if ----------------
-//    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T1", Typ)),
-//    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T2", Typ))
-//  ))
+  val Typed_uniqueness = rule(Lemma("Typed-uniqueness",
+    Judg(equ(Typ), Var("T1", Typ), Var("T2", Typ)),
+    // if ----------------
+    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T1", Typ)),
+    Judg(Typed, Var("C", Ctx), Var("e", Exp), Var("T2", Typ))
+  ))
   val Typed_TOk = rule(Lemma("Typed-TOk",
     Judg(TOk, "T"~Typ),
     // if ----------------

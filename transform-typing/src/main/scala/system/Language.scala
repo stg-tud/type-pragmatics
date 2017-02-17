@@ -22,12 +22,12 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
   def allRules = transs.foldLeft(rules)((seq, t) => (seq :+ t.contract._1) ++ t.lemmas.keys)
 
   val closedDataTypes: ListMap[Sort, Seq[Symbol]] = {
-    val types = sorts.flatMap(s => if (s.isInstanceOf[Sort] && !s.open) Some(s.asInstanceOf[Sort]) else None)
+    val types = sorts.flatMap(s => if (s.isInstanceOf[Sort] && !s.abstractEnum) Some(s.asInstanceOf[Sort]) else None)
     ListMap() ++ types.map(s => s -> allSyms.filter(sym => sym.constr && sym.out == s))
   }
 
   val openDataTypes: ListMap[ISort, Seq[Symbol]] = {
-    val types = sorts.filter(_.open)
+    val types = sorts.filter(_.abstractEnum)
     ListMap() ++ types.map(s => s -> allSyms.filter(sym => sym.constr && sym.out == s))
   }
 

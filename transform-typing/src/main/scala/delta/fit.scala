@@ -20,15 +20,6 @@ object fit extends Transformation(stlc.language + delta_ext + tdelta + cdelta) {
       Judg(CtxOk, "C"~Ctx)
     ) -> 1
 
-  override val lemmas: ListMap[Rule, Int] = ListMap(
-    Lemma("notin-d-fit",
-      Judg(notin(Exp), d("x"~Name), fit("e"~Exp, "C"~Ctx, "T"~Typ)),
-      // if ----------------
-      Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),
-      Judg(CtxOk, "C"~Ctx)
-    ) -> 1
-  )
-
   val fit_ref = Rewrite(
     fit(ref("x"~Name), "C"~Ctx, "T"~Typ),
     // ~>

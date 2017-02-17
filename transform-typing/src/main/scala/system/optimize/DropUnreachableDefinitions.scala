@@ -15,6 +15,10 @@ object DropUnreachableDefinitions {
   type Reach = mutable.Set[Symbol]
   type LangInfo = (Seq[Rule], Map[Symbol, Seq[Rewrite]])
 
+  def allReachable(syms: Set[Symbol], reach: Reach): Boolean = syms.forall(reachable(_, reach))
+
+  def reachable(sym: Symbol, reach: Reach): Boolean = sym.isEqNeq || reach.contains(sym)
+
   def dropUnreachable(obl: ProofObligation): ProofObligation = {
     val reach: Reach = mutable.Set()
     val irules = obl.lang.allRules ++ obl.trans.map(t => Seq(t.contract._1) ++ t.lemmas.keys).getOrElse(Seq())
@@ -22,16 +26,16 @@ object DropUnreachableDefinitions {
     implicit val linfo = (irules, irewrites)
 
     reach ++= obl.opaques
-    obl.goals.foreach(reachableJudg(_, reach))
+    obl.goals.foreach(reachJudg(_, reach))
     val axioms = obl.axioms.filter{ ax =>
-      if (ax.conclusion.symbols.subsetOf(reach)) {
-        ax.premises.foreach(reachableJudg(_, reach))
+      if (allReachable(ax.symbols, reach)) {
+        ax.premises.foreach(reachJudg(_, reach))
         true
       }
       else false
     }
-    val ass = obl.assumptions.filter(_.symbols.subsetOf(reach))
-    val trans = obl.trans.filter(t => reach.contains(t.contractedSym))
+    val ass = obl.assumptions.filter(a => allReachable(a.symbols, reach))
+    val trans = obl.trans.filter(t => reachable(t.contractedSym, reach))
     val extraSym = obl.trans.flatMap(t => if (trans.isDefined) None else Some(t.contractedSym))
     val lang = dropUnreachable(obl.lang, reach, extraSym)
 
@@ -48,38 +52,38 @@ object DropUnreachableDefinitions {
     )
   }
 
-  def dropUnreachable(lang: Language, reach: Reach, extra: Iterable[Symbol]) = {
-    val syms = lang.syms.filter(reach.contains(_)) ++ extra
-    val rules = lang.rules.filter(_.conclusion.symbols.subsetOf(reach))
-    val transs = lang.transs.filter(t => reach.contains(t.contractedSym))
+  def dropUnreachable(lang: Language, reach: Reach, extra: Iterable[Symbol]): Language = {
+    val syms = lang.syms.filter(reachable(_, reach)) ++ extra
+    val rules = lang.rules.filter(r => allReachable(r.symbols, reach))
+    val transs = lang.transs.filter(t => reachable(t.contractedSym, reach))
     Language(lang.name, lang.sorts, syms, rules, transs)
   }
 
-  def reachableJudg(judg: Judg, r: Reach)(implicit linfo: LangInfo): Unit = {
-    reachableSymbol(judg.sym, r)
-    judg.terms.foreach(reachableTerm(_, r))
+  def reachJudg(judg: Judg, r: Reach)(implicit linfo: LangInfo): Unit = {
+    reachSymbol(judg.sym, r)
+    judg.terms.foreach(reachTerm(_, r))
   }
 
-  def reachableTerm(t: Term, r: Reach)(implicit linfo: LangInfo): Unit = t match {
+  def reachTerm(t: Term, r: Reach)(implicit linfo: LangInfo): Unit = t match {
     case v: Var =>
     case App(sym, kids) =>
-      reachableSymbol(sym, r)
-      kids.foreach(reachableTerm(_, r))
+      reachSymbol(sym, r)
+      kids.foreach(reachTerm(_, r))
   }
 
-  def reachableSymbol(sym: Symbol, r: Reach)(implicit linfo: LangInfo): Unit =
+  def reachSymbol(sym: Symbol, r: Reach)(implicit linfo: LangInfo): Unit =
     if (!r.contains(sym)) {
       r += sym
       val rules = linfo._1.filter(canReachRule(_, sym))
       rules.foreach { rule =>
-        reachableJudg(rule.conclusion, r)
-        rule.premises.foreach(reachableJudg(_, r))
+        reachJudg(rule.conclusion, r)
+        rule.premises.foreach(reachJudg(_, r))
       }
       val rewrites = linfo._2.getOrElse(sym, Seq())
       rewrites.foreach { rew =>
-        reachableTerm(rew.pat, r)
-        reachableTerm(rew.gen, r)
-        rew.where.foreach(reachableJudg(_, r))
+        reachTerm(rew.pat, r)
+        reachTerm(rew.gen, r)
+        rew.where.foreach(reachJudg(_, r))
       }
     }
 

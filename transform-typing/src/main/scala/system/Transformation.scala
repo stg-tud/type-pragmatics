@@ -8,6 +8,7 @@ import scala.collection.immutable.ListMap
 
 abstract class Transformation(val lang: Language) {
   val contract: (Rule, Int)
+  //def contractPos: Option[Int] = contract._1.conclusion.terms.filter()
   val lemmas: ListMap[Rule, Int] = ListMap()
   val rewrites: Seq[Rewrite]
 
@@ -69,8 +70,8 @@ abstract class Transformation(val lang: Language) {
   def forall[T](f: Transformation => T): ListMap[Symbol, T] =
     ListMap() ++ lang.transs.map(t => t.contractedSym -> f(t)) + (contractedSym -> f(this))
 
-  def failedProofs = wellformednessFailed ++ soundnessFailed ++ completenessFailed
-  def isOk = failedProofs.isEmpty
+  lazy val failedProofs = (wellformednessFailed ++ soundnessFailed ++ completenessFailed).toList
+  lazy val isOk = failedProofs.isEmpty
   def allOk = forall(_.isOk).forall(_._2)
 
   val soundnessTimeout = 30
@@ -92,7 +93,7 @@ abstract class Transformation(val lang: Language) {
   lazy val completenessObligations: Seq[ProofObligation] = Completeness.completenessTrans(this).optimized.toStream
   lazy val completenessResults = completenessObligations.map(o => Verification.verify(o, completenessMode, completenessTimeout))
   lazy val isComplete = completenessResults.forall(_.status == Proved)
-  def completenessFailed = completenessResults.zip(wellformednessObligations).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
+  def completenessFailed = completenessResults.zip(completenessObligations).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   def apply(kids: Term*): App = App(contractedSym, kids.toList)
 }

@@ -39,10 +39,10 @@ object GoalUnpacking {
 
   def unpackObligation(obl: ProofObligation): Seq[ProofObligation] = {
     implicit val counter = new Counter
-    obl.goals.flatMap(unpackJudg(_, obl, Seq(), Map()) match {
+    obl.goals.flatMap(goal => unpackJudg(goal, obl, Seq(), Map()) match {
       case Proved => Seq(nextObligation(Seq(), obl))
       case Disproved(steps) => throw new MatchError(s"Obligation was disproved:\n${steps.mkString("\n")}")
-      case DontKnow => Seq(obl)
+      case DontKnow => Seq(nextObligation(Seq(goal), obl))
       case ProveThis(obls) if obls.isEmpty => Seq(nextObligation(Seq(), obl))
       case ProveThis(obls) => obls
     })
