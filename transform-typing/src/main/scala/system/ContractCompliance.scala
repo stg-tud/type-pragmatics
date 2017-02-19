@@ -32,13 +32,9 @@ object ContractCompliance {
   def complianceRule(r: Rule, rnum: Int, skipSymbol: Option[Symbol], contracts: Map[Symbol, (Rule, Int)], trans: Transformation)(implicit gensym: Gensym): Seq[ProofObligation] = {
     val checks = complianceJudg(r.conclusion, contracts) ++ r.premises.flatMap(complianceJudg(_, contracts))
 
-    val ruleVars = r.conclusion.freevars ++ r.premises.flatMap(_.freevars)
-
     for (symChecks <- checks.groupBy(_._1).values.toSeq;
-         ((sym, check), i) <- symChecks.zipWithIndex if !skipSymbol.isDefined || skipSymbol.get != sym) yield {
-      val checkVars = check.flatMap(_.freevars).toSet
-      val existentials = checkVars.diff(ruleVars)
-      ProofObligation(s"Contract-Compliance-${trans.contractedSym}-rule-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), Some(trans), r.premises, check, gensym)
+         ((sym, check), i) <- symChecks.zipWithIndex) yield {
+      ProofObligation(s"Contract-Compliance-${trans.contractedSym}-rule-$rnum-$sym-$i", trans.lang, Seq(), Set(), Seq(), Some(trans), r.premises, check, gensym)
     }
   }
 
@@ -48,19 +44,16 @@ object ContractCompliance {
   def complianceRewrite(r: Rewrite, rnum: Int, contract: Rule, pos: Int, contracts: Map[Symbol, (Rule, Int)], trans: Transformation)(implicit gensym: Gensym): Seq[ProofObligation] = {
     val checks = complianceTerm(r.gen, contracts) ++ r.where.flatMap(complianceJudg(_, contracts))
 
-    val (conclusion, premises) = contract.contractedTerm(pos).matchAgainst(r.pat) match {
+    val premises = contract.contractedTerm(pos).matchAgainst(r.pat) match {
       case (s, diff, _) if diff.isEmpty =>
-        (contract.conclusion.subst(s), contract.premises.map(_.subst(s)) ++ r.where)
+        contract.premises.map(_.subst(s)) ++ r.where
       case m =>
         throw new MatchError(s"Rewrite rule\n$r\n does not match contract\n$contract\nbecause ${matchDiffMsg(m)}")
     }
-    val contractVars = conclusion.freevars ++ premises.flatMap(_.freevars)
 
     for (symChecks <- checks.groupBy(_._1).values.toSeq;
          ((sym, check), i) <- symChecks.zipWithIndex) yield {
-      val checkVars = check.flatMap(_.freevars).toSet
-      val existentials = checkVars.diff(r.boundVars).diff(contractVars)
-      ProofObligation(s"Contract-Compliance-${trans.contractedSym}-rewrite-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), Some(trans), premises, check, gensym)
+      ProofObligation(s"Contract-Compliance-${trans.contractedSym}-rewrite-$rnum-$sym-$i", trans.lang, Seq(), Set(), Seq(), Some(trans), premises, check, gensym)
     }
   }
 
