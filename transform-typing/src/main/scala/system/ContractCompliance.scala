@@ -38,7 +38,7 @@ object ContractCompliance {
          ((sym, check), i) <- symChecks.zipWithIndex if !skipSymbol.isDefined || skipSymbol.get != sym) yield {
       val checkVars = check.flatMap(_.freevars).toSet
       val existentials = checkVars.diff(ruleVars)
-      ProofObligation(s"wf-${trans.contractedSym}-rule-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), Some(trans), r.premises, check, gensym)
+      ProofObligation(s"Contract-Compliance-${trans.contractedSym}-rule-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), Some(trans), r.premises, check, gensym)
     }
   }
 
@@ -46,7 +46,7 @@ object ContractCompliance {
    * Transformation calls in the rewrite template have to be well-formed assuming the rewrite's contract holds
    */
   def complianceRewrite(r: Rewrite, rnum: Int, contract: Rule, pos: Int, contracts: Map[Symbol, (Rule, Int)], trans: Transformation)(implicit gensym: Gensym): Seq[ProofObligation] = {
-    val checks = complianceTerm(r.gen, contracts)
+    val checks = complianceTerm(r.gen, contracts) ++ r.where.flatMap(complianceJudg(_, contracts))
 
     val (conclusion, premises) = contract.contractedTerm(pos).matchAgainst(r.pat) match {
       case (s, diff, _) if diff.isEmpty =>
@@ -60,7 +60,7 @@ object ContractCompliance {
          ((sym, check), i) <- symChecks.zipWithIndex) yield {
       val checkVars = check.flatMap(_.freevars).toSet
       val existentials = checkVars.diff(r.boundVars).diff(contractVars)
-      ProofObligation(s"wf-${trans.contractedSym}-rewrite-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), Some(trans), premises, check, gensym)
+      ProofObligation(s"Contract-Compliance-${trans.contractedSym}-rewrite-$rnum-$sym-$i", trans.lang, Seq(), existentials, Seq(), Some(trans), premises, check, gensym)
     }
   }
 

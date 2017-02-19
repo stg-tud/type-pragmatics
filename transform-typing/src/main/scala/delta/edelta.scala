@@ -9,7 +9,7 @@ import scala.collection.immutable.ListMap
 
 object edelta extends Transformation(stlc.language + delta_ext + tdelta + cdelta + fit)  {
 
-  override val wellformednessTimeout: Int = 120
+  override val contractComplianceTimeout: Int = 120
 
   val edelta = Symbol("edelta", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
 

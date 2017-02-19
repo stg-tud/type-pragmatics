@@ -70,7 +70,7 @@ abstract class Transformation(val lang: Language) {
   def forall[T](f: Transformation => T): ListMap[Symbol, T] =
     ListMap() ++ lang.transs.map(t => t.contractedSym -> f(t)) + (contractedSym -> f(this))
 
-  lazy val failedProofs = (wellformednessFailed ++ soundnessFailed ++ completenessFailed).toList
+  lazy val failedProofs = (contractComplianceFailed ++ soundnessFailed ++ completenessFailed).toList
   lazy val isOk = failedProofs.isEmpty
   def allOk = forall(_.isOk).forall(_._2)
 
@@ -81,12 +81,12 @@ abstract class Transformation(val lang: Language) {
   lazy val isSound = soundnessResults.flatten.forall(_.status == Proved)
   def soundnessFailed = soundnessResults.flatten.zip(soundnessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
-  val wellformednessTimeout = 30
-  val wellformednessMode = "casc"
-  lazy val wellformednessObligations: Seq[Seq[ProofObligation]] = ContractCompliance.complianceTrans(this).toStream.map(_.optimized)
-  lazy val wellformednessResults = wellformednessObligations.map(_.map(Verification.verify(_, wellformednessMode, wellformednessTimeout)))
-  lazy val isWellformed = wellformednessResults.flatten.forall(_.status == Proved)
-  def wellformednessFailed = wellformednessResults.flatten.zip(wellformednessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
+  val contractComplianceTimeout = 30
+  val contractComplianceMode = "casc"
+  lazy val contractComplianceObligations: Seq[Seq[ProofObligation]] = ContractCompliance.complianceTrans(this).toStream.map(_.optimized)
+  lazy val contractComplianceResults = contractComplianceObligations.map(_.map(Verification.verify(_, contractComplianceMode, contractComplianceTimeout)))
+  lazy val isContractCompliant = contractComplianceResults.flatten.forall(_.status == Proved)
+  def contractComplianceFailed = contractComplianceResults.flatten.zip(contractComplianceObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   val completenessTimeout = 30
   val completenessMode = "casc"

@@ -7,7 +7,7 @@ import system.Transformation
 
 object let_desugar extends Transformation(stlc.language + let_ext) {
 
-  override val wellformednessTimeout: Int = 120
+  override val contractComplianceTimeout: Int = 120
 
   // desugaring transformation
   val letdesugar = Symbol("letdesugar", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
