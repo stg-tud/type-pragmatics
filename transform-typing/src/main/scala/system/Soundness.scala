@@ -76,12 +76,11 @@ object Soundness {
     contract.contractedTerm(contractPos).matchAgainst(recApp) match {
       case (s, diff, _) if diff.isEmpty =>
         val premises = contract.premises.map(_.subst(s))
-        val rule = Rule(contract.name + s"-IH-$num",
+        val rule = Rule(Rule.Lemma, contract.name + s"-IH-$num",
           contract.conclusion.updated(contractPos, recApp).subst(s),
           // if ------------
-          // no preconditions needed for contracts because we check the wellformedness of transformation calls separately
-          if (isContract) List() else premises,
-          lemma = true
+          // no preconditions needed for contracts because we check contract compliance of transformation calls separately
+          if (isContract) List() else premises
         )
         Some(rule -> premises)
       case m =>

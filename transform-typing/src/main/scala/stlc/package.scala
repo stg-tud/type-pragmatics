@@ -28,7 +28,7 @@ package object stlc {
 
   private var rules = Seq[Rule]()
   def rule(name: String, conclusion: Judg, premises: List[Judg]): Rule =
-    rule(Rule(name, conclusion, premises))
+    rule(Rule(Rule.Axiom, name, conclusion, premises))
   def rule(name: String, conclusion: Judg, premises: Judg*): Rule =
     rule(name, conclusion, premises.toList)
   def rule(rule: Rule): Rule = {

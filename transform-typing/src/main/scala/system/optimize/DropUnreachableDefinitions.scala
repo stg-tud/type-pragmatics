@@ -89,7 +89,7 @@ object DropUnreachableDefinitions {
 
   def canReachRule(rule: Rule, sym: Symbol): Boolean =
     if (sym.out == Prop && rule.conclusion.sym == sym)
-      !rule.lemma
+      !rule.isLemma
     else if (rule.conclusion.symbols.contains(sym))
       true
     else if (rule.conclusion.sym.isEqNeq)

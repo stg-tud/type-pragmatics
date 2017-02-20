@@ -40,13 +40,10 @@ object let_desugar extends Transformation(stlc.language + let_ext) {
   )
 
   val letdesugar_lam = Rewrite(
-    letdesugar(lam("x"~Name, "T1"~Typ, "e"~Exp), "C"~Ctx, "T"~Typ),
+    letdesugar(lam("x"~Name, "T1"~Typ, "e"~Exp), "C"~Ctx, Arr("T1"~Typ, "T2"~Typ)),
     // ~>
     lam("x"~Name, "T1"~Typ,
-      letdesugar("e"~Exp, bind("C"~Ctx, "x"~Name, "T1"~Typ), "T2"~Typ)),
-    where = Seq(
-      Judg(equ(Typ), "T"~Typ, Arr("T1"~Typ, "T2"~Typ))
-    )
+      letdesugar("e"~Exp, bind("C"~Ctx, "x"~Name, "T1"~Typ), "T2"~Typ))
   )
 
   val letdesugar_app = Rewrite(

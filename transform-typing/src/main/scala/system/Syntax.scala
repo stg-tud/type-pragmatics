@@ -291,7 +291,7 @@ object Syntax {
     def apply(sym: Symbol, terms: Term*): Judg = new Judg(sym, terms.toList)
   }
 
-  case class Rule(name: String, conclusion: Judg, premises: List[Judg], lemma: Boolean = false) {
+  case class Rule(kind: Rule.Value, name: String, conclusion: Judg, premises: List[Judg]) {
     override def toString: String = {
       val indent = "  "
       val ps = premises.mkString("\n" + indent)
@@ -309,15 +309,20 @@ object Syntax {
     }
 
     def subst(s: Subst, capturing: Boolean = false) =
-      Rule(name, conclusion.subst(s, capturing), premises.map(_.subst(s, capturing)), lemma)
+      Rule(kind, name, conclusion.subst(s, capturing), premises.map(_.subst(s, capturing)))
 
     def symbols: Set[Symbol] = conclusion.symbols ++ premises.foldLeft(Set[Symbol]())((set, j) => set ++ j.symbols)
+
+    def isLemma = kind == Rule.Lemma
   }
-  object Rule {
-    def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList, false)
+  object Rule extends Enumeration {
+    val Axiom, Contract, Lemma: Value = Value
+
+    def apply(name: String, conclusion: Judg, premises: Judg*): Rule = new Rule(Axiom, name, conclusion, premises.toList)
+    def apply(kind: Value, name: String, conclusion: Judg, premises: Judg*): Rule = new Rule(kind, name, conclusion, premises.toList)
   }
   object Lemma {
-    def apply(name: String, conclusion: Judg, premises: Judg*): Rule = Rule(name, conclusion, premises.toList, true)
+    def apply(name: String, conclusion: Judg, premises: Judg*): Rule = new Rule(Rule.Lemma, name, conclusion, premises.toList)
   }
 
   case class Rewrite(pat: App, gen: Term, where: Seq[Judg] = Seq()) {

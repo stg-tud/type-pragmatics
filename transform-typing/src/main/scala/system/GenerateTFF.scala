@@ -65,7 +65,9 @@ object GenerateTFF {
 
   def compileRule(rule: Rule): (String, FofUnitary) = {
     val name = rule.name
-    val pre = Parenthesized(And(rule.premises.map(compileJudg(_))))
+    val pre =
+      if (rule.kind == Rule.Contract) fof.True // skip premises of contracts, which are checked during contract compliance
+      else Parenthesized(And(rule.premises.map(compileJudg(_))))
     val con = compileJudg(rule.conclusion)
     val body = if (fof.True == pre) con else Parenthesized(Impl(pre, con))
     val vars = rule.freevars
@@ -144,7 +146,7 @@ object GenerateTFF {
     val implicits = compileImplicitSymbols(lang.undeclaredSymbols)
 
     val rules = lang.rules.map(compileRuleDecl(_))
-    val groupedRules = lang.rules.filter(!_.lemma).groupBy(_.conclusion.sym)
+    val groupedRules = lang.rules.filter(!_.isLemma).groupBy(_.conclusion.sym)
     val inversionRules = groupedRules.flatMap(r => compileInversionRule(r._1, r._2, toTFF))
 
     val transs = lang.transs.flatMap(compileTransformation(_))
@@ -173,7 +175,7 @@ object GenerateTFF {
     rewrites.zipWithIndex.map { case (r, i) =>
       val premises = r.where
       val conclusion = Judg(equ(r.sym.out), r.pat, r.gen)
-      compileRuleDecl(Rule(s"${r.sym.name}-$i", conclusion, premises.toList))
+      compileRuleDecl(Rule(Rule.Lemma, s"${r.sym.name}-$i", conclusion, premises.toList))
     }
   }
 
