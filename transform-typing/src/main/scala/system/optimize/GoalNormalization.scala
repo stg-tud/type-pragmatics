@@ -28,7 +28,7 @@ object GoalNormalization {
     var done = false
     while (!done) {
       val eqsC = normalizeConstructorEqs(eqsFix)
-      val (s, eqsS) = normalizeSubstitutionEqs(eqsC)
+      val (s, eqsS) = normalizeSubstitutionEqs(eqsC, obl.existentials)
       eqsFix = eqsS
       if (s.isEmpty)
         done = true
@@ -36,9 +36,10 @@ object GoalNormalization {
         substFix = substFix.mapValues(_.subst(s, true)) ++ s
     }
 
-    val eqGoalsNormed = eqsFix.map{ case (l,r) => Judg(equ(l.sort), l, r) }
+    val eqGoalsNormed = eqsFix.map{ case (l,r) => Judg(equ(l.sort), l, r).subst(substFix, true) }
     Seq(obl.copy(
-      goals = eqGoalsNormed ++ goals,
+      existentials = obl.existentials.diff(substFix.keySet),
+      goals = eqGoalsNormed ++ goals.map(_.subst(substFix, true)),
       assumptions = obl.assumptions.map(_.subst(substFix, true)),
       axioms = obl.axioms.map(_.subst(substFix))
     ))
@@ -108,7 +109,7 @@ object GoalNormalization {
     case _ => Seq(eq)
   }
 
-  def normalizeSubstitutionEqs(eqs: Eqs): (Subst, Eqs) = {
+  def normalizeSubstitutionEqs(eqs: Eqs, existentials: Set[Var]): (Subst, Eqs) = {
     var s: Subst = Map()
     def add(v: Var, t: Term): Option[(Term, Term)] = {
       s.get(v) match {
@@ -118,6 +119,7 @@ object GoalNormalization {
       }
     }
     val rest = eqs.flatMap {
+      case (l@Var(_,_), r@Var(_,_)) if existentials.contains(r) => add(r, l)
       case (l@Var(_, _), r) => add(l, r)
       case (l, r@Var(_, _)) => add(r, l)
       case eq => Some(eq)

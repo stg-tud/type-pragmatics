@@ -149,7 +149,7 @@ object GoalUnpacking {
      * Merges those obligations that have overlapping sets of existentially quantified variables resulting from unpacking.
      */
   def mergeExistentialObligations(judg: Judg, goals: Seq[ProofObligation]): Seq[ProofObligation] = {
-    var buckets = Seq[(mutable.Set[Var], mutable.ListBuffer[ProofObligation])]()
+    var buckets = mutable.Seq[(mutable.Set[Var], mutable.ListBuffer[ProofObligation])]()
     val judgVars = judg.freevars
 
     goals.foreach { g =>
@@ -161,7 +161,7 @@ object GoalUnpacking {
           bucketVars ++= vars
           bucket += g
         case None =>
-          buckets = buckets :+ (vars, mutable.ListBuffer(g))
+          buckets :+= (vars, mutable.ListBuffer(g))
       }
     }
 
