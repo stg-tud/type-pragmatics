@@ -135,7 +135,7 @@ object GoalUnpacking {
   def possibleCandidate(judg: Judg, obl: ProofObligation, ass: Seq[Judg], rule: Rule, s: Subst, matchEqs: Diff, num: Int)(implicit counter: Counter): Boolean = {
     // this candidate is possible if we fail to prove the match is impossible
     // that is, this candidate is possible if negatedEqs is not Proved
-    val eqPremises = rule.premises.filter { j => j.sym.isEq || j.sym.isNeq }
+    val eqPremises = rule.premises.flatMap { j => if (j.sym.isEq || j.sym.isNeq) Some(j.subst(s)) else None }
     val applicabilityConditions = matchEqs.map { case (l, r) => Judg(equ(l.sort), l, r) } ++ eqPremises
 
     if (applicabilityConditions.isEmpty)

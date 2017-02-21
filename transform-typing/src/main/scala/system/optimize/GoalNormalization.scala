@@ -19,7 +19,7 @@ object GoalNormalization {
   type Rewrites = Map[Symbol, Seq[Rewrite]]
 
   def normalizeObligation(obl: ProofObligation): Seq[ProofObligation] = {
-    val (eqGoals, goals) = obl.goals.partition(_.sym.isEq)
+    val (eqGoals, nonEqGoals) = obl.goals.partition(_.sym.isEq)
     val eqs0 = eqGoals.map(j => j.terms(0) -> j.terms(1))
     implicit val rewrites = Map() ++ obl.allTrans.map(t => t.contractedSym -> t.rewrites)
 
@@ -41,6 +41,7 @@ object GoalNormalization {
     val eqGoalsNormed = mkEqs(eqsFix).map(_.subst(substFix, true))
     val assumptions = obl.assumptions.flatMap(normalizeTransAppsJudg(_))
     val axioms = obl.axioms.map(normalizeTransAppsRule(_))
+    val goals = nonEqGoals.flatMap(normalizeTransAppsJudg(_))
 
     Seq(obl.copy(
       existentials = obl.existentials.diff(substFix.keySet),
