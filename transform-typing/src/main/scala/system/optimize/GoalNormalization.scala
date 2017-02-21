@@ -14,14 +14,16 @@ import scala.util.Try
 object GoalNormalization {
 
   type Eqs = Seq[(Term, Term)]
+  def mkEqs(eqs: Eqs) = eqs.map{ case (l,r) => Judg(equ(l.sort), l, r) }
+
   type Rewrites = Map[Symbol, Seq[Rewrite]]
 
   def normalizeObligation(obl: ProofObligation): Seq[ProofObligation] = {
     val (eqGoals, goals) = obl.goals.partition(_.sym.isEq)
     val eqs0 = eqGoals.map(j => j.terms(0) -> j.terms(1))
-    val rewrites = Map() ++ obl.allTrans.map(t => t.contractedSym -> t.rewrites)
+    implicit val rewrites = Map() ++ obl.allTrans.map(t => t.contractedSym -> t.rewrites)
 
-    val eqs1 = normalizeTransAppsEqs(eqs0)(rewrites)
+    val eqs1 = normalizeTransAppsEqs(eqs0)
 
     var eqsFix: Eqs = eqs1
     var substFix: Subst = Map()
@@ -36,13 +38,30 @@ object GoalNormalization {
         substFix = substFix.mapValues(_.subst(s, true)) ++ s
     }
 
-    val eqGoalsNormed = eqsFix.map{ case (l,r) => Judg(equ(l.sort), l, r).subst(substFix, true) }
+    val eqGoalsNormed = mkEqs(eqsFix).map(_.subst(substFix, true))
+    val assumptions = obl.assumptions.flatMap(normalizeTransAppsJudg(_))
+    val axioms = obl.axioms.map(normalizeTransAppsRule(_))
+
     Seq(obl.copy(
       existentials = obl.existentials.diff(substFix.keySet),
       goals = eqGoalsNormed ++ goals.map(_.subst(substFix, true)),
-      assumptions = obl.assumptions.map(_.subst(substFix, true)),
-      axioms = obl.axioms.map(_.subst(substFix))
+      assumptions = assumptions.map(_.subst(substFix, true)),
+      axioms = axioms.map(_.subst(substFix))
     ))
+  }
+
+  def normalizeTransAppsRule(r: Rule)(implicit rewrites: Rewrites): Rule = {
+    val conclusions = normalizeTransAppsJudg(r.conclusion)
+    val premises = r.premises.flatMap(normalizeTransAppsJudg(_))
+
+    val conclusion = if (conclusions.size == 1) conclusions.head else r.conclusion
+
+    r.copy(conclusion = conclusion, premises = premises)
+  }
+
+  def normalizeTransAppsJudg(j: Judg)(implicit rewrites: Rewrites): Seq[Judg] = {
+    val (terms, eqs) = normalizeTransAppTerms(j.terms)
+    j.copy(terms = terms) +: mkEqs(eqs)
   }
 
   def normalizeTransAppsEqs(eqs: Eqs)(implicit rewrites: Rewrites): Eqs =
