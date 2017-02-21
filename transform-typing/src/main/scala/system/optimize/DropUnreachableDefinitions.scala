@@ -27,6 +27,7 @@ object DropUnreachableDefinitions {
 
     reach ++= obl.opaques
     obl.goals.foreach(reachJudg(_, reach))
+
     val axioms = obl.axioms.filter{ ax =>
       if (allReachable(ax.symbols, reach)) {
         ax.premises.foreach(reachJudg(_, reach))
@@ -92,7 +93,7 @@ object DropUnreachableDefinitions {
       !rule.isLemma
     else if (rule.conclusion.symbols.contains(sym))
       true
-    else if (rule.conclusion.sym.isEqNeq)
+    else if (sym.isEqNeq || rule.conclusion.sym.isEqNeq)
       rule.premises.exists(_.symbols.contains(sym))
     else
       false

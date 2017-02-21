@@ -53,10 +53,12 @@ object Benchmark extends App {
   case class VerificationSummary(results: ListMap[ProofObligation, ProverResult]) {
     def successCount = results.filter(_._2.status == Proved).size
     def failedCount = results.filter(_._2.status != Proved).size
+    def successTimeSum = results.filter(_._2.status == Proved).map(_._2.timeSeconds.get).sum
 
     def writeSumamryCSV(implicit writer: FileWriter): Unit = {
       write(results.size)
       write(successCount)
+      write(successTimeSum)
     }
 
     def writeDetailsCSV(trans: Transformation, config: OptimizationConfig)(implicit writer: FileWriter): Unit ={
@@ -66,6 +68,7 @@ object Benchmark extends App {
         write(obl.name)
         write(res.status)
         write(res.timeSeconds.getOrElse(-1.0))
+        writer.append('\n')
       }
     }
   }
@@ -82,6 +85,7 @@ object Benchmark extends App {
       completeness.writeSumamryCSV(writer)
       contractCompliance.writeSumamryCSV(writer)
       soundness.writeSumamryCSV(writer)
+
       completeness.writeDetailsCSV(trans, config)(detailedWriter)
       contractCompliance.writeDetailsCSV(trans, config)(detailedWriter)
       soundness.writeDetailsCSV(trans, config)(detailedWriter)
@@ -124,13 +128,21 @@ object Benchmark extends App {
   }
 
 
-  def write(s: Any)(implicit writer: FileWriter) = writer.append('"').append(s.toString).append('"').append(' ')
+  def write(s: Any)(implicit writer: FileWriter) = writer.append('"').append(s.toString).append('"').append('\t')
 
-  val transformations = Seq(let.let_desugar)
   val csv = new File(args(0))
   val detailedCsv = new File(args(1))
   csv.delete()
   detailedCsv.delete()
+
+  val transformations = {
+    if (args.size >= 3) args(2) match {
+      case "let" => Seq(let.let_desugar)
+      case "delta" => Seq(delta.edelta)
+      case "cps" => Seq(cps.ecps)
+    }
+    else Seq(let.let_desugar, delta.edelta, cps.ecps)
+  }
 
   for (trans <- transformations;
        config <- OptimizationConfig.values) {
