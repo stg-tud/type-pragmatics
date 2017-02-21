@@ -90,10 +90,10 @@ abstract class Transformation(val lang: Language) {
 
   val completenessTimeout = 30
   val completenessMode = "casc"
-  lazy val completenessObligations: Seq[ProofObligation] = Completeness.completenessTrans(this).optimized.toStream
-  lazy val completenessResults = completenessObligations.map(o => Verification.verify(o, completenessMode, completenessTimeout))
-  lazy val isComplete = completenessResults.forall(_.status == Proved)
-  def completenessFailed = completenessResults.zip(completenessObligations).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
+  lazy val completenessObligations: Seq[Seq[ProofObligation]] = Completeness.completenessTrans(this).toStream.map(_.optimized)
+  lazy val completenessResults = completenessObligations.map(_.map(Verification.verify(_, completenessMode, completenessTimeout)))
+  lazy val isComplete = completenessResults.flatten.forall(_.status == Proved)
+  def completenessFailed = completenessResults.flatten.zip(completenessObligations.flatten).filter(_._1.status != Proved).map{case (res, obl) => res.file -> obl}
 
   def apply(kids: Term*): App = App(contractedSym, kids.toList)
 }

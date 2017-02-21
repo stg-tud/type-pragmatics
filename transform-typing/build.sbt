@@ -13,3 +13,7 @@ libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
 scalacOptions ++= Seq("-deprecation", "-feature")
+
+import com.typesafe.sbt.SbtStartScript
+
+seq(SbtStartScript.startScriptForClassesSettings: _*)

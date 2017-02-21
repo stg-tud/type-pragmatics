@@ -9,7 +9,7 @@ import system.Verification._
   */
 object Completeness {
 
-  def completenessTrans(trans: Transformation): ProofObligation = {
+  def completenessTrans(trans: Transformation): Seq[ProofObligation] = {
     implicit val gensym = new Gensym
     val freshContract = trans.contract._1.fresh
     val pos = trans.contract._2
@@ -18,23 +18,38 @@ object Completeness {
     val premises = freshContract.premises
     val rewriteConds = trans.rewrites.map(completenessRewrite(_, inputs))
 
-    val atLeastOne = mkOr(rewriteConds).asInstanceOf[App].toJudg
-    val noOverlap: Seq[Judg] =
+    val matching = mkOr(rewriteConds).asInstanceOf[App].toJudg
+    val noOverlap: Seq[(Int, Int, Judg)] =
       for (i <- 0 until rewriteConds.size;
            j <- i+1 until rewriteConds.size)
-        yield OR(NOT(rewriteConds(i)), NOT(rewriteConds(j))).toJudg
+        yield (i, j, OR(NOT(rewriteConds(i)), NOT(rewriteConds(j))).toJudg)
 
 
-    ProofObligation(
-      s"Completeness-${trans.contractedSym}",
-      trans.lang,
-      Seq(),
-      Set(),
-      Seq(),
-      Some(trans),
-      premises,
-      goals = atLeastOne +: noOverlap,
-      gensym)
+    val matchingObl =
+      ProofObligation(
+        s"Matching-${trans.contractedSym}",
+        trans.lang,
+        Seq(),
+        Set(),
+        Seq(),
+        Some(trans),
+        premises,
+        goals = Seq(matching),
+        gensym)
+    val noOverlapObls =
+      for ((i, j, goal) <- noOverlap) yield
+        ProofObligation(
+          s"No-Overlap-${trans.contractedSym}-$i-$j",
+          trans.lang,
+          Seq(),
+          Set(),
+          Seq(),
+          Some(trans),
+          premises,
+          goals = Seq(goal),
+          gensym)
+
+    matchingObl +: noOverlapObls
   }
 
   def completenessRewrite(rew: Rewrite, inputs: Seq[Term]): Term = {

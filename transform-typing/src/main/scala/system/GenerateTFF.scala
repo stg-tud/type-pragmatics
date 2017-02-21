@@ -165,10 +165,7 @@ object GenerateTFF {
 
 
   def compileRewrites(rewrites: Seq[Rewrite]): Seq[TffAnnotated] = {
-    // TODO generate rewrite rules
-    // TODO   linear patterns -> function
-    // TODO   otherwise -> relation
-    // TODO generate inversion rule
+    // TODO generate inversion rule?
 
     val sym = rewrites.head.pat.sym
 
