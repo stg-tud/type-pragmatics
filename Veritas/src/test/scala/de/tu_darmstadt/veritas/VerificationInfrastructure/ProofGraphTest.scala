@@ -34,7 +34,7 @@ class ProofGraphTest extends FunSuite {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
     val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
     val step = newGraph.get("Top")
-//    assert(!step.get.fullyVerified)
+    assert(!newGraph.computeFullyVerified("Top"))
     assert(step.get.getVerificationStatus().isInstanceOf[Outdated[String, String]])
   }
 
@@ -43,8 +43,8 @@ class ProofGraphTest extends FunSuite {
     val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoEdgeLabel)))
     val top = newGraph.get("Top")
     val child1 = newGraph.get("Child1")
-//    assert(!top.get.fullyVerified)
-//    assert(!child1.get.fullyVerified)
+    assert(!newGraph.computeFullyVerified("Top"))
+    assert(!newGraph.computeFullyVerified("Child1"))
     assert(top.get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(child1.get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
   }
@@ -58,7 +58,7 @@ class ProofGraphTest extends FunSuite {
   test("Parents of removed node should be set to outdated") {
     val newGraph = testGraph.removeNode(child1)
     val step = newGraph.get("Top")
-//    assert(!step.get.fullyVerified)
+    assert(!newGraph.computeFullyVerified("Top"))
     assert(step.get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
   }
 
@@ -67,7 +67,7 @@ class ProofGraphTest extends FunSuite {
     val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
         .verifySingle(provedVerifier, "New")
     assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
-//    assert(!newGraph.get("Top").get.fullyVerified)
+    assert(!newGraph.computeFullyVerified("Top"))
     assert(!newGraph.get("Child1").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(!newGraph.get("Child2").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(!newGraph.get("New").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
@@ -77,9 +77,9 @@ class ProofGraphTest extends FunSuite {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
     val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoEdgeLabel)))
       .verifySingle(provedVerifier, "New")
-//    assert(!newGraph.get("Top").get.fullyVerified)
+    assert(!newGraph.computeFullyVerified("Top"))
     assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
-//    assert(!newGraph.get("Child1").get.fullyVerified)
+    assert(!newGraph.computeFullyVerified("Child1"))
     assert(newGraph.get("Child1").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
   }
 
@@ -98,11 +98,11 @@ class ProofGraphTest extends FunSuite {
     assert(newGraph.get("Parent").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(newGraph.get("Child1").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(newGraph.get("Child2").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
-//    assert(!newGraph.get("Parent").get.fullyVerified)
-//    assert(!newGraph.get("Child1").get.fullyVerified)
-//    assert(!newGraph.get("Child2").get.fullyVerified)
+    assert(!newGraph.computeFullyVerified("Parent"))
+    assert(!newGraph.computeFullyVerified("Child1"))
+    assert(!newGraph.computeFullyVerified("Child2"))
     assert(newGraph.get("Child3").get.getVerificationStatus.isInstanceOf[Finished[String, String, String]])
-//    assert(newGraph.get("Child3").get.fullyVerified)
+    assert(newGraph.computeFullyVerified("Child3"))
   }
 
   test("Verify node with children") {
@@ -116,19 +116,6 @@ class ProofGraphTest extends FunSuite {
 
     assert(newGraph.get("Top").get.getVerificationStatus.isVerified)
   }
-
-  // TODO: currently has no meaning
-//  test("Verify node with contradicting proverstati") {
-//    val node = LNode("New", ProofStep("Spec", "Goal", Induction()))
-//    val switchStatusVerifier = MockVerifier(ContradictingStatusProver())
-//    val newGraph = testGraph
-//      .verifySingle(provedVerifier, "Child1")
-//      .verifySingle(provedVerifier, "Child2")
-//      .addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
-//      .verifySingle(switchStatusVerifier, "Top")
-//
-//    assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[VerificationFailure[String, String]])
-//  }
 
   test("Verify all nodes") {
     val node1 = LNode("Parent", ProofStep("Spec", "Goal", Solve()))
@@ -146,11 +133,11 @@ class ProofGraphTest extends FunSuite {
     assert(newGraph.get("Child1").get.getVerificationStatus.isVerified)
     assert(newGraph.get("Child2").get.getVerificationStatus.isVerified)
     assert(newGraph.get("Child3").get.getVerificationStatus.isVerified)
-    //    assert(newGraph.get("Parent").get.fullyVerified)
-    //    assert(newGraph.get("New").get.fullyVerified)
-    //    assert(newGraph.get("Child1").get.fullyVerified)
-    //    assert(newGraph.get("Child2").get.fullyVerified)
-    //    assert(newGraph.get("Child3").get.fullyVerified)
+    assert(newGraph.computeFullyVerified("Parent"))
+    assert(newGraph.computeFullyVerified("New"))
+    assert(newGraph.computeFullyVerified("Child1"))
+    assert(newGraph.computeFullyVerified("Child2"))
+    assert(newGraph.computeFullyVerified("Child3"))
   }
 
   test("Verify all nodes parallel") {
@@ -170,11 +157,11 @@ class ProofGraphTest extends FunSuite {
     assert(newGraph.get("Child1").get.getVerificationStatus.isVerified)
     assert(newGraph.get("Child2").get.getVerificationStatus.isVerified)
     assert(newGraph.get("Child3").get.getVerificationStatus.isVerified)
-//    assert(newGraph.get("Parent").get.fullyVerified)
-//    assert(newGraph.get("New").get.fullyVerified)
-//    assert(newGraph.get("Child1").get.fullyVerified)
-//    assert(newGraph.get("Child2").get.fullyVerified)
-//    assert(newGraph.get("Child3").get.fullyVerified)
+    assert(newGraph.computeFullyVerified("Parent"))
+    assert(newGraph.computeFullyVerified("New"))
+    assert(newGraph.computeFullyVerified("Child1"))
+    assert(newGraph.computeFullyVerified("Child2"))
+    assert(newGraph.computeFullyVerified("Child3"))
   }
 }
 

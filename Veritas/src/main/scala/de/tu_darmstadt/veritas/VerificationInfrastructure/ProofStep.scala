@@ -26,40 +26,47 @@ class ProofStep[S, P](val spec: S, val goal: P, val verificationStrategy: Verifi
     */
   def verify(verifier: Verifier[S, P],
              assumptions: Seq[(EdgeLabel, ProofStep[S, P])] = Seq()): ProofStep[S, P] = {
-    val hypotheses = assumptions.map { a => (a._1, a._2.goal)}
-    // TODO: Only look for Proved?
-    // -> no, I would say we can be more generous and also recreate failed stati, if it works out with the edges
-    // However, careful: if we get given MORE edges (= more assumptions) then before, we have to re-verify
-    // since the assumptions could now contradict each other and then change the status
-    // (IDEA: we may later add a special verifier that always does consistency checking before verifying...)
-    // if we get fewer edges, that is ok as long as the edges that the individual configurations
-    // used are still there.
-    // In fact, the entire report has to be *filtered* to remove configurations that used edges that
-    // are not in the given assumptions!
+    def exitsEqualConfig(report: Map[VerificationConfiguration[Any, Any, Any], ProverStatus]): Boolean =
+      report.keys.filter { case VerificationConfiguration(_, _, _, usedEdges, _) => usedEdges == assumptions }.nonEmpty
+
     verificationStatus match {
-      case Outdated(f@Finished(report), pg) =>
-        if (f.bestStatus.isVerified && assumptions.containsSlice(f.bestConf.usedEdges))
-          return ProofStep(spec, goal, verificationStrategy, f)
-      case _ => () // do nothing
+      case Outdated(f@Finished(report), _) => {
+        // check if there is a config which can be reused (if assumptions is exactly equal to usedEdges)
+        if (exitsEqualConfig(report))
+          return ProofStep(spec, goal, verificationStrategy, filterFinishedReport(f, assumptions))
+      }
+      case Outdated(VerificationFailure(_, _, Some(f@Finished(report)), _), _) => {
+        // check if there is a config which can be reused (if assumptions is exactly equal to usedEdges)
+        if (exitsEqualConfig(report))
+          return ProofStep(spec, goal, verificationStrategy, filterFinishedReport(f, assumptions))
+      }
+      case _ => // do nothing
     }
+    // otherwise re-verify
     val newStatus = verificationStrategy.callVerifier(verifier, spec, goal, assumptions)
     ProofStep(spec, goal, verificationStrategy, combineVerificationStatus(newStatus))
   }
 
+  private def filterFinishedReport(status: VerificationStatus, assumptions: Seq[(EdgeLabel, ProofStep[S, P])]): VerificationStatus = status match {
+    case Finished(report) => {
+      val filteredReport = report.filter { case (vc, _) =>
+        vc.usedEdges == assumptions
+      }
+      Finished(filteredReport)
+    }
+    case _ => status
+  }
+
   private def combineVerificationStatus(newStatus: VerificationStatus, pg: Option[ProofGraph[S, P]] = None): VerificationStatus = verificationStatus match {
-    // TODO: what happens if verificationfailure is returned? we would loose the report of finished (verificationStatus)
-      // good point. I tried to address this by allowing VerificationFailure to keep an old status (if that old status
-      // was "Finished" - what do you think?
+      // TODO: maybe consider further processing if verificationStatus is VerificationFailure
     case Finished(oldReport) => newStatus match {
       case Finished(newReport) => Finished(oldReport ++ newReport)
-      case VerificationFailure(em, usv : Verifier[S, P], _, _) => VerificationFailure(Some(verificationStatus), pg, em, usv)
+      case VerificationFailure(em, usv : Verifier[S, P], _, _) => VerificationFailure(em, usv, Some(verificationStatus), pg)
       case _ => newStatus
     }
     case _ => newStatus
   }
 
-  // TODO: currently needed because VerificationStrategy does not know of the VerificationStatus
-  // yes, that is ok!
   /**
     * computes if this proofstep is fully verified based on its children
     * @param edgeseq a sequence of edgelabels with the additional information if the connected children is fully verified

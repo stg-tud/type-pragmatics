@@ -23,8 +23,8 @@ object VerificationFailure {
   def apply[S, P](em: String, usedVerifier: Verifier[S, P]) =
     new VerificationFailure[S, P](em, usedVerifier, None, None)
 
-  def apply[S, P](prevs: Option[VerificationStatus], previousProofGraph: Option[ProofGraph[S, P]],
-                  errorMessage: String, usedVerifier: Verifier[S, P]) =
+  def apply[S, P](errorMessage: String, usedVerifier: Verifier[S, P],
+                   prevs: Option[VerificationStatus], previousProofGraph: Option[ProofGraph[S, P]]) =
     new VerificationFailure[S, P](errorMessage, usedVerifier, prevs, previousProofGraph)
 
   def unapply[S, P](arg: VerificationFailure[S, P]): Option[(String, Verifier[S, P], Option[VerificationStatus], Option[ProofGraph[S, P]])] =
@@ -33,7 +33,7 @@ object VerificationFailure {
 }
 
 case class Finished[S, P, V](report: Map[VerificationConfiguration[S, P, V], ProverStatus]) extends VerificationStatus {
-  private def bestAttempt(): (VerificationConfiguration[S, P, V], ProverStatus) = {
+  private lazy val bestAttempt: (VerificationConfiguration[S, P, V], ProverStatus) = {
     def sortByProverStatus(ps: ProverStatus): Int = ps match {
       // proved <- disproved <- inconclusive <- ProverFailure
       case Proved(_) => 0
@@ -45,12 +45,9 @@ case class Finished[S, P, V](report: Map[VerificationConfiguration[S, P, V], Pro
     report.toSeq.sortBy { case (_, ps) => sortByProverStatus(ps) }.head
   }
 
-  // TODO: not sure if it should be def or val because it is immutable. more leaning to val
-  // -> Does not really matter so much. Could also be lazy val, so that it is only computed if really requested.
-  // As it is currently, bestAttempt could also as well be a private (lazy) val, since the val definitions force computation of it anyway
-  val bestConf: VerificationConfiguration[S, P, V] = bestAttempt()._1
+  lazy val bestConf: VerificationConfiguration[S, P, V] = bestAttempt._1
 
-  val bestStatus: ProverStatus = bestAttempt()._2
+  lazy val bestStatus: ProverStatus = bestAttempt._2
 
   override val isVerified = bestStatus.isVerified
 }

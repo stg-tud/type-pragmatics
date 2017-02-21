@@ -120,27 +120,22 @@ class ProofGraph[S, P] {
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
   def verifySingle(verifier: Verifier[S, P], nodename: String): ProofGraph[S, P] = {
-    val focusedGraph = graph.context(nodename)
-    val proofstep = focusedGraph.label
-    val isLeaf = focusedGraph.outEdges.isEmpty
-    val updatedNode = verifyNode(verifier, LNode(nodename, proofstep))
+    val updatedNode = verifyNode(verifier, nodename)
     updateNode(nodename, updatedNode.label)
   }
 
-  //TODO There seems to be some redundancy with the code from above - is this necessary?
-  // e.g. verifyNode computes again the focusedGraph etc.
-  private def verifyNode(verifier: Verifier[S, P], node: ProofNode[S, P]): ProofNode[S, P] = {
-    val focusedGraph = graph.context(node.vertex)
-    val step = node.label
+  private def verifyNode(verifier: Verifier[S, P], nodename: String): ProofNode[S, P] = {
+    val focusedGraph = graph.context(nodename)
+    val step = focusedGraph.label
     val isLeaf = focusedGraph.outEdges.isEmpty
     val updatedStep =
       if (isLeaf) {
         step.verify(verifier)
       } else {
-        val assumptions = getSubgoalsWithEdges(node.vertex).map { sg => (sg._1, sg._2.label)}
+        val assumptions = getSubgoalsWithEdges(nodename).map { sg => (sg._1, sg._2.label)}
         step.verify(verifier, assumptions)
       }
-    LNode(node.vertex, updatedStep)
+    LNode(nodename, updatedStep)
   }
 
   private def getSubgoalsWithEdges(nodename: String, g: InternalGraph[S, P] = graph): Vector[(EdgeLabel, ProofNode[S, P])] = {
@@ -157,13 +152,12 @@ class ProofGraph[S, P] {
     ProofGraph(updatedGraph)
   }
 
-  def computeFullyVerified(node: ProofNode[S, P]): Boolean = {
-    val nodename = node.vertex
-    val step = node.label
+  def computeFullyVerified(nodename: String): Boolean = {
+    val step = graph.context(nodename).label
     val subgoals = getSubgoalsWithEdges(nodename, graph)
     if (subgoals.isEmpty)
       return step.fullyVerified(Seq())
-    val fullyVerifiedStati = subgoals.map {sg => (sg._1, computeFullyVerified(sg._2))}
+    val fullyVerifiedStati = subgoals.map {sg => (sg._1, computeFullyVerified(sg._2.vertex))}
     step.fullyVerified(fullyVerifiedStati.toSeq)
   }
 
@@ -175,10 +169,7 @@ class ProofGraph[S, P] {
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
   def verifyAll(verifier: Verifier[S, P]): ProofGraph[S, P] = {
-    val roots = graph.roots.toSeq
-    // verification order is children before parents to correctly compute fullyVerified
-    //TODO the above does not matter anymore, right? since fullyVerified became a def now...?
-    val nodes = graph.bfsn(roots).reverse
+    val nodes = graph.nodes
     val verifiedGraph = nodes.foldLeft(graph) { case (g, nodename) =>
         ProofGraph(g).verifySingle(verifier, nodename).graph
     }
@@ -188,7 +179,7 @@ class ProofGraph[S, P] {
   def verifyAllPar(verifier: Verifier[S, P]): ProofGraph[S, P] = {
     val contexts = graph.contexts.par
     val verifiedContexts = contexts.map { context =>
-      val updatedNode = verifyNode(verifier, LNode(context.vertex, context.label))
+      val updatedNode = verifyNode(verifier, context.vertex)
       Context(context.inAdj, updatedNode.vertex, updatedNode.label, context.outAdj)
     }
     val verifiedGraph =
