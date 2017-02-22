@@ -35,7 +35,6 @@ object ccps extends Transformation(stlc.language + tcps) {
         Var("T", Typ),
         Var("C", Ctx)),
       Judg(CtxOk, Var("C", Ctx)),
-      Judg(TOk, Var("T", Typ)),
       Judg(TOk, omega)
     ) -> 2,
 

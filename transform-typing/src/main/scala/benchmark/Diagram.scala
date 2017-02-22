@@ -97,7 +97,7 @@ object Diagram extends App {
     yaxis.range_=((0.0, 1.0))
     yaxis.label_=("Completion (%)")
 
-    val chart = new XYChart(Some(trans), data, x = xaxis, y = yaxis)
+    val chart = new XYChart(None, data, x = xaxis, y = yaxis)
     chart.showLegend = true
     chart.legendPosX = LegendPosX.Center
 
