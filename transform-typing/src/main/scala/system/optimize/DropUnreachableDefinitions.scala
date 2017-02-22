@@ -8,7 +8,7 @@ import scala.collection.mutable
 
 /**
   * Drop rules and functions of symbols that are not reachable from the goal via _calls_ (i.e., via forward reasoning).
-  * For example, if foo is not reachable from the goal, drop if even if foo uses bar, which is reachable from the goal.
+  * For example, if foo is not reachable from the goal, drop it even if foo uses bar, which is reachable from the goal.
   */
 object DropUnreachableDefinitions {
 

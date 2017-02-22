@@ -1,5 +1,6 @@
 package system.optimize
 
+import system.Gensym
 import system.Syntax._
 import system.Verification.ProofObligation
 
@@ -12,7 +13,7 @@ object ExistentialHints {
   def existentialHints(obl: ProofObligation): ProofObligation = {
     val goals = obl.goals.flatMap { goal =>
       val ihRules = obl.axioms.filter(rule => rule.conclusion.sym == goal.sym && rule.isInductionHypothesis)
-      val hints = existentialHintsFromIhs(goal, ihRules, obl.existentials)
+      val hints = existentialHintsFromIhs(goal, ihRules, obl.existentials, obl.gensym)
       val hintJudgs = hints.map { case (v, t) =>
         val eqJudg = Judg(equ(v.sort), v, t)
         val neqJudg = Judg(neq(v.sort), v, t)
@@ -24,16 +25,18 @@ object ExistentialHints {
     obl.copy(goals = goals)
   }
 
-  private def existentialHintsFromIhs(goal: Judg, ihs: Seq[Rule], existentials: Set[Var]): Seq[Hint] = {
+  private def existentialHintsFromIhs(goal: Judg, ihs: Seq[Rule], existentials: Set[Var], gensym: Gensym): Seq[Hint] = {
     val candidates = ihs.flatMap { rule =>
-      assert(rule.freevars.isEmpty, "Induction hypothesis should not have free variables")
-      val ihSymName = rule.inductionSymbolName
-      val (ihTransCall, callIx) = rule.conclusion.terms.zipWithIndex.find {
+      val freshRule = rule.fresh(gensym)
+      val ihSymName = freshRule.inductionSymbolName
+      val (ihTransCall, callIx) = freshRule.conclusion.terms.zipWithIndex.find {
         case (App(sym, _), ix) => sym.name == ihSymName
         case _ => false
       }.get
       val oblTransCall = goal.terms(callIx)
       if (oblTransCall != ihTransCall) // require exact match between goal and IH for trans call
+        None
+      else if (ihTransCall.freevars.nonEmpty)
         None
       else
         Try(rule -> rule.conclusion.matchTerm(goal)).toOption

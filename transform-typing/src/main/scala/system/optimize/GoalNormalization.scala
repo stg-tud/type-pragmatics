@@ -119,15 +119,26 @@ object GoalNormalization {
       case _ => None
     }
 
-  def normalizeConstructorEqs(eqs: Eqs): Eqs =
-    eqs.flatMap(normalizeConstructorEq(_))
 
-  def normalizeConstructorEq(eq: (Term, Term)): Eqs = eq match {
-    case (l, r) if l == r => Seq()
-    case (App(lsym, lkids), App(rsym, rkids)) if lsym == rsym && lsym.constr =>
-      normalizeConstructorEqs(lkids zip rkids)
-    case _ => Seq(eq)
+  def normalizeConstructorEqs(eqs: Eqs): Eqs = eqs.flatMap { case (l, r) =>
+    Try(l.unify(r)).toOption match {
+      case None => throw new MatchError(s"Obligation was disproved: $l != $r")
+      case Some((s, diff, _)) =>
+        val sEqs = s.map(kv => kv._1 -> kv._2).toSeq
+        val diffEqs = diff.map(lr => lr._1 -> lr._2)
+        sEqs ++ diffEqs
+    }
   }
+
+//  def normalizeConstructorEqs(eqs: Eqs): Eqs =
+//    eqs.flatMap(normalizeConstructorEq(_))
+//
+//  def normalizeConstructorEq(eq: (Term, Term)): Eqs = eq match {
+//    case (l, r) if l == r => Seq()
+//    case (App(lsym, lkids), App(rsym, rkids)) if lsym == rsym && lsym.constr =>
+//      normalizeConstructorEqs(lkids zip rkids)
+//    case _ => Seq(eq)
+//  }
 
   def normalizeSubstitutionEqs(eqs: Eqs, existentials: Set[Var]): (Subst, Eqs) = {
     var s: Subst = Map()

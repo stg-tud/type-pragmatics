@@ -4,7 +4,7 @@ import java.io.{File, FileWriter}
 
 import system._
 import system.Verification.{ProofObligation, ProverResult}
-import system.optimize.{DropUnreachableDefinitions, GoalNormalization, GoalUnpacking, RuleStrengthening}
+import system.optimize._
 import veritas.benchmarking.Proved
 
 import scala.collection.immutable.ListMap
@@ -13,39 +13,51 @@ object Benchmark extends App {
 
   object OptimizationConfig extends Enumeration {
     type OptimizationConfig = Value
-    val All, NoUnpack, NoNormalization, NoStrengthening, NoDropUnreachable = Value
+    val All, NoUnpack, NoNormalization, NoExistentialHints, NoStrengthening, NoDropUnreachable = Value
 
     def optimize(config: OptimizationConfig, obl: ProofObligation): Seq[ProofObligation] = config match {
       case All =>
         val obls1 = GoalUnpacking.unpackObligation(obl)
         val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
-        val obls3 = obls2.map(RuleStrengthening.strengthenObligation(_))
-        val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls4
+        val obls3 = obls2.map(ExistentialHints.existentialHints(_))
+        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
+        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls5
       case NoUnpack =>
         val obls1 = Seq(obl)
         val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
-        val obls3 = obls2.map(RuleStrengthening.strengthenObligation(_))
-        val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls4
+        val obls3 = obls2.map(ExistentialHints.existentialHints(_))
+        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
+        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls5
       case NoNormalization =>
         val obls1 = GoalUnpacking.unpackObligation(obl)
         val obls2 = obls1
-        val obls3 = obls2.map(RuleStrengthening.strengthenObligation(_))
-        val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls4
-      case NoStrengthening =>
+        val obls3 = obls2.map(ExistentialHints.existentialHints(_))
+        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
+        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls5
+      case NoExistentialHints =>
         val obls1 = GoalUnpacking.unpackObligation(obl)
         val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
         val obls3 = obls2
-        val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls4
+        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
+        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls5
+      case NoStrengthening =>
+        val obls1 = GoalUnpacking.unpackObligation(obl)
+        val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
+        val obls3 = obls2.map(ExistentialHints.existentialHints(_))
+        val obls4 = obls3
+        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls5
       case NoDropUnreachable =>
         val obls1 = GoalUnpacking.unpackObligation(obl)
         val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
-        val obls3 = obls2.map(RuleStrengthening.strengthenObligation(_))
-        val obls4 = obls3
-        obls4
+        val obls3 = obls2.map(ExistentialHints.existentialHints(_))
+        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
+        val obls5 = obls4
+        obls5
     }
   }
   import OptimizationConfig._
@@ -53,12 +65,12 @@ object Benchmark extends App {
   case class VerificationSummary(results: ListMap[ProofObligation, ProverResult]) {
     def successCount = results.filter(_._2.status == Proved).size
     def failedCount = results.filter(_._2.status != Proved).size
-    def successTimeSum = results.filter(_._2.status == Proved).map(_._2.timeSeconds.get).sum
+    def successTimes = results.filter(_._2.status == Proved).map(_._2.timeSeconds.get)
 
     def writeSumamryCSV(implicit writer: FileWriter): Unit = {
       write(results.size)
       write(successCount)
-      write(successTimeSum)
+      write(successTimes.sum)
     }
 
     def writeDetailsCSV(trans: Transformation, config: OptimizationConfig)(implicit writer: FileWriter): Unit ={

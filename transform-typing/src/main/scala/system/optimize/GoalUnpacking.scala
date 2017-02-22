@@ -63,34 +63,9 @@ object GoalUnpacking {
         obls
   }
 
-  private def trySolveEquation(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Unpacked =
-    if (judg.sym.isEq) {
-      Try(judg.terms(0).unify(judg.terms(1))).toOption match {
-        case None => Disproved(Seq("#EQ" -> judg))
-        case Some((s, eqs, _)) if s.isEmpty && eqs.isEmpty => Proved
-        case Some((s, eqs, _)) =>
-          val sGoals = s.map(kv => Judg(equ(kv._1.sort), kv._1, kv._2)).toSeq
-          val eqGoals = eqs.map(lr => Judg(equ(lr._1.sort), lr._1, lr._2))
-          ProveThis(Seq(nextObligation(sGoals ++ eqGoals, obl)))
-      }
-    }
-    else if (judg.sym.isNeq && judg.terms(0) == judg.terms(1))
-    // terms are syntactically equal => inequality never holds
-      Disproved(Seq("#NEQ" -> judg))
-    else if (judg.sym.isNeq && Try(judg.terms(0).unify(judg.terms(1))).isFailure)
-    // terms are not unifiable => inequality always holds
-      Proved
-    else
-      DontKnow
-
   private def unpackJudg(judg: Judg, obl: ProofObligation, ass: Seq[Judg], cc: CostCount)(implicit counter: Counter): Unpacked = {
     if (obl.assumptions.contains(judg))
       return Proved
-
-    trySolveEquation(judg, obl) match {
-      case result@(Proved | Disproved(_) | ProveThis(_)) => return result
-      case DontKnow => // continue
-    }
 
     val rules = obl.lang.rules ++ obl.lang.transs.flatMap(_.rules.keys) ++ obl.axioms
     val filteredRules = rules.filter(rule => rule.conclusion.sym == judg.sym && !rule.isLemma)
