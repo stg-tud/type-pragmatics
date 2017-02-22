@@ -47,6 +47,8 @@ object Benchmark extends App {
         val obls4 = obls3
         obls4
     }
+
+    def fromName(name: String): Value = values.find(_.toString == name).get
   }
   import OptimizationConfig._
 
