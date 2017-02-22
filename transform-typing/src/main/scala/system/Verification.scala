@@ -71,9 +71,8 @@ object Verification {
       val obls1 = GoalUnpacking.unpackObligation(this)
       val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
       val obls3 = obls2.map(ExistentialHints.existentialHints(_))
-      val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
-      val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
-      obls5
+      val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
+      obls4
     }
   }
 

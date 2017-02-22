@@ -13,51 +13,39 @@ object Benchmark extends App {
 
   object OptimizationConfig extends Enumeration {
     type OptimizationConfig = Value
-    val All, NoUnpack, NoNormalization, NoExistentialHints, NoStrengthening, NoDropUnreachable = Value
+    val All, NoUnpack, NoNormalization, NoExistentialHints, NoDropUnreachable = Value
 
     def optimize(config: OptimizationConfig, obl: ProofObligation): Seq[ProofObligation] = config match {
       case All =>
         val obls1 = GoalUnpacking.unpackObligation(obl)
         val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
         val obls3 = obls2.map(ExistentialHints.existentialHints(_))
-        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
-        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls5
+        val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls4
       case NoUnpack =>
         val obls1 = Seq(obl)
         val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
         val obls3 = obls2.map(ExistentialHints.existentialHints(_))
-        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
-        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls5
+        val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls4
       case NoNormalization =>
         val obls1 = GoalUnpacking.unpackObligation(obl)
         val obls2 = obls1
         val obls3 = obls2.map(ExistentialHints.existentialHints(_))
-        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
-        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls5
+        val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls4
       case NoExistentialHints =>
         val obls1 = GoalUnpacking.unpackObligation(obl)
         val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
         val obls3 = obls2
-        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
-        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls5
-      case NoStrengthening =>
-        val obls1 = GoalUnpacking.unpackObligation(obl)
-        val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
-        val obls3 = obls2.map(ExistentialHints.existentialHints(_))
-        val obls4 = obls3
-        val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
-        obls5
+        val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
+        obls4
       case NoDropUnreachable =>
         val obls1 = GoalUnpacking.unpackObligation(obl)
         val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
         val obls3 = obls2.map(ExistentialHints.existentialHints(_))
-        val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
-        val obls5 = obls4
-        obls5
+        val obls4 = obls3
+        obls4
     }
   }
   import OptimizationConfig._
