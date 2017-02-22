@@ -95,7 +95,7 @@ object ProofStep {
   /*
   public constructor for a ProofStep
    */
-  def apply[S, P](spec: S, goal: P, strategy: VerificationStrategy[S, P]): ProofStep[S, P] =
+  def apply[S, P](spec: S, goal: P, strategy: VerificationStrategy[S, P] = Solve[S, P]): ProofStep[S, P] =
     new ProofStep(spec, goal, strategy)
 
   /*

@@ -1,6 +1,5 @@
 package de.tu_darmstadt.veritas.inputdsl.testexamples
 
-import de.tu_darmstadt.veritas.backend.ast.function.FunctionEq
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 

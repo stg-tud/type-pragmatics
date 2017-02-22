@@ -209,10 +209,7 @@ object FunctionDSL {
   //    case MVarNode(mv) => sys.error(s"Cannot accept a meta variable $mv here! (happens for example if you try to use a meta variable in a function definition)")
   //  }
 
-  //this is deliberately not marked as implicit, since otherwise it would clash with _symTreeToFunExpTree from above
-  //in function definitions, we want that the top-level SymTrees are always converted to FunExpTree (no meta variables!)
-  //however, in typing rules, SymTrees may contain meta variables - and then, _symTreeToFunExpMetaTree should be called
-  //explicitly to ensure that the correct type is returned
+
   implicit def _symTreeToFunExpMetaTree(st: SymTree): FunExpMetaTree = st match {
     case SymLeaf(sn) => VarLeaf(sn)
     case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc: SymTree) => _symTreeToFunExpMetaTree(stc) })

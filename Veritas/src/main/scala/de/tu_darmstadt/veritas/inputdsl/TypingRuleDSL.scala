@@ -132,7 +132,12 @@ object TypingRuleDSL {
 
   implicit def _toFunctionExpJudgment(f: FunctionExp): FunctionExpJudgment = FunctionExpJudgment(f)
 
-  implicit def _toFunctionExpJudgment(f: FunExpTree): FunctionExpJudgment = FunctionExpJudgment(_funExpTreeToFunExp(f))
+  implicit def _toFunctionExpJudgment(f: FunExpMetaTree): FunctionExpJudgment =
+    f match {
+      case MVarNode(_) => sys.error("cannot have a single meta variable as a FunctionExpJudgment: " + f)
+      case fexp : FunExpTree => FunctionExpJudgment(_funExpTreeToFunExp(fexp))
+      case _ => sys.error("encountered unsupported language construct when trying to create a FunctionExpJudgment")
+    }
 
   def exists(mvs: MVarNode*): _existsJudgmentPartial = _existsJudgmentPartial(mvs map {_.mv})
 

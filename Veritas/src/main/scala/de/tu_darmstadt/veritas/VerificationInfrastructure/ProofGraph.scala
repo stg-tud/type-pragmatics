@@ -204,7 +204,7 @@ object ProofGraph {
   /**
     * public constructor
     */
-  def apply[S, P](nodelist: Seq[ProofNode[S, P]], edgelist: Seq[VerificationEdge]): ProofGraph[S, P] =
+  def apply[S, P](nodelist: Seq[ProofNode[S, P]], edgelist: Seq[VerificationEdge] = Seq()): ProofGraph[S, P] =
     new ProofGraph[S, P] {
       override val graph = safeMkGraph(nodelist, edgelist) //ignores dangling edges
     }
