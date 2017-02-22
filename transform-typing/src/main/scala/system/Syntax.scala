@@ -314,6 +314,13 @@ object Syntax {
     def symbols: Set[Symbol] = conclusion.symbols ++ premises.foldLeft(Set[Symbol]())((set, j) => set ++ j.symbols)
 
     def isLemma = kind == Rule.Lemma
+
+    def isInductionHypothesis = name.contains("-IH(")
+    def inductionSymbolName = {
+      val ihstart = name.indexOf("-IH(")
+      val ihend = name.indexOf(")", ihstart)
+      name.substring(ihstart + "-IH(".length, ihend)
+    }
   }
   object Rule extends Enumeration {
     val Axiom, Contract, Lemma: Value = Value

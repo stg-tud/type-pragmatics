@@ -5,7 +5,7 @@ import java.io.{File, PrintWriter}
 import de.tu_darmstadt.veritas.backend.fof._
 import de.tu_darmstadt.veritas.backend.tff.TffAnnotated
 import system.Syntax._
-import system.optimize.{DropUnreachableDefinitions, GoalNormalization, GoalUnpacking, RuleStrengthening}
+import system.optimize._
 import veritas.benchmarking
 import veritas.benchmarking._
 import veritas.benchmarking.vampire.VampireConfig
@@ -70,9 +70,10 @@ object Verification {
     def optimized: Seq[ProofObligation] = {
       val obls1 = GoalUnpacking.unpackObligation(this)
       val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
-      val obls3 = obls2.map(RuleStrengthening.strengthenObligation(_))
-      val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
-      obls4
+      val obls3 = obls2.map(ExistentialHints.existentialHints(_))
+      val obls4 = obls3.map(RuleStrengthening.strengthenObligation(_))
+      val obls5 = obls4.map(DropUnreachableDefinitions.dropUnreachable(_))
+      obls5
     }
   }
 

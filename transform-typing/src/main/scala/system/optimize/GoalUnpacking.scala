@@ -39,20 +39,29 @@ object GoalUnpacking {
 
   def unpackObligation(obl: ProofObligation): Seq[ProofObligation] = {
     implicit val counter = new Counter
-    obl.goals.flatMap(goal => unpackJudg(goal, obl, Seq(), Map()) match {
-      case Proved => Seq(nextObligation(Seq(), obl))
-      case Disproved(steps) => throw new MatchError(s"Obligation was disproved:\n${steps.mkString("\n")}")
-      case DontKnow => Seq(nextObligation(Seq(goal), obl))
-      case ProveThis(obls) if obls.isEmpty => Seq(nextObligation(Seq(), obl))
-      case ProveThis(obls) => obls
-    })
+
+    obl.goals.flatMap(goal => unpackJudg(goal, obl, Seq(), Map()).resultingObligations(obl, goal))
   }
 
-  private sealed trait Unpacked
-  private case object Proved extends Unpacked
-  private case object DontKnow extends Unpacked
-  private case class Disproved(steps: Seq[(String, Judg)]) extends Unpacked
-  private case class ProveThis(obls: Seq[ProofObligation]) extends Unpacked
+  private sealed trait Unpacked {
+    def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter): Seq[ProofObligation]
+  }
+  private case object Proved extends Unpacked {
+    override def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter) = Seq(nextObligation(Seq(), obl))
+  }
+  private case object DontKnow extends Unpacked {
+    override def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter) = Seq(nextObligation(Seq(goal), obl))
+  }
+  private case class Disproved(steps: Seq[(String, Judg)]) extends Unpacked{
+    override def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter) = throw new MatchError(s"Obligation was disproved:\n${steps.mkString("\n")}")
+  }
+  private case class ProveThis(obls: Seq[ProofObligation]) extends Unpacked {
+    override def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter) =
+      if (obls.isEmpty)
+        Proved.resultingObligations(obl, goal)
+      else
+        obls
+  }
 
   private def trySolveEquation(judg: Judg, obl: ProofObligation)(implicit counter: Counter): Unpacked =
     if (judg.sym.isEq) {
@@ -90,6 +99,10 @@ object GoalUnpacking {
       Try(freshRule -> freshRule.conclusion.matchTerm(judg)).toOption
     }
 
+    unpackJudgUsingCandidates(judg, obl, ass, cc, candidates)
+  }
+
+  private def unpackJudgUsingCandidates(judg: Judg, obl: ProofObligation, ass: Seq[Judg], cc: CostCount, candidates: Seq[(Rule, (Subst, Diff, Int))])(implicit counter: Counter) = {
     if (candidates.size == 0) {
       DontKnow
     }
@@ -99,10 +112,11 @@ object GoalUnpacking {
       unpackJudgUsingRule(judg, obl, ass, cc, rule, s, eqs)
     }
     else {
-      val possibleCandidates = candidates.toStream.filter{ case (rule, (s, matchEqs, num)) =>
+      val possibleCandidates = candidates.toStream.filter { case (rule, (s, matchEqs, num)) =>
         possibleCandidate(judg, obl, ass, rule, s, matchEqs, num)
       }
-      if (!possibleCandidates.isEmpty && possibleCandidates.tail.isEmpty) { // size == 1
+      if (!possibleCandidates.isEmpty && possibleCandidates.tail.isEmpty) {
+        // size == 1
         val (rule, (s, eqs, _)) = possibleCandidates.head
         val res = unpackJudgUsingRule(judg, obl, ass, cc, rule, s, eqs)
         res
@@ -206,18 +220,4 @@ object GoalUnpacking {
     val proven = eqResult.status == benchmarking.Proved  // || eqResultSat.status == benchmarking.Proved
     proven
   }
-
-//  val (closedObls, openObls) = obls.partition(_.goals.flatMap(_.freevars).toSet.subsetOf(judg.freevars))
-//  if (openObls.isEmpty)
-//    eqObls ++ closedObls
-//  else {
-//    val mergedObl: ProofObligation = openObls.reduce((g1, g2) => g1.copy(name = s"${obl.name}-open", goals = g1.goals ++ g2.goals))
-//    val freevars = (mergedObl.goals.flatMap(_.freevars)).toSet.diff(judg.freevars)
-//    val closedGoals = closedObls.flatMap(_.goals)
-//    val existentialMergedObl = mergedObl.copy(
-//      existentials = mergedObl.existentials ++ freevars,
-//      assumptions = (mergedObl.assumptions ++ closedGoals).distinct,
-//      goals = mergedObl.goals.distinct)
-//    eqObls ++ closedObls :+ existentialMergedObl
-//  }
 }
