@@ -13,7 +13,7 @@ object Benchmark extends App {
 
   object OptimizationConfig extends Enumeration {
     type OptimizationConfig = Value
-    val All, NoUnpack, NoNormalization, NoExistentialHints, NoDropUnreachable = Value
+    val All, NoUnpack, NoNormalization, NoExistentialHints, NoDropUnreachable, None = Value
 
     def optimize(config: OptimizationConfig, obl: ProofObligation): Seq[ProofObligation] = config match {
       case All =>
@@ -46,6 +46,8 @@ object Benchmark extends App {
         val obls3 = obls2.map(ExistentialHints.existentialHints(_))
         val obls4 = obls3
         obls4
+      case None =>
+        Seq(obl)
     }
 
     def fromName(name: String): Value = values.find(_.toString == name).get

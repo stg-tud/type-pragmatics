@@ -19,14 +19,16 @@ object Diagram extends App {
     OptimizationConfig.NoUnpack -> "#8dd3c7",
     OptimizationConfig.NoNormalization -> "#dddd93",
     OptimizationConfig.NoExistentialHints -> "#bebada",
-    OptimizationConfig.NoDropUnreachable -> "#80b1d3"
+    OptimizationConfig.NoDropUnreachable -> "#80b1d3",
+    OptimizationConfig.None -> "#fdb462"
   )
   val encodedColors: Map[OptimizationConfig.Value, Color.Value] = Map(
     OptimizationConfig.All -> Color.Black,
     OptimizationConfig.NoUnpack -> Color.Grey,
     OptimizationConfig.NoNormalization -> Color.Purple,
     OptimizationConfig.NoExistentialHints -> Color.Magenta,
-    OptimizationConfig.NoDropUnreachable -> Color.Yellow
+    OptimizationConfig.NoDropUnreachable -> Color.Yellow,
+    OptimizationConfig.None -> Color.Cyan
   )
 
   def trimmed(s: String) = {
