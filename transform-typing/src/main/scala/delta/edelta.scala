@@ -18,7 +18,6 @@ object edelta extends Transformation(stlc.language + delta_ext + tdelta + cdelta
       Judg(Typed, cdelta("C"~Ctx), edelta("e"~Exp, "C"~Ctx, "T"~Typ), tdelta("T"~Typ)),
       // if ----------------
       Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),
-      Judg(TOk, "T"~Typ),
       Judg(CtxOk, "C"~Ctx)
     ) -> 1
 
@@ -63,7 +62,6 @@ object edelta extends Transformation(stlc.language + delta_ext + tdelta + cdelta
         fit("e2"~Exp, "C"~Ctx, "T1"~Typ)),
       edelta("e2"~Exp, "C"~Ctx, "T1"~Typ)),
     where = Seq(
-      Judg(TOk, Var("T1", Typ)),
       Judg(Typed, Var("C", Ctx), Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ)))
     )
   )
