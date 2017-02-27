@@ -6,7 +6,7 @@ class ProofGraph[S, P] {
 
   //idea: other parts of the program should not be able to freely manipulate the internal graph
   //(mostly, because this could yield inconsistent verification stati)
-  protected val graph: InternalGraph[S, P] = mkGraph(Seq(), Seq())
+  protected val graph: InternalProofGraph[S, P] = mkGraph(Seq(), Seq())
 
   //all valid proof graphs have to be acyclic
   // Why comment this? Does it not work?
@@ -39,7 +39,7 @@ class ProofGraph[S, P] {
     */
   private def getParentPaths(
       node: ProofNode[S, P],
-      g: InternalGraph[S, P] = graph): Vector[(EdgeLabel, ProofNode[S, P])] = {
+      g: InternalProofGraph[S, P] = graph): Vector[(ProofEdgeLabel, ProofNode[S, P])] = {
     val context = g.context(node.vertex)
     if (context.inEdges.isEmpty)
       return Vector.empty
@@ -56,8 +56,8 @@ class ProofGraph[S, P] {
     * @return
     */
   private def makeNodesOutdated(
-                                 nodes: Vector[(EdgeLabel, ProofNode[S, P])],
-                                 g: InternalGraph[S, P] = graph): ProofGraph[S, P] = {
+                                 nodes: Vector[(ProofEdgeLabel, ProofNode[S, P])],
+                                 g: InternalProofGraph[S, P] = graph): ProofGraph[S, P] = {
     val outdatedGraph = nodes.foldLeft(g) { case (newGraph, (edgeinfo, node)) =>
         val outdatedStep = node.label.makeOutdated(ProofGraph(newGraph))
         val outdatedNode = LNode(node.vertex, outdatedStep)
@@ -84,7 +84,7 @@ class ProofGraph[S, P] {
     * @param newEdgeLabel
     * @return
     */
-  def updateEdge(edge: VerificationEdge, newEdgeLabel: EdgeLabel): ProofGraph[S, P] = {
+  def updateEdge(edge: VerificationEdge, newEdgeLabel: ProofEdgeLabel): ProofGraph[S, P] = {
     val updatedEdge = LEdge(edge.from, edge.to, newEdgeLabel)
     val updatedGraph = graph.updateEdge(updatedEdge)
     val originNode = LNode(edge.from, updatedGraph.label(edge.from).get)
@@ -138,7 +138,7 @@ class ProofGraph[S, P] {
     LNode(nodename, updatedStep)
   }
 
-  private def getSubgoalsWithEdges(nodename: String, g: InternalGraph[S, P] = graph): Vector[(EdgeLabel, ProofNode[S, P])] = {
+  private def getSubgoalsWithEdges(nodename: String, g: InternalProofGraph[S, P] = graph): Vector[(ProofEdgeLabel, ProofNode[S, P])] = {
     val context = g.context(nodename)
     val edges = context.outEdges
     edges.map { e =>
@@ -146,7 +146,7 @@ class ProofGraph[S, P] {
     }
   }
 
-  private def updateNode(nodename: String, newStep: ProofStep[S, P], g: InternalGraph[S, P] = graph): ProofGraph[S, P] = {
+  private def updateNode(nodename: String, newStep: ProofStep[S, P], g: InternalProofGraph[S, P] = graph): ProofGraph[S, P] = {
     val newNode = LNode(nodename, newStep)
     val updatedGraph = g.updateNode(newNode)
     ProofGraph(updatedGraph)
@@ -183,7 +183,7 @@ class ProofGraph[S, P] {
       Context(context.inAdj, updatedNode.vertex, updatedNode.label, context.outAdj)
     }
     val verifiedGraph =
-      verifiedContexts.seq.foldLeft(empty[String, ProofStep[S, P], EdgeLabel]) {
+      verifiedContexts.seq.foldLeft(empty[String, ProofStep[S, P], ProofEdgeLabel]) {
         case (result, context) => result & context
       }
     ProofGraph(verifiedGraph)
@@ -212,7 +212,7 @@ object ProofGraph {
   /**
     * private constructor for directly generating a new ProofGraph instance without having to reconstruct the graph
     */
-  private def apply[S, P](newgraph: InternalGraph[S, P]): ProofGraph[S, P] =
+  private def apply[S, P](newgraph: InternalProofGraph[S, P]): ProofGraph[S, P] =
     new ProofGraph[S, P] {
       override val graph = newgraph
     }

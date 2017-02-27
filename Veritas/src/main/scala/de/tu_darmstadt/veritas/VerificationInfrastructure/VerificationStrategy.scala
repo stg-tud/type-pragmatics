@@ -4,8 +4,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
   * Strategies for labeling edges of ProofTrees
   */
 abstract class VerificationStrategy[S, P] {
-  def fullyVerified(edgeseq: Seq[(EdgeLabel, Boolean)]): Boolean
-  def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(EdgeLabel, ProofStep[S ,P])]): VerificationStatus
+  def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean
+  def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S ,P])]): VerificationStatus
 }
 
 /**
@@ -13,11 +13,11 @@ abstract class VerificationStrategy[S, P] {
   */
 
 case class Solve[S, P]() extends VerificationStrategy[S, P] {
-  override def fullyVerified(edgeseq: Seq[(EdgeLabel, Boolean)]): Boolean = {
+  override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
     edgeseq.forall { e => e._2 }
   }
 
-  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(EdgeLabel, ProofStep[S, P])]): VerificationStatus = {
+  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus = {
     val hypotheses = edges.map { e => (e._1, e._2.goal)}
     verifier.verify(spec, hypotheses, goal, this)
   }
@@ -25,11 +25,11 @@ case class Solve[S, P]() extends VerificationStrategy[S, P] {
 
 // TODO: is only a copy of Solve to have different subclasses
 case class Induction[S, P]() extends VerificationStrategy[S, P] {
-  override def fullyVerified(edgeseq: Seq[(EdgeLabel, Boolean)]): Boolean = {
+  override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
     edgeseq.forall { e => e._2 }
   }
 
-  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(EdgeLabel, ProofStep[S, P])]): VerificationStatus = {
+  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus = {
     val hypotheses = edges.map { e => (e._1, e._2.goal)}
     verifier.verify(spec, hypotheses, goal, this)
   }
@@ -41,8 +41,8 @@ case class Induction[S, P]() extends VerificationStrategy[S, P] {
 //TODO which other abstract strategies are there for verifying proof trees?
 
 case class VerificationConfiguration[S, P, V](
-  transformer: Transformer[S, P, V],
-  strat: VerificationStrategy[S, P],
-  prover: Prover[V],
-  usedEdges: Seq[(EdgeLabel, ProofStep[S, P])],
-  verifier: Verifier[S, P])
+                                               transformer: Transformer[S, P, V],
+                                               strat: VerificationStrategy[S, P],
+                                               prover: Prover[V],
+                                               usedEdges: Seq[(ProofEdgeLabel, ProofStep[S, P])],
+                                               verifier: Verifier[S, P])

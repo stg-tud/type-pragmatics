@@ -1,8 +1,8 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-trait EdgeLabel
+trait ProofEdgeLabel
 
-object NoInfoEdgeLabel extends EdgeLabel
+object NoInfoProofEdgeLabel extends ProofEdgeLabel
 
 /**
   * type of nodes in a proof graph, represents a single subgoal/step in a proof
@@ -25,7 +25,7 @@ class ProofStep[S, P](val spec: S, val goal: P, val verificationStrategy: Verifi
     * @return updated ProofStep with new verification stati
     */
   def verify(verifier: Verifier[S, P],
-             assumptions: Seq[(EdgeLabel, ProofStep[S, P])] = Seq()): ProofStep[S, P] = {
+             assumptions: Seq[(ProofEdgeLabel, ProofStep[S, P])] = Seq()): ProofStep[S, P] = {
     def exitsEqualConfig(report: Map[VerificationConfiguration[Any, Any, Any], ProverStatus]): Boolean =
       report.keys.filter { case VerificationConfiguration(_, _, _, usedEdges, _) => usedEdges == assumptions }.nonEmpty
 
@@ -47,7 +47,7 @@ class ProofStep[S, P](val spec: S, val goal: P, val verificationStrategy: Verifi
     ProofStep(spec, goal, verificationStrategy, combineVerificationStatus(newStatus))
   }
 
-  private def filterFinishedReport(status: VerificationStatus, assumptions: Seq[(EdgeLabel, ProofStep[S, P])]): VerificationStatus = status match {
+  private def filterFinishedReport(status: VerificationStatus, assumptions: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus = status match {
     case Finished(report) => {
       val filteredReport = report.filter { case (vc, _) =>
         vc.usedEdges == assumptions
@@ -72,7 +72,7 @@ class ProofStep[S, P](val spec: S, val goal: P, val verificationStrategy: Verifi
     * @param edgeseq a sequence of edgelabels with the additional information if the connected children is fully verified
     * @return returns true when it is fully verified otherwise false
     */
-  def fullyVerified(edgeseq: Seq[(EdgeLabel, Boolean)]): Boolean = {
+  def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
     verificationStatus.isVerified && verificationStrategy.fullyVerified(edgeseq)
   }
 

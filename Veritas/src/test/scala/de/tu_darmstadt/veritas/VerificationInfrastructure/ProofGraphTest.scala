@@ -13,8 +13,8 @@ class ProofGraphTest extends FunSuite {
   val topNode = LNode("Top", ProofStep("Spec", "Goal", Solve()))
   val child1 = LNode("Child1", ProofStep("Spec", "Goal", Solve()))
   val child2 = LNode("Child2", ProofStep("Spec", "Goal", Solve()))
-  val edge1: VerificationEdge = LEdge("Top", "Child1", NoInfoEdgeLabel)
-  val edge2: VerificationEdge = LEdge("Top", "Child2", NoInfoEdgeLabel)
+  val edge1: VerificationEdge = LEdge("Top", "Child1", NoInfoProofEdgeLabel)
+  val edge2: VerificationEdge = LEdge("Top", "Child2", NoInfoProofEdgeLabel)
   val provedVerifier = MockVerifier(MockProver())
   val testGraph = ProofGraph(
     Seq(topNode, child1, child2),
@@ -25,14 +25,14 @@ class ProofGraphTest extends FunSuite {
 
   test("Graph should contain a new node and the defined edges after adding a node") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
     val step = newGraph.get("New")
     assert(step.nonEmpty)
   }
 
   test("Parents of added node should be set to outdated") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
     val step = newGraph.get("Top")
     assert(!newGraph.computeFullyVerified("Top"))
     assert(step.get.getVerificationStatus().isInstanceOf[Outdated[String, String]])
@@ -40,7 +40,7 @@ class ProofGraphTest extends FunSuite {
 
   test("Parents of added node should be set to outdated 2") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoEdgeLabel)))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoProofEdgeLabel)))
     val top = newGraph.get("Top")
     val child1 = newGraph.get("Child1")
     assert(!newGraph.computeFullyVerified("Top"))
@@ -64,7 +64,7 @@ class ProofGraphTest extends FunSuite {
 
   test("Verifying single node does set parent to outdated") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
         .verifySingle(provedVerifier, "New")
     assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(!newGraph.computeFullyVerified("Top"))
@@ -75,7 +75,7 @@ class ProofGraphTest extends FunSuite {
 
   test("Verifying single node does set transitive hull of parents to outdated") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoEdgeLabel)))
+    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoProofEdgeLabel)))
       .verifySingle(provedVerifier, "New")
     assert(!newGraph.computeFullyVerified("Top"))
     assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
@@ -89,11 +89,11 @@ class ProofGraphTest extends FunSuite {
     val node3 = LNode("Child3", ProofStep("Spec", "Goal", Solve()))
 
     val newGraph = testGraph
-      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoEdgeLabel)))
-      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoEdgeLabel)))
+      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoProofEdgeLabel)))
+      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoProofEdgeLabel)))
       .verifySingle(provedVerifier, "Parent")
       .verifySingle(provedVerifier, "Child3")
-      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoEdgeLabel), LEdge("Parent", "New", NoInfoEdgeLabel)))
+      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoProofEdgeLabel), LEdge("Parent", "New", NoInfoProofEdgeLabel)))
 
     assert(newGraph.get("Parent").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(newGraph.get("Child1").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
@@ -111,7 +111,7 @@ class ProofGraphTest extends FunSuite {
     val newGraph = testGraph
       .verifySingle(provedVerifier, "Child1")
       .verifySingle(provedVerifier, "Child2")
-      .addNode(node, Seq(LEdge("Top", "New", NoInfoEdgeLabel)))
+      .addNode(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
       .verifySingle(switchStatusVerifier, "Top")
 
     assert(newGraph.get("Top").get.getVerificationStatus.isVerified)
@@ -123,9 +123,9 @@ class ProofGraphTest extends FunSuite {
     val node3 = LNode("Child3", ProofStep("Spec", "Goal", Solve()))
 
     val newGraph = testGraph
-      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoEdgeLabel)))
-      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoEdgeLabel)))
-      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoEdgeLabel), LEdge("Parent", "New", NoInfoEdgeLabel)))
+      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoProofEdgeLabel)))
+      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoProofEdgeLabel)))
+      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoProofEdgeLabel), LEdge("Parent", "New", NoInfoProofEdgeLabel)))
       .verifyAll(provedVerifier)
 
     assert(newGraph.get("Parent").get.getVerificationStatus.isVerified)
@@ -147,9 +147,9 @@ class ProofGraphTest extends FunSuite {
 
     val waitingVerifier = MockVerifier(WaitingProver())
     val newGraph = testGraph
-      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoEdgeLabel)))
-      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoEdgeLabel)))
-      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoEdgeLabel), LEdge("Parent", "New", NoInfoEdgeLabel)))
+      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoProofEdgeLabel)))
+      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoProofEdgeLabel)))
+      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoProofEdgeLabel), LEdge("Parent", "New", NoInfoProofEdgeLabel)))
       .verifyAllPar(waitingVerifier)
 
     assert(newGraph.get("Parent").get.getVerificationStatus.isVerified)
@@ -180,7 +180,7 @@ case class MockVerifier(prover: Prover[String]) extends Verifier[String, String]
     * @param strat      overall abstract strategy to be used for the current step
     * @return Verification summary
     */
-  override def verify(spec: String, hypotheses: Seq[(EdgeLabel, String)], goal: String, strat: VerificationStrategy[String, String]): VerificationStatus =
+  override def verify(spec: String, hypotheses: Seq[(ProofEdgeLabel, String)], goal: String, strat: VerificationStrategy[String, String]): VerificationStatus =
     // TODO: usedEdges cannot be passed because we only have the used goals
     Finished(Map(VerificationConfiguration(MockTransformer(), strat, prover, Nil, this) -> prover.callProver()))
 }

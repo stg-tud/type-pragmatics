@@ -9,7 +9,7 @@ import quiver.{Graph, LEdge, LNode}
 package object VerificationInfrastructure {
 
   type ProofNode[S, P] = LNode[String, ProofStep[S, P]]
-  type VerificationEdge = LEdge[String, EdgeLabel]
-  type InternalGraph[S, P] = Graph[String, ProofStep[S, P], EdgeLabel]
+  type VerificationEdge = LEdge[String, ProofEdgeLabel]
+  type InternalProofGraph[S, P] = Graph[String, ProofStep[S, P], ProofEdgeLabel]
 
 }
