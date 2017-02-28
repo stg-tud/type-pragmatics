@@ -32,6 +32,8 @@ class ProofGraph[S, P] {
     ProofGraph(makeNodesOutdated(transitiveParents, updatedGraph).graph)
   }
 
+  //TODO: add a method that allows for replacing an entire subgraph with a different subgraph
+
   /**
     * collect the transitive hull of parents for a node
     * @param node

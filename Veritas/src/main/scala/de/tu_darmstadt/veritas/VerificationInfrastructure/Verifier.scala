@@ -24,6 +24,6 @@ abstract class Verifier[S, P] {
     * @param strat overall abstract strategy to be used for the current step
     * @return Verification summary
     */
-  def verify(spec: S, hypotheses: Seq[(ProofEdgeLabel, P)], goal: P, strat: VerificationStrategy[S, P]): VerificationStatus
+  def verify(spec: S, hypotheses: Seq[P], goal: P, strat: VerificationStrategy[S, P]): VerificationStatus
 
 }

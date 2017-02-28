@@ -106,7 +106,7 @@ class ProofGraphTest extends FunSuite {
   }
 
   test("Verify node with children") {
-    val node = LNode("New", ProofStep("Spec", "Goal", Induction()))
+    val node = LNode("New", ProofStep("Spec", "Goal", Solve()))
     val switchStatusVerifier = MockVerifier(SwitchStatusProver())
     val newGraph = testGraph
       .verifySingle(provedVerifier, "Child1")
@@ -180,7 +180,7 @@ case class MockVerifier(prover: Prover[String]) extends Verifier[String, String]
     * @param strat      overall abstract strategy to be used for the current step
     * @return Verification summary
     */
-  override def verify(spec: String, hypotheses: Seq[(ProofEdgeLabel, String)], goal: String, strat: VerificationStrategy[String, String]): VerificationStatus =
+  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy[String, String]): VerificationStatus =
     // TODO: usedEdges cannot be passed because we only have the used goals
     Finished(Map(VerificationConfiguration(MockTransformer(), strat, prover, Nil, this) -> prover.callProver()))
 }

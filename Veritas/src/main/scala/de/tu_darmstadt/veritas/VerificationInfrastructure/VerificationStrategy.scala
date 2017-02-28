@@ -5,7 +5,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
   */
 abstract class VerificationStrategy[S, P] {
   def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean
-  def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S ,P])]): VerificationStatus
+
+  def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus
 }
 
 /**
@@ -18,25 +19,52 @@ case class Solve[S, P]() extends VerificationStrategy[S, P] {
   }
 
   override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus = {
-    val hypotheses = edges.map { e => (e._1, e._2.goal)}
+    val hypotheses = edges.map { e => e._2.goal }
     verifier.verify(spec, hypotheses, goal, this)
   }
 }
 
-// TODO: is only a copy of Solve to have different subclasses
-case class Induction[S, P]() extends VerificationStrategy[S, P] {
+// below is only a copy of Solve from before induction was refined
+//case class Induction[S, P]() extends VerificationStrategy[S, P] {
+//  override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
+//    edgeseq.forall { e => e._2 }
+//  }
+//
+//  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus = {
+//    val hypotheses = edges.map { e => (e._1, e._2.goal)}
+//    verifier.verify(spec, hypotheses, goal, this)
+//  }
+//}
+
+case class StructuralInduction[S, P](inductionvar: S) extends VerificationStrategy[S, P] {
   override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
-    edgeseq.forall { e => e._2 }
+    //ignore all edges that are not structural induction edges
+    val inductioncases: Seq[(ProofEdgeLabel, Boolean)] =
+      edgeseq.filter(e =>
+        e._1 match {
+          case StructInductCase(_, _) => true
+          case _ => false
+        })
+    inductioncases.forall { e => e._2 }
   }
 
   override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus = {
-    val hypotheses = edges.map { e => (e._1, e._2.goal)}
+    //ignore all edges that are not structural induction edges
+    val inductioncases: Seq[(ProofEdgeLabel, ProofStep[S, P])] =
+      edges.filter( (e : (ProofEdgeLabel, ProofStep[S, P])) =>
+        e._1 match {
+          case StructInductCase(_, _) => true
+          case _ => false
+        })
+    val structindcases: Seq[(StructInductCase[P], ProofStep[S, P])] =
+      inductioncases.map(e => e._1 match {
+        case s : StructInductCase[P] => (s, e._2)
+          // this would throw a match error if the type annotation does not work out!
+      })
+    val hypotheses = structindcases.flatMap { e => e._1.ihs }
     verifier.verify(spec, hypotheses, goal, this)
   }
 }
-
-//TODO maybe refine this later
-//case object Induction extends VerificationStrategy
 
 //TODO which other abstract strategies are there for verifying proof trees?
 

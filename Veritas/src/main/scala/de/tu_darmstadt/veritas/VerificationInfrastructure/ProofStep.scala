@@ -5,6 +5,14 @@ trait ProofEdgeLabel
 object NoInfoProofEdgeLabel extends ProofEdgeLabel
 
 /**
+  *
+  * @param casename name of the induction case (should correspond to goal name of case?)
+  * @param ihs induction hypotheses
+  * @tparam P type of the format for defining properties/goals
+  */
+case class StructInductCase[P](casename: String, ihs: Seq[P]) extends ProofEdgeLabel
+
+/**
   * type of nodes in a proof graph, represents a single subgoal/step in a proof
   * @param spec the specification from which the goal should be proven
   * @param goal the goal to be proved

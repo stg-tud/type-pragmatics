@@ -829,30 +829,32 @@ object SQLDefs {
 
   val localblockdifference = local(differenceconsts, SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2, SQLProgressTDifference)
 
-  val ha = hideall
+//  val ha = hideall
 
-  val SQLProgressind = axiom(
-    ((!'isValue(~'q)) &
-      (~'TTC |- ~'q :: ~'TT) &
-      'StoreContextConsistent (~'TS, ~'TTC)
-      ).===>("SQL-Progress-ind")(
-    exists (~'qo) |
-      ('reduce(~'q, ~'TS) === 'someQuery(~'qo)))
-  )
+//  val SQLProgressind = axiom(
+//    ((!'isValue(~'q)) &
+//      (~'TTC |- ~'q :: ~'TT) &
+//      'StoreContextConsistent (~'TS, ~'TTC)
+//      ).===>("SQL-Progress-ind")(
+//    exists (~'qo) |
+//      ('reduce(~'q, ~'TS) === 'someQuery(~'qo)))
+//  )
 
-  val strategy_inductionProgress = strategy("induction-Progress")(
-    SQLProgressTtvalue,
-    SQLProgressTselectFromWhere,
-    localblockunion,
-    localblockintersection,
-    localblockdifference,
-    ha,
-    SQLProgressind
-  )
+//  val strategy_inductionProgress = strategy("induction-Progress")(
+//    SQLProgressTtvalue,
+//    SQLProgressTselectFromWhere,
+//    localblockunion,
+//    localblockintersection,
+//    localblockdifference,
+//    ha,
+//    SQLProgressind
+//  )
 
 
   //final progress theorem
-  val SQLProgress = goal_verifywith("induction-Progress")(
+  //originally stated as goal_verifywith("induction-Progess") and "proved" via
+  // the SQLProgressind axiom, since our current provers cannot handle execution at the moment
+  val SQLProgress = goal(
     ((!'isValue (~'q)) &
       (~'TTC |- ~'q :: ~'TT) &
       'StoreContextConsistent (~'TS, ~'TTC)
@@ -864,6 +866,10 @@ object SQLDefs {
 
   val Progress = Module("Progress", Seq(Resolved(Tables), Resolved(TStore), Resolved(Syntax),
     Resolved(Semantics), Resolved(TContext), Resolved(TypeSystem), Resolved(TypeSystemInv), Resolved(SoundnessAuxDefs)),
-    Seq(strategy_inductionProgress, SQLProgress))
+    Seq(SQLProgressTtvalue,
+      SQLProgressTselectFromWhere,
+      localblockunion,
+      localblockintersection,
+      localblockdifference, SQLProgress))
 
 }
