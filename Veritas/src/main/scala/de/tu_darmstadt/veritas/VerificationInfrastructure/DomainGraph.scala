@@ -5,11 +5,11 @@ import quiver.{Context, Graph, LEdge, LNode, mkGraph, safeMkGraph}
 /**
   * Created by sylvia on 27/02/2017.
   */
-abstract class DomainGraph[S, V] {
-  type Domain <: DomainNode[S, V]
-  //type DomainInternal[S, V] = LNode[String, Domain[S, V]]
+class DomainGraph[C, I] {
+  type Domain <: DomainNode[C, I]
+  type DomainInternal = LNode[String, Domain]
   type DomainEdge <: DomainEdgeLabel
-  //type DomainEdgeInternal = LEdge[String, DomainEdge]
+  type DomainEdgeInternal = LEdge[String, DomainEdge]
 
   type InternalDomainTree = Graph[String, Domain, DomainEdge]
   type FocusedTree = Context[String, Domain, DomainEdge]
@@ -17,27 +17,55 @@ abstract class DomainGraph[S, V] {
   protected val graph: InternalDomainTree = mkGraph(Seq(), Seq())
 }
 
+object DomainGraph {
+  /**
+    * public constructor
+    *
+    * @param nodelist
+    * @param edgelist
+    */
+  def apply[C, I, D <: DomainNode[C, I], E <: DomainEdgeLabel]
+  (nodelist: Seq[LNode[String, D]], edgelist: Seq[LEdge[String, E]]): DomainGraph[C, I] = new DomainGraph[C, I] {
+    type Domain = D
+    type DomainEdge = E
 
-class ExpressionDomainGraph[S, V] extends DomainGraph[S, V] {
-  override type Domain = ExpressionDomainNode[S, V]
-  override type DomainEdge = DomainEdgeLabel //TODO: refine expression domain edge?
+    override protected val graph: InternalDomainTree = safeMkGraph(nodelist, edgelist)
+  }
 
+  /**
+    * private constructor for directly generating a new DomainGraph instance without having to reconstruct the graph
+    */
+  private def apply[C, I, D <: DomainNode[C, I], E <: DomainEdgeLabel]
+  (newgraph: Graph[String, D, E]): DomainGraph[C, I] = new DomainGraph[C, I] {
+    type Domain = D
+    type DomainEdge = E
+
+    override protected val graph: InternalDomainTree = newgraph
+  }
 }
 
-class TypeDomainGraph[S, V] extends DomainGraph[S, V] {
-  override type Domain = TypeDomainNode[S, V]
-  override type DomainEdge = DomainEdgeLabel //TODO: refine expression domain edge?
 
-}
-
-class DynamicDomainGraph[S, V, P] extends DomainGraph[S, V] {
-  override type Domain = DynamicDomainNode[S, V, P]
-  override type DomainEdge = DomainEdgeLabel //TODO: refine expression domain edge?
-
-}
-
-class StaticDomainGraph[S, V, P] extends DomainGraph[S, V] {
-  override type Domain = StaticDomainNode[S, V, P]
-  override type DomainEdge = DomainEdgeLabel //TODO: refine expression domain edge?
-
-}
+//special graph instances are probably not needed!
+//class ExpressionDomainGraph[C, I] extends DomainGraph[C, I] {
+//  override type Domain = ExpressionDomainNode[C, I]
+//  override type DomainEdge = ExpressionDomainEdgeLabel
+//
+//}
+//
+//class TypeDomainGraph[C, I] extends DomainGraph[C, I] {
+//  override type Domain = TypeDomainNode[C, I]
+//  override type DomainEdge = DomainEdgeLabel //TODO: refine expression domain edge?
+//
+//}
+//
+//class DynamicDomainGraph[C, I, P] extends DomainGraph[C, I] {
+//  override type Domain = DynamicDomainNode[C, I, P]
+//  override type DomainEdge = DomainEdgeLabel //TODO: refine expression domain edge?
+//
+//}
+//
+//class StaticDomainGraph[C, I, P] extends DomainGraph[C, I] {
+//  override type Domain = StaticDomainNode[C, I, P]
+//  override type DomainEdge = DomainEdgeLabel //TODO: refine expression domain edge?
+//
+//}

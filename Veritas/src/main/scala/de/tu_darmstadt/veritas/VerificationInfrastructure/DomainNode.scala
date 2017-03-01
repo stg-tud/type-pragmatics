@@ -6,12 +6,22 @@ trait DomainEdgeLabel
 
 object NoInfoDomainEdgeLabel extends DomainEdgeLabel
 
+trait ExpressionDomainEdgeLabel extends DomainEdgeLabel
+
+case class DTConstructor[I](parentname: I) extends ExpressionDomainEdgeLabel
+
+case class DTConstructorArg[I](argname: I) extends ExpressionDomainEdgeLabel
+
+case class DTConstructorRecArg[I](argname: I, relnodename: String) extends ExpressionDomainEdgeLabel
 
 /**
-  * S: format of specification
-  * V: format for variable names (e.g. String)
+  *
+  * @param spec specification construct that describes the domain node
+  * @param instantiation
+  * @tparam C type of single specification construct
+  * @tparam I type of identifier names
   */
-abstract class DomainNode[S, V](val spec: S, val instantiation: Map[V, S]) {
+abstract class DomainNode[C, I](val spec: C, val instantiation: Map[I, C]) {
 
   /**
     * nodes can be instantiated
@@ -19,7 +29,7 @@ abstract class DomainNode[S, V](val spec: S, val instantiation: Map[V, S]) {
     * @param instantiation changed instantiation of node variables
     * @return node with updated instantiation map
     */
-  def updateInstantiation(instantiation: Map[V, S]): DomainNode[S, V]
+  def updateInstantiation(instantiation: Map[I, C]): DomainNode[I, C]
 
   def prettyPrint(): String
 
@@ -29,19 +39,20 @@ abstract class DomainNode[S, V](val spec: S, val instantiation: Map[V, S]) {
     *
     * @return
     */
-  def instantiatedSpec(): S
+  def instantiatedSpec(): C
 
 }
 
-case class ExpressionDomainNode[S, V](override val spec: S, override val instantiation: Map[V, S])
-  extends DomainNode[S, V](spec, instantiation) {
+case class ExpressionDomainNode[C, I](override val spec: C, override val instantiation: Map[I, C])
+  extends DomainNode[C, I](spec, instantiation) {
+
   /**
     * nodes can be instantiated
     *
     * @param instantiation changed instantiation of node variables
     * @return node with updated instantiation map
     */
-  override def updateInstantiation(instantiation: Map[V, S]): DomainNode[S, V] = ???
+  override def updateInstantiation(instantiation: Map[I, C]): DomainNode[C, I] = ???
 
   override def prettyPrint(): String = ???
 
@@ -51,18 +62,18 @@ case class ExpressionDomainNode[S, V](override val spec: S, override val instant
     *
     * @return
     */
-  override def instantiatedSpec(): S = ???
+  override def instantiatedSpec(): C = ???
 }
 
-case class TypeDomainNode[S, V](override val spec: S, override val instantiation: Map[V, S])
-  extends DomainNode[S, V](spec, instantiation) {
+case class TypeDomainNode[C, I](override val spec: C, override val instantiation: Map[I, C])
+  extends DomainNode[C, I](spec, instantiation) {
   /**
     * nodes can be instantiated
     *
     * @param instantiation changed instantiation of node variables
     * @return node with updated instantiation map
     */
-  override def updateInstantiation(instantiation: Map[V, S]): DomainNode[S, V] = ???
+  override def updateInstantiation(instantiation: Map[I, C]): DomainNode[C, I] = ???
 
   override def prettyPrint(): String = ???
 
@@ -72,7 +83,7 @@ case class TypeDomainNode[S, V](override val spec: S, override val instantiation
     *
     * @return
     */
-  override def instantiatedSpec(): S = ???
+  override def instantiatedSpec(): C = ???
 }
 
 /**
@@ -85,26 +96,26 @@ case class TypeDomainNode[S, V](override val spec: S, override val instantiation
   * @param acceptedfailure
   * @param transforms
   * @param successcondition
-  * @tparam S
-  * @tparam V
+  * @tparam C
+  * @tparam I
   * @tparam P format of properties
   */
-case class DynamicDomainNode[S, V, P](override val spec: S,
-                                          override val instantiation: Map[V, S],
-                                          val exprargs: Seq[FocusedExpDomTree[S, V]],
-                                          val exprresult: FocusedExpDomTree[S, V],
+case class DynamicDomainNode[C, I, P](override val spec: C,
+                                          override val instantiation: Map[I, C],
+                                          val exprargs: Seq[FocusedExpDomTree[C, I]],
+                                          val exprresult: FocusedExpDomTree[C, I],
                                           val canfail: Boolean,
-                                          val acceptedfailure: FocusedExpDomTree[S, V],
-                                          val transforms: Option[V],
+                                          val acceptedfailure: FocusedExpDomTree[C, I],
+                                          val transforms: Option[I],
                                           val successcondition: P)
-  extends DomainNode[S, V](spec, instantiation) {
+  extends DomainNode[C, I](spec, instantiation) {
   /**
     * nodes can be instantiated
     *
     * @param instantiation changed instantiation of node variables
     * @return node with updated instantiation map
     */
-  override def updateInstantiation(instantiation: Map[V, S]): DomainNode[S, V] = ???
+  override def updateInstantiation(instantiation: Map[I, C]): DomainNode[C, I] = ???
 
   override def prettyPrint(): String = ???
 
@@ -114,23 +125,23 @@ case class DynamicDomainNode[S, V, P](override val spec: S,
     *
     * @return
     */
-  override def instantiatedSpec(): S = ???
+  override def instantiatedSpec(): C = ???
 }
 
-case class StaticDomainNode[S, V, P](override val spec: S,
-                                         override val instantiation: Map[V, S],
-                                         val exprargs: Seq[FocusedExpDomTree[S, V]],
-                                         val typargs: Seq[FocusedTypDomTree[S, V]],
+case class StaticDomainNode[C, I, P](override val spec: C,
+                                         override val instantiation: Map[I, C],
+                                         val exprargs: Seq[FocusedExpDomTree[C, I]],
+                                         val typargs: Seq[FocusedTypDomTree[C, I]],
                                          val successcondition: P)
 
-  extends DomainNode[S, V](spec, instantiation) {
+  extends DomainNode[C, I](spec, instantiation) {
   /**
     * nodes can be instantiated
     *
     * @param instantiation changed instantiation of node variables
     * @return node with updated instantiation map
     */
-  override def updateInstantiation(instantiation: Map[V, S]): DomainNode[S, V] = ???
+  override def updateInstantiation(instantiation: Map[I, C]): DomainNode[C, I] = ???
 
   override def prettyPrint(): String = ???
 
@@ -140,5 +151,5 @@ case class StaticDomainNode[S, V, P](override val spec: S,
     *
     * @return
     */
-  override def instantiatedSpec(): S = ???
+  override def instantiatedSpec(): C = ???
 }
