@@ -29,7 +29,7 @@ abstract class DomainNode[C, I](val spec: C, val instantiation: Map[I, C]) {
     * @param instantiation changed instantiation of node variables
     * @return node with updated instantiation map
     */
-  def updateInstantiation(instantiation: Map[I, C]): DomainNode[I, C]
+  def updateInstantiation(instantiation: Map[I, C]): DomainNode[C, I]
 
   def prettyPrint(): String
 

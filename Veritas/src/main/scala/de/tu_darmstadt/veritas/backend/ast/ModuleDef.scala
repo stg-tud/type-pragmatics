@@ -202,6 +202,14 @@ case class DataType(open: Boolean, name: String, constrs: Seq[DataTypeConstructo
       writer.unindent()
     }
   }
+
+  override def toString() = {
+    val dtstring = s"data $name = ${constrs.mkString(" | ")}"
+    if (open)
+      "open " + dtstring
+    else
+      dtstring
+  }
 }
 
 object DataType {
