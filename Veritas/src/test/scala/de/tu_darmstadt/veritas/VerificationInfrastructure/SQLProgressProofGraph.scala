@@ -71,6 +71,44 @@ class SQLProgressProofGraph extends FunSuite {
     Seq(tvalueedge, selectFromWhereedge, unionedge, intersectionedge, differenceedge))
 
 
+  //case split for union case (sometimes necessary, sometimes not)
+  //(i.e. with a high timeout provers might be able to prove the case directly)
+
+  val SQLProgressTUnion1 = goal(
+    ( ('q1 === 'tvalue(~'t1)) &
+      ('q2 === 'tvalue(~'t2)) &
+      (~'q === 'Union ('q1, 'q2)) &
+      (!'isValue (~'q)) &
+      ('TTC |- ~'q :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Union-1")(
+      exists(~'qo) |
+        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
+
+  val SQLProgressTUnion2 = goal(
+    ( (~'q1 === 'tvalue(~'t1)) &
+      (forall (~'t2) | ('q2 ~= 'tvalue(~'t2))) &
+      (~'q === 'Union ('q1, 'q2)) &
+      (!'isValue (~'q)) &
+      ('TTC |- ~'q :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Union-2")(
+      exists(~'qo) |
+        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
+
+  val SQLProgressTUnion3 = goal(
+    ( (forall (~'t1) | ('q1 ~= 'tvalue(~'t1))) &
+      (~'q === 'Union ('q1, 'q2)) &
+      (!'isValue (~'q)) &
+      ('TTC |- ~'q :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-Union-3")(
+      exists(~'qo) |
+        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
+
+  val localblockunioncase1 = local(unionconsts, SQLProgressTUnion1)
+  val localblockunioncase2 = local(unionconsts, SQLProgressTUnionIH2, SQLProgressTUnion2)
+  val localblockunioncase3 = local(unionconsts, SQLProgressTUnionIH1, SQLProgressTUnion3)
 
 
 }

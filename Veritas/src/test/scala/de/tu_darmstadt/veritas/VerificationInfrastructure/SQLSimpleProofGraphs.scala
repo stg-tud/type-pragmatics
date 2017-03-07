@@ -35,7 +35,7 @@ class SQLSimpleProofGraphs extends FunSuite {
 
 
   test("Verify ProofGraph for test-1 goal") {
-    val conc: FunctionExpJudgment = _toFunctionExpJudgment('filterSingleRow (~'pred, ~'al, ~'row))
+    val conc = _toFunctionExpJudgment('filterSingleRow (~'pred, ~'al, ~'row))
 
     val test1goal: Goals = goal(
       ((~'al === 'acons ('a, 'acons ('b, 'acons ('c, 'aempty)))) &

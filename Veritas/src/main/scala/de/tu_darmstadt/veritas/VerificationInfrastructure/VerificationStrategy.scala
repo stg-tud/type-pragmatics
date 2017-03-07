@@ -59,11 +59,19 @@ case class StructuralInduction[S, P](inductionvar: S) extends VerificationStrate
     val structindcases: Seq[(StructInductCase[P], ProofStep[S, P])] =
       inductioncases.map(e => e._1 match {
         case s : StructInductCase[P] => (s, e._2)
-          // this would throw a match error if the type annotation does not work out!
+          // this would throw a match error if the edge label is still not a StructInductCase
       })
     val hypotheses = structindcases.flatMap { e => e._1.ihs }
     verifier.verify(spec, hypotheses, goal, this)
+
+    //TODO we might have to refine the verifier call for induction once we really support this via a prover
   }
+}
+
+case class CaseDistinction[S, P]() extends VerificationStrategy[S, P] {
+  override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = ???
+
+  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus = ???
 }
 
 //TODO which other abstract strategies are there for verifying proof trees?
