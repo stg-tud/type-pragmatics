@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.OutputStream
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.PropertyTypes
+
 class StoreService(requisites: XodusStoreRequisites) {
 
     private val log = LoggerFactory.getLogger(this.javaClass)
@@ -17,6 +19,7 @@ class StoreService(requisites: XodusStoreRequisites) {
     init {
         try {
             store = PersistentEntityStores.newInstance(Environments.newInstance(requisites.location), requisites.key)
+            PropertyTypes.registerAll(store)
         } catch (e: RuntimeException) {
             val msg = "Can't get valid Xodus entity store location and store key. Check the configuration"
             log.error(msg, e)
