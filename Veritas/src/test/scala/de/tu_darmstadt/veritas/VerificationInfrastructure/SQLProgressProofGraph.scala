@@ -18,30 +18,35 @@ class SQLProgressProofGraph extends FunSuite {
 
   import de.tu_darmstadt.veritas.inputdsl.testexamples.SQLDefs._
 
-  // We instantiate S = Seq[VeritasConstruct] and P = VeritasConstruct
+  // We instantiate S = Spec and P = VeritasConstruct
   // When we construct a Transformer that reuses our previous transformations to TPTP, we
   // might have to explicitly construct Module(s).
 
-  type VeriProofNode = ProofNode[Seq[VeritasConstruct], VeritasConstruct]
-  type VeriProofGraph = ProofGraph[Seq[VeritasConstruct], VeritasConstruct]
-  type VeriVerificationStrategy = VerificationStrategy[Seq[VeritasConstruct], VeritasConstruct]
+  type VeriProofNode = ProofNode[Spec, VeritasConstruct]
+  type VeriProofGraph = ProofGraph[Spec, VeritasConstruct]
+  type VeriVerificationStrategy = VerificationStrategy[Spec, VeritasConstruct]
 
-  val VeriSolve = Solve[Seq[VeritasConstruct], VeritasConstruct]()
+  case class Spec(content: Seq[VeritasConstruct]) extends Ordered[Spec] {
+    val ord = Ordering.Iterable[VeritasConstruct](Ordering.ordered[VeritasConstruct](x => x))
+    override def compare(that: Spec): Int = ord.compare(this.content, that.content)
+  }
 
-  val fulltestspec: Seq[VeritasConstruct] = Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
-    Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ TypeSystemInv.defs ++ SoundnessAuxDefs.defs
+  val VeriSolve = Solve[Spec, VeritasConstruct]()
 
-  def makeProofNode(nodename: String, tspec: Seq[VeritasConstruct], goal: VeritasConstruct,
+  val fulltestspec: Spec = Spec(Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
+    Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ TypeSystemInv.defs ++ SoundnessAuxDefs.defs)
+
+  def makeProofNode(nodename: String, tspec: Spec, goal: VeritasConstruct,
                     strategy: VeriVerificationStrategy = VeriSolve): VeriProofNode =
-    LNode(nodename, ProofStep[Seq[VeritasConstruct], VeritasConstruct](tspec, goal, strategy))
+    LNode(nodename, ProofStep[Spec, VeritasConstruct](tspec, goal, strategy))
 
-  def makeSingleNodeProofGraph(nodename: String, tspec: Seq[VeritasConstruct], goal: VeritasConstruct,
+  def makeSingleNodeProofGraph(nodename: String, tspec: Spec, goal: VeritasConstruct,
                                strategy: VeriVerificationStrategy = VeriSolve): VeriProofGraph = {
     ProofGraph(Seq(makeProofNode(nodename, tspec, goal, strategy)))
   }
 
   val progressroot = makeProofNode("SQL-progress", fulltestspec, SQLProgress,
-    StructuralInduction[Seq[VeritasConstruct], VeritasConstruct](Seq(MetaVar("q"))))
+    StructuralInduction[Spec, VeritasConstruct](Spec(Seq(MetaVar("q")))))
 
   val tvaluecase = makeProofNode("SQL-progress-tvalue", fulltestspec, SQLProgressTtvalue)
   val tvalueedge : VerificationEdge = LEdge(progressroot.vertex, tvaluecase.vertex,

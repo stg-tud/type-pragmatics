@@ -1,8 +1,13 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-trait ProofEdgeLabel
+trait ProofEdgeLabel extends Ordered[ProofEdgeLabel]
 
-object NoInfoProofEdgeLabel extends ProofEdgeLabel
+object NoInfoProofEdgeLabel extends ProofEdgeLabel {
+  override def compare(that: ProofEdgeLabel): Int = that match {
+    case that: NoInfoProofEdgeLabel.type => 0
+    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  }
+}
 
 /**
   *
@@ -10,7 +15,22 @@ object NoInfoProofEdgeLabel extends ProofEdgeLabel
   * @param ihs induction hypotheses
   * @tparam P type of the format for defining properties/goals
   */
-case class StructInductCase[P](casename: String, ihs: Seq[P]) extends ProofEdgeLabel
+case class StructInductCase[P <: Ordered[P]](casename: String, ihs: Seq[P]) extends ProofEdgeLabel {
+  override def compare(that: ProofEdgeLabel): Int = that match {
+    case that: StructInductCase[P] =>
+      val compare1 = this.casename compare that.casename
+      if (compare1 != 0) return compare1
+      val compare2 = this.ihs.size compare that.ihs.size
+      if (compare2 != 0) return compare2
+      val compare3 = this.ihs.zip(that.ihs).foreach { ih =>
+        val compared = ih._1 compare ih._2
+        if (compared != 0)
+          return compared
+      }
+      0
+    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  }
+}
 
 /**
   * type of nodes in a proof graph, represents a single subgoal/step in a proof
