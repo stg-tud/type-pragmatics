@@ -96,9 +96,10 @@ fun <T : Comparable<*>> value2string(value: T?): String? {
         return null
     }
     try {
-        val clazz = value.javaClass
-        val type = UIPropertyTypes.uiTypeOf<T>(clazz)
-        return type.toString(value)
+        return value.toString()
+//        val clazz = value.javaClass
+//        val type = UIPropertyTypes.uiTypeOf<T>(clazz)
+//        return type.toString(value)
     } catch (e: RuntimeException) {
         throw IllegalStateException(e)
     }

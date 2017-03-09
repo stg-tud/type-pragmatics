@@ -11,8 +11,10 @@ angular.module('xodus').controller('DBController', [
 
             var hubKey = 'jetPassServerDb';
             var youtrackKey = 'teamsysstore';
+            var persistentStore = 'persistentEntityStore';
 
             db.predefinedKeys = [
+                {name: 'PersistentEntityStore', key: persistentStore},
                 {name: 'Hub', key: hubKey},
                 {name: 'YouTrack', key: youtrackKey}
             ];

@@ -19,8 +19,17 @@ sourceSets {
     }
 }
 
+repositories {
+    ivy {
+        url "${System.properties['user.home']}/.ivy2/local"
+        layout 'ivy'
+    }
+}
+
 dependencies {
     compile files('../../Veritas/target/scala-2.11/classes')
+
+    compile group: 'default', name: 'veritas_2.11', version: '1.0', configuration: 'compile'
 
     compile lib('org.jetbrains.kotlin:kotlin-stdlib')
     compile lib('org.jetbrains.kotlin:kotlin-reflect')

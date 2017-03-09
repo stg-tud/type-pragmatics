@@ -41,8 +41,10 @@ angular.module('xodus').directive('storeSetup', ['$http', 'NavigationService', '
 
                 var hubKey = 'jetPassServerDb';
                 var youtrackKey = 'teamsysstore';
+                var persistentStore = 'persistentEntityStore';
 
                 scope.predefinedKeys = [
+                    {name: 'PersistentEntityStore', key: persistentStore},
                     {name: 'Hub', key: hubKey},
                     {name: 'YouTrack', key: youtrackKey}
                 ];
