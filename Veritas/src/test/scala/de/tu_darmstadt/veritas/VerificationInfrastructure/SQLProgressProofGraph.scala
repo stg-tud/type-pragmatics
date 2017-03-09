@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
+import java.io.File
+
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
@@ -24,11 +26,43 @@ class SQLProgressProofGraph extends FunSuite {
 
   type VeriProofNode = ProofNode[Spec, VeritasConstruct]
   type VeriProofGraph = ProofGraph[Spec, VeritasConstruct]
+  type VeriProofGraphX = ProofGraphXodus[Spec, VeritasConstruct]
   type VeriVerificationStrategy = VerificationStrategy[Spec, VeritasConstruct]
 
   case class Spec(content: Seq[VeritasConstruct]) extends Ordered[Spec] {
     val ord = Ordering.Iterable[VeritasConstruct](Ordering.ordered[VeritasConstruct](x => x))
     override def compare(that: Spec): Int = ord.compare(this.content, that.content)
+  }
+
+  // special purpose object for S = Spec and P = VeritasConstruct
+  object ProofGraphXodus {
+    private def registerAllPropTypes(g: VeriProofGraphX): Unit = {
+      //TODO: find a better way of how to add all necessary properties? Is there a generic way to do that?
+
+      g.registerPropertyType[Goals]
+      g.registerPropertyType[Local]
+      g.registerPropertyType[StructuralInduction[Spec, VeritasConstruct]]
+      g.registerPropertyType[Spec]
+      g.registerPropertyType[Solve[Spec, VeritasConstruct]]
+      g.registerPropertyType[StructInductCase[Spec]]
+    }
+
+
+    def apply(nodelist: Seq[VeriProofNode], edgelist: Seq[VerificationEdge],
+              storename: String = "temporary-store"): VeriProofGraphX = {
+      //TODO: better management of stores needed?
+      val file = File.createTempFile(storename, "")
+      file.delete()
+      file.mkdir()
+
+      val g: VeriProofGraphX = new ProofGraphXodus[Spec, VeritasConstruct](file)
+      registerAllPropTypes(g)
+
+      nodelist.foreach(g.addNode(_))
+      edgelist.foreach(g.addEdge(_))
+
+      g
+    }
   }
 
   val VeriSolve = Solve[Spec, VeritasConstruct]()
@@ -43,6 +77,11 @@ class SQLProgressProofGraph extends FunSuite {
   def makeSingleNodeProofGraph(nodename: String, tspec: Spec, goal: VeritasConstruct,
                                strategy: VeriVerificationStrategy = VeriSolve): VeriProofGraph = {
     ProofGraph(Seq(makeProofNode(nodename, tspec, goal, strategy)))
+  }
+
+  def makeSingleNodeProofGraphX(nodename: String, tspec: Spec, goal: VeritasConstruct,
+                               strategy: VeriVerificationStrategy = VeriSolve): VeriProofGraphX = {
+    ProofGraphXodus(Seq(makeProofNode(nodename, tspec, goal, strategy)), Seq())
   }
 
   val progressroot = makeProofNode("SQL-progress", fulltestspec, SQLProgress,
@@ -71,9 +110,11 @@ class SQLProgressProofGraph extends FunSuite {
     StructInductCase[VeritasConstruct](SQLProgressTDifference.goals.head.name,
       Seq(SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2)))
 
-  val SQLbasicproofgraph: VeriProofGraph = ProofGraph(
-    Seq(progressroot, selectfromwherecase, unioncase, intersectioncase, differencecase),
+  val SQLbasicproofgraph: VeriProofGraphX = ProofGraphXodus(
+    Seq(progressroot, tvaluecase, selectfromwherecase, unioncase, intersectioncase, differencecase),
     Seq(tvalueedge, selectFromWhereedge, unionedge, intersectionedge, differenceedge))
+
+
 
 
   //case split for union case (sometimes necessary, sometimes not)

@@ -4,6 +4,8 @@ import de.tu_darmstadt.veritas.backend.ast.{Functions, MetaVar, PartialFunctions
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL._
 
+import scala.language.implicitConversions
+
 /**
   * DSL for top-level function definition syntax
   */
