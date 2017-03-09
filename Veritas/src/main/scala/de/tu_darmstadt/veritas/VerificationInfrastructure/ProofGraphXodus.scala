@@ -22,7 +22,7 @@ import scala.reflect.ClassTag
   *   Step.verificationStrategy: VerificationStrategy
   * Links:
   *   Step.spec *<->1 Spec._
-  *   Graph.root *<->1 Step._
+  *   Graph.root *<->1 Step._ //TODO adapt so that graph can have several roots?
   *   Step.kids 1<->* Edge.from
   *   Step.parents 1<->* Edge.to
   */
@@ -153,6 +153,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
 
 
   /* Modifications */
+  //TODO: if graph is mutable, then modifications do not necessarily have to return the updated ProofGraphXodus?
 
   /**
     * add a new node to the proof graph
@@ -179,7 +180,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     edge.setProperty(pEdgeLabel, e.label)
 
     val from = txn.find(TSTEP, pStepName, e.from).getFirst
-    val to = txn.find(TSTEP, pStepName, e.from).getFirst
+    val to = txn.find(TSTEP, pStepName, e.to).getFirst
 
     from.addLink(lStepKids, edge)
     edge.setLink(lEdgeFrom, from)
