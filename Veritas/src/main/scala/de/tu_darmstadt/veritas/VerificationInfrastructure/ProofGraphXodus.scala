@@ -5,9 +5,11 @@ import java.io.{ByteArrayInputStream, File}
 import jetbrains.exodus.bindings.ComparableBinding
 import jetbrains.exodus.entitystore._
 import jetbrains.exodus.util.LightOutputStream
-import quiver.{LEdge, LNode}
 
 import scala.collection.JavaConverters._
+import scala.pickling.binary.BinaryPickleStream
+import scala.pickling.{FastTypeTag, OutputStreamOutput, SPickler, Unpickler}
+import scala.reflect.ClassTag
 
 
 /**
@@ -27,14 +29,29 @@ import scala.collection.JavaConverters._
 class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
 
   val store: PersistentEntityStore = PersistentEntityStores.newInstance(dbDir)
+
+  def registerPropertyType[T <: Comparable[_]](implicit pickler: SPickler[T], unpickler: Unpickler[T], tag: ClassTag[T], fastTag: FastTypeTag[T]) = transaction { txn =>
+    val format = scala.pickling.binary.pickleFormat
+
+    val binding = new ComparableBinding {
+      override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
+        val builder = format.createBuilder(new OutputStreamOutput(output))
+        builder.hintTag(fastTag)
+        pickler.pickle(obj.asInstanceOf[T], builder)
+      }
+
+      override def readObject(stream: ByteArrayInputStream) = {
+        val reader = BinaryPickleStream(stream).createReader(fastTag.mirror, format)
+        unpickler.unpickle(fastTag, reader).asInstanceOf[T]
+      }
+    }
+
+    val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
+    store.registerCustomPropertyType(txn, clazz, binding)
+  }
+
   // TODO add an index Step->EntityId for faster lookups
-  // TODO register bindings for writing properties
-//  transaction { txn =>
-//    store.registerCustomPropertyType(txn, Solve.getClass, new ComparableBinding {override def readObject(stream: ByteArrayInputStream) = ???
-//
-//      override def writeObject(output: LightOutputStream, `object`: Comparable[_]) = ???
-//    })
-//  }
+
 
   val TSTEP = "STEP"
   val pStepName = "name"
@@ -52,7 +69,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
   val TSPEC = "SPEC"
   val pSpecContent = "content"
 
-  def transaction[T <: AnyRef](f: StoreTransaction => T): T = {
+  def transaction[T](f: StoreTransaction => T): T = {
     var result: Option[T] = None
     store.executeInTransaction(new StoreTransactionalExecutable {
       override def execute(txn: StoreTransaction) = { result = Some(f(txn)) }
