@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.{ByteArrayInputStream, File}
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure
 import jetbrains.exodus.bindings.ComparableBinding
 import jetbrains.exodus.entitystore._
 import jetbrains.exodus.util.LightOutputStream
@@ -29,26 +30,7 @@ import scala.reflect.ClassTag
 class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
 
   val store: PersistentEntityStore = PersistentEntityStores.newInstance(dbDir)
-
-  def registerPropertyType[T <: Comparable[_]](implicit pickler: SPickler[T], unpickler: Unpickler[T], tag: ClassTag[T], fastTag: FastTypeTag[T]) = transaction { txn =>
-    val format = scala.pickling.binary.pickleFormat
-
-    val binding = new ComparableBinding {
-      override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
-        val builder = format.createBuilder(new OutputStreamOutput(output))
-        builder.hintTag(fastTag)
-        pickler.pickle(obj.asInstanceOf[T], builder)
-      }
-
-      override def readObject(stream: ByteArrayInputStream) = {
-        val reader = BinaryPickleStream(stream).createReader(fastTag.mirror, format)
-        unpickler.unpickle(fastTag, reader).asInstanceOf[T]
-      }
-    }
-
-    val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
-    store.registerCustomPropertyType(txn, clazz, binding)
-  }
+  PropertyTypes.registerAll(store)
 
   // TODO add an index Step->EntityId for faster lookups
 
@@ -219,3 +201,34 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     new ProofStep(spec, goal, verificationStrategy)
   }
 }
+
+
+object PropertyTypes {
+  def registerAll(store: PersistentEntityStore) {
+    registerPropertyType[Solve[String, String]](store)
+    registerPropertyType[NoInfoProofEdgeLabel.type](store)
+  }
+
+  def registerPropertyType[T <: Comparable[_]](store: PersistentEntityStore)(implicit pickler: SPickler[T], unpickler: Unpickler[T], tag: ClassTag[T], fastTag: FastTypeTag[T]) = store.executeInTransaction(new StoreTransactionalExecutable() {
+    override def execute(txn: StoreTransaction): Unit = {
+      val format = scala.pickling.binary.pickleFormat
+
+      val binding = new ComparableBinding {
+        override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
+          val builder = format.createBuilder(new OutputStreamOutput(output))
+          builder.hintTag(fastTag)
+          pickler.pickle(obj.asInstanceOf[T], builder)
+        }
+
+        override def readObject(stream: ByteArrayInputStream) = {
+          val reader = BinaryPickleStream(stream).createReader(fastTag.mirror, format)
+          unpickler.unpickle(fastTag, reader).asInstanceOf[T]
+        }
+      }
+
+      val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
+      store.registerCustomPropertyType(txn, clazz, binding)
+    }
+  })
+}
+

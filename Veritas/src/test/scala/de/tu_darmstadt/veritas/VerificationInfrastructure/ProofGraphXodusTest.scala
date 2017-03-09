@@ -5,8 +5,6 @@ import java.io.File
 import org.scalatest.FunSuite
 import quiver.{LEdge, LNode}
 
-import scala.pickling._
-
 /**
   * Created by andiderp on 20/01/2017.
   */
@@ -21,10 +19,9 @@ class ProofGraphXodusTest extends FunSuite {
     val file = File.createTempFile("veritas-xodus-test-store", "")
     file.delete()
     file.mkdir()
+    println(s"Test entity store: $file")
 
     val g = new ProofGraphXodus[String, String](file)
-    g.registerPropertyType[Solve[String, String]]
-    g.registerPropertyType[NoInfoProofEdgeLabel.type]
 
     Seq(topNode, child1, child2).foreach(g.addNode(_))
     Seq(edge1, edge2).foreach(g.addEdge(_))
