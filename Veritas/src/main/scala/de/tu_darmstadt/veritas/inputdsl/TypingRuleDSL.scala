@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExp
-import de.tu_darmstadt.veritas.inputdsl.FunctionDSL.{FunExpTree, MVarNode}
-import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL.SymTree
+
+import scala.language.implicitConversions
 
 /**
   * DSL for creating typing rule constructs
