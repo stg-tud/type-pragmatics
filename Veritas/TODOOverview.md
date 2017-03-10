@@ -13,3 +13,12 @@ Veritas TODOs
 * experiment with persistence: Does Xodus let us persist proof graphs
 (and load them again?)
 * experiment with version histories & Xodus
+* how to check proofs from ATPs (TPTP/TSTP)? Is there a tool?
+* Think about how a certain proof status can be checked - which
+evidence for a proof can be produced and how can it be checked
+
+* write down structured requirements of proof graphs for different
+  stakeholders: producers of ProofGraph, users of ProofGraphs, technical requirements....
+
+
+
