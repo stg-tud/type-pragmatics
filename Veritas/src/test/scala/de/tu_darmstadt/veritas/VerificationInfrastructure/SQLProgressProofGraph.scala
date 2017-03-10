@@ -60,8 +60,8 @@ class SQLProgressProofGraph extends FunSuite {
       val g: VeriProofGraphX = new ProofGraphXodus[Spec, VeritasConstruct](file)
       registerAllPropTypes(g)
 
-      nodelist.foreach(g.addNode(_))
-      edgelist.foreach(g.addEdge(_))
+      nodelist.foreach(g.addProofStep(_))
+      edgelist.foreach(g.addProofEdge(_))
 
       g
     }

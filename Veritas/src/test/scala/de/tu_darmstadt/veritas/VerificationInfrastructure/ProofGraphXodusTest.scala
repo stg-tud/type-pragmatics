@@ -23,8 +23,8 @@ class ProofGraphXodusTest extends FunSuite {
 
     val g = new ProofGraphXodus[String, String](file)
 
-    Seq(topNode, child1, child2).foreach(g.addNode(_))
-    Seq(edge1, edge2).foreach(g.addEdge(_))
+    Seq(topNode, child1, child2).foreach(g.addProofStep(_))
+    Seq(edge1, edge2).foreach(g.addProofEdge(_))
     g.verifySingle(provedVerifier, "Child1")
     g.verifySingle(provedVerifier, "Child2")
     g.verifySingle(provedVerifier, "Top")
@@ -33,14 +33,14 @@ class ProofGraphXodusTest extends FunSuite {
 
   test("Graph should contain a new node and the defined edges after adding a node") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve[String, String]()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
+    val newGraph = testGraph.addProofStep(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
     val step = newGraph.get("New")
     assert(step.nonEmpty)
   }
 
   test("Parents of added node should be set to outdated") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve[String, String]()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
+    val newGraph = testGraph.addProofStep(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
     val step = newGraph.get("Top")
     assert(!newGraph.computeFullyVerified("Top"))
     assert(step.get.getVerificationStatus().isInstanceOf[Outdated[String, String]])
@@ -48,7 +48,7 @@ class ProofGraphXodusTest extends FunSuite {
 
   test("Parents of added node should be set to outdated 2") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve[String, String]()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoProofEdgeLabel)))
+    val newGraph = testGraph.addProofStep(node, Seq(LEdge("Child1", "New", NoInfoProofEdgeLabel)))
     val top = newGraph.get("Top")
     val child1 = newGraph.get("Child1")
     assert(!newGraph.computeFullyVerified("Top"))
@@ -72,7 +72,7 @@ class ProofGraphXodusTest extends FunSuite {
 
   test("Verifying single node does set parent to outdated") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve[String, String]()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
+    val newGraph = testGraph.addProofStep(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
         .verifySingle(provedVerifier, "New")
     assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(!newGraph.computeFullyVerified("Top"))
@@ -83,7 +83,7 @@ class ProofGraphXodusTest extends FunSuite {
 
   test("Verifying single node does set transitive hull of parents to outdated") {
     val node = LNode("New", ProofStep("Spec", "Goal", Solve[String, String]()))
-    val newGraph = testGraph.addNode(node, Seq(LEdge("Child1", "New", NoInfoProofEdgeLabel)))
+    val newGraph = testGraph.addProofStep(node, Seq(LEdge("Child1", "New", NoInfoProofEdgeLabel)))
       .verifySingle(provedVerifier, "New")
     assert(!newGraph.computeFullyVerified("Top"))
     assert(newGraph.get("Top").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
@@ -97,11 +97,11 @@ class ProofGraphXodusTest extends FunSuite {
     val node3 = LNode("Child3", ProofStep("Spec", "Goal", Solve[String, String]()))
 
     val newGraph = testGraph
-      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoProofEdgeLabel)))
-      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoProofEdgeLabel)))
+      .addProofStep(node1, Seq(LEdge("Child1", "Parent", NoInfoProofEdgeLabel)))
+      .addProofStep(node3, Seq(LEdge("Top", "Child3", NoInfoProofEdgeLabel)))
       .verifySingle(provedVerifier, "Parent")
       .verifySingle(provedVerifier, "Child3")
-      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoProofEdgeLabel), LEdge("Parent", "New", NoInfoProofEdgeLabel)))
+      .addProofStep(node2, Seq(LEdge("Child2", "New", NoInfoProofEdgeLabel), LEdge("Parent", "New", NoInfoProofEdgeLabel)))
 
     assert(newGraph.get("Parent").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
     assert(newGraph.get("Child1").get.getVerificationStatus.isInstanceOf[Outdated[String, String]])
@@ -119,7 +119,7 @@ class ProofGraphXodusTest extends FunSuite {
     val newGraph = testGraph
       .verifySingle(provedVerifier, "Child1")
       .verifySingle(provedVerifier, "Child2")
-      .addNode(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
+      .addProofStep(node, Seq(LEdge("Top", "New", NoInfoProofEdgeLabel)))
       .verifySingle(switchStatusVerifier, "Top")
 
     assert(newGraph.get("Top").get.getVerificationStatus.isVerified)
@@ -131,9 +131,9 @@ class ProofGraphXodusTest extends FunSuite {
     val node3 = LNode("Child3", ProofStep("Spec", "Goal", Solve[String, String]()))
 
     val newGraph = testGraph
-      .addNode(node1, Seq(LEdge("Child1", "Parent", NoInfoProofEdgeLabel)))
-      .addNode(node3, Seq(LEdge("Top", "Child3", NoInfoProofEdgeLabel)))
-      .addNode(node2, Seq(LEdge("Child2", "New", NoInfoProofEdgeLabel), LEdge("Parent", "New", NoInfoProofEdgeLabel)))
+      .addProofStep(node1, Seq(LEdge("Child1", "Parent", NoInfoProofEdgeLabel)))
+      .addProofStep(node3, Seq(LEdge("Top", "Child3", NoInfoProofEdgeLabel)))
+      .addProofStep(node2, Seq(LEdge("Child2", "New", NoInfoProofEdgeLabel), LEdge("Parent", "New", NoInfoProofEdgeLabel)))
       .verifyAll(provedVerifier)
 
     assert(newGraph.get("Parent").get.getVerificationStatus.isVerified)

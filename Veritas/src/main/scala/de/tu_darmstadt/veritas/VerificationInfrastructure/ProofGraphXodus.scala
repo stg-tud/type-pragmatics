@@ -38,16 +38,15 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
   val TSTEP = "STEP"
   val pStepName = "name"
   val pStepGoal = "goal"
-  val pStepStatus = "status"
-  val pStepVerificationStrategy = "verificationStrategy"
+  val pStrategy = "strategy"
   val lStepSpec = "spec"
-  val lStepKidEdges = "kids"
-  val lStepParentEdges = "parents"
+  val lStepRequires = "requires"
+  val lStepProvides = "provides"
 
   val TEDGE = "EDGE"
   val pEdgeLabel = "label"
-  val lEdgeFrom = "from"
-  val lEdgeTo = "to"
+  val lEdgeRequiredBy = "requiredBy"
+  val lEdgeProvidedBy = "providedBy"
 
   val TSPEC = "SPEC"
   val pSpecContent = "content"
@@ -144,12 +143,11 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     * @param node
     * @return the new, updated proof graph
     */
-  def addNode(node: ProofNode[S, P]): ProofGraphXodus[S, P] = transaction { txn =>
+  def addProofStep(node: ProofNode[S, P]): ProofGraphXodus[S, P] = transaction { txn =>
     val step = txn.newEntity(TSTEP)
     step.setProperty(pStepName, node.vertex)
     step.setProperty(pStepGoal, node.label.goal)
-    step.setProperty(pStepStatus, node.label.getVerificationStatus())
-    step.setProperty(pStepVerificationStrategy, node.label.verificationStrategy)
+    step.setProperty(pStrategy, node.label.verificationStrategy)
 
     // TODO avoid re-adding spec for each proof step
     val spec = txn.newEntity(TSPEC)
@@ -160,24 +158,24 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     this
   }
 
-  def addEdge(e: VerificationEdge): ProofGraphXodus[S, P] = transaction { txn =>
+  def addProofEdge(e: VerificationEdge): ProofGraphXodus[S, P] = transaction { txn =>
     val edge = txn.newEntity(TEDGE)
     edge.setProperty(pEdgeLabel, e.label)
 
     val from = txn.find(TSTEP, pStepName, e.from).getFirst
     val to = txn.find(TSTEP, pStepName, e.to).getFirst
 
-    from.addLink(lStepKidEdges, edge)
-    edge.setLink(lEdgeFrom, from)
-    edge.setLink(lEdgeTo, to)
-    to.addLink(lStepParentEdges, edge)
+    from.addLink(lStepRequires, edge)
+    edge.setLink(lEdgeRequiredBy, from)
+    edge.setLink(lEdgeProvidedBy, to)
+    to.addLink(lStepProvides, edge)
 
     this
   }
 
-  def addNode(node: ProofNode[S, P], edges: Seq[VerificationEdge]): ProofGraphXodus[S, P] = {
-    addNode(node)
-    edges.foreach(addEdge(_))
+  def addProofStep(node: ProofNode[S, P], edges: Seq[VerificationEdge]): ProofGraphXodus[S, P] = {
+    addProofStep(node)
+    edges.foreach(addProofEdge(_))
     this
   }
 
@@ -191,15 +189,15 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
       // when extending the data mode, ensure that a delete does not leave dangling links
       step.getLink(lStepSpec).delete()
 
-      for (parentEdge <- step.getLinks(lStepParentEdges).asScala) {
-        val parentStep = parentEdge.getLink(lEdgeFrom)
-        parentStep.deleteLink(lStepKidEdges, parentEdge)
+      for (parentEdge <- step.getLinks(lStepProvides).asScala) {
+        val parentStep = parentEdge.getLink(lEdgeRequiredBy)
+        parentStep.deleteLink(lStepRequires, parentEdge)
         parentEdge.delete()
       }
 
-      for (kidEdge <- step.getLinks(lStepKidEdges).asScala) {
-        val kidStep = kidEdge.getLink(lEdgeTo)
-        kidStep.deleteLink(lStepParentEdges, kidEdge)
+      for (kidEdge <- step.getLinks(lStepRequires).asScala) {
+        val kidStep = kidEdge.getLink(lEdgeProvidedBy)
+        kidStep.deleteLink(lStepProvides, kidEdge)
         kidEdge.delete()
       }
 
@@ -213,10 +211,9 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
 
   private def readProofStep(entity: Entity): ProofStep[S, P] = {
     val goal = entity.getProperty(pStepGoal).asInstanceOf[P]
-    val status = entity.getProperty(pStepStatus).asInstanceOf[VerificationStatus]
-    val verificationStrategy = entity.getProperty(pStepVerificationStrategy).asInstanceOf[VerificationStrategy[S, P]]
+    val verificationStrategy = entity.getProperty(pStrategy).asInstanceOf[VerificationStrategy[S, P]]
     val spec = entity.getLink(lStepSpec).getProperty(pSpecContent).asInstanceOf[S]
-    ProofStep(spec, goal, verificationStrategy, status)
+    ProofStep(spec, goal, verificationStrategy)
   }
 }
 
