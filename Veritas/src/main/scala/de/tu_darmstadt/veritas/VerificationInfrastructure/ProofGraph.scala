@@ -17,7 +17,7 @@ class ProofGraph[S, P] {
     * @param nodename
     * @return Is empty if there is no node with nodename otherwise it returns the ProofStep
     */
-  def get(nodename: String): Option[ProofStep[S, P]] = graph.label(nodename)
+  def find(nodename: String): Option[ProofStep[S, P]] = graph.label(nodename)
 
   /**
     * add a new node to the proof graph
