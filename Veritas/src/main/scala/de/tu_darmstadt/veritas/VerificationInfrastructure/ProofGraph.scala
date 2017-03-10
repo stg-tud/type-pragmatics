@@ -5,3 +5,4 @@ trait ProofGraph[Spec, Goal] {
   def nodes(status: VerificationStatus)
 
 }
+

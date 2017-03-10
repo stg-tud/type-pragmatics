@@ -76,7 +76,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     * @param nodename
     * @return Is empty if there is no node with nodename otherwise it returns the ProofStep
     */
-  def get(nodename: String): Option[ProofStep[S, P]] = readOnlyTransaction { txn =>
+  def find(nodename: String): Option[ProofStep[S, P]] = readOnlyTransaction { txn =>
     for (step <- txn.find(TSTEP, pStepName, nodename).asScala)
       return Some(readProofStep(step))
     None
