@@ -38,10 +38,11 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
   val TSTEP = "STEP"
   val pStepName = "name"
   val pStepGoal = "goal"
+  val pStepStatus = "status"
   val pStepVerificationStrategy = "verificationStrategy"
   val lStepSpec = "spec"
-  val lStepKids = "kids"
-  val lStepParents = "parents"
+  val lStepKidEdges = "kids"
+  val lStepParentEdges = "parents"
 
   val TEDGE = "EDGE"
   val pEdgeLabel = "label"
@@ -147,6 +148,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     val step = txn.newEntity(TSTEP)
     step.setProperty(pStepName, node.vertex)
     step.setProperty(pStepGoal, node.label.goal)
+    step.setProperty(pStepStatus, node.label.getVerificationStatus())
     step.setProperty(pStepVerificationStrategy, node.label.verificationStrategy)
 
     // TODO avoid re-adding spec for each proof step
@@ -165,10 +167,10 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     val from = txn.find(TSTEP, pStepName, e.from).getFirst
     val to = txn.find(TSTEP, pStepName, e.to).getFirst
 
-    from.addLink(lStepKids, edge)
+    from.addLink(lStepKidEdges, edge)
     edge.setLink(lEdgeFrom, from)
     edge.setLink(lEdgeTo, to)
-    to.addLink(lStepParents, edge)
+    to.addLink(lStepParentEdges, edge)
 
     this
   }
@@ -188,6 +190,19 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     for (step <- txn.find(TSTEP, pStepName, node.vertex).asScala) {
       // when extending the data mode, ensure that a delete does not leave dangling links
       step.getLink(lStepSpec).delete()
+
+      for (parentEdge <- step.getLinks(lStepParentEdges).asScala) {
+        val parentStep = parentEdge.getLink(lEdgeFrom)
+        parentStep.deleteLink(lStepKidEdges, parentEdge)
+        parentEdge.delete()
+      }
+
+      for (kidEdge <- step.getLinks(lStepKidEdges).asScala) {
+        val kidStep = kidEdge.getLink(lEdgeTo)
+        kidStep.deleteLink(lStepParentEdges, kidEdge)
+        kidEdge.delete()
+      }
+
       step.delete()
     }
     this
@@ -198,9 +213,10 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
 
   private def readProofStep(entity: Entity): ProofStep[S, P] = {
     val goal = entity.getProperty(pStepGoal).asInstanceOf[P]
+    val status = entity.getProperty(pStepStatus).asInstanceOf[VerificationStatus]
     val verificationStrategy = entity.getProperty(pStepVerificationStrategy).asInstanceOf[VerificationStrategy[S, P]]
     val spec = entity.getLink(lStepSpec).getProperty(pSpecContent).asInstanceOf[S]
-    new ProofStep(spec, goal, verificationStrategy)
+    ProofStep(spec, goal, verificationStrategy, status)
   }
 }
 
@@ -209,6 +225,7 @@ object PropertyTypes {
   def registerAll(store: PersistentEntityStore) {
     registerPropertyType[Solve[String, String]](store)
     registerPropertyType[NoInfoProofEdgeLabel.type](store)
+    registerPropertyType[VerificationStatus](store)
   }
 
   def registerPropertyType[T <: Comparable[_]](store: PersistentEntityStore)(implicit pickler: SPickler[T], unpickler: Unpickler[T], tag: ClassTag[T], fastTag: FastTypeTag[T]) = store.executeInTransaction(new StoreTransactionalExecutable() {

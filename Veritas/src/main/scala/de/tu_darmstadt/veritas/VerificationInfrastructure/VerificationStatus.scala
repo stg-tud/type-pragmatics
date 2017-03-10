@@ -4,19 +4,34 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
   * status of a particular verification attempt (for a node/leaf in a proof tree)
   *
   */
-sealed trait VerificationStatus {
+sealed trait VerificationStatus extends Ordered[VerificationStatus] {
   val isVerified: Boolean = false
 }
 
-case object NotStarted extends VerificationStatus
+case object NotStarted extends VerificationStatus {
+  override def compare(that: VerificationStatus): Int = that match {
+    case that: NotStarted.type => 0
+    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  }
+}
 
-case class Outdated[S, P](prevs: VerificationStatus, previousProofGraph: ProofGraph[S, P]) extends VerificationStatus
+case class Outdated[S, P](prevs: VerificationStatus, previousProofGraph: ProofGraphQuiver[S, P]) extends VerificationStatus {
+  override def compare(that: VerificationStatus): Int = that match {
+    case that: Outdated[S, P] => 0
+    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  }
+}
 
 //TODO: maybe refine errorMessage: String later to include specific error objects
 class VerificationFailure[S, P](val errorMessage: String,
                                 val usedVerifier: Verifier[S, P],
                                 val prevs: Option[VerificationStatus],
-                                val previousProofGraph: Option[ProofGraph[S, P]]) extends VerificationStatus
+                                val previousProofGraph: Option[ProofGraphQuiver[S, P]]) extends VerificationStatus {
+  override def compare(that: VerificationStatus): Int = that match {
+    case that: VerificationFailure[S, P] => errorMessage compare that.errorMessage
+    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  }
+}
 
 //allow different constructors for VerificationFailure
 object VerificationFailure {
@@ -24,10 +39,10 @@ object VerificationFailure {
     new VerificationFailure[S, P](em, usedVerifier, None, None)
 
   def apply[S, P](errorMessage: String, usedVerifier: Verifier[S, P],
-                   prevs: Option[VerificationStatus], previousProofGraph: Option[ProofGraph[S, P]]) =
+                   prevs: Option[VerificationStatus], previousProofGraph: Option[ProofGraphQuiver[S, P]]) =
     new VerificationFailure[S, P](errorMessage, usedVerifier, prevs, previousProofGraph)
 
-  def unapply[S, P](arg: VerificationFailure[S, P]): Option[(String, Verifier[S, P], Option[VerificationStatus], Option[ProofGraph[S, P]])] =
+  def unapply[S, P](arg: VerificationFailure[S, P]): Option[(String, Verifier[S, P], Option[VerificationStatus], Option[ProofGraphQuiver[S, P]])] =
     Some((arg.errorMessage, arg.usedVerifier, arg.prevs, arg.previousProofGraph))
 
 }
@@ -50,5 +65,10 @@ case class Finished[S, P, V](report: Map[VerificationConfiguration[S, P, V], Pro
   lazy val bestStatus: ProverStatus = bestAttempt._2
 
   override val isVerified = bestStatus.isVerified
+
+  override def compare(that: VerificationStatus): Int = that match {
+    case that: Finished[S, P, V] => this.report.head._2 compare that.report.head._2
+    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  }
 }
 

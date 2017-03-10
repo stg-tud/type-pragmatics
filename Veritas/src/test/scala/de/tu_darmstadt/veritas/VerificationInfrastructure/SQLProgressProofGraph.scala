@@ -25,7 +25,7 @@ class SQLProgressProofGraph extends FunSuite {
   // might have to explicitly construct Module(s).
 
   type VeriProofNode = ProofNode[Spec, VeritasConstruct]
-  type VeriProofGraph = ProofGraph[Spec, VeritasConstruct]
+  type VeriProofGraph = ProofGraphQuiver[Spec, VeritasConstruct]
   type VeriProofGraphX = ProofGraphXodus[Spec, VeritasConstruct]
   type VeriVerificationStrategy = VerificationStrategy[Spec, VeritasConstruct]
 
@@ -76,7 +76,7 @@ class SQLProgressProofGraph extends FunSuite {
 
   def makeSingleNodeProofGraph(nodename: String, tspec: Spec, goal: VeritasConstruct,
                                strategy: VeriVerificationStrategy = VeriSolve): VeriProofGraph = {
-    ProofGraph(Seq(makeProofNode(nodename, tspec, goal, strategy)))
+    ProofGraphQuiver(Seq(makeProofNode(nodename, tspec, goal, strategy)))
   }
 
   def makeSingleNodeProofGraphX(nodename: String, tspec: Spec, goal: VeritasConstruct,

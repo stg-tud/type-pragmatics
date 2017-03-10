@@ -9,14 +9,14 @@ import scala.util.Random
 /**
   * Created by andiderp on 20/01/2017.
   */
-class ProofGraphTest extends FunSuite {
+class ProofGraphQuiverTest extends FunSuite {
   val topNode = LNode("Top", ProofStep("Spec", "Goal", Solve()))
   val child1 = LNode("Child1", ProofStep("Spec", "Goal", Solve()))
   val child2 = LNode("Child2", ProofStep("Spec", "Goal", Solve()))
   val edge1: VerificationEdge = LEdge("Top", "Child1", NoInfoProofEdgeLabel)
   val edge2: VerificationEdge = LEdge("Top", "Child2", NoInfoProofEdgeLabel)
   val provedVerifier = MockVerifier(MockProver())
-  val testGraph = ProofGraph(
+  val testGraph = ProofGraphQuiver(
     Seq(topNode, child1, child2),
     Seq(edge1, edge2))
   .verifySingle(provedVerifier, "Child1")

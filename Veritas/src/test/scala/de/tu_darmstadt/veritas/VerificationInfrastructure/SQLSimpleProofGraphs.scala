@@ -27,10 +27,10 @@ class SQLSimpleProofGraphs extends FunSuite {
     Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ SoundnessAuxDefs.defs
 
   def makeSingleNodeProofGraph(nodename: String, tspec: Seq[VeritasConstruct], goal: VeritasConstruct):
-  ProofGraph[Seq[VeritasConstruct], VeritasConstruct] = {
+  ProofGraphQuiver[Seq[VeritasConstruct], VeritasConstruct] = {
     val proofnode: ProofNode[Seq[VeritasConstruct], VeritasConstruct] =
       LNode(nodename, ProofStep[Seq[VeritasConstruct], VeritasConstruct](tspec, goal))
-    ProofGraph(Seq(proofnode))
+    ProofGraphQuiver(Seq(proofnode))
   }
 
 

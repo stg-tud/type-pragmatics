@@ -3,9 +3,14 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 /**
   * return status of a prover call
   */
-sealed trait ProverStatus {
+sealed trait ProverStatus extends Ordered[ProverStatus] {
   val isVerified: Boolean = false
   val proverLog: String
+
+  override def compare(that: ProverStatus): Int = that match {
+    case that: this.type => proverLog compare that.proverLog
+    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  }
 }
 
 case class Proved(proverLog: String) extends ProverStatus {
