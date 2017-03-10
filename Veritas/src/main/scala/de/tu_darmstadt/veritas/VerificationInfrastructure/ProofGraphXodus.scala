@@ -226,6 +226,7 @@ object PropertyTypes {
     registerPropertyType[Solve[String, String]](store)
     registerPropertyType[NoInfoProofEdgeLabel.type](store)
     registerPropertyType[VerificationStatus](store)
+    registerPropertyType[NotStarted.type](store)
   }
 
   def registerPropertyType[T <: Comparable[_]](store: PersistentEntityStore)(implicit pickler: SPickler[T], unpickler: Unpickler[T], tag: ClassTag[T], fastTag: FastTypeTag[T]) = store.executeInTransaction(new StoreTransactionalExecutable() {

@@ -38,13 +38,15 @@ class SQLProgressProofGraph extends FunSuite {
   object ProofGraphXodus {
     private def registerAllPropTypes(g: VeriProofGraphX): Unit = {
       //TODO: find a better way of how to add all necessary properties? Is there a generic way to do that?
+      //(instead of SPickler, we could try using DPickler)
 
-      PropertyTypes.registerPropertyType[Goals]
-      PropertyTypes.registerPropertyType[Local]
-      PropertyTypes.registerPropertyType[StructuralInduction[Spec, VeritasConstruct]]
-      PropertyTypes.registerPropertyType[Spec]
-      PropertyTypes.registerPropertyType[Solve[Spec, VeritasConstruct]]
-      PropertyTypes.registerPropertyType[StructInductCase[Spec]]
+      PropertyTypes.registerPropertyType[Goals](g.store)
+      PropertyTypes.registerPropertyType[Local](g.store)
+      PropertyTypes.registerPropertyType[StructuralInduction[Spec, VeritasConstruct]](g.store)
+      PropertyTypes.registerPropertyType[Spec](g.store)
+      //PropertyTypes.registerPropertyType[Solve[Spec, VeritasConstruct]](g.store)
+      //to add this causes "double property registration"
+      PropertyTypes.registerPropertyType[StructInductCase[Spec]](g.store)
     }
 
 
