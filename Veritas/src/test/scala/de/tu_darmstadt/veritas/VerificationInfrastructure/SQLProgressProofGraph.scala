@@ -39,12 +39,12 @@ class SQLProgressProofGraph extends FunSuite {
     private def registerAllPropTypes(g: VeriProofGraphX): Unit = {
       //TODO: find a better way of how to add all necessary properties? Is there a generic way to do that?
 
-      g.registerPropertyType[Goals]
-      g.registerPropertyType[Local]
-      g.registerPropertyType[StructuralInduction[Spec, VeritasConstruct]]
-      g.registerPropertyType[Spec]
-      g.registerPropertyType[Solve[Spec, VeritasConstruct]]
-      g.registerPropertyType[StructInductCase[Spec]]
+      PropertyTypes.registerPropertyType[Goals]
+      PropertyTypes.registerPropertyType[Local]
+      PropertyTypes.registerPropertyType[StructuralInduction[Spec, VeritasConstruct]]
+      PropertyTypes.registerPropertyType[Spec]
+      PropertyTypes.registerPropertyType[Solve[Spec, VeritasConstruct]]
+      PropertyTypes.registerPropertyType[StructInductCase[Spec]]
     }
 
 
