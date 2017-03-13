@@ -132,6 +132,8 @@ object TypingRuleDSL {
 
   implicit def _toFunctionExpJudgment(f: FunctionExp): FunctionExpJudgment = FunctionExpJudgment(f)
 
+  implicit def _toFunctionExpJudgment(f: SymTree): FunctionExpJudgment = _toFunctionExpJudgment(_symTreeToFunExpMetaTree(f))
+
   implicit def _toFunctionExpJudgment(f: FunExpMetaTree): FunctionExpJudgment =
     f match {
       case MVarNode(_) => sys.error("cannot have a single meta variable as a FunctionExpJudgment: " + f)
@@ -165,6 +167,17 @@ object TypingRuleDSL {
       next match {
         case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
         case re : FunExpTree => Seq(jdg) :+ _toFunctionExpJudgment(re)
+        case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+      }
+  }
+
+  implicit class _toTypingRuleJudgmentSeqSingleST(jdg: SymTree) {
+    def &(next: TypingRuleJudgment): Seq[TypingRuleJudgment] = Seq(_toFunctionExpJudgment(jdg)) :+ next
+    def &(next: FunExpTree): Seq[TypingRuleJudgment] = Seq(_toFunctionExpJudgment(jdg)) :+ _toFunctionExpJudgment(next)
+    def &(next: FunExpMetaTree): Seq[TypingRuleJudgment] =
+      next match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => Seq(_toFunctionExpJudgment(jdg)) :+ _toFunctionExpJudgment(re)
         case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
       }
   }
