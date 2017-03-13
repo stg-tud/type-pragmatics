@@ -1,12 +1,14 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraph.{ProofEdges, ProofEdgesWithResult}
+
 /**
   * Strategies for labeling edges of ProofTrees
   */
 abstract class VerificationStrategy[S, P] extends Ordered[VerificationStrategy[S, P]] {
-  def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean
+  def isGoalVerified(step: ProofStep[S, P], graph: ProofGraph[S, P]): Boolean
 
-  def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus[S, P]
+  def callVerifier(step: ProofStep[S, P], edges: ProofEdges[S, P], verifier: Verifier[S, P]): StepResult[S, P]
 }
 
 /**
@@ -14,14 +16,11 @@ abstract class VerificationStrategy[S, P] extends Ordered[VerificationStrategy[S
   */
 
 case class Solve[S, P]() extends VerificationStrategy[S, P] {
-  override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
-    edgeseq.forall { e => e._2 }
-  }
+  def isGoalVerified(step: ProofStep[S, P], graph: ProofGraph[S, P]): Boolean =
+    graph.requires(step).forall { case (step, _) => graph.isGoalVerified(step) }
 
-  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus[S, P] = {
-    val hypotheses = edges.map { e => e._2.goal }
-    verifier.verify(spec, hypotheses, goal, this)
-  }
+  override def callVerifier(step: ProofStep[S, P], edges: ProofEdges[S, P], verifier: Verifier[S, P]): StepResult[S, P] =
+    verifier.verify(step, edges)
 
   override def compare(that: VerificationStrategy[S, P]): Int = that match {
     case that: Solve[S, P] => 0
@@ -42,7 +41,7 @@ case class Solve[S, P]() extends VerificationStrategy[S, P] {
 //}
 
 case class StructuralInduction[S <: Ordered[S], P <: Ordered[P]](inductionvar: S) extends VerificationStrategy[S, P] {
-  override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
+  override def isStepVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
     //ignore all edges that are not structural induction edges
     val inductioncases: Seq[(ProofEdgeLabel, Boolean)] =
       edgeseq.filter(e =>
@@ -79,7 +78,7 @@ case class StructuralInduction[S <: Ordered[S], P <: Ordered[P]](inductionvar: S
 }
 
 case class CaseDistinction[S, P]() extends VerificationStrategy[S, P] {
-  override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = ???
+  override def isStepVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = ???
 
   override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus[S, P] = ???
 

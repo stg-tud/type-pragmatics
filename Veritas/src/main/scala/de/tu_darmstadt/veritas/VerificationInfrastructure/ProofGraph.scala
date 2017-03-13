@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence.{EvidenceChecker, AnyEvidenceChecker}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence.{AnyEvidenceChecker, EvidenceChecker}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraph.ProofEdges
 
 import scala.collection.mutable
 
@@ -10,13 +11,14 @@ trait ProofGraph[Spec, Goal] {
   def rootSteps: Iterable[ProofStep[Spec, Goal]]
 
   def addProofStep(step: ProofStep[Spec, Goal])
+  /** @throws IllegalArgumentException when this edge would form a cycle in the graph. */
   def addProofEdge(from: ProofStep[Spec, Goal], to: ProofStep[Spec, Goal], label: ProofEdgeLabel)
 
   def removeProofStep(step: ProofStep[Spec, Goal])
   def removeProofEdge(from: ProofStep[Spec, Goal], to: ProofStep[Spec, Goal], label: ProofEdgeLabel)
 
-  def requires(step: ProofStep[Spec, Goal]): Iterable[(ProofStep[Spec, Goal], ProofEdgeLabel)]
-  def requiredBy(step: ProofStep[Spec, Goal]): Iterable[(ProofStep[Spec, Goal], ProofEdgeLabel)]
+  def requires(step: ProofStep[Spec, Goal]): ProofEdges[Spec, Goal]
+  def requiredBy(step: ProofStep[Spec, Goal]): ProofEdges[Spec, Goal]
 
 
   /* verification status management */
@@ -43,5 +45,10 @@ trait ProofGraph[Spec, Goal] {
 
   // TODO what traversals do we need?
 
+}
+
+
+object ProofGraph {
+  type ProofEdges[Spec, Goal] = Iterable[(ProofStep[Spec, Goal], ProofEdgeLabel)]
 }
 

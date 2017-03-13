@@ -6,7 +6,6 @@ trait StepResult[S, P] {
   def status: VerifierStatus[S, P]
   def evidence: Option[Evidence]
   def errorMsg: Option[String]
-  def completeLog: String
 
   def isStepVerified = status.isVerified
 }
