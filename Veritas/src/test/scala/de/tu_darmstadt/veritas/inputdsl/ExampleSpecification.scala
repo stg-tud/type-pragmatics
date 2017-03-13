@@ -1,8 +1,7 @@
-package de.tu_darmstadt.veritas.inputdsl.testexamples
+package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 
 
 object ExampleSpecification {
@@ -29,8 +28,8 @@ object ExampleSpecification {
   import DataTypeDSL._
   import FunctionDSL._
   import SymTreeDSL._
-  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
 
   val testtree1: SymNode = 'succ ('succ('nat, 'nat, 'succ ('nat)))
 

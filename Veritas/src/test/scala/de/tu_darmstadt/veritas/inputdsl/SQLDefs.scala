@@ -1,7 +1,6 @@
-package de.tu_darmstadt.veritas.inputdsl.testexamples
+package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 
 /**
   * Created by cygne on 06.10.16.
@@ -11,8 +10,8 @@ object SQLDefs {
   import DataTypeDSL._
   import FunctionDSL._
   import SymTreeDSL._
-  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
 
   //module Table
 
@@ -828,6 +827,8 @@ object SQLDefs {
   )
 
   val localblockdifference = local(differenceconsts, SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2, SQLProgressTDifference)
+
+
 
 //  val ha = hideall
 

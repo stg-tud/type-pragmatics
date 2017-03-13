@@ -1,10 +1,10 @@
-package de.tu_darmstadt.veritas.inputdsl.testexamples
+package de.tu_darmstadt.veritas.inputdsl
 
 import java.io.PrintWriter
 
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
-object Test {
+object SQLDefsInputDSLTest {
   
   def main(args: Array[String]) {
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
