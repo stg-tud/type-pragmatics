@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
+import scala.util.Random
+
 trait StepResult {
   def status: VerificationStatus
   def evidence: Option[VerificationEvidence]
@@ -16,5 +18,11 @@ trait VerificationEvidence
 object VerificationEvidence {
   type EvidenceChecker[Ev <: VerificationEvidence] = Ev => Boolean
 
-  val trust: EvidenceChecker[VerificationEvidence] = _ => true
+  val trusting: EvidenceChecker[VerificationEvidence] = _ => true
+
+  def sampling[Ev <: VerificationEvidence](rate: Double, checker: EvidenceChecker[Ev]): EvidenceChecker[Ev] = (ev: Ev) =>
+    if (Random.nextDouble() < rate)
+      checker(ev)
+    else
+      true
 }
