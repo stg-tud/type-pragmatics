@@ -218,6 +218,40 @@ class SQLProgressProofGraph extends FunSuite {
         ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)))
   )
 
+  //induction cases for successfulLookup
+  val successfulLookupEmpty: Goals = goal(
+    ((~'TS === 'emptyStore) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("successful-lookup-empty")(
+      exists(~'t) |
+        ('lookupStore (~'tn, ~'TS) === 'someTable (~'t))
+    ))
+
+  val successfulLookupBindConsts = consts('TSR ::> 'TStore)
+
+  val successfulLookupBindIH: Axioms = axiom(
+    ((~'TS === 'TSR) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("successful-lookup-bind-IH")(
+      exists(~'t) |
+        'lookupStore (~'tn, ~'TS) === 'someTable (~'t))
+  )
+
+  val successfulLookupBind: Goals = goal(
+    ((~'TS === 'bindStore (~'tm, ~'t, 'TSR)) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("successful-lookup-bind")(
+      exists(~'t) |
+        'lookupStore (~'tn, ~'TS) === 'someTable (~'t))
+  )
+
+  val localBlocksuccessfulLookupBind = local(successfulLookupBindConsts, successfulLookupBindIH, successfulLookupBind)
+  //end of induction cases for successfulLookup
+
+
   val welltypedLookup: Lemmas = lemma(
     ('StoreContextConsistent (~'TS, ~'TTC) &
       ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
@@ -226,11 +260,47 @@ class SQLProgressProofGraph extends FunSuite {
       'welltypedtable (~'tt, ~'t))
   )
 
+  //induction cases for welltypedLookup
+  val welltypedLookupEmpty: Goals = goal(
+    ((~'TS === 'emptyStore) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("welltyped-lookup-empty")(
+      'welltypedtable (~'tt, ~'t))
+  )
+
+  //TODO: later omit some of the reduncancy in the specification (i.e. not have two values with the same constructs)
+  //for now, just duplicated some (parts of) axioms/lemmas/constdefs to make everything explicit
+  val welltypedLookupConsts = consts('TSR ::> 'TStore)
+
+  val welltypedLookupBindIH: Axioms = axiom(
+    ((~'TS === 'TSR) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("welltyped-lookup-bind-IH")(
+      'welltypedtable (~'tt, ~'t))
+  )
+
+  val welltypedLookupBind: Goals = goal(
+    ((~'TS === 'bindStore (~'tm, ~'t, 'TSR)) &
+      'StoreContextConsistent (~'TS, ~'TTC) &
+      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("welltyped-lookup")(
+      'welltypedtable (~'tt, ~'t))
+  )
+
+  val localBlockwelltypedLookupBind = local(welltypedLookupConsts, welltypedLookupBindIH, welltypedLookupBind)
+  //end of induction cases for welltypedLookup
+
+
   val filterPreservesType: Lemmas = lemma(
     ('welltypedtable (~'tt, ~'t)
       ).===>("filter-preserves-type")(
       'welltypedtable (~'tt, 'filterTable (~'t, ~'p)))
-  )
+  ) //proved directly via filterRowsPreservesTable
 
   val filterRowsPreservesTable: Lemmas = lemma(
     ('welltypedRawtable (~'tt, ~'rt)
@@ -238,13 +308,40 @@ class SQLProgressProofGraph extends FunSuite {
       'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
     ))
 
+  // induction cases filterRowsPreservesTable
+  val filterRowsPreservesTableTempty: Goals = goal(
+    ( (~'rt === 'tempty) &
+      'welltypedRawtable (~'tt, ~'rt)
+      ).===>("filterRows-preserves-table-tempty")(
+      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
+    ))
+
+  val filterRowsPreservesTableTconsConsts = consts('rtr ::> 'RawTable)
+
+  val filterRowsPreservesTableTconsIH: Axioms = axiom(
+    ( (~'rt === 'rtr) &
+      'welltypedRawtable (~'tt, ~'rt)
+      ).===>("filterRows-preserves-table-tcons-IH")(
+      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
+    ))
+
+  val filterRowsPreservesTableTcons: Goals = goal(
+    ( (~'rt === 'tcons(~'r, 'rtr)) &
+      'welltypedRawtable (~'tt, ~'rt)
+      ).===>("filterRows-preserves-table-tcons")(
+      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
+    ))
+
+  val localblockfilterRowsPreservesTableTcons = local(filterRowsPreservesTableTconsConsts, filterRowsPreservesTableTconsIH, filterRowsPreservesTableTcons)
+  // end of induction cases filterRowsPreservesTable
+
   val projectTableProgress: Lemmas = lemma(
     ('welltypedtable (~'tt, ~'t) &
       ('projectType (~'s, ~'tt) === 'someTType (~'tt2))
       ).===>("projectTable-progress")(
       exists(~'t2) |
         'projectTable (~'s, ~'t) === 'someTable (~'t2))
-  )
+  ) //proof by case distinction on 's (maybe not necessary?); list case by projectColsProgress
 
   val projectColsProgress: Lemmas = lemma(
     (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
@@ -253,6 +350,39 @@ class SQLProgressProofGraph extends FunSuite {
       exists(~'rt2) |
         'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
   )
+
+  //induction cases of projectColsProgress
+  val projectColsProgressAempty: Goals = goal(
+    ( (~'al2 === 'aempty) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
+      ).===>("projectCols-progress-aempty")(
+      exists(~'rt2) |
+        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectColsProgressAconsConsts = consts('alr ::> 'AttrL)
+
+  val projectColsProgressAconsIH: Axioms = axiom(
+    ( (~'al2 === 'alr) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
+      ).===>("projectCols-progress-acons")(
+      exists(~'rt2) |
+        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectColsProgressAcons: Goals = goal(
+    ( (~'al2 === 'acons(~'a, 'alr)) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
+      ).===>("projectCols-progress-acons")(
+      exists(~'rt2) |
+        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  ) //induction case requires lemma projectTypeImpliesFindCol
+
+  val localblockprojectColsProgressAcons = local(projectColsProgressAconsConsts, projectColsProgressAconsIH, projectColsProgressAcons)
+  //end of induction cases of projectColsProgress
 
   val projectTypeImpliesFindCol: Lemmas = lemma(
     (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
@@ -263,6 +393,42 @@ class SQLProgressProofGraph extends FunSuite {
         'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
   )
 
+  //induction cases for projectTypeImpliesFindCol
+  val projectTypeImpliesFindColAempty: Goals = goal(
+    ( (~'al2 === 'aempty) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al2))
+      ).===>("projectType-implies-findCol-aempty")(
+      exists(~'rt2) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectTypeImpliesFindColAconsConsts = consts('alr ::> 'AttrL)
+
+  val projectTypeImpliesFindColAconsIH: Axioms = axiom(
+    ( (~'al2 === 'alr) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al2))
+      ).===>("projectType-implies-findCol-acons-IH")(
+      exists(~'rt2) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectTypeImpliesFindColAcons: Goals = goal(
+    ( (~'al2 === 'acons(~'a, 'alr)) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al2))
+      ).===>("projectType-implies-findCol-acons")(
+      exists(~'rt2) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  ) //requires lemmas findColTypeImpliesfindCol and projectTypeAttrLImpliesfindAllColType
+
+  val localblockprojectTypeImpliesFindColAcons = local(projectTypeImpliesFindColAconsConsts, projectTypeImpliesFindColAconsIH, projectTypeImpliesFindColAcons)
+  //end of induction cases for projectTypeImpliesFindCol
+
   val findColTypeImpliesfindCol: Lemmas = lemma(
     (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
       ('findColType (~'n, ~'tt) === 'someFType (~'ft))
@@ -271,12 +437,76 @@ class SQLProgressProofGraph extends FunSuite {
         'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
     ))
 
+  // induction cases for findColTypeImpliesfindCol
+  val findColTypeImpliesfindColAempty: Goals = goal(
+    ( (~'al === 'aempty) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
+      ).===>("findColType-implies-findCol-aempty")(
+      exists(~'rt) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
+    ))
+
+  val findColTypeImpliesfindColAconsConsts = consts('alr ::> 'AttrL)
+
+  val findColTypeImpliesfindColAconsIH: Axioms = axiom(
+    ( (~'al === 'alr) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
+      ).===>("findColType-implies-findCol-acons-IH")(
+      exists(~'rt) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
+    ))
+
+  val findColTypeImpliesfindColACons: Goals = goal(
+    ( (~'al === 'acons(~'a, 'alr)) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
+      ).===>("findColType-implies-findCol-acons")(
+      exists(~'rt) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
+    )) //requires lemma dropFirstColRawPreservesWelltypedRaw
+
+  val localblockfindColTypeImpliesfindColAcons = local(findColTypeImpliesfindColAconsConsts, findColTypeImpliesfindColAconsIH, findColTypeImpliesfindCol)
+  // end of induction cases for findColTypeImpliesfindCol
+
   val dropFirstColRawPreservesWelltypedRaw: Lemmas = lemma(
     ((~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
       ('welltypedRawtable (~'tt, ~'rt))
       ).===>("dropFirstColRaw-preserves-welltypedRaw")(
       'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
     ))
+
+  //induction cases for dropFirstColRawPreservesWelltypedRaw
+  val dropFirstColRawPreservesWelltypedRawTempty: Goals = goal(
+    ( (~'rt === 'tempty) &
+      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
+      ('welltypedRawtable (~'tt, ~'rt))
+      ).===>("dropFirstColRaw-preserves-welltypedRaw-tempty")(
+      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
+    ))
+
+  val dropFirstColRawPreservesWelltypedRawTconsConsts = consts('rts ::> 'RawTable)
+
+  val dropFirstColRawPreservesWelltypedRawTconsIH: Axioms = axiom(
+    ((~'rt === 'rtr) &
+      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
+      ('welltypedRawtable (~'tt, ~'rt))
+      ).===>("dropFirstColRaw-preserves-welltypedRaw-tcons-IH")(
+      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
+    ))
+
+  val dropFirstColRawPreservesWelltypedRawTcons: Goals = goal(
+    ( (~'rt === 'tcons(~'r, 'rtr)) &
+      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
+      ('welltypedRawtable (~'tt, ~'rt))
+      ).===>("dropFirstColRaw-preserves-welltypedRaw-tcons")(
+      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
+    ))
+
+  val localblockdropFirstColRawPreservesWelltypedRawTcons = local(dropFirstColRawPreservesWelltypedRawTconsConsts, dropFirstColRawPreservesWelltypedRawTconsIH, dropFirstColRawPreservesWelltypedRawTcons)
+  //end of induction cases for dropFirstColRawPreservesWelltypedRaw
+
 
   val projectTypeAttrLImpliesfindAllColType: Lemmas = lemma(
     (('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
@@ -285,6 +515,40 @@ class SQLProgressProofGraph extends FunSuite {
       exists(~'ft) |
         'findColType (~'n, ~'tt) === 'someFType (~'ft)
     ))
+
+  //induction cases projectTypeAttrLImpliesfindAllColType
+  val projectTypeAttrLImpliesfindAllColTypeAempty: Goals = goal(
+    ( (~'al === 'aempty) &
+      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al))
+      ).===>("projectTypeAttrL-implies-findAllColType-aempty")(
+      exists(~'ft) |
+        'findColType (~'n, ~'tt) === 'someFType (~'ft)
+    ))
+
+  val projectTypeAttrLImpliesfindAllColTypeAconsConsts = consts('alr ::> 'AttrL)
+
+  val projectTypeAttrLImpliesfindAllColTypeAconsIH: Axioms = axiom(
+    ( (~'al === 'alr) &
+      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al))
+      ).===>("projectTypeAttrL-implies-findAllColType-acons-IH")(
+      exists(~'ft) |
+        'findColType (~'n, ~'tt) === 'someFType (~'ft)
+    ))
+
+  val projectTypeAttrLImpliesfindAllColTypeAcons: Goals = goal(
+    ( (~'al === 'acons(~'a, 'aempty)) &
+      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al))
+      ).===>("projectTypeAttrL-implies-findAllColType-acons")(
+      exists(~'ft) |
+        'findColType (~'n, ~'tt) === 'someFType (~'ft)
+    ))
+
+  val localblockprojectTypeAttrLImpliesfindAllColTypeAcons = local(projectTypeAttrLImpliesfindAllColTypeAconsConsts, projectTypeAttrLImpliesfindAllColTypeAconsIH, projectTypeAttrLImpliesfindAllColTypeAcons)
+
+  //end of induction cases projectTypeAttrLImpliesfindAllColType
 
 
 }
