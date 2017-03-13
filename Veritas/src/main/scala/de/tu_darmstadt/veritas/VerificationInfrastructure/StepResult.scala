@@ -8,8 +8,13 @@ trait StepResult {
 
   def isStepVerified = status match {
     case Finished(reports) => reports.values.exists(_.isVerified)
+    case _ => false
   }
 }
 
 trait VerificationEvidence
+object VerificationEvidence {
+  type EvidenceChecker[Ev <: VerificationEvidence] = Ev => Boolean
 
+  val trust: EvidenceChecker[VerificationEvidence] = _ => true
+}
