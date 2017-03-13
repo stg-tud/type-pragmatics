@@ -26,9 +26,9 @@ case class ProverFailure(proverLog: String) extends ProverStatus
 /**
   * Interface for concrete provers
   */
-abstract class Prover[+V](problem: V) {
+trait Prover[V] {
 
   def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]]
 
-  def callProver(): ProverStatus
+  def callProver(problem: V): ProverStatus
 }

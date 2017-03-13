@@ -18,3 +18,4 @@ trait ProofGraph[Spec, Goal] {
 
 
 }
+

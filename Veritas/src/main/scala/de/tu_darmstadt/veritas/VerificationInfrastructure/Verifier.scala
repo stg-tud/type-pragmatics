@@ -9,7 +9,7 @@ import scala.collection.GenSeq
   * starting/stopping a proof attempt...)
   *
   */
-abstract class Verifier[S, P] {
+trait Verifier[S, P] {
   type V //Representation of Verification format
   val transformer : GenSeq[Transformer[S, P, V]] //translate a given specification (S) + goal (P) to a format for verification (V)
   val provers : GenSeq[Prover[V]] //sequence of provers that understand the given verification format (may be called in parallel)

@@ -2,7 +2,8 @@ Veritas TODOs
 ==================
 
 (from 07.03.17)
-* implement changes in prover/transformer interfaces (should take problem+spec as arguments of methods, not as fields)
+* implement changes in prover/transformer interfaces (should take
+  problem+spec as arguments of methods, not as fields) (DONE)
 * rename VerificationStatus/Outdated/....
 * implement concrete provers/transformers from existing code in benchmark/backend (André?)
 * design graph as database with snapshot isolation using a library such as Xodus?
@@ -18,7 +19,8 @@ Veritas TODOs
 evidence for a proof can be produced and how can it be checked
 
 * write down structured requirements of proof graphs for different
-  stakeholders: producers of ProofGraph, users of ProofGraphs, technical requirements....
+  stakeholders: producers of ProofGraph, users of ProofGraphs,
+  technical requirements.... (DONE)
 
 
 
