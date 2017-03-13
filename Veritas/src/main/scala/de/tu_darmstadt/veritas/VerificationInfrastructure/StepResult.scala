@@ -3,8 +3,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import scala.util.Random
 
 trait StepResult {
-  def status: VerificationStatus
-  def evidence: Option[VerificationEvidence]
+  def status: VerifierStatus
+  def evidence: Option[Evidence]
   def errorMsg: Option[String]
   def completeLog: String
 
@@ -14,15 +14,17 @@ trait StepResult {
   }
 }
 
-trait VerificationEvidence
-object VerificationEvidence {
-  type EvidenceChecker[Ev <: VerificationEvidence] = Ev => Boolean
+trait Evidence
 
-  val trusting: EvidenceChecker[VerificationEvidence] = _ => true
+object Evidence {
+  type EvidenceChecker[Ev <: Evidence, V <: VerifierFormat] = (Ev, V) => Boolean
+  type AnyEvidenceChecker = EvidenceChecker[_ <: Evidence, _ <: VerifierFormat]
 
-  def sampling[Ev <: VerificationEvidence](rate: Double, checker: EvidenceChecker[Ev]): EvidenceChecker[Ev] = (ev: Ev) =>
+  val trusting: EvidenceChecker[Evidence, VerifierFormat] = (_,_) => true
+
+  def sampling[Ev <: Evidence, V <: VerifierFormat](rate: Double, checker: EvidenceChecker[Ev, V]): EvidenceChecker[Ev, V] = (ev: Ev, v: V) =>
     if (Random.nextDouble() < rate)
-      checker(ev)
+      checker(ev, v)
     else
       true
 }

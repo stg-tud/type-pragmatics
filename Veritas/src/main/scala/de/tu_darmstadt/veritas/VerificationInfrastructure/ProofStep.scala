@@ -42,9 +42,9 @@ case class StructInductCase[P <: Ordered[P]](casename: String, ihs: Seq[P]) exte
 // TODO Why is this not a case class?
 class ProofStep[S, P](val spec: S, val goal: P, val verificationStrategy: VerificationStrategy[S, P]) {
   // TODO Why is this not a regular constructor-argument field?
-  protected val verificationStatus: VerificationStatus = NotStarted
+  protected val verificationStatus: VerifierStatus = Unknown
 
-  def getVerificationStatus(): VerificationStatus = verificationStatus
+  def getVerificationStatus(): VerifierStatus = verificationStatus
 
   /**
     * verify the single proof problem:
@@ -59,25 +59,12 @@ class ProofStep[S, P](val spec: S, val goal: P, val verificationStrategy: Verifi
     def exitsEqualConfig(report: Map[VerificationConfiguration[Any, Any, Any], ProverStatus]): Boolean =
       report.keys.filter { case VerificationConfiguration(_, _, _, usedEdges, _) => usedEdges == assumptions }.nonEmpty
 
-    verificationStatus match {
-      case Outdated(f@Finished(report), _) => {
-        // check if there is a config which can be reused (if assumptions is exactly equal to usedEdges)
-        if (exitsEqualConfig(report))
-          return ProofStep(spec, goal, verificationStrategy, filterFinishedReport(f, assumptions))
-      }
-      case Outdated(VerificationFailure(_, _, Some(f@Finished(report)), _), _) => {
-        // check if there is a config which can be reused (if assumptions is exactly equal to usedEdges)
-        if (exitsEqualConfig(report))
-          return ProofStep(spec, goal, verificationStrategy, filterFinishedReport(f, assumptions))
-      }
-      case _ => // do nothing
-    }
     // otherwise re-verify
     val newStatus = verificationStrategy.callVerifier(verifier, spec, goal, assumptions)
     ProofStep(spec, goal, verificationStrategy, combineVerificationStatus(newStatus))
   }
 
-  private def filterFinishedReport(status: VerificationStatus, assumptions: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerificationStatus = status match {
+  private def filterFinishedReport(status: VerifierStatus, assumptions: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus = status match {
     case Finished(report) => {
       val filteredReport = report.filter { case (vc, _) =>
         vc.usedEdges == assumptions
@@ -87,11 +74,11 @@ class ProofStep[S, P](val spec: S, val goal: P, val verificationStrategy: Verifi
     case _ => status
   }
 
-  private def combineVerificationStatus(newStatus: VerificationStatus, pg: Option[ProofGraphQuiver[S, P]] = None): VerificationStatus = verificationStatus match {
+  private def combineVerificationStatus(newStatus: VerifierStatus, pg: Option[ProofGraphQuiver[S, P]] = None): VerifierStatus = verificationStatus match {
       // TODO: maybe consider further processing if verificationStatus is VerificationFailure
     case Finished(oldReport) => newStatus match {
       case Finished(newReport) => Finished(oldReport ++ newReport)
-      case VerificationFailure(em, usv : Verifier[S, P], _, _) => VerificationFailure(em, usv, Some(verificationStatus), pg)
+      case Failure(em, usv : Verifier[S, P], _, _) => Failure(em, usv, Some(verificationStatus), pg)
       case _ => newStatus
     }
     case _ => newStatus
@@ -104,17 +91,6 @@ class ProofStep[S, P](val spec: S, val goal: P, val verificationStrategy: Verifi
     */
   def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = {
     verificationStatus.isVerified && verificationStrategy.fullyVerified(edgeseq)
-  }
-
-  /**
-    * mark a proof step as outdated, if there was a previous verification attempt
-    * @param pg proof graph before the node became outdated
-    * @return
-    */
-  def makeOutdated(pg: ProofGraphQuiver[S, P]): ProofStep[S, P] = verificationStatus match {
-    case NotStarted => this //verifications that have not been started can never be Outdated
-    case Outdated(prevs, pgold) => this //for the moment, avoid nesting multiple Outdated stati
-    case _ => ProofStep(spec, goal, verificationStrategy, Outdated(verificationStatus, pg))
   }
 
   override def toString: String = s"ProofStep($verificationStatus, $verificationStrategy))"
@@ -131,7 +107,7 @@ object ProofStep {
   /*
   private constructor for a ProofStep which may manipulate the verification status
    */
-  private[VerificationInfrastructure] def apply[S, P](spec: S, goal: P, verificationStrategy: VerificationStrategy[S, P], nverificationStatus: VerificationStatus): ProofStep[S, P] =
+  private[VerificationInfrastructure] def apply[S, P](spec: S, goal: P, verificationStrategy: VerificationStrategy[S, P], nverificationStatus: VerifierStatus): ProofStep[S, P] =
     new ProofStep[S, P](spec, goal, verificationStrategy) {
       override val verificationStatus = nverificationStatus
     }

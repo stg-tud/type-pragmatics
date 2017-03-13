@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.VerificationEvidence.EvidenceChecker
+import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence.{EvidenceChecker, AnyEvidenceChecker}
 
 import scala.collection.mutable
 
@@ -30,13 +30,13 @@ trait ProofGraph[Spec, Goal] {
     * Proof graphs support dependency injection for registering evidence checkers.
     * If no checker is registered for a given evidence class, the proof graph defaults to @link{defaultEvidencenChecker}.
     */
-  val evidenceCheckers: mutable.Map[Class[_ <: VerificationEvidence], EvidenceChecker[_ <: VerificationEvidence]] = mutable.Map()
+  private val evidenceCheckers: mutable.Map[(Class[_ <: Evidence], Class[_ <: VerifierFormat]), AnyEvidenceChecker] = mutable.Map()
 
-  var defaultEvidencenChecker: EvidenceChecker[VerificationEvidence]
-  def registerEvidenceChecker[Ev <: VerificationEvidence](evClass: Class[Ev], checker: EvidenceChecker[Ev]) =
-    evidenceCheckers += evClass -> checker
-  def lookupEvidenceChecker[Ev <: VerificationEvidence](evClass: Class[Ev]): EvidenceChecker[_ <: VerificationEvidence] =
-    evidenceCheckers.getOrElse(evClass, defaultEvidencenChecker)
+  var defaultEvidencenChecker: AnyEvidenceChecker
+  def registerEvidenceChecker[Ev <: Evidence, V <: VerifierFormat](evClass: Class[Ev], vClass: Class[V], checker: EvidenceChecker[Ev, V]) =
+    evidenceCheckers += (evClass, vClass) -> checker
+  def lookupEvidenceChecker[Ev <: Evidence, V <: VerifierFormat](evClass: Class[Ev], vClass: Class[V]): AnyEvidenceChecker =
+    evidenceCheckers.getOrElse((evClass, vClass), defaultEvidencenChecker)
 
 
   /* traversals */

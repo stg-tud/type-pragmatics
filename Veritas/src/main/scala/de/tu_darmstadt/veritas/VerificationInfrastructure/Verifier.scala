@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import scala.collection.GenSeq
 
 
+trait VerifierFormat
 
 /**
   * Verifiers "manage" verification attempts (i.e. compiling the problem, calling one or more provers,
@@ -10,7 +11,7 @@ import scala.collection.GenSeq
   *
   */
 trait Verifier[S, P] {
-  type V //Representation of Verification format
+  type V <: VerifierFormat //Representation of Verification format
   val transformer : GenSeq[Transformer[S, P, V]] //translate a given specification (S) + goal (P) to a format for verification (V)
   val provers : GenSeq[Prover[V]] //sequence of provers that understand the given verification format (may be called in parallel)
   val supportedStrategies: Seq[VerificationStrategy[S, P]] //general verification strategies that the provers can be called with
@@ -24,6 +25,6 @@ trait Verifier[S, P] {
     * @param strat overall abstract strategy to be used for the current step
     * @return Verification summary
     */
-  def verify(spec: S, hypotheses: Seq[P], goal: P, strat: VerificationStrategy[S, P]): VerificationStatus
+  def verify(spec: S, hypotheses: Seq[P], goal: P, strat: VerificationStrategy[S, P]): VerifierStatus
 
 }

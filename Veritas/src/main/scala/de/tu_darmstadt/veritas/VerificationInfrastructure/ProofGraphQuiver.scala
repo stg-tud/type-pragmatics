@@ -61,7 +61,7 @@ class ProofGraphQuiver[S, P] {
                                  nodes: Vector[(ProofEdgeLabel, ProofNode[S, P])],
                                  g: InternalProofGraph[S, P] = graph): ProofGraphQuiver[S, P] = {
     val outdatedGraph = nodes.foldLeft(g) { case (newGraph, (edgeinfo, node)) =>
-        val outdatedStep = node.label.makeOutdated(ProofGraphQuiver(newGraph))
+        val outdatedStep = node.label //.makeOutdated(ProofGraphQuiver(newGraph))
         val outdatedNode = LNode(node.vertex, outdatedStep)
         newGraph.updateNode(outdatedNode)
     }
