@@ -20,8 +20,8 @@ trait ProofGraph[Spec, Goal] {
 
 
   /* verification status management */
-  def setVerifiedBy(step: ProofStep[Spec, Goal], result: StepResult)
-  def getVerifiedBy(step: ProofStep[Spec, Goal]): Option[StepResult]
+  def setVerifiedBy(step: ProofStep[Spec, Goal], result: StepResult[Spec, Goal])
+  def getVerifiedBy(step: ProofStep[Spec, Goal]): Option[StepResult[Spec, Goal]]
 
   def isStepVerified(step: ProofStep[Spec, Goal]): Boolean
   def isGoalVerified(step: ProofStep[Spec, Goal]): Boolean

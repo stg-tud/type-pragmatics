@@ -2,16 +2,13 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import scala.util.Random
 
-trait StepResult {
-  def status: VerifierStatus
+trait StepResult[S, P] {
+  def status: VerifierStatus[S, P]
   def evidence: Option[Evidence]
   def errorMsg: Option[String]
   def completeLog: String
 
-  def isStepVerified = status match {
-    case Finished(reports) => reports.values.exists(_.isVerified)
-    case _ => false
-  }
+  def isStepVerified = status.isVerified
 }
 
 trait Evidence

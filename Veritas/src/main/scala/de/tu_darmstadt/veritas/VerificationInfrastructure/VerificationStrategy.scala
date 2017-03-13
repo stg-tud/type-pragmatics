@@ -6,7 +6,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 abstract class VerificationStrategy[S, P] extends Ordered[VerificationStrategy[S, P]] {
   def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean
 
-  def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus
+  def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus[S, P]
 }
 
 /**
@@ -18,7 +18,7 @@ case class Solve[S, P]() extends VerificationStrategy[S, P] {
     edgeseq.forall { e => e._2 }
   }
 
-  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus = {
+  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus[S, P] = {
     val hypotheses = edges.map { e => e._2.goal }
     verifier.verify(spec, hypotheses, goal, this)
   }
@@ -53,7 +53,7 @@ case class StructuralInduction[S <: Ordered[S], P <: Ordered[P]](inductionvar: S
     inductioncases.forall { e => e._2 }
   }
 
-  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus = {
+  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus[S, P] = {
     //ignore all edges that are not structural induction edges
     val inductioncases: Seq[(ProofEdgeLabel, ProofStep[S, P])] =
       edges.filter( (e : (ProofEdgeLabel, ProofStep[S, P])) =>
@@ -81,7 +81,7 @@ case class StructuralInduction[S <: Ordered[S], P <: Ordered[P]](inductionvar: S
 case class CaseDistinction[S, P]() extends VerificationStrategy[S, P] {
   override def fullyVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = ???
 
-  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus = ???
+  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus[S, P] = ???
 
   override def compare(that: VerificationStrategy[S, P]): Int = that match {
     case that: CaseDistinction[S, P] => 0
@@ -91,7 +91,7 @@ case class CaseDistinction[S, P]() extends VerificationStrategy[S, P] {
 
 //TODO which other abstract strategies are there for verifying proof trees?
 
-case class VerificationConfiguration[S, P, V](
+case class VerifierConfiguration[S, P, V](
                                                transformer: Transformer[S, P, V],
                                                strat: VerificationStrategy[S, P],
                                                prover: Prover[V],
