@@ -210,7 +210,7 @@ class SQLProgressProofGraph extends FunSuite {
 
   // here, the SQL lemmas necessary for progress (selectFromWhere case) start
 
-  val successfullookup: Lemmas = lemma(
+  val successfulLookup: Lemmas = lemma(
     ('StoreContextConsistent (~'TS, ~'TTC) &
       ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
       ).===>("successful-lookup")(
@@ -218,7 +218,7 @@ class SQLProgressProofGraph extends FunSuite {
         ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)))
   )
 
-  val welltypedlookup: Lemmas = lemma(
+  val welltypedLookup: Lemmas = lemma(
     ('StoreContextConsistent (~'TS, ~'TTC) &
       ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
       ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
@@ -226,20 +226,65 @@ class SQLProgressProofGraph extends FunSuite {
       'welltypedtable (~'tt, ~'t))
   )
 
-  val filterpreservestype: Lemmas = lemma(
-    ('welltypedtable (~'tt, ~'t) &
-      (~'ft === 'filterTable (~'t, ~'p))
+  val filterPreservesType: Lemmas = lemma(
+    ('welltypedtable (~'tt, ~'t)
       ).===>("filter-preserves-type")(
-      'welltypedtable (~'tt, ~'ft))
+      'welltypedtable (~'tt, 'filterTable (~'t, ~'p)))
   )
 
-  val projecttableprogress: Lemmas = lemma(
+  val filterRowsPreservesTable: Lemmas = lemma(
+    ('welltypedRawtable (~'tt, ~'rt)
+      ).===>("filterRows-preserves-table")(
+      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
+    ))
+
+  val projectTableProgress: Lemmas = lemma(
     ('welltypedtable (~'tt, ~'t) &
       ('projectType (~'s, ~'tt) === 'someTType (~'tt2))
       ).===>("projectTable-progress")(
       exists(~'t2) |
         'projectTable (~'s, ~'t) === 'someTable (~'t2))
   )
+
+  val projectColsProgress: Lemmas = lemma(
+    (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
+      ).===>("projectCols-progress")(
+      exists(~'rt2) |
+        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectTypeImpliesFindCol: Lemmas = lemma(
+    (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al2))
+      ).===>("projectType-implies-findCol")(
+      exists(~'rt2) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val findColTypeImpliesfindCol: Lemmas = lemma(
+    (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
+      ).===>("findColType-implies-findCol")(
+      exists(~'rt) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
+    ))
+
+  val dropFirstColRawPreservesWelltypedRaw: Lemmas = lemma(
+    ((~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
+      ('welltypedRawtable (~'tt, ~'rt))
+      ).===>("dropFirstColRaw-preserves-welltypedRaw")(
+      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
+    ))
+
+  val projectTypeAttrLImpliesfindAllColType: Lemmas = lemma(
+    (('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al))
+      ).===>("projectTypeAttrL-implies-findAllColType")(
+      exists(~'ft) |
+        'findColType (~'n, ~'tt) === 'someFType (~'ft)
+    ))
 
 
 }
