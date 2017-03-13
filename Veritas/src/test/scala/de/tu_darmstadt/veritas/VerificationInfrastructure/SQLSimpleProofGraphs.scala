@@ -16,7 +16,7 @@ class SQLSimpleProofGraphs extends FunSuite {
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
 
-  import de.tu_darmstadt.veritas.inputdsl.testexamples.SQLDefs.{Tables, TableAux, TStore,
+  import de.tu_darmstadt.veritas.inputdsl.SQLDefs.{Tables, TableAux, TStore,
   TContext, Syntax, Semantics, TypeSystem, TypeSystemInv, SoundnessAuxDefs}
 
   // We instantiate S = Seq[VeritasConstruct] and P = VeritasConstruct

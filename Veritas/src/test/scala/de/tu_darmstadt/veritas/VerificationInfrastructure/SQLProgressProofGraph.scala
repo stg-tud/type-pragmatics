@@ -16,7 +16,7 @@ class SQLProgressProofGraph extends FunSuite {
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
 
-  import de.tu_darmstadt.veritas.inputdsl.testexamples.SQLDefs._
+  import de.tu_darmstadt.veritas.inputdsl.SQLDefs._
 
   // We instantiate S = Seq[VeritasConstruct] and P = VeritasConstruct
   // When we construct a Transformer that reuses our previous transformations to TPTP, we

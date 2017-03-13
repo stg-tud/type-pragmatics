@@ -15,7 +15,7 @@ class DDG_SQLExamples extends FunSuite {
   import FunctionDSL._
   import SymTreeDSL._
 
-  import de.tu_darmstadt.veritas.inputdsl.testexamples.SQLDefs._
+  import de.tu_darmstadt.veritas.inputdsl.SQLDefs._
 
   // put here again for reference only
   //  val Query = data('Query) of
