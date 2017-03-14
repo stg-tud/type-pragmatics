@@ -26,6 +26,6 @@ trait Verifier[S, P] extends Ordered[Verifier[S, P]] {
   // TODO needed?
   val supportedStrategies: Seq[VerificationStrategy[S, P]] //general verification strategies that the provers can be called with
 
-  def verify(step: ProofStep[S, P], basedOn: ProofEdges[S, P]): StepResult[S, P]
+  def verify(goal: P, spec: S, assumptions: Iterable[P]): StepResult[S, P]
 
 }

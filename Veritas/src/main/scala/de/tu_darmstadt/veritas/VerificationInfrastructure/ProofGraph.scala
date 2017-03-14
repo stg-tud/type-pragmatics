@@ -25,8 +25,17 @@ trait ProofGraph[Spec, Goal] {
   def setVerifiedBy(step: ProofStep[Spec, Goal], result: StepResult[Spec, Goal])
   def getVerifiedBy(step: ProofStep[Spec, Goal]): Option[StepResult[Spec, Goal]]
 
-  def isStepVerified(step: ProofStep[Spec, Goal]): Boolean
-  def isGoalVerified(step: ProofStep[Spec, Goal]): Boolean
+  def isStepVerified(step: ProofStep[Spec, Goal]): Boolean = getVerifiedBy(step).map(_.isStepVerified).getOrElse(false)
+  def isGoalVerified(step: ProofStep[Spec, Goal]): Boolean = computeIsGoalVerified(step)
+
+  def computeIsGoalVerified(step: ProofStep[Spec, Goal]): Boolean =
+    if (isStepVerified(step)) {
+      val requiredSteps = requires(step).map { case (substep, label) => (substep, label, getVerifiedBy(substep), isGoalVerified(substep)) }
+      step.verificationStrategy.allRequiredGoalsVerified(step, requiredSteps)
+    }
+    else
+      false
+
 
   /**
     * Proof graphs support dependency injection for registering evidence checkers.
@@ -50,5 +59,6 @@ trait ProofGraph[Spec, Goal] {
 
 object ProofGraph {
   type ProofEdges[Spec, Goal] = Iterable[(ProofStep[Spec, Goal], ProofEdgeLabel)]
+  type ProofEdgesWithResult[Spec, Goal] = Iterable[(ProofStep[Spec, Goal], ProofEdgeLabel, Option[StepResult[Spec, Goal]], Boolean)]
 }
 
