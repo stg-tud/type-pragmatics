@@ -165,26 +165,26 @@ import scala.util.Random
 //  }
 //}
 
-case class MockVerifier(prover: Prover[String]) extends Verifier[String, String] {
-  override type V = String
-  override val desc: String = "MockVerifier"
-  override val transformer: GenSeq[Transformer[String, String, this.V]] = Seq()
-  override val provers: GenSeq[Prover[this.V]] = Seq()
-  override val supportedStrategies: Seq[VerificationStrategy[String, String]] = Seq(Solve())
-
-  /**
-    * combine calling all transformers with all provers and compose results into a single VerificationStatus
-    *
-    * @param spec       specification axioms/definitions
-    * @param hypotheses verified lemmas/assumptions
-    * @param goal       property/step to be proved
-    * @param strat      overall abstract strategy to be used for the current step
-    * @return Verification summary
-    */
-  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy[String, String]): VerifierStatus[String, String] =
-    // TODO: usedEdges cannot be passed because we only have the used goals
-    Finished(prover.callProver(""), this)
-}
+//case class MockVerifier(prover: Prover[String]) extends Verifier[String, String] {
+//  override type V = String
+//  override val desc: String = "MockVerifier"
+//  override val transformer: GenSeq[Transformer[String, String, this.V]] = Seq()
+//  override val provers: GenSeq[Prover[this.V]] = Seq()
+//  override val supportedStrategies: Seq[VerificationStrategy[String, String]] = Seq(Solve())
+//
+//  /**
+//    * combine calling all transformers with all provers and compose results into a single VerificationStatus
+//    *
+//    * @param spec       specification axioms/definitions
+//    * @param hypotheses verified lemmas/assumptions
+//    * @param goal       property/step to be proved
+//    * @param strat      overall abstract strategy to be used for the current step
+//    * @return Verification summary
+//    */
+//  override def verify(spec: String, hypotheses: Seq[String], goal: String, strat: VerificationStrategy[String, String]): VerifierStatus[String, String] =
+//    // TODO: usedEdges cannot be passed because we only have the used goals
+//    Finished(prover.callProver(""), this)
+//}
 
 
 case class MockProver() extends Prover[String] {

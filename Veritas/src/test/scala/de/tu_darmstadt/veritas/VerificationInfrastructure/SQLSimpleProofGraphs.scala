@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
+import java.io.File
+
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
@@ -23,14 +25,19 @@ class SQLSimpleProofGraphs extends FunSuite {
   // When we construct a Transformer that reuses our previous transformations to TPTP, we
   // might have to explicitly construct Module(s).
 
-  val testspec = Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
-    Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ SoundnessAuxDefs.defs
+  val testspec: Module = Module("SQLspec", Seq(), Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
+    Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ SoundnessAuxDefs.defs)
 
-  def makeSingleNodeProofGraph(nodename: String, tspec: Seq[VeritasConstruct], goal: VeritasConstruct):
-  ProofGraphQuiver[Seq[VeritasConstruct], VeritasConstruct] = {
-    val proofnode: ProofNode[Seq[VeritasConstruct], VeritasConstruct] =
-      LNode(nodename, ProofStep[Seq[VeritasConstruct], VeritasConstruct](tspec, goal))
-    ProofGraphQuiver(Seq(proofnode))
+  def makeSingleNodeProofGraph(nodename: String, tspec: VeritasConstruct, goal: VeritasConstruct):
+  ProofGraphXodus[VeritasConstruct, VeritasConstruct] = {
+    val proofnode: ProofNode[VeritasConstruct, VeritasConstruct] =
+      LNode(nodename, ProofStep[VeritasConstruct, VeritasConstruct](tspec, goal, Solve[VeritasConstruct, VeritasConstruct]))
+    val file = File.createTempFile("veritas-xodus-test-store", "")
+    file.delete()
+    file.mkdir()
+    val pg : ProofGraphXodus[VeritasConstruct, VeritasConstruct] = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file)
+    pg.addProofStep(proofnode)
+    pg
   }
 
 
