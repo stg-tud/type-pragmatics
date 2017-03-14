@@ -48,9 +48,6 @@ case class StructuralInduction[S <: Ordered[S], P <: Ordered[P]](inductionvar: S
 }
 
 case class CaseDistinction[S, P]() extends VerificationStrategy[S, P] {
-  override def isStepVerified(edgeseq: Seq[(ProofEdgeLabel, Boolean)]): Boolean = ???
-
-  override def callVerifier(verifier: Verifier[S, P], spec: S, goal: P, edges: Seq[(ProofEdgeLabel, ProofStep[S, P])]): VerifierStatus[S, P] = ???
 
   override def compare(that: VerificationStrategy[S, P]): Int = that match {
     case that: CaseDistinction[S, P] => 0
