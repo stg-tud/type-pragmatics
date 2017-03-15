@@ -53,8 +53,8 @@ trait ProofGraph[Spec, Goal] {
   /** Yields the obligation the proof step was applied to */
   def targetedObl(step: ProofStep[Spec, Goal]): Obligation[Spec, Goal]
 
-  def getVerifiedBy(step: ProofStep[Spec, Goal]): Option[StepResult[Spec, Goal]]
-  def isStepVerified(step: ProofStep[Spec, Goal]): Boolean = getVerifiedBy(step) match {
+  def verifiedBy(step: ProofStep[Spec, Goal]): Option[StepResult[Spec, Goal]]
+  def isStepVerified(step: ProofStep[Spec, Goal]): Boolean = verifiedBy(step) match {
     case None => false
     case Some(result) if !result.status.isVerified => false
     case Some(result) if result.evidence.isDefined => lookupEvidenceChecker(result.evidence.get.getClass)(result.evidence.get)
@@ -67,9 +67,9 @@ trait ProofGraph[Spec, Goal] {
     case Some(step) =>
       if (isStepVerified(step)) {
         val required = requiredObls(step).map { case (subobl, label) =>
-          val verifiedBy = appliedStep(subobl).flatMap(getVerifiedBy(_))
+          val subresult = appliedStep(subobl).flatMap(verifiedBy(_))
           val suboblVerified = isOblVerified(subobl)
-          (subobl, label, verifiedBy, suboblVerified)
+          (subobl, label, subresult, suboblVerified)
         }
         step.tactic.allRequiredOblsVerified(obl, required)
       }
