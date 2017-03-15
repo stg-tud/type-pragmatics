@@ -13,11 +13,11 @@ object NoInfoProofEdgeLabel extends ProofEdgeLabel {
   *
   * @param casename name of the induction case (should correspond to goal name of case?)
   * @param ihs induction hypotheses
-  * @tparam P type of the format for defining properties/goals
+  * @tparam Goal type of the format for defining properties/goals
   */
-case class StructInductCase[P <: Ordered[P]](casename: String, ihs: Seq[P]) extends ProofEdgeLabel {
+case class StructInductCase[Goal <: Ordered[Goal]](casename: String, ihs: Seq[Goal]) extends ProofEdgeLabel {
   override def compare(that: ProofEdgeLabel): Int = that match {
-    case that: StructInductCase[P] =>
+    case that: StructInductCase[Goal] =>
       val compare1 = this.casename compare that.casename
       if (compare1 != 0) return compare1
       val compare2 = this.ihs.size compare that.ihs.size
@@ -36,10 +36,13 @@ case class StructInductCase[P <: Ordered[P]](casename: String, ihs: Seq[P]) exte
   * type of nodes in a proof graph, represents a single subgoal/step in a proof
   * @param spec the specification from which the goal should be proven
   * @param goal the goal to be proved
-  * @tparam S type of the specification format
-  * @tparam P type of the format for defining properties
+  * @tparam Spec type of the specification format
+  * @tparam Goal type of the format for defining properties
   */
-case class ProofStep[S, P](spec: S, goal: P, verificationStrategy: VerificationStrategy[S, P])
+case class ProofStep[Spec, Goal](spec: Spec, goal: Goal, tactic: Tactic[Spec, Goal] = Solve[Spec, Goal])
+  //TODO decide how to deal with nodes where tactic is not yet decided
+  //Alternative 1) make tactic Option[Tactic[S, P]] and allow None
+  //Alternative 2) have Solve as default strategy (<- chosen for now)
 
 //  /**
 //    * verify the single proof problem:

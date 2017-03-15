@@ -147,7 +147,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     val step = txn.newEntity(TSTEP)
     step.setProperty(pStepName, node.vertex)
     step.setProperty(pStepGoal, node.label.goal)
-    step.setProperty(pStrategy, node.label.verificationStrategy)
+    step.setProperty(pStrategy, node.label.tactic)
 
     // TODO avoid re-adding spec for each proof step
     val spec = txn.newEntity(TSPEC)
@@ -211,7 +211,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
 
   private def readProofStep(entity: Entity): ProofStep[S, P] = {
     val goal = entity.getProperty(pStepGoal).asInstanceOf[P]
-    val verificationStrategy = entity.getProperty(pStrategy).asInstanceOf[VerificationStrategy[S, P]]
+    val verificationStrategy = entity.getProperty(pStrategy).asInstanceOf[Tactic[S, P]]
     val spec = entity.getLink(lStepSpec).getProperty(pSpecContent).asInstanceOf[S]
     ProofStep(spec, goal, verificationStrategy)
   }

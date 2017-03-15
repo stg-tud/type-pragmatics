@@ -188,7 +188,7 @@ import scala.util.Random
 
 
 case class MockProver() extends Prover[String] {
-  override def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]] = ???
+  override def supportedStrategies[S, P](): Seq[Tactic[S, P]] = ???
 
   override def callProver(problem: String): ProverStatus = Proved("")
 
@@ -196,7 +196,7 @@ case class MockProver() extends Prover[String] {
 
 case class SwitchStatusProver() extends Prover[String] {
   var count = -1
-  override def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]] = ???
+  override def supportedStrategies[S, P](): Seq[Tactic[S, P]] = ???
 
   override def callProver(problem: String): ProverStatus = {
     count = count + 1
@@ -209,7 +209,7 @@ case class SwitchStatusProver() extends Prover[String] {
 
 case class ContradictingStatusProver() extends Prover[String] {
   var count = -1
-  override def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]] = ???
+  override def supportedStrategies[S, P](): Seq[Tactic[S, P]] = ???
 
   override def callProver(problem: String): ProverStatus = {
     count = count + 1
@@ -222,7 +222,7 @@ case class ContradictingStatusProver() extends Prover[String] {
 }
 
 case class WaitingProver() extends Prover[String] {
-  override def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]] = ???
+  override def supportedStrategies[S, P](): Seq[Tactic[S, P]] = ???
 
   override def callProver(problem: String): ProverStatus = {
     val rnd = new Random()

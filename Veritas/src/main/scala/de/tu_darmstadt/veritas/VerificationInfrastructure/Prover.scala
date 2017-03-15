@@ -28,7 +28,7 @@ case class ProverFailure(proverLog: String) extends ProverStatus
   */
 trait Prover[V] {
 
-  def supportedStrategies[S, P](): Seq[VerificationStrategy[S, P]]
+  def supportedStrategies[S, P](): Seq[Tactic[S, P]]
 
   def callProver(problem: V): ProverStatus
 }

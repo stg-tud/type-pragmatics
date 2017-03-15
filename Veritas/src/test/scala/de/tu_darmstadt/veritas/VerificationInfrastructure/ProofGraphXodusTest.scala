@@ -186,7 +186,7 @@ class SimpleStepResult extends StepResult[String, String] {
 case class MockVerifier(prover: Prover[String]) extends Verifier[String, String] {
   override type V = SimpleVerifierFormat
   override val desc: String = "MockVerifier"
-  override val supportedStrategies: Seq[VerificationStrategy[String, String]] = Seq(Solve())
+  override val supportedStrategies: Seq[Tactic[String, String]] = Seq(Solve())
 
   override def verify(goal: String, spec: String, assumptions: Iterable[String]): StepResult[String, String] =
     // TODO: usedEdges cannot be passed because we only have the used goals

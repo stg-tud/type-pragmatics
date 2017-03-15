@@ -7,7 +7,8 @@ trait StepResult[S, P] {
   def evidence: Option[Evidence]
   def errorMsg: Option[String]
 
-  def isStepVerified = status.isVerified
+  def isStepVerified: Boolean = status.isVerified
+  def isGoalVerified: Boolean = ???
 }
 
 trait Evidence

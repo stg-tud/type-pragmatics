@@ -24,7 +24,7 @@ trait Verifier[S, P] extends Ordered[Verifier[S, P]] {
 //  val provers : GenSeq[Prover[V]] //sequence of provers that understand the given verification format (may be called in parallel)
 
   // TODO needed?
-  val supportedStrategies: Seq[VerificationStrategy[S, P]] //general verification strategies that the provers can be called with
+  val supportedStrategies: Seq[Tactic[S, P]] //general verification strategies that the provers can be called with
 
   def verify(goal: P, spec: S, assumptions: Iterable[P]): StepResult[S, P]
 

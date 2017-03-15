@@ -7,6 +7,8 @@ import scala.collection.mutable
 
 trait ProofGraph[Spec, Goal] {
 
+  //TODO: some of methods in ProofGraph might have to check first whether their step argument actually exists in the graph!
+
   /* graph management */
   def rootSteps: Iterable[ProofStep[Spec, Goal]]
 
@@ -31,11 +33,27 @@ trait ProofGraph[Spec, Goal] {
   def computeIsGoalVerified(step: ProofStep[Spec, Goal]): Boolean =
     if (isStepVerified(step)) {
       val requiredSteps = requires(step).map { case (substep, label) => (substep, label, getVerifiedBy(substep), isGoalVerified(substep)) }
-      step.verificationStrategy.allRequiredGoalsVerified(step, requiredSteps)
+      step.tactic.allRequiredGoalsVerified(step, requiredSteps)
     }
     else
       false
 
+  def updateStep(oldstep: ProofStep[Spec, Goal], newstep: ProofStep[Spec, Goal])
+
+  /* check if a given step is indeed part of the graph) */
+  def stepExists(step: ProofStep[Spec, Goal]): Boolean
+
+  def applyTactic(step: ProofStep[Spec, Goal], tactic: Tactic[Spec, Goal]): Unit =
+    if (stepExists(step)) {
+      //TODO add some error handling (applying the tactic could fail)
+      val newedges = tactic.apply(step)
+      for (oe <- newedges; (ps, e) <- oe) {
+        addProofStep(ps)
+        addProofEdge(step, ps, e)
+      }
+      val newstep = ProofStep(step.spec, step.goal, tactic)
+      updateStep(step, newstep)
+    }
 
   /**
     * Proof graphs support dependency injection for registering evidence checkers.

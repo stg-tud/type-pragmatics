@@ -27,7 +27,7 @@ class SQLProgressProofGraph extends FunSuite {
   type VeriProofNode = ProofNode[Spec, VeritasConstruct]
   //type VeriProofGraph = ProofGraphQuiver[Spec, VeritasConstruct]
   type VeriProofGraphX = ProofGraphXodus[Spec, VeritasConstruct]
-  type VeriVerificationStrategy = VerificationStrategy[Spec, VeritasConstruct]
+  type VeriVerificationStrategy = Tactic[Spec, VeritasConstruct]
 
   case class Spec(content: Seq[VeritasConstruct]) extends Ordered[Spec] {
     val ord = Ordering.Iterable[VeritasConstruct](Ordering.ordered[VeritasConstruct](x => x))
