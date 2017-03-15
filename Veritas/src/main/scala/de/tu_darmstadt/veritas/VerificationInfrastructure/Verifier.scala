@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraph.ProofEdges
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
 
 import scala.collection.GenSeq
 

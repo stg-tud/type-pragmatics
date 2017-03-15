@@ -6,22 +6,19 @@ trait StepResult[S, P] {
   def status: VerifierStatus[S, P]
   def evidence: Option[Evidence]
   def errorMsg: Option[String]
-
-  def isStepVerified: Boolean = status.isVerified
-  def isGoalVerified: Boolean = ???
 }
 
 trait Evidence
 
 object Evidence {
-  type EvidenceChecker[Ev <: Evidence, V <: VerifierFormat] = (Ev, V) => Boolean
-  type AnyEvidenceChecker = EvidenceChecker[_ <: Evidence, _ <: VerifierFormat]
+  type EvidenceChecker[Ev <: Evidence] = Ev => Boolean
+  type AnyEvidenceChecker = EvidenceChecker[Evidence]
 
-  val trusting: EvidenceChecker[Evidence, VerifierFormat] = (_,_) => true
+  val trusting: EvidenceChecker[Evidence] = (_) => true
 
-  def sampling[Ev <: Evidence, V <: VerifierFormat](rate: Double, checker: EvidenceChecker[Ev, V]): EvidenceChecker[Ev, V] = (ev: Ev, v: V) =>
+  def sampling[Ev <: Evidence](rate: Double, checker: EvidenceChecker[Ev]): EvidenceChecker[Ev] = (ev: Ev) =>
     if (Random.nextDouble() < rate)
-      checker(ev, v)
+      checker(ev)
     else
       true
 }

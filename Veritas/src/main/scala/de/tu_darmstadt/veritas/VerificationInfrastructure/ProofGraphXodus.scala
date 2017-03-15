@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.{ByteArrayInputStream, File}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{NoInfoEdgeLabel, Solve, Tactic}
 import jetbrains.exodus.bindings.ComparableBinding
 import jetbrains.exodus.entitystore._
 import jetbrains.exodus.util.LightOutputStream
@@ -75,13 +76,13 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     * @param nodename
     * @return Is empty if there is no node with nodename otherwise it returns the ProofStep
     */
-  def find(nodename: String): Option[ProofStep[S, P]] = readOnlyTransaction { txn =>
+  def find(nodename: String): Option[Obligation[S, P]] = readOnlyTransaction { txn =>
     for (step <- txn.find(TSTEP, pStepName, nodename).asScala)
       return Some(readProofStep(step))
     None
   }
 
-  def nodes: List[ProofStep[S, P]] = readOnlyTransaction { txn =>
+  def nodes: List[Obligation[S, P]] = readOnlyTransaction { txn =>
     val entities = txn.getAll(TSTEP).asScala
     entities.map(readProofStep(_)).toList // copy result to list since the iterable may not leave the transaction
   }
@@ -147,7 +148,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     val step = txn.newEntity(TSTEP)
     step.setProperty(pStepName, node.vertex)
     step.setProperty(pStepGoal, node.label.goal)
-    step.setProperty(pStrategy, node.label.tactic)
+//    step.setProperty(pStrategy, node.label.tactic)
 
     // TODO avoid re-adding spec for each proof step
     val spec = txn.newEntity(TSPEC)
@@ -209,11 +210,12 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
 
   /* Helpers */
 
-  private def readProofStep(entity: Entity): ProofStep[S, P] = {
+  private def readProofStep(entity: Entity): Obligation[S, P] = {
     val goal = entity.getProperty(pStepGoal).asInstanceOf[P]
     val verificationStrategy = entity.getProperty(pStrategy).asInstanceOf[Tactic[S, P]]
     val spec = entity.getLink(lStepSpec).getProperty(pSpecContent).asInstanceOf[S]
-    ProofStep(spec, goal, verificationStrategy)
+//    Obligation(spec, goal, verificationStrategy)
+    ???
   }
 }
 
@@ -221,7 +223,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
 object PropertyTypes {
   def registerAll(store: PersistentEntityStore) {
     registerPropertyType[Solve[String, String]](store)
-    registerPropertyType[NoInfoProofEdgeLabel.type](store)
+    registerPropertyType[NoInfoEdgeLabel.type](store)
     registerPropertyType[VerifierStatus[String, String]](store)
     registerPropertyType[Unknown[String, String]](store)
   }

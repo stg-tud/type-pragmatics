@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{Solve, StructuralInduction, Tactic}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
@@ -74,7 +75,7 @@ class SQLProgressProofGraph extends FunSuite {
 
   def makeProofNode(nodename: String, tspec: Spec, goal: VeritasConstruct,
                     strategy: VeriVerificationStrategy = VeriSolve): VeriProofNode =
-    LNode(nodename, ProofStep[Spec, VeritasConstruct](tspec, goal, strategy))
+    LNode(nodename, Obligation[Spec, VeritasConstruct](tspec, goal, strategy))
 
 //  def makeSingleNodeProofGraph(nodename: String, tspec: Spec, goal: VeritasConstruct,
   //                               strategy: VeriVerificationStrategy = VeriSolve): VeriProofGraph = {

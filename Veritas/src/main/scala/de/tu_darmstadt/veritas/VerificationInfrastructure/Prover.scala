@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
+
 /**
   * return status of a prover call
   */

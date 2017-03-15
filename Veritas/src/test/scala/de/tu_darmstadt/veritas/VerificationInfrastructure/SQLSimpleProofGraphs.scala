@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Solve
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
@@ -31,7 +32,7 @@ class SQLSimpleProofGraphs extends FunSuite {
   def makeSingleNodeProofGraph(nodename: String, tspec: VeritasConstruct, goal: VeritasConstruct):
   ProofGraphXodus[VeritasConstruct, VeritasConstruct] = {
     val proofnode: ProofNode[VeritasConstruct, VeritasConstruct] =
-      LNode(nodename, ProofStep[VeritasConstruct, VeritasConstruct](tspec, goal, Solve[VeritasConstruct, VeritasConstruct]))
+      LNode(nodename, Obligation[VeritasConstruct, VeritasConstruct](tspec, goal, Solve[VeritasConstruct, VeritasConstruct]))
     val file = File.createTempFile("veritas-xodus-test-store", "")
     file.delete()
     file.mkdir()
