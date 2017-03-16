@@ -8,7 +8,7 @@ trait StepResult[S, P] {
   def errorMsg: Option[String]
 }
 
-trait Evidence
+trait Evidence extends Ordered[Evidence]
 
 object Evidence {
   type EvidenceChecker[Ev <: Evidence] = Ev => Boolean

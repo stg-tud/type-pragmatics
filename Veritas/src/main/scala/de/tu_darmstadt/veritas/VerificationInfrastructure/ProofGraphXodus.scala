@@ -71,10 +71,6 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
 
 
-  def newStepResult(txn: StoreTransaction, result: StepResult[Spec, Goal]): Entity = ???
-
-
-
   /* operations for modifying proof graphs:
    * - add or remove root obligations
    * - apply or unapply a tactic to an obligation, yielding a proof step and subobligations
@@ -115,10 +111,22 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   def unapplyTactic(obl: Obligation) = ???
 
   def setVerifiedBy(step: ProofStep, resultObj: StepResult[Spec, Goal]) = transaction { txn =>
-    val result = newStepResult(txn, resultObj)
-    step.entity(txn).setProperty(lStepVerifiedBy, result)
+    val result = txn.newEntity(TStepResult)
+    result.setProperty(pResultStatus, resultObj.status)
+    if (resultObj.errorMsg.isDefined)
+      result.setProperty(pResultErrorMsg, resultObj.errorMsg.get)
+    if (resultObj.evidence.isDefined)
+      result.setProperty(pResultEvidence, resultObj.evidence.get)
+    step.entity(txn).setLink(lStepVerifiedBy, result)
   }
-  def unsetVerifiedBy(step: ProofStep) = ???
+  def unsetVerifiedBy(stepObj: ProofStep) = transaction { txn =>
+    val step = stepObj.entity(txn)
+    val result = step.getLink(lStepVerifiedBy)
+    if (result != null) {
+      step.deleteLink(lStepVerifiedBy, result)
+      result.delete()
+    }
+  }
 
 
   /** operations for querying proof graphs:
