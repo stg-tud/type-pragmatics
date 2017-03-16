@@ -77,12 +77,20 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
    * - setting or unsetting the result of validating a proof step
    */
 
-  def addRootObligation(obl: Obligation) = transaction { txn =>
+  def addRootObligation(oblObj: Obligation) = transaction { txn =>
     val root = txn.newEntity(TRoot)
-    root.setLink(lRootObl, obl.entity(txn))
+    val obl = oblObj.entity(txn)
+    root.setLink(lRootObl, obl)
+    obl.setLink(lOblRoot, root)
   }
 
-  def removeRootObligation(step: Obligation) = ???
+  def removeRootObligation(oblObj: Obligation) = transaction { txn =>
+    val obl = oblObj.entity(txn)
+    val root = obl.getLink(lOblRoot)
+    if (root != null)
+      root.delete()
+    gcObl(obl)
+  }
 
   def applyTactic(targetObj: Obligation, tactic: Tactic[Spec, Goal]): ProofStep = {
     val requiredObjs = tactic(this)(targetObj)
@@ -273,15 +281,32 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
 
 
-  /* Helpers */
+  /* GC helpers */
 
-  private def readProofStep(entity: Entity): Obligation = {
-    val goal = entity.getProperty(pOblGoal).asInstanceOf[Goal]
-    val verificationStrategy = entity.getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]]
-    val spec = entity.getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[Spec]
-//    Obligation(spec, goal, verificationStrategy)
-    ???
+  private def gcObl(obl: Entity): Unit = {
+    if (obl.getLink(lOblRoot) == null && obl.getLinks(lOblRequiringEdges).isEmpty) {
+      // no root ref and no requiring edges => can delete
+      obl.getLink(lOblSpec).delete()
+      val step = obl.getLink(lOblAppliedStep)
+      // delete step if exists
+      if (step != null) {
+        val result = step.getLink(lStepVerifiedBy)
+        // delete result if exists
+        if (result != null)
+          result.delete()
+        // delete all required edges and gc all required obligations
+        for (edge <- step.getLinks(lStepRequiredEdges).asScala) {
+          val requiredObl = edge.getLink(lEdgeRequiredObl)
+          requiredObl.deleteLink(lOblRequiringEdges, edge)
+          gcObl(requiredObl)
+          edge.delete()
+        }
+        step.delete()
+      }
+      obl.delete()
+    }
   }
+
 }
 
 object ProofGraphXodus {
@@ -293,6 +318,7 @@ object ProofGraphXodus {
   val lOblSpec = "spec"
   val lOblAppliedStep = "appliedStep"
   val lOblRequiringEdges = "requiringEdges"
+  val lOblRoot = "root"
 
   val TProofStep = "PROOFSTEP"
   val pStepTactic = "tactic"
