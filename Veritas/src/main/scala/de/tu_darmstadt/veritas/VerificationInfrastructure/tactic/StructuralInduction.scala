@@ -1,11 +1,11 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraph.ProofEdges
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, Obligation, StepResult, Verifier}
+import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
 case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](inductionvar: Spec) extends Tactic[Spec, Goal] {
   //TODO we might have to refine the verifier call for induction once we really support this via a prover
-  override def verifyStep(step: Obligation[Spec, Goal], edges: ProofEdges[Spec, Goal], verifier: Verifier[Spec, Goal]): StepResult[Spec, Goal] = super.verifyStep(step, edges, verifier)
+  override def verifyStep(g: IProofGraph[Spec, Goal])(obl: g.Obligation, edges: Iterable[(g.Obligation, EdgeLabel)], verifier: Verifier[Spec, Goal]): StepResult[Spec, Goal] =
+    super.verifyStep(g)(obl, edges, verifier)
 
 
   override def compare(that: Tactic[Spec, Goal]): Int = that match {
@@ -13,7 +13,7 @@ case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](ind
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 
-  override def apply(obl: Obligation[Spec, Goal]): Iterable[(Obligation[Spec, Goal], EdgeLabel)] = ???
+  override def apply(g: IProofGraph[Spec, Goal])(obl: g.Obligation): Iterable[(g.Obligation, EdgeLabel)] = ???
 }
 
 /**

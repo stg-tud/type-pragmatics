@@ -14,7 +14,8 @@ object Evidence {
   type EvidenceChecker[Ev <: Evidence] = Ev => Boolean
   type AnyEvidenceChecker = EvidenceChecker[Evidence]
 
-  val trusting: EvidenceChecker[Evidence] = (_) => true
+  val failing: AnyEvidenceChecker = _ => false
+  val trusting: AnyEvidenceChecker = _ => true
 
   def sampling[Ev <: Evidence](rate: Double, checker: EvidenceChecker[Ev]): EvidenceChecker[Ev] = (ev: Ev) =>
     if (Random.nextDouble() < rate)

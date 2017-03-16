@@ -8,9 +8,9 @@ import quiver.{Context, Graph, LEdge, LNode}
   */
 package object VerificationInfrastructure {
 
-  type ProofNode[S, P] = LNode[String, Obligation[S, P]]
+  type ProofNode[S, P] = LNode[String, GenObligation[S, P]]
   type VerificationEdge = LEdge[String, EdgeLabel]
-  type InternalProofGraph[S, P] = Graph[String, Obligation[S, P], EdgeLabel]
+  type InternalProofGraph[S, P] = Graph[String, GenObligation[S, P], EdgeLabel]
 
   type FocusedExpDomTree[S, V] = Context[String, ExpressionDomainNode[S, V], DomainEdgeLabel]
   type FocusedTypDomTree[S, V] = Context[String, TypeDomainNode[S, V], DomainEdgeLabel]

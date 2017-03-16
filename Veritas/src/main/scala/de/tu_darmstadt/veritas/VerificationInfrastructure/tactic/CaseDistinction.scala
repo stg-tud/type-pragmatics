@@ -1,7 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, Obligation}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraph.ProofEdges
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, IProofGraph}
 
 case class CaseDistinction[Spec, Goal]() extends Tactic[Spec, Goal] {
 
@@ -10,5 +9,5 @@ case class CaseDistinction[Spec, Goal]() extends Tactic[Spec, Goal] {
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 
-  override def apply(obl: Obligation[Spec, Goal]): Iterable[(Obligation[Spec, Goal], EdgeLabel)] = ???
+  override def apply(g: IProofGraph[Spec, Goal])(obl: g.Obligation): Iterable[(g.Obligation, EdgeLabel)] = ???
 }

@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.{ByteArrayInputStream, File}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure
+import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence.AnyEvidenceChecker
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{NoInfoEdgeLabel, Solve, Tactic}
 import jetbrains.exodus.bindings.ComparableBinding
 import jetbrains.exodus.entitystore._
@@ -14,21 +15,7 @@ import scala.pickling.{FastTypeTag, OutputStreamOutput, SPickler, Unpickler}
 import scala.reflect.ClassTag
 
 
-/**
-  * Types: Graph, Step, Edge, Spec
-  * Properties:
-  *   Spec.content: S
-  *   Edge.label: ProofEdgeLabel
-  *   Step.name: String
-  *   Step.goal: P
-  *   Step.verificationStrategy: VerificationStrategy
-  * Links:
-  *   Step.spec *<->1 Spec._
-  *   Graph.root *<->1 Step._ //TODO adapt so that graph can have several roots?
-  *   Step.kids 1<->* Edge.from
-  *   Step.parents 1<->* Edge.to
-  */
-class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
+class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir: File) extends ProofGraph[Spec, Goal] {
   import ProofGraphXodus._
 
   val store: PersistentEntityStore = PersistentEntityStores.newInstance(dbDir)
@@ -53,24 +40,98 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
   }
 
 
-  /* Queries */
+  trait EntityObj {
+    def id: EntityId
+    def entity(txn: StoreTransaction): Entity = txn.getEntity(id)
+  }
 
-  /**
-    * Return the ProofStep associated with the given nodename
-    * @param nodename
-    * @return Is empty if there is no node with nodename otherwise it returns the ProofStep
+  class ProofStep(val id: EntityId, txn: StoreTransaction) extends GenProofStep[Spec, Goal] with EntityObj {
+    val tactic: Tactic[Spec, Goal] = txn.getEntity(id).getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]]
+  }
+  def newProofStep(txn: StoreTransaction, tactic: Tactic[Spec, Goal]): ProofStep = ???
+
+
+  class Obligation(val id: EntityId, txn: StoreTransaction) extends GenObligation[Spec, Goal] with EntityObj {
+    val spec: Spec = txn.getEntity(id).getLink(lOblSpec).asInstanceOf[Spec]
+    val goal: Goal = txn.getEntity(id).getProperty(pOblGoal).asInstanceOf[Goal]
+  }
+  override def newObligation(spec: Spec, goal: Goal) = transaction[Obligation](txn => newObligation(txn, spec, goal))
+  def newObligation(txn: StoreTransaction, spec: Spec, goal: Goal): Obligation = ???
+
+
+  def newStepResult(txn: StoreTransaction, result: StepResult[Spec, Goal]): Entity = ???
+
+
+
+  /* operations for modifying proof graphs:
+   * - add or remove root obligations
+   * - apply or unapply a tactic to an obligation, yielding a proof step and subobligations
+   * - setting or unsetting the result of validating a proof step
+   */
+
+  def addRootObligation(obl: Obligation) = transaction { txn =>
+    val root = txn.newEntity(TRoot)
+    root.setLink(lRootObl, obl.entity(txn))
+  }
+
+  def removeRootObligation(step: Obligation) = ???
+
+  def applyTactic(targetObj: Obligation, tactic: Tactic[Spec, Goal]): ProofStep = {
+    val requiredObjs = tactic(this)(targetObj)
+
+    transaction { txn =>
+      val target = targetObj.entity(txn)
+      val stepObj = newProofStep(txn, tactic)
+      val step = stepObj.entity(txn)
+      step.setLink(lStepTargetedObl, target)
+      target.setLink(lOblAppliedStep, step)
+
+      for ((requiredObj, label) <- requiredObjs) {
+        val required = requiredObj.entity(txn)
+        val edge = txn.newEntity(TEdge)
+        edge.setProperty(pEdgeLabel, label)
+
+        edge.setLink(lEdgeRequiredObl, required)
+        required.addLink(lOblRequiringEdges, edge)
+
+        edge.setLink(lEdgeRequiringStep, step)
+        step.addLink(lStepRequiredEdges, edge)
+      }
+      stepObj
+    }
+  }
+  def unapplyTactic(obl: Obligation) = ???
+
+  def setVerifiedBy(step: ProofStep, resultObj: StepResult[Spec, Goal]) = transaction { txn =>
+    val result = newStepResult(txn, resultObj)
+    step.entity(txn).setProperty(lStepVerifiedBy, result)
+  }
+  def unsetVerifiedBy(step: ProofStep) = ???
+
+
+  /** operations for querying proof graphs:
+    * - sequence of root proof obligations
+    * - navigating from obligations to used proof step to required subobligations
+    * - navigating from subobligations to requiring proof steps to targeted obligation
+    * - retrieving step result if any and checking whether a step was successfully verified
+    * - checking whether an obligation was successfully verified
     */
-  def find(nodename: String): Option[Obligation[S, P]] = readOnlyTransaction { txn =>
-    for (step <- txn.find(TStep, pStepName, nodename).asScala)
-      return Some(readProofStep(step))
-    None
+
+  def rootObligations: Iterable[Obligation] = readOnlyTransaction { txn =>
+    txn.getAll(TRoot).asScala.map(root => new Obligation(root.getLink(lRootObl).getId, txn))
   }
 
-  def nodes: List[Obligation[S, P]] = readOnlyTransaction { txn =>
-    val entities = txn.getAll(TStep).asScala
-    entities.map(readProofStep(_)).toList // copy result to list since the iterable may not leave the transaction
-  }
+  /** Yields proof step if any */
+  def appliedStep(obl: Obligation): Option[ProofStep] = ???
+  /** Yields required subobligations */
+  def requiredObls(step: ProofStep): Iterable[(Obligation, EdgeLabel)] = ???
 
+  /** Yields proof steps that require the given obligation */
+  def requiringSteps(obligation: Obligation): Iterable[(ProofStep, EdgeLabel)] = ???
+  /** Yields the obligation the proof step was applied to */
+  def targetedObl(step: ProofStep): Obligation = ???
+
+  def verifiedBy(step: ProofStep): Option[StepResult[Spec, Goal]] = ???
 
   /* Traversals */
 
@@ -83,7 +144,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     * @param nodename
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
-  def verifySingle(verifier: Verifier[S, P], nodename: String): ProofGraphXodus[S, P] = {
+  def verifySingle(verifier: Verifier[Spec, Goal], nodename: String): ProofGraphXodus[Spec, Goal] = {
     // TODO
 //    val updatedNode = verifyNode(verifier, nodename)
 //    updateNode(nodename, updatedNode.label)
@@ -108,7 +169,7 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     * @param verifier
     * @return updated proof graph, where verification status is correctly propagated along the entire graph
     */
-  def verifyAll(verifier: Verifier[S, P]): ProofGraphXodus[S, P] = {
+  def verifyAll(verifier: Verifier[Spec, Goal]): ProofGraphXodus[Spec, Goal] = {
     // TODO
 //    val nodes = graph.nodes
 //    val verifiedGraph = nodes.foldLeft(graph) { case (g, nodename) =>
@@ -128,9 +189,9 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     * @param node
     * @return the new, updated proof graph
     */
-  def addProofStep(node: ProofNode[S, P]): ProofGraphXodus[S, P] = transaction { txn =>
-    val step = txn.newEntity(TStep)
-    step.setProperty(pStepName, node.vertex)
+  def addProofStep(node: ProofNode[Spec, Goal]): ProofGraphXodus[Spec, Goal] = transaction { txn =>
+    val step = txn.newEntity(TProofStep)
+//    step.setProperty(pStepName, node.vertex)
     step.setProperty(pOblGoal, node.label.goal)
 //    step.setProperty(pStrategy, node.label.tactic)
 
@@ -143,22 +204,22 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     this
   }
 
-  def addProofEdge(e: VerificationEdge): ProofGraphXodus[S, P] = transaction { txn =>
+  def addProofEdge(e: VerificationEdge): ProofGraphXodus[Spec, Goal] = transaction { txn =>
     val edge = txn.newEntity(TEdge)
     edge.setProperty(pEdgeLabel, e.label)
 
-    val from = txn.find(TStep, pStepName, e.from).getFirst
-    val to = txn.find(TStep, pStepName, e.to).getFirst
+//    val from = txn.find(TProofStep, pStepName, e.from).getFirst
+//    val to = txn.find(TProofStep, pStepName, e.to).getFirst
 
-    from.addLink(lStepRequires, edge)
-    edge.setLink(lEdgeRequiredBy, from)
-    edge.setLink(lEdgeProvidedBy, to)
-    to.addLink(lStepProvides, edge)
+//    from.addLink(lStepRequiredObls, edge)
+//    edge.setLink(lEdgeRequiringStep, from)
+//    edge.setLink(lEdgeRequiredObl, to)
+//    to.addLink(lStepTargetedObl, edge)
 
     this
   }
 
-  def addProofStep(node: ProofNode[S, P], edges: Seq[VerificationEdge]): ProofGraphXodus[S, P] = {
+  def addProofStep(node: ProofNode[Spec, Goal], edges: Seq[VerificationEdge]): ProofGraphXodus[Spec, Goal] = {
     addProofStep(node)
     edges.foreach(addProofEdge(_))
     this
@@ -169,60 +230,68 @@ class ProofGraphXodus[S <: Comparable[S], P <: Comparable[P]](dbDir: File) {
     * @param node
     * @return
     */
-  def removeNode(node: ProofNode[S, P]): ProofGraphXodus[S, P] = transaction { txn =>
-    for (step <- txn.find(TStep, pStepName, node.vertex).asScala) {
-      // when extending the data mode, ensure that a delete does not leave dangling links
-      step.getLink(lOblSpec).delete()
-
-      for (parentEdge <- step.getLinks(lStepProvides).asScala) {
-        val parentStep = parentEdge.getLink(lEdgeRequiredBy)
-        parentStep.deleteLink(lStepRequires, parentEdge)
-        parentEdge.delete()
-      }
-
-      for (kidEdge <- step.getLinks(lStepRequires).asScala) {
-        val kidStep = kidEdge.getLink(lEdgeProvidedBy)
-        kidStep.deleteLink(lStepProvides, kidEdge)
-        kidEdge.delete()
-      }
-
-      step.delete()
-    }
+  def removeNode(node: ProofNode[Spec, Goal]): ProofGraphXodus[Spec, Goal] = transaction { txn =>
+//    for (step <- txn.find(TProofStep, pStepName, node.vertex).asScala) {
+//      // when extending the data mode, ensure that a delete does not leave dangling links
+//      step.getLink(lOblSpec).delete()
+//
+//      for (parentEdge <- step.getLinks(lStepTargetedObl).asScala) {
+//        val parentStep = parentEdge.getLink(lEdgeRequiringStep)
+//        parentStep.deleteLink(lStepRequiredObls, parentEdge)
+//        parentEdge.delete()
+//      }
+//
+//      for (kidEdge <- step.getLinks(lStepRequiredObls).asScala) {
+//        val kidStep = kidEdge.getLink(lEdgeRequiredObl)
+//        kidStep.deleteLink(lStepTargetedObl, kidEdge)
+//        kidEdge.delete()
+//      }
+//
+//      step.delete()
+//    }
     this
   }
 
 
   /* Helpers */
 
-  private def readProofStep(entity: Entity): Obligation[S, P] = {
-    val goal = entity.getProperty(pOblGoal).asInstanceOf[P]
-    val verificationStrategy = entity.getProperty(pStrategy).asInstanceOf[Tactic[S, P]]
-    val spec = entity.getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[S]
+  private def readProofStep(entity: Entity): Obligation = {
+    val goal = entity.getProperty(pOblGoal).asInstanceOf[Goal]
+    val verificationStrategy = entity.getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]]
+    val spec = entity.getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[Spec]
 //    Obligation(spec, goal, verificationStrategy)
     ???
   }
 }
 
 object ProofGraphXodus {
+  val TRoot = "ROOT"
+  val lRootObl = "obl"
+
   val TObligation = "OBLIGATION"
   val pOblGoal = "goal"
   val lOblSpec = "spec"
-  val lOblApplies = "applies"
+  val lOblAppliedStep = "appliedStep"
+  val lOblRequiringEdges = "requiringEdges"
 
-
-  val TStep = "STEP"
-  val pStrategy = "strategy"
-  val lStepRequires = "requires"
-  val lStepProvides = "provides"
+  val TProofStep = "PROOFSTEP"
+  val pStepTactic = "tactic"
+  val lStepRequiredEdges = "requiredEdges"
+  val lStepTargetedObl = "targetedObl"
+  val lStepVerifiedBy = "verifiedBy"
 
   val TEdge = "EDGE"
   val pEdgeLabel = "label"
-  val lEdgeRequiredBy = "requiredBy"
-  val lEdgeProvidedBy = "providedBy"
+  val lEdgeRequiredObl = "requiredObl"
+  val lEdgeRequiringStep = "requiringStep"
 
   val TSpec = "SPEC"
   val pSpecContent = "content"
 
+  val TStepResult = "STEPRESULT"
+  val pResultStatus = "status"
+  val pResultEvidence = "evidence"
+  val pResultErrorMsg = "errorMsg"
 }
 
 object PropertyTypes {

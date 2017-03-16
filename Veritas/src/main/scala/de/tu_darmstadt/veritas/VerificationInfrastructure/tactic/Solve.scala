@@ -1,7 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, Obligation}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraph.ProofEdges
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, IProofGraph}
 
 /**
   * default tactic: simply try to figure out a proof for a node of a proof graph
@@ -15,5 +14,5 @@ case class Solve[Spec, Goal]() extends Tactic[Spec, Goal] {
    }
 
   /* applying the Solve tactic does not generate any edges */
-  override def apply(obl: Obligation[Spec, Goal]): Iterable[(Obligation[Spec, Goal], EdgeLabel)] = Seq()
+  def apply(g: IProofGraph[Spec, Goal])(obl: g.Obligation): Iterable[(g.Obligation, EdgeLabel)] = Seq()
 }
