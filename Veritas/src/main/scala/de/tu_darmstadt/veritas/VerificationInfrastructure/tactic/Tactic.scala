@@ -17,7 +17,7 @@ trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] {
     * @param verifier
     * @return
     */
-  def verifyStep(g: IProofGraph[Spec, Goal])(obl: g.Obligation, edges: Iterable[(g.Obligation, EdgeLabel)], verifier: Verifier[Spec, Goal]): StepResult[Spec, Goal] =
+  def verifyStep(g: IProofGraph[Spec, Goal])(obl: g.Obligation, edges: Iterable[(g.Obligation, EdgeLabel)], verifier: Verifier[Spec, Goal]): GenStepResult[Spec, Goal] =
     verifier.verify(obl.goal, obl.spec, edges.map(_._1.goal))
 
   /**

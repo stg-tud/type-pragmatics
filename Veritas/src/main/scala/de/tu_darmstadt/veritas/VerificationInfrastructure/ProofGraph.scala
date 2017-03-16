@@ -17,6 +17,13 @@ trait GenObligation[Spec, Goal] {
   def goal: Goal
 }
 
+trait GenStepResult[S, P] {
+  def status: VerifierStatus[S, P]
+  def evidence: Option[Evidence]
+  def errorMsg: Option[String]
+}
+
+
 trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
 
   //TODO: some of methods in ProofGraph might have to check first whether their step argument actually exists in the graph!
@@ -33,7 +40,7 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
   def applyTactic(obl: Obligation, tactic: Tactic[Spec, Goal]): ProofStep
   def unapplyTactic(obl: Obligation)
 
-  def setVerifiedBy(step: ProofStep, result: StepResult[Spec, Goal])
+  def setVerifiedBy(step: ProofStep, result: StepResult)
   def unsetVerifiedBy(step: ProofStep)
 
   /**
@@ -58,7 +65,9 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
 trait IProofGraph[Spec, Goal] {
   type ProofStep <: GenProofStep[Spec, Goal]
   type Obligation <: GenObligation[Spec, Goal]
+  type StepResult <: GenStepResult[Spec, Goal]
   def newObligation(spec: Spec, goal: Goal): Obligation
+  def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult
 
   def rootObligations: Iterable[Obligation]
 
@@ -68,11 +77,11 @@ trait IProofGraph[Spec, Goal] {
   def requiredObls(step: ProofStep): Iterable[(Obligation, EdgeLabel)]
 
   /** Yields proof steps that require the given obligation */
-  def requiringSteps(obligation: Obligation): Iterable[(ProofStep, EdgeLabel)]
+  def requiringSteps(obl: Obligation): Iterable[(ProofStep, EdgeLabel)]
   /** Yields the obligation the proof step was applied to */
   def targetedObl(step: ProofStep): Obligation
 
-  def verifiedBy(step: ProofStep): Option[StepResult[Spec, Goal]]
+  def verifiedBy(step: ProofStep): Option[StepResult]
   def isStepVerified(step: ProofStep): Boolean = verifiedBy(step) match {
     case None => false
     case Some(result) if !result.status.isVerified => false

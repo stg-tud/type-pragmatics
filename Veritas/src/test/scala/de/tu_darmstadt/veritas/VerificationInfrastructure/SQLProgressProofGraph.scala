@@ -35,7 +35,7 @@ class SQLProgressProofGraph extends FunSuite {
 
     override def unapplyTactic(obl: Obligation[Spec, VeritasConstruct]): Unit = ???
 
-    override def setVerifiedBy(step: ProofStep[Spec, VeritasConstruct], result: StepResult[Spec, VeritasConstruct]): Unit = ???
+    override def setVerifiedBy(step: ProofStep[Spec, VeritasConstruct], result: GenStepResult[Spec, VeritasConstruct]): Unit = ???
 
     override def unsetVerifiedBy(step: ProofStep[Spec, VeritasConstruct]): Unit = ???
 
@@ -53,7 +53,7 @@ class SQLProgressProofGraph extends FunSuite {
     /** Yields the obligation the proof step was applied to */
     override def targetedObl(step: ProofStep[Spec, VeritasConstruct]): Obligation[Spec, VeritasConstruct] = ???
 
-    override def verifiedBy(step: ProofStep[Spec, VeritasConstruct]): Option[StepResult[Spec, VeritasConstruct]] = ???
+    override def verifiedBy(step: ProofStep[Spec, VeritasConstruct]): Option[GenStepResult[Spec, VeritasConstruct]] = ???
 
     override var defaultEvidencenChecker: AnyEvidenceChecker = _
   }
@@ -84,7 +84,7 @@ class SQLProgressProofGraph extends FunSuite {
   // inherit mock induction tactics where generated goals are hard-coded (overriding the apply method)
   class MockStructuralInduction(inductionvar: Spec) extends Tactic[Spec, VeritasConstruct] {
     //TODO we might have to refine the verifier call for induction once we really support this via a prover
-    override def verifyStep(step: VeriPS, edges: ProofEdges[Spec, VeritasConstruct], verifier: Verifier[Spec, VeritasConstruct]): StepResult[Spec, VeritasConstruct] =
+    override def verifyStep(step: VeriPS, edges: ProofEdges[Spec, VeritasConstruct], verifier: Verifier[Spec, VeritasConstruct]): GenStepResult[Spec, VeritasConstruct] =
       super.verifyStep(step, edges, verifier)
 
 

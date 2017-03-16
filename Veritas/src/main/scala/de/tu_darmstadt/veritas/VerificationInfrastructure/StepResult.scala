@@ -2,12 +2,6 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import scala.util.Random
 
-trait StepResult[S, P] {
-  def status: VerifierStatus[S, P]
-  def evidence: Option[Evidence]
-  def errorMsg: Option[String]
-}
-
 trait Evidence extends Ordered[Evidence]
 
 object Evidence {

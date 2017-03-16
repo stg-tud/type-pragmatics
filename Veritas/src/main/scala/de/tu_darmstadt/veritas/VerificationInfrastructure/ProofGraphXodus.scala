@@ -46,20 +46,19 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
 
   class ProofStep(val id: EntityId, val tactic: Tactic[Spec, Goal]) extends GenProofStep[Spec, Goal] with EntityObj {
-    def this(id: EntityId, txn: StoreTransaction) =
-      this(id, txn.getEntity(id).getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]])
+    def this(id: EntityId, entity: Entity) =
+      this(id, entity.getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]])
+    def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
   }
 
 
   class Obligation(val id: EntityId, val spec: Spec, val goal: Goal) extends GenObligation[Spec, Goal] with EntityObj {
-    def this(id: EntityId, txn: StoreTransaction) =
-      this(
-        id,
-        txn.getEntity(id).getLink(lOblSpec).asInstanceOf[Spec],
-        txn.getEntity(id).getProperty(pOblGoal).asInstanceOf[Goal]
-      )
+    def this(id: EntityId, entity: Entity) =
+      this(id, entity.getLink(lOblSpec).asInstanceOf[Spec], entity.getProperty(pOblGoal).asInstanceOf[Goal])
+    def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
   }
-  override def newObligation(spec: Spec, goal: Goal) = transaction[Obligation](txn => newObligation(txn, spec, goal))
+  override def newObligation(spec: Spec, goal: Goal) =
+    transaction[Obligation](txn => newObligation(txn, spec, goal))
   def newObligation(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
     val spec = txn.newEntity(TSpec)
     spec.setProperty(pSpecContent, specObj)
@@ -70,12 +69,36 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     new Obligation(obl.getId, specObj, goalObj)
   }
 
+  class StepResult(val id: EntityId, val status: VerifierStatus[Spec, Goal], val evidence: Option[Evidence], val errorMsg: Option[String]) extends GenStepResult[Spec, Goal] with EntityObj {
+    def this(id: EntityId, entity: Entity) =
+      this(
+        id,
+        entity.getProperty(pResultStatus).asInstanceOf[VerifierStatus[Spec, Goal]],
+        fromNullable(entity.getProperty(pResultEvidence).asInstanceOf[Evidence]),
+        fromNullable(entity.getProperty(pResultErrorMsg).asInstanceOf[String])
+      )
+    def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
+  }
+  override def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult =
+    transaction(txn => newStepResult(txn, status, evidence, errorMsg))
+  def newStepResult(txn: StoreTransaction, status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult = {
+    val result = txn.newEntity(TStepResult)
+    result.setProperty(pResultStatus, status)
+    if (errorMsg.isDefined)
+      result.setProperty(pResultErrorMsg, errorMsg.get)
+    if (evidence.isDefined)
+      result.setProperty(pResultEvidence, evidence.get)
+    new StepResult(result.getId, status, evidence, errorMsg)
+  }
+
+
 
   /* operations for modifying proof graphs:
    * - add or remove root obligations
    * - apply or unapply a tactic to an obligation, yielding a proof step and subobligations
    * - setting or unsetting the result of validating a proof step
    */
+
 
   def addRootObligation(oblObj: Obligation) = transaction { txn =>
     val root = txn.newEntity(TRoot)
@@ -118,14 +141,8 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
   def unapplyTactic(obl: Obligation) = ???
 
-  def setVerifiedBy(step: ProofStep, resultObj: StepResult[Spec, Goal]) = transaction { txn =>
-    val result = txn.newEntity(TStepResult)
-    result.setProperty(pResultStatus, resultObj.status)
-    if (resultObj.errorMsg.isDefined)
-      result.setProperty(pResultErrorMsg, resultObj.errorMsg.get)
-    if (resultObj.evidence.isDefined)
-      result.setProperty(pResultEvidence, resultObj.evidence.get)
-    step.entity(txn).setLink(lStepVerifiedBy, result)
+  def setVerifiedBy(step: ProofStep, resultObj: StepResult) = transaction { txn =>
+    step.entity(txn).setLink(lStepVerifiedBy, resultObj.entity(txn))
   }
   def unsetVerifiedBy(stepObj: ProofStep) = transaction { txn =>
     val step = stepObj.entity(txn)
@@ -150,18 +167,54 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
 
   /** Yields proof step if any */
-  def appliedStep(obl: Obligation): Option[ProofStep] = ???
+  def appliedStep(obl: Obligation): Option[ProofStep] = readOnlyTransaction { txn =>
+    val step = obl.entity(txn).getLink(lOblAppliedStep)
+    if (step == null)
+      None
+    else
+      Some(new ProofStep(step.getId, txn))
+  }
   /** Yields required subobligations */
-  def requiredObls(step: ProofStep): Iterable[(Obligation, EdgeLabel)] = ???
+  def requiredObls(step: ProofStep): Iterable[(Obligation, EdgeLabel)] = readOnlyTransaction { txn =>
+    // copy all edges to prevent capture of transaction within result
+    val edges = Seq() ++ step.entity(txn).getLinks(lStepRequiredEdges).asScala
+    edges.map { edge =>
+      val requiredObl = new Obligation(edge.getLink(lEdgeRequiredObl).getId, txn)
+      val label = edge.getProperty(pEdgeLabel).asInstanceOf[EdgeLabel]
+      requiredObl -> label
+    }
+  }
 
   /** Yields proof steps that require the given obligation */
-  def requiringSteps(obligation: Obligation): Iterable[(ProofStep, EdgeLabel)] = ???
+  def requiringSteps(obl: Obligation): Iterable[(ProofStep, EdgeLabel)] = readOnlyTransaction { txn =>
+    // copy all edges to prevent capture of transaction within result
+    val edges = Seq() ++ obl.entity(txn).getLinks(lOblRequiringEdges).asScala
+    edges.map { edge =>
+      val requiringStep = new ProofStep(edge.getLink(lEdgeRequiringStep).getId, txn)
+      val label = edge.getProperty(pEdgeLabel).asInstanceOf[EdgeLabel]
+      requiringStep -> label
+    }
+  }
   /** Yields the obligation the proof step was applied to */
-  def targetedObl(step: ProofStep): Obligation = ???
+  def targetedObl(step: ProofStep): Obligation = readOnlyTransaction { txn =>
+    new Obligation(step.entity(txn).getLink(lStepTargetedObl).getId, txn)
+  }
 
-  def verifiedBy(step: ProofStep): Option[StepResult[Spec, Goal]] = ???
+  def verifiedBy(step: ProofStep): Option[StepResult] = readOnlyTransaction { txn =>
+    val result = step.entity(txn).getLink(lStepVerifiedBy)
+    if (result == null)
+      None
+    else {
+      Some(new StepResult(result.getId, txn))
+    }
+  }
 
-  
+  def fromNullable[T <: AnyRef](v: T): Option[T] =
+    if (v == null)
+      None
+    else
+      Some(v)
+
 
 
   /* GC helpers */

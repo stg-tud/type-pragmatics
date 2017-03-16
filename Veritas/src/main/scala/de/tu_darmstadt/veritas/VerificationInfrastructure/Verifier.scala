@@ -1,6 +1,5 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraph.ProofEdges
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
 
 import scala.collection.GenSeq
@@ -27,6 +26,6 @@ trait Verifier[S, P] extends Ordered[Verifier[S, P]] {
   // TODO needed?
   val supportedStrategies: Seq[Tactic[S, P]] //general verification strategies that the provers can be called with
 
-  def verify(goal: P, spec: S, assumptions: Iterable[P]): StepResult[S, P]
+  def verify(goal: P, spec: S, assumptions: Iterable[P]): GenStepResult[S, P]
 
 }

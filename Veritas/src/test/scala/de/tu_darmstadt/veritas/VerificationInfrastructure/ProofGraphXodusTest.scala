@@ -176,7 +176,7 @@ class ProofGraphXodusTest extends FunSuite {
 
 class SimpleVerifierFormat(val s: String) extends VerifierFormat
 
-class SimpleStepResult extends StepResult[String, String] {
+class SimpleStepResult extends GenStepResult[String, String] {
   override def status: VerifierStatus[String, String] = Finished[String, String](Proved(""), MockVerifier(MockProver()))
 
   override def evidence: Option[Evidence] = None
@@ -189,7 +189,7 @@ case class MockVerifier(prover: Prover[String]) extends Verifier[String, String]
   override val desc: String = "MockVerifier"
   override val supportedStrategies: Seq[Tactic[String, String]] = Seq(Solve())
 
-  override def verify(goal: String, spec: String, assumptions: Iterable[String]): StepResult[String, String] =
+  override def verify(goal: String, spec: String, assumptions: Iterable[String]): GenStepResult[String, String] =
     // TODO: usedEdges cannot be passed because we only have the used goals
     new SimpleStepResult
 }
