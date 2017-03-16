@@ -45,18 +45,30 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     def entity(txn: StoreTransaction): Entity = txn.getEntity(id)
   }
 
-  class ProofStep(val id: EntityId, txn: StoreTransaction) extends GenProofStep[Spec, Goal] with EntityObj {
-    val tactic: Tactic[Spec, Goal] = txn.getEntity(id).getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]]
+  class ProofStep(val id: EntityId, val tactic: Tactic[Spec, Goal]) extends GenProofStep[Spec, Goal] with EntityObj {
+    def this(id: EntityId, txn: StoreTransaction) =
+      this(id, txn.getEntity(id).getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]])
   }
-  def newProofStep(txn: StoreTransaction, tactic: Tactic[Spec, Goal]): ProofStep = ???
 
 
-  class Obligation(val id: EntityId, txn: StoreTransaction) extends GenObligation[Spec, Goal] with EntityObj {
-    val spec: Spec = txn.getEntity(id).getLink(lOblSpec).asInstanceOf[Spec]
-    val goal: Goal = txn.getEntity(id).getProperty(pOblGoal).asInstanceOf[Goal]
+  class Obligation(val id: EntityId, val spec: Spec, val goal: Goal) extends GenObligation[Spec, Goal] with EntityObj {
+    def this(id: EntityId, txn: StoreTransaction) =
+      this(
+        id,
+        txn.getEntity(id).getLink(lOblSpec).asInstanceOf[Spec],
+        txn.getEntity(id).getProperty(pOblGoal).asInstanceOf[Goal]
+      )
   }
   override def newObligation(spec: Spec, goal: Goal) = transaction[Obligation](txn => newObligation(txn, spec, goal))
-  def newObligation(txn: StoreTransaction, spec: Spec, goal: Goal): Obligation = ???
+  def newObligation(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
+    val spec = txn.newEntity(TSpec)
+    spec.setProperty(pSpecContent, specObj)
+
+    val obl = txn.newEntity(TObligation)
+    obl.setProperty(pOblGoal, goalObj)
+    obl.setLink(lOblSpec, spec)
+    new Obligation(obl.getId, specObj, goalObj)
+  }
 
 
   def newStepResult(txn: StoreTransaction, result: StepResult[Spec, Goal]): Entity = ???
@@ -81,8 +93,8 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
 
     transaction { txn =>
       val target = targetObj.entity(txn)
-      val stepObj = newProofStep(txn, tactic)
-      val step = stepObj.entity(txn)
+      val step = txn.newEntity(TProofStep)
+      step.setProperty(pStepTactic, tactic)
       step.setLink(lStepTargetedObl, target)
       target.setLink(lOblAppliedStep, step)
 
@@ -97,7 +109,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
         edge.setLink(lEdgeRequiringStep, step)
         step.addLink(lStepRequiredEdges, edge)
       }
-      stepObj
+      new ProofStep(step.getId, tactic)
     }
   }
   def unapplyTactic(obl: Obligation) = ???
