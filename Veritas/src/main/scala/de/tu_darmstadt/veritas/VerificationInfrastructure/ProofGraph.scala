@@ -101,6 +101,13 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
   def setVerifiedBy(step: ProofStep, result: StepResult)
   def unsetVerifiedBy(step: ProofStep)
 
+  def verifyProofStep(step: ProofStep, verifier: Verifier[Spec, Goal]): StepResult = {
+    val result = step.tactic.verifyStep(this)(targetedObl(step), requiredObls(step), verifier)
+    setVerifiedBy(step, result)
+    result
+  }
+
+
   /**
     * Proof graphs support dependency injection for registering evidence checkers.
     * If no checker is registered for a given evidence class, the proof graph defaults to @link{defaultEvidencenChecker}.
