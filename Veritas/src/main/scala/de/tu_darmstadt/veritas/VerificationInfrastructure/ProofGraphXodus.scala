@@ -2,8 +2,6 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.{ByteArrayInputStream, File}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure
-import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence.AnyEvidenceChecker
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{NoInfoEdgeLabel, Solve, Tactic}
 import jetbrains.exodus.bindings.ComparableBinding
 import jetbrains.exodus.entitystore._
@@ -60,9 +58,9 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
 
   object obligationProducer extends ObligationProducer[Spec, Goal, Obligation] {
     override def newObligation(spec: Spec, goal: Goal): Obligation =
-      transaction[Obligation](txn => newObligation(txn, spec, goal))
+      transaction[Obligation](txn => newObligationST(txn, spec, goal))
 
-    def newObligation(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
+    def newObligationST(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
       val spec = txn.newEntity(TSpec)
       spec.setProperty(pSpecContent, specObj)
 
