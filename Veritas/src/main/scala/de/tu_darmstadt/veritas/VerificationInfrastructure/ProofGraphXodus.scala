@@ -139,7 +139,16 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
       new ProofStep(step.getId, tactic)
     }
   }
-  def unapplyTactic(obl: Obligation) = ???
+
+  def unapplyTactic(oblObj: Obligation) = transaction { txn =>
+    val obl = oblObj.entity(txn)
+    val step = obl.getLink(lOblAppliedStep)
+    if (step != null) {
+      obl.deleteLink(lOblAppliedStep, step)
+      step.deleteLink(lStepTargetedObl, obl)
+      gcStep(step)
+    }
+  }
 
   def setVerifiedBy(step: ProofStep, resultObj: StepResult) = transaction { txn =>
     step.entity(txn).setLink(lStepVerifiedBy, resultObj.entity(txn))
@@ -220,26 +229,32 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   /* GC helpers */
 
   private def gcObl(obl: Entity): Unit = {
-    if (obl.getLink(lOblRoot) == null && obl.getLinks(lOblRequiringEdges).isEmpty) {
+    if (obl != null && obl.getLink(lOblRoot) == null && obl.getLinks(lOblRequiringEdges).isEmpty) {
       // no root ref and no requiring edges => can delete
       obl.getLink(lOblSpec).delete()
       val step = obl.getLink(lOblAppliedStep)
       // delete step if exists
-      if (step != null) {
-        val result = step.getLink(lStepVerifiedBy)
-        // delete result if exists
-        if (result != null)
-          result.delete()
-        // delete all required edges and gc all required obligations
-        for (edge <- step.getLinks(lStepRequiredEdges).asScala) {
-          val requiredObl = edge.getLink(lEdgeRequiredObl)
-          requiredObl.deleteLink(lOblRequiringEdges, edge)
-          gcObl(requiredObl)
-          edge.delete()
-        }
-        step.delete()
-      }
+      if (step != null)
+        step.deleteLink(lStepTargetedObl, obl)
+      gcStep(step)
       obl.delete()
+    }
+  }
+
+  private def gcStep(step: Entity): Unit = {
+    if (step != null && step.getLink(lStepTargetedObl) == null) {
+      val result = step.getLink(lStepVerifiedBy)
+      // delete result if exists
+      if (result != null)
+        result.delete()
+      // delete all required edges and gc all required obligations
+      for (edge <- step.getLinks(lStepRequiredEdges).asScala) {
+        val requiredObl = edge.getLink(lEdgeRequiredObl)
+        requiredObl.deleteLink(lOblRequiringEdges, edge)
+        gcObl(requiredObl)
+        edge.delete()
+      }
+      step.delete()
     }
   }
 
