@@ -1,12 +1,11 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import java.io.File
-
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{Solve, StructuralInduction, Tactic}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence.AnyEvidenceChecker
+import de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraph.ProofEdges
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
-import quiver.{LEdge, LNode}
 
 /**
   * Created by sylvia on 28/02/2017.
@@ -25,99 +24,120 @@ class SQLProgressProofGraph extends FunSuite {
   // When we construct a Transformer that reuses our previous transformations to TPTP, we
   // might have to explicitly construct Module(s).
 
-  type VeriProofNode = ProofNode[Spec, VeritasConstruct]
-  //type VeriProofGraph = ProofGraphQuiver[Spec, VeritasConstruct]
-  type VeriProofGraphX = ProofGraphXodus[Spec, VeritasConstruct]
-  type VeriVerificationStrategy = Tactic[Spec, VeritasConstruct]
+
+  // just an empty test implementation of current ProofGraph interface
+  class TestProofGraph extends ProofGraph[Spec, VeritasConstruct] {
+    override def addRootObligation(obl: Obligation[Spec, VeritasConstruct]): Unit = ???
+
+    override def removeRootObligation(step: Obligation[Spec, VeritasConstruct]): Unit = ???
+
+    override def applyTactic(obl: Obligation[Spec, VeritasConstruct], tactic: Tactic[Spec, VeritasConstruct]): ProofStep[Spec, VeritasConstruct] = ???
+
+    override def unapplyTactic(obl: Obligation[Spec, VeritasConstruct]): Unit = ???
+
+    override def setVerifiedBy(step: ProofStep[Spec, VeritasConstruct], result: StepResult[Spec, VeritasConstruct]): Unit = ???
+
+    override def unsetVerifiedBy(step: ProofStep[Spec, VeritasConstruct]): Unit = ???
+
+    override def rootObligations: Iterable[Obligation[Spec, VeritasConstruct]] = ???
+
+    /** Yields proof step if any */
+    override def appliedStep(obl: Obligation[Spec, VeritasConstruct]): Option[ProofStep[Spec, VeritasConstruct]] = ???
+
+    /** Yields required subobligations */
+    override def requiredObls(step: ProofStep[Spec, VeritasConstruct]): Iterable[(Obligation[Spec, VeritasConstruct], EdgeLabel)] = ???
+
+    /** Yields proof steps that require the given obligation */
+    override def requiringSteps(obligation: Obligation[Spec, VeritasConstruct]): Iterable[(ProofStep[Spec, VeritasConstruct], EdgeLabel)] = ???
+
+    /** Yields the obligation the proof step was applied to */
+    override def targetedObl(step: ProofStep[Spec, VeritasConstruct]): Obligation[Spec, VeritasConstruct] = ???
+
+    override def verifiedBy(step: ProofStep[Spec, VeritasConstruct]): Option[StepResult[Spec, VeritasConstruct]] = ???
+
+    override var defaultEvidencenChecker: AnyEvidenceChecker = _
+  }
+
 
   case class Spec(content: Seq[VeritasConstruct]) extends Ordered[Spec] {
     val ord = Ordering.Iterable[VeritasConstruct](Ordering.ordered[VeritasConstruct](x => x))
     override def compare(that: Spec): Int = ord.compare(this.content, that.content)
   }
 
-  // special purpose object for S = Spec and P = VeritasConstruct
-  object ProofGraphXodus {
-    private def registerAllPropTypes(g: VeriProofGraphX): Unit = {
-      //TODO: find a better way of how to add all necessary properties? Is there a generic way to do that?
-      //(instead of SPickler, we could try using DPickler)
-
-      PropertyTypes.registerPropertyType[Goals](g.store)
-      PropertyTypes.registerPropertyType[Local](g.store)
-      PropertyTypes.registerPropertyType[StructuralInduction[Spec, VeritasConstruct]](g.store)
-      PropertyTypes.registerPropertyType[Spec](g.store)
-      //PropertyTypes.registerPropertyType[Solve[Spec, VeritasConstruct]](g.store)
-      //to add this causes "double property registration"
-      PropertyTypes.registerPropertyType[StructInductCase[Spec]](g.store)
-    }
-
-
-    def apply(nodelist: Seq[VeriProofNode], edgelist: Seq[VerificationEdge],
-              storename: String = "temporary-store"): VeriProofGraphX = {
-      //TODO: better management of stores needed?
-      val file = File.createTempFile(storename, "")
-      file.delete()
-      file.mkdir()
-
-      val g: VeriProofGraphX = new ProofGraphXodus[Spec, VeritasConstruct](file)
-      registerAllPropTypes(g)
-
-      nodelist.foreach(g.addProofStep(_))
-      edgelist.foreach(g.addProofEdge(_))
-
-      g
-    }
-  }
-
   val VeriSolve = Solve[Spec, VeritasConstruct]()
+  type VeriPS = Obligation[Spec, VeritasConstruct]
+  type VeriTactic = Tactic[Spec, VeritasConstruct]
+  type VeriStructuralInduction = StructuralInduction[Spec, VeritasConstruct]
+
+  def makeVeriStructInduct(spec: Spec): VeriStructuralInduction =
+    StructuralInduction[Spec, VeritasConstruct](spec)
+
+  def makeVeriPS(spec: Spec, goal: VeritasConstruct): VeriPS =
+    Obligation[Spec, VeritasConstruct](spec, goal)
 
   val fulltestspec: Spec = Spec(Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
     Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ TypeSystemInv.defs ++ SoundnessAuxDefs.defs)
 
-  def makeProofNode(nodename: String, tspec: Spec, goal: VeritasConstruct,
-                    strategy: VeriVerificationStrategy = VeriSolve): VeriProofNode =
-    LNode(nodename, Obligation[Spec, VeritasConstruct](tspec, goal, strategy))
+  val progressroot = makeVeriPS(fulltestspec, SQLProgress)
 
-//  def makeSingleNodeProofGraph(nodename: String, tspec: Spec, goal: VeritasConstruct,
-  //                               strategy: VeriVerificationStrategy = VeriSolve): VeriProofGraph = {
-  //    ProofGraphQuiver(Seq(makeProofNode(nodename, tspec, goal, strategy)))
-  //  }
+  //Mock tactic for structural induction from which we can
+  // inherit mock induction tactics where generated goals are hard-coded (overriding the apply method)
+  class MockStructuralInduction(inductionvar: Spec) extends Tactic[Spec, VeritasConstruct] {
+    //TODO we might have to refine the verifier call for induction once we really support this via a prover
+    override def verifyStep(step: VeriPS, edges: ProofEdges[Spec, VeritasConstruct], verifier: Verifier[Spec, VeritasConstruct]): StepResult[Spec, VeritasConstruct] =
+      super.verifyStep(step, edges, verifier)
 
-  def makeSingleNodeProofGraphX(nodename: String, tspec: Spec, goal: VeritasConstruct,
-                               strategy: VeriVerificationStrategy = VeriSolve): VeriProofGraphX = {
-    ProofGraphXodus(Seq(makeProofNode(nodename, tspec, goal, strategy)), Seq())
+
+    override def compare(that: Tactic[Spec, VeritasConstruct]): Int = that match {
+      case that: StructuralInduction[Spec, VeritasConstruct] => this.inductionvar compare that.inductionvar
+      case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+    }
+
+    def apply(obl: Obligation[Spec, VeritasConstruct]): Iterable[(Obligation[Spec, VeritasConstruct], EdgeLabel)] = Seq()
   }
 
-  val progressroot = makeProofNode("SQL-progress", fulltestspec, SQLProgress,
-    StructuralInduction[Spec, VeritasConstruct](Spec(Seq(MetaVar("q")))))
+  class MockCaseDistinction() extends Tactic[Spec, VeritasConstruct] {
 
-  val tvaluecase = makeProofNode("SQL-progress-tvalue", fulltestspec, SQLProgressTtvalue)
-  val tvalueedge: VerificationEdge = LEdge(progressroot.vertex, tvaluecase.vertex,
-    StructInductCase[VeritasConstruct](SQLProgressTtvalue.goals.head.name, Seq()))
+    override def compare(that: Tactic[Spec, VeritasConstruct]): Int = that match {
+      case that: CaseDistinction[Spec, VeritasConstruct] => 0
+      case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+    }
 
-  val selectfromwherecase = makeProofNode("SQL-progress-selectFromWhere", fulltestspec, SQLProgressTselectFromWhere)
-  val selectFromWhereedge: VerificationEdge = LEdge(progressroot.vertex, selectfromwherecase.vertex,
-    StructInductCase[VeritasConstruct](SQLProgressTselectFromWhere.goals.head.name, Seq()))
+    def apply(obl: Obligation[Spec, VeritasConstruct]): Iterable[(Obligation[Spec, VeritasConstruct], EdgeLabel)] = Seq()
+  }
 
-  val unioncase = makeProofNode("SQL-progress-union", fulltestspec, localblockunion)
-  val unionedge: VerificationEdge = LEdge(progressroot.vertex, unioncase.vertex,
-    StructInductCase[VeritasConstruct](SQLProgressTUnion.goals.head.name,
-      Seq(SQLProgressTUnionIH1, SQLProgressTUnionIH2)))
+  // Start a proof graph with a root goal (SQL progress)
+  val SQLProgressProofGraph = new TestProofGraph()
 
-  val intersectioncase = makeProofNode("SQL-progress-intersection", fulltestspec, localblockintersection)
-  val intersectionedge: VerificationEdge = LEdge(progressroot.vertex, intersectioncase.vertex,
-    StructInductCase[VeritasConstruct](SQLProgressTIntersection.goals.head.name,
-      Seq(SQLProgressTIntersectionIH1, SQLProgressTIntersectionIH2)))
+  SQLProgressProofGraph.addRootObligation(progressroot)
 
-  val differencecase = makeProofNode("SQL-progress-difference", fulltestspec, localblockdifference)
-  val differenceedge: VerificationEdge = LEdge(progressroot.vertex, differencecase.vertex,
-    StructInductCase[VeritasConstruct](SQLProgressTDifference.goals.head.name,
-      Seq(SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2)))
+  //Add structural induction on q (query) to the graph by applying an
+  // induction tactic (here: mock tactic that simply generates
+  // exactly the induction cases we require
+  SQLProgressProofGraph.applyTactic(progressroot, RootInduction(Spec(Seq(MetaVar("q")))))
 
-  val SQLbasicproofgraph: VeriProofGraphX = ProofGraphXodus(
-    Seq(progressroot, tvaluecase, selectfromwherecase, unioncase, intersectioncase, differencecase),
-    Seq(tvalueedge, selectFromWhereedge, unionedge, intersectionedge, differenceedge))
+  //concrete induction for the root goal (progress) where the generated goals are just hard-coded
+  case class RootInduction(inductionvar: Spec) extends MockStructuralInduction(inductionvar) {
+    val tvaluecase = makeVeriPS(fulltestspec, SQLProgressTtvalue)
 
+    val selectfromwherecase = makeVeriPS(fulltestspec, SQLProgressTselectFromWhere)
 
+    val unioncase = makeVeriPS(fulltestspec, localblockunion)
+
+    val intersectioncase = makeVeriPS(fulltestspec, localblockintersection)
+
+    val differencecase = makeVeriPS(fulltestspec, localblockdifference)
+
+    override def apply(obl: Obligation[Spec, VeritasConstruct]): Iterable[(Obligation[Spec, VeritasConstruct], EdgeLabel)] =
+      Seq((tvaluecase, StructInductCase[VeritasConstruct](SQLProgressTtvalue.goals.head.name, Seq())),
+        (selectfromwherecase, StructInductCase[VeritasConstruct](SQLProgressTselectFromWhere.goals.head.name, Seq())),
+        (unioncase, StructInductCase[VeritasConstruct](SQLProgressTUnion.goals.head.name,
+          Seq(SQLProgressTUnionIH1, SQLProgressTUnionIH2))),
+        (intersectioncase, StructInductCase[VeritasConstruct](SQLProgressTIntersection.goals.head.name,
+          Seq(SQLProgressTIntersectionIH1, SQLProgressTIntersectionIH2))),
+        (differencecase, StructInductCase[VeritasConstruct](SQLProgressTDifference.goals.head.name,
+          Seq(SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2))))
+  }
 
 
   //case split for union case (sometimes necessary, sometimes not)
@@ -157,14 +177,14 @@ class SQLProgressProofGraph extends FunSuite {
 
   val localblockunioncase1 = local(unionconsts, SQLProgressTUnion1)
   //TODO: How to deal with the local blocks here?
-  val unioncase1node = makeProofNode("SQL-progress-union-1", fulltestspec, localblockunioncase1)
+  val unioncase1node = makeVeriPS(fulltestspec, localblockunioncase1)
   //TODO: add edges
 
   val localblockunioncase2 = local(unionconsts, SQLProgressTUnionIH2, SQLProgressTUnion2)
-  val unioncase2node = makeProofNode("SQL-progress-union-2", fulltestspec, localblockunioncase2)
+  val unioncase2node = makeVeriPS(fulltestspec, localblockunioncase2)
 
   val localblockunioncase3 = local(unionconsts, SQLProgressTUnionIH1, SQLProgressTUnion3)
-  val unioncase3node = makeProofNode("SQL-progress-union-3", fulltestspec, localblockunioncase3)
+  val unioncase3node = makeVeriPS(fulltestspec, localblockunioncase3)
 
 
   //case split for intersection case (sometimes necessary, sometimes not)
@@ -203,13 +223,13 @@ class SQLProgressProofGraph extends FunSuite {
         ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
 
   val localblockintersectioncase1 = local(intersectionconsts, SQLProgressTIntersection1)
-  val intersectioncase1node = makeProofNode("SQL-progress-intersection-1", fulltestspec, localblockintersectioncase1)
+  val intersectioncase1node = makeVeriPS(fulltestspec, localblockintersectioncase1)
 
   val localblockintersectioncase2 = local(intersectionconsts, SQLProgressTIntersectionIH2, SQLProgressTIntersection2)
-  val intersectioncase2node = makeProofNode("SQL-progress-intersection-2", fulltestspec, localblockintersectioncase2)
+  val intersectioncase2node = makeVeriPS(fulltestspec, localblockintersectioncase2)
 
   val localblockintersectioncase3 = local(intersectionconsts, SQLProgressTIntersectionIH1, SQLProgressTIntersection3)
-  val intersectioncase3node = makeProofNode("SQL-progress-intersection-3", fulltestspec, localblockintersectioncase3)
+  val intersectioncase3node = makeVeriPS(fulltestspec, localblockintersectioncase3)
 
 
   //case split for difference case (sometimes necessary, sometimes not)
@@ -248,13 +268,13 @@ class SQLProgressProofGraph extends FunSuite {
         ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
 
   val localblockdifferencecase1 = local(differenceconsts, SQLProgressTDifference1)
-  val differencecase1node = makeProofNode("SQL-progress-difference-1", fulltestspec, localblockdifferencecase1)
+  val differencecase1node = makeVeriPS(fulltestspec, localblockdifferencecase1)
 
   val localblockdifferencecase2 = local(differenceconsts, SQLProgressTDifferenceIH2, SQLProgressTDifference2)
-  val differencecase2node = makeProofNode("SQL-progress-difference-2", fulltestspec, localblockdifferencecase2)
+  val differencecase2node = makeVeriPS(fulltestspec, localblockdifferencecase2)
 
   val localblockdifferencecase3 = local(differenceconsts, SQLProgressTDifferenceIH1, SQLProgressTDifference3)
-  val differencecase3node = makeProofNode("SQL-progress-difference-3", fulltestspec, localblockdifferencecase3)
+  val differencecase3node = makeVeriPS(fulltestspec, localblockdifferencecase3)
 
 
   // here, the SQL lemmas necessary for progress (selectFromWhere case) start
