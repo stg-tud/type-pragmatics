@@ -24,44 +24,13 @@ trait GenStepResult[S, P] {
 }
 
 
-trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
-
-  //TODO: some of methods in ProofGraph might have to check first whether their step argument actually exists in the graph!
-
-  /** operations for modifying proof graphs:
-   * - add or remove root obligations
-   * - apply or unapply a tactic to an obligation, yielding a proof step and subobligations
-   * - setting or unsetting the result of validating a proof step
-   */
-
-  def addRootObligation(obl: Obligation)
-  def removeRootObligation(step: Obligation)
-
-  def applyTactic(obl: Obligation, tactic: Tactic[Spec, Goal]): ProofStep
-  def unapplyTactic(obl: Obligation)
-
-  def setVerifiedBy(step: ProofStep, result: StepResult)
-  def unsetVerifiedBy(step: ProofStep)
-
-  /**
-    * Proof graphs support dependency injection for registering evidence checkers.
-    * If no checker is registered for a given evidence class, the proof graph defaults to @link{defaultEvidencenChecker}.
-    */
-  private val evidenceCheckers: mutable.Map[Class[_ <: Evidence], AnyEvidenceChecker] = mutable.Map()
-  var defaultEvidencenChecker: AnyEvidenceChecker = Evidence.failing
-  override def lookupEvidenceChecker(evClass: Class[_ <: Evidence]): AnyEvidenceChecker =
-    evidenceCheckers.getOrElse(evClass, defaultEvidencenChecker)
-  def registerEvidenceChecker[Ev <: Evidence](evClass: Class[Ev], checker: EvidenceChecker[Ev]) =
-    evidenceCheckers += evClass -> checker.asInstanceOf[AnyEvidenceChecker]
-}
-
 /** operations for querying proof graphs (no changes possible):
- * - sequence of root proof obligations
- * - navigating from obligations to used proof step to required subobligations
- * - navigating from subobligations to requiring proof steps to targeted obligation
- * - retrieving step result if any and checking whether a step was successfully verified
- * - checking whether an obligation was successfully verified
- */
+  * - sequence of root proof obligations
+  * - navigating from obligations to used proof step to required subobligations
+  * - navigating from subobligations to requiring proof steps to targeted obligation
+  * - retrieving step result if any and checking whether a step was successfully verified
+  * - checking whether an obligation was successfully verified
+  */
 trait IProofGraph[Spec, Goal] {
   type ProofStep <: GenProofStep[Spec, Goal]
   type Obligation <: GenObligation[Spec, Goal]
@@ -111,4 +80,35 @@ trait IProofGraph[Spec, Goal] {
 
   // TODO what traversals do we need/want to offer?
 
+}
+
+trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
+
+  //TODO: some of methods in ProofGraph might have to check first whether their step argument actually exists in the graph!
+
+  /** operations for modifying proof graphs:
+   * - add or remove root obligations
+   * - apply or unapply a tactic to an obligation, yielding a proof step and subobligations
+   * - setting or unsetting the result of validating a proof step
+   */
+
+  def addRootObligation(obl: Obligation)
+  def removeRootObligation(step: Obligation)
+
+  def applyTactic(obl: Obligation, tactic: Tactic[Spec, Goal]): ProofStep
+  def unapplyTactic(obl: Obligation)
+
+  def setVerifiedBy(step: ProofStep, result: StepResult)
+  def unsetVerifiedBy(step: ProofStep)
+
+  /**
+    * Proof graphs support dependency injection for registering evidence checkers.
+    * If no checker is registered for a given evidence class, the proof graph defaults to @link{defaultEvidencenChecker}.
+    */
+  private val evidenceCheckers: mutable.Map[Class[_ <: Evidence], AnyEvidenceChecker] = mutable.Map()
+  var defaultEvidencenChecker: AnyEvidenceChecker = Evidence.failing
+  override def lookupEvidenceChecker(evClass: Class[_ <: Evidence]): AnyEvidenceChecker =
+    evidenceCheckers.getOrElse(evClass, defaultEvidencenChecker)
+  def registerEvidenceChecker[Ev <: Evidence](evClass: Class[Ev], checker: EvidenceChecker[Ev]) =
+    evidenceCheckers += evClass -> checker.asInstanceOf[AnyEvidenceChecker]
 }
