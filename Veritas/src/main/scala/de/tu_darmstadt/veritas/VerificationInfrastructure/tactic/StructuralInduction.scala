@@ -19,12 +19,13 @@ case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](ind
 /**
   *
   * @param casename name of the induction case (should correspond to goal name of case?)
+  * @param fixedvars variables that need to fixed so that they explicitly refer to the same variables in the ihs and in the goal
   * @param ihs induction hypotheses
   * @tparam Goal type of the format for defining properties/goals
   */
-case class StructInductCase[Goal <: Ordered[Goal]](casename: String, ihs: Seq[Goal]) extends EdgeLabel {
+case class StructInductCase[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](casename: String, fixedvars: Option[Spec], ihs: Seq[Goal]) extends EdgeLabel {
   override def compare(that: EdgeLabel): Int = that match {
-    case that: StructInductCase[Goal] =>
+    case that: StructInductCase[Spec, Goal] =>
       val compare1 = this.casename compare that.casename
       if (compare1 != 0) return compare1
       val compare2 = this.ihs.size compare that.ihs.size
@@ -37,4 +38,9 @@ case class StructInductCase[Goal <: Ordered[Goal]](casename: String, ihs: Seq[Go
       0
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
+}
+
+//TODO the information necessary for this edge might need to be refined
+case class CaseDistinctionCase[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](casename: String, fixedvars: Option[Spec], ihs: Seq[Goal]) extends EdgeLabel {
+  override def compare(that: EdgeLabel): Int = ???
 }
