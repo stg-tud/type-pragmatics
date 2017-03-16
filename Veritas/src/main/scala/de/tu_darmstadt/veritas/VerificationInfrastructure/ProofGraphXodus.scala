@@ -57,17 +57,22 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
       this(id, entity.getLink(lOblSpec).asInstanceOf[Spec], entity.getProperty(pOblGoal).asInstanceOf[Goal])
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
   }
-  override def newObligation(spec: Spec, goal: Goal) =
-    transaction[Obligation](txn => newObligation(txn, spec, goal))
-  def newObligation(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
-    val spec = txn.newEntity(TSpec)
-    spec.setProperty(pSpecContent, specObj)
 
-    val obl = txn.newEntity(TObligation)
-    obl.setProperty(pOblGoal, goalObj)
-    obl.setLink(lOblSpec, spec)
-    new Obligation(obl.getId, specObj, goalObj)
+  object obligationProducer extends ObligationProducer[Spec, Goal, Obligation] {
+    override def newObligation(spec: Spec, goal: Goal): Obligation =
+      transaction[Obligation](txn => newObligation(txn, spec, goal))
+
+    def newObligation(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
+      val spec = txn.newEntity(TSpec)
+      spec.setProperty(pSpecContent, specObj)
+
+      val obl = txn.newEntity(TObligation)
+      obl.setProperty(pOblGoal, goalObj)
+      obl.setLink(lOblSpec, spec)
+      new Obligation(obl.getId, specObj, goalObj)
+    }
   }
+
 
   class StepResult(val id: EntityId, val status: VerifierStatus[Spec, Goal], val evidence: Option[Evidence], val errorMsg: Option[String]) extends GenStepResult[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
@@ -79,16 +84,19 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
       )
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
   }
-  override def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult =
-    transaction(txn => newStepResult(txn, status, evidence, errorMsg))
-  def newStepResult(txn: StoreTransaction, status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult = {
-    val result = txn.newEntity(TStepResult)
-    result.setProperty(pResultStatus, status)
-    if (errorMsg.isDefined)
-      result.setProperty(pResultErrorMsg, errorMsg.get)
-    if (evidence.isDefined)
-      result.setProperty(pResultEvidence, evidence.get)
-    new StepResult(result.getId, status, evidence, errorMsg)
+
+  object stepResultProducer extends StepResultProducer[Spec, Goal, StepResult] {
+    override def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult =
+      transaction(txn => newStepResult(txn, status, evidence, errorMsg))
+    def newStepResult(txn: StoreTransaction, status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult = {
+      val result = txn.newEntity(TStepResult)
+      result.setProperty(pResultStatus, status)
+      if (errorMsg.isDefined)
+        result.setProperty(pResultErrorMsg, errorMsg.get)
+      if (evidence.isDefined)
+        result.setProperty(pResultEvidence, evidence.get)
+      new StepResult(result.getId, status, evidence, errorMsg)
+    }
   }
 
 

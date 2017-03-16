@@ -4,8 +4,8 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
 case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](inductionvar: Spec) extends Tactic[Spec, Goal] {
   //TODO we might have to refine the verifier call for induction once we really support this via a prover
-  override def verifyStep(g: IProofGraph[Spec, Goal])(obl: g.Obligation, edges: Iterable[(g.Obligation, EdgeLabel)], verifier: Verifier[Spec, Goal]): GenStepResult[Spec, Goal] =
-    super.verifyStep(g)(obl, edges, verifier)
+  override def verifyStep[Result](obl: GenObligation[Spec, Goal], edges: Iterable[(GenObligation[Spec, Goal], EdgeLabel)], verifier: Verifier[Spec, Goal], produce: StepResultProducer[Spec, Goal, Result]): Result =
+    super.verifyStep(obl, edges, verifier, produce)
 
 
   override def compare(that: Tactic[Spec, Goal]): Int = that match {

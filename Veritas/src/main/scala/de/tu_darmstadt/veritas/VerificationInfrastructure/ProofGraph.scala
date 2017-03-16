@@ -16,12 +16,19 @@ trait GenObligation[Spec, Goal] {
   def spec: Spec
   def goal: Goal
 }
+trait ObligationProducer[Spec, Goal, Obligation] {
+  def newObligation(spec: Spec, goal: Goal): Obligation
+}
 
 trait GenStepResult[S, P] {
   def status: VerifierStatus[S, P]
   def evidence: Option[Evidence]
   def errorMsg: Option[String]
 }
+trait StepResultProducer[Spec, Goal, StepResult] {
+  def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult
+}
+//case class GenStepResultImpl[S, P](status: VerifierStatus[S, P], evidence: Option[Evidence], errorMsg: Option[String]) extends GenStepResult[S, P]
 
 
 /** operations for querying proof graphs (no changes possible):
@@ -35,8 +42,14 @@ trait IProofGraph[Spec, Goal] {
   type ProofStep <: GenProofStep[Spec, Goal]
   type Obligation <: GenObligation[Spec, Goal]
   type StepResult <: GenStepResult[Spec, Goal]
-  def newObligation(spec: Spec, goal: Goal): Obligation
-  def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult
+
+  val obligationProducer: ObligationProducer[Spec, Goal, Obligation]
+  def newObligation(spec: Spec, goal: Goal): Obligation =
+    obligationProducer.newObligation(spec, goal)
+
+  val stepResultProducer: StepResultProducer[Spec, Goal, StepResult]
+  def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult =
+    stepResultProducer.newStepResult(status, evidence, errorMsg)
 
   def rootObligations: Iterable[Obligation]
 
@@ -102,7 +115,7 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
   def unsetVerifiedBy(step: ProofStep)
 
   def verifyProofStep(step: ProofStep, verifier: Verifier[Spec, Goal]): StepResult = {
-    val result = step.tactic.verifyStep(this)(targetedObl(step), requiredObls(step), verifier)
+    val result = step.tactic.verifyStep(targetedObl(step), requiredObls(step), verifier, stepResultProducer)
     setVerifiedBy(step, result)
     result
   }
