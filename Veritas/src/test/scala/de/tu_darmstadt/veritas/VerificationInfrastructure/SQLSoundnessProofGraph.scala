@@ -7,6 +7,8 @@ import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
 
+import scala.pickling.{OutputStreamOutput, SPickler}
+
 /**
   * Created by sylvia on 28/02/2017.
   */
@@ -39,8 +41,12 @@ class SQLSoundnessProofGraph extends FunSuite {
   file.mkdir()
   println(s"Test entity store: $file")
 
+
   val g: ProofGraphXodus[Spec, VeritasConstruct] =
     new ProofGraphXodus[Spec, VeritasConstruct](file)
+
+  PropertyTypes.registerPropertyType[Spec](g.store)
+  PropertyTypes.registerPropertyType[Goals](g.store)
 
   val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
   g.storeObligation("SQL progress", progressObligation)
@@ -81,8 +87,8 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   // Apply structural induction to progress root via ad-hoc instance of MockInduction,
   // where the goals that are supposed to be generated are just hard-coded
-  val rootInductionProgress =
-  new MockInduction(Spec(Seq(MetaVar("q")))) {
+
+  object rootInductionProgress extends MockInduction(Spec(Seq(MetaVar("q")))) {
 
     override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val tvaluecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTtvalue)
@@ -104,9 +110,10 @@ class SQLSoundnessProofGraph extends FunSuite {
         (differencecase, StructInductCase[Spec, VeritasConstruct](SQLProgressTDifference.goals.head.name, Some(Spec(Seq(differenceconsts))),
           Seq(SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2))))
     }
-
   }
 
+  PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
+  PropertyTypes.registerPropertyType[StructInductCase[Spec, VeritasConstruct]](g.store)
 
   val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
 
@@ -150,7 +157,7 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   // hard coded tactic for case distinction of union induction case
   //TODO refine empty list in argument to MockCaseDistinction
-  val unionCaseDistinction = new MockCaseDistinction(Seq()) {
+  class UnionCaseDistinction extends MockCaseDistinction(Seq()) {
     override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val unioncase1: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion1)
 
@@ -167,7 +174,21 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   }
 
-  val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, g.requiredObls(rootinductionPS))
+  val unionCaseDistinction = new UnionCaseDistinction()
+
+  PropertyTypes.registerPropertyType[UnionCaseDistinction](g.store)
+  PropertyTypes.registerPropertyType[CaseDistinctionCase[Spec, VeritasConstruct]](g.store)
+
+
+  val obls = g.requiredObls(rootinductionPS) //this generates a ScalaReflectionException:
+//    [info]   scala.ScalaReflectionException: Scala field typ  of trait Typeable isn't represented as a Java field, nor does it have a
+//    [info] Java accessor method. One common reason for this is that it may be a private class parameter
+//  [info] not used outside the primary constructor.
+  //This is probably related to pickling/unpickling of MetaVars, which mix in trait Typeable which
+  //has a var.
+
+
+  val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
   g.applyTactic(unioncaseobl, unionCaseDistinction)
 
 
@@ -226,8 +247,8 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   }
 
-  val intersectioncaseobl = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, g.requiredObls(rootinductionPS))
-  g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
+  //  val intersectioncaseobl = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, g.requiredObls(rootinductionPS))
+  //  g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
 
 
   //case split for difference case (sometimes necessary, sometimes not)
@@ -284,9 +305,8 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   }
 
-  val differencecaseobl = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, g.requiredObls(rootinductionPS))
-  g.applyTactic(differencecaseobl, differenceCaseDistinction)
-
+  //  val differencecaseobl = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, g.requiredObls(rootinductionPS))
+  //  g.applyTactic(differencecaseobl, differenceCaseDistinction)
 
 
   // here, the SQL lemmas necessary for progress (selectFromWhere case) start
