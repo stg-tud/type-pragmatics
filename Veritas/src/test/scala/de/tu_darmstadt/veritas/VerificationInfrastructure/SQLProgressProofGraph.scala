@@ -76,6 +76,10 @@ class SQLProgressProofGraph extends FunSuite {
 
     override def compare(that: Tactic[Spec, VeritasConstruct]): Int = ???
   }
+  object RootInduction {
+    def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
+      required.find(_._2.asInstanceOf[StructInductCase[Spec, VeritasConstruct]].casename == name).get._1
+  }
 
   val rootinductionPS: sqlProgressProofGraph.ProofStep =
     sqlProgressProofGraph.applyTactic(progressObligation, RootInduction(Spec(Seq(MetaVar("q")))))
@@ -138,12 +142,7 @@ class SQLProgressProofGraph extends FunSuite {
 
   }
 
-  //TODO how to (better) refer to a certain obligation in a proof graph?
-  val unioncaseobl = (sqlProgressProofGraph.requiredObls(rootinductionPS).filter { p => p._2 match {
-      case StructInductCase(c,_,_) => c == SQLProgressTtvalue.goals.head.name
-      case _ => false
-    }}).head._1
-
+  val unioncaseobl = RootInduction.selectCase(SQLProgressTtvalue.goals.head.name, sqlProgressProofGraph.requiredObls(rootinductionPS))
   sqlProgressProofGraph.applyTactic(unioncaseobl, UnionCaseDistinction(Seq()))
   //TODO refine empty list in argument to UnionCaseDistinction
 
