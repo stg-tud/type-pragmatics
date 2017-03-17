@@ -39,11 +39,11 @@ class SQLSoundnessProofGraph extends FunSuite {
   file.mkdir()
   println(s"Test entity store: $file")
 
-  val sqlSoundnessProofGraph: ProofGraphXodus[Spec, VeritasConstruct] =
+  val g: ProofGraphXodus[Spec, VeritasConstruct] =
     new ProofGraphXodus[Spec, VeritasConstruct](file)
 
-  val progressObligation: sqlSoundnessProofGraph.Obligation = sqlSoundnessProofGraph.newObligation(fullSQLspec, SQLProgress)
-  sqlSoundnessProofGraph.addRootObligation(progressObligation)
+  val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
+  g.addRootObligation(progressObligation)
 
   //val oblMaker = sqlProgressProofGraph.obligationProducer
 
@@ -81,8 +81,8 @@ class SQLSoundnessProofGraph extends FunSuite {
       required.find(_._2.asInstanceOf[StructInductCase[Spec, VeritasConstruct]].casename == name).get._1
   }
 
-  val rootinductionPS: sqlSoundnessProofGraph.ProofStep =
-    sqlSoundnessProofGraph.applyTactic(progressObligation, RootInduction(Spec(Seq(MetaVar("q")))))
+  val rootinductionPS: g.ProofStep =
+    g.applyTactic(progressObligation, RootInduction(Spec(Seq(MetaVar("q")))))
 
   //TODO concrete tests that inspect the progress proof graph, once the file is executable
 
@@ -142,8 +142,8 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   }
 
-  val unioncaseobl = RootInduction.selectCase(SQLProgressTtvalue.goals.head.name, sqlSoundnessProofGraph.requiredObls(rootinductionPS))
-  sqlSoundnessProofGraph.applyTactic(unioncaseobl, UnionCaseDistinction(Seq()))
+  val unioncaseobl = RootInduction.selectCase(SQLProgressTtvalue.goals.head.name, g.requiredObls(rootinductionPS))
+  g.applyTactic(unioncaseobl, UnionCaseDistinction(Seq()))
   //TODO refine empty list in argument to UnionCaseDistinction
 
   //intersection and difference cases are completely analogous to union case
