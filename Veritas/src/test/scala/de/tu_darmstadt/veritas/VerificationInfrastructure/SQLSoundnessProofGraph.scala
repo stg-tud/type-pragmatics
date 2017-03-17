@@ -10,7 +10,7 @@ import org.scalatest.FunSuite
 /**
   * Created by sylvia on 28/02/2017.
   */
-class SQLProgressProofGraph extends FunSuite {
+class SQLSoundnessProofGraph extends FunSuite {
 
   import DataTypeDSL._
   import FunctionDSL._
@@ -39,11 +39,11 @@ class SQLProgressProofGraph extends FunSuite {
   file.mkdir()
   println(s"Test entity store: $file")
 
-  val sqlProgressProofGraph: ProofGraphXodus[Spec, VeritasConstruct] =
+  val sqlSoundnessProofGraph: ProofGraphXodus[Spec, VeritasConstruct] =
     new ProofGraphXodus[Spec, VeritasConstruct](file)
 
-  val progressObligation: sqlProgressProofGraph.Obligation = sqlProgressProofGraph.newObligation(fullSQLspec, SQLProgress)
-  sqlProgressProofGraph.addRootObligation(progressObligation)
+  val progressObligation: sqlSoundnessProofGraph.Obligation = sqlSoundnessProofGraph.newObligation(fullSQLspec, SQLProgress)
+  sqlSoundnessProofGraph.addRootObligation(progressObligation)
 
   //val oblMaker = sqlProgressProofGraph.obligationProducer
 
@@ -81,8 +81,8 @@ class SQLProgressProofGraph extends FunSuite {
       required.find(_._2.asInstanceOf[StructInductCase[Spec, VeritasConstruct]].casename == name).get._1
   }
 
-  val rootinductionPS: sqlProgressProofGraph.ProofStep =
-    sqlProgressProofGraph.applyTactic(progressObligation, RootInduction(Spec(Seq(MetaVar("q")))))
+  val rootinductionPS: sqlSoundnessProofGraph.ProofStep =
+    sqlSoundnessProofGraph.applyTactic(progressObligation, RootInduction(Spec(Seq(MetaVar("q")))))
 
   //TODO concrete tests that inspect the progress proof graph, once the file is executable
 
@@ -142,8 +142,8 @@ class SQLProgressProofGraph extends FunSuite {
 
   }
 
-  val unioncaseobl = RootInduction.selectCase(SQLProgressTtvalue.goals.head.name, sqlProgressProofGraph.requiredObls(rootinductionPS))
-  sqlProgressProofGraph.applyTactic(unioncaseobl, UnionCaseDistinction(Seq()))
+  val unioncaseobl = RootInduction.selectCase(SQLProgressTtvalue.goals.head.name, sqlSoundnessProofGraph.requiredObls(rootinductionPS))
+  sqlSoundnessProofGraph.applyTactic(unioncaseobl, UnionCaseDistinction(Seq()))
   //TODO refine empty list in argument to UnionCaseDistinction
 
   //intersection and difference cases are completely analogous to union case
