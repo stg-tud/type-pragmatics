@@ -45,13 +45,44 @@ class SQLSoundnessProofGraph extends FunSuite {
   val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
   g.addRootObligation(progressObligation)
 
-  //val oblMaker = sqlProgressProofGraph.obligationProducer
+  //Mock tactics
+  // class for creating mock induction tactics, with convenience methods like selectCase
+  class MockInduction(inductionvar: Spec) extends Tactic[Spec, VeritasConstruct] {
 
-  // Apply structural induction to root
-  //
-  //  concrete induction for the root goal (progress)
+    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct],
+                                   produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+      Seq()
+
+    override def compare(that: Tactic[Spec, VeritasConstruct]): Int = ???
+
+  }
+
+  object MockInduction {
+    def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
+      required.find(_._2.asInstanceOf[StructInductCase[Spec, VeritasConstruct]].casename == name).get._1
+  }
+
+
+  //class for creating mock case distinctions
+  class MockCaseDistinction(cases: Seq[Spec]) extends Tactic[Spec, VeritasConstruct] {
+
+    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct],
+                                   produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+      Seq()
+
+    override def compare(that: Tactic[Spec, VeritasConstruct]): Int = ???
+  }
+
+  object MockCaseDistinction {
+    def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
+      required.find(_._2.asInstanceOf[CaseDistinctionCase[Spec, VeritasConstruct]].casename == name).get._1
+  }
+
+
+  // Apply structural induction to progress root via ad-hoc instance of MockInduction,
   // where the goals that are supposed to be generated are just hard-coded
-  case class RootInduction(inductionvar: Spec) extends Tactic[Spec, VeritasConstruct] {
+  val rootInductionProgress =
+  new MockInduction(Spec(Seq(MetaVar("q")))) {
 
     override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val tvaluecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTtvalue)
@@ -74,15 +105,10 @@ class SQLSoundnessProofGraph extends FunSuite {
           Seq(SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2))))
     }
 
-    override def compare(that: Tactic[Spec, VeritasConstruct]): Int = ???
-  }
-  object RootInduction {
-    def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
-      required.find(_._2.asInstanceOf[StructInductCase[Spec, VeritasConstruct]].casename == name).get._1
   }
 
-  val rootinductionPS: g.ProofStep =
-    g.applyTactic(progressObligation, RootInduction(Spec(Seq(MetaVar("q")))))
+
+  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
 
   //TODO concrete tests that inspect the progress proof graph, once the file is executable
 
@@ -123,7 +149,8 @@ class SQLSoundnessProofGraph extends FunSuite {
 
 
   // hard coded tactic for case distinction of union induction case
-  case class UnionCaseDistinction(cases: Seq[Spec]) extends Tactic[Spec, VeritasConstruct] {
+  //TODO refine empty list in argument to MockCaseDistinction
+  val unionCaseDistinction = new MockCaseDistinction(Seq()) {
     override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val unioncase1: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion1)
 
@@ -134,17 +161,15 @@ class SQLSoundnessProofGraph extends FunSuite {
       Seq((unioncase1, CaseDistinctionCase[Spec, VeritasConstruct]("Union1", Some(Spec(Seq(unionconsts))), Seq())),
         (unioncase2, CaseDistinctionCase[Spec, VeritasConstruct]("Union2", Some(Spec(Seq(unionconsts))),
           Seq(SQLProgressTUnionIH2))),
-        (unioncase2, CaseDistinctionCase[Spec, VeritasConstruct]("Union3", Some(Spec(Seq(unionconsts))),
+        (unioncase3, CaseDistinctionCase[Spec, VeritasConstruct]("Union3", Some(Spec(Seq(unionconsts))),
           Seq(SQLProgressTUnionIH1))))
     }
 
-    override def compare(that: Tactic[Spec, VeritasConstruct]): Int = ???
-
   }
 
-  val unioncaseobl = RootInduction.selectCase(SQLProgressTtvalue.goals.head.name, g.requiredObls(rootinductionPS))
-  g.applyTactic(unioncaseobl, UnionCaseDistinction(Seq()))
-  //TODO refine empty list in argument to UnionCaseDistinction
+  val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, g.requiredObls(rootinductionPS))
+  g.applyTactic(unioncaseobl, unionCaseDistinction)
+
 
   //intersection and difference cases are completely analogous to union case
   //case split for intersection case (sometimes necessary, sometimes not)
@@ -182,14 +207,27 @@ class SQLSoundnessProofGraph extends FunSuite {
       exists(~'qo) |
         ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
 
-  val localblockintersectioncase1 = local(intersectionconsts, SQLProgressTIntersection1)
-  //val intersectioncase1node = makeVeriPS(fulltestspec, localblockintersectioncase1)
+  // hard coded tactic for case distinction of intersection induction case
+  //TODO refine empty list in argument to MockCaseDistinction
+  val intersectionCaseDistinction = new MockCaseDistinction(Seq()) {
+    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val intersectioncase1: Obligation = produce.newObligation(fullSQLspec, SQLProgressTIntersection1)
 
-  val localblockintersectioncase2 = local(intersectionconsts, SQLProgressTIntersectionIH2, SQLProgressTIntersection2)
-  //val intersectioncase2node = makeVeriPS(fulltestspec, localblockintersectioncase2)
+      val intersectioncase2: Obligation = produce.newObligation(fullSQLspec, SQLProgressTIntersection2)
 
-  val localblockintersectioncase3 = local(intersectionconsts, SQLProgressTIntersectionIH1, SQLProgressTIntersection3)
-  //val intersectioncase3node = makeVeriPS(fulltestspec, localblockintersectioncase3)
+      val intersectioncase3: Obligation = produce.newObligation(fullSQLspec, SQLProgressTIntersection3)
+
+      Seq((intersectioncase1, CaseDistinctionCase[Spec, VeritasConstruct]("Intersection1", Some(Spec(Seq(intersectionconsts))), Seq())),
+        (intersectioncase2, CaseDistinctionCase[Spec, VeritasConstruct]("Intersection2", Some(Spec(Seq(intersectionconsts))),
+          Seq(SQLProgressTIntersectionIH2))),
+        (intersectioncase3, CaseDistinctionCase[Spec, VeritasConstruct]("Intersection3", Some(Spec(Seq(intersectionconsts))),
+          Seq(SQLProgressTIntersectionIH1))))
+    }
+
+  }
+
+  val intersectioncaseobl = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, g.requiredObls(rootinductionPS))
+  g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
 
 
   //case split for difference case (sometimes necessary, sometimes not)
@@ -227,14 +265,28 @@ class SQLSoundnessProofGraph extends FunSuite {
       exists(~'qo) |
         ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
 
-  val localblockdifferencecase1 = local(differenceconsts, SQLProgressTDifference1)
-  //val differencecase1node = makeVeriPS(fulltestspec, localblockdifferencecase1)
+  // hard coded tactic for case distinction of difference induction case
+  //TODO refine empty list in argument to MockCaseDistinction
+  val differenceCaseDistinction = new MockCaseDistinction(Seq()) {
+    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val differencecase1: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference1)
 
-  val localblockdifferencecase2 = local(differenceconsts, SQLProgressTDifferenceIH2, SQLProgressTDifference2)
-  //val differencecase2node = makeVeriPS(fulltestspec, localblockdifferencecase2)
+      val differencecase2: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference2)
 
-  val localblockdifferencecase3 = local(differenceconsts, SQLProgressTDifferenceIH1, SQLProgressTDifference3)
-  //val differencecase3node = makeVeriPS(fulltestspec, localblockdifferencecase3)
+      val differencecase3: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference3)
+
+      Seq((differencecase1, CaseDistinctionCase[Spec, VeritasConstruct]("Difference1", Some(Spec(Seq(differenceconsts))), Seq())),
+        (differencecase2, CaseDistinctionCase[Spec, VeritasConstruct]("Difference2", Some(Spec(Seq(differenceconsts))),
+          Seq(SQLProgressTDifferenceIH2))),
+        (differencecase3, CaseDistinctionCase[Spec, VeritasConstruct]("Difference3", Some(Spec(Seq(differenceconsts))),
+          Seq(SQLProgressTDifferenceIH1))))
+    }
+
+  }
+
+  val differencecaseobl = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, g.requiredObls(rootinductionPS))
+  g.applyTactic(differencecaseobl, differenceCaseDistinction)
+
 
 
   // here, the SQL lemmas necessary for progress (selectFromWhere case) start
