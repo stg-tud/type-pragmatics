@@ -106,18 +106,31 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
    */
 
 
-  def addRootObligation(oblObj: Obligation) = transaction { txn =>
-    val root = txn.newEntity(TRoot)
-    val obl = oblObj.entity(txn)
-    root.setLink(lRootObl, obl)
-    obl.setLink(lOblRoot, root)
+  def storeObligation(name: String, oblObj: Obligation) = transaction { txn =>
+    val old = txn.find(TStored, pStoredName, name)
+    if (old.isEmpty) {
+      val stored = txn.newEntity(TStored)
+      val obl = oblObj.entity(txn)
+      stored.setLink(lStoredObl, obl)
+      obl.setLink(lOblRoot, stored)
+      None
+    }
+    else {
+      val stored = old.getFirst
+      val oldObl = stored.getLink(lStoredObl)
+      oldObl.deleteLink(lOblRoot, stored)
+      val obl = oblObj.entity(txn)
+      stored.setLink(lStoredObl, obl)
+      obl.setLink(lOblRoot, stored)
+      Some(new Obligation(oldObl.getId, txn))
+    }
   }
 
-  def removeRootObligation(oblObj: Obligation) = transaction { txn =>
+  def unstoreObligation(oblObj: Obligation) = transaction { txn =>
     val obl = oblObj.entity(txn)
-    val root = obl.getLink(lOblRoot)
-    if (root != null)
-      root.delete()
+    val stored = obl.getLink(lOblRoot)
+    if (stored != null)
+      stored.delete()
     gcObl(obl)
   }
 
@@ -177,8 +190,18 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     * - checking whether an obligation was successfully verified
     */
 
-  def rootObligations: Iterable[Obligation] = readOnlyTransaction { txn =>
-    txn.getAll(TRoot).asScala.map(root => new Obligation(root.getLink(lRootObl).getId, txn))
+  def storedObligations: Map[String, Obligation] = readOnlyTransaction { txn =>
+    Map() ++ txn.getAll(TStored).asScala.map(stored =>
+      stored.getProperty(pStoredName).asInstanceOf[String] -> new Obligation(stored.getLink(lStoredObl).getId, txn)
+    )
+  }
+
+  override def findObligation(name: String): Option[Obligation] = readOnlyTransaction { txn =>
+    val stored = txn.find(TStored, pStoredName, name)
+    if (stored.isEmpty)
+      None
+    else
+      Some(new Obligation(stored.getFirst.getId, txn))
   }
 
   /** Yields proof step if any */
@@ -267,8 +290,9 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
 }
 
 object ProofGraphXodus {
-  val TRoot = "ROOT"
-  val lRootObl = "obl"
+  val TStored = "ROOT"
+  val pStoredName = "name"
+  val lStoredObl = "obl"
 
   val TObligation = "OBLIGATION"
   val pOblGoal = "goal"

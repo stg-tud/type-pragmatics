@@ -51,7 +51,8 @@ trait IProofGraph[Spec, Goal] {
   def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult =
     stepResultProducer.newStepResult(status, evidence, errorMsg)
 
-  def rootObligations: Iterable[Obligation]
+  def storedObligations: Map[String, Obligation]
+  def findObligation(name: String): Option[Obligation]
 
   /** Yields proof step if any */
   def appliedStep(obl: Obligation): Option[ProofStep]
@@ -95,18 +96,22 @@ trait IProofGraph[Spec, Goal] {
 
 }
 
+/** operations for modifying proof graphs:
+ * - add or remove root obligations
+ * - apply or unapply a tactic to an obligation, yielding a proof step and subobligations
+ * - setting or unsetting the result of validating a proof step
+ */
 trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
 
-  //TODO: some of methods in ProofGraph might have to check first whether their step argument actually exists in the graph!
-
-  /** operations for modifying proof graphs:
-   * - add or remove root obligations
-   * - apply or unapply a tactic to an obligation, yielding a proof step and subobligations
-   * - setting or unsetting the result of validating a proof step
-   */
-
-  def addRootObligation(obl: Obligation)
-  def removeRootObligation(step: Obligation)
+  /** Stores an obligation under the given name.
+    * @returns obligation previously stored under the same name, if any
+    */
+  def storeObligation(name: String, obl: Obligation): Option[Obligation]
+  /** Removes obligation from the stored obligations. The obligation will remain in
+    * the graph if it is currently required by other obligations, but it will not be
+    * accessible via `findObligation` or `storedObligations`.
+    */
+  def unstoreObligation(step: Obligation)
 
   def applyTactic(obl: Obligation, tactic: Tactic[Spec, Goal]): ProofStep
   def unapplyTactic(obl: Obligation)

@@ -43,7 +43,7 @@ class SQLSoundnessProofGraph extends FunSuite {
     new ProofGraphXodus[Spec, VeritasConstruct](file)
 
   val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
-  g.addRootObligation(progressObligation)
+  g.storeObligation("SQL progress", progressObligation)
 
   //Mock tactics
   // class for creating mock induction tactics, with convenience methods like selectCase
