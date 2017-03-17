@@ -14,6 +14,7 @@ import scala.reflect.ClassTag
 
 
 class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir: File) extends ProofGraph[Spec, Goal] {
+
   import ProofGraphXodus._
 
   val store: PersistentEntityStore = PersistentEntityStores.newInstance(dbDir)
@@ -24,7 +25,9 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   def transaction[T](f: StoreTransaction => T): T = {
     var result: Option[T] = None
     store.executeInTransaction(new StoreTransactionalExecutable {
-      override def execute(txn: StoreTransaction) = { result = Some(f(txn)) }
+      override def execute(txn: StoreTransaction) = {
+        result = Some(f(txn))
+      }
     })
     result.get
   }
@@ -32,7 +35,9 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   def readOnlyTransaction[T](f: StoreTransaction => T): T = {
     var result: Option[T] = None
     store.executeInReadonlyTransaction(new StoreTransactionalExecutable {
-      override def execute(txn: StoreTransaction) = { result = Some(f(txn)) }
+      override def execute(txn: StoreTransaction) = {
+        result = Some(f(txn))
+      }
     })
     result.get
   }
@@ -40,12 +45,14 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
 
   trait EntityObj {
     def id: EntityId
+
     def entity(txn: StoreTransaction): Entity = txn.getEntity(id)
   }
 
   class ProofStep(val id: EntityId, val tactic: Tactic[Spec, Goal]) extends GenProofStep[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
       this(id, entity.getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]])
+
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
   }
 
@@ -53,6 +60,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   class Obligation(val id: EntityId, val spec: Spec, val goal: Goal) extends GenObligation[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
       this(id, entity.getLink(lOblSpec).asInstanceOf[Spec], entity.getProperty(pOblGoal).asInstanceOf[Goal])
+
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
   }
 
@@ -80,12 +88,14 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
         fromNullable(entity.getProperty(pResultEvidence).asInstanceOf[Evidence]),
         fromNullable(entity.getProperty(pResultErrorMsg).asInstanceOf[String])
       )
+
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
   }
 
   object stepResultProducer extends StepResultProducer[Spec, Goal, StepResult] {
     override def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult =
       transaction(txn => newStepResult(txn, status, evidence, errorMsg))
+
     def newStepResult(txn: StoreTransaction, status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult = {
       val result = txn.newEntity(TStepResult)
       result.setProperty(pResultStatus, status)
@@ -96,7 +106,6 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
       new StepResult(result.getId, status, evidence, errorMsg)
     }
   }
-
 
 
   /* operations for modifying proof graphs:
@@ -172,6 +181,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   def setVerifiedBy(step: ProofStep, resultObj: StepResult) = transaction { txn =>
     step.entity(txn).setLink(lStepVerifiedBy, resultObj.entity(txn))
   }
+
   def unsetVerifiedBy(stepObj: ProofStep) = transaction { txn =>
     val step = stepObj.entity(txn)
     val result = step.getLink(lStepVerifiedBy)
@@ -212,6 +222,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     else
       Some(new ProofStep(step.getId, txn))
   }
+
   /** Yields required subobligations */
   def requiredObls(step: ProofStep): Iterable[(Obligation, EdgeLabel)] = readOnlyTransaction { txn =>
     // copy all edges to prevent capture of transaction within result
@@ -233,6 +244,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
       requiringStep -> label
     }
   }
+
   /** Yields the obligation the proof step was applied to */
   def targetedObl(step: ProofStep): Obligation = readOnlyTransaction { txn =>
     new Obligation(step.entity(txn).getLink(lStepTargetedObl).getId, txn)
@@ -252,7 +264,6 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
       None
     else
       Some(v)
-
 
 
   /* GC helpers */
@@ -329,25 +340,29 @@ object PropertyTypes {
     registerPropertyType[Unknown[String, String]](store)
   }
 
-  def registerPropertyType[T <: Comparable[_]](store: PersistentEntityStore)(implicit pickler: SPickler[T], unpickler: Unpickler[T], tag: ClassTag[T], fastTag: FastTypeTag[T]) = store.executeInTransaction(new StoreTransactionalExecutable() {
-    override def execute(txn: StoreTransaction): Unit = {
-      val format = scala.pickling.binary.pickleFormat
 
-      val binding = new ComparableBinding {
-        override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
-          val builder = format.createBuilder(new OutputStreamOutput(output))
-          builder.hintTag(fastTag)
-          pickler.pickle(obj.asInstanceOf[T], builder)
+  def registerPropertyType[T <: Comparable[_]](store: PersistentEntityStore)
+                                              (implicit pickler: SPickler[T],
+                                               unpickler: Unpickler[T], tag: ClassTag[T], fastTag: FastTypeTag[T]) =
+    store.executeInTransaction(new StoreTransactionalExecutable() {
+      override def execute(txn: StoreTransaction): Unit = {
+        val format = scala.pickling.binary.pickleFormat
+
+        val binding = new ComparableBinding {
+          override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
+            val builder = format.createBuilder(new OutputStreamOutput(output))
+            builder.hintTag(fastTag)
+            pickler.pickle(obj.asInstanceOf[T], builder)
+          }
+
+          override def readObject(stream: ByteArrayInputStream) = {
+            val reader = BinaryPickleStream(stream).createReader(fastTag.mirror, format)
+            unpickler.unpickle(fastTag, reader).asInstanceOf[T]
+          }
         }
 
-        override def readObject(stream: ByteArrayInputStream) = {
-          val reader = BinaryPickleStream(stream).createReader(fastTag.mirror, format)
-          unpickler.unpickle(fastTag, reader).asInstanceOf[T]
-        }
+        val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
+        store.registerCustomPropertyType(txn, clazz, binding)
       }
-
-      val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
-      store.registerCustomPropertyType(txn, clazz, binding)
-    }
-  })
+    })
 }
