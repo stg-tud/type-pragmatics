@@ -122,7 +122,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
 
   def applyTactic(targetObj: Obligation, tactic: Tactic[Spec, Goal]): ProofStep = {
-    val requiredObjs = tactic(this)(targetObj)
+    val requiredObjs = tactic(targetObj, obligationProducer)
 
     transaction { txn =>
       val target = targetObj.entity(txn)

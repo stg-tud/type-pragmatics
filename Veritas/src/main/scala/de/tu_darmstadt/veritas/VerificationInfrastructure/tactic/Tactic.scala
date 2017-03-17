@@ -28,7 +28,7 @@ trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] {
     * @throws TacticApplicationException
     * @return
     */
-  def apply(g: IProofGraph[Spec, Goal])(obl: g.Obligation): Iterable[(g.Obligation, EdgeLabel)]
+  def apply[Obligation](obl: GenObligation[Spec, Goal], produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)]
 }
 
 trait TacticApplicationException[Spec, Goal] extends Exception {

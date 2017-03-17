@@ -13,7 +13,8 @@ case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](ind
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 
-  override def apply(g: IProofGraph[Spec, Goal])(obl: g.Obligation): Iterable[(g.Obligation, EdgeLabel)] = ???
+  override def apply[Obligation](obl: GenObligation[Spec, Goal], produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+    ???
 }
 
 /**

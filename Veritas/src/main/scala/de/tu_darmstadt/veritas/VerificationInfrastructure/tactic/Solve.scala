@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, IProofGraph}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, ObligationProducer}
 
 /**
   * default tactic: simply try to figure out a proof for a node of a proof graph
@@ -14,5 +14,6 @@ case class Solve[Spec, Goal]() extends Tactic[Spec, Goal] {
    }
 
   /* applying the Solve tactic does not generate any edges */
-  def apply(g: IProofGraph[Spec, Goal])(obl: g.Obligation): Iterable[(g.Obligation, EdgeLabel)] = Seq()
+  def apply[Obligation](obl: GenObligation[Spec, Goal], produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+    Seq()
 }

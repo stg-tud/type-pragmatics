@@ -53,16 +53,16 @@ class SQLProgressProofGraph extends FunSuite {
   // where the goals that are supposed to be generated are just hard-coded
   case class RootInduction(inductionvar: Spec) extends Tactic[Spec, VeritasConstruct] {
 
-    override def apply(g: IProofGraph[Spec, VeritasConstruct])(obl: g.Obligation): Iterable[(g.Obligation, EdgeLabel)] = {
-      val tvaluecase: g.Obligation = g.newObligation(fullSQLspec, SQLProgressTtvalue)
+    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val tvaluecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTtvalue)
 
-      val selectfromwherecase: g.Obligation = g.newObligation(fullSQLspec, SQLProgressTselectFromWhere)
+      val selectfromwherecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTselectFromWhere)
 
-      val unioncase: g.Obligation = g.newObligation(fullSQLspec, SQLProgressTUnion)
+      val unioncase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion)
 
-      val intersectioncase: g.Obligation = g.newObligation(fullSQLspec, SQLProgressTIntersection)
+      val intersectioncase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTIntersection)
 
-      val differencecase: g.Obligation = g.newObligation(fullSQLspec, SQLProgressTDifference)
+      val differencecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference)
 
       Seq((tvaluecase, StructInductCase[Spec, VeritasConstruct](SQLProgressTtvalue.goals.head.name, None, Seq())),
         (selectfromwherecase, StructInductCase[Spec, VeritasConstruct](SQLProgressTselectFromWhere.goals.head.name, None, Seq())),
@@ -121,12 +121,12 @@ class SQLProgressProofGraph extends FunSuite {
 
   // hard coded tactic for case distinction of union induction case
   case class UnionCaseDistinction(cases: Seq[Spec]) extends Tactic[Spec, VeritasConstruct] {
-    override def apply(g: IProofGraph[Spec, VeritasConstruct])(obl: g.Obligation): Iterable[(g.Obligation, EdgeLabel)] = {
-      val unioncase1: g.Obligation = g.newObligation(fullSQLspec, SQLProgressTUnion1)
+    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val unioncase1: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion1)
 
-      val unioncase2: g.Obligation = g.newObligation(fullSQLspec, SQLProgressTUnion2)
+      val unioncase2: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion2)
 
-      val unioncase3: g.Obligation = g.newObligation(fullSQLspec, SQLProgressTUnion3)
+      val unioncase3: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion3)
 
       Seq((unioncase1, CaseDistinctionCase[Spec, VeritasConstruct]("Union1", Some(Spec(Seq(unionconsts))), Seq())),
         (unioncase2, CaseDistinctionCase[Spec, VeritasConstruct]("Union2", Some(Spec(Seq(unionconsts))),
