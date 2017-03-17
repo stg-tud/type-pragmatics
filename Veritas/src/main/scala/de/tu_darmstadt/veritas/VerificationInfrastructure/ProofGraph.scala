@@ -111,7 +111,7 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
     * the graph if it is currently required by other obligations, but it will not be
     * accessible via `findObligation` or `storedObligations`.
     */
-  def unstoreObligation(step: Obligation)
+  def unstoreObligation(obl: Obligation)
 
   def applyTactic(obl: Obligation, tactic: Tactic[Spec, Goal]): ProofStep
   def unapplyTactic(obl: Obligation)
@@ -136,4 +136,33 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
     evidenceCheckers.getOrElse(evClass, defaultEvidencenChecker)
   def registerEvidenceChecker[Ev <: Evidence](evClass: Class[Ev], checker: EvidenceChecker[Ev]) =
     evidenceCheckers += evClass -> checker.asInstanceOf[AnyEvidenceChecker]
+}
+
+object Versioned {
+  val HEAD: VID = 0l
+  type VID = Long
+}
+trait Versioned {
+  import Versioned.VID
+  type Obligation
+
+  /**
+    * - If obl exists in HEAD and obl exists in vid:
+    *     Restores proof step of obl and performs recursive checkout of required subobligations.
+    *     Note that obl is identical (same spec, same goal) in both HEAD and vid, hence all requiring steps remain valid.
+    * - If obl exists in HEAD but does not exist in vid:
+    *     Deletes obl.
+    * - If obl does not exist in HEAD but does exist in vid:
+    *     Nothing happens unless this occurs as part of a recursive checkout, in which case we introduce obl.
+    * - If obl does not exist in HEAD and does not exist in vid:
+    *     Nothing happens.
+    */
+  def checkoutObl(obl: Obligation, vid: VID)
+
+  /**
+    * If name exists in HEAD and name exists in vid but findObligation(name)@HEAD != findObligation(name)@vid:
+    *     Throws exception since the checkout could potentially invalidate requiring steps.
+    * In all other cases: use checkoutObl
+    */
+  def checkoutStoredObl(name: String, vid: VID)
 }
