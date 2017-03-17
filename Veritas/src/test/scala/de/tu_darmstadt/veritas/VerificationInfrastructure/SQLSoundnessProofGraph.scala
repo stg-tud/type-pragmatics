@@ -42,8 +42,8 @@ class SQLSoundnessProofGraph extends FunSuite {
   val sqlSoundnessProofGraph: ProofGraphXodus[Spec, VeritasConstruct] =
     new ProofGraphXodus[Spec, VeritasConstruct](file)
 
-  val rootObligation: sqlSoundnessProofGraph.Obligation = sqlSoundnessProofGraph.newObligation(fullSQLspec, SQLProgress)
-  sqlSoundnessProofGraph.addRootObligation(rootObligation)
+  val progressObligation: sqlSoundnessProofGraph.Obligation = sqlSoundnessProofGraph.newObligation(fullSQLspec, SQLProgress)
+  sqlSoundnessProofGraph.addRootObligation(progressObligation)
 
   //val oblMaker = sqlProgressProofGraph.obligationProducer
 
@@ -78,8 +78,7 @@ class SQLSoundnessProofGraph extends FunSuite {
   }
 
   val rootinductionPS: sqlSoundnessProofGraph.ProofStep =
-    sqlSoundnessProofGraph.applyTactic(sqlSoundnessProofGraph.rootObligations.head,
-      RootInduction(Spec(Seq(MetaVar("q")))))
+    sqlSoundnessProofGraph.applyTactic(progressObligation, RootInduction(Spec(Seq(MetaVar("q")))))
 
   //TODO concrete tests that inspect the progress proof graph, once the file is executable
 
