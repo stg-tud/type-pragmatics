@@ -42,8 +42,8 @@ class SQLProgressProofGraph extends FunSuite {
   val sqlProgressProofGraph: ProofGraphXodus[Spec, VeritasConstruct] =
     new ProofGraphXodus[Spec, VeritasConstruct](file)
 
-  val rootObligation: sqlProgressProofGraph.Obligation = sqlProgressProofGraph.newObligation(fullSQLspec, SQLProgress)
-  sqlProgressProofGraph.addRootObligation(rootObligation)
+  val progressObligation: sqlProgressProofGraph.Obligation = sqlProgressProofGraph.newObligation(fullSQLspec, SQLProgress)
+  sqlProgressProofGraph.addRootObligation(progressObligation)
 
   //val oblMaker = sqlProgressProofGraph.obligationProducer
 
@@ -78,8 +78,7 @@ class SQLProgressProofGraph extends FunSuite {
   }
 
   val rootinductionPS: sqlProgressProofGraph.ProofStep =
-    sqlProgressProofGraph.applyTactic(sqlProgressProofGraph.rootObligations.head,
-      RootInduction(Spec(Seq(MetaVar("q")))))
+    sqlProgressProofGraph.applyTactic(progressObligation, RootInduction(Spec(Seq(MetaVar("q")))))
 
   //TODO concrete tests that inspect the progress proof graph, once the file is executable
 
