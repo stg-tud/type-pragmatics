@@ -47,9 +47,21 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   PropertyTypes.registerPropertyType[Spec](g.store)
   PropertyTypes.registerPropertyType[Goals](g.store)
+  //PropertyTypes.registerPropertyType[FunctionExpJudgment](g.store)
 
   val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
-  g.storeObligation("SQL progress", progressObligation)
+  //g.storeObligation("SQL progress", progressObligation)
+
+  val testGoal: Goals = goal(===>("test")('p('x) && 'q('x) || 't('x)))
+  val testObligation: g.Obligation = g.newObligation(Spec(Seq()), testGoal)
+  g.storeObligation("test", testObligation)
+
+  test("Storing and finding the test obligation") {
+    val r = g.findObligation("test")
+
+    assert(r.get.spec == testObligation.spec)
+    assert(r.get.goal == testObligation.goal)
+  }
 
   //Mock tactics
   // class for creating mock induction tactics, with convenience methods like selectCase
@@ -112,10 +124,10 @@ class SQLSoundnessProofGraph extends FunSuite {
     }
   }
 
-  PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
-  PropertyTypes.registerPropertyType[StructInductCase[Spec, VeritasConstruct]](g.store)
+  //PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
+  //PropertyTypes.registerPropertyType[StructInductCase[Spec, VeritasConstruct]](g.store)
 
-  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
+  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
 
   //TODO concrete tests that inspect the progress proof graph, once the file is executable
 
@@ -176,11 +188,11 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   val unionCaseDistinction = new UnionCaseDistinction()
 
-  PropertyTypes.registerPropertyType[UnionCaseDistinction](g.store)
-  PropertyTypes.registerPropertyType[CaseDistinctionCase[Spec, VeritasConstruct]](g.store)
+  //PropertyTypes.registerPropertyType[UnionCaseDistinction](g.store)
+  //PropertyTypes.registerPropertyType[CaseDistinctionCase[Spec, VeritasConstruct]](g.store)
 
 
-  val obls = g.requiredObls(rootinductionPS) //this generates a ScalaReflectionException:
+  //val obls = g.requiredObls(rootinductionPS) //this generates a ScalaReflectionException:
 //    [info]   scala.ScalaReflectionException: Scala field typ  of trait Typeable isn't represented as a Java field, nor does it have a
 //    [info] Java accessor method. One common reason for this is that it may be a private class parameter
 //  [info] not used outside the primary constructor.
@@ -188,8 +200,8 @@ class SQLSoundnessProofGraph extends FunSuite {
   //has a var.
 
 
-  val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
-  g.applyTactic(unioncaseobl, unionCaseDistinction)
+  //val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
+  //g.applyTactic(unioncaseobl, unionCaseDistinction)
 
 
   //intersection and difference cases are completely analogous to union case
