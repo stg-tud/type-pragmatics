@@ -60,6 +60,10 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   class Obligation(val id: EntityId, val spec: Spec, val goal: Goal) extends GenObligation[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
       this(id, entity.getLink(lOblSpec).asInstanceOf[Spec], entity.getProperty(pOblGoal).asInstanceOf[Goal])
+    //the above line probably asks for non-existent links, solution could be:
+//      this(id, entity.getLink(lStoredObl).getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[Spec],
+//        entity.getLink(lStoredObl).getProperty(pOblGoal).asInstanceOf[Goal])
+
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
   }
@@ -120,6 +124,9 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     if (old.isEmpty) {
       val stored = txn.newEntity(TStored)
       val obl = oblObj.entity(txn)
+      //TODO: here we probably need to add the name as a property in order to be able to rediscover the property under name
+      // check whether the line below really does the trick already or not
+      //stored.setProperty(pStoredName, name)
       stored.setLink(lStoredObl, obl)
       obl.setLink(lOblRoot, stored)
       None
