@@ -51,8 +51,10 @@ trait ModuleTransformation {
    */
   def trace[VC <: VeritasConstruct, Res](vc: VC)(f: VC => Res) = {
     path = vc +: path
+    // need to be saved and restored because f could alter path in some way, couldn't find where exactly
+    val savedPath = path
     val res = f(vc)
-    path = path.tail
+    path = savedPath.tail
     res
   }
 
@@ -63,8 +65,9 @@ trait ModuleTransformation {
   def trace[VC <: VeritasConstruct, Res](vcs: Seq[VC])(f: VC => Seq[Res]) = {
     val res = vcs.flatMap { vc =>
       path = vc +: path
+      val savedPath = path
       val subres = f(vc)
-      path = path.tail
+      path = savedPath.tail
       subres
     }
     res
@@ -76,8 +79,9 @@ trait ModuleTransformation {
    */
   def trace2[VC <: VeritasConstruct, Res](vc: VC)(f: => Res) = {
     path = vc +: path
+    val savedPath = path
     val res = f
-    path = path.tail
+    path = savedPath.tail
     res
   }
 
