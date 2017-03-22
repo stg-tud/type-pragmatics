@@ -6,22 +6,24 @@ import org.scalacheck._
 import Arbitrary.arbitrary
 import org.scalacheck.util.Pretty
 import org.scalatest._
+
+import scala.tools.nsc.doc.base.comment.OrderedList
 //import org.scalatest.prop.PropertyChecks
 import org.scalacheck.Prop.forAll
+
+//simple wrapper classes for simulating content of proof graphs
+case class Spec[T <: Comparable[T]](spec: T) extends Comparable[Spec[T]] {
+  override def compareTo(that: Spec[T]): Int = this.spec compareTo that.spec
+}
+
+case class Goal[T <: Comparable[T]](goal: T) extends Comparable[Goal[T]] {
+  override def compareTo(that: Goal[T]): Int = this.goal compareTo that.goal
+}
 
 /**
   * Testing the proof graph Xodus implementation with basic types only
   */
 class ProofGraphXodusTest extends FunSuite {
-
-  //simple wrapper classes for simulating content of proof graphs
-  case class Spec[T <: Comparable[T]](spec: T) extends Comparable[Spec[T]] {
-    override def compareTo(that: Spec[T]): Int = this.spec compareTo that.spec
-  }
-
-  case class Goal[T <: Comparable[T]](goal: T) extends Comparable[Goal[T]] {
-    override def compareTo(that: Goal[T]): Int = this.goal compareTo that.goal
-  }
 
   //initializing a new test graph and registering all required basic property types
   def initializePGXodus(printStorePath: Boolean = false): ProofGraphXodus[Spec[String], Goal[String]] = {
@@ -40,6 +42,18 @@ class ProofGraphXodusTest extends FunSuite {
 
   }
 
+  def initializePGXodusSimpleString(printStorePath: Boolean = false): ProofGraphXodus[String, String] = {
+    val file = File.createTempFile("test-store", "")
+    file.delete()
+    file.mkdir()
+    if (printStorePath) println(s"Test entity store: $file")
+
+    val g: ProofGraphXodus[String, String] =
+      new ProofGraphXodus[String, String](file)
+
+    g
+
+  }
 
   //these generators will only work with basic types T!
   def genNames: Gen[String] = Gen.alphaNumStr
@@ -64,7 +78,7 @@ class ProofGraphXodusTest extends FunSuite {
     assert(testresult.passed)
   }
 
-  test("Created obligations contain given specs and goals") {
+  test("Created obligations contain given specs and goals (String)") {
     def obligationCreationBasic = forAll(genNames, genSpecs, genGoals) { (name: String, s: Spec[String], g: Goal[String]) => {
       val graph: ProofGraphXodus[Spec[String], Goal[String]] = initializePGXodus()
       val obl = graph.newObligation(s, g)
@@ -77,8 +91,48 @@ class ProofGraphXodusTest extends FunSuite {
   }
 
 
-  test("Inserted root nodes can be retrieved (String)") {
-    def insertRetrievePropBasic =
+  test("One simple String insertion/retrieval works") {
+    val graph: ProofGraphXodus[String, String] = initializePGXodusSimpleString()
+    val obl = graph.newObligation("S", "G")
+    graph.storeObligation("test", obl)
+    val retobl = graph.findObligation("test")
+
+    assert(retobl.nonEmpty)
+    assert(obl.spec == retobl.get.spec)
+    assert(obl.goal == retobl.get.goal)
+
+  }
+
+  test("One simple Spec[String],Goal[String] insertion/retrieval works") {
+    val graph: ProofGraphXodus[Spec[String], Goal[String]] = initializePGXodus()
+    val obl = graph.newObligation(Spec("S"), Goal("G"))
+    graph.storeObligation("test", obl)
+    val retobl = graph.findObligation("test")
+
+    assert(retobl.nonEmpty)
+    assert(obl.spec == retobl.get.spec)
+    assert(obl.goal == retobl.get.goal)
+
+  }
+
+
+  test("Inserted root nodes can be retrieved in general (only Strings!)") {
+    def insertRetrievePropBasicString() =
+      forAll(genNames, Arbitrary.arbitrary[String], Arbitrary.arbitrary[String]) { (name: String, s: String, g: String) => {
+        val graph: ProofGraphXodus[String, String] = initializePGXodusSimpleString()
+        val obl = graph.newObligation(s, g)
+        graph.storeObligation(name, obl)
+        val retobl = graph.findObligation(name)
+
+        retobl.nonEmpty && (obl.spec == retobl.get.spec) && (obl.goal == retobl.get.goal)
+      }
+      }
+
+    testProp(insertRetrievePropBasicString)
+  }
+
+  test("Inserted root nodes can be retrieved in general (only Spec[String]/Goal[String]!)") {
+    def insertRetrievePropBasic() =
       forAll(genNames, genSpecs, genGoals) { (name: String, s: Spec[String], g: Goal[String]) => {
         val graph: ProofGraphXodus[Spec[String], Goal[String]] = initializePGXodus()
         val obl = graph.newObligation(s, g)
@@ -92,17 +146,8 @@ class ProofGraphXodusTest extends FunSuite {
     testProp(insertRetrievePropBasic)
   }
 
-  test("Empty Spec/Goal works") {
-    val graph: ProofGraphXodus[Spec[String], Goal[String]] = initializePGXodus(true)
-    val obl = graph.newObligation(Spec(""), Goal(""))
-    graph.storeObligation("", obl)
-    val retobl = graph.findObligation("")
 
-    assert(retobl.nonEmpty)
-    assert(obl.spec == retobl.get.spec)
-    assert(obl.goal == retobl.get.goal)
 
-  }
 
 
   //Instantiating
