@@ -1,35 +1,35 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure
+package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 /**
   * status of a particular verification attempt (for a node/leaf in a proof tree)
   *
   */
-sealed trait VerifierStatus[S, P] extends Ordered[VerifierStatus[S, P]] {
-  val verifier: Verifier[S, P]
+sealed trait VerifierStatus[Spec, Goal] extends Ordered[VerifierStatus[Spec, Goal]] {
+  val verifier: Verifier[Spec, Goal]
   val isVerified: Boolean = false
 }
 
-case class Unknown[S, P](verifier: Verifier[S, P]) extends VerifierStatus[S, P] {
-  override def compare(that: VerifierStatus[S, P]): Int = that match {
+case class Unknown[Spec, Goal](verifier: Verifier[Spec, Goal]) extends VerifierStatus[Spec, Goal] {
+  override def compare(that: VerifierStatus[Spec, Goal]): Int = that match {
     case that: Unknown[_, _] => this.verifier.desc compare that.verifier.desc
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 }
 
 //TODO: maybe refine errorMessage: String later to include specific error objects
-case class Failure[S, P](errorMessage: String, verifier: Verifier[S, P]) extends VerifierStatus[S, P] {
+case class Failure[Spec, Goal](errorMessage: String, verifier: Verifier[Spec, Goal]) extends VerifierStatus[Spec, Goal] {
   import Ordered._
-  override def compare(that: VerifierStatus[S, P]): Int = that match {
+  override def compare(that: VerifierStatus[Spec, Goal]): Int = that match {
     case that: Failure[_, _] => (this.errorMessage, this.verifier.desc) compare (that.errorMessage, that.verifier.desc)
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 }
 
 
-case class Finished[S, P](status: ProverStatus, verifier: Verifier[S, P]) extends VerifierStatus[S, P] {
+case class Finished[Spec, Goal](status: ProverStatus, verifier: Verifier[Spec, Goal]) extends VerifierStatus[Spec, Goal] {
   override val isVerified = status.isVerified
 
-  override def compare(that: VerifierStatus[S, P]): Int = that match {
+  override def compare(that: VerifierStatus[Spec, Goal]): Int = that match {
     case that: Finished[_, _] => (this.status, this.verifier.desc) compare (that.status, that.verifier.desc)
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }

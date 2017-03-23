@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Verifier
 
 case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](inductionvar: Spec) extends Tactic[Spec, Goal] {
   //TODO we might have to refine the verifier call for induction once we really support this via a prover

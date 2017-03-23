@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Verifier
 
 /**
   * Tactics for labeling edges of ProofTrees

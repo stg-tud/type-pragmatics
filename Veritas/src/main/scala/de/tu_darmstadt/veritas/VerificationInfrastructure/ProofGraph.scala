@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence.{AnyEvidenceChecker, EvidenceChecker}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, VerifierStatus}
 
 import scala.collection.mutable
 

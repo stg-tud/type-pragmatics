@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.{ByteArrayInputStream, File}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{NoInfoEdgeLabel, Solve, Tactic}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Unknown, VerifierStatus}
 import jetbrains.exodus.bindings.ComparableBinding
 import jetbrains.exodus.entitystore._
 import jetbrains.exodus.util.LightOutputStream

@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
 import org.scalatest.FunSuite
 import quiver.{LEdge, LNode}
@@ -188,51 +189,47 @@ import scala.util.Random
 //}
 
 
-case class MockProver() extends Prover[String] {
-  override def supportedStrategies[S, P](): Seq[Tactic[S, P]] = ???
-
-  override def callProver(problem: String): ProverStatus = Proved("")
-
-}
-
-case class SwitchStatusProver() extends Prover[String] {
-  var count = -1
-  override def supportedStrategies[S, P](): Seq[Tactic[S, P]] = ???
-
-  override def callProver(problem: String): ProverStatus = {
-    count = count + 1
-    if (count == 0)
-      Proved("")
-    else
-      Inconclusive("")
-  }
-}
-
-case class ContradictingStatusProver() extends Prover[String] {
-  var count = -1
-  override def supportedStrategies[S, P](): Seq[Tactic[S, P]] = ???
-
-  override def callProver(problem: String): ProverStatus = {
-    count = count + 1
-    if (count == 0)
-      Proved("")
-    else
-      Disproved("")
-  }
-
-}
-
-case class WaitingProver() extends Prover[String] {
-  override def supportedStrategies[S, P](): Seq[Tactic[S, P]] = ???
-
-  override def callProver(problem: String): ProverStatus = {
-    val rnd = new Random()
-    val waiting = rnd.nextInt(3000)
-    Thread.sleep(waiting)
-    Proved("")
-  }
-}
-
-case class MockTransformer() extends Transformer[String, String, String] {
-  override def transformProblem(spec: String, goal: String): String = ""
-}
+//case class MockProver() extends Prover[String] {
+//
+//  override def callProver(problem: String): ProverStatus = Proved("")
+//
+//}
+//
+//case class SwitchStatusProver() extends Prover[String] {
+//  var count = -1
+//
+//  override def callProver(problem: String): ProverStatus = {
+//    count = count + 1
+//    if (count == 0)
+//      Proved("")
+//    else
+//      Inconclusive("")
+//  }
+//}
+//
+//case class ContradictingStatusProver() extends Prover[String] {
+//  var count = -1
+//
+//  override def callProver(problem: String): ProverStatus = {
+//    count = count + 1
+//    if (count == 0)
+//      Proved("")
+//    else
+//      Disproved("")
+//  }
+//
+//}
+//
+//case class WaitingProver() extends Prover[String] {
+//
+//  override def callProver(problem: String): ProverStatus = {
+//    val rnd = new Random()
+//    val waiting = rnd.nextInt(3000)
+//    Thread.sleep(waiting)
+//    Proved("")
+//  }
+//}
+//
+//case class MockTransformer() extends Transformer[String, String, String] {
+//  override def transformProblem(spec: String, goal: String): String = ""
+//}

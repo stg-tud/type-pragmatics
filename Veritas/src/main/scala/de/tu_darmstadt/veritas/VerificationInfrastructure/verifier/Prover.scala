@@ -1,6 +1,4 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure
-
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
+package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 /**
   * return status of a prover call
@@ -28,9 +26,7 @@ case class ProverFailure(proverLog: String) extends ProverStatus
 /**
   * Interface for concrete provers
   */
-trait Prover[V] {
-
-  def supportedStrategies[S, P](): Seq[Tactic[S, P]]
+trait Prover[V <: VerifierFormat] {
 
   def callProver(problem: V): ProverStatus
 }
