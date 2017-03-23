@@ -1,8 +1,11 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.StepResultProducer
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{GenStepResult, StepResultProducer}
 
 trait VerifierFormat
+
+trait VerifierHints
+
 
 /**
   * Verifiers "manage" verification attempts (i.e. compiling the problem, calling one or more provers,
@@ -20,14 +23,23 @@ trait Verifier[Spec, Goal] extends Ordered[Verifier[Spec, Goal]] {
   /**
     * A concrete verifier may call any combination of transformers & provers
     * (or do something else to produce a verification result)
+    *
+    * verify may take hints from the caller (i.e. the tactic;
+    * a hint could for example be an induction scheme, prover timeout etc.
+    *
+    * //TODO maybe make VerifierHints less general?
+    * //TODO maybe introduce a mechanism for letting a Verifier "announce" to a caller what hints it requires?
+    *
     * @param goal
     * @param spec
     * @param assumptions
+    * @param hints
     * @param produce
     * @tparam Result
     * @return
     */
-  def verify[Result](goal: Goal, spec: Spec, assumptions: Iterable[Goal],
-                     produce: StepResultProducer[Spec, Goal, Result]): Result
+  def verify[Result <: GenStepResult[Spec, Goal]](goal: Goal, spec: Spec, assumptions: Iterable[Goal],
+                                                  hints: Option[VerifierHints],
+                                                  produce: StepResultProducer[Spec, Goal, Result]): Result
 
 }

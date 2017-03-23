@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Verifier
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, VerifierHints}
 
 /**
   * Tactics for labeling edges of ProofTrees
@@ -27,7 +27,10 @@ trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] {
     * verifying a step via its edges generates a step result
     * the caller has to decide whether this result will be integrated into a proof graph or not
     *
-    * the default implementation simply calls the given verifier with all given edges;
+    * for verifying a step, a tactic may generate a "hint" for the given verifier (depending on the goal and on
+    * the given verifier
+    *
+    * the default implementation simply calls the given verifier with all given edges and no hints;
     * other concrete implementations may decide to behave differently be overriding this method
     *
     * @param obl
@@ -35,10 +38,10 @@ trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] {
     * @param verifier
     * @return
     */
-  def verifyStep[Result](obl: GenObligation[Spec, Goal],
+  def verifyStep[Result <: GenStepResult[Spec, Goal]](obl: GenObligation[Spec, Goal],
                          edges: Iterable[(GenObligation[Spec, Goal], EdgeLabel)],
                          verifier: Verifier[Spec, Goal], produce: StepResultProducer[Spec, Goal, Result]): Result =
-    verifier.verify(obl.goal, obl.spec, edges.map(_._1.goal), produce)
+    verifier.verify(obl.goal, obl.spec, edges.map(_._1.goal), None, produce)
 
   /**
     * applying a tactic to a ProofStep returns the edges generated from this application

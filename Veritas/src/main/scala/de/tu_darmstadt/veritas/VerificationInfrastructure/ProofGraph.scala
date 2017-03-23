@@ -21,12 +21,12 @@ trait ObligationProducer[Spec, Goal, Obligation] {
   def newObligation(spec: Spec, goal: Goal): Obligation
 }
 
-trait GenStepResult[S, P] {
-  def status: VerifierStatus[S, P]
+trait GenStepResult[Spec, Goal] {
+  def status: VerifierStatus[Spec, Goal]
   def evidence: Option[Evidence]
   def errorMsg: Option[String]
 }
-trait StepResultProducer[Spec, Goal, StepResult] {
+trait StepResultProducer[Spec, Goal, StepResult <: GenStepResult[Spec, Goal]] {
   def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult
 }
 //case class GenStepResultImpl[S, P](status: VerifierStatus[S, P], evidence: Option[Evidence], errorMsg: Option[String]) extends GenStepResult[S, P]
@@ -105,7 +105,7 @@ trait IProofGraph[Spec, Goal] {
 trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
 
   /** Stores an obligation under the given name.
-    * @returns obligation previously stored under the same name, if any
+    * @return obligation previously stored under the same name, if any
     */
   def storeObligation(name: String, obl: Obligation): Option[Obligation]
   /** Removes obligation from the stored obligations. The obligation will remain in

@@ -4,7 +4,7 @@ import java.io.File
 
 import org.scalacheck._
 import Arbitrary.arbitrary
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, Proved, Verifier, VerifierFormat}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import org.scalacheck.util.Pretty
 import org.scalatest._
 
@@ -150,7 +150,9 @@ class ProofGraphXodusTest extends FunSuite {
 
   // Mock classes for testing
   class MockAlwaysVerifier[Spec, Goal] extends Verifier[Spec, Goal] {
+
     class MyV extends VerifierFormat
+
     override type V = MyV
     /** Textual description that should be unique (used for ordering verifiers) */
     override val desc: String = "I_always_verify_everything"
@@ -166,8 +168,9 @@ class ProofGraphXodusTest extends FunSuite {
       * @tparam Result
       * @return
       */
-    override def verify[Result](goal: Goal, spec: Spec, assumptions: Iterable[Goal],
-                                produce: StepResultProducer[Spec, Goal, Result]): Result =
+    override def verify[Result <: GenStepResult[Spec, Goal]](goal: Goal, spec: Spec, assumptions: Iterable[Goal],
+                                                             hints: Option[VerifierHints],
+                                                             produce: StepResultProducer[Spec, Goal, Result]): Result =
       produce.newStepResult(Finished[Spec, Goal](Proved("no log"), this), None, None)
   }
 
