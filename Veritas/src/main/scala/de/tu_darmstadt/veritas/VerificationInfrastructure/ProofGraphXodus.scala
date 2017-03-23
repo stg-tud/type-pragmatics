@@ -70,9 +70,10 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     override def newObligation(spec: Spec, goal: Goal): Obligation =
       transaction[Obligation](txn => newObligationST(txn, spec, goal))
 
-    //TODO: Why would producing a new obligation already insert the obligation into the data base, even if we did not yet decide to store it?!
+    //TODO: Why does producing a new obligation already insert the obligation into the data base, even if we did not yet decide to store it?!
 
     def newObligationST(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
+      //TODO ensure that we don't the same specification multiple times?
       val spec = txn.newEntity(TSpec)
       spec.setProperty(pSpecContent, specObj)
 
