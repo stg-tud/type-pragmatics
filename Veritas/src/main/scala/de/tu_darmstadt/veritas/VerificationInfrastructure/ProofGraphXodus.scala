@@ -58,8 +58,8 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
 
   class Obligation(val id: EntityId, val spec: Spec, val goal: Goal) extends GenObligation[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
-      this(id, entity.getLink(lStoredObl).getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[Spec],
-            entity.getLink(lStoredObl).getProperty(pOblGoal).asInstanceOf[Goal])
+      this(id, entity.getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[Spec],
+            entity.getProperty(pOblGoal).asInstanceOf[Goal])
 
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
@@ -216,7 +216,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     if (stored.isEmpty)
       None
     else
-      Some(new Obligation(stored.getFirst.getId, txn))
+      Some(new Obligation(stored.getFirst.getLink(lStoredObl).getId, txn))
   }
 
   /** Yields proof step if any */
