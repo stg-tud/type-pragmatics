@@ -225,8 +225,6 @@ class SQLSoundnessProofGraph extends FunSuite {
   PropertyTypes.registerPropertyType[StructInductCase[Spec, VeritasConstruct]](g.store)
 
   val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
-
-  //TODO concrete tests that inspect the progress proof graph, once the file is executable
   test("All root induction cases are retrievable") {
     val obls = g.requiredObls(rootinductionPS)
     val tvaluecase = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, obls)

@@ -114,6 +114,7 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
     */
   def unstoreObligation(obl: Obligation)
 
+  // TODO add error possibility (applying a tactic could fail)
   def applyTactic(obl: Obligation, tactic: Tactic[Spec, Goal]): ProofStep
   def unapplyTactic(obl: Obligation)
 
