@@ -4,27 +4,15 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{CaseDistinctionCase, StructInductCase, Tactic}
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.inputdsl.ProofDSL.goal
+import de.tu_darmstadt.veritas.inputdsl.SQLDefs._
+import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL.{exists, forall}
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
 
-
+//This object contains all MockTactics and hand-coded obligations for the SQL soundness proof graph
 object SQLSoundnessProofGraph {
 
-  case class Spec(content: Seq[VeritasConstruct]) extends Ordered[Spec] {
-    val ord = Ordering.Iterable[VeritasConstruct](Ordering.ordered[VeritasConstruct](x => x))
-
-    override def compare(that: Spec): Int = ord.compare(this.content, that.content)
-  }
-
-}
-
-
-/**
-  * Created by sylvia on 28/02/2017.
-  */
-class SQLSoundnessProofGraph extends FunSuite {
-
-  import SQLSoundnessProofGraph._
   import DataTypeDSL._
   import FunctionDSL._
   import SymTreeDSL._
@@ -33,41 +21,15 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   import de.tu_darmstadt.veritas.inputdsl.SQLDefs._
 
+  case class Spec(content: Seq[VeritasConstruct]) extends Ordered[Spec] {
+    val ord = Ordering.Iterable[VeritasConstruct](Ordering.ordered[VeritasConstruct](x => x))
+
+    override def compare(that: Spec): Int = ord.compare(this.content, that.content)
+  }
+
 
   val fullSQLspec: Spec = Spec(Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
     Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ TypeSystemInv.defs ++ SoundnessAuxDefs.defs)
-
-
-  // We instantiate S = Spec and P = VeritasConstruct
-  // When we construct a Transformer that reuses our previous transformations to TPTP, we
-  // might have to explicitly construct Module(s).
-
-  val file = File.createTempFile("sql-progress-proof-store", "")
-  file.delete()
-  file.mkdir()
-  println(s"Test entity store: $file")
-
-
-  val g: ProofGraphXodus[Spec, VeritasConstruct] =
-    new ProofGraphXodus[Spec, VeritasConstruct](file)
-
-  PropertyTypes.registerPropertyType[Spec](g.store)
-  PropertyTypes.registerPropertyType[Goals](g.store)
-  //PropertyTypes.registerPropertyType[FunctionExpJudgment](g.store)
-
-  val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
-  //g.storeObligation("SQL progress", progressObligation)
-
-  val testGoal: Goals = goal(===>("test")('p('x) && 'q('x) || 't('x)))
-  val testObligation: g.Obligation = g.newObligation(Spec(Seq()), testGoal)
-  g.storeObligation("test", testObligation)
-
-  test("Storing and finding the test obligation") {
-    val r = g.findObligation("test")
-
-    assert(r.get.spec == testObligation.spec)
-    assert(r.get.goal == testObligation.goal)
-  }
 
   //Mock tactics
   // class for creating mock induction tactics, with convenience methods like selectCase
@@ -130,201 +92,183 @@ class SQLSoundnessProofGraph extends FunSuite {
     }
   }
 
-  //PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
-  //PropertyTypes.registerPropertyType[StructInductCase[Spec, VeritasConstruct]](g.store)
+  //abstract case splits for union/intersection/difference case (sometimes necessary, sometimes not)
+  //(i.e. with a high timeout provers might be able to prove the case directly)
 
-  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
+  val unionsym = 'Union
+  val sunion = "Union"
+  val intersectionsym = 'Intersection
+  val sintersection = "Intersection"
+  val differencesym = 'Difference
+  val sdifference = "Difference"
+
+  val case1pred: Seq[TypingRuleJudgment] = ('q1 === 'tvalue (~'t1)) & ('q2 === 'tvalue (~'t2))
+  val case2pred: Seq[TypingRuleJudgment] = (~'q1 === 'tvalue (~'t1)) & (forall(~'t2) | ('q2 ~= 'tvalue (~'t2)))
+  val case3pred: Seq[TypingRuleJudgment] = Seq(forall(~'t1) | ('q1 ~= 'tvalue (~'t1)))
+
+  def setconsts = consts('q1 ::> 'Query,
+    'q2 ::> 'Query,
+    'TS ::> 'TStore,
+    'TTC ::> 'TTContext,
+    'TT ::> 'TType)
+
+
+  def mkSQLProgressTSetCaseIH(i: Int, setname: String, indvar: Symbol) =
+    axiom(
+      (!'isValue (indvar) &
+        ('TTC |- indvar :: 'TT) &
+        'StoreContextConsistent ('TS, 'TTC)
+        ).===>("SQL-Progress-T-" + setname + "-IH" + i)(
+        exists(~'qo) |
+          ('reduce (indvar, 'TS) === 'someQuery (~'qo)))
+    )
+
+  def mkSQLProgressTSetCase(i: Int, setsym: Symbol, setname: String, casepreds: Seq[TypingRuleJudgment]) =
+    goal((casepreds &
+        (~'q === setsym ('q1, 'q2)) &
+        (!'isValue (~'q)) &
+        ('TTC |- ~'q :: 'TT) &
+        'StoreContextConsistent ('TS, 'TTC)
+    ).===>(s"SQL-Progress-T-$setname-${i+1}")(
+      exists(~'qo) |
+        ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
+  )
+
+  // hard coded tactic for case distinction of union/intersection/difference induction case
+  case class SetCaseDistinction(setsym: Symbol, setname: String)
+    extends MockCaseDistinction(Seq(case1pred, case2pred, case3pred) map ((stj: Seq[TypingRuleJudgment]) => Spec(stj))) {
+
+    val casepreds = Seq(case1pred, case2pred, case3pred)
+
+    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct],
+                                   produce: ObligationProducer[Spec, VeritasConstruct, Obligation]):
+    Iterable[(Obligation, EdgeLabel)] = {
+      def mkcase(i: Int): Obligation = produce.newObligation(fullSQLspec,
+        mkSQLProgressTSetCase(i, setsym, setname, casepreds(i)))
+
+      Seq((mkcase(0), CaseDistinctionCase[Spec, VeritasConstruct](setname + "1", Some(Spec(Seq(setconsts))), Seq())),
+        (mkcase(1), CaseDistinctionCase[Spec, VeritasConstruct](setname + "2", Some(Spec(Seq(setconsts))),
+          Seq(mkSQLProgressTSetCaseIH(2, setname, 'q2)))),
+        (mkcase(2), CaseDistinctionCase[Spec, VeritasConstruct](setname + "3", Some(Spec(Seq(setconsts))),
+          Seq(mkSQLProgressTSetCaseIH(1, setname, 'q1)))))
+    }
+
+  }
+
+}
+
+
+/**
+  * Constructing the SQL soundness proof graph and tests on the graph
+  */
+class SQLSoundnessProofGraph extends FunSuite {
+
+  import SQLSoundnessProofGraph._
+  import DataTypeDSL._
+  import FunctionDSL._
+  import SymTreeDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
+  import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
+
+  import de.tu_darmstadt.veritas.inputdsl.SQLDefs._
+
+
+  // We instantiate S = Spec and P = VeritasConstruct
+  // When we construct a Transformer that reuses our previous transformations to TPTP, we
+  // might have to explicitly construct Module(s).
+
+  val file = File.createTempFile("sql-progress-proof-store", "")
+  file.delete()
+  file.mkdir()
+  println(s"Test entity store: $file")
+
+
+  val g: ProofGraphXodus[Spec, VeritasConstruct] =
+    new ProofGraphXodus[Spec, VeritasConstruct](file)
+
+  PropertyTypes.registerPropertyType[Spec](g.store)
+  PropertyTypes.registerPropertyType[Goals](g.store)
+
+  val testGoal: Goals = goal(===>("test")('p ('x) && 'q ('x) || 't ('x)))
+  val testObligation: g.Obligation = g.newObligation(Spec(Seq()), testGoal)
+
+  test("Storing and finding the test obligation") {
+    g.storeObligation("test", testObligation)
+
+    val r = g.findObligation("test")
+
+    assert(r.get.spec == testObligation.spec)
+    assert(r.get.goal == testObligation.goal)
+  }
+
+  test("Unstoring the test obligation") {
+    g.unstoreObligation(testObligation)
+    val r = g.findObligation("test")
+
+    assert(r == None)
+  }
+
+
+  val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
+  g.storeObligation("SQL progress", progressObligation)
+
+
+  test("Storing and finding the progress obligation") {
+    val r = g.findObligation("SQL progress")
+
+    assert(r.get.spec == progressObligation.spec)
+    assert(r.get.goal == progressObligation.goal)
+  }
+
+
+  PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
+  PropertyTypes.registerPropertyType[StructInductCase[Spec, VeritasConstruct]](g.store)
+
+  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
 
   //TODO concrete tests that inspect the progress proof graph, once the file is executable
+  test("All root induction cases are retrievable") {
+    val obls = g.requiredObls(rootinductionPS)
+    val tvaluecase = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, obls)
+    val selcase = MockInduction.selectCase(SQLProgressTselectFromWhere.goals.head.name, obls)
+    val unioncase = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
+    val intersectioncase = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, obls)
+    val differencecase = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, obls)
 
-  //case split for union case (sometimes necessary, sometimes not)
-  //(i.e. with a high timeout provers might be able to prove the case directly)
+    assert(tvaluecase.spec == fullSQLspec)
+    assert(tvaluecase.goal == SQLProgressTtvalue)
 
-  val SQLProgressTUnion1 = goal(
-    (('q1 === 'tvalue (~'t1)) &
-      ('q2 === 'tvalue (~'t2)) &
-      (~'q === 'Union ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Union-1")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
+    assert(selcase.spec == fullSQLspec)
+    assert(selcase.goal == SQLProgressTselectFromWhere)
 
-  val SQLProgressTUnion2 = goal(
-    ((~'q1 === 'tvalue (~'t1)) &
-      (forall(~'t2) | ('q2 ~= 'tvalue (~'t2))) &
-      (~'q === 'Union ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Union-2")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
+    assert(unioncase.spec == fullSQLspec)
+    assert(unioncase.goal == SQLProgressTUnion)
 
-  val SQLProgressTUnion3 = goal(
-    ((forall(~'t1) | ('q1 ~= 'tvalue (~'t1))) &
-      (~'q === 'Union ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Union-3")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
+    assert(intersectioncase.spec == fullSQLspec)
+    assert(intersectioncase.goal == SQLProgressTIntersection)
 
-
-  // hard coded tactic for case distinction of union induction case
-  //TODO refine empty list in argument to MockCaseDistinction
-  class UnionCaseDistinction extends MockCaseDistinction(Seq()) {
-    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
-      val unioncase1: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion1)
-
-      val unioncase2: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion2)
-
-      val unioncase3: Obligation = produce.newObligation(fullSQLspec, SQLProgressTUnion3)
-
-      Seq((unioncase1, CaseDistinctionCase[Spec, VeritasConstruct]("Union1", Some(Spec(Seq(unionconsts))), Seq())),
-        (unioncase2, CaseDistinctionCase[Spec, VeritasConstruct]("Union2", Some(Spec(Seq(unionconsts))),
-          Seq(SQLProgressTUnionIH2))),
-        (unioncase3, CaseDistinctionCase[Spec, VeritasConstruct]("Union3", Some(Spec(Seq(unionconsts))),
-          Seq(SQLProgressTUnionIH1))))
-    }
-
+    assert(differencecase.spec == fullSQLspec)
+    assert(differencecase.goal == SQLProgressTDifference)
   }
 
-  val unionCaseDistinction = new UnionCaseDistinction()
+  PropertyTypes.registerPropertyType[SetCaseDistinction](g.store)
+  PropertyTypes.registerPropertyType[CaseDistinctionCase[Spec, VeritasConstruct]](g.store)
 
-  //PropertyTypes.registerPropertyType[UnionCaseDistinction](g.store)
-  //PropertyTypes.registerPropertyType[CaseDistinctionCase[Spec, VeritasConstruct]](g.store)
+  // Case distinctions for Union, Intersection, Difference cases
+  val unionCaseDistinction = SetCaseDistinction(unionsym, sunion)
 
+  val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, g.requiredObls(rootinductionPS))
+  val unioncasePS = g.applyTactic(unioncaseobl, unionCaseDistinction)
 
-  //val obls = g.requiredObls(rootinductionPS) //this generates a ScalaReflectionException:
-//    [info]   scala.ScalaReflectionException: Scala field typ  of trait Typeable isn't represented as a Java field, nor does it have a
-//    [info] Java accessor method. One common reason for this is that it may be a private class parameter
-//  [info] not used outside the primary constructor.
-  //This is probably related to pickling/unpickling of MetaVars, which mix in trait Typeable which
-  //has a var.
+  val intersectionCaseDistinction = SetCaseDistinction(intersectionsym, sintersection)
 
+  val intersectioncaseobl = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, g.requiredObls(rootinductionPS))
+  val intersectioncasePS = g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
 
-  //val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
-  //g.applyTactic(unioncaseobl, unionCaseDistinction)
+  val differenceCaseDistinction = SetCaseDistinction(intersectionsym, sintersection)
 
-
-  //intersection and difference cases are completely analogous to union case
-  //case split for intersection case (sometimes necessary, sometimes not)
-  //(i.e. with a high timeout provers might be able to prove the case directly)
-
-  val SQLProgressTIntersection1 = goal(
-    (('q1 === 'tvalue (~'t1)) &
-      ('q2 === 'tvalue (~'t2)) &
-      (~'q === 'Intersection ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Intersection-1")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
-
-  val SQLProgressTIntersection2 = goal(
-    ((~'q1 === 'tvalue (~'t1)) &
-      (forall(~'t2) | ('q2 ~= 'tvalue (~'t2))) &
-      (~'q === 'Intersection ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Intersection-2")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
-
-  val SQLProgressTIntersection3 = goal(
-    ((forall(~'t1) | ('q1 ~= 'tvalue (~'t1))) &
-      (~'q === 'Intersection ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Intersection-3")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
-
-  // hard coded tactic for case distinction of intersection induction case
-  //TODO refine empty list in argument to MockCaseDistinction
-  val intersectionCaseDistinction = new MockCaseDistinction(Seq()) {
-    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
-      val intersectioncase1: Obligation = produce.newObligation(fullSQLspec, SQLProgressTIntersection1)
-
-      val intersectioncase2: Obligation = produce.newObligation(fullSQLspec, SQLProgressTIntersection2)
-
-      val intersectioncase3: Obligation = produce.newObligation(fullSQLspec, SQLProgressTIntersection3)
-
-      Seq((intersectioncase1, CaseDistinctionCase[Spec, VeritasConstruct]("Intersection1", Some(Spec(Seq(intersectionconsts))), Seq())),
-        (intersectioncase2, CaseDistinctionCase[Spec, VeritasConstruct]("Intersection2", Some(Spec(Seq(intersectionconsts))),
-          Seq(SQLProgressTIntersectionIH2))),
-        (intersectioncase3, CaseDistinctionCase[Spec, VeritasConstruct]("Intersection3", Some(Spec(Seq(intersectionconsts))),
-          Seq(SQLProgressTIntersectionIH1))))
-    }
-
-  }
-
-  //  val intersectioncaseobl = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, g.requiredObls(rootinductionPS))
-  //  g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
-
-
-  //case split for difference case (sometimes necessary, sometimes not)
-  //(i.e. with a high timeout provers might be able to prove the case directly)
-
-  val SQLProgressTDifference1 = goal(
-    (('q1 === 'tvalue (~'t1)) &
-      ('q2 === 'tvalue (~'t2)) &
-      (~'q === 'Difference ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Difference-1")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
-
-  val SQLProgressTDifference2 = goal(
-    ((~'q1 === 'tvalue (~'t1)) &
-      (forall(~'t2) | ('q2 ~= 'tvalue (~'t2))) &
-      (~'q === 'Difference ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Difference-2")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
-
-  val SQLProgressTDifference3 = goal(
-    ((forall(~'t1) | ('q1 ~= 'tvalue (~'t1))) &
-      (~'q === 'Difference ('q1, 'q2)) &
-      (!'isValue (~'q)) &
-      ('TTC |- ~'q :: 'TT) &
-      'StoreContextConsistent ('TS, 'TTC)
-      ).===>("SQL-Progress-T-Difference-3")(
-      exists(~'qo) |
-        ('reduce (~'q, 'TS) === 'someQuery (~'qo))))
-
-  // hard coded tactic for case distinction of difference induction case
-  //TODO refine empty list in argument to MockCaseDistinction
-  val differenceCaseDistinction = new MockCaseDistinction(Seq()) {
-    override def apply[Obligation](obl: GenObligation[Spec, VeritasConstruct], produce: ObligationProducer[Spec, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
-      val differencecase1: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference1)
-
-      val differencecase2: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference2)
-
-      val differencecase3: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference3)
-
-      Seq((differencecase1, CaseDistinctionCase[Spec, VeritasConstruct]("Difference1", Some(Spec(Seq(differenceconsts))), Seq())),
-        (differencecase2, CaseDistinctionCase[Spec, VeritasConstruct]("Difference2", Some(Spec(Seq(differenceconsts))),
-          Seq(SQLProgressTDifferenceIH2))),
-        (differencecase3, CaseDistinctionCase[Spec, VeritasConstruct]("Difference3", Some(Spec(Seq(differenceconsts))),
-          Seq(SQLProgressTDifferenceIH1))))
-    }
-
-  }
-
-  //  val differencecaseobl = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, g.requiredObls(rootinductionPS))
-  //  g.applyTactic(differencecaseobl, differenceCaseDistinction)
+  val differencecaseobl = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, g.requiredObls(rootinductionPS))
+  val differencecasePS = g.applyTactic(differencecaseobl, differenceCaseDistinction)
 
 
   // here, the SQL lemmas necessary for progress (selectFromWhere case) start
