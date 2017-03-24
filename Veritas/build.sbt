@@ -14,9 +14,6 @@ libraryDependencies += "io.verizon.quiver" %% "core" % "5.4.12"
 
 libraryDependencies += "org.jetbrains.xodus" % "xodus-entity-store" % "1.0.4"
 
-// https://mvnrepository.com/artifact/org.scala-lang/scala-pickling_2.11
-libraryDependencies += "org.scala-lang" % "scala-pickling_2.11" % "0.9.1"
-
 assemblyJarName in assembly := "Veritas.jar"
 
 test in assembly := {}

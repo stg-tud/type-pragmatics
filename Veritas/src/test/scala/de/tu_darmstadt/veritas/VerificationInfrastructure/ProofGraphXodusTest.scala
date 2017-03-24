@@ -8,23 +8,26 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import org.scalacheck.util.Pretty
 import org.scalatest._
 
-import scala.tools.nsc.doc.base.comment.OrderedList
-//import org.scalatest.prop.PropertyChecks
 import org.scalacheck.Prop.forAll
 
-//simple wrapper classes for simulating content of proof graphs
-case class Spec[T <: Comparable[T]](spec: T) extends Comparable[Spec[T]] {
-  override def compareTo(that: Spec[T]): Int = this.spec compareTo that.spec
-}
 
-case class Goal[T <: Comparable[T]](goal: T) extends Comparable[Goal[T]] {
-  override def compareTo(that: Goal[T]): Int = this.goal compareTo that.goal
+object ProofGraphXodusTest {
+
+  //simple wrapper classes for simulating content of proof graphs
+  case class Spec[T <: Comparable[T]](spec: T) extends Comparable[Spec[T]] {
+    override def compareTo(that: Spec[T]): Int = this.spec compareTo that.spec
+  }
+
+  case class Goal[T <: Comparable[T]](goal: T) extends Comparable[Goal[T]] {
+    override def compareTo(that: Goal[T]): Int = this.goal compareTo that.goal
+  }
 }
 
 /**
   * Testing the proof graph Xodus implementation with basic types only
   */
 class ProofGraphXodusTest extends FunSuite {
+  import ProofGraphXodusTest._
 
   //initializing a new test graph and registering all required basic property types
   def initializePGXodus(printStorePath: Boolean = false): ProofGraphXodus[Spec[String], Goal[String]] = {

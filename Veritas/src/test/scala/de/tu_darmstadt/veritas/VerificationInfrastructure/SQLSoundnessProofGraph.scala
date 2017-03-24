@@ -7,13 +7,24 @@ import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
 
-import scala.pickling.{OutputStreamOutput, SPickler}
+
+object SQLSoundnessProofGraph {
+
+  case class Spec(content: Seq[VeritasConstruct]) extends Ordered[Spec] {
+    val ord = Ordering.Iterable[VeritasConstruct](Ordering.ordered[VeritasConstruct](x => x))
+
+    override def compare(that: Spec): Int = ord.compare(this.content, that.content)
+  }
+
+}
+
 
 /**
   * Created by sylvia on 28/02/2017.
   */
 class SQLSoundnessProofGraph extends FunSuite {
 
+  import SQLSoundnessProofGraph._
   import DataTypeDSL._
   import FunctionDSL._
   import SymTreeDSL._
@@ -22,11 +33,6 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   import de.tu_darmstadt.veritas.inputdsl.SQLDefs._
 
-  case class Spec(content: Seq[VeritasConstruct]) extends Ordered[Spec] {
-    val ord = Ordering.Iterable[VeritasConstruct](Ordering.ordered[VeritasConstruct](x => x))
-
-    override def compare(that: Spec): Int = ord.compare(this.content, that.content)
-  }
 
   val fullSQLspec: Spec = Spec(Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
     Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ TypeSystemInv.defs ++ SoundnessAuxDefs.defs)

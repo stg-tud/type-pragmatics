@@ -4,7 +4,7 @@ package de.tu_darmstadt.veritas.backend.ast
  * superclass of all Veritas constructs
  * used for defining general operations on Veritas constructs
  */
-trait VeritasConstruct extends Ordered[VeritasConstruct] {
+trait VeritasConstruct extends Ordered[VeritasConstruct] with Serializable {
   /**
    * has to be overridden by each VeritasConstruct!
    * declares the children each Veritas construct has,

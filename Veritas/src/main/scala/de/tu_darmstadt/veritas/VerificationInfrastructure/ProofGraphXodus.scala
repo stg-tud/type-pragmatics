@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import java.io.{ByteArrayInputStream, File}
+import java.io.{ByteArrayInputStream, File, ObjectInputStream, ObjectOutputStream}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{NoInfoEdgeLabel, Solve, Tactic}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Unknown, VerifierStatus}
@@ -9,8 +9,6 @@ import jetbrains.exodus.entitystore._
 import jetbrains.exodus.util.LightOutputStream
 
 import scala.collection.JavaConverters._
-import scala.pickling.binary.BinaryPickleStream
-import scala.pickling.{FastTypeTag, OutputStreamOutput, SPickler, Unpickler}
 import scala.reflect.ClassTag
 
 
@@ -341,30 +339,26 @@ object ProofGraphXodus {
 
 object PropertyTypes {
   def registerAll(store: PersistentEntityStore) {
-    registerPropertyType[Solve[String, String]](store)
+    registerPropertyType[Solve[_, _]](store)
     registerPropertyType[NoInfoEdgeLabel.type](store)
-    registerPropertyType[VerifierStatus[String, String]](store)
-    registerPropertyType[Unknown[String, String]](store)
+    registerPropertyType[VerifierStatus[_, _]](store)
+    registerPropertyType[Unknown[_, _]](store)
   }
 
 
-  def registerPropertyType[T <: Comparable[_]](store: PersistentEntityStore)
-                                              (implicit pickler: SPickler[T],
-                                               unpickler: Unpickler[T], tag: ClassTag[T], fastTag: FastTypeTag[T]) =
+  def registerPropertyType[T <: Comparable[_] with Serializable](store: PersistentEntityStore)
+                                              (implicit tag: ClassTag[T]) =
     store.executeInTransaction(new StoreTransactionalExecutable() {
       override def execute(txn: StoreTransaction): Unit = {
-        val format = scala.pickling.binary.pickleFormat
-
         val binding = new ComparableBinding {
           override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
-            val builder = format.createBuilder(new OutputStreamOutput(output))
-            builder.hintTag(fastTag)
-            pickler.pickle(obj.asInstanceOf[T], builder)
+            val oos = new ObjectOutputStream(output)
+            oos.writeObject(obj)
           }
 
           override def readObject(stream: ByteArrayInputStream) = {
-            val reader = BinaryPickleStream(stream).createReader(fastTag.mirror, format)
-            unpickler.unpickle(fastTag, reader).asInstanceOf[T]
+            val ois = new ObjectInputStream(stream)
+            ois.readObject().asInstanceOf[T]
           }
         }
 

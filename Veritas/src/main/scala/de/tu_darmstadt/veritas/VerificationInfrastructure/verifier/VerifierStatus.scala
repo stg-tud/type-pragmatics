@@ -4,7 +4,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
   * status of a particular verification attempt (for a node/leaf in a proof tree)
   *
   */
-sealed trait VerifierStatus[Spec, Goal] extends Ordered[VerifierStatus[Spec, Goal]] {
+sealed trait VerifierStatus[Spec, Goal] extends Ordered[VerifierStatus[Spec, Goal]] with Serializable {
   val verifier: Verifier[Spec, Goal]
   val isVerified: Boolean = false
 }
