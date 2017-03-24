@@ -263,10 +263,36 @@ class SQLSoundnessProofGraph extends FunSuite {
   val intersectioncaseobl = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, g.requiredObls(rootinductionPS))
   val intersectioncasePS = g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
 
-  val differenceCaseDistinction = SetCaseDistinction(intersectionsym, sintersection)
+  val differenceCaseDistinction = SetCaseDistinction(differencesym, sdifference)
 
   val differencecaseobl = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, g.requiredObls(rootinductionPS))
   val differencecasePS = g.applyTactic(differencecaseobl, differenceCaseDistinction)
+
+  test("Applying case distinctions worked as desired") {
+    val unionobls = g.requiredObls(unioncasePS)
+    val union1 = MockCaseDistinction.selectCase("Union1", unionobls)
+    val intersectionobls = g.requiredObls(intersectioncasePS)
+    val intersection3 = MockCaseDistinction.selectCase("Intersection3", intersectionobls)
+    val differenceobls = g.requiredObls(differencecasePS)
+    val difference2 = MockCaseDistinction.selectCase("Difference2", differenceobls)
+
+    assert(union1.goal == mkSQLProgressTSetCase(0, unionsym, sunion, case1pred))
+    assert(intersection3.goal == mkSQLProgressTSetCase(2, intersectionsym, sintersection, case3pred))
+    assert(difference2.goal == mkSQLProgressTSetCase(1, differencesym, sdifference, case2pred))
+
+    //compare some induction hypotheses
+
+    val obls = g.requiredObls(rootinductionPS)
+    val unioncase = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
+    val intersectioncase = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, obls)
+    val differencecase = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, obls)
+
+    val unionps = g.appliedStep(unioncase).get
+    val unionedges = g.requiredObls(unionps).toSeq
+    assert(unionedges.size == 3)
+    assert(unionedges(1)._2.asInstanceOf[CaseDistinctionCase[Spec, VeritasConstruct]].ihs.head == SQLProgressTUnionIH2)
+
+  }
 
 
   // here, the SQL lemmas necessary for progress (selectFromWhere case) start
