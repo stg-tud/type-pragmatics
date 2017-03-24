@@ -35,3 +35,6 @@ case class Finished[Spec, Goal](status: ProverStatus, verifier: Verifier[Spec, G
   }
 }
 
+//TODO support status that contains several different Prover stati?
+//TODO what if a Verifier does not generate a ProverStatus?
+
