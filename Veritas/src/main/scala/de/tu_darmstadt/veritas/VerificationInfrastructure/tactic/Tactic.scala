@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, Ve
 /**
   * Tactics for labeling edges of ProofTrees
   */
-trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] {
+trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] with Serializable {
   /**
     * checks whether a given obligation is verified with regard to the tactic
     *

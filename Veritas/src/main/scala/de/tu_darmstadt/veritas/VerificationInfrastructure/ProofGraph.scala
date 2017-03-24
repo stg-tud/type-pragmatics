@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, Ve
 import scala.collection.mutable
 
 
-trait EdgeLabel extends Ordered[EdgeLabel]
+trait EdgeLabel extends Ordered[EdgeLabel] with Serializable
 
 trait GenProofStep[Spec, Goal] {
   def tactic: Tactic[Spec, Goal]
