@@ -29,7 +29,7 @@ package object VerificationInfrastructure {
     override def verify[Result <: GenStepResult[Spec, Goal]](goal: Goal, spec: Spec, assumptions: Iterable[Goal],
                                                              hints: Option[VerifierHints],
                                                              produce: StepResultProducer[Spec, Goal, Result]): Result =
-      produce.newStepResult(Finished[Spec, Goal](Proved("no log"), this), None, None)
+      produce.newStepResult(Finished[Spec, Goal](Proved(ATPResultDetails("no log", None)), this), None, None)
   }
 
 }
