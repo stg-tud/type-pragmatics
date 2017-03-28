@@ -202,6 +202,13 @@ class SQLSoundnessProofGraph extends FunSuite {
   }
 
   test("Unstoring the test obligation") {
+
+    //first check whether obligation is still there
+    val ro = g.findObligation("test")
+
+    assert(ro.get.spec == testObligation.spec)
+    assert(ro.get.goal == testObligation.goal)
+
     g.unstoreObligation(testObligation)
     val r = g.findObligation("test")
 
