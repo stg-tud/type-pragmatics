@@ -1,27 +1,49 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
+import java.io._
+
+import scala.sys.process.ProcessLogger
+
 /**
   * return status of a prover call
   */
 sealed trait ProverStatus extends Ordered[ProverStatus] {
   val isVerified: Boolean = false
-  val proverLog: String
+  val proverResult: ResultDetails
 
   override def compare(that: ProverStatus): Int = that match {
-    case that: this.type => proverLog compare that.proverLog
+    case that: this.type => proverResult compare that.proverResult
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 }
 
-case class Proved(proverLog: String) extends ProverStatus {
+trait ResultDetails extends Ordered[ResultDetails] {
+  /**
+    * @return all details as string
+    */
+  def toString: String
+
+  /**
+    *
+    * @return full logs of prover
+    */
+  def fullLogs: String
+
+  def summaryDetails: String
+
+  override def compare(that: ResultDetails): Int = this.fullLogs compare that.fullLogs
+}
+
+
+case class Proved(proverResult: ResultDetails) extends ProverStatus {
   override val isVerified: Boolean = true
 }
 
-case class Disproved(proverLog: String) extends ProverStatus
+case class Disproved(proverResult: ResultDetails) extends ProverStatus
 
-case class Inconclusive(proverLog: String) extends ProverStatus
+case class Inconclusive(proverResult: ResultDetails) extends ProverStatus
 
-case class ProverFailure(proverLog: String) extends ProverStatus
+case class ProverFailure(proverResult: ResultDetails) extends ProverStatus
 
 /**
   * Interface for concrete provers
@@ -29,4 +51,6 @@ case class ProverFailure(proverLog: String) extends ProverStatus
 trait Prover[V <: VerifierFormat] {
 
   def callProver(problem: V): ProverStatus
+
 }
+
