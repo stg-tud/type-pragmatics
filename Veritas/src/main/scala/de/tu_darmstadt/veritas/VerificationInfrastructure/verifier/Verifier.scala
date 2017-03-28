@@ -12,7 +12,7 @@ trait VerifierHints
   * starting/stopping a proof attempt...)
   *
   */
-trait Verifier[Spec, Goal] extends Ordered[Verifier[Spec, Goal]] {
+trait Verifier[Spec, Goal] extends Ordered[Verifier[Spec, Goal]] with Serializable {
   type V <: VerifierFormat
 
   /** Textual description that should be unique (used for ordering verifiers) */

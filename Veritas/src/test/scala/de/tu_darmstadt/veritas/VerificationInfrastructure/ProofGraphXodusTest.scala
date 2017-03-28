@@ -151,31 +151,6 @@ class ProofGraphXodusTest extends FunSuite {
   }
 
 
-  // Mock classes for testing
-  class MockAlwaysVerifier[Spec, Goal] extends Verifier[Spec, Goal] {
-
-    class MyV extends VerifierFormat
-
-    override type V = MyV
-    /** Textual description that should be unique (used for ordering verifiers) */
-    override val desc: String = "I_always_verify_everything"
-
-    /**
-      * A concrete verifier may call any combination of transformers & provers
-      * (or do something else to produce a verification result)
-      *
-      * @param goal
-      * @param spec
-      * @param assumptions
-      * @param produce
-      * @tparam Result
-      * @return
-      */
-    override def verify[Result <: GenStepResult[Spec, Goal]](goal: Goal, spec: Spec, assumptions: Iterable[Goal],
-                                                             hints: Option[VerifierHints],
-                                                             produce: StepResultProducer[Spec, Goal, Result]): Result =
-      produce.newStepResult(Finished[Spec, Goal](Proved("no log"), this), None, None)
-  }
 
 
   //Instantiating
