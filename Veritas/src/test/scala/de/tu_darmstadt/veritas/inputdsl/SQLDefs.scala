@@ -230,7 +230,7 @@ object SQLDefs {
           els 'lookupStore ('n, 'TS)))
 
   val TStore = Module("TStore", Seq(Resolved(Tables)),
-    Seq(OptTable, isSomeRawTable, getTable, TStoreData, lookupStore))
+    Seq(OptTable, isSomeTable, getTable, TStoreData, lookupStore))
 
   //module sql.TContext
 
@@ -343,7 +343,7 @@ object SQLDefs {
               th 'someRawTable ('attachColToFrontRaw ('getRawTable ('col), 'getRawTable ('rest)))
               els 'noRawTable)))
 
-  val projectTable = function('projectTable.>>('Selec, 'Table) -> 'OptTable) where
+  val projectTable = function('projectTable.>>('Select, 'Table) -> 'OptTable) where
     ('projectTable ('all, 'table ('al, 'rt)) := 'someTable ('table ('al, 'rt))) |
       ('projectTable ('list ('alr), 'table ('al, 'rt)) :=
         (let('projected) := 'projectCols ('alr, 'al, 'rt)) in
