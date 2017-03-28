@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Solve
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Finished
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Failure, Finished, TPTPVampireVerifier, TSTPProof}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
@@ -21,9 +21,6 @@ class SQLSimpleProofGraphs extends FunSuite {
 
   import de.tu_darmstadt.veritas.inputdsl.SQLDefs.{Tables, TableAux, TStore, TContext, Syntax, Semantics, TypeSystem, TypeSystemInv, SoundnessAuxDefs}
 
-  // We instantiate S = Seq[VeritasConstruct] and P = VeritasConstruct
-  // When we construct a Transformer that reuses our previous transformations to TPTP, we
-  // might have to explicitly construct Module(s).
 
   val testspec: Module = Module("SQLspec", Seq(), Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
     Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ SoundnessAuxDefs.defs)
@@ -38,6 +35,9 @@ class SQLSimpleProofGraphs extends FunSuite {
     PropertyTypes.registerPropertyType[Module](pg.store)
     PropertyTypes.registerPropertyType[Local](pg.store)
     PropertyTypes.registerPropertyType[Finished[_, _]](pg.store)
+    PropertyTypes.registerPropertyType[Failure[_, _]](pg.store)
+    PropertyTypes.registerPropertyType[TSTPProof](pg.store)
+
 
     val obl = pg.obligationProducer.newObligation(tspec, goal)
     pg.storeObligation(nodename, obl)
@@ -74,16 +74,17 @@ class SQLSimpleProofGraphs extends FunSuite {
     val nonResult = pg.verifiedBy(proofstep)
     assert(nonResult.isEmpty)
 
-    val verifier = MockAlwaysVerifier[VeritasConstruct, VeritasConstruct]()
+    //val verifier = MockAlwaysVerifier[VeritasConstruct, VeritasConstruct]()
+    val verifier = new TPTPVampireVerifier()
     val result = verifier.verify(obl.get.goal, obl.get.spec, Nil, None, pg.stepResultProducer)
     pg.setVerifiedBy(proofstep, result)
 
     val retrievedResult = pg.verifiedBy(proofstep)
     assert(retrievedResult.isDefined)
-    assert(retrievedResult.get.status.isVerified == result.status.isVerified)
-    assert(retrievedResult.get.status == result.status)
-    assert(retrievedResult.get.errorMsg == result.errorMsg)
-    assert(retrievedResult.get.evidence == result.evidence)
+    assert(retrievedResult.get.status.isVerified)
+    assert(retrievedResult.get.status.isInstanceOf[Finished[_, _]])
+    assert(retrievedResult.get.errorMsg.isEmpty)
+    assert(retrievedResult.get.evidence.nonEmpty)
   }
 
   test("Verify ProofGraph for test-2 goal") {
@@ -106,6 +107,8 @@ class SQLSimpleProofGraphs extends FunSuite {
 
     val pg = makeSingleNodeProofGraph("test-2 goal", testspec, test2)
 
+    val oblt = pg.findObligation("test-1 goal")
+    assert(oblt.isEmpty)
     val obl = pg.findObligation("test-2 goal")
     val proofstep = pg.appliedStep(obl.get).get
     val nonResult = pg.verifiedBy(proofstep)
