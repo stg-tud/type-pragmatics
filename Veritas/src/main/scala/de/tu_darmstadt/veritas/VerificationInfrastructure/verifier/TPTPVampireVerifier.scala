@@ -1,13 +1,13 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{GenStepResult, StepResultProducer}
-import de.tu_darmstadt.veritas.backend.ast.VeritasConstruct
+import de.tu_darmstadt.veritas.backend.ast.{Module, ModuleDef, VeritasConstruct}
 
 /**
   * Verifier for translating Veritas AST to TPTP (with selected transformation strategy) and calling
   * Vampire on the result
   */
-class TPTPVampireVerifier extends Verifier[Seq[VeritasConstruct], VeritasConstruct] {
+class TPTPVampireVerifier(timeout: Int = 10) extends Verifier[VeritasConstruct, VeritasConstruct] {
   override type V = TPTP
   /** Textual description that should be unique (used for ordering verifiers) */
   override val desc: String = "TPTPVampireVerifier"
@@ -32,24 +32,46 @@ class TPTPVampireVerifier extends Verifier[Seq[VeritasConstruct], VeritasConstru
     * @tparam Result
     * @return
     */
-  override def verify[Result <: GenStepResult[Seq[VeritasConstruct], VeritasConstruct]]
+  override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]]
   (goal: VeritasConstruct,
-   spec: Seq[VeritasConstruct],
+   spec: VeritasConstruct,
    assumptions: Iterable[VeritasConstruct],
    hints: Option[VerifierHints],
-   produce: StepResultProducer[Seq[VeritasConstruct], VeritasConstruct, Result]): Result = {
+   produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result]): Result = {
     //TODO add error handling (transformation can fail, prover call can fail etc.)
 
     val transformer = new VeritasTransformerBestStrat()
-    //TODO: make timeout into parameter for this concrete verifier?
-    val vampire = Vampire("4.1", 10)
-    val assembledProblemSpec = spec ++ assumptions.toSeq
-    val transformedProb = transformer.transformProblem(assembledProblemSpec, goal)
+    val vampire = Vampire("4.1", timeout)
+    spec match {
+      case Module(name, imps, moddefs) => {
+        val assmmoddefs = assumptions.toSeq flatMap { s =>
+          s match {
+            case m: ModuleDef => Seq(m)
+            case _ => {
+              println(s"Ignored $s since it was not a ModuleDef.");
+              Seq()
+            }
+          }
+        }
+        val assembledProblemSpec = Module(name + "withassms", imps, moddefs ++ assmmoddefs)
 
-    val proverstatus = vampire.callProver(transformedProb)
+        val transformedProb = transformer.transformProblem(assembledProblemSpec, goal)
 
-    //TODO refine production of step result; add evidence
-    produce.newStepResult(Finished(proverstatus, this), None, None)
+        transformedProb match {
+          case Left(tptp) => {
+            val proverstatus = vampire.callProver(tptp)
+            produce.newStepResult(Finished(proverstatus, this),
+              proverstatus.proverResult.proofEvidence,
+              proverstatus.proverResult.message)
+          }
+          case Right(err) => {
+            produce.newStepResult(Failure(s"Problem during transformation step: $err", this), None, None)
+          }
+        }
+      }
+      case _ => produce.newStepResult(Failure(s"Specification was not a module $spec", this), None, None)
+    }
+
 
   }
 }

@@ -2,6 +2,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 import java.io._
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence
+
 import scala.sys.process.ProcessLogger
 
 /**
@@ -30,6 +32,10 @@ trait ResultDetails extends Ordered[ResultDetails] {
   def fullLogs: String
 
   def summaryDetails: String
+
+  def proofEvidence: Option[Evidence]
+
+  def message: Option[String]
 
   override def compare(that: ResultDetails): Int = this.fullLogs compare that.fullLogs
 }

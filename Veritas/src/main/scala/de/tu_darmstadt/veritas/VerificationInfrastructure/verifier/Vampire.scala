@@ -2,6 +2,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 import java.io.{File, PrintWriter}
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{Evidence, TSTP}
+
 /**
   * Expects the correct Vampire binaries in the project path, named "vampire-3.0", "vampire-4.0" or "vampire-4.1"
   *
@@ -60,12 +62,14 @@ case class Vampire(version: String, timeout: Int, mode: String = "casc") extends
 
     val resultProc = VampireResultProcessor(tempOutFile, timeout)
 
+
     val proverCall = makeCall(tempInFile, timeout)
     val p = proverCall.run(resultProc)
 
     import concurrent._
     import ExecutionContext.Implicits.global
     val f = Future(blocking(p.exitValue()))
+
     try {
       val code = Await.result(f, duration.Duration(timeout + 10, "sec"))
       val end = System.nanoTime()
@@ -81,12 +85,17 @@ case class Vampire(version: String, timeout: Int, mode: String = "casc") extends
         println(s" *** Timeout when calling ${proverCall.head}...")
         resultProc.result
     }
+
   }
 
-  private def processResult(outfile: File, defaultTimeout: Int, processLogsOnly: Boolean): ProverStatus = ???
-
-
 }
+
+case class TSTPProof(proof: String) extends TSTP[String] {
+  override def getData: String = proof
+
+  override def compare(that: Evidence): Int = this.hashCode() compare that.hashCode()
+}
+
 
 case class ATPResultDetails(logs: String,
                             message: Option[String],
@@ -103,6 +112,9 @@ case class ATPResultDetails(logs: String,
     s"Proof: ${proof.getOrElse("No proof available")}, " +
     s"used lemmas: ${usedLemmas.getOrElse("No data about used lemmas")}, " +
     s"found in time: ${usedtime.getOrElse("No time information")}"
+
+  override def proofEvidence: Option[Evidence] = proof map (p => TSTPProof(p))
+
 }
 
 
