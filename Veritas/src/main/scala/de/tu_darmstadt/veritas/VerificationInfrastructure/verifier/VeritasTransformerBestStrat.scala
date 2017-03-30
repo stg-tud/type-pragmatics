@@ -27,6 +27,7 @@ case class TFFFormat(tff: TffFile) extends TPTP {
 trait TPTPTransformerError extends TransformerError
 case class TPTPTTypeInferenceError(e: TypeInference.TypeError) extends TPTPTransformerError
 case class TPTPTransformationError[T](e: TransformationError[T]) extends TPTPTransformerError
+case class TPTPBackendError[T](e: BackendError[T]) extends TPTPTransformerError
 case class TPTPOtherError(message: String) extends TPTPTransformerError
 
 /**
@@ -65,6 +66,7 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
         } catch {
           case tinf: TypeInference.TypeError => Right(TPTPTTypeInferenceError(tinf))
           case trans: TransformationError[_] =>  Right(TPTPTransformationError(trans))
+          case be: BackendError[_] => Right(TPTPBackendError(be))
           case cast: ClassCastException => Right(TPTPOtherError(s"Module $module was not transformed to the expected format."))
           case e: Exception => throw e
         }

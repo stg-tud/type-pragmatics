@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{GenStepResult, StepResultProducer}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenStepResult, StepResultProducer}
 import de.tu_darmstadt.veritas.backend.ast.{Module, ModuleDef, VeritasConstruct}
 
 /**
@@ -26,7 +26,7 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Ve
     *
     * @param goal
     * @param spec
-    * @param assumptions
+    * @param lassumptions
     * @param hints
     * @param produce
     * @tparam Result
@@ -35,7 +35,7 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Ve
   override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]]
   (goal: VeritasConstruct,
    spec: VeritasConstruct,
-   assumptions: Iterable[VeritasConstruct],
+   lassumptions: Iterable[(VeritasConstruct, EdgeLabel)],
    hints: Option[VerifierHints],
    produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result]): Result = {
     //TODO add error handling (transformation can fail, prover call can fail etc.)
@@ -44,8 +44,10 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Ve
     val vampire = Vampire(version, timeout)
     spec match {
       case Module(name, imps, moddefs) => {
-        val assmmoddefs = assumptions.toSeq flatMap { s =>
-          s match {
+        //TODO correctly process additional information from edges (i.e. wrap stuff in local blocks etc.)
+
+        val assmmoddefs = lassumptions.toSeq flatMap { s =>
+          s._1 match {
             case m: ModuleDef => Seq(m)
             case _ => {
               println(s"Ignored $s since it was not a ModuleDef.");
@@ -53,6 +55,7 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Ve
             }
           }
         }
+
         val assembledProblemSpec = Module(name + "withassms", imps, moddefs ++ assmmoddefs)
 
         val transformedProb = transformer.transformProblem(assembledProblemSpec, goal)

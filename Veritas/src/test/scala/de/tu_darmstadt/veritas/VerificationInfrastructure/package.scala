@@ -6,6 +6,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
   * Created by andiderp on 27/03/2017.
   */
 package object VerificationInfrastructure {
+
   // Mock classes for testing
   case class MockAlwaysVerifier[Spec, Goal]() extends Verifier[Spec, Goal] {
 
@@ -21,12 +22,14 @@ package object VerificationInfrastructure {
       *
       * @param goal
       * @param spec
-      * @param assumptions
+      * @param lassumptions
+      * @param hints
       * @param produce
       * @tparam Result
       * @return
       */
-    override def verify[Result <: GenStepResult[Spec, Goal]](goal: Goal, spec: Spec, assumptions: Iterable[Goal],
+    override def verify[Result <: GenStepResult[Spec, Goal]](goal: Goal, spec: Spec,
+                                                             lassumptions: Iterable[(Goal, EdgeLabel)],
                                                              hints: Option[VerifierHints],
                                                              produce: StepResultProducer[Spec, Goal, Result]): Result =
       produce.newStepResult(Finished[Spec, Goal](Proved(ATPResultDetails("no log", None)), this), None, None)

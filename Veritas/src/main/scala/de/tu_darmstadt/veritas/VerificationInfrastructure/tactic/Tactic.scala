@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, VerifierHints}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier}
 
 /**
   * Tactics for labeling edges of ProofTrees
@@ -39,9 +39,9 @@ trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] with Serializable {
     * @return
     */
   def verifyStep[Result <: GenStepResult[Spec, Goal]](obl: GenObligation[Spec, Goal],
-                         edges: Iterable[(GenObligation[Spec, Goal], EdgeLabel)],
-                         verifier: Verifier[Spec, Goal], produce: StepResultProducer[Spec, Goal, Result]): Result =
-    verifier.verify(obl.goal, obl.spec, edges.map(_._1.goal), None, produce)
+                                                      edges: Iterable[(GenObligation[Spec, Goal], EdgeLabel)],
+                                                      verifier: Verifier[Spec, Goal], produce: StepResultProducer[Spec, Goal, Result]): Result =
+    verifier.verify(obl.goal, obl.spec, edges.map(p => (p._1.goal, p._2)), None, produce)
 
   /**
     * applying a tactic to a ProofStep returns the edges generated from this application
@@ -49,10 +49,13 @@ trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] with Serializable {
     * caller has to decide whether the edges will be integrated into a proof graph or not
     *
     * @param obl
+    * @param obllabels labels from edges that lead to the given obligation (for propagating proof info if necessary)
     * @throws TacticApplicationException
     * @return
     */
-  def apply[Obligation](obl: GenObligation[Spec, Goal], produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)]
+  def apply[Obligation](obl: GenObligation[Spec, Goal],
+                        obllabels: Iterable[EdgeLabel],
+                        produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)]
 }
 
 trait TacticApplicationException[Spec, Goal] extends Exception {

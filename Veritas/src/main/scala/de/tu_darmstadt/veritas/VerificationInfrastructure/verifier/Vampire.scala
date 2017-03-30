@@ -108,10 +108,11 @@ case class ATPResultDetails(logs: String,
     */
   override def fullLogs: String = logs
 
-  override def summaryDetails: String = s"Message: ${message.getOrElse("No message.")}, " +
-    s"Proof: ${proof.getOrElse("No proof available")}, " +
-    s"used lemmas: ${usedLemmas.getOrElse("No data about used lemmas")}, " +
-    s"found in time: ${usedtime.getOrElse("No time information")}"
+  override def summaryDetails: String = s"Message: ${message.getOrElse("No message.")} \n\n" +
+    s"used axioms/lemmas: ${usedLemmas.getOrElse(List("No data about used axioms/lemmas")).mkString(", ")} \n\n" +
+    s"found in time: ${usedtime.getOrElse("No time information")} \n\n" +
+    s"Proof: ${proof.getOrElse("No proof available")}"
+
 
   override def proofEvidence: Option[Evidence] = proof map (p => TSTPProof(p))
 

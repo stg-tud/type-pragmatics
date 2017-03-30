@@ -14,6 +14,10 @@ case class Solve[Spec, Goal]() extends Tactic[Spec, Goal] {
    }
 
   /* applying the Solve tactic does not generate any edges */
-  def apply[Obligation](obl: GenObligation[Spec, Goal], produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+  def apply[Obligation](obl: GenObligation[Spec, Goal],
+                        obllabels: Iterable[EdgeLabel],
+                        produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)] =
     Seq()
+
+
 }

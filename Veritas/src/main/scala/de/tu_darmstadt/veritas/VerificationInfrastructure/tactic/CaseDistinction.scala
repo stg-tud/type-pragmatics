@@ -9,6 +9,8 @@ case class CaseDistinction[Spec, Goal]() extends Tactic[Spec, Goal] {
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 
-  override def apply[Obligation](obl: GenObligation[Spec, Goal], produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+  override def apply[Obligation](obl: GenObligation[Spec, Goal],
+                                 obllabels: Iterable[EdgeLabel],
+                                 produce: ObligationProducer[Spec, Goal, Obligation]): Iterable[(Obligation, EdgeLabel)] =
     ???
 }
