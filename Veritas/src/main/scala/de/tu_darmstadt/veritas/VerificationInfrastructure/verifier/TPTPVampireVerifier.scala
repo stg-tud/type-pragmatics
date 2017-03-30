@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.ast.{Module, ModuleDef, VeritasConstruct}
   * Verifier for translating Veritas AST to TPTP (with selected transformation strategy) and calling
   * Vampire on the result
   */
-class TPTPVampireVerifier(timeout: Int = 10) extends Verifier[VeritasConstruct, VeritasConstruct] {
+class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Verifier[VeritasConstruct, VeritasConstruct] {
   override type V = TPTP
   /** Textual description that should be unique (used for ordering verifiers) */
   override val desc: String = "TPTPVampireVerifier"
@@ -41,7 +41,7 @@ class TPTPVampireVerifier(timeout: Int = 10) extends Verifier[VeritasConstruct, 
     //TODO add error handling (transformation can fail, prover call can fail etc.)
 
     val transformer = new VeritasTransformerBestStrat()
-    val vampire = Vampire("4.1", timeout)
+    val vampire = Vampire(version, timeout)
     spec match {
       case Module(name, imps, moddefs) => {
         val assmmoddefs = assumptions.toSeq flatMap { s =>

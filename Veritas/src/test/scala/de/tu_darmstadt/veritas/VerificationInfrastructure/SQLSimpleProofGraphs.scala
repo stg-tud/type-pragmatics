@@ -25,11 +25,11 @@ class SQLSimpleProofGraphs extends FunSuite {
     Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ SoundnessAuxDefs.defs)
 
   def makeSingleNodeProofGraph(nodename: String, tspec: VeritasConstruct, goal: VeritasConstruct):
-      ProofGraphXodus[VeritasConstruct, VeritasConstruct] = {
+  ProofGraphXodus[VeritasConstruct, VeritasConstruct] = {
     val file = File.createTempFile("veritas-xodus-test-store", "")
     file.delete()
     file.mkdir()
-    val pg : ProofGraphXodus[VeritasConstruct, VeritasConstruct] = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file)
+    val pg: ProofGraphXodus[VeritasConstruct, VeritasConstruct] = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file)
 
     PropertyTypes.registerPropertyType[Module](pg.store)
     PropertyTypes.registerPropertyType[Local](pg.store)
@@ -171,7 +171,7 @@ class SQLSimpleProofGraphs extends FunSuite {
         (~'al === 'acons ('b, 'aempty)) &
         (~'TT === 'ttcons ('b, 'ft2, 'ttempty))
         ).===>("test-7")(
-        ~'TTC |- 'selectFromWhere ('some (~'al), 'tn1, 'ptrue ()) :: ~'TT))
+        ~'TTC |- 'selectFromWhere ('list (~'al), 'tn1, 'ptrue ()) :: ~'TT))
 
     val test7: Local = local(
       differentconsts('a ::> 'Name,
@@ -266,11 +266,24 @@ class SQLSimpleProofGraphs extends FunSuite {
     ("goal 9 test", test9),
     ("goal 10 test", test10))
 
-  def makeAllGoalsProofGraph(): ProofGraph[VeritasConstruct, VeritasConstruct] = {
+
+  val allProvableTests: Seq[(String, VeritasConstruct)] = Seq(
+    ("goal 1 test", test1),
+    ("goal 2 test", test2),
+    ("goal 3 test", test3),
+    ("goal 4 test", test4),
+    ("goal 5 test", test5),
+    ("goal 6 test", test6),
+    ("goal 8 test", test8),
+    ("goal 9 test", test9),
+    ("goal 10 test", test10))
+
+  //creates a proof graph all given goals
+  def makeAllGoalsProofGraph(goals: Seq[(String, VeritasConstruct)]): ProofGraph[VeritasConstruct, VeritasConstruct] = {
     val file = File.createTempFile("veritas-xodus-all-goals-test-store", "")
     file.delete()
     file.mkdir()
-    val pg : ProofGraphXodus[VeritasConstruct, VeritasConstruct] = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file)
+    val pg: ProofGraphXodus[VeritasConstruct, VeritasConstruct] = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file)
 
     PropertyTypes.registerPropertyType[Module](pg.store)
     PropertyTypes.registerPropertyType[Local](pg.store)
@@ -278,7 +291,7 @@ class SQLSimpleProofGraphs extends FunSuite {
     PropertyTypes.registerPropertyType[Failure[_, _]](pg.store)
     PropertyTypes.registerPropertyType[TSTPProof](pg.store)
 
-    for ((name, goal) <- allTests) {
+    for ((name, goal) <- goals) {
       val obl = pg.obligationProducer.newObligation(testspec, goal)
       pg.storeObligation(name, obl)
       pg.applyTactic(obl, Solve[VeritasConstruct, VeritasConstruct])
@@ -288,8 +301,8 @@ class SQLSimpleProofGraphs extends FunSuite {
   }
 
   def retrieveResults(pg: ProofGraph[VeritasConstruct, VeritasConstruct],
-                     name: String,
-                     verifier: Verifier[VeritasConstruct, VeritasConstruct]): (GenStepResult[VeritasConstruct, VeritasConstruct], GenStepResult[VeritasConstruct, VeritasConstruct]) = {
+                      name: String,
+                      verifier: Verifier[VeritasConstruct, VeritasConstruct]): (GenStepResult[VeritasConstruct, VeritasConstruct], GenStepResult[VeritasConstruct, VeritasConstruct]) = {
     val obl = pg.findObligation(name)
     val proofstep = pg.appliedStep(obl.get).get
     val nonResult = pg.verifiedBy(proofstep)
@@ -303,7 +316,7 @@ class SQLSimpleProofGraphs extends FunSuite {
     (result, retrievedResult.get)
   }
 
-  test("Verify ProofGraph with single Node for all goals") {
+  test("Verify ProofGraph with single Node for all goals (MockAlwaysVerifier)") {
     for ((name, test) <- allTests) {
       val pg = makeSingleNodeProofGraph(name, testspec, test)
 
@@ -318,11 +331,26 @@ class SQLSimpleProofGraphs extends FunSuite {
     }
   }
 
-  test("Verify all Goals in ProofGraph") {
-    val pg = makeAllGoalsProofGraph()
+
+  test("Test verification of inconclusive goal (test-7) (TPTPVampireVerifier)") {
+    val pg = makeSingleNodeProofGraph("test-7", testspec, test7)
+
     val verifier = new TPTPVampireVerifier()
 
-    for ((name, goal) <- allTests) {
+    val retrievedResult = retrieveResult(pg, "test-7", verifier)
+
+    assert(!retrievedResult.status.isVerified)
+    assert(retrievedResult.status.isInstanceOf[Finished[Inconclusive, _]])
+    assert(retrievedResult.errorMsg.nonEmpty)
+    assert(retrievedResult.evidence.isEmpty)
+  }
+
+
+  test("Verify all Goals in ProofGraph (TPTPVampireVerifier)") {
+    val pg = makeAllGoalsProofGraph(allProvableTests)
+    val verifier = new TPTPVampireVerifier()
+
+    for ((name, goal) <- allProvableTests) {
       val retrievedResult = retrieveResult(pg, name, verifier)
 
       assert(retrievedResult.status.isVerified)
