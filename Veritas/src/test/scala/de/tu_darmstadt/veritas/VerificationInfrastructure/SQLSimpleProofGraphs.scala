@@ -19,7 +19,7 @@ class SQLSimpleProofGraphs extends FunSuite {
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
 
-  import de.tu_darmstadt.veritas.inputdsl.SQLDefs.{Tables, TableAux, TStore, TContext, Syntax, Semantics, TypeSystem, TypeSystemInv, SoundnessAuxDefs}
+  import de.tu_darmstadt.veritas.inputdsl.SQLDefs.{Tables, TableAux, TStore, TContext, Syntax, Semantics, TypeSystem, SoundnessAuxDefs}
 
   val testspec: Module = Module("SQLspec", Seq(), Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
     Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ SoundnessAuxDefs.defs)
@@ -163,7 +163,6 @@ class SQLSimpleProofGraphs extends FunSuite {
     test6
   }
 
-  // TODO: need to fix, because it cannot be verified by vampire 4.1
   val test7: VeritasConstruct = {
     val test7goal: Goals = goal(
       ((~'tt1 === 'ttcons ('a, 'ft1, 'ttcons ('b, 'ft2, 'ttempty))) &
