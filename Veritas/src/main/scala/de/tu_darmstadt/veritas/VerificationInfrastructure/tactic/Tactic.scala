@@ -34,14 +34,16 @@ trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] with Serializable {
     * other concrete implementations may decide to behave differently be overriding this method
     *
     * @param obl
-    * @param edges
+    * @param parentedges
+    * @param subobl
     * @param verifier
     * @return
     */
   def verifyStep[Result <: GenStepResult[Spec, Goal]](obl: GenObligation[Spec, Goal],
-                                                      edges: Iterable[(GenObligation[Spec, Goal], EdgeLabel)],
+                                                      parentedges: Iterable[EdgeLabel],
+                                                      subobl: Iterable[GenObligation[Spec, Goal]],
                                                       verifier: Verifier[Spec, Goal], produce: StepResultProducer[Spec, Goal, Result]): Result =
-    verifier.verify(obl.goal, obl.spec, edges.map(p => (p._1.goal, p._2)), None, produce)
+    verifier.verify(obl.goal, obl.spec, parentedges, subobl.map(o => o.goal), None, produce)
 
   /**
     * applying a tactic to a ProofStep returns the edges generated from this application

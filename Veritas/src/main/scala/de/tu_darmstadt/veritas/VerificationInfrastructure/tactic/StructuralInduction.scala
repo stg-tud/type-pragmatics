@@ -5,9 +5,12 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Verifier
 
 case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](inductionvar: Spec) extends Tactic[Spec, Goal] {
   //TODO we might have to refine the verifier call for induction once we really support this via a prover
-  override def verifyStep[Result <: GenStepResult[Spec, Goal]](obl: GenObligation[Spec, Goal], edges: Iterable[(GenObligation[Spec, Goal], EdgeLabel)],
-                                                               verifier: Verifier[Spec, Goal], produce: StepResultProducer[Spec, Goal, Result]): Result =
-    super.verifyStep(obl, edges, verifier, produce)
+  override def verifyStep[Result <: GenStepResult[Spec, Goal]](obl: GenObligation[Spec, Goal],
+                                                               parentedges: Iterable[EdgeLabel],
+                                                               subobl: Iterable[GenObligation[Spec, Goal]],
+                                                               verifier: Verifier[Spec, Goal],
+                                                               produce: StepResultProducer[Spec, Goal, Result]): Result =
+    super.verifyStep(obl, parentedges, subobl, verifier, produce)
 
 
   override def compare(that: Tactic[Spec, Goal]): Int = that match {
@@ -40,11 +43,10 @@ case class InductionHypotheses[A <: Ordered[A]](ihs: A) extends PropagatableInfo
   * @param casename  name of the induction case (should correspond to goal name of case?)
   * @param fixedvars variables that need to fixed so that they explicitly refer to the same variables in the ihs and in the goal
   * @param ihs       induction hypotheses
-  * @tparam Goal type of the format for defining properties/goals
   */
-case class StructInductCase[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](casename: String,
+case class StructInductCase[Spec <: Ordered[Spec]](casename: String,
                                                                           fixedvars: Option[FixedVars[Spec]],
-                                                                          ihs: InductionHypotheses[Goal]) extends EdgeLabel {
+                                                                          ihs: InductionHypotheses[Spec]) extends EdgeLabel {
 
   override def propagateInfoList: Seq[PropagatableInfo] =
     fixedvars match {
@@ -53,7 +55,7 @@ case class StructInductCase[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](casena
     }
 
   override def compare(that: EdgeLabel): Int = that match {
-    case that: StructInductCase[Spec, Goal] =>
+    case that: StructInductCase[Spec] =>
       val compare1 = this.casename compare that.casename
       if (compare1 != 0) return compare1
       val compare2 = this.ihs.ihs compare that.ihs.ihs
@@ -64,9 +66,9 @@ case class StructInductCase[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](casena
 }
 
 //TODO the information necessary for this edge might need to be refined
-case class CaseDistinctionCase[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](casename: String,
-                                                                             fixedvars: Option[FixedVars[Spec]],
-                                                                             ihs: InductionHypotheses[Goal]) extends EdgeLabel {
+case class CaseDistinctionCase[Spec <: Ordered[Spec]](casename: String,
+                                                      fixedvars: Option[FixedVars[Spec]],
+                                                      ihs: InductionHypotheses[Spec]) extends EdgeLabel {
   override def propagateInfoList: Seq[PropagatableInfo] =
     fixedvars match {
       case Some(fv) => Seq(fv, ihs)
@@ -74,7 +76,7 @@ case class CaseDistinctionCase[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](cas
     }
 
   override def compare(that: EdgeLabel): Int = that match {
-    case that: StructInductCase[Spec, Goal] =>
+    case that: StructInductCase[Spec] =>
       val compare1 = this.casename compare that.casename
       if (compare1 != 0) return compare1
       val compare2 = this.ihs.ihs compare that.ihs.ihs

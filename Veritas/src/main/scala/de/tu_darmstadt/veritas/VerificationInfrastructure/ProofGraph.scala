@@ -129,7 +129,9 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
   def unsetVerifiedBy(step: ProofStep)
 
   def verifyProofStep(step: ProofStep, verifier: Verifier[Spec, Goal]): StepResult = {
-    val result = step.tactic.verifyStep(targetedObl(step), requiredObls(step), verifier, stepResultProducer)
+    val oblToProve = targetedObl(step)
+    val result = step.tactic.verifyStep(oblToProve, requiringSteps(oblToProve) map (_._2),
+      requiredObls(step) map (_._1), verifier, stepResultProducer)
     setVerifiedBy(step, result)
     result
   }

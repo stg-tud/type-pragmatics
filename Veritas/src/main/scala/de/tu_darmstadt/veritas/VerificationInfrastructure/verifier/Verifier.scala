@@ -34,14 +34,16 @@ trait Verifier[Spec, Goal] extends Ordered[Verifier[Spec, Goal]] with Serializab
     *
     * @param goal
     * @param spec
-    * @param lassumptions
+    * @param parentedges
+    * @param assumptions
     * @param hints
     * @param produce
     * @tparam Result
     * @return
     */
   def verify[Result <: GenStepResult[Spec, Goal]](goal: Goal, spec: Spec,
-                                                  lassumptions: Iterable[(Goal, EdgeLabel)],
+                                                  parentedges: Iterable[EdgeLabel],
+                                                  assumptions: Iterable[Goal],
                                                   hints: Option[VerifierHints],
                                                   produce: StepResultProducer[Spec, Goal, Result]): Result
 

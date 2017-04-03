@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, PropagatableInfo}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{FixedVars, InductionHypotheses}
 import de.tu_darmstadt.veritas.backend.{Configuration, MainTrans, TypingTrans}
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
@@ -25,9 +27,13 @@ case class TFFFormat(tff: TffFile) extends TPTP {
 
 
 trait TPTPTransformerError extends TransformerError
+
 case class TPTPTTypeInferenceError(e: TypeInference.TypeError) extends TPTPTransformerError
+
 case class TPTPTransformationError[T](e: TransformationError[T]) extends TPTPTransformerError
+
 case class TPTPBackendError[T](e: BackendError[T]) extends TPTPTransformerError
+
 case class TPTPOtherError(message: String) extends TPTPTransformerError
 
 /**
@@ -35,7 +41,9 @@ case class TPTPOtherError(message: String) extends TPTPTransformerError
   * (module transformations)
   */
 class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasConstruct, TPTP] {
-  override def transformProblem(spec: VeritasConstruct, goal: VeritasConstruct): Either[TPTP, TPTPTransformerError] = {
+  override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct,
+                                parentedges: Iterable[EdgeLabel],
+                                assumptions: Iterable[VeritasConstruct]): Either[TPTP, TPTPTransformerError] = {
     spec match {
       case Module(name, imps, moddefs) => {
 
@@ -47,28 +55,67 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
           }
         }
 
-        val module = Module(name + "WithGoal", imps, moddefs ++ Seq(goaldef))
 
-        val transformationConfiguration = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
-          Simplification -> Simplification.LogicalAndConstructors,
-          VariableEncoding -> VariableEncoding.InlineEverything,
-          Selection -> Selection.SelectAll,
-          Problem -> Problem.All))
+        val assmmoddefs: Iterable[ModuleDef] =
+          for (assm <- assumptions if assm.isInstanceOf[ModuleDef])
+            yield assm.asInstanceOf[ModuleDef]
 
-        try {
-          val mods = MainTrans(Seq(module))(transformationConfiguration)
-          val files = mods.map(m => TypingTrans.finalEncoding(m)(transformationConfiguration))
+        val propagatedInfo = (for (el <- parentedges) yield el.propagateInfoList).toSet
 
-          if (ifConfig(FinalEncoding, FinalEncoding.TFF)(transformationConfiguration))
-            Left(TFFFormat(files.head.asInstanceOf[TffFile]))
-          else
-            Left(FOFFormat(files.head.asInstanceOf[FofFile]))
-        } catch {
-          case tinf: TypeInference.TypeError => Right(TPTPTTypeInferenceError(tinf))
-          case trans: TransformationError[_] =>  Right(TPTPTransformationError(trans))
-          case be: BackendError[_] => Right(TPTPBackendError(be))
-          case cast: ClassCastException => Right(TPTPOtherError(s"Module $module was not transformed to the expected format."))
-          case e: Exception => throw e
+        if (propagatedInfo.size > 1)
+          Right(TPTPOtherError(s"The given edges for transforming the proof problem " +
+            s"for $goal disagreed in the propagatable information $propagatedInfo"))
+        else {
+          //wrap goal in local block together with info to be propagated from assumptions
+          val augmentedpropagInfo: Seq[ModuleDef] =
+            if (propagatedInfo.isEmpty)
+              Seq(goaldef)
+            else {
+              def extractModuleDef[A](a: A): Option[ModuleDef] =
+                a match {
+                  case m: ModuleDef => Some(m)
+                  case _ => {
+                    println(s"Given propagatable info $a was not a ModuleDef, therefore ignored");
+                    None
+                  }
+                }
+
+              for (p <- propagatedInfo.head;
+                   pi <- p.propagateInfo();
+                   mpi <- extractModuleDef(pi))
+                yield mpi
+            }
+
+          val augmentedgoal =
+            if (augmentedpropagInfo.isEmpty)
+              Seq(goaldef)
+            else
+              Seq(Local(augmentedpropagInfo ++ Seq(goaldef)))
+
+
+          val module = Module(name + "Transformed", imps, moddefs ++ augmentedgoal)
+
+          val transformationConfiguration = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
+            Simplification -> Simplification.LogicalAndConstructors,
+            VariableEncoding -> VariableEncoding.InlineEverything,
+            Selection -> Selection.SelectAll,
+            Problem -> Problem.All))
+
+          try {
+            val mods = MainTrans(Seq(module))(transformationConfiguration)
+            val files = mods.map(m => TypingTrans.finalEncoding(m)(transformationConfiguration))
+
+            if (ifConfig(FinalEncoding, FinalEncoding.TFF)(transformationConfiguration))
+              Left(TFFFormat(files.head.asInstanceOf[TffFile]))
+            else
+              Left(FOFFormat(files.head.asInstanceOf[FofFile]))
+          } catch {
+            case tinf: TypeInference.TypeError => Right(TPTPTTypeInferenceError(tinf))
+            case trans: TransformationError[_] => Right(TPTPTransformationError(trans))
+            case be: BackendError[_] => Right(TPTPBackendError(be))
+            case cast: ClassCastException => Right(TPTPOtherError(s"Module $module was not transformed to the expected format."))
+            case e: Exception => throw e
+          }
         }
 
       }

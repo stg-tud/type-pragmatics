@@ -1,5 +1,8 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.EdgeLabel
+import de.tu_darmstadt.veritas.backend.ast.VeritasConstruct
+
 
 trait TransformerError
 
@@ -8,5 +11,7 @@ trait TransformerError
   * that one or more provers understand
   */
 trait Transformer[Spec, Goal, V <: VerifierFormat] {
- def transformProblem(spec: Spec, goal: Goal) : Either[V, TransformerError]
+  def transformProblem(goal: Goal, spec: Spec,
+                       parentedges: Iterable[EdgeLabel],
+                       assumptions: Iterable[Goal]): Either[V, TransformerError]
 }

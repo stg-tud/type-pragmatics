@@ -307,7 +307,8 @@ class SQLSimpleProofGraphs extends FunSuite {
     val nonResult = pg.verifiedBy(proofstep)
     assert(nonResult.isEmpty)
 
-    val result = verifier.verify(obl.get.goal, obl.get.spec, Nil, None, pg.stepResultProducer)
+    val result = verifier.verify(obl.get.goal, obl.get.spec, pg.requiringSteps(obl.get) map (_._2),
+      pg.requiredObls(proofstep) map (_._1.goal), None, pg.stepResultProducer)
     pg.setVerifiedBy(proofstep, result)
 
     val retrievedResult = pg.verifiedBy(proofstep)
@@ -371,7 +372,8 @@ class SQLSimpleProofGraphs extends FunSuite {
     val nonResult = pg.verifiedBy(proofstep.get)
     assert(nonResult.isEmpty)
 
-    val result = verifier.verify(obl.get.goal, obl.get.spec, Nil, None, pg.stepResultProducer)
+    val result = verifier.verify(obl.get.goal, obl.get.spec, pg.requiringSteps(obl.get) map (_._2),
+      pg.requiredObls(proofstep.get) map (_._1.goal), None, pg.stepResultProducer)
     pg.setVerifiedBy(proofstep.get, result)
     val retrievedResult = pg.verifiedBy(proofstep.get)
 

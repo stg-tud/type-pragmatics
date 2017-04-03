@@ -38,7 +38,7 @@ object SQLSoundnessProofGraph {
 
   object MockInduction {
     def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
-      required.find(_._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasConstruct]].casename == name).get._1
+      required.find(_._2.asInstanceOf[StructInductCase[VeritasConstruct]].casename == name).get._1
   }
 
 
@@ -55,7 +55,7 @@ object SQLSoundnessProofGraph {
 
   object MockCaseDistinction {
     def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
-      required.find(_._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct, VeritasConstruct]].casename == name).get._1
+      required.find(_._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct]].casename == name).get._1
   }
 
 
@@ -85,7 +85,7 @@ object SQLSoundnessProofGraph {
           ).===>("SQL-Progress-T-Union-IH1")(
           exists(~'qo) |
             ('reduce ('q1, 'TS) === 'someQuery (~'qo))
-      )
+        )
 
       val SQLProgressTUnionIH2 =
         ((!'isValue ('q2)) &
@@ -127,21 +127,21 @@ object SQLSoundnessProofGraph {
           ).===>("SQL-Progress-T-Difference-IH2")(
           exists(~'qo) |
             ('reduce ('q2, 'TS) === 'someQuery (~'qo))
-      )
+        )
 
-      Seq((tvaluecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTtvalue.goals.head.name,
+      Seq((tvaluecase, StructInductCase[VeritasConstruct](SQLProgressTtvalue.goals.head.name,
         None,
         InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
-        (selectfromwherecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTselectFromWhere.goals.head.name,
+        (selectfromwherecase, StructInductCase[VeritasConstruct](SQLProgressTselectFromWhere.goals.head.name,
           None,
           InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
-        (unioncase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTUnion.goals.head.name,
+        (unioncase, StructInductCase[VeritasConstruct](SQLProgressTUnion.goals.head.name,
           Some(FixedVars(unionconsts)),
           InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTUnionIH1, SQLProgressTUnionIH2))))),
-        (intersectioncase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTIntersection.goals.head.name,
+        (intersectioncase, StructInductCase[VeritasConstruct](SQLProgressTIntersection.goals.head.name,
           Some(FixedVars(intersectionconsts)),
           InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTIntersectionIH1, SQLProgressTIntersectionIH2))))),
-        (differencecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTDifference.goals.head.name,
+        (differencecase, StructInductCase[VeritasConstruct](SQLProgressTDifference.goals.head.name,
           Some(FixedVars(differenceconsts)),
           InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2))))))
     }
@@ -169,12 +169,12 @@ object SQLSoundnessProofGraph {
 
 
   def mkSQLProgressTSetCaseIH(i: Int, setname: String, indvar: Symbol) =
-      (!'isValue (indvar) &
-        ('TTC |- indvar :: 'TT) &
-        'StoreContextConsistent ('TS, 'TTC)
-        ).===>("SQL-Progress-T-" + setname + "-IH" + i)(
-        exists(~'qo) |
-          ('reduce (indvar, 'TS) === 'someQuery (~'qo)))
+    (!'isValue (indvar) &
+      ('TTC |- indvar :: 'TT) &
+      'StoreContextConsistent ('TS, 'TTC)
+      ).===>("SQL-Progress-T-" + setname + "-IH" + i)(
+      exists(~'qo) |
+        ('reduce (indvar, 'TS) === 'someQuery (~'qo)))
 
 
   def mkSQLProgressTSetCase(i: Int, setsym: Symbol, setname: String, casepreds: Seq[TypingRuleJudgment]) =
@@ -202,13 +202,13 @@ object SQLSoundnessProofGraph {
       def mkcase(i: Int): Obligation = produce.newObligation(fullSQLspec,
         mkSQLProgressTSetCase(i, setsym, setname, casepreds(i)))
 
-      Seq((mkcase(0), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "1",
+      Seq((mkcase(0), CaseDistinctionCase[VeritasConstruct](setname + "1",
         Some(FixedVars(setconsts)),
         InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
-        (mkcase(1), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "2",
+        (mkcase(1), CaseDistinctionCase[VeritasConstruct](setname + "2",
           Some(FixedVars(setconsts)),
           InductionHypotheses[VeritasConstruct](Axioms(Seq(mkSQLProgressTSetCaseIH(2, setname, 'q2)))))),
-        (mkcase(2), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "3",
+        (mkcase(2), CaseDistinctionCase[VeritasConstruct](setname + "3",
           Some(FixedVars(setconsts)),
           InductionHypotheses[VeritasConstruct](Axioms(Seq(mkSQLProgressTSetCaseIH(1, setname, 'q1)))))))
     }
@@ -249,9 +249,9 @@ class SQLSoundnessProofGraph extends FunSuite {
   PropertyTypes.registerPropertyType[Module](g.store)
   PropertyTypes.registerPropertyType[Goals](g.store)
   PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
-  PropertyTypes.registerPropertyType[StructInductCase[VeritasConstruct, VeritasConstruct]](g.store)
+  PropertyTypes.registerPropertyType[StructInductCase[VeritasConstruct]](g.store)
   PropertyTypes.registerPropertyType[SetCaseDistinction](g.store)
-  PropertyTypes.registerPropertyType[CaseDistinctionCase[VeritasConstruct, VeritasConstruct]](g.store)
+  PropertyTypes.registerPropertyType[CaseDistinctionCase[VeritasConstruct]](g.store)
   PropertyTypes.registerPropertyType[Finished[_, _]](g.store)
   PropertyTypes.registerPropertyType[Failure[_, _]](g.store)
   PropertyTypes.registerPropertyType[TSTPProof](g.store)
@@ -326,8 +326,8 @@ class SQLSoundnessProofGraph extends FunSuite {
   val tvaluecaseobl = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, g.requiredObls(rootinductionPS))
   val tvaluecasePS = g.applyTactic(tvaluecaseobl, Solve[VeritasConstruct, VeritasConstruct])
 
-  test("T-value base case is provable (using Vampire 4.1, 10 sec)") {
-    val simpleVerifier = new TPTPVampireVerifier()
+  test("T-value base case is provable (using Vampire 4.1, 5 sec)") {
+    val simpleVerifier = new TPTPVampireVerifier(5)
 
     val result = g.verifyProofStep(tvaluecasePS, simpleVerifier)
     assert(result.status.isInstanceOf[Finished[_, _]])
@@ -376,7 +376,7 @@ class SQLSoundnessProofGraph extends FunSuite {
     val unionps = g.appliedStep(unioncase).get
     val unionedges = g.requiredObls(unionps).toSeq
     assert(unionedges.size == 3)
-    assert(unionedges(1)._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct, VeritasConstruct]].ihs.ihs == SQLProgressTUnionIH2)
+    assert(unionedges(1)._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct]].ihs.ihs == SQLProgressTUnionIH2)
 
   }
 
@@ -389,18 +389,38 @@ class SQLSoundnessProofGraph extends FunSuite {
   }
 
 
-  test("Successful verification of individual set cases (SQL progress proof), using Vampire 4.1, 10 sec") {
-    val simpleVerifier = new TPTPVampireVerifier()
+  test("Timeout for individual set cases (SQL progress proof), using Vampire 4.1, 3 sec") {
+    val simpleVerifier = new TPTPVampireVerifier(1)
 
     for (ps <- setPS) {
       val result = g.verifyProofStep(ps, simpleVerifier)
 
+      assert(result.status.isInstanceOf[Finished[_, _]])
+      assert(result.errorMsg.nonEmpty)
+      assert(result.errorMsg.get == "Time limit")
+    }
+  }
 
-      //TODO: refine this test after correctly propagating edge label info
-      //assert(result.status.isInstanceOf[Finished[_,_]])
-      //assert(result.status.isVerified)
-      //assert(result.errorMsg.isEmpty)
-      //assert(result.evidence.nonEmpty)
+  test("Proving a single set case") {
+    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
+
+    val result = g.verifyProofStep(setPS.head, simpleVerifier)
+
+    println(result.status)
+    assert(result.status.isInstanceOf[Finished[_, _]])
+    assert(result.status.isVerified)
+  }
+
+  test("Proving all individual set cases with Vampire 4.0") {
+    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
+
+    for (ps <- setPS) {
+      val result = g.verifyProofStep(ps, simpleVerifier)
+
+      assert(result.status.isInstanceOf[Finished[_, _]])
+      assert(result.status.isVerified)
+      assert(result.errorMsg.isEmpty)
+      assert(result.evidence.nonEmpty)
     }
   }
 

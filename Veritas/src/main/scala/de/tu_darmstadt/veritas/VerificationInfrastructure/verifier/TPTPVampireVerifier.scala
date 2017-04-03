@@ -26,7 +26,7 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Ve
     *
     * @param goal
     * @param spec
-    * @param lassumptions
+    * @param assumptions
     * @param hints
     * @param produce
     * @tparam Result
@@ -35,7 +35,8 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Ve
   override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]]
   (goal: VeritasConstruct,
    spec: VeritasConstruct,
-   lassumptions: Iterable[(VeritasConstruct, EdgeLabel)],
+   parentedges: Iterable[EdgeLabel],
+   assumptions: Iterable[VeritasConstruct],
    hints: Option[VerifierHints],
    produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result]): Result = {
     //TODO add error handling (transformation can fail, prover call can fail etc.)
@@ -44,21 +45,7 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Ve
     val vampire = Vampire(version, timeout)
     spec match {
       case Module(name, imps, moddefs) => {
-        //TODO correctly process additional information from edges (i.e. wrap stuff in local blocks etc.)
-
-        val assmmoddefs = lassumptions.toSeq flatMap { s =>
-          s._1 match {
-            case m: ModuleDef => Seq(m)
-            case _ => {
-              println(s"Ignored $s since it was not a ModuleDef.");
-              Seq()
-            }
-          }
-        }
-
-        val assembledProblemSpec = Module(name + "withassms", imps, moddefs ++ assmmoddefs)
-
-        val transformedProb = transformer.transformProblem(assembledProblemSpec, goal)
+        val transformedProb = transformer.transformProblem(goal, spec, parentedges, assumptions)
 
         transformedProb match {
           case Left(tptp) => {
