@@ -17,10 +17,10 @@ case class Unknown[Spec, Goal](verifier: Verifier[Spec, Goal]) extends VerifierS
 }
 
 //TODO: maybe refine errorMessage: String later to include specific error objects
-case class Failure[Spec, Goal](errorMessage: String, verifier: Verifier[Spec, Goal]) extends VerifierStatus[Spec, Goal] {
+case class VerifierFailure[Spec, Goal](errorMessage: String, verifier: Verifier[Spec, Goal]) extends VerifierStatus[Spec, Goal] {
   import Ordered._
   override def compare(that: VerifierStatus[Spec, Goal]): Int = that match {
-    case that: Failure[_, _] => (this.errorMessage, this.verifier.desc) compare (that.errorMessage, that.verifier.desc)
+    case that: VerifierFailure[_, _] => (this.errorMessage, this.verifier.desc) compare (that.errorMessage, that.verifier.desc)
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 }

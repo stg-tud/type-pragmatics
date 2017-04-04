@@ -13,6 +13,8 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 import de.tu_darmstadt.veritas.backend.util.BackendError
 import de.tu_darmstadt.veritas.inputdsl.FunctionDSL.FunExpFalse
 
+import scala.util.{Failure, Success, Try}
+
 trait TPTP extends VerifierFormat {
   override def toString: String = super.toString
 }
@@ -43,7 +45,7 @@ case class TPTPOtherError(message: String) extends TPTPTransformerError
 class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasConstruct, TPTP] {
   override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct,
                                 parentedges: Iterable[EdgeLabel],
-                                assumptions: Iterable[VeritasConstruct]): Either[TPTP, TPTPTransformerError] = {
+                                assumptions: Iterable[VeritasConstruct]): Try[TPTP] = {
     spec match {
       case Module(name, imps, moddefs) => {
 
@@ -63,7 +65,7 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
         val propagatedInfo = (for (el <- parentedges) yield el.propagateInfoList).toSet
 
         if (propagatedInfo.size > 1)
-          Right(TPTPOtherError(s"The given edges for transforming the proof problem " +
+          Failure(TPTPOtherError(s"The given edges for transforming the proof problem " +
             s"for $goal disagreed in the propagatable information $propagatedInfo"))
         else {
           //wrap goal in local block together with info to be propagated from assumptions
@@ -106,20 +108,20 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
             val files = mods.map(m => TypingTrans.finalEncoding(m)(transformationConfiguration))
 
             if (ifConfig(FinalEncoding, FinalEncoding.TFF)(transformationConfiguration))
-              Left(TFFFormat(files.head.asInstanceOf[TffFile]))
+              Success(TFFFormat(files.head.asInstanceOf[TffFile]))
             else
-              Left(FOFFormat(files.head.asInstanceOf[FofFile]))
+              Success(FOFFormat(files.head.asInstanceOf[FofFile]))
           } catch {
-            case tinf: TypeInference.TypeError => Right(TPTPTTypeInferenceError(tinf))
-            case trans: TransformationError[_] => Right(TPTPTransformationError(trans))
-            case be: BackendError[_] => Right(TPTPBackendError(be))
-            case cast: ClassCastException => Right(TPTPOtherError(s"Module $module was not transformed to the expected format."))
+            case tinf: TypeInference.TypeError => Failure(TPTPTTypeInferenceError(tinf))
+            case trans: TransformationError[_] => Failure(TPTPTransformationError(trans))
+            case be: BackendError[_] => Failure(TPTPBackendError(be))
+            case cast: ClassCastException => Failure(TPTPOtherError(s"Module $module was not transformed to the expected format."))
             case e: Exception => throw e
           }
         }
 
       }
-      case _ => Right(TPTPOtherError(s"The problem specification passed to the VeritasTransformerBestStrat was not a Module: $spec"))
+      case _ => Failure(TPTPOtherError(s"The problem specification passed to the VeritasTransformerBestStrat was not a Module: $spec"))
     }
   }
 }

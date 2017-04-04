@@ -1,7 +1,9 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenStepResult, StepResultProducer}
-import de.tu_darmstadt.veritas.backend.ast.{Module, ModuleDef, VeritasConstruct}
+import de.tu_darmstadt.veritas.backend.ast.{Module, VeritasConstruct}
+
+import scala.util.{Failure, Success}
 
 /**
   * Verifier for translating Veritas AST to TPTP (with selected transformation strategy) and calling
@@ -48,18 +50,18 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends Ve
         val transformedProb = transformer.transformProblem(goal, spec, parentedges, assumptions)
 
         transformedProb match {
-          case Left(tptp) => {
+          case Success(tptp) => {
             val proverstatus = vampire.callProver(tptp)
             produce.newStepResult(Finished(proverstatus, this),
               proverstatus.proverResult.proofEvidence,
               proverstatus.proverResult.message)
           }
-          case Right(err) => {
-            produce.newStepResult(Failure(s"Problem during transformation step: $err", this), None, None)
+          case Failure(err) => {
+            produce.newStepResult(VerifierFailure(s"Problem during transformation step: $err", this), None, None)
           }
         }
       }
-      case _ => produce.newStepResult(Failure(s"Specification was not a module $spec", this), None, None)
+      case _ => produce.newStepResult(VerifierFailure(s"Specification was not a module $spec", this), None, None)
     }
 
 

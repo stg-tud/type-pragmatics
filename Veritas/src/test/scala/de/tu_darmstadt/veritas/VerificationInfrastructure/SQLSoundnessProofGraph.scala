@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Failure, Finished, TPTPVampireVerifier, TSTPProof}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{VerifierFailure, Finished, TPTPVampireVerifier, TSTPProof}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
@@ -253,7 +253,7 @@ class SQLSoundnessProofGraph extends FunSuite {
   PropertyTypes.registerPropertyType[SetCaseDistinction](g.store)
   PropertyTypes.registerPropertyType[CaseDistinctionCase[VeritasConstruct]](g.store)
   PropertyTypes.registerPropertyType[Finished[_, _]](g.store)
-  PropertyTypes.registerPropertyType[Failure[_, _]](g.store)
+  PropertyTypes.registerPropertyType[VerifierFailure[_, _]](g.store)
   PropertyTypes.registerPropertyType[TSTPProof](g.store)
 
 

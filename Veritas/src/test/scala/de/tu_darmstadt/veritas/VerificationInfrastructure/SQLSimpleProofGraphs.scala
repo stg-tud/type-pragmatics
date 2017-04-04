@@ -34,7 +34,7 @@ class SQLSimpleProofGraphs extends FunSuite {
     PropertyTypes.registerPropertyType[Module](pg.store)
     PropertyTypes.registerPropertyType[Local](pg.store)
     PropertyTypes.registerPropertyType[Finished[_, _]](pg.store)
-    PropertyTypes.registerPropertyType[Failure[_, _]](pg.store)
+    PropertyTypes.registerPropertyType[VerifierFailure[_, _]](pg.store)
     PropertyTypes.registerPropertyType[TSTPProof](pg.store)
 
 
@@ -287,7 +287,7 @@ class SQLSimpleProofGraphs extends FunSuite {
     PropertyTypes.registerPropertyType[Module](pg.store)
     PropertyTypes.registerPropertyType[Local](pg.store)
     PropertyTypes.registerPropertyType[Finished[_, _]](pg.store)
-    PropertyTypes.registerPropertyType[Failure[_, _]](pg.store)
+    PropertyTypes.registerPropertyType[VerifierFailure[_, _]](pg.store)
     PropertyTypes.registerPropertyType[TSTPProof](pg.store)
 
     for ((name, goal) <- goals) {
@@ -404,9 +404,9 @@ class SQLSimpleProofGraphs extends FunSuite {
     val result = retrieveResult(pg, "test-7 goal", verifier)
 
     assert(!result.status.isVerified)
-    assert(result.status.isInstanceOf[Failure[_, _]])
+    assert(result.status.isInstanceOf[VerifierFailure[_, _]])
     result.status match {
-      case Failure(message, verifier) =>
+      case VerifierFailure(message, verifier) =>
         assert(message.startsWith("Problem during transformation step: "))
       case _ => assert(false)
     }
@@ -421,9 +421,9 @@ class SQLSimpleProofGraphs extends FunSuite {
     val result = retrieveResult(pg, "test-1 goal", verifier)
 
     assert(!result.status.isVerified)
-    assert(result.status.isInstanceOf[Failure[_, _]])
+    assert(result.status.isInstanceOf[VerifierFailure[_, _]])
     result.status match {
-      case Failure(message, verifier) =>
+      case VerifierFailure(message, verifier) =>
         assert(message == s"Specification was not a module $test1")
       case _ => assert(false)
     }
