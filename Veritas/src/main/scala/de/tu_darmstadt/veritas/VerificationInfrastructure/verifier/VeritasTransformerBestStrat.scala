@@ -58,9 +58,9 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
         }
 
 
-        val assmmoddefs: Iterable[ModuleDef] =
-          for (assm <- assumptions if assm.isInstanceOf[ModuleDef])
-            yield assm.asInstanceOf[ModuleDef]
+        val assmAxioms: Iterable[Axioms] =
+          for (assm <- assumptions if assm.isInstanceOf[Goals])
+            yield Axioms(assm.asInstanceOf[Goals].goals)
 
         val propagatedInfo = (for (el <- parentedges) yield el.propagateInfoList).toSet
 
@@ -71,7 +71,7 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
           //wrap goal in local block together with info to be propagated from assumptions
           val augmentedpropagInfo: Seq[ModuleDef] =
             if (propagatedInfo.isEmpty)
-              assmmoddefs.toSeq ++ Seq(goaldef)
+              assmAxioms.toSeq ++ Seq(goaldef)
             else {
               def extractModuleDef[A](a: A): Option[ModuleDef] =
                 a match {
@@ -90,9 +90,9 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
 
           val augmentedgoal =
             if (augmentedpropagInfo.isEmpty)
-              assmmoddefs.toSeq ++ Seq(goaldef)
+              assmAxioms.toSeq ++ Seq(goaldef)
             else
-              Seq(Local(augmentedpropagInfo ++ assmmoddefs.toSeq ++ Seq(goaldef)))
+              Seq(Local(augmentedpropagInfo ++ assmAxioms.toSeq ++ Seq(goaldef)))
 
 
           val module = Module(name + "Transformed", imps, moddefs ++ augmentedgoal)
