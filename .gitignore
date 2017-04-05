@@ -86,3 +86,9 @@ VeritasSpoofax/test/stlc/proofs/
 /benchmarking/datasets/layout/SQL
 /benchmarking/datasets/layout/QL
 /benchmarking/datasets/layout/merged
+/xodus-entity-browser/entity-browser-launcher/build
+/xodus-entity-browser/entity-browser-frontend/node_modules
+/xodus-entity-browser/entity-browser-frontend/build
+/xodus-entity-browser/entity-browser-app/build
+/xodus-entity-browser/build
+/xodus-entity-browser/.gradle
