@@ -335,8 +335,7 @@ class SQLSoundnessProofGraph extends FunSuite {
     assert(result.errorMsg.isEmpty)
     assert(result.evidence.nonEmpty)
 
-    //println(result.status.asInstanceOf[Finished[_,_]].status.proverResult.summaryDetails)
-  }
+   }
 
   // Case distinctions for Union, Intersection, Difference cases
   val unionCaseDistinction = SetCaseDistinction(unionsym, sunion)
@@ -389,7 +388,7 @@ class SQLSoundnessProofGraph extends FunSuite {
   }
 
 
-  test("Timeout for individual set cases (SQL progress proof), using Vampire 4.1, 3 sec") {
+  test("Timeout for individual set cases (SQL progress proof), using Vampire 4.1, 1 sec") {
     val simpleVerifier = new TPTPVampireVerifier(1)
 
     for (ps <- setPS) {
@@ -401,27 +400,54 @@ class SQLSoundnessProofGraph extends FunSuite {
     }
   }
 
-  test("Proving a single set case") {
-    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
+//  test("Proving a single set case") {
+//    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
+//
+//    val result = g.verifyProofStep(setPS.head, simpleVerifier)
+//
+//    println(result.status)
+//    assert(result.status.isInstanceOf[Finished[_, _]])
+//    assert(result.status.isVerified)
+//  }
+//
+//  test("Proving all individual set cases with Vampire 4.0") {
+//    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
+//
+//    for (ps <- setPS) {
+//      val result = g.verifyProofStep(ps, simpleVerifier)
+//
+//      assert(result.status.isInstanceOf[Finished[_, _]])
+//      assert(result.status.isVerified)
+//      assert(result.errorMsg.isEmpty)
+//      assert(result.evidence.nonEmpty)
+//    }
+//  }
 
-    val result = g.verifyProofStep(setPS.head, simpleVerifier)
+  test("Proving Case Distinction steps, Vampire 4.0, 5 seconds") {
+    //Vampire 4.1 cannot prove it in 30 sec
+    val simpleVerifier = new TPTPVampireVerifier(5, "4.0")
 
-    println(result.status)
-    assert(result.status.isInstanceOf[Finished[_, _]])
-    assert(result.status.isVerified)
-  }
+    val res1 = g.verifyProofStep(unioncasePS, simpleVerifier)
+    val res2 = g.verifyProofStep(intersectioncasePS, simpleVerifier)
+    val res3 = g.verifyProofStep(differencecasePS, simpleVerifier)
 
-  test("Proving all individual set cases with Vampire 4.0") {
-    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
 
-    for (ps <- setPS) {
-      val result = g.verifyProofStep(ps, simpleVerifier)
+    assert(res1.status.isInstanceOf[Finished[_, _]])
+    assert(res1.status.isVerified)
+    assert(res1.errorMsg.isEmpty)
+    assert(res1.evidence.nonEmpty)
 
-      assert(result.status.isInstanceOf[Finished[_, _]])
-      assert(result.status.isVerified)
-      assert(result.errorMsg.isEmpty)
-      assert(result.evidence.nonEmpty)
-    }
+    assert(res2.status.isInstanceOf[Finished[_, _]])
+    assert(res2.status.isVerified)
+    assert(res2.errorMsg.isEmpty)
+    assert(res2.evidence.nonEmpty)
+
+    assert(res3.status.isInstanceOf[Finished[_, _]])
+    assert(res3.status.isVerified)
+    assert(res3.errorMsg.isEmpty)
+    assert(res3.evidence.nonEmpty)
+
+
   }
 
 
