@@ -58,6 +58,32 @@ object SQLSoundnessProofGraph {
       required.find(_._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct]].casename == name).get._1
   }
 
+  //class for creating mock lemma generation tactics
+  case class MockLemmaApplication(lemmas: Seq[Lemmas]) extends Tactic[VeritasConstruct, VeritasConstruct] {
+    /**
+      * applying a tactic to a ProofStep returns the edges generated from this application
+      * edges include edge labels and sub-ProofSteps
+      * caller has to decide whether the edges will be integrated into a proof graph or not
+      *
+      * @param obl
+      * @param obllabels labels from edges that lead to the given obligation (for propagating proof info if necessary)
+      * @throws TacticApplicationException
+      * @return
+      */
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+      for (lem <- lemmas) yield
+        produce.newObligation(fullSQLspec, Goals(lem.lemmas, lem.timeout)) -> LemmaApplication(lem.lemmas.head.name)
+
+    override def compare(that: Tactic[VeritasConstruct, VeritasConstruct]): Int = ???
+  }
+
+  object MockLemmaApplication {
+    def selectLemma[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
+      required.find(_._2.asInstanceOf[LemmaApplication[VeritasConstruct]].lemmaname == name).get._1
+  }
+
 
   // Apply structural induction to progress root via ad-hoc instance of MockInduction,
   // where the goals that are supposed to be generated are just hard-coded
@@ -147,6 +173,58 @@ object SQLSoundnessProofGraph {
     }
   }
 
+  //induction cases for successfulLookup
+  val successfulLookupEmpty: Goals = goal(
+    ((~'TS === 'emptyStore) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("successful-lookup-empty")(
+      exists(~'t) |
+        ('lookupStore (~'tn, ~'TS) === 'someTable (~'t))
+    ))
+
+  val successfulLookupBindConsts = consts('TSR ::> 'TStore)
+
+  val successfulLookupBindIH: Axioms = axiom(
+    ((~'TS === 'TSR) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("successful-lookup-bind-IH")(
+      exists(~'t) |
+        'lookupStore (~'tn, ~'TS) === 'someTable (~'t))
+  )
+
+  val successfulLookupBind: Goals = goal(
+    ((~'TS === 'bindStore (~'tm, ~'t, 'TSR)) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("successful-lookup-bind")(
+      exists(~'t) |
+        'lookupStore (~'tn, ~'TS) === 'someTable (~'t))
+  )
+
+  object successfulLookupInduction extends MockInduction(MetaVar("TS")) {
+
+
+
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val successfulLookupEmptyObl = produce.newObligation(fullSQLspec, successfulLookupEmpty)
+      val successfulLookupBindObl = produce.newObligation(fullSQLspec, successfulLookupBind)
+
+      Seq((successfulLookupEmptyObl, StructInductCase[VeritasConstruct](successfulLookupEmpty.goals.head.name,
+        None,
+        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (successfulLookupBindObl, StructInductCase[VeritasConstruct](successfulLookupBind.goals.head.name,
+          Some(FixedVars(successfulLookupBindConsts)),
+          InductionHypotheses[VeritasConstruct](successfulLookupBindIH))))
+
+    }
+
+
+  }
+
   //abstract case splits for union/intersection/difference case (sometimes necessary, sometimes not)
   //(i.e. with a high timeout provers might be able to prove the case directly)
 
@@ -202,6 +280,9 @@ object SQLSoundnessProofGraph {
       def mkcase(i: Int): Obligation = produce.newObligation(fullSQLspec,
         mkSQLProgressTSetCase(i, setsym, setname, casepreds(i)))
 
+      //note: a real tactic would have to extract the information to be propagated
+      // in the edges from the given obllabels (unused here) and decide which one
+      // to forward where
       Seq((mkcase(0), CaseDistinctionCase[VeritasConstruct](setname + "1",
         Some(FixedVars(setconsts)),
         InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
@@ -214,6 +295,7 @@ object SQLSoundnessProofGraph {
     }
 
   }
+
 
 }
 
@@ -255,6 +337,9 @@ class SQLSoundnessProofGraph extends FunSuite {
   PropertyTypes.registerPropertyType[Finished[_, _]](g.store)
   PropertyTypes.registerPropertyType[VerifierFailure[_, _]](g.store)
   PropertyTypes.registerPropertyType[TSTPProof](g.store)
+  PropertyTypes.registerPropertyType[MockLemmaApplication](g.store)
+  PropertyTypes.registerPropertyType[LemmaApplication[_]](g.store)
+  PropertyTypes.registerPropertyType[successfulLookupInduction.type](g.store)
 
 
   val testGoal: Goals = goal(===>("test")('p ('x) && 'q ('x) || 't ('x)))
@@ -335,7 +420,7 @@ class SQLSoundnessProofGraph extends FunSuite {
     assert(result.errorMsg.isEmpty)
     assert(result.evidence.nonEmpty)
 
-   }
+  }
 
   // Case distinctions for Union, Intersection, Difference cases
   val unionCaseDistinction = SetCaseDistinction(unionsym, sunion)
@@ -400,32 +485,31 @@ class SQLSoundnessProofGraph extends FunSuite {
     }
   }
 
-//  test("Proving a single set case") {
-//    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
-//
-//    val result = g.verifyProofStep(setPS.head, simpleVerifier)
-//
-//    println(result.status)
-//    assert(result.status.isInstanceOf[Finished[_, _]])
-//    assert(result.status.isVerified)
-//  }
-//
-//  test("Proving all individual set cases with Vampire 4.0") {
-//    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
-//
-//    for (ps <- setPS) {
-//      val result = g.verifyProofStep(ps, simpleVerifier)
-//
-//      assert(result.status.isInstanceOf[Finished[_, _]])
-//      assert(result.status.isVerified)
-//      assert(result.errorMsg.isEmpty)
-//      assert(result.evidence.nonEmpty)
-//    }
-//  }
+  //  test("Proving a single set case") {
+  //    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
+  //
+  //    val result = g.verifyProofStep(setPS.head, simpleVerifier)
+  //
+  //    println(result.status)
+  //    assert(result.status.isInstanceOf[Finished[_, _]])
+  //    assert(result.status.isVerified)
+  //  }
+  //
+  //  test("Proving all individual set cases with Vampire 4.0") {
+  //    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
+  //
+  //    for (ps <- setPS) {
+  //      val result = g.verifyProofStep(ps, simpleVerifier)
+  //
+  //      assert(result.status.isInstanceOf[Finished[_, _]])
+  //      assert(result.status.isVerified)
+  //      assert(result.errorMsg.isEmpty)
+  //      assert(result.evidence.nonEmpty)
+  //    }
+  //  }
 
-  test("Proving Case Distinction steps, Vampire 4.0, 5 seconds") {
-    //Vampire 4.1 cannot prove it in 30 sec
-    val simpleVerifier = new TPTPVampireVerifier(5, "4.0")
+  test("Proving Case Distinction steps, Vampire 4.1, 5 seconds") {
+    val simpleVerifier = new TPTPVampireVerifier(5)
 
     val res1 = g.verifyProofStep(unioncasePS, simpleVerifier)
     val res2 = g.verifyProofStep(intersectioncasePS, simpleVerifier)
@@ -446,8 +530,6 @@ class SQLSoundnessProofGraph extends FunSuite {
     assert(res3.status.isVerified)
     assert(res3.errorMsg.isEmpty)
     assert(res3.evidence.nonEmpty)
-
-
   }
 
 
@@ -461,40 +543,6 @@ class SQLSoundnessProofGraph extends FunSuite {
         ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)))
   )
 
-  //induction cases for successfulLookup
-  val successfulLookupEmpty: Goals = goal(
-    ((~'TS === 'emptyStore) &
-      ('StoreContextConsistent (~'TS, ~'TTC)) &
-      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
-      ).===>("successful-lookup-empty")(
-      exists(~'t) |
-        ('lookupStore (~'tn, ~'TS) === 'someTable (~'t))
-    ))
-
-  val successfulLookupBindConsts = consts('TSR ::> 'TStore)
-
-  val successfulLookupBindIH: Axioms = axiom(
-    ((~'TS === 'TSR) &
-      ('StoreContextConsistent (~'TS, ~'TTC)) &
-      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
-      ).===>("successful-lookup-bind-IH")(
-      exists(~'t) |
-        'lookupStore (~'tn, ~'TS) === 'someTable (~'t))
-  )
-
-  val successfulLookupBind: Goals = goal(
-    ((~'TS === 'bindStore (~'tm, ~'t, 'TSR)) &
-      ('StoreContextConsistent (~'TS, ~'TTC)) &
-      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
-      ).===>("successful-lookup-bind")(
-      exists(~'t) |
-        'lookupStore (~'tn, ~'TS) === 'someTable (~'t))
-  )
-
-  val localBlocksuccessfulLookupBind = local(successfulLookupBindConsts, successfulLookupBindIH, successfulLookupBind)
-  //end of induction cases for successfulLookup
-
-
   val welltypedLookup: Lemmas = lemma(
     ('StoreContextConsistent (~'TS, ~'TTC) &
       ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
@@ -502,6 +550,57 @@ class SQLSoundnessProofGraph extends FunSuite {
       ).===>("welltyped-lookup")(
       'welltypedtable (~'tt, ~'t))
   )
+
+  val filterPreservesType: Lemmas = lemma(
+    ('welltypedtable (~'tt, ~'t)
+      ).===>("filter-preserves-type")(
+      'welltypedtable (~'tt, 'filterTable (~'t, ~'p)))
+  ) //proved directly via filterRowsPreservesTable
+
+  val projectTableProgress: Lemmas = lemma(
+    ('welltypedtable (~'tt, ~'t) &
+      ('projectType (~'s, ~'tt) === 'someTType (~'tt2))
+      ).===>("projectTable-progress")(
+      exists(~'t2) |
+        'projectTable (~'s, ~'t) === 'someTable (~'t2))
+  ) //proof by case distinction on 's (maybe not necessary?); list case by projectColsProgress
+
+  val selcase = MockInduction.selectCase(SQLProgressTselectFromWhere.goals.head.name,
+    g.requiredObls(rootinductionPS))
+
+
+  //apply lemma application tactic to selection case
+  val selLemmaTac = MockLemmaApplication(Seq(successfulLookup, welltypedLookup,
+    filterPreservesType, projectTableProgress))
+  val selLemmaPS = g.applyTactic(selcase, selLemmaTac)
+
+  test("Verify lemma application step (inconclusive)") {
+    val simpleVerifier = new TPTPVampireVerifier(3)
+
+    val result = g.verifyProofStep(selLemmaPS, simpleVerifier)
+
+    //println(result.status)
+    assert(result.status.isInstanceOf[Finished[_, _]])
+
+  }
+
+  val successfulLookupobl = MockLemmaApplication.selectLemma(successfulLookup.lemmas.head.name,
+    g.requiredObls(selLemmaPS))
+
+  val successfulLookupPS = g.applyTactic(successfulLookupobl, successfulLookupInduction)
+
+  val successfulLookupbasecase = MockInduction.selectCase(successfulLookupEmpty.goals.head.name, g.requiredObls(successfulLookupPS))
+  val successfulLookupbasecasePL = g.applyTactic(successfulLookupbasecase, Solve[VeritasConstruct, VeritasConstruct])
+
+  test("Verify cases of successfulLookup (Vampire 4.1)") {
+    val simpleVerifier = new TPTPVampireVerifier(3)
+
+    val result = g.verifyProofStep(successfulLookupbasecasePL, simpleVerifier)
+
+    println(result.status)
+    assert(result.status.isInstanceOf[Finished[_, _]])
+  }
+
 
   //induction cases for welltypedLookup
   val welltypedLookupEmpty: Goals = goal(
@@ -539,12 +638,6 @@ class SQLSoundnessProofGraph extends FunSuite {
   //end of induction cases for welltypedLookup
 
 
-  val filterPreservesType: Lemmas = lemma(
-    ('welltypedtable (~'tt, ~'t)
-      ).===>("filter-preserves-type")(
-      'welltypedtable (~'tt, 'filterTable (~'t, ~'p)))
-  ) //proved directly via filterRowsPreservesTable
-
   val filterRowsPreservesTable: Lemmas = lemma(
     ('welltypedRawtable (~'tt, ~'rt)
       ).===>("filterRows-preserves-table")(
@@ -577,14 +670,6 @@ class SQLSoundnessProofGraph extends FunSuite {
 
   val localblockfilterRowsPreservesTableTcons = local(filterRowsPreservesTableTconsConsts, filterRowsPreservesTableTconsIH, filterRowsPreservesTableTcons)
   // end of induction cases filterRowsPreservesTable
-
-  val projectTableProgress: Lemmas = lemma(
-    ('welltypedtable (~'tt, ~'t) &
-      ('projectType (~'s, ~'tt) === 'someTType (~'tt2))
-      ).===>("projectTable-progress")(
-      exists(~'t2) |
-        'projectTable (~'s, ~'t) === 'someTable (~'t2))
-  ) //proof by case distinction on 's (maybe not necessary?); list case by projectColsProgress
 
   val projectColsProgress: Lemmas = lemma(
     (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
