@@ -346,6 +346,34 @@ class SQLSimpleProofGraphs extends FunSuite {
     assert(retrievedResult.evidence.isEmpty)
   }
 
+  test("Test verification of inconclusive goal (test-7) (TPTPPrincessVerifier)") {
+    val pg = makeSingleNodeProofGraph("test-7", testspec, test7)
+
+    val verifier = new TPTPPrincessVerifier(10)
+
+    val retrievedResult = retrieveResult(pg, "test-7", verifier)
+
+    assert(!retrievedResult.status.isVerified)
+    assert(retrievedResult.status.isInstanceOf[Finished[_, _]])
+    assert(retrievedResult.status.asInstanceOf[Finished[_,_]].status.isInstanceOf[Inconclusive])
+    assert(retrievedResult.errorMsg.nonEmpty)
+    assert(retrievedResult.evidence.isEmpty)
+  }
+
+  test("Test verification of inconclusive goal (test-7) (TPTPEproverVerifier)") {
+    val pg = makeSingleNodeProofGraph("test-7", testspec, test7)
+
+    val verifier = new TPTPEproverVerifier(10)
+
+    val retrievedResult = retrieveResult(pg, "test-7", verifier)
+
+    assert(!retrievedResult.status.isVerified)
+    assert(retrievedResult.status.isInstanceOf[Finished[_, _]])
+    assert(retrievedResult.status.asInstanceOf[Finished[_,_]].status.isInstanceOf[Inconclusive])
+    assert(retrievedResult.errorMsg.nonEmpty)
+    assert(retrievedResult.evidence.isEmpty)
+  }
+
 
   test("Verify all Goals in ProofGraph (TPTPVampireVerifier)") {
     val pg = makeAllGoalsProofGraph(allProvableTests)
