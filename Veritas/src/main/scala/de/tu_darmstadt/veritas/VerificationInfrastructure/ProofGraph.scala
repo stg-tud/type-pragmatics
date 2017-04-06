@@ -80,6 +80,7 @@ trait IProofGraph[Spec, Goal] {
     case Some(result) => defaultEvidencenChecker(null)
   }
 
+  //TODO are two methods necessary here?
   def isOblVerified(obl: Obligation): Boolean = computeIsGoalVerified(obl)
   def computeIsGoalVerified(obl: Obligation): Boolean = appliedStep(obl) match {
     case None =>  false
