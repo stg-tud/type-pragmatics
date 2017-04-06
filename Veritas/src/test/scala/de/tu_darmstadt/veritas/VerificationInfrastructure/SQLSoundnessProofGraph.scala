@@ -23,7 +23,7 @@ object SQLSoundnessProofGraph {
   val fullSQLspec: Module = Module("SQLspec", Seq(), Tables.defs ++ TableAux.defs ++ TStore.defs ++ TContext.defs ++
     Syntax.defs ++ Semantics.defs ++ TypeSystem.defs ++ SoundnessAuxDefs.defs)
 
-  //Mock tactics
+  //Mock tactxics
   // class for creating mock induction tactics, with convenience methods like selectCase
   class MockInduction(inductionvar: VeritasConstruct) extends Tactic[VeritasConstruct, VeritasConstruct] {
 
@@ -205,8 +205,6 @@ object SQLSoundnessProofGraph {
 
   object successfulLookupInduction extends MockInduction(MetaVar("TS")) {
 
-
-
     override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
                                    obllabels: Iterable[EdgeLabel],
                                    produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
@@ -221,9 +219,345 @@ object SQLSoundnessProofGraph {
           InductionHypotheses[VeritasConstruct](successfulLookupBindIH))))
 
     }
+  }
+
+
+  //induction cases for welltypedLookup
+  val welltypedLookupEmpty: Goals = goal(
+    ((~'TS === 'emptyStore) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("welltyped-lookup-empty")(
+      'welltypedtable (~'tt, ~'t))
+  )
+
+  //TODO: later omit some of the reduncancy in the specification (i.e. not have two values with the same constructs)
+  //for now, just duplicated some (parts of) axioms/lemmas/constdefs to make everything explicit
+  val welltypedLookupConsts = consts('TSR ::> 'TStore)
+
+  val welltypedLookupBindIH: Axioms = axiom(
+    ((~'TS === 'TSR) &
+      ('StoreContextConsistent (~'TS, ~'TTC)) &
+      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("welltyped-lookup-bind-IH")(
+      'welltypedtable (~'tt, ~'t))
+  )
+
+  val welltypedLookupBind: Goals = goal(
+    ((~'TS === 'bindStore (~'tm, ~'t, 'TSR)) &
+      'StoreContextConsistent (~'TS, ~'TTC) &
+      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
+      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
+      ).===>("welltyped-lookup")(
+      'welltypedtable (~'tt, ~'t))
+  )
+
+
+  object welltypedLookupInduction extends MockInduction(MetaVar("TS")) {
+
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val welltypedLookupEmptyObl = produce.newObligation(fullSQLspec, welltypedLookupEmpty)
+      val welltypedLookupBindObl = produce.newObligation(fullSQLspec, welltypedLookupBind)
+
+      Seq((welltypedLookupEmptyObl, StructInductCase[VeritasConstruct](welltypedLookupEmpty.goals.head.name,
+        None,
+        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (welltypedLookupBindObl, StructInductCase[VeritasConstruct](welltypedLookupBind.goals.head.name,
+          Some(FixedVars(welltypedLookupConsts)),
+          InductionHypotheses[VeritasConstruct](welltypedLookupBindIH))))
+
+    }
 
 
   }
+
+  // induction cases filterRowsPreservesTable
+  val filterRowsPreservesTableTempty: Goals = goal(
+    ((~'rt === 'tempty) &
+      'welltypedRawtable (~'tt, ~'rt)
+      ).===>("filterRows-preserves-table-tempty")(
+      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
+    ))
+
+  val filterRowsPreservesTableTconsConsts = consts('rtr ::> 'RawTable)
+
+  val filterRowsPreservesTableTconsIH: Axioms = axiom(
+    ((~'rt === 'rtr) &
+      'welltypedRawtable (~'tt, ~'rt)
+      ).===>("filterRows-preserves-table-tcons-IH")(
+      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
+    ))
+
+  val filterRowsPreservesTableTcons: Goals = goal(
+    ((~'rt === 'tcons (~'r, 'rtr)) &
+      'welltypedRawtable (~'tt, ~'rt)
+      ).===>("filterRows-preserves-table-tcons")(
+      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
+    ))
+
+  object filterRowsPreservesTableInduction extends MockInduction(MetaVar("rt")) {
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val filterRowsPreservesTableTemptyObl = produce.newObligation(fullSQLspec, filterRowsPreservesTableTempty)
+      val filterRowsPreservesTableTconsObl = produce.newObligation(fullSQLspec, filterRowsPreservesTableTcons)
+
+      Seq((filterRowsPreservesTableTemptyObl, StructInductCase[VeritasConstruct](filterRowsPreservesTableTempty.goals.head.name,
+        None,
+        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (filterRowsPreservesTableTconsObl, StructInductCase[VeritasConstruct](filterRowsPreservesTableTcons.goals.head.name,
+          Some(FixedVars(filterRowsPreservesTableTconsConsts)),
+          InductionHypotheses[VeritasConstruct](filterRowsPreservesTableTconsIH))))
+
+    }
+  }
+
+
+  //induction cases of projectColsProgress
+  val projectColsProgressAempty: Goals = goal(
+    ((~'al2 === 'aempty) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
+      ).===>("projectCols-progress-aempty")(
+      exists(~'rt2) |
+        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectColsProgressAconsConsts = consts('alr ::> 'AttrL)
+
+  val projectColsProgressAconsIH: Axioms = axiom(
+    ((~'al2 === 'alr) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
+      ).===>("projectCols-progress-acons-IH")(
+      exists(~'rt2) |
+        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectColsProgressAcons: Goals = goal(
+    ((~'al2 === 'acons (~'a, 'alr)) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
+      ).===>("projectCols-progress-acons")(
+      exists(~'rt2) |
+        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  ) //induction case requires lemma projectTypeImpliesFindCol
+
+  object projectColsProgressInduction extends MockInduction(MetaVar("al2")) {
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val projectColsProgressAemptyObl = produce.newObligation(fullSQLspec, projectColsProgressAempty)
+      val projectColsProgressAconsObl = produce.newObligation(fullSQLspec, projectColsProgressAcons)
+
+      Seq((projectColsProgressAemptyObl, StructInductCase[VeritasConstruct](projectColsProgressAempty.goals.head.name,
+        None,
+        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (projectColsProgressAconsObl, StructInductCase[VeritasConstruct](projectColsProgressAcons.goals.head.name,
+          Some(FixedVars(projectColsProgressAconsConsts)),
+          InductionHypotheses[VeritasConstruct](projectColsProgressAconsIH))))
+
+    }
+  }
+
+  //induction cases for projectTypeImpliesFindCol
+  val projectTypeImpliesFindColAempty: Goals = goal(
+    ((~'al2 === 'aempty) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al2))
+      ).===>("projectType-implies-findCol-aempty")(
+      exists(~'rt2) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectTypeImpliesFindColAconsConsts = consts('alr ::> 'AttrL)
+
+  val projectTypeImpliesFindColAconsIH: Axioms = axiom(
+    ((~'al2 === 'alr) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al2))
+      ).===>("projectType-implies-findCol-acons-IH")(
+      exists(~'rt2) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  )
+
+  val projectTypeImpliesFindColAcons: Goals = goal(
+    ((~'al2 === 'acons (~'a, 'alr)) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al2))
+      ).===>("projectType-implies-findCol-acons")(
+      exists(~'rt2) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
+  ) //requires lemmas findColTypeImpliesfindCol and projectTypeAttrLImpliesfindAllColType
+
+
+  object projectTypeImpliesFindColInduction extends MockInduction(MetaVar("al2")) {
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val projectTypeImpliesFindColAemptyObl = produce.newObligation(fullSQLspec, projectTypeImpliesFindColAempty)
+      val projectTypeImpliesFindColAconsObl = produce.newObligation(fullSQLspec, projectTypeImpliesFindColAcons)
+
+      Seq((projectTypeImpliesFindColAemptyObl, StructInductCase[VeritasConstruct](projectTypeImpliesFindColAempty.goals.head.name,
+        None,
+        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (projectTypeImpliesFindColAconsObl, StructInductCase[VeritasConstruct](projectTypeImpliesFindColAcons.goals.head.name,
+          Some(FixedVars(projectTypeImpliesFindColAconsConsts)),
+          InductionHypotheses[VeritasConstruct](projectTypeImpliesFindColAconsIH))))
+
+    }
+  }
+
+  // induction cases for findColTypeImpliesfindCol
+  val findColTypeImpliesfindColAempty: Goals = goal(
+    ((~'al === 'aempty) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
+      ).===>("findColType-implies-findCol-aempty")(
+      exists(~'rt) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
+    ))
+
+  val findColTypeImpliesfindColAconsConsts = consts('alr ::> 'AttrL)
+
+  val findColTypeImpliesfindColAconsIH: Axioms = axiom(
+    ((~'al === 'alr) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
+      ).===>("findColType-implies-findCol-acons-IH")(
+      exists(~'rt) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
+    ))
+
+  val findColTypeImpliesfindColAcons: Goals = goal(
+    ((~'al === 'acons (~'a, 'alr)) &
+      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
+      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
+      ).===>("findColType-implies-findCol-acons")(
+      exists(~'rt) |
+        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
+    )) //requires lemma dropFirstColRawPreservesWelltypedRaw
+
+  object findColTypeImpliesfindColInduction extends MockInduction(MetaVar("al")) {
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val findColTypeImpliesfindColAemptyObl = produce.newObligation(fullSQLspec, findColTypeImpliesfindColAempty)
+      val findColTypeImpliesfindColAconsObl = produce.newObligation(fullSQLspec, findColTypeImpliesfindColAcons)
+
+      Seq((findColTypeImpliesfindColAemptyObl, StructInductCase[VeritasConstruct](findColTypeImpliesfindColAempty.goals.head.name,
+        None,
+        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (findColTypeImpliesfindColAconsObl, StructInductCase[VeritasConstruct](findColTypeImpliesfindColAcons.goals.head.name,
+          Some(FixedVars(findColTypeImpliesfindColAconsConsts)),
+          InductionHypotheses[VeritasConstruct](findColTypeImpliesfindColAconsIH))))
+
+    }
+  }
+
+  //induction cases projectTypeAttrLImpliesfindAllColType
+  val projectTypeAttrLImpliesfindAllColTypeAempty: Goals = goal(
+    ((~'al === 'aempty) &
+      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al))
+      ).===>("projectTypeAttrL-implies-findAllColType-aempty")(
+      exists(~'ft) |
+        'findColType (~'n, ~'tt) === 'someFType (~'ft)
+    ))
+
+  val projectTypeAttrLImpliesfindAllColTypeAconsConsts = consts('alr ::> 'AttrL)
+
+  val projectTypeAttrLImpliesfindAllColTypeAconsIH: Axioms = axiom(
+    ((~'al === 'alr) &
+      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al))
+      ).===>("projectTypeAttrL-implies-findAllColType-acons-IH")(
+      exists(~'ft) |
+        'findColType (~'n, ~'tt) === 'someFType (~'ft)
+    ))
+
+  val projectTypeAttrLImpliesfindAllColTypeAcons: Goals = goal(
+    ((~'al === 'acons (~'a, 'aempty)) &
+      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
+      ('attrIn (~'n, ~'al))
+      ).===>("projectTypeAttrL-implies-findAllColType-acons")(
+      exists(~'ft) |
+        'findColType (~'n, ~'tt) === 'someFType (~'ft)
+    ))
+
+
+  //end of induction cases projectTypeAttrLImpliesfindAllColType
+
+
+  object projectTypeAttrLImpliesfindAllColTypeInduction extends MockInduction(MetaVar("al")) {
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val projectTypeAttrLImpliesfindAllColTypeAemptyObl = produce.newObligation(fullSQLspec, projectTypeAttrLImpliesfindAllColTypeAempty)
+      val projectTypeAttrLImpliesfindAllColTypeAconsObl = produce.newObligation(fullSQLspec, projectTypeAttrLImpliesfindAllColTypeAcons)
+
+      Seq((projectTypeAttrLImpliesfindAllColTypeAemptyObl, StructInductCase[VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAempty.goals.head.name,
+        None,
+        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (projectTypeAttrLImpliesfindAllColTypeAconsObl, StructInductCase[VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAcons.goals.head.name,
+          Some(FixedVars(projectTypeAttrLImpliesfindAllColTypeAconsConsts)),
+          InductionHypotheses[VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAconsIH))))
+
+    }
+  }
+
+  //induction cases for dropFirstColRawPreservesWelltypedRaw
+  val dropFirstColRawPreservesWelltypedRawTempty: Goals = goal(
+    ((~'rt === 'tempty) &
+      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
+      ('welltypedRawtable (~'tt, ~'rt))
+      ).===>("dropFirstColRaw-preserves-welltypedRaw-tempty")(
+      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
+    ))
+
+  val dropFirstColRawPreservesWelltypedRawTconsConsts = consts('rts ::> 'RawTable)
+
+  val dropFirstColRawPreservesWelltypedRawTconsIH: Axioms = axiom(
+    ((~'rt === 'rtr) &
+      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
+      ('welltypedRawtable (~'tt, ~'rt))
+      ).===>("dropFirstColRaw-preserves-welltypedRaw-tcons-IH")(
+      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
+    ))
+
+  val dropFirstColRawPreservesWelltypedRawTcons: Goals = goal(
+    ((~'rt === 'tcons (~'r, 'rtr)) &
+      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
+      ('welltypedRawtable (~'tt, ~'rt))
+      ).===>("dropFirstColRaw-preserves-welltypedRaw-tcons")(
+      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
+    ))
+
+
+  object dropFirstColRawPreservesWelltypedRawInduction extends MockInduction(MetaVar("rt")) {
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+                                   obllabels: Iterable[EdgeLabel],
+                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+      val dropFirstColRawPreservesWelltypedRawTemptyObl = produce.newObligation(fullSQLspec, dropFirstColRawPreservesWelltypedRawTempty)
+      val dropFirstColRawPreservesWelltypedRawTconsObl = produce.newObligation(fullSQLspec, dropFirstColRawPreservesWelltypedRawTcons)
+
+      Seq((dropFirstColRawPreservesWelltypedRawTemptyObl, StructInductCase[VeritasConstruct](dropFirstColRawPreservesWelltypedRawTempty.goals.head.name,
+        None,
+        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (dropFirstColRawPreservesWelltypedRawTconsObl, StructInductCase[VeritasConstruct](dropFirstColRawPreservesWelltypedRawTcons.goals.head.name,
+          Some(FixedVars(dropFirstColRawPreservesWelltypedRawTconsConsts)),
+          InductionHypotheses[VeritasConstruct](dropFirstColRawPreservesWelltypedRawTconsIH))))
+
+    }
+  }
+
 
   //abstract case splits for union/intersection/difference case (sometimes necessary, sometimes not)
   //(i.e. with a high timeout provers might be able to prove the case directly)
@@ -340,6 +674,13 @@ class SQLSoundnessProofGraph extends FunSuite {
   PropertyTypes.registerPropertyType[MockLemmaApplication](g.store)
   PropertyTypes.registerPropertyType[LemmaApplication[_]](g.store)
   PropertyTypes.registerPropertyType[successfulLookupInduction.type](g.store)
+  PropertyTypes.registerPropertyType[welltypedLookupInduction.type](g.store)
+  PropertyTypes.registerPropertyType[filterRowsPreservesTableInduction.type](g.store)
+  PropertyTypes.registerPropertyType[projectColsProgressInduction.type](g.store)
+  PropertyTypes.registerPropertyType[projectTypeImpliesFindColInduction.type](g.store)
+  PropertyTypes.registerPropertyType[findColTypeImpliesfindColInduction.type](g.store)
+  PropertyTypes.registerPropertyType[projectTypeAttrLImpliesfindAllColTypeInduction.type](g.store)
+  PropertyTypes.registerPropertyType[dropFirstColRawPreservesWelltypedRawInduction.type](g.store)
 
 
   val testGoal: Goals = goal(===>("test")('p ('x) && 'q ('x) || 't ('x)))
@@ -592,50 +933,56 @@ class SQLSoundnessProofGraph extends FunSuite {
   val successfulLookupbasecase = MockInduction.selectCase(successfulLookupEmpty.goals.head.name, g.requiredObls(successfulLookupPS))
   val successfulLookupbasecasePL = g.applyTactic(successfulLookupbasecase, Solve[VeritasConstruct, VeritasConstruct])
 
+  val successfulLookupstepcase = MockInduction.selectCase(successfulLookupBind.goals.head.name, g.requiredObls(successfulLookupPS))
+  val successfulLookupstepcasePL = g.applyTactic(successfulLookupstepcase, Solve[VeritasConstruct, VeritasConstruct])
+
   test("Verify cases of successfulLookup (Vampire 4.1)") {
-    val simpleVerifier = new TPTPVampireVerifier(3)
+    val simpleVerifier = new TPTPVampireVerifier(5)
 
-    val result = g.verifyProofStep(successfulLookupbasecasePL, simpleVerifier)
+    val resbase = g.verifyProofStep(successfulLookupbasecasePL, simpleVerifier)
+    val resstep = g.verifyProofStep(successfulLookupstepcasePL, simpleVerifier)
 
-    println(result.status)
-    assert(result.status.isInstanceOf[Finished[_, _]])
+    assert(resbase.status.isInstanceOf[Finished[_, _]])
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+
+    assert(resstep.status.isInstanceOf[Finished[_, _]])
+    assert(resstep.status.isVerified)
+    assert(resstep.errorMsg.isEmpty)
+    assert(resstep.evidence.nonEmpty)
+
   }
 
+  val welltypedLookupobl = MockLemmaApplication.selectLemma(welltypedLookup.lemmas.head.name,
+    g.requiredObls(selLemmaPS))
 
-  //induction cases for welltypedLookup
-  val welltypedLookupEmpty: Goals = goal(
-    ((~'TS === 'emptyStore) &
-      ('StoreContextConsistent (~'TS, ~'TTC)) &
-      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
-      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
-      ).===>("welltyped-lookup-empty")(
-      'welltypedtable (~'tt, ~'t))
-  )
+  val welltypedLookupPS = g.applyTactic(welltypedLookupobl, welltypedLookupInduction)
 
-  //TODO: later omit some of the reduncancy in the specification (i.e. not have two values with the same constructs)
-  //for now, just duplicated some (parts of) axioms/lemmas/constdefs to make everything explicit
-  val welltypedLookupConsts = consts('TSR ::> 'TStore)
+  val welltypedLookupbasecase = MockInduction.selectCase(welltypedLookupEmpty.goals.head.name, g.requiredObls(welltypedLookupPS))
+  val welltypedLookupbasecasePS = g.applyTactic(welltypedLookupbasecase, Solve[VeritasConstruct, VeritasConstruct])
 
-  val welltypedLookupBindIH: Axioms = axiom(
-    ((~'TS === 'TSR) &
-      ('StoreContextConsistent (~'TS, ~'TTC)) &
-      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
-      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
-      ).===>("welltyped-lookup-bind-IH")(
-      'welltypedtable (~'tt, ~'t))
-  )
+  val welltypedLookupstepcase = MockInduction.selectCase(welltypedLookupBind.goals.head.name, g.requiredObls(welltypedLookupPS))
+  val welltypedLookupstepcasePS = g.applyTactic(welltypedLookupstepcase, Solve[VeritasConstruct, VeritasConstruct])
 
-  val welltypedLookupBind: Goals = goal(
-    ((~'TS === 'bindStore (~'tm, ~'t, 'TSR)) &
-      'StoreContextConsistent (~'TS, ~'TTC) &
-      ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
-      ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
-      ).===>("welltyped-lookup")(
-      'welltypedtable (~'tt, ~'t))
-  )
 
-  val localBlockwelltypedLookupBind = local(welltypedLookupConsts, welltypedLookupBindIH, welltypedLookupBind)
-  //end of induction cases for welltypedLookup
+  test("Verify cases of welltypedLookup (Vampire 4.1)") {
+    val simpleVerifier = new TPTPVampireVerifier(5)
+
+    val resbase = g.verifyProofStep(welltypedLookupbasecasePS, simpleVerifier)
+    val resstep = g.verifyProofStep(welltypedLookupstepcasePS, simpleVerifier)
+
+    assert(resbase.status.isInstanceOf[Finished[_, _]])
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+
+    assert(resstep.status.isInstanceOf[Finished[_, _]])
+    assert(resstep.status.isVerified)
+    assert(resstep.errorMsg.isEmpty)
+    assert(resstep.evidence.nonEmpty)
+
+  }
 
 
   val filterRowsPreservesTable: Lemmas = lemma(
@@ -644,32 +991,58 @@ class SQLSoundnessProofGraph extends FunSuite {
       'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
     ))
 
-  // induction cases filterRowsPreservesTable
-  val filterRowsPreservesTableTempty: Goals = goal(
-    ((~'rt === 'tempty) &
-      'welltypedRawtable (~'tt, ~'rt)
-      ).===>("filterRows-preserves-table-tempty")(
-      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
-    ))
 
-  val filterRowsPreservesTableTconsConsts = consts('rtr ::> 'RawTable)
+  val filterPreservesTypeobl = MockLemmaApplication.selectLemma(filterPreservesType.lemmas.head.name,
+    g.requiredObls(selLemmaPS))
 
-  val filterRowsPreservesTableTconsIH: Axioms = axiom(
-    ((~'rt === 'rtr) &
-      'welltypedRawtable (~'tt, ~'rt)
-      ).===>("filterRows-preserves-table-tcons-IH")(
-      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
-    ))
+  val filterPreservesTypePS = g.applyTactic(filterPreservesTypeobl,
+    MockLemmaApplication(Seq(filterRowsPreservesTable)))
 
-  val filterRowsPreservesTableTcons: Goals = goal(
-    ((~'rt === 'tcons (~'r, 'rtr)) &
-      'welltypedRawtable (~'tt, ~'rt)
-      ).===>("filterRows-preserves-table-tcons")(
-      'welltypedRawtable (~'tt, 'filterRows (~'rt, ~'al, ~'p))
-    ))
+  test("Verify filterPreservesType via auxiliary lemma (Vampire 4.1)") {
+    val simpleVerifier = new TPTPVampireVerifier(5)
 
-  val localblockfilterRowsPreservesTableTcons = local(filterRowsPreservesTableTconsConsts, filterRowsPreservesTableTconsIH, filterRowsPreservesTableTcons)
-  // end of induction cases filterRowsPreservesTable
+    val result = g.verifyProofStep(filterPreservesTypePS, simpleVerifier)
+
+    assert(result.status.isInstanceOf[Finished[_, _]])
+    assert(result.status.isVerified)
+    assert(result.errorMsg.isEmpty)
+    assert(result.evidence.nonEmpty)
+
+  }
+
+
+  val filterRowsPreservesTableObl = MockLemmaApplication.selectLemma(filterRowsPreservesTable.lemmas.head.name,
+    g.requiredObls(filterPreservesTypePS))
+
+  val filterRowsPreservesTableOblPS = g.applyTactic(filterRowsPreservesTableObl, filterRowsPreservesTableInduction)
+
+  val filterRowsPreservesTablebasecase = MockInduction.selectCase(filterRowsPreservesTableTempty.goals.head.name,
+    g.requiredObls(filterRowsPreservesTableOblPS))
+  val filterRowsPreservesTablebasecasePS = g.applyTactic(filterRowsPreservesTablebasecase,
+    Solve[VeritasConstruct, VeritasConstruct])
+
+  val filterRowsPreservesTablestepcase = MockInduction.selectCase(filterRowsPreservesTableTcons.goals.head.name, g.requiredObls(filterRowsPreservesTableOblPS))
+  val filterRowsPreservesTablestepcasePS = g.applyTactic(filterRowsPreservesTablestepcase,
+    Solve[VeritasConstruct, VeritasConstruct])
+
+
+  test("Verify cases of filterRowsPreservesTable (Vampire 4.1)") {
+    val simpleVerifier = new TPTPVampireVerifier(5)
+
+    val resbase = g.verifyProofStep(filterRowsPreservesTablebasecasePS, simpleVerifier)
+    val resstep = g.verifyProofStep(filterRowsPreservesTablestepcasePS, simpleVerifier)
+
+    assert(resbase.status.isInstanceOf[Finished[_, _]])
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+
+    assert(resstep.status.isInstanceOf[Finished[_, _]])
+    assert(resstep.status.isVerified)
+    assert(resstep.errorMsg.isEmpty)
+    assert(resstep.evidence.nonEmpty)
+
+  }
 
   val projectColsProgress: Lemmas = lemma(
     (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
@@ -679,38 +1052,36 @@ class SQLSoundnessProofGraph extends FunSuite {
         'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
   )
 
-  //induction cases of projectColsProgress
-  val projectColsProgressAempty: Goals = goal(
-    ((~'al2 === 'aempty) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
-      ).===>("projectCols-progress-aempty")(
-      exists(~'rt2) |
-        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
-  )
+  //try to prove projectTableProgress via lemma application with projectColsProgress?
+  //yes, works, apparently no case distinction necessary!
+  val projectTableProgressobl = MockLemmaApplication.selectLemma(projectTableProgress.lemmas.head.name,
+    g.requiredObls(selLemmaPS))
 
-  val projectColsProgressAconsConsts = consts('alr ::> 'AttrL)
+  val projectTableProgressPS = g.applyTactic(projectTableProgressobl,
+    MockLemmaApplication(Seq(projectColsProgress)))
 
-  val projectColsProgressAconsIH: Axioms = axiom(
-    ((~'al2 === 'alr) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
-      ).===>("projectCols-progress-acons")(
-      exists(~'rt2) |
-        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
-  )
+  test("Verify projectTableProgress via auxiliary lemma (Vampire 4.1)") {
+    val simpleVerifier = new TPTPVampireVerifier(20)
 
-  val projectColsProgressAcons: Goals = goal(
-    ((~'al2 === 'acons (~'a, 'alr)) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('projectType ('list (~'al2), ~'tt) === 'someTType (~'tt2))
-      ).===>("projectCols-progress-acons")(
-      exists(~'rt2) |
-        'projectCols (~'al2, ~'al, ~'rt) === 'someRawTable (~'rt2))
-  ) //induction case requires lemma projectTypeImpliesFindCol
+    val result = g.verifyProofStep(projectTableProgressPS, simpleVerifier)
 
-  val localblockprojectColsProgressAcons = local(projectColsProgressAconsConsts, projectColsProgressAconsIH, projectColsProgressAcons)
-  //end of induction cases of projectColsProgress
+    println(result.status)
+    assert(result.status.isInstanceOf[Finished[_, _]])
+    assert(result.status.isVerified)
+    assert(result.errorMsg.isEmpty)
+    assert(result.evidence.nonEmpty)
+
+  }
+
+  val projectColsProgressObl = MockLemmaApplication.selectLemma(projectColsProgress.lemmas.head.name,
+    g.requiredObls(projectTableProgressPS))
+
+  val projectColsProgressPS = g.applyTactic(projectColsProgressObl, projectColsProgressInduction)
+
+  val projectColsProgressbasecase = MockInduction.selectCase(projectColsProgressAempty.goals.head.name,
+    g.requiredObls(projectColsProgressPS))
+  val projectColsProgressbasecasePS = g.applyTactic(projectColsProgressbasecase,
+    Solve[VeritasConstruct, VeritasConstruct])
 
   val projectTypeImpliesFindCol: Lemmas = lemma(
     (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
@@ -721,41 +1092,38 @@ class SQLSoundnessProofGraph extends FunSuite {
         'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
   )
 
-  //induction cases for projectTypeImpliesFindCol
-  val projectTypeImpliesFindColAempty: Goals = goal(
-    ((~'al2 === 'aempty) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
-      ('attrIn (~'n, ~'al2))
-      ).===>("projectType-implies-findCol-aempty")(
-      exists(~'rt2) |
-        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
-  )
+  val projectColsProgressstepcase = MockInduction.selectCase(projectColsProgressAcons.goals.head.name, g.requiredObls(projectColsProgressPS))
+  val projectColsProgressstepcasePS = g.applyTactic(projectColsProgressstepcase,
+    MockLemmaApplication(Seq(projectTypeImpliesFindCol)))
 
-  val projectTypeImpliesFindColAconsConsts = consts('alr ::> 'AttrL)
 
-  val projectTypeImpliesFindColAconsIH: Axioms = axiom(
-    ((~'al2 === 'alr) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
-      ('attrIn (~'n, ~'al2))
-      ).===>("projectType-implies-findCol-acons-IH")(
-      exists(~'rt2) |
-        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
-  )
+  test("Verify cases of projectColsProgress (Vampire 4.1)") {
+    val simpleVerifier = new TPTPVampireVerifier(5)
 
-  val projectTypeImpliesFindColAcons: Goals = goal(
-    ((~'al2 === 'acons (~'a, 'alr)) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('projectTypeAttrL (~'al2, ~'tt) === 'someTType (~'tt2)) &
-      ('attrIn (~'n, ~'al2))
-      ).===>("projectType-implies-findCol-acons")(
-      exists(~'rt2) |
-        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt2))
-  ) //requires lemmas findColTypeImpliesfindCol and projectTypeAttrLImpliesfindAllColType
+    val resbase = g.verifyProofStep(projectColsProgressbasecasePS, simpleVerifier)
+    val resstep = g.verifyProofStep(projectColsProgressstepcasePS, simpleVerifier)
 
-  val localblockprojectTypeImpliesFindColAcons = local(projectTypeImpliesFindColAconsConsts, projectTypeImpliesFindColAconsIH, projectTypeImpliesFindColAcons)
-  //end of induction cases for projectTypeImpliesFindCol
+    assert(resbase.status.isInstanceOf[Finished[_, _]])
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+
+    assert(resstep.status.isInstanceOf[Finished[_, _]])
+    assert(resstep.status.isVerified)
+    assert(resstep.errorMsg.isEmpty)
+    assert(resstep.evidence.nonEmpty)
+
+  }
+
+  val projectTypeImpliesFindColObl = MockLemmaApplication.selectLemma(projectTypeImpliesFindCol.lemmas.head.name,
+    g.requiredObls(projectColsProgressstepcasePS))
+
+  val projectTypeImpliesFindColPS = g.applyTactic(projectTypeImpliesFindColObl, projectTypeImpliesFindColInduction)
+
+  val projectTypeImpliesFindColbasecase = MockInduction.selectCase(projectTypeImpliesFindColAempty.goals.head.name,
+    g.requiredObls(projectTypeImpliesFindColPS ))
+  val projectTypeImpliesFindColbasecasePS = g.applyTactic(projectTypeImpliesFindColbasecase,
+    Solve[VeritasConstruct, VeritasConstruct])
 
   val findColTypeImpliesfindCol: Lemmas = lemma(
     (('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
@@ -765,77 +1133,6 @@ class SQLSoundnessProofGraph extends FunSuite {
         'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
     ))
 
-  // induction cases for findColTypeImpliesfindCol
-  val findColTypeImpliesfindColAempty: Goals = goal(
-    ((~'al === 'aempty) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
-      ).===>("findColType-implies-findCol-aempty")(
-      exists(~'rt) |
-        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
-    ))
-
-  val findColTypeImpliesfindColAconsConsts = consts('alr ::> 'AttrL)
-
-  val findColTypeImpliesfindColAconsIH: Axioms = axiom(
-    ((~'al === 'alr) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
-      ).===>("findColType-implies-findCol-acons-IH")(
-      exists(~'rt) |
-        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
-    ))
-
-  val findColTypeImpliesfindColACons: Goals = goal(
-    ((~'al === 'acons (~'a, 'alr)) &
-      ('welltypedtable (~'tt, 'table (~'al, ~'rt))) &
-      ('findColType (~'n, ~'tt) === 'someFType (~'ft))
-      ).===>("findColType-implies-findCol-acons")(
-      exists(~'rt) |
-        'findCol (~'n, ~'al, ~'rt) === 'someRawTable (~'rt)
-    )) //requires lemma dropFirstColRawPreservesWelltypedRaw
-
-  val localblockfindColTypeImpliesfindColAcons = local(findColTypeImpliesfindColAconsConsts, findColTypeImpliesfindColAconsIH, findColTypeImpliesfindCol)
-  // end of induction cases for findColTypeImpliesfindCol
-
-  val dropFirstColRawPreservesWelltypedRaw: Lemmas = lemma(
-    ((~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
-      ('welltypedRawtable (~'tt, ~'rt))
-      ).===>("dropFirstColRaw-preserves-welltypedRaw")(
-      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
-    ))
-
-  //induction cases for dropFirstColRawPreservesWelltypedRaw
-  val dropFirstColRawPreservesWelltypedRawTempty: Goals = goal(
-    ((~'rt === 'tempty) &
-      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
-      ('welltypedRawtable (~'tt, ~'rt))
-      ).===>("dropFirstColRaw-preserves-welltypedRaw-tempty")(
-      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
-    ))
-
-  val dropFirstColRawPreservesWelltypedRawTconsConsts = consts('rts ::> 'RawTable)
-
-  val dropFirstColRawPreservesWelltypedRawTconsIH: Axioms = axiom(
-    ((~'rt === 'rtr) &
-      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
-      ('welltypedRawtable (~'tt, ~'rt))
-      ).===>("dropFirstColRaw-preserves-welltypedRaw-tcons-IH")(
-      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
-    ))
-
-  val dropFirstColRawPreservesWelltypedRawTcons: Goals = goal(
-    ((~'rt === 'tcons (~'r, 'rtr)) &
-      (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
-      ('welltypedRawtable (~'tt, ~'rt))
-      ).===>("dropFirstColRaw-preserves-welltypedRaw-tcons")(
-      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
-    ))
-
-  val localblockdropFirstColRawPreservesWelltypedRawTcons = local(dropFirstColRawPreservesWelltypedRawTconsConsts, dropFirstColRawPreservesWelltypedRawTconsIH, dropFirstColRawPreservesWelltypedRawTcons)
-  //end of induction cases for dropFirstColRawPreservesWelltypedRaw
-
-
   val projectTypeAttrLImpliesfindAllColType: Lemmas = lemma(
     (('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
       ('attrIn (~'n, ~'al))
@@ -844,39 +1141,17 @@ class SQLSoundnessProofGraph extends FunSuite {
         'findColType (~'n, ~'tt) === 'someFType (~'ft)
     ))
 
-  //induction cases projectTypeAttrLImpliesfindAllColType
-  val projectTypeAttrLImpliesfindAllColTypeAempty: Goals = goal(
-    ((~'al === 'aempty) &
-      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
-      ('attrIn (~'n, ~'al))
-      ).===>("projectTypeAttrL-implies-findAllColType-aempty")(
-      exists(~'ft) |
-        'findColType (~'n, ~'tt) === 'someFType (~'ft)
+  val projectTypeImpliesFindColstepcase = MockInduction.selectCase(projectTypeImpliesFindColAcons.goals.head.name, g.requiredObls(projectTypeImpliesFindColPS))
+  val projectTypeImpliesFindColstepcasePS = g.applyTactic(projectTypeImpliesFindColstepcase,
+    MockLemmaApplication(Seq(findColTypeImpliesfindCol, projectTypeAttrLImpliesfindAllColType)))
+
+
+  val dropFirstColRawPreservesWelltypedRaw: Lemmas = lemma(
+    ((~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
+      ('welltypedRawtable (~'tt, ~'rt))
+      ).===>("dropFirstColRaw-preserves-welltypedRaw")(
+      'welltypedRawtable (~'ttr, 'dropFirstColRaw (~'rt))
     ))
-
-  val projectTypeAttrLImpliesfindAllColTypeAconsConsts = consts('alr ::> 'AttrL)
-
-  val projectTypeAttrLImpliesfindAllColTypeAconsIH: Axioms = axiom(
-    ((~'al === 'alr) &
-      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
-      ('attrIn (~'n, ~'al))
-      ).===>("projectTypeAttrL-implies-findAllColType-acons-IH")(
-      exists(~'ft) |
-        'findColType (~'n, ~'tt) === 'someFType (~'ft)
-    ))
-
-  val projectTypeAttrLImpliesfindAllColTypeAcons: Goals = goal(
-    ((~'al === 'acons (~'a, 'aempty)) &
-      ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
-      ('attrIn (~'n, ~'al))
-      ).===>("projectTypeAttrL-implies-findAllColType-acons")(
-      exists(~'ft) |
-        'findColType (~'n, ~'tt) === 'someFType (~'ft)
-    ))
-
-  val localblockprojectTypeAttrLImpliesfindAllColTypeAcons = local(projectTypeAttrLImpliesfindAllColTypeAconsConsts, projectTypeAttrLImpliesfindAllColTypeAconsIH, projectTypeAttrLImpliesfindAllColTypeAcons)
-
-  //end of induction cases projectTypeAttrLImpliesfindAllColType
 
 
 }
