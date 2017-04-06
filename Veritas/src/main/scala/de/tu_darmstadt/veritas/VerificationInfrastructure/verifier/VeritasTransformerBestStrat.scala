@@ -42,10 +42,8 @@ case class TPTPOtherError(message: String) extends TPTPTransformerError
   * Translate VeriTaS module to TFF using the "most advantageous" strategies we determined so far
   * (module transformations)
   */
-class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasConstruct, TPTP] {
-  override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct,
-                                parentedges: Iterable[EdgeLabel],
-                                assumptions: Iterable[VeritasConstruct]): Try[TPTP] = {
+class VeritasTransformer(config: Configuration) extends Transformer[VeritasConstruct, VeritasConstruct, TPTP] {
+  override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct]): Try[TPTP] = {
     spec match {
       case Module(name, imps, moddefs) => {
 
@@ -97,17 +95,11 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
 
           val module = Module(name + "Transformed", imps, moddefs ++ augmentedgoal)
 
-          val transformationConfiguration = Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
-            Simplification -> Simplification.LogicalAndConstructors,
-            VariableEncoding -> VariableEncoding.InlineEverything,
-            Selection -> Selection.SelectAll,
-            Problem -> Problem.All))
-
           try {
-            val mods = MainTrans(Seq(module))(transformationConfiguration)
-            val files = mods.map(m => TypingTrans.finalEncoding(m)(transformationConfiguration))
+            val mods = MainTrans(Seq(module))(config)
+            val files = mods.map(m => TypingTrans.finalEncoding(m)(config))
 
-            if (ifConfig(FinalEncoding, FinalEncoding.TFF)(transformationConfiguration))
+            if (ifConfig(FinalEncoding, FinalEncoding.TFF)(config))
               Success(TFFFormat(files.head.asInstanceOf[TffFile]))
             else
               Success(FOFFormat(files.head.asInstanceOf[FofFile]))
@@ -125,3 +117,11 @@ class VeritasTransformerBestStrat extends Transformer[VeritasConstruct, VeritasC
     }
   }
 }
+
+object VeritasTransformerBestStrat extends VeritasTransformer(
+  Configuration(Map(FinalEncoding -> FinalEncoding.BareFOF,
+    Simplification -> Simplification.LogicalAndConstructors,
+    VariableEncoding -> VariableEncoding.InlineEverything,
+    Selection -> Selection.SelectAll,
+    Problem -> Problem.All)))
+
