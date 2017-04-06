@@ -56,7 +56,24 @@ case class ProverFailure(proverResult: ResultDetails) extends ProverStatus
   */
 trait Prover[V <: VerifierFormat] {
 
-  def callProver(problem: V): ProverStatus
+  // todo: automatically append .exe under windows systems
+  protected def findBinaryInPath(command: String): File = {
+    for (p <- System.getenv("PATH").split(File.pathSeparator);
+         f = new File(p, command) if f.exists() && f.canExecute)
+      return f
+    null
+  }
 
+  protected def writeToFile(filehandler: File, s: String) = {
+    if (!filehandler.getParentFile.exists())
+      filehandler.getParentFile.mkdirs()
+    filehandler.createNewFile()
+    new PrintWriter(filehandler) {
+      write(s);
+      close
+    }
+  }
+
+  def callProver(problem: V): ProverStatus
 }
 

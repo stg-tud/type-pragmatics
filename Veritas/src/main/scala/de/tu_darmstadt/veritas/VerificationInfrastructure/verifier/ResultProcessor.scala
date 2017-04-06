@@ -14,7 +14,32 @@ import scala.sys.process.ProcessLogger
   * @param processLogsOnly
   */
 abstract class ResultProcessor(outfile: File, defaultTimeout: Double, processLogsOnly: Boolean = false) extends ProcessLogger {
-  def result: ProverStatus
+  def proved: Option[Boolean]
+  def logBuilder: StringBuilder
+  def error: Boolean
+  def time: Option[Double]
+  def message: String
+  def proof: String
+  def lemmas: List[String]
+
+  def result: ProverStatus =
+    proved match {
+      case None => {
+        val details = ATPResultDetails(logBuilder.toString(), Some(message), None, None, time)
+        if (error)
+          ProverFailure(details)
+        else
+          Inconclusive(details)
+      }
+      case Some(true) => {
+        val details = ATPResultDetails(logBuilder.toString(), None, Some(proof), Some(lemmas), time)
+        Proved(details)
+      }
+      case Some(false) => {
+        val details = ATPResultDetails(logBuilder.toString(), None, None, None, time)
+        Disproved(details)
+      }
+    }
 
   //use own writer to make sure that old log files are overwritten (FileProcessLogger uses writer with append = true)
   val writer = new PrintWriter(

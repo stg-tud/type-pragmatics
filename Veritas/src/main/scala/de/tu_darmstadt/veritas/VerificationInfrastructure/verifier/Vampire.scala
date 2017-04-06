@@ -13,14 +13,6 @@ case class Vampire(version: String, timeout: Int, mode: String = "casc") extends
   private val proverCommand =
     findBinaryInPath(if (version == null) s"vampire" else s"vampire-$version")
 
-  // todo: automatically append .exe under windows systems
-  private def findBinaryInPath(command: String): File = {
-    for (p <- System.getenv("PATH").split(File.pathSeparator);
-         f = new File(p, command) if f.exists() && f.canExecute)
-      return f
-    null
-  }
-
   private def makeCall(file: File, timeout: Int) = {
     var call = Seq(proverCommand.getAbsolutePath)
 
@@ -35,16 +27,6 @@ case class Vampire(version: String, timeout: Int, mode: String = "casc") extends
 
     call = call :+ file.getAbsolutePath
     call
-  }
-
-  protected def writeToFile(filehandler: File, s: String) = {
-    if (!filehandler.getParentFile.exists())
-      filehandler.getParentFile.mkdirs()
-    filehandler.createNewFile()
-    new PrintWriter(filehandler) {
-      write(s);
-      close
-    }
   }
 
   override def callProver(problem: TPTP): ProverStatus = {
@@ -190,23 +172,4 @@ case class VampireResultProcessor(outfile: File, defaultTimeout: Double, process
   }
 
   override def buffer[T](f: => T) = f
-
-  override def result: ProverStatus =
-    proved match {
-      case None => {
-        val details = ATPResultDetails(logBuilder.toString(), Some(message), None, None, time)
-        if (error)
-          ProverFailure(details)
-        else
-          Inconclusive(details)
-      }
-      case Some(true) => {
-        val details = ATPResultDetails(logBuilder.toString(), None, Some(proof), Some(lemmas), time)
-        Proved(details)
-      }
-      case Some(false) => {
-        val details = ATPResultDetails(logBuilder.toString(), None, None, None, time)
-        Disproved(details)
-      }
-    }
 }
