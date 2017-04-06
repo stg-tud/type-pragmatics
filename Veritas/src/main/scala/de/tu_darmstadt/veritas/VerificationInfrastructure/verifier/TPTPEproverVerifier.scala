@@ -1,6 +1,8 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenStepResult, StepResultProducer}
+import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.{Module, VeritasConstruct}
 
 import scala.util.{Failure, Success}
@@ -21,7 +23,12 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
   def prover: Prover[TPTP]
 
   override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]](goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct], hints: Option[VerifierHints], produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result]): Result = {
-    val transformer = VeritasTransformerBestStrat
+    val transformer = new VeritasTransformer(
+      Configuration(Map(FinalEncoding -> FinalEncoding.BareFOF,
+        Simplification -> Simplification.LogicalAndConstructors,
+        VariableEncoding -> VariableEncoding.InlineEverything,
+        Selection -> Selection.SelectAll,
+        Problem -> Problem.All)))
     spec match {
       case Module(name, imps, moddefs) => {
         val transformedProb = transformer.transformProblem(goal, spec, parentedges, assumptions)

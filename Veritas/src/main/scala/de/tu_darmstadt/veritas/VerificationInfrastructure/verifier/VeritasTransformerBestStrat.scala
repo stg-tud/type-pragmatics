@@ -119,7 +119,7 @@ class VeritasTransformer(config: Configuration) extends Transformer[VeritasConst
 }
 
 object VeritasTransformerBestStrat extends VeritasTransformer(
-  Configuration(Map(FinalEncoding -> FinalEncoding.BareFOF,
+  Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
     Simplification -> Simplification.LogicalAndConstructors,
     VariableEncoding -> VariableEncoding.InlineEverything,
     Selection -> Selection.SelectAll,
