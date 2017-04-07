@@ -17,7 +17,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   import ProofGraphXodus._
 
   val store: PersistentEntityStore = PersistentEntityStores.newInstance(dbDir)
-  PropertyTypes.registerAll(store)
+  //PropertyTypes.registerAll(store)
 
   // TODO add an index Step->EntityId for faster lookups
 
