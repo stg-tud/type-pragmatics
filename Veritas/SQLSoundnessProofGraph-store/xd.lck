@@ -1,4 +1,4 @@
-Private property of Exodus: 40266@pc-grewe.st.informatik.tu-darmstadt.de
+Private property of Exodus: 47451@Sylvia
 
 jetbrains.exodus.io.LockingManager.lock(LockingManager.java:100)
 jetbrains.exodus.io.LockingManager.lock(LockingManager.java:53)
@@ -11,7 +11,7 @@ jetbrains.exodus.env.Environments.newLogInstance(Environments.java:97)
 jetbrains.exodus.env.Environments.newInstance(Environments.java:52)
 jetbrains.exodus.entitystore.PersistentEntityStores.newInstance(PersistentEntityStores.java:65)
 de.tu_darmstadt.veritas.VerificationInfrastructure.ProofGraphXodus.<init>(ProofGraphXodus.scala:19)
-de.tu_darmstadt.veritas.VerificationInfrastructure.SQLSoundnessProofGraphTest.<init>(SQLSoundnessProofGraphTest.scala:24)
+de.tu_darmstadt.veritas.VerificationInfrastructure.SQLSoundnessProofGraphTest.<init>(SQLSoundnessProofGraphTest.scala:25)
 sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
 sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
 sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)

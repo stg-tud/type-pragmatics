@@ -2,10 +2,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{CaseDistinctionCase, Solve}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, TPTPVampireVerifier}
-import de.tu_darmstadt.veritas.backend.ast.{Goals, Lemmas, Module, VeritasConstruct}
-import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.CaseDistinctionCase
+import de.tu_darmstadt.veritas.backend.ast.VeritasConstruct
 import org.scalatest.FunSuite
 
 
@@ -13,6 +11,9 @@ import org.scalatest.FunSuite
   * Constructing the SQL soundness proof graph and tests on the graph
   */
 class SQLSoundnessProofGraphTest extends FunSuite {
+
+  import SQLSoundnessProofSteps._
+  import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics._
 
   //Tries to load existing SQLSoundnessGraph
   val file = new File("SQLSoundnessProofGraph-store")
@@ -25,139 +26,101 @@ class SQLSoundnessProofGraphTest extends FunSuite {
 
   SQLSoundnessProofGraph.initializeGraphTypes(loaded_g)
 
+  val progressobl = loaded_g.findObligation("SQL Progress")
 
-  test("Graph was loaded correctly and has the expected number of obligations") {
+  test("Root obligation (progress) can be successfully retrieved from loaded graph") {
     assert(loaded_g.storedObligations.size == 1)
+    assert(progressobl.nonEmpty)
+    assert(progressobl.get.spec == fullSQLspec)
+    assert(progressobl.get.goal == SQLProgress)
+  }
 
-    val rootobl = loaded_g.findObligation("SQL Progress")
-    assert(rootobl.nonEmpty)
+  val progressindPS = loaded_g.appliedStep(progressobl.get)
+  val obls = loaded_g.requiredObls(progressindPS.get)
+  val tvaluecase = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, obls)
+  val selcase = MockInduction.selectCase(SQLProgressTselectFromWhere.goals.head.name, obls)
+  val unioncase = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
+  val intersectioncase = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, obls)
+  val differencecase = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, obls)
+
+  test("All root induction cases are retrievable") {
+    assert(progressindPS.nonEmpty)
+
+    assert(tvaluecase.spec == fullSQLspec)
+    assert(tvaluecase.goal == SQLProgressTtvalue)
+
+    assert(selcase.spec == fullSQLspec)
+    assert(selcase.goal == SQLProgressTselectFromWhere)
+
+    assert(unioncase.spec == fullSQLspec)
+    assert(unioncase.goal == SQLProgressTUnion)
+
+    assert(intersectioncase.spec == fullSQLspec)
+    assert(intersectioncase.goal == SQLProgressTIntersection)
+
+    assert(differencecase.spec == fullSQLspec)
+    assert(differencecase.goal == SQLProgressTDifference)
   }
 
 
-  import DataTypeDSL._
-  import FunctionDSL._
-  import SymTreeDSL._
-  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
-  import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
+  test("All progress induction cases have proof steps") {
+    assert(loaded_g.appliedStep(tvaluecase).nonEmpty)
+    assert(loaded_g.appliedStep(selcase).nonEmpty)
+    assert(loaded_g.appliedStep(unioncase).nonEmpty)
+    assert(loaded_g.appliedStep(intersectioncase).nonEmpty)
+    assert(loaded_g.appliedStep(differencecase).nonEmpty)
 
-  import de.tu_darmstadt.veritas.inputdsl.SQLDefs._
+  }
+
+  val tvaluecasePS = loaded_g.appliedStep(tvaluecase).get
+  val selcasePS = loaded_g.appliedStep(selcase).get
+  val unioncasePS = loaded_g.appliedStep(unioncase).get
+  val intersectioncasePS = loaded_g.appliedStep(intersectioncase).get
+  val differencecasePS = loaded_g.appliedStep(differencecase).get
+
+  test("T-value base case was verified") {
+    assert(loaded_g.verifiedBy(tvaluecasePS).nonEmpty)
+
+    val tvalueres = loaded_g.verifiedBy(tvaluecasePS).get
+
+    //TODO: isStepVerified and isOblVerified both call EvidenceChecker - is that a good idea?
+    assert(tvalueres.status.isVerified)
+    assert(tvalueres.errorMsg.isEmpty)
+    assert(tvalueres.evidence.nonEmpty)
+    assert(tvaluecasePS.tactic.allRequiredOblsVerified(loaded_g)(tvaluecase, loaded_g.requiredObls(tvaluecasePS)))
+  }
+
+  val unionobls = loaded_g.requiredObls(unioncasePS)
+  val intersectionobls = loaded_g.requiredObls(intersectioncasePS)
+  val differenceobls = loaded_g.requiredObls(differencecasePS)
+
+  test("Applying case distinctions worked as desired") {
+
+    val union1 = MockCaseDistinction.selectCase("Union1", unionobls)
+    val intersection3 = MockCaseDistinction.selectCase("Intersection3", intersectionobls)
+    val difference2 = MockCaseDistinction.selectCase("Difference2", differenceobls)
+
+    assert(union1.goal == mkSQLProgressTSetCase(0, unionsym, sunion, case1pred))
+    assert(intersection3.goal == mkSQLProgressTSetCase(2, intersectionsym, sintersection, case3pred))
+    assert(difference2.goal == mkSQLProgressTSetCase(1, differencesym, sdifference, case2pred))
+
+    //compare some induction hypotheses
+    val obls = loaded_g.requiredObls(progressindPS.get)
+    val unioncase = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
+    val intersectioncase = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, obls)
+    val differencecase = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, obls)
+
+    val unionps = loaded_g.appliedStep(unioncase).get
+    val unionedges = loaded_g.requiredObls(unionps).toSeq
+    assert(unionedges.size == 3)
+    assert(unionedges(1)._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct]].ihs.ihs == SQLProgressTUnionIH2)
+
+  }
 
 
-  // We instantiate S = VeritasConstruct (should be a Module) and P = VeritasConstruct (Should be Goal/local)
+  //test("Timeout for individual set cases (SQL progress proof) in loaded graph") {
 
-
-  //  val testGoal: Goals = goal(===>("test")('p ('x) && 'q ('x) || 't ('x)))
-  //  val testObligation: g.Obligation = g.newObligation(Module("empty", Seq(), Seq()), testGoal)
-  //
-  //  test("Storing and finding the test obligation") {
-  //    g.storeObligation("test", testObligation)
-  //
-  //    val r = g.findObligation("test")
-  //
-  //    assert(r.get.spec == testObligation.spec)
-  //    assert(r.get.goal == testObligation.goal)
-  //  }
-  //
-  //  test("Unstoring the test obligation") {
-  //
-  //    //first check whether obligation is still there
-  //    val ro = g.findObligation("test")
-  //
-  //    assert(ro.get.spec == testObligation.spec)
-  //    assert(ro.get.goal == testObligation.goal)
-  //
-  //    g.unstoreObligation(testObligation)
-  //    val r = g.findObligation("test")
-  //
-  //    assert(r == None)
-  //  }
-
-
-  //  test("Storing and finding the progress obligation") {
-  //    val r = g.findObligation("SQL progress")
-  //
-  //    assert(r.get.spec == progressObligation.spec)
-  //    assert(r.get.goal == progressObligation.goal)
-  //  }
-  //
-  //
-  //
-  //  test("All root induction cases are retrievable") {
-  //    val obls = g.requiredObls(rootinductionPS)
-  //    val tvaluecase = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, obls)
-  //    val selcase = MockInduction.selectCase(SQLProgressTselectFromWhere.goals.head.name, obls)
-  //    val unioncase = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
-  //    val intersectioncase = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, obls)
-  //    val differencecase = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, obls)
-  //
-  //    assert(tvaluecase.spec == fullSQLspec)
-  //    assert(tvaluecase.goal == SQLProgressTtvalue)
-  //
-  //    assert(selcase.spec == fullSQLspec)
-  //    assert(selcase.goal == SQLProgressTselectFromWhere)
-  //
-  //    assert(unioncase.spec == fullSQLspec)
-  //    assert(unioncase.goal == SQLProgressTUnion)
-  //
-  //    assert(intersectioncase.spec == fullSQLspec)
-  //    assert(intersectioncase.goal == SQLProgressTIntersection)
-  //
-  //    assert(differencecase.spec == fullSQLspec)
-  //    assert(differencecase.goal == SQLProgressTDifference)
-  //  }
-  //
-  //
-  //  test("T-value base case is provable (using Vampire 4.1, 5 sec)") {
-  //    val simpleVerifier = new TPTPVampireVerifier(5)
-  //
-  //    val result = g.verifyProofStep(tvaluecasePS, simpleVerifier)
-  //    assert(result.status.isInstanceOf[Finished[_, _]])
-  //    assert(result.status.isVerified)
-  //    assert(result.errorMsg.isEmpty)
-  //    assert(result.evidence.nonEmpty)
-  //
-  //  }
-  //
-  //
-  //  test("Applying case distinctions worked as desired") {
-  //    val unionobls = g.requiredObls(unioncasePS)
-  //    val union1 = MockCaseDistinction.selectCase("Union1", unionobls)
-  //    val intersectionobls = g.requiredObls(intersectioncasePS)
-  //    val intersection3 = MockCaseDistinction.selectCase("Intersection3", intersectionobls)
-  //    val differenceobls = g.requiredObls(differencecasePS)
-  //    val difference2 = MockCaseDistinction.selectCase("Difference2", differenceobls)
-  //
-  //    assert(union1.goal == mkSQLProgressTSetCase(0, unionsym, sunion, case1pred))
-  //    assert(intersection3.goal == mkSQLProgressTSetCase(2, intersectionsym, sintersection, case3pred))
-  //    assert(difference2.goal == mkSQLProgressTSetCase(1, differencesym, sdifference, case2pred))
-  //
-  //    //compare some induction hypotheses
-  //
-  //    val obls = g.requiredObls(rootinductionPS)
-  //    val unioncase = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, obls)
-  //    val intersectioncase = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, obls)
-  //    val differencecase = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, obls)
-  //
-  //    val unionps = g.appliedStep(unioncase).get
-  //    val unionedges = g.requiredObls(unionps).toSeq
-  //    assert(unionedges.size == 3)
-  //    assert(unionedges(1)._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct]].ihs.ihs == SQLProgressTUnionIH2)
-  //
-  //  }
-  //
-  //
-  //
-  //  test("Timeout for individual set cases (SQL progress proof), using Vampire 4.1, 1 sec") {
-  //    val simpleVerifier = new TPTPVampireVerifier(1)
-  //
-  //    for (ps <- setPS) {
-  //      val result = g.verifyProofStep(ps, simpleVerifier)
-  //
-  //      assert(result.status.isInstanceOf[Finished[_, _]])
-  //      assert(result.errorMsg.nonEmpty)
-  //      assert(result.errorMsg.get == "Time limit")
-  //    }
-  //  }
+  //}
   //
   //  //  test("Proving a single set case") {
   //  //    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")

@@ -59,13 +59,13 @@ object SQLMockTactics {
           InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
         (unioncase, StructInductCase[VeritasConstruct](SQLProgressTUnion.goals.head.name,
           Some(FixedVars(unionconsts)),
-          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTUnionIH1, SQLProgressTUnionIH2))))),
+          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTUnionIH1.axioms.head, SQLProgressTUnionIH2.axioms.head))))),
         (intersectioncase, StructInductCase[VeritasConstruct](SQLProgressTIntersection.goals.head.name,
           Some(FixedVars(intersectionconsts)),
-          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTIntersectionIH1, SQLProgressTIntersectionIH2))))),
+          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTIntersectionIH1.axioms.head, SQLProgressTIntersectionIH2.axioms.head))))),
         (differencecase, StructInductCase[VeritasConstruct](SQLProgressTDifference.goals.head.name,
           Some(FixedVars(differenceconsts)),
-          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTDifferenceIH1, SQLProgressTDifferenceIH2))))))
+          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTDifferenceIH1.axioms.head, SQLProgressTDifferenceIH2.axioms.head))))))
     }
   }
 
@@ -251,10 +251,10 @@ object SQLMockTactics {
         InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
         (mkcase(1), CaseDistinctionCase[VeritasConstruct](setname + "2",
           Some(FixedVars(setconsts)),
-          InductionHypotheses[VeritasConstruct](Axioms(Seq(mkSQLProgressTSetCaseIH(2, setname, 'q2)))))),
+          InductionHypotheses[VeritasConstruct](mkSQLProgressTSetCaseIH(2, setname, 'q2)))),
         (mkcase(2), CaseDistinctionCase[VeritasConstruct](setname + "3",
           Some(FixedVars(setconsts)),
-          InductionHypotheses[VeritasConstruct](Axioms(Seq(mkSQLProgressTSetCaseIH(1, setname, 'q1)))))))
+          InductionHypotheses[VeritasConstruct](mkSQLProgressTSetCaseIH(1, setname, 'q1)))))
     }
 
   }
@@ -289,6 +289,7 @@ object SQLMockTactics {
 
 
 // Constructing the SQL soundness proof graph
+// We instantiate S = VeritasConstruct (should be a Module) and P = VeritasConstruct (Should be Goal/local)
 class SQLSoundnessProofGraph(file: File) {
 
   import SQLMockTactics._

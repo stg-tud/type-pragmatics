@@ -58,21 +58,21 @@ object SQLSoundnessProofSteps {
     'TT ::> 'TType)
 
   val SQLProgressTUnionIH1 =
-    ((!'isValue ('q1)) &
+    axiom(((!'isValue ('q1)) &
       ('TTC |- 'q1 :: 'TT) &
       'StoreContextConsistent ('TS, 'TTC)
       ).===>("SQL-Progress-T-Union-IH1")(
       exists(~'qo) |
         ('reduce ('q1, 'TS) === 'someQuery (~'qo))
-    )
+    ))
 
   val SQLProgressTUnionIH2 =
-    ((!'isValue ('q2)) &
+    axiom(((!'isValue ('q2)) &
       ('TTC |- 'q2 :: 'TT) &
       'StoreContextConsistent ('TS, 'TTC)
       ).===>("SQL-Progress-T-Union-IH2")(
       exists(~'qo) |
-        ('reduce ('q2, 'TS) === 'someQuery (~'qo)))
+        ('reduce ('q2, 'TS) === 'someQuery (~'qo))))
 
   val SQLProgressTUnion = goal(
     ((~'q === 'Union ('q1, 'q2)) &
@@ -91,21 +91,21 @@ object SQLSoundnessProofSteps {
     'TT ::> 'TType)
 
   val SQLProgressTIntersectionIH1 =
-    ((!'isValue ('q1)) &
+    axiom(((!'isValue ('q1)) &
       ('TTC |- 'q1 :: 'TT) &
       'StoreContextConsistent ('TS, 'TTC)
       ).===>("SQL-Progress-T-Intersection-IH1")(
       exists(~'qo) |
-        ('reduce ('q1, 'TS) === 'someQuery (~'qo)))
+        ('reduce ('q1, 'TS) === 'someQuery (~'qo))))
 
 
   val SQLProgressTIntersectionIH2 =
-    ((!'isValue ('q2)) &
+    axiom(((!'isValue ('q2)) &
       ('TTC |- 'q2 :: 'TT) &
       'StoreContextConsistent ('TS, 'TTC)
       ).===>("SQL-Progress-T-Intersection-IH2")(
       exists(~'qo) |
-        ('reduce ('q2, 'TS) === 'someQuery (~'qo)))
+        ('reduce ('q2, 'TS) === 'someQuery (~'qo))))
 
   val SQLProgressTIntersection = goal(
     ((~'q === 'Intersection ('q1, 'q2)) &
@@ -125,21 +125,21 @@ object SQLSoundnessProofSteps {
 
 
   val SQLProgressTDifferenceIH1 =
-    ((!'isValue ('q1)) &
+    axiom(((!'isValue ('q1)) &
       ('TTC |- 'q1 :: 'TT) &
       'StoreContextConsistent ('TS, 'TTC)
       ).===>("SQL-Progress-T-Difference-IH1")(
       exists(~'qo) |
-        ('reduce ('q1, 'TS) === 'someQuery (~'qo)))
+        ('reduce ('q1, 'TS) === 'someQuery (~'qo))))
 
   val SQLProgressTDifferenceIH2 =
-    ((!'isValue ('q2)) &
+    axiom(((!'isValue ('q2)) &
       ('TTC |- 'q2 :: 'TT) &
       'StoreContextConsistent ('TS, 'TTC)
       ).===>("SQL-Progress-T-Difference-IH2")(
       exists(~'qo) |
         ('reduce ('q2, 'TS) === 'someQuery (~'qo))
-    )
+    ))
 
   val SQLProgressTDifference = goal(
     ((~'q === 'Difference ('q1, 'q2)) &
@@ -494,12 +494,13 @@ object SQLSoundnessProofSteps {
 
 
   def mkSQLProgressTSetCaseIH(i: Int, setname: String, indvar: Symbol) =
+    axiom(
     (!'isValue (indvar) &
       ('TTC |- indvar :: 'TT) &
       'StoreContextConsistent ('TS, 'TTC)
       ).===>("SQL-Progress-T-" + setname + "-IH" + i)(
       exists(~'qo) |
-        ('reduce (indvar, 'TS) === 'someQuery (~'qo)))
+        ('reduce (indvar, 'TS) === 'someQuery (~'qo))))
 
 
   def mkSQLProgressTSetCase(i: Int, setsym: Symbol, setname: String, casepreds: Seq[TypingRuleJudgment]) =
