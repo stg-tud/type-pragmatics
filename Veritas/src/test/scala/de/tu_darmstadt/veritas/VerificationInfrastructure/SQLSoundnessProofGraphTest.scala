@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.CaseDistinctionCase
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.VerifierFailure
 import de.tu_darmstadt.veritas.backend.ast.VeritasConstruct
 import org.scalatest.FunSuite
 
@@ -117,179 +118,353 @@ class SQLSoundnessProofGraphTest extends FunSuite {
 
   }
 
+  test("Successfully proven individual set cases (tvalue+tvalue) in loaded graph") {
+    val successfulObls = List(loaded_g.requiredObls(unioncasePS).head,
+      loaded_g.requiredObls(intersectioncasePS).head, loaded_g.requiredObls(differencecasePS).head)
 
-  //test("Timeout for individual set cases (SQL progress proof) in loaded graph") {
+    for ((o, e) <- successfulObls) {
+      val stepO = loaded_g.appliedStep(o)
+      assert(stepO.nonEmpty)
+      val step = stepO.get
+      val resO = loaded_g.verifiedBy(step)
+      assert(resO.nonEmpty)
+      val res = resO.get
 
-  //}
-  //
-  //  //  test("Proving a single set case") {
-  //  //    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
-  //  //
-  //  //    val result = g.verifyProofStep(setPS.head, simpleVerifier)
-  //  //
-  //  //    println(result.status)
-  //  //    assert(result.status.isInstanceOf[Finished[_, _]])
-  //  //    assert(result.status.isVerified)
-  //  //  }
-  //  //
-  //  //  test("Proving all individual set cases with Vampire 4.0") {
-  //  //    val simpleVerifier = new TPTPVampireVerifier(30, "4.0")
-  //  //
-  //  //    for (ps <- setPS) {
-  //  //      val result = g.verifyProofStep(ps, simpleVerifier)
-  //  //
-  //  //      assert(result.status.isInstanceOf[Finished[_, _]])
-  //  //      assert(result.status.isVerified)
-  //  //      assert(result.errorMsg.isEmpty)
-  //  //      assert(result.evidence.nonEmpty)
-  //  //    }
-  //  //  }
-  //
-  //  test("Proving Case Distinction steps, Vampire 4.1, 5 seconds") {
-  //    val simpleVerifier = new TPTPVampireVerifier(5)
-  //
-  //    val res1 = g.verifyProofStep(unioncasePS, simpleVerifier)
-  //    val res2 = g.verifyProofStep(intersectioncasePS, simpleVerifier)
-  //    val res3 = g.verifyProofStep(differencecasePS, simpleVerifier)
-  //
-  //
-  //    assert(res1.status.isInstanceOf[Finished[_, _]])
-  //    assert(res1.status.isVerified)
-  //    assert(res1.errorMsg.isEmpty)
-  //    assert(res1.evidence.nonEmpty)
-  //
-  //    assert(res2.status.isInstanceOf[Finished[_, _]])
-  //    assert(res2.status.isVerified)
-  //    assert(res2.errorMsg.isEmpty)
-  //    assert(res2.evidence.nonEmpty)
-  //
-  //    assert(res3.status.isInstanceOf[Finished[_, _]])
-  //    assert(res3.status.isVerified)
-  //    assert(res3.errorMsg.isEmpty)
-  //    assert(res3.evidence.nonEmpty)
-  //  }
-  //
-  //
-  //
-  //
-  //  test("Verify lemma application step (inconclusive)") {
-  //    val simpleVerifier = new TPTPVampireVerifier(3)
-  //
-  //    val result = g.verifyProofStep(selLemmaPS, simpleVerifier)
-  //
-  //    //println(result.status)
-  //    assert(result.status.isInstanceOf[Finished[_, _]])
-  //
-  //  }
-  //
-  //
-  //  test("Verify cases of successfulLookup (Vampire 4.1)") {
-  //    val simpleVerifier = new TPTPVampireVerifier(5)
-  //
-  //    val resbase = g.verifyProofStep(successfulLookupbasecasePL, simpleVerifier)
-  //    val resstep = g.verifyProofStep(successfulLookupstepcasePL, simpleVerifier)
-  //
-  //    assert(resbase.status.isInstanceOf[Finished[_, _]])
-  //    assert(resbase.status.isVerified)
-  //    assert(resbase.errorMsg.isEmpty)
-  //    assert(resbase.evidence.nonEmpty)
-  //
-  //    assert(resstep.status.isInstanceOf[Finished[_, _]])
-  //    assert(resstep.status.isVerified)
-  //    assert(resstep.errorMsg.isEmpty)
-  //    assert(resstep.evidence.nonEmpty)
-  //
-  //  }
-  //
-  //
-  //
-  //  test("Verify cases of welltypedLookup (Vampire 4.1)") {
-  //    val simpleVerifier = new TPTPVampireVerifier(5)
-  //
-  //    val resbase = g.verifyProofStep(welltypedLookupbasecasePS, simpleVerifier)
-  //    val resstep = g.verifyProofStep(welltypedLookupstepcasePS, simpleVerifier)
-  //
-  //    assert(resbase.status.isInstanceOf[Finished[_, _]])
-  //    assert(resbase.status.isVerified)
-  //    assert(resbase.errorMsg.isEmpty)
-  //    assert(resbase.evidence.nonEmpty)
-  //
-  //    assert(resstep.status.isInstanceOf[Finished[_, _]])
-  //    assert(resstep.status.isVerified)
-  //    assert(resstep.errorMsg.isEmpty)
-  //    assert(resstep.evidence.nonEmpty)
-  //
-  //  }
-  //
-  //
-  //  test("Verify filterPreservesType via auxiliary lemma (Vampire 4.1)") {
-  //    val simpleVerifier = new TPTPVampireVerifier(5)
-  //
-  //    val result = g.verifyProofStep(filterPreservesTypePS, simpleVerifier)
-  //
-  //    assert(result.status.isInstanceOf[Finished[_, _]])
-  //    assert(result.status.isVerified)
-  //    assert(result.errorMsg.isEmpty)
-  //    assert(result.evidence.nonEmpty)
-  //
-  //  }
-  //
-  //
-  //
-  //  test("Verify cases of filterRowsPreservesTable (Vampire 4.1)") {
-  //    val simpleVerifier = new TPTPVampireVerifier(5)
-  //
-  //    val resbase = g.verifyProofStep(filterRowsPreservesTablebasecasePS, simpleVerifier)
-  //    val resstep = g.verifyProofStep(filterRowsPreservesTablestepcasePS, simpleVerifier)
-  //
-  //    assert(resbase.status.isInstanceOf[Finished[_, _]])
-  //    assert(resbase.status.isVerified)
-  //    assert(resbase.errorMsg.isEmpty)
-  //    assert(resbase.evidence.nonEmpty)
-  //
-  //    assert(resstep.status.isInstanceOf[Finished[_, _]])
-  //    assert(resstep.status.isVerified)
-  //    assert(resstep.errorMsg.isEmpty)
-  //    assert(resstep.evidence.nonEmpty)
-  //
-  //  }
-  //
-  //
-  //
-  //
-  //  test("Verify projectTableProgress via auxiliary lemma (Vampire 4.1)") {
-  //    val simpleVerifier = new TPTPVampireVerifier(20)
-  //
-  //    val result = g.verifyProofStep(projectTableProgressPS, simpleVerifier)
-  //
-  //    println(result.status)
-  //    assert(result.status.isInstanceOf[Finished[_, _]])
-  //    assert(result.status.isVerified)
-  //    assert(result.errorMsg.isEmpty)
-  //    assert(result.evidence.nonEmpty)
-  //
-  //  }
-  //
-  //
-  //
-  //
-  //  test("Verify cases of projectColsProgress (Vampire 4.1)") {
-  //    val simpleVerifier = new TPTPVampireVerifier(5)
-  //
-  //    val resbase = g.verifyProofStep(projectColsProgressbasecasePS, simpleVerifier)
-  //    val resstep = g.verifyProofStep(projectColsProgressstepcasePS, simpleVerifier)
-  //
-  //    assert(resbase.status.isInstanceOf[Finished[_, _]])
-  //    assert(resbase.status.isVerified)
-  //    assert(resbase.errorMsg.isEmpty)
-  //    assert(resbase.evidence.nonEmpty)
-  //
-  //    assert(resstep.status.isInstanceOf[Finished[_, _]])
-  //    assert(resstep.status.isVerified)
-  //    assert(resstep.errorMsg.isEmpty)
-  //    assert(resstep.evidence.nonEmpty)
-  //
-  //  }
+      assert(res.status.isVerified)
+      assert(res.errorMsg.isEmpty)
+      assert(res.evidence.nonEmpty)
+    }
+  }
 
+
+  test("Timeout for remaining individual set cases (SQL progress proof) in loaded graph") {
+    val unsuccessfulObls = loaded_g.requiredObls(unioncasePS).tail ++
+      loaded_g.requiredObls(intersectioncasePS).tail ++ loaded_g.requiredObls(differencecasePS).tail
+
+    for ((o, e) <- unsuccessfulObls) {
+      val stepO = loaded_g.appliedStep(o)
+      assert(stepO.nonEmpty)
+      val step = stepO.get
+      val resO = loaded_g.verifiedBy(step)
+      assert(resO.nonEmpty)
+      val res = resO.get
+
+      assert(!res.status.isVerified)
+      assert(res.errorMsg.nonEmpty)
+      assert(res.errorMsg.get == "Time limit")
+      assert(res.evidence.isEmpty)
+    }
+  }
+
+  test("Successfully verified case distinction steps in loaded graph") {
+    val pslist = List(unioncasePS, intersectioncasePS, differencecasePS)
+    val ress = pslist.map(loaded_g.verifiedBy(_))
+
+    for (resO <- ress; res <- resO) {
+      assert(res.status.isVerified)
+      assert(res.errorMsg.isEmpty)
+      assert(res.evidence.nonEmpty)
+    }
+
+    for (ps <- pslist) {
+      assert(!ps.tactic.allRequiredOblsVerified(loaded_g)(unioncase, loaded_g.requiredObls(ps)))
+    }
+
+  }
+
+  test("Verifying lemma application step selectFromWhere inconclusive (Time limit)") {
+    val resO = loaded_g.verifiedBy(selcasePS)
+    assert(resO.nonEmpty)
+    val res = resO.get
+
+    assert(!res.status.isVerified)
+    assert(res.errorMsg.nonEmpty)
+    assert(res.errorMsg.get == "Time limit")
+    assert(res.evidence.isEmpty)
+    assert(!selcasePS.tactic.allRequiredOblsVerified(loaded_g)(selcase, loaded_g.requiredObls(selcasePS)))
+  }
+
+  val selLemmaPS = loaded_g.appliedStep(selcase).get
+
+  val successfulLookupobl = MockLemmaApplication.selectLemma(successfulLookup.lemmas.head.name,
+    loaded_g.requiredObls(selLemmaPS))
+  val successfulLookupPS = loaded_g.appliedStep(successfulLookupobl).get
+  val successfulLookupbasecase = MockInduction.selectCase(successfulLookupEmpty.goals.head.name, loaded_g.requiredObls(successfulLookupPS))
+  val successfulLookupstepcase = MockInduction.selectCase(successfulLookupBind.goals.head.name, loaded_g.requiredObls(successfulLookupPS))
+
+
+  test("Successful verification of cases of successfulLookup") {
+    val cases = List(successfulLookupbasecase, successfulLookupstepcase)
+    val ress = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield loaded_g.verifiedBy(ps)
+
+    assert(ress.size == 2)
+    for (resO <- ress) {
+      assert(resO.nonEmpty)
+      val res = resO.get
+      assert(res.status.isVerified)
+      assert(res.errorMsg.isEmpty)
+      assert(res.evidence.nonEmpty)
+    }
+
+    for (c <- cases; ps <- loaded_g.appliedStep(c)) {
+      assert(ps.tactic.allRequiredOblsVerified(loaded_g)(c, loaded_g.requiredObls(ps)))
+    }
+  }
+
+  val welltypedLookupobl = MockLemmaApplication.selectLemma(welltypedLookup.lemmas.head.name,
+    loaded_g.requiredObls(selLemmaPS))
+  val welltypedLookupPS = loaded_g.appliedStep(welltypedLookupobl).get
+  val welltypedLookupbasecase = MockInduction.selectCase(welltypedLookupEmpty.goals.head.name, loaded_g.requiredObls(welltypedLookupPS))
+  val welltypedLookupstepcase = MockInduction.selectCase(welltypedLookupBind.goals.head.name, loaded_g.requiredObls(welltypedLookupPS))
+
+
+  test("Successful verification of cases of welltypedLookup") {
+    val cases = List(welltypedLookupbasecase, welltypedLookupstepcase)
+    val ress = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield loaded_g.verifiedBy(ps)
+
+    assert(ress.size == 2)
+    for (resO <- ress) {
+      assert(resO.nonEmpty)
+      val res = resO.get
+      assert(res.status.isVerified)
+      assert(res.errorMsg.isEmpty)
+      assert(res.evidence.nonEmpty)
+    }
+
+    for (c <- cases; ps <- loaded_g.appliedStep(c)) {
+      assert(ps.tactic.allRequiredOblsVerified(loaded_g)(c, loaded_g.requiredObls(ps)))
+    }
+  }
+
+  val filterPreservesTypeobl = MockLemmaApplication.selectLemma(filterPreservesType.lemmas.head.name,
+    loaded_g.requiredObls(selLemmaPS))
+  val filterPreservesTypePS = loaded_g.appliedStep(filterPreservesTypeobl).get
+
+  test("Successful Verification of filterPreservesType via auxiliary lemma") {
+
+    val resO = loaded_g.verifiedBy(filterPreservesTypePS)
+    assert(resO.nonEmpty)
+    val res = resO.get
+    assert(res.status.isVerified)
+    assert(res.errorMsg.isEmpty)
+    assert(res.evidence.nonEmpty)
+
+    assert(!filterPreservesTypePS.tactic.allRequiredOblsVerified(loaded_g)(filterPreservesTypeobl,
+      loaded_g.requiredObls(filterPreservesTypePS)))
+
+  }
+
+  val filterRowsPreservesTableObl = MockLemmaApplication.selectLemma(filterRowsPreservesTable.lemmas.head.name,
+    loaded_g.requiredObls(filterPreservesTypePS))
+  val filterRowsPreservesTablePS = loaded_g.appliedStep(filterRowsPreservesTableObl).get
+  val filterRowsPreservesTablebasecase = MockInduction.selectCase(filterRowsPreservesTableTempty.goals.head.name,
+    loaded_g.requiredObls(filterRowsPreservesTablePS))
+  val filterRowsPreservesTablestepcase = MockInduction.selectCase(filterRowsPreservesTableTcons.goals.head.name,
+    loaded_g.requiredObls(filterRowsPreservesTablePS))
+
+
+  test("Verification of filterRowsPreservesTable cases (successful base case, inconclusive step case)") {
+    val cases = List(filterRowsPreservesTablebasecase, filterRowsPreservesTablestepcase)
+    val casePSs = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield ps
+    val ress = for (ps <- casePSs) yield loaded_g.verifiedBy(ps)
+
+    assert(ress.size == 2)
+    assert(ress.forall(_.nonEmpty))
+    val PSbase = casePSs.head
+    val resbase = ress.head.get
+
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+    assert(PSbase.tactic.allRequiredOblsVerified(loaded_g)
+    (filterRowsPreservesTablebasecase, loaded_g.requiredObls(PSbase)))
+
+    val PSstep = casePSs.last
+    val resstep = ress.last.get
+
+    assert(!resstep.status.isVerified)
+    assert(resstep.errorMsg.nonEmpty)
+    assert(resstep.evidence.isEmpty)
+  }
+
+  val projectTableProgressobl = MockLemmaApplication.selectLemma(projectTableProgress.lemmas.head.name,
+    loaded_g.requiredObls(selLemmaPS))
+  val projectTableProgressPS = loaded_g.appliedStep(projectTableProgressobl).get
+
+
+  test("Incomplete verification of projectTableProgress via auxiliary lemma projectColsProgress") {
+    val resO = loaded_g.verifiedBy(projectTableProgressPS)
+    assert(resO.nonEmpty)
+    val res = resO.get
+    assert(!res.status.isVerified)
+    assert(res.errorMsg.nonEmpty)
+    assert(res.evidence.isEmpty)
+
+    assert(!projectTableProgressPS.tactic.allRequiredOblsVerified(loaded_g)(projectTableProgressobl,
+      loaded_g.requiredObls(projectTableProgressPS)))
+  }
+
+  val projectColsProgressObl = MockLemmaApplication.selectLemma(projectColsProgress.lemmas.head.name,
+    loaded_g.requiredObls(projectTableProgressPS))
+  val projectColsProgressPS = loaded_g.appliedStep(projectColsProgressObl).get
+  val projectColsProgressbasecase = MockInduction.selectCase(projectColsProgressAempty.goals.head.name,
+    loaded_g.requiredObls(projectColsProgressPS))
+  val projectColsProgressstepcase = MockInduction.selectCase(projectColsProgressAcons.goals.head.name,
+    loaded_g.requiredObls(projectColsProgressPS))
+
+
+
+  test("Verification of cases of projectColsProgress (successful base case, inconclusive step case)") {
+    val cases = List(projectColsProgressbasecase, projectColsProgressstepcase)
+    val casePSs = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield ps
+    val ress = for (ps <- casePSs) yield loaded_g.verifiedBy(ps)
+
+    assert(ress.size == 2)
+    assert(ress.forall(_.nonEmpty))
+    val PSbase = casePSs.head
+    val resbase = ress.head.get
+
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+    assert(PSbase.tactic.allRequiredOblsVerified(loaded_g)
+    (projectColsProgressbasecase, loaded_g.requiredObls(PSbase)))
+
+    val PSstep = casePSs.last
+    val resstep = ress.last.get
+
+    assert(!resstep.status.isVerified)
+    assert(resstep.errorMsg.nonEmpty)
+    assert(resstep.evidence.isEmpty)
+  }
+
+  val projectColsProgressstepcasePS = loaded_g.appliedStep(projectColsProgressstepcase).get
+  val projectTypeImpliesFindColObl = MockLemmaApplication.selectLemma(projectTypeImpliesFindCol.lemmas.head.name,
+    loaded_g.requiredObls(projectColsProgressstepcasePS))
+  val projectTypeImpliesFindColPS = loaded_g.appliedStep(projectTypeImpliesFindColObl).get
+  val projectTypeImpliesFindColbasecase = MockInduction.selectCase(projectTypeImpliesFindColAempty.goals.head.name,
+    loaded_g.requiredObls(projectTypeImpliesFindColPS))
+  val projectTypeImpliesFindColstepcase = MockInduction.selectCase(projectTypeImpliesFindColAcons.goals.head.name,
+    loaded_g.requiredObls(projectTypeImpliesFindColPS))
+
+
+  test("Verification of cases of projectTypeImpliesFindCol (successful base case, inconclusive step case)") {
+    val cases = List(projectTypeImpliesFindColbasecase, projectTypeImpliesFindColstepcase)
+    val casePSs = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield ps
+    val ress = for (ps <- casePSs) yield loaded_g.verifiedBy(ps)
+
+    assert(ress.size == 2)
+    assert(ress.forall(_.nonEmpty))
+    val PSbase = casePSs.head
+    val resbase = ress.head.get
+
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+    assert(PSbase.tactic.allRequiredOblsVerified(loaded_g)
+    (projectTypeImpliesFindColbasecase, loaded_g.requiredObls(PSbase)))
+
+    val PSstep = casePSs.last
+    val resstep = ress.last.get
+
+    assert(!resstep.status.isVerified)
+    assert(resstep.errorMsg.nonEmpty)
+    assert(resstep.evidence.isEmpty)
+  }
+
+  val projectTypeImpliesFindColstepcasePS = loaded_g.appliedStep(projectTypeImpliesFindColstepcase).get
+  val findColTypeImpliesfindColObl = MockLemmaApplication.selectLemma(findColTypeImpliesfindCol.lemmas.head.name,
+    loaded_g.requiredObls(projectTypeImpliesFindColstepcasePS))
+  val findColTypeImpliesfindColPS = loaded_g.appliedStep(findColTypeImpliesfindColObl).get
+  val findColTypeImpliesfindColbasecase = MockInduction.selectCase(findColTypeImpliesfindColAempty.goals.head.name,
+    loaded_g.requiredObls(findColTypeImpliesfindColPS))
+  val findColTypeImpliesfindColstepcase = MockInduction.selectCase(findColTypeImpliesfindColAcons.goals.head.name,
+    loaded_g.requiredObls(findColTypeImpliesfindColPS))
+
+  test("Verification of cases of findColTypeImpliesfindCol (successful base case, inconclusive step case)") {
+    val cases = List(findColTypeImpliesfindColbasecase, findColTypeImpliesfindColstepcase)
+    val casePSs = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield ps
+    val ress = for (ps <- casePSs) yield loaded_g.verifiedBy(ps)
+
+    assert(ress.size == 2)
+    assert(ress.forall(_.nonEmpty))
+    val PSbase = casePSs.head
+    val resbase = ress.head.get
+
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+    assert(PSbase.tactic.allRequiredOblsVerified(loaded_g)
+    (findColTypeImpliesfindColbasecase, loaded_g.requiredObls(PSbase)))
+
+    val PSstep = casePSs.last
+    val resstep = ress.last.get
+
+    assert(!resstep.status.isVerified)
+    assert(resstep.errorMsg.nonEmpty)
+    assert(resstep.evidence.isEmpty)
+  }
+
+  val projectTypeAttrLImpliesfindAllColTypeObl = MockLemmaApplication.selectLemma(projectTypeAttrLImpliesfindAllColType.lemmas.head.name,
+    loaded_g.requiredObls(projectTypeImpliesFindColstepcasePS))
+  val projectTypeAttrLImpliesfindAllColTypePS = loaded_g.appliedStep(projectTypeAttrLImpliesfindAllColTypeObl).get
+  val projectTypeAttrLImpliesfindAllColTypebasecase = MockInduction.selectCase(projectTypeAttrLImpliesfindAllColTypeAempty.goals.head.name,
+    loaded_g.requiredObls(projectTypeAttrLImpliesfindAllColTypePS))
+  val projectTypeAttrLImpliesfindAllColTypestepcase = MockInduction.selectCase(projectTypeAttrLImpliesfindAllColTypeAcons.goals.head.name,
+    loaded_g.requiredObls(projectTypeAttrLImpliesfindAllColTypePS))
+
+  test("Verification of cases of projectTypeAttrLImpliesfindAllColType (successful base case, inconclusive step case)") {
+    val cases = List(projectTypeAttrLImpliesfindAllColTypebasecase, projectTypeAttrLImpliesfindAllColTypestepcase)
+    val ress = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield loaded_g.verifiedBy(ps)
+
+    assert(ress.size == 2)
+    for (resO <- ress) {
+      assert(resO.nonEmpty)
+      val res = resO.get
+      assert(res.status.isVerified)
+      assert(res.errorMsg.isEmpty)
+      assert(res.evidence.nonEmpty)
+    }
+
+    for (c <- cases; ps <- loaded_g.appliedStep(c)) {
+      assert(ps.tactic.allRequiredOblsVerified(loaded_g)(c, loaded_g.requiredObls(ps)))
+    }
+  }
+
+  val findColTypeImpliesfindColstepcasePS = loaded_g.appliedStep(findColTypeImpliesfindColstepcase).get
+  val dropFirstColRawPreservesWelltypedRawObl = MockLemmaApplication.selectLemma(dropFirstColRawPreservesWelltypedRaw.lemmas.head.name,
+    loaded_g.requiredObls(findColTypeImpliesfindColstepcasePS))
+  val dropFirstColRawPreservesWelltypedRawPS = loaded_g.appliedStep(dropFirstColRawPreservesWelltypedRawObl).get
+  val dropFirstColRawPreservesWelltypedRawbasecase = MockInduction.selectCase(dropFirstColRawPreservesWelltypedRawTempty.goals.head.name,
+    loaded_g.requiredObls(dropFirstColRawPreservesWelltypedRawPS))
+  val dropFirstColRawPreservesWelltypedRawstepcase = MockInduction.selectCase(dropFirstColRawPreservesWelltypedRawTcons.goals.head.name,
+    loaded_g.requiredObls(dropFirstColRawPreservesWelltypedRawPS))
+
+  test("Verification of cases of dropFirstColRawPreservesWelltypedRaw (successful base case, inconclusive step case)") {
+    val cases = List(dropFirstColRawPreservesWelltypedRawbasecase, dropFirstColRawPreservesWelltypedRawstepcase)
+    val casePSs = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield ps
+    val ress = for (ps <- casePSs) yield loaded_g.verifiedBy(ps)
+
+    assert(ress.size == 2)
+    assert(ress.forall(_.nonEmpty))
+    val PSbase = casePSs.head
+    val resbase = ress.head.get
+
+    assert(resbase.status.isVerified)
+    assert(resbase.errorMsg.isEmpty)
+    assert(resbase.evidence.nonEmpty)
+    assert(PSbase.tactic.allRequiredOblsVerified(loaded_g)
+    (dropFirstColRawPreservesWelltypedRawbasecase, loaded_g.requiredObls(PSbase)))
+
+    val PSstep = casePSs.last
+    val resstep = ress.last.get
+    println(resstep.status)
+
+    //for this step, there was a type inference error in loaded graph!
+    assert(!resstep.status.isVerified)
+    assert(resstep.status.isInstanceOf[VerifierFailure[_,_]])
+    assert(resstep.errorMsg.isEmpty)
+    assert(resstep.evidence.isEmpty)
+  }
 
 }
