@@ -32,7 +32,8 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
   private def cleanLabel(s: String): String = s.replace(" ", "").replace(".", "").replace("$", "").replace("@", "")
 
   private def colorObl(obl: graph.Obligation): String = {
-    val goalVerified = graph.computeIsGoalVerified(obl)
+    val ps = graph.appliedStep(obl).get
+    val goalVerified = graph.isStepVerified(ps) && ps.tactic.allRequiredOblsVerified(graph)(obl, fromProofstep(ps))
     if (goalVerified)
       "green"
     else

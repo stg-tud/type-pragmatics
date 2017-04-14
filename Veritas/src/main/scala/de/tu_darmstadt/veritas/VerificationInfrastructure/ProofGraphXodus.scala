@@ -53,6 +53,21 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
       this(id, entity.getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]])
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
+
+    def canEqual(other: Any): Boolean = other.isInstanceOf[ProofStep]
+
+    override def equals(other: Any): Boolean = other match {
+      case that: ProofStep =>
+        (that canEqual this) &&
+          id == that.id &&
+          tactic == that.tactic
+      case _ => false
+    }
+
+    override def hashCode(): Int = {
+      val state = Seq(id, tactic)
+      state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+    }
   }
 
 
