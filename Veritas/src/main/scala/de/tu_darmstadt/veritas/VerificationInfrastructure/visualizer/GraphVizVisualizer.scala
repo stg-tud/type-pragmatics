@@ -33,7 +33,11 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
 
   private def colorObl(obl: graph.Obligation): String = {
     val ps = graph.appliedStep(obl).get
-    val goalVerified = graph.isStepVerified(ps) && ps.tactic.allRequiredOblsVerified(graph)(obl, fromProofstep(ps))
+    val result = graph.verifiedBy(ps)
+    val goalVerified =
+      result.nonEmpty &&
+        result.get.status.isVerified &&
+        ps.tactic.allRequiredOblsVerified(graph)(obl, fromProofstep(ps))
     if (goalVerified)
       "green"
     else
