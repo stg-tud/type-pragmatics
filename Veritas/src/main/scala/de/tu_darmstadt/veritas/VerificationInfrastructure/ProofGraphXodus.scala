@@ -92,12 +92,14 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     override def newObligation(spec: Spec, goal: Goal): Obligation =
       transaction[Obligation](txn => newObligationST(txn, spec, goal))
 
-    //TODO: Why does producing a new obligation already insert the obligation into the data base, even if we did not yet decide to store it?!
-
     def newObligationST(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
-      //TODO ensure that we don't store the same specification multiple times?
-      val spec = txn.newEntity(TSpec)
-      spec.setProperty(pSpecContent, specObj)
+      // TODO maybe improve performance through index Spec->Entity, but maybe Xodus does that already or this is not performance-critical anyways
+      val existing = txn.find(TSpec, pSpecContent, specObj).asScala
+      val spec = existing.headOption.getOrElse {
+        val spec = txn.newEntity(TSpec)
+        spec.setProperty(pSpecContent, specObj)
+        spec
+      }
 
       val obl = txn.newEntity(TObligation)
       obl.setProperty(pOblGoal, goalObj)
