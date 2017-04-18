@@ -120,6 +120,11 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
     * the graph if it is currently required by other obligations, but it will not be
     * accessible via `findObligation` or `storedObligations`.
     */
+  def storeNewObligation(name: String, spec: Spec, goal: Goal): Obligation = {
+    val obl = newObligation(spec, goal)
+    storeObligation(name, obl)
+    obl
+  }
   def unstoreObligation(obl: Obligation)
 
   // TODO add error possibility (applying a tactic could fail)
