@@ -21,3 +21,5 @@ test in assembly := {}
 scalacOptions += "-deprecation"
 
 scalacOptions += "-feature"
+
+fork in Test := true
