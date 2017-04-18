@@ -179,10 +179,12 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
 
     val edgeLabel = this.requiringSteps(targetObj) map (_._2)
 
-    transaction { txn =>
+    val requiredObjs = transaction { txn =>
       // execute tactic within transaction so that a tactic failure unrolls any changes made so far
-      val requiredObjs = tactic(targetObj, edgeLabel, obligationProducer)
+      tactic(targetObj, edgeLabel, obligationProducer)
+    }
 
+    transaction { txn =>
       val target = targetObj.entity(txn)
       val step = txn.newEntity(TProofStep)
       step.setProperty(pStepTactic, tactic)
