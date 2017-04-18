@@ -29,8 +29,6 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
     store.close()
   }
 
-  // TODO add an index Step->EntityId for faster lookups
-
   def transaction[T](f: StoreTransaction => T): T = {
     var result: Option[T] = None
     store.executeInTransaction(new StoreTransactionalExecutable {
@@ -52,7 +50,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
 
 
-  trait EntityObj {
+  protected trait EntityObj {
     def id: EntityId
 
     def entity(txn: StoreTransaction): Entity = txn.getEntity(id)
@@ -174,10 +172,15 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
 
   def applyTactic(targetObj: Obligation, tactic: Tactic[Spec, Goal]): ProofStep = {
+    // unapply previous tactic if any
+    unapplyTactic(targetObj)
+
     val edgeLabel = this.requiringSteps(targetObj) map (_._2)
-    val requiredObjs = tactic(targetObj, edgeLabel, obligationProducer)
 
     transaction { txn =>
+      // execute tactic within transaction so that a tactic failure unrolls any changes made so far
+      val requiredObjs = tactic(targetObj, edgeLabel, obligationProducer)
+
       val target = targetObj.entity(txn)
       val step = txn.newEntity(TProofStep)
       step.setProperty(pStepTactic, tactic)
