@@ -26,6 +26,8 @@ trait GenObligation[Spec, Goal] {
 }
 trait ObligationProducer[Spec, Goal, Obligation] {
   def newObligation(spec: Spec, goal: Goal): Obligation
+//  def findOrCreateNewObligation(spec: Spec, goal: Goal): Obligation
+//  def findOrStoreNewObligation(name: String, spec: Spec, goal: Goal): Obligation
 }
 
 trait GenStepResult[Spec, Goal] {
@@ -73,6 +75,7 @@ trait IProofGraph[Spec, Goal] {
   def targetedObl(step: ProofStep): Obligation
 
   def verifiedBy(step: ProofStep): Option[StepResult]
+
   def isStepVerified(step: ProofStep): Boolean = verifiedBy(step) match {
     case None => false
     case Some(result) if !result.status.isVerified => false

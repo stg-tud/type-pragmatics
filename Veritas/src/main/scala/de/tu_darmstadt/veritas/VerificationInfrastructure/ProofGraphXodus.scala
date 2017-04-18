@@ -174,14 +174,58 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   }
 
   def applyTactic(targetObj: Obligation, tactic: Tactic[Spec, Goal]): ProofStep = {
-    // unapply previous tactic if any
-    unapplyTactic(targetObj)
-
     val edgeLabel = this.requiringSteps(targetObj) map (_._2)
 
     val requiredObjs = transaction { txn =>
       // execute tactic within transaction so that a tactic failure unrolls any changes made so far
       tactic(targetObj, edgeLabel, obligationProducer)
+    }
+
+    val newOrRetainedEdges = transaction { txn =>
+      val obl = targetObj.entity(txn)
+      val step = obl.getLink(lOblAppliedStep)
+
+      val oldRequiredObjs = if (step != null) {
+        obl.deleteLink(lOblAppliedStep, step)
+        step.deleteLink(lStepTargetedObl, obl)
+
+        if (step != null) {
+          val result = step.getLink(lStepVerifiedBy)
+          // delete result if exists
+          if (result != null)
+            result.delete()
+          // delete all required edges and gc all required obligations
+          val edges = step.getLinks(lStepRequiredEdges).asScala.toSeq
+          step.delete()
+          edges.map { edge =>
+            val obl = edge.getLink(lEdgeRequiredObl)
+            edge.delete()
+            (new Obligation(obl.getId(), obl), edge.getProperty(pEdgeLabel).asInstanceOf[EdgeLabel])
+          }
+        }
+        else
+          Seq()
+      }
+      else
+        Seq()
+
+      var retainedEdges = Set[(Obligation, EdgeLabel)]()
+      val newOrRetainedEdges = requiredObjs map { case (obl, label) =>
+        val found = oldRequiredObjs.find(old => old._2 == label && old._1.goal == obl.goal && old._1.spec == obl.spec)
+        found match {
+          case None => (obl, label)
+          case Some(old) =>
+            gcObl(obl.entity(txn))
+            retainedEdges += old
+            old
+        }
+      }
+
+      oldRequiredObjs foreach { old =>
+        if (!retainedEdges.contains(old))
+          gcObl(old._1.entity(txn))
+      }
+      newOrRetainedEdges
     }
 
     transaction { txn =>
@@ -191,7 +235,7 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
       step.setLink(lStepTargetedObl, target)
       target.setLink(lOblAppliedStep, step)
 
-      for ((requiredObj, label) <- requiredObjs) {
+      for ((requiredObj, label) <- newOrRetainedEdges) {
         val required = requiredObj.entity(txn)
         val edge = txn.newEntity(TEdge)
         edge.setProperty(pEdgeLabel, label)
