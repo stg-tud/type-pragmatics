@@ -19,6 +19,16 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
   val store: PersistentEntityStore = PersistentEntityStores.newInstance(dbDir)
   //PropertyTypes.registerAll(store)
 
+  private val shutdown = new Thread(new Runnable {
+    override def run() = store.close()
+  })
+  Runtime.getRuntime.addShutdownHook(shutdown)
+
+  def close(): Unit = {
+    Runtime.getRuntime.removeShutdownHook(shutdown)
+    store.close()
+  }
+
   // TODO add an index Step->EntityId for faster lookups
 
   def transaction[T](f: StoreTransaction => T): T = {
