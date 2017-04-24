@@ -29,7 +29,7 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
      name
     }.get
 
-  private def cleanLabel(s: String): String = s.replace(" ", "").replace(".", "").replace("$", "").replace("@", "")
+  private def cleanLabel(s: String): String = s.replaceAll("( |\\.|\\$|@|-)", "")
 
   private def colorObl(obl: graph.Obligation): String = {
     val ps = graph.appliedStep(obl).get
@@ -101,7 +101,7 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
     builder.append(ps.hashCode)
     builder.append(" -> ")
     builder.append(obl.hashCode)
-    val label = Seq(s"label=${edgeLabel.desc}")
+    val label = Seq(s"label=${cleanLabel(edgeLabel.desc)}")
     setAppearance(label)
     newline()
   }
