@@ -101,7 +101,8 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
     builder.append(ps.hashCode)
     builder.append(" -> ")
     builder.append(obl.hashCode)
-    // TODO: label edges
+    val label = Seq(s"label=${edgeLabel.desc}")
+    setAppearance(label)
     newline()
   }
 }

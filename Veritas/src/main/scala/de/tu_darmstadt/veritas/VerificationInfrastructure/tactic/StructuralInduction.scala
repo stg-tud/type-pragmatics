@@ -48,6 +48,8 @@ case class StructInductCase[Spec <: Ordered[Spec]](casename: String,
                                                                           fixedvars: Option[FixedVars[Spec]],
                                                                           ihs: InductionHypotheses[Spec]) extends EdgeLabel {
 
+  override def desc: String = casename
+
   override def propagateInfoList: Seq[PropagatableInfo] =
     fixedvars match {
       case Some(fv) => Seq(fv, ihs)
@@ -69,6 +71,8 @@ case class StructInductCase[Spec <: Ordered[Spec]](casename: String,
 case class CaseDistinctionCase[Spec <: Ordered[Spec]](casename: String,
                                                       fixedvars: Option[FixedVars[Spec]],
                                                       ihs: InductionHypotheses[Spec]) extends EdgeLabel {
+  override def desc: String = casename
+
   override def propagateInfoList: Seq[PropagatableInfo] =
     fixedvars match {
       case Some(fv) => Seq(fv, ihs)
@@ -90,6 +94,8 @@ case class CaseDistinctionCase[Spec <: Ordered[Spec]](casename: String,
 //TODO edge information for lemma applications might have to be refined
 // IDEAS: possible lemma instantiations, application hints (order...?)
 case class LemmaApplication[Goal <: Ordered[Goal]](lemmaname: String) extends EdgeLabel {
+  override def desc: String = lemmaname
+
   override def propagateInfoList: Seq[PropagatableInfo] = Seq()
 
   override def compare(that: EdgeLabel): Int = ???

@@ -1,4 +1,4 @@
-Private property of Exodus: 43281@wlan-145-94-205-247.wlan.tudelft.nl
+Private property of Exodus: 1875@Andres-MacBook-Pro.local
 
 jetbrains.exodus.io.LockingManager.lock(LockingManager.java:100)
 jetbrains.exodus.io.LockingManager.lock(LockingManager.java:53)
@@ -15,7 +15,7 @@ de.tu_darmstadt.veritas.VerificationInfrastructure.SQLSoundnessProofGraphTest.<i
 sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
 sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
 sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
-java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+java.lang.reflect.Constructor.newInstance(Constructor.java:422)
 java.lang.Class.newInstance(Class.java:442)
 org.scalatest.tools.Framework$ScalaTestTask.execute(Framework.scala:435)
 sbt.ForkMain$Run$2.call(ForkMain.java:296)

@@ -8,5 +8,8 @@ object NoInfoEdgeLabel extends EdgeLabel with Serializable {
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 
+  override def desc: String = ""
+
   override def propagateInfoList: Seq[PropagatableInfo] = Seq()
+
 }

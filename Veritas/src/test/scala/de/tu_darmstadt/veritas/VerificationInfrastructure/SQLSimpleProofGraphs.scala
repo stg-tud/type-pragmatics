@@ -34,6 +34,7 @@ class SQLSimpleProofGraphs extends FunSuite {
     PropertyTypes.registerPropertyType[Module](pg.store)
     PropertyTypes.registerPropertyType[Local](pg.store)
     PropertyTypes.registerPropertyType[Finished[_, _]](pg.store)
+    PropertyTypes.registerPropertyType[Solve[_, _]](pg.store)
     PropertyTypes.registerPropertyType[VerifierFailure[_, _]](pg.store)
     PropertyTypes.registerPropertyType[TSTPProof](pg.store)
 
@@ -287,6 +288,7 @@ class SQLSimpleProofGraphs extends FunSuite {
     PropertyTypes.registerPropertyType[Module](pg.store)
     PropertyTypes.registerPropertyType[Local](pg.store)
     PropertyTypes.registerPropertyType[Finished[_, _]](pg.store)
+    PropertyTypes.registerPropertyType[Solve[_, _]](pg.store)
     PropertyTypes.registerPropertyType[VerifierFailure[_, _]](pg.store)
     PropertyTypes.registerPropertyType[TSTPProof](pg.store)
 

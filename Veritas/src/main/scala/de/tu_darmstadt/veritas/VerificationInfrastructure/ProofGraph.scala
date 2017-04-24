@@ -8,6 +8,7 @@ import scala.collection.mutable
 
 
 trait EdgeLabel extends Ordered[EdgeLabel] with Serializable {
+  def desc: String
   def propagateInfoList: Seq[PropagatableInfo]
 }
 
