@@ -1,0 +1,11 @@
+package de.tu_darmstadt.veritas
+
+/**
+  * type aliases for Sudoku
+  */
+package object sudoku {
+  type Row = Array[SudokuCell]
+  type Column = Array[SudokuCell]
+  type Box = Array[Array[SudokuCell]]
+  type Field = Array[Row]
+}
