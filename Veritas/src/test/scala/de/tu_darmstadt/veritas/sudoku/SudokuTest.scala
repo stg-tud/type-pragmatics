@@ -113,7 +113,7 @@ class SudokuTest extends FunSuite {
   def testNoCandidateParsing(sudoku: String): Unit = {
     val original = new SudokuField(sudoku)
     val parsed = original.toSimpleString()
-    println(parsed)
+    //println(parsed)
 
     assert(parsed.replace("\n", "").replaceAll("0", ".") == sudoku)
   }
@@ -128,7 +128,7 @@ class SudokuTest extends FunSuite {
   test("Parsing a single string with no candidates yields the expected Sudoku") {
     for (sud <- easysudokulist_nc) testNoCandidateParsing(sud)
   }
-  
+
   test("Parsing a sudoku string with candidates yields the expected Sudoku") {
     for ((snc, sc) <- (easysudokulist_nc zip easysudokulist_cand)) testCandidateParsing(snc, sc)
   }

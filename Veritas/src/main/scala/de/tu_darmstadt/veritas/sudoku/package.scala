@@ -8,4 +8,5 @@ package object sudoku {
   type Column = Array[SudokuCell]
   type Box = Array[Array[SudokuCell]]
   type Field = Array[Row]
+  type SudokuUnit = Seq[SudokuCell]
 }

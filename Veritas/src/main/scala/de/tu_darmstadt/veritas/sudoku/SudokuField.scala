@@ -16,6 +16,7 @@ case class SudokuCell(value: Int, candidates: Set[Int]) {
 
 /**
   * Representation of a Sudoku field, with domain-specific queries
+  * parametric in cellrange (standard: 1-9), but assumes quadratic Sudoku
   */
 class SudokuField(val field: Field) {
 
@@ -23,6 +24,9 @@ class SudokuField(val field: Field) {
 
   require(dimensionsCorrect(), "The given field does not have the correct dimensions.")
   require(validCells(), s"Not all cells had the correct range (${cellrange})")
+  require(rows forall (onerule(_)))
+  require(columns forall (onerule(_)))
+  require(boxes forall (onerule(_)))
 
   /*
   alternative constructor for parsing a String representation of a Sudoku
@@ -41,18 +45,46 @@ class SudokuField(val field: Field) {
 
   def cells: Seq[SudokuCell] = field.fold(Array())(_ ++ _)
 
-  def rows: Seq[Row] = field
+  def rows: Iterator[SudokuUnit] = field.map(_.toSeq).toIterator
 
+  //counting rows from 1!
   def row(i: Int): Row =
     if (cellrange contains i) field(i - 1) else sys.error(s"Attempted to access a row that is out of range ($i).")
 
-  def column(i: Int): Column = ???
+  //counting columns from 1!
+  def column(i: Int): Column =
+    if (cellrange contains i)
+      for (r <- field) yield r(i - 1)
+    else sys.error(s"Attempted to access a column that is out of range ($i).")
 
-  def columns: Seq[Column] = ???
+  def columns: Iterator[SudokuUnit] = (for (i <- cellrange) yield column(i)).map(_.toSeq).toIterator
+
+  //counting boxes from 1, left to right, top to bottom:
+  // 1 2 3
+  // 4 5 6
+  // 7 8 9
+  def box(i: Int): Box = if (cellrange contains i) {
+    val boxsize = Math.sqrt(cellrange.max).toInt
+    val translatedindex = ((i - 1) / boxsize) * boxsize
+    val cutrows = field.slice(translatedindex, translatedindex + boxsize)
+    // cut columns
+    for (r <- cutrows) yield r.slice(translatedindex, translatedindex + boxsize)
+  } else sys.error(s"Attempted to access a box that is out of range ($i).")
+
+  def realsboxes(): Seq[Box] = for (i <- cellrange) yield box(i)
+
+  def boxelems(i: Int): SudokuUnit = box(i).fold(Array())(_ ++ _)
+  def boxes(): Iterator[SudokuUnit] = (for (i <- cellrange) yield boxelems(i)).toIterator
+
+
+  def onerule(unit: SudokuUnit): Boolean = {
+    val cellvals = unit.map(_.value).filter(_ != 0)
+    cellvals equals cellvals.distinct
+  }
 
   /**
     * print just the filled in values
-   */
+    */
   def toSimpleString(): String = (for (r <- field) yield (r map (_.value)).mkString("")).mkString("\n")
 }
 
