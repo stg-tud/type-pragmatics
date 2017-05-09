@@ -9,4 +9,5 @@ package object sudoku {
   type Box = Array[Array[SudokuCell]]
   type Field = Array[Row]
   type SudokuUnit = Seq[SudokuCell]
+  type Position = (Int, Int) //(rowindex, colindex)
 }

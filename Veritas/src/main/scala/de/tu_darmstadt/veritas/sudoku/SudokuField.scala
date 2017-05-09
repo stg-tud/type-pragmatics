@@ -1,6 +1,5 @@
 package de.tu_darmstadt.veritas.sudoku
 
-import scala.util.matching.Regex
 
 /*
 represents a single Sudoku cell;
@@ -24,9 +23,9 @@ class SudokuField(val field: Field) {
 
   require(dimensionsCorrect(), "The given field does not have the correct dimensions.")
   require(validCells(), s"Not all cells had the correct range (${cellrange})")
-  require(rows forall (onerule(_)))
-  require(columns forall (onerule(_)))
-  require(boxes forall (onerule(_)))
+  require(rows forall (onerule(_)), "This is not a proper Sudoku: The one-rule is not satisfied for at least one row.")
+  require(columns forall (onerule(_)), "This is not a proper Sudoku: The one-rule is not satisfied for at least one column.")
+  require(boxes forall (onerule(_)), "This is not a proper Sudoku: The one-rule is not satisfied for at least one box.")
 
   /*
   alternative constructor for parsing a String representation of a Sudoku
@@ -64,7 +63,7 @@ class SudokuField(val field: Field) {
   // 4 5 6
   // 7 8 9
   def box(i: Int): Box = if (cellrange contains i) {
-    val boxsize = Math.sqrt(cellrange.max).toInt
+
     val translatedindex = ((i - 1) / boxsize) * boxsize
     val cutrows = field.slice(translatedindex, translatedindex + boxsize)
     // cut columns
@@ -82,6 +81,51 @@ class SudokuField(val field: Field) {
     cellvals equals cellvals.distinct
   }
 
+  //returns index of row that given cell positions share
+  // returns zero if given cell positions do not share a row
+  def shareRow(cells: Seq[Position]): Int = {
+    val rows = (cells map (_._1)).distinct
+    if (rows.length == 1)
+      rows.head
+    else
+      0
+  }
+
+  //TODO: these methods should also hand back a position that allows you to change the cells (e.g. remove candidates)
+  def rowPeers(cell: Position): Seq[SudokuCell] = row(shareRow(Seq(cell))).filter(_ != field(cell._1)(cell._2))
+
+  //returns index of column that given cell positions share
+  // returns zero if given cell positions do not share a column
+  def shareCol(cells: Seq[Position]): Int = {
+    val cols = (cells map (_._2)).distinct
+    if (cols.length == 1)
+      cols.head
+    else
+      0
+  }
+
+  def colPeers(cell: Position): Seq[SudokuCell] = column(shareCol(Seq(cell))).filter(_ != field(cell._1)(cell._2))
+
+  //returns index of box that given cell positions share
+  // returns zero if given cell positions do not share a box
+  def shareBox(cells: Seq[Position]): Int = {
+    val colrowindex: Int => Int = (i: Int) => (i - 1) / boxsize
+    val boxindices = cells map (p => (colrowindex(p._1) - 1) * boxsize + colrowindex(p._2))
+    if (boxindices.length == 1)
+      boxindices.head
+    else
+      0
+  }
+
+  def boxPeers(cell: Position): Seq[SudokuCell] = boxelems(shareBox(Seq(cell))).filter(_ != field(cell._1)(cell._2))
+
+  def sharedUnits(cells: Seq[Position]): (Int, Int, Int) =
+    (shareRow(cells), shareCol(cells), shareBox(cells))
+
+  def allPeers(cell: Position): Map[Position, SudokuCell] = ???
+
+
+
   /**
     * print just the filled in values
     */
@@ -94,7 +138,8 @@ object SudokuField {
   val numregex: String = s"[${cellrange.min}-${cellrange.max}]"
   val blankregex: String = """[0\*\_\.]"""
 
-  val totalcells = 81
+  val totalcells = cellrange.max * cellrange.max
+  val boxsize = Math.sqrt(cellrange.max).toInt
 
   /**
     * parsing a Sudoku from a String representation;
