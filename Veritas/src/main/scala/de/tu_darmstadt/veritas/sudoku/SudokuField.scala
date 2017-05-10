@@ -129,7 +129,13 @@ class SudokuField(val field: Field) {
   /**
     * print just the filled in values
     */
-  def toSimpleString(): String = (for (r <- field) yield (r map (_.value)).mkString("")).mkString("\n")
+  def toSimpleString(blankstr: String = "0"): String = {
+    val s = (for (r <- field) yield (r map (_.value)).mkString("")).mkString("\n")
+    if (blankstr != "0")
+      s.replace('0', blankstr.head)
+    else
+      s
+  }
 }
 
 object SudokuField {

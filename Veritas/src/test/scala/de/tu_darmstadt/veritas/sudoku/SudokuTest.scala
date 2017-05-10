@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.sudoku
 
+import java.io.{File, FileReader, FileWriter}
+
 import org.scalatest.FunSuite
 
 /**
@@ -125,12 +127,40 @@ class SudokuTest extends FunSuite {
     assert(original.toSimpleString() == original_with_candidates.toSimpleString())
   }
 
+  def testPythonZ3SudokuSolver(sf: SudokuField, solution: String) = {
+    import scala.sys.process._
+
+    val fname = "sudoku.tmp"
+    val sudokustring = sf.toSimpleString(".")
+    val sudokufile = new File(s"sudokupuzzles/$fname")
+    val fw = new FileWriter(sudokufile)
+    fw.write(sudokustring)
+    fw.close()
+    //call python script sudokupuzzles/sudokuz3.py
+    //requires having python installed and z3 with python bindings (see https://github.com/Z3Prover/z3 -> Python)
+    //expects python command to be in PATH
+    val z3pysudokucall = s"python sudokupuzzles/sudokuz3.py sudokupuzzles/${sudokufile.getName}"
+    val outfile = new File(s"sudokupuzzles/${fname}-solution")
+    outfile.delete() //delete any old file, if around
+    val result : String = z3pysudokucall !!
+
+    assert(result.replaceAll("\n", "") == solution)
+    sudokufile.delete() //delete intermediate file
+
+  }
+
   test("Parsing a single string with no candidates yields the expected Sudoku") {
     for (sud <- easysudokulist_nc) testNoCandidateParsing(sud)
   }
 
   test("Parsing a sudoku string with candidates yields the expected Sudoku") {
     for ((snc, sc) <- (easysudokulist_nc zip easysudokulist_cand)) testCandidateParsing(snc, sc)
+  }
+
+  test("Test Python Z3 Sudoku Solver") {
+    testPythonZ3SudokuSolver(new SudokuField(s1_candidates), s1_solution)
+    testPythonZ3SudokuSolver(new SudokuField(s3_candidates), s3_solution)
+    testPythonZ3SudokuSolver(new SudokuField(s5_candidates), s5_solution)
   }
 
 }
