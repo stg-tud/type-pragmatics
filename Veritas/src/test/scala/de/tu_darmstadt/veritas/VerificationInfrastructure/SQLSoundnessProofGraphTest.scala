@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.CaseDistinctionCase
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.VerifierFailure
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{CaseDistinctionCase, Solve}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Unknown, VerifierFailure}
 import de.tu_darmstadt.veritas.backend.ast.VeritasConstruct
 import org.scalatest.FunSuite
 
@@ -467,4 +467,67 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     assert(resstep.evidence.isEmpty)
   }
 
+  test("ProofGraphUI proofstepDFS traverses in the correct order") {
+    val ui = new ProofGraphUI(loaded_g, ProofGraphUI.extractGoalName)
+    assert(ui.obligationDFS().size == 41)
+    val proofsteps = ui.proofstepsDFS()
+    assert(proofsteps.size == 41)
+    assert(proofsteps(0).tactic == rootInductionProgress)
+    assert(proofsteps(1).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(2).tactic.isInstanceOf[MockLemmaApplication])
+    assert(proofsteps(3).tactic == successfulLookupInduction)
+    assert(proofsteps(4).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(5).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(6).tactic == welltypedLookupInduction)
+    assert(proofsteps(7).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(8).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(9).tactic.isInstanceOf[MockLemmaApplication])
+    assert(proofsteps(10).tactic == filterRowsPreservesTableInduction)
+    assert(proofsteps(11).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(12).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(13).tactic.isInstanceOf[MockLemmaApplication])
+    assert(proofsteps(14).tactic == projectColsProgressInduction)
+    assert(proofsteps(15).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(16).tactic.isInstanceOf[MockLemmaApplication])
+    assert(proofsteps(17).tactic == projectTypeImpliesFindColInduction)
+    assert(proofsteps(18).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(19).tactic.isInstanceOf[MockLemmaApplication])
+    assert(proofsteps(20).tactic == findColTypeImpliesfindColInduction)
+    assert(proofsteps(21).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(22).tactic.isInstanceOf[MockLemmaApplication])
+    assert(proofsteps(23).tactic == dropFirstColRawPreservesWelltypedRawInduction)
+    assert(proofsteps(24).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(25).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(26).tactic == projectTypeAttrLImpliesfindAllColTypeInduction)
+    assert(proofsteps(27).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(28).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(29).tactic.isInstanceOf[SetCaseDistinction])
+    assert(proofsteps(30).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(31).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(32).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(33).tactic.isInstanceOf[SetCaseDistinction])
+    assert(proofsteps(34).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(35).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(36).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(37).tactic.isInstanceOf[SetCaseDistinction])
+    assert(proofsteps(38).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(39).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(40).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+  }
+
+  test("ProofGraphUI mapStepResult set every StepResult to Unknown") {
+    val ui = new ProofGraphUI(loaded_g, ProofGraphUI.extractGoalName)
+    val dbFile = File.createTempFile("test-newgraph", "")
+    dbFile.delete()
+    dbFile.mkdir()
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile)
+    SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
+    ui.mapStepResult(newGraph)(stepresult => newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None))
+    val newUi = new ProofGraphUI(newGraph, ProofGraphUI.extractGoalName)
+    newUi.proofstepsDFS().foreach { ps =>
+      val stepresult = newUi.pg.verifiedBy(ps)
+      assert(stepresult.nonEmpty)
+      assert(stepresult.get.isInstanceOf[Unknown[_, _]])
+    }
+  }
 }
