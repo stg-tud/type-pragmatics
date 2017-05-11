@@ -2,6 +2,8 @@ package de.tu_darmstadt.veritas.sudoku
 
 import java.io.{File, FileReader, FileWriter}
 
+import de.tu_darmstadt.veritas.sudoku.strategies.ApplySingle
+import de.tu_darmstadt.veritas.sudoku.tactics.DoNothing
 import org.scalatest.FunSuite
 
 /**
@@ -157,10 +159,20 @@ class SudokuTest extends FunSuite {
     for ((snc, sc) <- (easysudokulist_nc zip easysudokulist_cand)) testCandidateParsing(snc, sc)
   }
 
-  test("Test Python Z3 Sudoku Solver") {
-    testPythonZ3SudokuSolver(new SudokuField(s1_candidates), s1_solution)
-    testPythonZ3SudokuSolver(new SudokuField(s3_candidates), s3_solution)
-    testPythonZ3SudokuSolver(new SudokuField(s5_candidates), s5_solution)
+//  test("Test Python Z3 Sudoku Solver") {
+//    testPythonZ3SudokuSolver(new SudokuField(s1_candidates), s1_solution)
+//    testPythonZ3SudokuSolver(new SudokuField(s3_candidates), s3_solution)
+//    testPythonZ3SudokuSolver(new SudokuField(s5_candidates), s5_solution)
+//  }
+
+  test("Sudoku Proof Graph initialization") {
+    val f1 = new SudokuField(s1_candidates)
+    val file = new File("Sudoku-1-store")
+    file.delete()
+    val spg = new SudokuProofGraph(file, f1, new ApplySingle(DoNothing))
+    spg.constructPG()
+    val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
+    assert(storedSudoku.replaceAll("\n", "") == s1_no_candidates)
   }
 
 }

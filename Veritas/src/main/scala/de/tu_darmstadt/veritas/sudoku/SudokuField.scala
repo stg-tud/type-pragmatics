@@ -17,7 +17,7 @@ case class SudokuCell(value: Int, candidates: Set[Int]) {
   * Representation of a Sudoku field, with domain-specific queries
   * parametric in cellrange (standard: 1-9), but assumes quadratic Sudoku
   */
-class SudokuField(val field: Field) {
+class SudokuField(val field: Field) extends Comparable[SudokuField] with Serializable {
 
   import SudokuField._
 
@@ -136,6 +136,9 @@ class SudokuField(val field: Field) {
     else
       s
   }
+
+  //TODO is there a better way to implement comparison here?
+  override def compareTo(o: SudokuField): Int = this.field.hashCode() compare o.field.hashCode()
 }
 
 object SudokuField {
