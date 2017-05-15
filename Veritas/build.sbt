@@ -14,6 +14,8 @@ libraryDependencies += "io.verizon.quiver" %% "core" % "5.4.12"
 
 libraryDependencies += "org.jetbrains.xodus" % "xodus-entity-store" % "1.0.4"
 
+unmanagedJars in Compile += file("lib/scalaz3_2.11-3.0.jar")
+
 assemblyJarName in assembly := "Veritas.jar"
 
 test in assembly := {}
