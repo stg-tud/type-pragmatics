@@ -10,6 +10,8 @@ import scala.io.Source
   */
 object SudokuVariantsTest extends App {
 
+  println(System.getProperty("java.library.path"))
+
   val standardSudokus = new SudokuZ3()
   val sudoku6times6 = new SudokuZ3(6, 6, ".", ".123456",
     Map(
@@ -153,25 +155,47 @@ object SudokuVariantsTest extends App {
   //    println(sol)
   //    assert(!giantsudoku.checkUnique(field, sol))
   //  }
-
-//  println("Normal Sudoku generation:")
-//  for ((field, solution) <- sudokusFromFile("sudokupuzzles/difficult9times9sudokus")) {
-//    val gsudoku = standardSudokus.generateSudoku(solution)
-//    println(gsudoku)
-//    assert(standardSudokus.checkUnique(gsudoku, solution))
-//  }
-//
-//  println("Giant Sudoku generation:")
-//  for ((field, solution) <- sudokusFromFile("sudokupuzzles/giantsudoku")) {
-//    val gsudoku: String = giantsudoku.generateSudoku(solution)
-//    println(gsudoku)
-//    assert(giantsudoku.checkUnique(gsudoku, solution))
-//  }
-//
+  //
+  //  println("Normal Sudoku generation:")
+  //  for ((field, solution) <- sudokusFromFile("sudokupuzzles/difficult9times9sudokus")) {
+  //    val gsudoku = standardSudokus.generateSudoku(solution)
+  //    println(gsudoku)
+  //    assert(standardSudokus.checkUnique(gsudoku, solution))
+  //  }
+  //
+  //  println("Giant Sudoku generation:")
+  //  for ((field, solution) <- sudokusFromFile("sudokupuzzles/giantsudoku")) {
+  //    val gsudoku: String = giantsudoku.generateSudoku(solution)
+  //    println(gsudoku)
+  //    assert(giantsudoku.checkUnique(gsudoku, solution))
+  //  }
+  //
   println("Giant 25x25 Sudoku solution:")
   val gsudoku: String = prettySudokuFromFile("sudokupuzzles/giant25sudoku")
   println(gsudoku)
-  val gsol: String = giant25sudoku.solveSingle(gsudoku)
+  println(gsudoku.filter(c => c equals '.').size)
+  val gsol: String = giant25sudoku.solveSingle(gsudoku) //does not yield any result even after a long time
   println(gsol)
+
+  //  println("Create 25x25 Sudoku: ")
+  //  val gsol: String = Source.fromFile("sudokupuzzles/giant25sudoku-easy-sol").getLines().mkString("")
+  //  val desiredholes = 300
+  //  var ggsudoku = ""
+  //  var holnum = 0
+  //  do {
+  //    ggsudoku = giant25sudoku.generateSudoku(gsol, desiredh jetzt gehtsoles)
+  //    holnum = ggsudoku.filter(c => c equals '.').size
+  //    println("Generated " + holnum + " holes: " + ggsudoku)
+  //  } while (holnum != desiredholes)
+  //  println("Final Sudoku with " + desiredholes + " holes:")
+  //  println(ggsudoku)
+
+  //  val g100 = Source.fromFile("sudokupuzzles/TestSudoku").getLines().mkString("")
+  //  val holnum = g100.filter(c => c equals '.').size
+  //  val sol = giant25sudoku.solveSingle(g100)
+  //  println(sol)
+  //  //assert(holnum == 100, "Number of holes was: " + holnum)
+  //  assert(sol == gsol)
+
 
 }

@@ -17,9 +17,9 @@ case class SudokuCell(value: Int, candidates: Set[Int]) {
   * Representation of a Sudoku field, with domain-specific queries
   * parametric in cellrange (standard: 1-9), but assumes quadratic Sudoku
   */
-class SudokuField(val field: Field) extends Comparable[SudokuField] with Serializable {
+class SudokuField(val field: Field, config: SudokuConfig) extends Comparable[SudokuField] with Serializable {
 
-  import SudokuField._
+  import config._
 
   require(dimensionsCorrect(), "The given field does not have the correct dimensions.")
   require(validCells(), s"Not all cells had the correct range (${cellrange})")
@@ -30,7 +30,7 @@ class SudokuField(val field: Field) extends Comparable[SudokuField] with Seriali
   /*
   alternative constructor for parsing a String representation of a Sudoku
    */
-  def this(sfield: String) = this(SudokuField.parseStringRepr(sfield))
+  def this(sfield: String, conf: SudokuConfig) = this(SudokuField.parseStringRepr(sfield)(conf), conf)
 
 
   private def correctLength[T](f: Array[T]): Boolean = f.length == cellrange.max
@@ -62,6 +62,7 @@ class SudokuField(val field: Field) extends Comparable[SudokuField] with Seriali
   // 1 2 3
   // 4 5 6
   // 7 8 9
+  // for 9x9 Sudokus
   def box(i: Int): Box = if (cellrange contains i) {
 
     val translatedindex = ((i - 1) / boxsize) * boxsize
@@ -73,6 +74,7 @@ class SudokuField(val field: Field) extends Comparable[SudokuField] with Seriali
   def realsboxes(): Seq[Box] = for (i <- cellrange) yield box(i)
 
   def boxelems(i: Int): SudokuUnit = box(i).fold(Array())(_ ++ _)
+
   def boxes(): Iterator[SudokuUnit] = (for (i <- cellrange) yield boxelems(i)).toIterator
 
 
@@ -125,12 +127,11 @@ class SudokuField(val field: Field) extends Comparable[SudokuField] with Seriali
   def allPeers(cell: Position): Map[Position, SudokuCell] = ???
 
 
-
   /**
     * print just the filled in values
     */
   def toSimpleString(blankstr: String = "0"): String = {
-    val s = (for (r <- field) yield (r map (_.value)).mkString("")).mkString("\n")
+    val s = (for (r <- field) yield (r map (c => symmap(c.value))).mkString("")).mkString("\n")
     if (blankstr != "0")
       s.replace('0', blankstr.head)
     else
@@ -141,19 +142,24 @@ class SudokuField(val field: Field) extends Comparable[SudokuField] with Seriali
   override def compareTo(o: SudokuField): Int = this.field.hashCode() compare o.field.hashCode()
 }
 
-object SudokuField {
-
-  val cellrange: Range = 1 to 9
-  val numregex: String = s"[${cellrange.min}-${cellrange.max}]"
+case class SudokuConfig(cellrange: Range,
+                        cellsymbols: String) extends Comparable[SudokuField] with Serializable {
+  //cellsymbols has to be some range as well
+  val symmap: Map[Int, Char] = (for (c <- cellsymbols) yield cellsymbols.indexOf(c) -> c).toMap
+  val symregex: String = s"[${symmap(cellrange.min)}-${symmap(cellrange.max)}]"
   val blankregex: String = """[0\*\_\.]"""
-
   val totalcells = cellrange.max * cellrange.max
   val boxsize = Math.sqrt(cellrange.max).toInt
 
+  override def compareTo(o: SudokuField): Int = this.hashCode() compare o.hashCode()
+}
+
+object SudokuField {
+
   /**
-    * parsing a Sudoku from a String representation;
+    * parsing a (squared) Sudoku from a String representation;
     * supports two standard format (also supported by sudokuwiki.org):
-    * 1) without candidates: 81 digits in a row, where blanks (= unknown values) can be expressed via 0, *, _, or .
+    * 1) without candidates: 81 digits in a row (or cellrange.max * cellrange.max), where blanks (= unknown values) can be expressed via 0, *, _, or .
     * order of fields is interpreted as left to right, top to bottom
     * example: 4*****938732*941**89531*24*37*6*9**4529**16736*47*3*9*957**83**1*39**4**24**3*7*9
     * or also
@@ -187,19 +193,26 @@ object SudokuField {
     * @param sfield
     * @return
     */
-  def parseStringRepr(sfield: String): Field = {
-    val cellregex = s"${numregex}|${blankregex}| ".r
+  def parseStringRepr(sfield: String)(implicit config: SudokuConfig): Field = {
+    import config._
+
+    val cellregex = s"${symregex}|${blankregex}| "
     // try parsing first format
-    val filteredstring: String = (cellregex findAllIn (sfield)).mkString("")
+    val filteredstring: String = (cellregex.r findAllIn (sfield)).mkString("")
     val defaultcandidates = cellrange.toSet
-    val transformcell: String => Int = (c: String) => if (c.matches(numregex)) c.toInt else 0
+    val transformcell: Char => Int =
+      (c: Char) =>
+        symmap.find { case (i, ch) => ch == c } match {
+          case Some((i, _)) => i
+          case None => 0 //defaulting to empty cell
+        }
     //transform a sequence of cells to a field, assuming the length is correct already
-    val cellstofield: Seq[SudokuCell] => Field = (cells: Seq[SudokuCell]) => cells.sliding(9, 9).map(_.toArray).toArray
+    val cellstofield: Seq[SudokuCell] => Field = (cells: Seq[SudokuCell]) => cells.sliding(cellrange.max, cellrange.max).map(_.toArray).toArray
     val assigncandidates: (String => Set[Int]) = (s: String) => if (s == "0") defaultcandidates else Set()
 
     if (filteredstring.length == totalcells) {
       // try parsing format without candidates
-      val cells: Seq[SudokuCell] = for (c <- filteredstring) yield SudokuCell(transformcell(c.toString), assigncandidates(c.toString))
+      val cells: Seq[SudokuCell] = for (c <- filteredstring) yield SudokuCell(transformcell(c), assigncandidates(c.toString))
       cellstofield(cells)
     } else {
       //try parsing format with candidates
@@ -207,9 +220,9 @@ object SudokuField {
       if (cellstrings.length == totalcells) {
         val makecell: String => SudokuCell = (s: String) =>
           if (s.length == 1)
-            SudokuCell(transformcell(s), assigncandidates(s))
+            SudokuCell(transformcell(s.head), assigncandidates(s))
           else {
-            val candidates: Set[Int] = (for (c <- s) yield transformcell(c.toString)).toSet
+            val candidates: Set[Int] = (for (c <- s) yield transformcell(c)).toSet
             SudokuCell(0, candidates)
           }
         val cells: Seq[SudokuCell] = for (c <- cellstrings) yield makecell(c)

@@ -6,6 +6,8 @@ import de.tu_darmstadt.veritas.sudoku.strategies.ApplySingle
 import de.tu_darmstadt.veritas.sudoku.tactics.DoNothing
 import org.scalatest.FunSuite
 
+import scala.io.Source
+
 /**
   * a couple of simple tests of parsing/creating sudokus
   */
@@ -114,8 +116,10 @@ class SudokuTest extends FunSuite {
   val easysudokulist_nc = List(s1_no_candidates, s3_no_candidates, s5_no_candidates)
   val easysudokulist_cand = List(s1_candidates, s3_candidates, s5_candidates)
 
+  implicit val config9: SudokuConfig = SudokuConfig(1 to 9, ".123456789")
+
   def testNoCandidateParsing(sudoku: String): Unit = {
-    val original = new SudokuField(sudoku)
+    val original = new SudokuField(sudoku, config9)
     val parsed = original.toSimpleString()
     //println(parsed)
 
@@ -123,8 +127,8 @@ class SudokuTest extends FunSuite {
   }
 
   def testCandidateParsing(sudoku_nc: String, sudoku_c: String): Unit = {
-    val original = new SudokuField(sudoku_nc)
-    val original_with_candidates = new SudokuField(sudoku_c)
+    val original = new SudokuField(sudoku_nc, config9)
+    val original_with_candidates = new SudokuField(sudoku_c, config9)
 
     assert(original.toSimpleString() == original_with_candidates.toSimpleString())
   }
@@ -159,20 +163,27 @@ class SudokuTest extends FunSuite {
     for ((snc, sc) <- (easysudokulist_nc zip easysudokulist_cand)) testCandidateParsing(snc, sc)
   }
 
-//  test("Test Python Z3 Sudoku Solver") {
-//    testPythonZ3SudokuSolver(new SudokuField(s1_candidates), s1_solution)
-//    testPythonZ3SudokuSolver(new SudokuField(s3_candidates), s3_solution)
-//    testPythonZ3SudokuSolver(new SudokuField(s5_candidates), s5_solution)
-//  }
-
   test("Sudoku Proof Graph initialization") {
-    val f1 = new SudokuField(s1_candidates)
-    val file = new File("Sudoku-1-store")
+    val f1 = new SudokuField(s1_candidates, config9)
+    val file = new File("SudokuPGStores/Sudoku-1-store")
     file.delete()
     val spg = new SudokuProofGraph(file, f1, new ApplySingle(DoNothing))
     spg.constructPG()
     val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
     assert(storedSudoku.replaceAll("\n", "") == s1_no_candidates)
+  }
+
+  test("Sudoku 25x25 Proof Graph initialization") {
+    val config25: SudokuConfig = SudokuConfig(1 to 25, ".ABCDEFGHIJKLMNOPQRSTUVWXY")
+
+    val sud25x25 = Source.fromFile("sudokupuzzles/giant25sudoku").getLines().mkString("")
+    val field = new SudokuField(sud25x25, config25)
+    val store = new File("SudokuPGStores/Sudoku-25-372holes-store")
+    store.delete()
+    val spg = new SudokuProofGraph(store, field, new ApplySingle(DoNothing))
+    spg.constructPG()
+    val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
+    assert(storedSudoku.replaceAll("\n", "") == sud25x25)
   }
 
 }

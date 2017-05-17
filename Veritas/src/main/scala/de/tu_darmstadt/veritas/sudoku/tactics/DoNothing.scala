@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.sudoku.tactics
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.TacticApplicationException
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, ObligationProducer}
-import de.tu_darmstadt.veritas.sudoku.SudokuField
+import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
 
 /**
   * Mock tactic that does not do anything
@@ -17,8 +17,8 @@ object DoNothing extends SudokuTactic {
     * @throws TacticApplicationException
     * @return
     */
-  override def apply[Obligation](obl: GenObligation[SudokuField, SudokuField],
+  override def apply[Obligation](obl: GenObligation[EmptySpec, SudokuField],
                                  obllabels: Iterable[EdgeLabel],
-                                 produce: ObligationProducer[SudokuField, SudokuField, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+                                 produce: ObligationProducer[EmptySpec, SudokuField, Obligation]): Iterable[(Obligation, EdgeLabel)] =
   Iterable() //just return empty iterable
 }
