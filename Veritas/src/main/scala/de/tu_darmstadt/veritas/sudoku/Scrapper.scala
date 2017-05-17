@@ -81,10 +81,8 @@ class Scrapper(numbers: Int, difficulty: Int, numberOfTimes: Int, directory: Fil
       case _ => "" // cannot happen
     }
 
-    println(boxesInRow)
     val url = "http://sudoku-puzzles.merschat.com/index.cgi"
     val configuredUrl = s"${url}?base=$boxesInRow&type=Letters&diff=${convertDifficulty()}"
-    println(configuredUrl)
     browser.get(configuredUrl)
   }
 
