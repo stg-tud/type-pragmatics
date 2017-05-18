@@ -169,14 +169,16 @@ class SudokuZ3(val swidth: Int = 9,
     }).mkString("")
 
   // generate a Sudoku with a unique solution from a full solution
-  def generateSudoku(solution: String): String = {
+  def generateSudoku(solution: String, maxiterations: Int = 0): String = {
     val translatedres = parseSudoku(solution)
     var resultsudoku = ""
+    var it: Int = 0
     do {
       val (rx, ry) = chooseRandomNewPosition(Random, translatedres)
       resultsudoku = makeSudokuString(translatedres, (x : Int) => x)
       translatedres(rx)(ry) = 0
-    } while (checkUnique(makeSudokuString(translatedres, (x : Int) => x), solution))
+      it += 1
+    } while (checkUnique(makeSudokuString(translatedres, (x : Int) => x), solution) && it != maxiterations+1)
     resultsudoku
   }
 
