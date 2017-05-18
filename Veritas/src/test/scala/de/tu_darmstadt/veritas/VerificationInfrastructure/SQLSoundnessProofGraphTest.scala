@@ -22,8 +22,8 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     sys.error("Test store SQLSoundnessProofGraph-store does not exist.")
   }
 
-  val loaded_g: ProofGraphXodus[VeritasConstruct, VeritasConstruct] =
-    new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file)
+  val loaded_g: ProofGraphXodus[VeritasConstruct, VeritasConstruct] with ProofGraphTraversals[VeritasConstruct, VeritasConstruct] =
+    new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
 
   SQLSoundnessProofGraph.initializeGraphTypes(loaded_g)
 
@@ -468,9 +468,8 @@ class SQLSoundnessProofGraphTest extends FunSuite {
   }
 
   test("ProofGraphUI proofstepDFS traverses in the correct order") {
-    val ui = new ProofGraphUI(loaded_g, ProofGraphUI.extractGoalName)
-    assert(ui.obligationDFS().size == 41)
-    val proofsteps = ui.proofstepsDFS()
+    assert(loaded_g.obligationDFS().size == 41)
+    val proofsteps = loaded_g.proofstepsDFS()
     assert(proofsteps.size == 41)
     assert(proofsteps(0).tactic == rootInductionProgress)
     assert(proofsteps(1).tactic == Solve[VeritasConstruct, VeritasConstruct]())
@@ -516,18 +515,49 @@ class SQLSoundnessProofGraphTest extends FunSuite {
   }
 
   test("ProofGraphUI mapStepResult set every StepResult to Unknown") {
-    val ui = new ProofGraphUI(loaded_g, ProofGraphUI.extractGoalName)
     val dbFile = File.createTempFile("test-newgraph", "")
     dbFile.delete()
     dbFile.mkdir()
-    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile)
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
     SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
-    ui.mapStepResult(newGraph)(stepresult => newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None))
-    val newUi = new ProofGraphUI(newGraph, ProofGraphUI.extractGoalName)
-    newUi.proofstepsDFS().foreach { ps =>
-      val stepresult = newUi.pg.verifiedBy(ps)
+    loaded_g.mapStepResult(newGraph)(obl => newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None))
+    newGraph.proofstepsDFS().foreach { ps =>
+      val stepresult = newGraph.verifiedBy(ps)
       assert(stepresult.nonEmpty)
       assert(stepresult.get.isInstanceOf[Unknown[_, _]])
+    }
+  }
+
+  test("ProofGraphUI mapStepResult set Solve tactic stepresults to Unknown otherwise keep the old stepresult") {
+    val dbFile = File.createTempFile("test-newgraph", "")
+    dbFile.delete()
+    dbFile.mkdir()
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+    SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
+    loaded_g.mapStepResult(newGraph){ obl =>
+      val convertedObl = loaded_g.obligationProducer.newObligation(obl.spec, obl.goal)
+      val ps = loaded_g.appliedStep(convertedObl)
+      if (ps.nonEmpty && ps.get.tactic.isInstanceOf[Solve[_,_]])
+        newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None)
+      else {
+        val prevStepResult = loaded_g.verifiedBy(ps.get)
+        newGraph.stepResultProducer.newStepResult(prevStepResult.get.status, prevStepResult.get.evidence, prevStepResult.get.errorMsg)
+      }
+    }
+    newGraph.proofstepsDFS().foreach { ps =>
+      val stepresult = newGraph.verifiedBy(ps)
+      assert(stepresult.nonEmpty)
+      if (ps.tactic.isInstanceOf[Solve[_,_]])
+        assert(stepresult.get.status.isInstanceOf[Unknown[_, _]])
+      else {
+        val loaded_ps = loaded_g.proofstepsDFS().find { lps =>
+          lps.tactic == ps.tactic
+        }.get
+        val shouldBeResult = loaded_g.verifiedBy(loaded_ps).get
+        assert(stepresult.get.status.compare(shouldBeResult.status) == 0)
+        assert(stepresult.get.errorMsg == shouldBeResult.errorMsg)
+        assert(stepresult.get.evidence == shouldBeResult.evidence)
+      }
     }
   }
 }
