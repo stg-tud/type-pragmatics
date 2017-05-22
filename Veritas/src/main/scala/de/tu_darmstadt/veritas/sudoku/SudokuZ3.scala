@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 import scala.util.Random
 
 /**
-  * Z3 Sudoku solver
+  * Z3 Sudoku solver (draft)
   */
 class SudokuZ3(val swidth: Int = 9,
                val sheight: Int = 9,
