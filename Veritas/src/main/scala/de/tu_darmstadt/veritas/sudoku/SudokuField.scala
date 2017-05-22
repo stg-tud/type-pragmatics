@@ -44,6 +44,8 @@ class SudokuField(val field: Field, config: SudokuConfig) extends Comparable[Sud
 
   def cells: Seq[SudokuCell] = field.fold(Array())(_ ++ _)
 
+  def rownum : Int = field.length
+  def colnum : Int = field(0).length
   def rows: Iterator[SudokuUnit] = field.map(_.toSeq).toIterator
 
   //counting rows from 1!
@@ -70,6 +72,15 @@ class SudokuField(val field: Field, config: SudokuConfig) extends Comparable[Sud
     // cut columns
     for (r <- cutrows) yield r.slice(translatedindex, translatedindex + boxsize)
   } else sys.error(s"Attempted to access a box that is out of range ($i).")
+
+
+  val boxindices: Map[Int, (Range, Range)] =
+    (for (i <- 0 until rownum) yield {
+      val translatedrow = (i / boxsize) * boxsize
+      val translatedcol = (i % boxsize) * boxsize
+      i -> (translatedrow until translatedrow + boxsize, translatedcol until translatedcol + boxsize)
+    }).toMap
+
 
   def realsboxes(): Seq[Box] = for (i <- cellrange) yield box(i)
 
