@@ -1,11 +1,31 @@
 package de.tu_darmstadt.veritas.sudoku
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenStepResult, StepResultProducer}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{SolveWithZ3, Verifier, VerifierHints}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, Evidence, GenStepResult, StepResultProducer}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import z3.scala.Z3Model
 import z3.scala.dsl.{Distinct, IntVar}
 
 import scala.reflect.ClassTag
+
+class Z3Evidence(val model: Z3Model) extends Evidence {
+  override def compare(that: Evidence): Int = this.hashCode() compare that.hashCode()
+}
+
+class Z3ResultDetails(val messstr: String, val mod: Option[Z3Model]) extends ResultDetails {
+  /**
+    *
+    * @return full logs of prover
+    */
+  override def fullLogs: String = messstr
+
+  override def summaryDetails: String = mod.toString()
+
+  override def proofEvidence: Option[Evidence] = mod map (m => new Z3Evidence(m))
+
+  override def message: Option[String] =
+    if (messstr.startsWith("Z3 failed.") || messstr.startsWith("Unsatisfiable."))
+      Some(messstr) else None
+}
 
 /**
   * Trying to apply Z3 to verify a Sudoku directly
@@ -14,7 +34,7 @@ import scala.reflect.ClassTag
 class SudokuLeafVerifier(config: Map[String, Any] = Map("MODEL" -> true, "timeout" -> 3000))
   extends SolveWithZ3[EmptySpec, SudokuField](config) with Verifier[EmptySpec, SudokuField] {
 
-  override type Var = Array[IntVar] //??? no particular verification format needed
+  override type Var = Array[IntVar]
 
   //function for making the difference constraints (rows, columns, boxes)
   protected val diffConstr = (s: Seq[IntVar]) => Distinct(s: _*)
@@ -77,5 +97,23 @@ class SudokuLeafVerifier(config: Map[String, Any] = Map("MODEL" -> true, "timeou
    parentedges: Iterable[EdgeLabel],
    assumptions: Iterable[SudokuField],
    hints: Option[VerifierHints],
-   produce: StepResultProducer[EmptySpec, SudokuField, Result]): Result = ???
+   produce: StepResultProducer[EmptySpec, SudokuField, Result]): Result = {
+    val sresult = solveAndGetResult(spec, goal, makeSolutionVariables(goal))
+    val pstatus: ProverStatus =
+      if (sresult.startsWith("Z3 failed."))
+        ProverFailure(new Z3ResultDetails(sresult, None))
+      else if (sresult.startsWith("Unsatisfiable."))
+        Inconclusive(new Z3ResultDetails(sresult, None))
+      else if (sresult.length == goal.colnum * goal.rownum)
+        Proved(new Z3ResultDetails(sresult, Some(solver.getModel())))
+      else
+        ProverFailure(new Z3ResultDetails("Could not parse result.", None))
+
+    val evidence = pstatus.proverResult.proofEvidence
+    val errorMsg = pstatus.proverResult.message
+    val verifierStat = Finished(pstatus, this)
+
+    produce.newStepResult(verifierStat, evidence, errorMsg)
+  }
+
 }
