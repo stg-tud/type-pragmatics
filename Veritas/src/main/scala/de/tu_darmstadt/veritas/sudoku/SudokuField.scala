@@ -17,7 +17,7 @@ case class SudokuCell(value: Int, candidates: Set[Int]) {
   * Representation of a Sudoku field, with domain-specific queries
   * parametric in cellrange (standard: 1-9), but assumes quadratic Sudoku
   */
-class SudokuField(val field: Field, config: SudokuConfig) extends Comparable[SudokuField] with Serializable {
+class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable[SudokuField] with Serializable {
 
   import config._
 
@@ -136,6 +136,28 @@ class SudokuField(val field: Field, config: SudokuConfig) extends Comparable[Sud
     (shareRow(cells), shareCol(cells), shareBox(cells))
 
   def allPeers(cell: Position): Map[Position, SudokuCell] = ???
+
+  def findFirstCellWhere(p: SudokuCell => Boolean): Option[(Position, SudokuCell)] = {
+    var i = 0
+    var j = 0
+    do  {
+      do {
+        if (p(field(i)(j))) {
+          return Some(((i, j), field(i)(j)))
+        }
+        j = j + 1
+      } while (j < field(i).length)
+      i = i + 1
+    } while (i < field.length)
+    None
+  }
+
+  //returns a new SudokuField instance, where the former array is cloned and given cells updated
+  def updateSudokuField(pos: Position, newcell: SudokuCell): SudokuField = {
+    val newfield = field.clone()
+    newfield(pos._1)(pos._2) = newcell
+    new SudokuField(newfield, this.config)
+  }
 
 
   /**
