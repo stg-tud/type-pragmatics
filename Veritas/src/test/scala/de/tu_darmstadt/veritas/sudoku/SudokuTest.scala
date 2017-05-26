@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.sudoku
 import java.io.{File, FileReader, FileWriter}
 
 import de.tu_darmstadt.veritas.sudoku.strategies.ApplySingle
-import de.tu_darmstadt.veritas.sudoku.tactics.DoNothing
+import de.tu_darmstadt.veritas.sudoku.tactics.{DoNothing, NoCandidateCanBeRuledOut, RuleOutCandidatesSimple}
 import org.scalatest.FunSuite
 
 import scala.io.Source
@@ -150,6 +150,27 @@ class SudokuTest extends FunSuite {
     val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
     assert(storedSudoku.replaceAll("\n", "") == s1_no_candidates)
   }
+
+  test("Sudoku 9x9 rule out simple (nothing can be ruled out)") {
+    val f1 = new SudokuField(s1_candidates, config9)
+    val file = new File("SudokuPGStores/Sudoku-1-teststore")
+    file.delete()
+    val spg = new SudokuProofGraph(file, f1, new ApplySingle(RuleOutCandidatesSimple))
+    assertThrows[NoCandidateCanBeRuledOut.type](spg.constructPG())
+  }
+
+  test("Sudoku 9x9 rule out simple (initial rule out)") {
+    val f1 = new SudokuField(s1_no_candidates, config9)
+    val f1_wc = new SudokuField(s1_candidates, config9)
+    val file = new File("SudokuPGStores/Sudoku-1-teststore-1")
+    file.delete()
+    val spg = new SudokuProofGraph(file, f1, new ApplySingle(RuleOutCandidatesSimple))
+    spg.constructPG()
+    val allfields = (spg.g.obligationDFS()).map(_.goal)
+    assert(allfields.length == 2)
+    assert(allfields.last.compareTo(f1_wc) == 0)
+  }
+
 
   test("Sudoku 25x25 Proof Graph initialization") {
     val config25: SudokuConfig = SudokuConfig(1 to 25, ".ABCDEFGHIJKLMNOPQRSTUVWXY")

@@ -45,7 +45,7 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
   def cells: SudokuUnit = field.fold(Array())(_ ++ _)
 
   def indexedcells: IndexedSudokuUnit =
-    for (i <- field.indices; j <- field(i).indices) yield ((i+1, j+1), field(i)(j))
+    for (i <- field.indices; j <- field(i).indices) yield ((i + 1, j + 1), field(i)(j))
 
   def rownum: Int = field.length
 
@@ -123,7 +123,7 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
     val givencols = cells.map(_._2)
     if (sharedRow != 0) {
       val r = row(sharedRow)
-      val colsindices = for (c <- r if !(givencols contains r.indexOf(c))) yield r.indexOf(c)
+      val colsindices = for (c <- r.indices if !(givencols contains (c+1))) yield c+1
       for (i <- colsindices) yield ((sharedRow, i), cellAt((sharedRow, i)).get)
     }
     else Seq()
@@ -147,7 +147,7 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
     val givenrows = cells.map(_._1)
     if (sharedCol != 0) {
       val c = column(sharedCol)
-      val rowindices = for (r <- c if !(givenrows contains c.indexOf(r))) yield c.indexOf(r)
+      val rowindices = for (r <- c.indices if !(givenrows contains (r+1))) yield r+1
       for (i <- rowindices) yield ((i, sharedCol), cellAt((i, sharedCol)).get)
     }
     else Seq()
@@ -157,7 +157,7 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
   // returns zero if given cell positions do not share a box
   def shareBox(cells: Seq[Position]): Int = {
     val colrowindex: Int => Int = (i: Int) => (i - 1) / boxsize
-    val boxindices = cells map (p => ((colrowindex(p._1) - 1) * boxsize + colrowindex(p._2)) + 1)
+    val boxindices: Seq[Int] = cells map (p => (colrowindex(p._1) * boxsize + colrowindex(p._2)) + 1)
     if (boxindices.distinct.length == 1)
       boxindices.head
     else
@@ -197,7 +197,7 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
   }
 
   def filterCells(cells: IndexedSudokuUnit, p: SudokuCell => Boolean): IndexedSudokuUnit =
-    cells.filter {case (position, cell) => p(cell)}
+    cells.filter { case (position, cell) => p(cell) }
 
   //returns a new SudokuField instance, where the former array is cloned and given cells updated
   def updateSudokuField(pcells: IndexedSudokuUnit): SudokuField = {
@@ -219,12 +219,20 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
       s
   }
 
+  def printWithCandidates(): String = {
+    (for (r <- field) yield (r map ((c: SudokuCell) => {
+      if (c.value != 0) symmap(c.value).toString
+      else (c.candidates map (symmap(_))).mkString("")
+    })).mkString(" ")).mkString("\n")
+  }
+
   //TODO is there a better way to implement comparison here?
-  override def compareTo(o: SudokuField): Int = this.field.hashCode() compare o.field.hashCode()
+  override def compareTo(o: SudokuField): Int =
+    (for ((c1, c2) <- (this.cells zip o.cells) if (c1 != c2)) yield c1).size
 }
 
 case class SudokuConfig(cellrange: Range,
-                        cellsymbols: String) extends Comparable[SudokuField] with Serializable {
+                        cellsymbols: String) extends Comparable[SudokuConfig] with Serializable {
   //cellsymbols has to be some range as well
   val symmap: Map[Int, Char] = (for (c <- cellsymbols) yield cellsymbols.indexOf(c) -> c).toMap
   val symregex: String = s"[${symmap(cellrange.min)}-${symmap(cellrange.max)}]"
@@ -232,7 +240,7 @@ case class SudokuConfig(cellrange: Range,
   val totalcells = cellrange.max * cellrange.max
   val boxsize = Math.sqrt(cellrange.max).toInt
 
-  override def compareTo(o: SudokuField): Int = this.hashCode() compare o.hashCode()
+  override def compareTo(o: SudokuConfig): Int = this.hashCode() compare o.hashCode()
 }
 
 object SudokuField {
@@ -289,7 +297,7 @@ object SudokuField {
         }
     //transform a sequence of cells to a field, assuming the length is correct already
     val cellstofield: Seq[SudokuCell] => Field = (cells: Seq[SudokuCell]) => cells.sliding(cellrange.max, cellrange.max).map(_.toArray).toArray
-    val assigncandidates: (String => Set[Int]) = (s: String) => if (s == "0") defaultcandidates else Set()
+    val assigncandidates: (String => Set[Int]) = (s: String) => if (s.matches(config.blankregex)) defaultcandidates else Set()
 
     if (filteredstring.length == totalcells) {
       // try parsing format without candidates
