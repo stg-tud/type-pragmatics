@@ -26,7 +26,7 @@ object SolveSingleCandidate extends SudokuTactic {
     singleCandidate match {
       case None => throw NoSingleCandidateFound
       case Some((pos, cand)) => {
-        val newfield = sudokuField.updateSudokuField(pos, cand)
+        val newfield = sudokuField.updateSudokuField(Seq((pos, cand)))
         val edge = FillSingleCandidate(pos, cand.value)
         Seq((produce.newObligation(obl.spec, newfield), edge))
       }

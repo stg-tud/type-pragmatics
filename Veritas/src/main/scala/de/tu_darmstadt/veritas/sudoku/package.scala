@@ -10,4 +10,6 @@ package object sudoku {
   type Field = Array[Row]
   type SudokuUnit = Seq[SudokuCell]
   type Position = (Int, Int) //(rowindex, colindex); both indices always count from 1 on!
+  type IndexedCell = (Position, SudokuCell)
+  type IndexedSudokuUnit = Seq[IndexedCell]
 }

@@ -42,10 +42,15 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
 
   private def validCells(): Boolean = cells forall (_.valid(cellrange))
 
-  def cells: Seq[SudokuCell] = field.fold(Array())(_ ++ _)
+  def cells: SudokuUnit = field.fold(Array())(_ ++ _)
 
-  def rownum : Int = field.length
-  def colnum : Int = field(0).length
+  def indexedcells: IndexedSudokuUnit =
+    for (i <- field.indices; j <- field(i).indices) yield ((i+1, j+1), field(i)(j))
+
+  def rownum: Int = field.length
+
+  def colnum: Int = field(0).length
+
   def rows: Iterator[SudokuUnit] = field.map(_.toSeq).toIterator
 
   //counting rows from 1!
@@ -75,10 +80,10 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
 
 
   val boxindices: Map[Int, (Range, Range)] =
-    (for (i <- 0 until rownum) yield {
-      val translatedrow = (i / boxsize) * boxsize
-      val translatedcol = (i % boxsize) * boxsize
-      i -> (translatedrow until translatedrow + boxsize, translatedcol until translatedcol + boxsize)
+    (for (i <- 1 to rownum) yield {
+      val translatedrow = ((i - 1) / boxsize) * boxsize
+      val translatedcol = ((i - 1) % boxsize) * boxsize
+      i -> (translatedrow + 1 to translatedrow + boxsize, translatedcol + 1 to translatedcol + boxsize)
     }).toMap
 
 
@@ -94,6 +99,12 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
     cellvals equals cellvals.distinct
   }
 
+  def cellAt(pos: Position): Option[SudokuCell] =
+    if (pos._1 > 0 && pos._1 <= this.rownum && pos._2 > 0 && pos._2 <= this.colnum)
+      Some(this.field(pos._1 - 1)(pos._2 - 1))
+    else
+      None
+
   //returns index of row that given cell positions share
   // returns zero if given cell positions do not share a row
   def shareRow(cells: Seq[Position]): Int = {
@@ -104,8 +115,20 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
       0
   }
 
-  //TODO: these methods should also hand back a position that allows you to change the cells (e.g. remove candidates)
-  def rowPeers(cell: Position): Seq[SudokuCell] = row(shareRow(Seq(cell))).filter(_ != field(cell._1)(cell._2))
+
+  //returns all cells along with their position that share the row of the given cells
+  //(excluding the given cells)
+  def rowPeers(cells: Seq[Position]): IndexedSudokuUnit = {
+    val sharedRow = shareRow(cells)
+    val givencols = cells.map(_._2)
+    if (sharedRow != 0) {
+      val r = row(sharedRow)
+      val colsindices = for (c <- r if !(givencols contains r.indexOf(c))) yield r.indexOf(c)
+      for (i <- colsindices) yield ((sharedRow, i), cellAt((sharedRow, i)).get)
+    }
+    else Seq()
+  }
+
 
   //returns index of column that given cell positions share
   // returns zero if given cell positions do not share a column
@@ -117,45 +140,70 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
       0
   }
 
-  def colPeers(cell: Position): Seq[SudokuCell] = column(shareCol(Seq(cell))).filter(_ != field(cell._1)(cell._2))
+  //returns all cells along with their position that share the column of the given cells
+  //(excluding the given cells)
+  def colPeers(cells: Seq[Position]): IndexedSudokuUnit = {
+    val sharedCol = shareCol(cells)
+    val givenrows = cells.map(_._1)
+    if (sharedCol != 0) {
+      val c = column(sharedCol)
+      val rowindices = for (r <- c if !(givenrows contains c.indexOf(r))) yield c.indexOf(r)
+      for (i <- rowindices) yield ((i, sharedCol), cellAt((i, sharedCol)).get)
+    }
+    else Seq()
+  }
 
   //returns index of box that given cell positions share
   // returns zero if given cell positions do not share a box
   def shareBox(cells: Seq[Position]): Int = {
     val colrowindex: Int => Int = (i: Int) => (i - 1) / boxsize
-    val boxindices = cells map (p => (colrowindex(p._1) - 1) * boxsize + colrowindex(p._2))
-    if (boxindices.length == 1)
+    val boxindices = cells map (p => ((colrowindex(p._1) - 1) * boxsize + colrowindex(p._2)) + 1)
+    if (boxindices.distinct.length == 1)
       boxindices.head
     else
       0
   }
 
-  def boxPeers(cell: Position): Seq[SudokuCell] = boxelems(shareBox(Seq(cell))).filter(_ != field(cell._1)(cell._2))
+  //returns all cells along with their position that share the box of the given cells
+  //(excluding the given cells)
+  def boxPeers(cells: Seq[Position]): IndexedSudokuUnit = {
+    val sharedBox = shareBox(cells)
+    if (sharedBox != 0) {
+      val (rowrange, colrange) = boxindices(sharedBox)
+      for (ri <- rowrange; ci <- colrange if !(cells contains ((ri, ci)))) yield ((ri, ci), cellAt((ri, ci)).get)
+    } else Seq()
+  }
 
   def sharedUnits(cells: Seq[Position]): (Int, Int, Int) =
     (shareRow(cells), shareCol(cells), shareBox(cells))
 
-  def allPeers(cell: Position): Map[Position, SudokuCell] = ???
+  def allPeers(cells: Seq[Position]): IndexedSudokuUnit =
+    (rowPeers(cells) ++ colPeers(cells) ++ boxPeers(cells)).distinct
 
-  def findFirstCellWhere(p: SudokuCell => Boolean): Option[(Position, SudokuCell)] = {
-    var i = 0
-    var j = 0
-    do  {
+  def findFirstCellWhere(p: SudokuCell => Boolean): Option[IndexedCell] = {
+    var i = 1
+    var j = 1
+    do {
       do {
-        if (p(field(i)(j))) {
-          return Some(((i, j), field(i)(j)))
+        val c = cellAt((i, j)).get // there should occur no error here!
+        if (p(c)) {
+          return Some(((i, j), c))
         }
         j = j + 1
-      } while (j < field(i).length)
+      } while (j <= colnum)
       i = i + 1
-    } while (i < field.length)
+    } while (i <= rownum)
     None
   }
 
+  def filterCells(cells: IndexedSudokuUnit, p: SudokuCell => Boolean): IndexedSudokuUnit =
+    cells.filter {case (position, cell) => p(cell)}
+
   //returns a new SudokuField instance, where the former array is cloned and given cells updated
-  def updateSudokuField(pos: Position, newcell: SudokuCell): SudokuField = {
+  def updateSudokuField(pcells: IndexedSudokuUnit): SudokuField = {
     val newfield = field.clone()
-    newfield(pos._1)(pos._2) = newcell
+    for ((pos, ec) <- pcells)
+      newfield(pos._1 - 1)(pos._2 - 1) = ec
     new SudokuField(newfield, this.config)
   }
 

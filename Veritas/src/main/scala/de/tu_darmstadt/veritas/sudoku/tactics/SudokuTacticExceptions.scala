@@ -4,8 +4,12 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{Tactic, Tactic
 import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
 
 /**
-  * Created by sylvia on 24.05.17.
+  * tactic application exception for when no single candidate can be found
   */
 object NoSingleCandidateFound extends TacticApplicationException[EmptySpec, SudokuField] {
   override val tactic: Tactic[EmptySpec, SudokuField] = SolveSingleCandidate
+}
+
+object NoCandidateCanBeRuledOut extends TacticApplicationException[EmptySpec, SudokuField] {
+  override val tactic: Tactic[EmptySpec, SudokuField] = RuleOutCandidatesSimple
 }

@@ -36,7 +36,8 @@ class SudokuIntermediateStepVerifier extends SudokuLeafVerifier {
 
   override def makeAndAddConstraints(spec: EmptySpec, goal: SudokuField,
                                      vars: Array[Array[IntVar]]): Unit = {
-    val boxmap = goal.boxindices
+    //here we need the actual array indices
+    val boxmap = goal.boxindices map {case (bi, (rowrange, colrange)) => bi - 1 -> ((rowrange.min - 1 until rowrange.max, colrange.min - 1 until colrange.min)) }
 
     //bounds for cell values - including 0 for empty cells
     val boundsConstr = for (r <- vars; c <- r) yield (c >= 0 && c <= goal.rownum)
