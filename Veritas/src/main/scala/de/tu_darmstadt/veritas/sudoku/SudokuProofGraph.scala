@@ -2,8 +2,9 @@ package de.tu_darmstadt.veritas.sudoku
 
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Finished
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraphTraversals, ProofGraphXodus, PropertyTypes, Strategy}
-import de.tu_darmstadt.veritas.sudoku.tactics.{DoNothing, RuleOutCandidatesSimple, SimpleRuleOut}
+import de.tu_darmstadt.veritas.sudoku.tactics._
 
 class EmptySpec extends Comparable[EmptySpec] with Serializable {
   override def compareTo(o: EmptySpec): Int = this.hashCode() compare o.hashCode()
@@ -22,7 +23,38 @@ class SudokuProofGraph(file: File, initialfield: SudokuField, rootstrategy: Stra
   val initialobligation: g.Obligation = g.newObligation(new EmptySpec, initialfield)
   g.storeObligation("initial", initialobligation)
 
-  def constructPG(): Unit = rootstrategy.applyToPG(g)
+  def constructPG(): Unit = rootstrategy.applyToPG(g)(initialobligation)
+
+  def verifyStepsSolveLeaves(): Unit = {
+    val intermediateStepVerifier = new SudokuIntermediateStepVerifier
+    val leafVerifier = new SudokuLeafVerifier
+    val proofsteps = g.proofstepsDFS()
+    for (ps <- proofsteps) {
+      ps.tactic match {
+        case SolveSudoku => g.verifyProofStep(ps, leafVerifier)
+        case _ => g.verifyProofStep(ps, intermediateStepVerifier)
+      }
+    }
+  }
+
+  def printSteps(): String = {
+    val obligations = g.obligationDFS()
+    (for (o <- obligations) yield {
+      val state = "Sudoku solving state: \n" +
+        o.goal.printWithCandidates() + "\n"
+      val proofstep = g.appliedStep(o)
+      val step: String = (proofstep map (s => s.tactic.toString)).getOrElse("") + "\n"
+      val edge = proofstep map (g.requiredObls(_))
+      val edgestring: String = (if (edge.isDefined && edge.get.size == 1) edge.get.head._2.desc else "") + "\n"
+      val verificationstat = proofstep flatMap (g.verifiedBy(_))
+      val vsstring : String = ("Verifier result: " + (if (verificationstat.isDefined)
+        verificationstat.get.status match {
+          case f: Finished[EmptySpec, SudokuField] => f.status.proverResult.fullLogs
+          case s => s.toString
+        } else "none")) + "\n"
+      state + step + edgestring + vsstring
+    }).mkString("\n")
+  }
 
 }
 
@@ -31,9 +63,15 @@ object SudokuProofGraph {
   def initializeGraphTypes(g: ProofGraphXodus[EmptySpec, SudokuField]) = {
     PropertyTypes.registerPropertyType[SudokuField](g.store)
     PropertyTypes.registerPropertyType[EmptySpec](g.store)
-    PropertyTypes.registerPropertyType[DoNothing.type](g.store)
+    PropertyTypes.registerPropertyType[SolveSudoku.type](g.store)
     PropertyTypes.registerPropertyType[RuleOutCandidatesSimple.type](g.store)
     PropertyTypes.registerPropertyType[SimpleRuleOut](g.store)
+    PropertyTypes.registerPropertyType[SolveSingleCandidate.type](g.store)
+    PropertyTypes.registerPropertyType[FillSingleCandidate](g.store)
+    PropertyTypes.registerPropertyType[Finished[EmptySpec, SudokuField]](g.store)
+    PropertyTypes.registerPropertyType[Z3Evidence](g.store)
+    PropertyTypes.registerPropertyType[SudokuLeafVerifier](g.store)
+    PropertyTypes.registerPropertyType[SudokuIntermediateStepVerifier](g.store)
 
   }
 }

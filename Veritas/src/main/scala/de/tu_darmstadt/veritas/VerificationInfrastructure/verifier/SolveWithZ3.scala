@@ -5,11 +5,13 @@ import z3.scala.{Z3Context, Z3Model, Z3Solver}
 /**
   * abstract template for calling Z3 with constraints
   */
-abstract class SolveWithZ3[Spec, Goal](config: Map[String, Any] = Map("MODEL" -> true)) {
+abstract class SolveWithZ3[Spec, Goal] {
 
   type Var // Variable type
 
-  val context: Z3Context = new Z3Context(config.iterator.toList: _*)
+  val z3config: Map[String, Any] = Map("MODEL" -> true, "timeout" -> 3000)
+
+  val context: Z3Context = new Z3Context(z3config.iterator.toList: _*)
   val solver: Z3Solver = context.mkSolver()
 
   def makeSolutionVariables(goal: Goal): Array[Var]

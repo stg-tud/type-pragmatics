@@ -26,10 +26,13 @@ object SolveSingleCandidate extends SudokuTactic {
     singleCandidate match {
       case None => throw NoSingleCandidateFound
       case Some((pos, cand)) => {
-        val newfield = sudokuField.updateSudokuField(Seq((pos, cand)))
-        val edge = FillSingleCandidate(pos, cand.value)
+        val newcell = SudokuCell(cand.candidates.head, Set())
+        val newfield = sudokuField.updateSudokuField(Seq((pos, newcell)))
+        val edge = FillSingleCandidate(pos, newcell.value)
         Seq((produce.newObligation(obl.spec, newfield), edge))
       }
     }
   }
+
+  override def toString: String = "Solving a hidden single."
 }

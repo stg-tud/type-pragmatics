@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.sudoku
 
 import java.io.{File, FileReader, FileWriter}
 
-import de.tu_darmstadt.veritas.sudoku.strategies.ApplySingle
-import de.tu_darmstadt.veritas.sudoku.tactics.{DoNothing, NoCandidateCanBeRuledOut, RuleOutCandidatesSimple}
+import de.tu_darmstadt.veritas.sudoku.strategies.{ApplySingle, SolveOneHiddenSingle}
+import de.tu_darmstadt.veritas.sudoku.tactics.{SolveSudoku, NoCandidateCanBeRuledOut, RuleOutCandidatesSimple}
 import org.scalatest.FunSuite
 
 import scala.io.Source
@@ -116,6 +116,11 @@ class SudokuTest extends FunSuite {
   val easysudokulist_nc = List(s1_no_candidates, s3_no_candidates, s5_no_candidates)
   val easysudokulist_cand = List(s1_candidates, s3_candidates, s5_candidates)
 
+  //all Sudokus (including the ones with hidden singles)
+  val alltestsudokus_nc = List(s1_no_candidates, s2_no_candidates, s3_no_candidates, s4_no_candidates, s5_no_candidates)
+  val alltestsudokus_cand = List(s1_candidates, s2_candidates, s3_candidates, s4_candidates, s5_candidates)
+  val all_solutions = List(s1_solution, s2_solution, s3_solution, s4_solution, s5_solution)
+
   implicit val config9: SudokuConfig = SudokuConfig(1 to 9, ".123456789")
 
   def testNoCandidateParsing(sudoku: String): Unit = {
@@ -133,6 +138,23 @@ class SudokuTest extends FunSuite {
     assert(original.toSimpleString() == original_with_candidates.toSimpleString())
   }
 
+  def solveHiddenSingle(s_nc: String, s_c: String, solution: String, storename: String): Unit = {
+    val original = new SudokuField(s_nc, config9)
+    val original_with_candidates = new SudokuField(s_c, config9)
+    val file = new File("SudokuPGStores/" + storename)
+    file.delete()
+    val spg = new SudokuProofGraph(file, original, new SolveOneHiddenSingle)
+    spg.constructPG()
+    spg.verifyStepsSolveLeaves()
+    println(spg.printSteps())
+    //val sudokus = spg.g.obligationDFS() map (_.goal)
+    //val ps = spg.g.proofstepsDFS()
+    //for (p <- ps) assert(spg.g.isStepVerified(p))
+    //val lastresult = spg.g.verifiedBy(ps.last).get.evidence.get
+    //println(lastresult)
+    //for (s <- sudokus) println("\n" + s.printWithCandidates())
+  }
+
   test("Parsing a single string with no candidates yields the expected Sudoku") {
     for (sud <- easysudokulist_nc) testNoCandidateParsing(sud)
   }
@@ -145,7 +167,7 @@ class SudokuTest extends FunSuite {
     val f1 = new SudokuField(s1_candidates, config9)
     val file = new File("SudokuPGStores/Sudoku-1-store")
     file.delete()
-    val spg = new SudokuProofGraph(file, f1, new ApplySingle(DoNothing))
+    val spg = new SudokuProofGraph(file, f1, new ApplySingle(SolveSudoku))
     spg.constructPG()
     val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
     assert(storedSudoku.replaceAll("\n", "") == s1_no_candidates)
@@ -171,6 +193,10 @@ class SudokuTest extends FunSuite {
     assert(allfields.last.compareTo(f1_wc) == 0)
   }
 
+  test("Sudoku solve single") {
+    solveHiddenSingle(s2_no_candidates, s2_candidates, s2_solution, "solve-single-sudoku1")
+  }
+
 
   test("Sudoku 25x25 Proof Graph initialization") {
     val config25: SudokuConfig = SudokuConfig(1 to 25, ".ABCDEFGHIJKLMNOPQRSTUVWXY")
@@ -179,7 +205,7 @@ class SudokuTest extends FunSuite {
     val field = new SudokuField(sud25x25, config25)
     val store = new File("SudokuPGStores/Sudoku-25-372holes-store")
     store.delete()
-    val spg = new SudokuProofGraph(store, field, new ApplySingle(DoNothing))
+    val spg = new SudokuProofGraph(store, field, new ApplySingle(SolveSudoku))
     spg.constructPG()
     val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
     assert(storedSudoku.replaceAll("\n", "") == sud25x25)

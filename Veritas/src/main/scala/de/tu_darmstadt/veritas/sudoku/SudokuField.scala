@@ -182,8 +182,8 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
 
   def findFirstCellWhere(p: SudokuCell => Boolean): Option[IndexedCell] = {
     var i = 1
-    var j = 1
     do {
+      var j = 1
       do {
         val c = cellAt((i, j)).get // there should occur no error here!
         if (p(c)) {
@@ -222,7 +222,7 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
   def printWithCandidates(): String = {
     (for (r <- field) yield (r map ((c: SudokuCell) => {
       if (c.value != 0) symmap(c.value).toString
-      else (c.candidates map (symmap(_))).mkString("")
+      else (c.candidates.toSeq.sortWith(_ <= _) map (symmap(_))).mkString("")
     })).mkString(" ")).mkString("\n")
   }
 

@@ -5,7 +5,7 @@ import java.io.File
 import scala.sys.process.{stringToProcess, ProcessLogger}
 import scala.util.Random
 
-trait Evidence extends Ordered[Evidence]
+trait Evidence extends Ordered[Evidence] with Serializable
 
 // TODO how should evidence be ordered?
 trait TSTP[T] extends Evidence {

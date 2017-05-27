@@ -9,8 +9,8 @@ import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
   * returns graph unchanged if tactic application did not succeed
   */
 class ApplySingle(t: Tactic[EmptySpec, SudokuField]) extends Strategy[EmptySpec, SudokuField] {
-  override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField]): ProofGraph[EmptySpec, SudokuField] = {
-    val ps = pg.applyTactic(pg.findObligation("initial").get, t)
+  override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField])(obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] = {
+    val ps = pg.applyTactic(obl, t)
     pg
   }
 }

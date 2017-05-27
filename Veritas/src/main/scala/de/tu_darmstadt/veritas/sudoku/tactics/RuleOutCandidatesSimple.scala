@@ -47,4 +47,6 @@ object RuleOutCandidatesSimple extends SudokuTactic {
     }
 
   }
+
+  override def toString: String = "Ruling out simple candidates (given by common unit)."
 }

@@ -7,11 +7,11 @@ import z3.scala.dsl.{Distinct, IntVar}
 
 import scala.reflect.ClassTag
 
-class Z3Evidence(val model: Z3Model) extends Evidence {
+class Z3Evidence(val model: String) extends Evidence {
   override def compare(that: Evidence): Int = this.hashCode() compare that.hashCode()
 }
 
-class Z3ResultDetails(val messstr: String, val mod: Option[Z3Model]) extends ResultDetails {
+class Z3ResultDetails(val messstr: String, val mod: Option[String]) extends ResultDetails with Serializable {
   /**
     *
     * @return full logs of prover
@@ -31,8 +31,8 @@ class Z3ResultDetails(val messstr: String, val mod: Option[Z3Model]) extends Res
   * Trying to apply Z3 to verify a Sudoku directly
   * Must not take longer than 3 seconds (design decision)
   */
-class SudokuLeafVerifier(config: Map[String, Any] = Map("MODEL" -> true, "timeout" -> 3000))
-  extends SolveWithZ3[EmptySpec, SudokuField](config) with Verifier[EmptySpec, SudokuField] {
+class SudokuLeafVerifier
+  extends SolveWithZ3[EmptySpec, SudokuField] with Verifier[EmptySpec, SudokuField] {
 
   override type Var = Array[IntVar]
 
@@ -60,7 +60,7 @@ class SudokuLeafVerifier(config: Map[String, Any] = Map("MODEL" -> true, "timeou
                                      vars: Array[Array[IntVar]]): Unit = {
 
     //here we need the actual array indices
-    val boxmap = goal.boxindices map {case (bi, (rowrange, colrange)) => bi - 1 -> ((rowrange.min - 1 until rowrange.max, colrange.min - 1 until colrange.min)) }
+    val boxmap = goal.boxindices map {case (bi, (rowrange, colrange)) => bi - 1 -> ((rowrange.min - 1 until rowrange.max, colrange.min - 1 until colrange.max)) }
 
     //bounds for cell values
     val boundsConstr = for (r <- vars; c <- r) yield (c >= 1 && c <= goal.rownum)
@@ -106,7 +106,7 @@ class SudokuLeafVerifier(config: Map[String, Any] = Map("MODEL" -> true, "timeou
       else if (sresult.startsWith("Unsatisfiable."))
         Inconclusive(new Z3ResultDetails(sresult, None))
       else if (sresult.length == goal.colnum * goal.rownum)
-        Proved(new Z3ResultDetails(sresult, Some(solver.getModel())))
+        Proved(new Z3ResultDetails(sresult, Some(solver.getModel().toString())))
       else
         ProverFailure(new Z3ResultDetails("Could not parse result.", None))
 

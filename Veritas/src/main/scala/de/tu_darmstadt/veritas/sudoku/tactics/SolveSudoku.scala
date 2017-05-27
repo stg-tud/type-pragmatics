@@ -4,9 +4,9 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligat
 import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
 
 /**
-  * Mock tactic that does not do anything
+  * tactic which marks that this Sudoku is ready for being solved by an external solver now
   */
-object DoNothing extends SudokuTactic {
+object SolveSudoku extends SudokuTactic {
   /**
     * applying a tactic to a ProofStep returns the edges generated from this application
     * edges include edge labels and sub-ProofSteps
@@ -21,4 +21,6 @@ object DoNothing extends SudokuTactic {
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[EmptySpec, SudokuField, Obligation]): Iterable[(Obligation, EdgeLabel)] =
   Iterable() //just return empty iterable
+
+  override def toString: String = "Use solver to obtain solution of Sudoku."
 }
