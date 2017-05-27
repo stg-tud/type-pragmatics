@@ -1,4 +1,5 @@
 package de.tu_darmstadt.veritas.sudoku
+
 import z3.scala.dsl.IntVar
 
 
@@ -23,7 +24,7 @@ class SudokuIntermediateStepVerifier extends SudokuLeafVerifier {
   }
 
   protected def nonZeroInBox(arr: Array[Array[IntVar]],
-                            f: Field, i: Int, boxmap: Map[Int, (Range, Range)]): Seq[IntVar] = {
+                             f: Field, i: Int, boxmap: Map[Int, (Range, Range)]): Seq[IntVar] = {
     val (rowrange, colrange) = boxmap(i)
     val varrows = arr.slice(rowrange.min, rowrange.max + 1)
     val fieldrows = f.slice(rowrange.min, rowrange.max + 1)
@@ -33,11 +34,10 @@ class SudokuIntermediateStepVerifier extends SudokuLeafVerifier {
   }
 
 
-
   override def makeAndAddConstraints(spec: EmptySpec, goal: SudokuField,
                                      vars: Array[Array[IntVar]]): Unit = {
     //here we need the actual array indices
-    val boxmap = goal.boxindices map {case (bi, (rowrange, colrange)) => bi - 1 -> ((rowrange.min - 1 until rowrange.max, colrange.min - 1 until colrange.max)) }
+    val boxmap = goal.boxindices map { case (bi, (rowrange, colrange)) => bi - 1 -> ((rowrange.min - 1 until rowrange.max, colrange.min - 1 until colrange.max)) }
 
     //bounds for cell values - including 0 for empty cells
     val boundsConstr = for (r <- vars; c <- r) yield (c >= 0 && c <= goal.rownum)
@@ -49,15 +49,18 @@ class SudokuIntermediateStepVerifier extends SudokuLeafVerifier {
     givenConstr map (solver.assertCnstr(_))
 
     //uniqueness constraints for rows, columns, boxes
-    val rowConstr = for (i <- 0 until goal.rownum) yield diffConstr(nonZeroInRow(vars, goal.field, i))
-    val colConstr = for (i <- 0 until goal.colnum) yield diffConstr(nonZeroInCol(vars, goal.field, i))
-    val boxConstr = for (i <- 0 until boxmap.size) yield diffConstr(nonZeroInBox(vars, goal.field, i, boxmap))
+    val rowConstr = for (i <- 0 until goal.rownum; nonzero = nonZeroInRow(vars, goal.field, i); if (nonzero.size > 0)) yield
+      diffConstr(nonZeroInRow(vars, goal.field, i))
+
+    val colConstr = for (i <- 0 until goal.colnum; nonzero = nonZeroInCol(vars, goal.field, i); if (nonzero.size > 0)) yield
+      diffConstr(nonZeroInCol(vars, goal.field, i))
+    val boxConstr = for (i <- 0 until boxmap.size; nonzero = nonZeroInBox(vars, goal.field, i, boxmap); if (nonzero.size > 0)) yield
+      diffConstr(nonZeroInBox(vars, goal.field, i, boxmap))
 
 
     rowConstr map (solver.assertCnstr(_))
     colConstr map (solver.assertCnstr(_))
     boxConstr map (solver.assertCnstr(_))
-
 
 
   }

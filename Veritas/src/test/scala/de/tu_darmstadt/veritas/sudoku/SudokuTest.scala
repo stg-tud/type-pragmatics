@@ -194,7 +194,7 @@ class SudokuTest extends FunSuite {
   }
 
   test("Sudoku solve single") {
-    solveHiddenSingle(s2_no_candidates, s2_candidates, s2_solution, "solve-single-sudoku1")
+    solveHiddenSingle(s5_no_candidates, s5_candidates, s5_solution, "solve-single-sudoku1")
   }
 
 
