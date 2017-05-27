@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.sudoku
 
 import java.io.{File, FileReader, FileWriter}
 
-import de.tu_darmstadt.veritas.sudoku.strategies.{ApplySingle, SolveOneHiddenSingle}
-import de.tu_darmstadt.veritas.sudoku.tactics.{SolveSudoku, NoCandidateCanBeRuledOut, RuleOutCandidatesSimple}
+import de.tu_darmstadt.veritas.sudoku.strategies.{ApplySingle, SolveAllHiddenSingles, SolveOneHiddenSingle}
+import de.tu_darmstadt.veritas.sudoku.tactics.{NoCandidateCanBeRuledOut, RuleOutCandidatesSimple, SolveSudoku}
 import org.scalatest.FunSuite
 
 import scala.io.Source
@@ -143,7 +143,7 @@ class SudokuTest extends FunSuite {
     val original_with_candidates = new SudokuField(s_c, config9)
     val file = new File("SudokuPGStores/" + storename)
     file.delete()
-    val spg = new SudokuProofGraph(file, original, new SolveOneHiddenSingle)
+    val spg = new SudokuProofGraph(file, original, new SolveAllHiddenSingles)
     spg.constructPG()
     spg.verifyStepsSolveLeaves()
     println(spg.printSteps())
