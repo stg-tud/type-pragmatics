@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, Strategy}
 import de.tu_darmstadt.veritas.sudoku.tactics._
 
 /**
-  * Created by cygne on 27.05.17.
+  * Solve All Hidden Singles within a given Sudoku field
   */
 class SolveAllHiddenSingles extends Strategy[EmptySpec, SudokuField] {
   override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField])(obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] = {

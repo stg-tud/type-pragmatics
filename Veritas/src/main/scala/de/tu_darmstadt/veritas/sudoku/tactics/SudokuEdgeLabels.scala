@@ -21,3 +21,17 @@ case class SimpleRuleOut(updatedcells: IndexedSudokuUnit) extends EdgeLabel {
 
   override def compare(that: EdgeLabel): Int = this.hashCode() compare that.hashCode()
 }
+
+case class FoundNakedGroup(n: Int, groupcells: IndexedSudokuUnit, updatedcells: IndexedSudokuUnit) extends EdgeLabel {
+
+  val grouppos = groupcells.map(_._1).mkString(", ")
+  val updatedpos = updatedcells.map(_._1).mkString(", ")
+
+  val ruledoutcandidates: String = groupcells.foldLeft[Set[Int]](Set())((acc, icell) => acc union icell._2.candidates).mkString(", ")
+
+  override def desc: String = s"Found naked group of size $n: $grouppos. Ruling out $ruledoutcandidates from cells $updatedpos."
+
+  override def propagateInfoList: Seq[PropagatableInfo] = Seq()
+
+  override def compare(that: EdgeLabel): Int = this.hashCode() compare that.hashCode()
+}

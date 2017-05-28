@@ -13,3 +13,7 @@ object NoSingleCandidateFound extends TacticApplicationException[EmptySpec, Sudo
 object NoCandidateCanBeRuledOut extends TacticApplicationException[EmptySpec, SudokuField] {
   override val tactic: Tactic[EmptySpec, SudokuField] = RuleOutCandidatesSimple
 }
+
+case class NoNewNakedGroupOfSizeNFound(n: Int) extends TacticApplicationException[EmptySpec, SudokuField] {
+  override val tactic: Tactic[EmptySpec, SudokuField] = new NakedGroup(n)
+}
