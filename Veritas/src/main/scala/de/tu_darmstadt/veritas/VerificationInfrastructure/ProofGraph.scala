@@ -106,6 +106,7 @@ trait IProofGraph[Spec, Goal] {
   /* traversals */
 
   // TODO what traversals do we need/want to offer?
+  //currently, standard traversals are in the ProofGraphTraversals trait
 
 }
 

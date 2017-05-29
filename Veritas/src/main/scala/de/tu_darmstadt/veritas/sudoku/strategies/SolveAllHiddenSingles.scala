@@ -1,14 +1,15 @@
 package de.tu_darmstadt.veritas.sudoku.strategies
 
 import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, Strategy}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGraphTraversals, Strategy}
 import de.tu_darmstadt.veritas.sudoku.tactics._
 
 /**
   * Solve All Hidden Singles within a given Sudoku field
   */
 class SolveAllHiddenSingles extends Strategy[EmptySpec, SudokuField] {
-  override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField])(obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] = {
+  override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField])
+                        (obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] = {
     try {
       val ps = pg.applyTactic(obl, RuleOutCandidatesSimple)
       val subobls = pg.requiredObls(ps)
