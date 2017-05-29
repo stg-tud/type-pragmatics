@@ -29,10 +29,11 @@ class NakedGroup(n: Int) extends SudokuTactic {
       sudokuField.colPeers(Seq(cellpos)),
       sudokuField.boxPeers(Seq(cellpos)))
 
-    peerlist.find(peers => {
-      val group = findInPeers(cellcont, peers)
-      group.size == n && getCandidateSetUnion(group).size == n
-    })
+    lazy val grouplist = for (p <- peerlist;
+                              group = cell +: findInPeers(cellcont, p)
+                              if group.size == n && getCandidateSetUnion(group).size == n) yield group
+
+    grouplist.headOption
   }
 
   //given an already computed naked group, compute the set of updated cells (where candidates from cellgroup are removed)
@@ -96,4 +97,6 @@ class NakedGroup(n: Int) extends SudokuTactic {
     }
 
   }
+
+  override def toString: String = s"Searching naked group of size $n"
 }

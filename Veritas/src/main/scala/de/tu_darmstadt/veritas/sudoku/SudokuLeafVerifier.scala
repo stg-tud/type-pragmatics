@@ -81,13 +81,22 @@ class SudokuLeafVerifier
     colConstr map (solver.assertCnstr(_))
     boxConstr map (solver.assertCnstr(_))
 
+    //add remaining candidate constraints
+    val candConstr = for (x <- 0 until goal.rownum; y <- 0 until goal.colnum;
+      if goal.field(x)(y).value == 0) yield {
+      val cconstr = for (cand <- goal.field(x)(y).candidates) yield (vars(x)(y) === cand)
+      context.mkOr((cconstr map (_.ast(context))).toSeq : _*)
+    }
+
+    candConstr map (solver.assertCnstr(_))
+
 
   }
 
-  override def parseResult(m: Z3Model, vars: Array[Array[IntVar]]): String =
-    (for (i <- 0 until vars.length; j <- 0 until vars(0).length) yield {
+  override def parseResult(goal: SudokuField)(m: Z3Model, vars: Array[Array[IntVar]]): Array[String] =
+    ((for (i <- 0 until vars.length; j <- 0 until vars(0).length) yield {
       m.evalAs[Int](vars(i)(j).ast(context)).get
-    }).mkString("")
+    }) map (goal.config.symmap(_).toString)).toArray
 
   /** Textual description that should be unique (used for ordering verifiers) */
   override val desc: String = "Sudoku leaf verifier"
@@ -101,12 +110,12 @@ class SudokuLeafVerifier
    produce: StepResultProducer[EmptySpec, SudokuField, Result]): Result = {
     val sresult = solveAndGetResult(spec, goal, makeSolutionVariables(goal))
     val pstatus: ProverStatus =
-      if (sresult.startsWith("Z3 failed."))
-        ProverFailure(new Z3ResultDetails(sresult, None))
-      else if (sresult.startsWith("Unsatisfiable."))
-        Inconclusive(new Z3ResultDetails(sresult, None))
+      if (sresult(0).startsWith("Z3 failed."))
+        ProverFailure(new Z3ResultDetails(sresult(0), None))
+      else if (sresult(0).startsWith("Unsatisfiable."))
+        Inconclusive(new Z3ResultDetails(sresult(0), None))
       else if (sresult.length == goal.colnum * goal.rownum)
-        Proved(new Z3ResultDetails(sresult, Some(solver.getModel().toString())))
+        Proved(new Z3ResultDetails(sresult.mkString(""), Some(solver.getModel().toString())))
       else
         ProverFailure(new Z3ResultDetails("Could not parse result.", None))
 

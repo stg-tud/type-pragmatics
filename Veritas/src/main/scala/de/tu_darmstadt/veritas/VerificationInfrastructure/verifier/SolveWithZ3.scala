@@ -9,7 +9,7 @@ abstract class SolveWithZ3[Spec, Goal] {
 
   type Var // Variable type
 
-  val z3config: Map[String, Any] = Map("MODEL" -> true, "timeout" -> 3000)
+  val z3config: Map[String, Any] = Map("MODEL" -> true, "timeout" -> 10000)
 
   val context: Z3Context = new Z3Context(z3config.iterator.toList: _*)
   val solver: Z3Solver = context.mkSolver()
@@ -18,17 +18,17 @@ abstract class SolveWithZ3[Spec, Goal] {
 
   def makeAndAddConstraints(spec: Spec, goal: Goal, vars: Array[Var]): Unit
 
-  def parseResult(m: Z3Model, vars: Array[Var]): String
+  def parseResult(goal: Goal)(m: Z3Model, vars: Array[Var]): Array[String]
 
-  def solveAndGetResult(spec: Spec, goal: Goal, vars: Array[Var]): String = {
+  def solveAndGetResult(spec: Spec, goal: Goal, vars: Array[Var]): Array[String] = {
     val vars = makeSolutionVariables(goal)
     makeAndAddConstraints(spec, goal, vars)
 
     solver.check() match {
-      case None => "Z3 failed. The reason is: " + solver.getReasonUnknown()
-      case Some(false) => "Unsatisfiable."
+      case None => Array("Z3 failed. The reason is: " + solver.getReasonUnknown())
+      case Some(false) => Array("Unsatisfiable.")
       case Some(true) => {
-        parseResult(solver.getModel(), vars)
+        parseResult(goal)(solver.getModel(), vars)
       }
     }
   }

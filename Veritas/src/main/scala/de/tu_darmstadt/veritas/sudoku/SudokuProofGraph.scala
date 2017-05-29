@@ -72,6 +72,8 @@ object SudokuProofGraph {
     PropertyTypes.registerPropertyType[Z3Evidence](g.store)
     PropertyTypes.registerPropertyType[SudokuLeafVerifier](g.store)
     PropertyTypes.registerPropertyType[SudokuIntermediateStepVerifier](g.store)
+    PropertyTypes.registerPropertyType[NakedGroup](g.store)
+    PropertyTypes.registerPropertyType[FoundNakedGroup](g.store)
 
   }
 }

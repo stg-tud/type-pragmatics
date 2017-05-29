@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.sudoku
 
 import java.io.{File, FileReader, FileWriter}
 
-import de.tu_darmstadt.veritas.sudoku.strategies.{ApplySingle, SolveAllHiddenSingles, SolveOneHiddenSingle}
+import de.tu_darmstadt.veritas.sudoku.strategies.{ApplySingle, SolveAllHiddenSingles, SolveAllNakedGroups, SolveOneHiddenSingle}
 import de.tu_darmstadt.veritas.sudoku.tactics.{NoCandidateCanBeRuledOut, RuleOutCandidatesSimple, SolveSudoku}
 import org.scalatest.FunSuite
 
@@ -111,6 +111,9 @@ class SudokuTest extends FunSuite {
     """
   val s5_solution: String = "732456198419283756685971423528197634964835271371624985296518347843762519157349862"
 
+  val naked_triple: String = ".7.4.8.29..2.....4854.2...7..83742...2.........32617......936122.....4.313.642.7."
+  val naked_triple_sol: String = "671438529392715864854926137518374296726859341943261785487593612269187453135642978"
+
 
   //Sudokus without hidden singles
   val easysudokulist_nc = List(s1_no_candidates, s3_no_candidates, s5_no_candidates)
@@ -138,12 +141,12 @@ class SudokuTest extends FunSuite {
     assert(original.toSimpleString() == original_with_candidates.toSimpleString())
   }
 
-  def solveHiddenSingle(s_nc: String, s_c: String, solution: String, storename: String): Unit = {
-    val original = new SudokuField(s_nc, config9)
-    val original_with_candidates = new SudokuField(s_c, config9)
+  def solveSudoku(config: SudokuConfig)(s_nc: String, s_c: String, solution: String, storename: String): Unit = {
+    val original = new SudokuField(s_nc, config)
+    val original_with_candidates = new SudokuField(s_c, config)
     val file = new File("SudokuPGStores/" + storename)
     file.delete()
-    val spg = new SudokuProofGraph(file, original, new SolveAllHiddenSingles)
+    val spg = new SudokuProofGraph(file, original, new SolveAllNakedGroups(3))
     spg.constructPG()
     spg.verifyStepsSolveLeaves()
     println(spg.printSteps())
@@ -193,22 +196,49 @@ class SudokuTest extends FunSuite {
     assert(allfields.last.compareTo(f1_wc) == 0)
   }
 
-  test("Sudoku solve single") {
-    solveHiddenSingle(s5_no_candidates, s5_candidates, s5_solution, "solve-single-sudoku1")
-  }
+//  test("Sudoku solve single") {
+//    solveSudoku(config9)(naked_triple, naked_triple, naked_triple_sol, "solve-single-sudoku-n3")
+//  }
 
 
-  test("Sudoku 25x25 Proof Graph initialization") {
-    val config25: SudokuConfig = SudokuConfig(1 to 25, ".ABCDEFGHIJKLMNOPQRSTUVWXY")
+//  test("Sudoku 25x25 Proof Graph initialization") {
+//    val config25: SudokuConfig = SudokuConfig(1 to 25, ".ABCDEFGHIJKLMNOPQRSTUVWXY")
+//
+//    val sud25x25 = Source.fromFile("sudokupuzzles/giant25sudoku").getLines().mkString("")
+//    val field = new SudokuField(sud25x25, config25)
+//    val store = new File("SudokuPGStores/Sudoku-25-372holes-store")
+//    store.delete()
+//    val spg = new SudokuProofGraph(store, field, new ApplySingle(SolveSudoku))
+//    spg.constructPG()
+//    val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
+//    assert(storedSudoku.replaceAll("\n", "") == sud25x25)
+//  }
 
-    val sud25x25 = Source.fromFile("sudokupuzzles/giant25sudoku").getLines().mkString("")
-    val field = new SudokuField(sud25x25, config25)
-    val store = new File("SudokuPGStores/Sudoku-25-372holes-store")
-    store.delete()
-    val spg = new SudokuProofGraph(store, field, new ApplySingle(SolveSudoku))
-    spg.constructPG()
-    val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
-    assert(storedSudoku.replaceAll("\n", "") == sud25x25)
+//  test("Try solving difficult Sudoku (25x25)") {
+//    val config25: SudokuConfig = SudokuConfig(1 to 25, ".ABCDEFGHIJKLMNOPQRSTUVWXY")
+//
+//    val sud25x25 = Source.fromFile("sudokupuzzles/medium25/14_25_1_shown").getLines().mkString("")
+//    val field = new SudokuField(sud25x25, config25)
+//    val store = new File("SudokuPGStores/sudoku-medium14_25_1")
+//    store.delete()
+//    val spg = new SudokuProofGraph(store, field, new ApplySingle(SolveSudoku))
+//    spg.constructPG()
+//    spg.verifyStepsSolveLeaves()
+//    println(spg.printSteps()) //yields Z3 timeout
+//    //val storedSudoku = spg.g.findObligation("initial").get.goal.toSimpleString(".")
+//  }
+
+  test("Try solving difficult Sudoku (25x25) with strategies + Z3") {
+        val config25: SudokuConfig = SudokuConfig(1 to 25, ".ABCDEFGHIJKLMNOPQRSTUVWXY")
+
+        val sud25x25 = Source.fromFile("sudokupuzzles/medium25/1_25_1_shown").getLines().mkString("")
+        val field = new SudokuField(sud25x25, config25)
+        val store = new File("SudokuPGStores/sudoku-medium1_25_1")
+        store.delete()
+        val spg = new SudokuProofGraph(store, field, new SolveAllNakedGroups(5))
+        spg.constructPG()
+        spg.verifyStepsSolveLeaves()
+        println(spg.printSteps())
   }
 
 }

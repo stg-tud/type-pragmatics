@@ -15,7 +15,8 @@ class SolveAllNakedGroups(until: Int) extends Strategy[EmptySpec, SudokuField] {
   override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField])
                         (obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] = {
     val pg_solved_singles = solveSingles.applyToPG(pg)(obl)
-    val nextleaf: pg.Obligation = ???
+    //assume that the next leaf is always the very last obligation returned by DFS traversal
+    val nextleaf: pg.Obligation = pg.obligationDFS().last
     var n = 2
     var stop = false
     while (n <= until && !stop) {
@@ -34,7 +35,8 @@ class SolveAllNakedGroups(until: Int) extends Strategy[EmptySpec, SudokuField] {
       }
     }
     //in the end, make sure that the final leaf contains the default tactic
-    pg.applyTactic(nextleaf, SolveSudoku)
+    val finalleaf: pg.Obligation = pg.obligationDFS().last
+    pg.applyTactic(finalleaf, SolveSudoku)
     pg
   }
 }

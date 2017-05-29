@@ -53,6 +53,9 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
 
   def rows: Iterator[SudokuUnit] = field.map(_.toSeq).toIterator
 
+  def indexedRows: IndexedSudokuUnit =
+    for (i <- field.indices; j <- field(0).indices) yield ((i+1, j+1), field(i)(j))
+
   //counting rows from 1!
   def row(i: Int): Row =
     if (cellrange contains i) field(i - 1) else sys.error(s"Attempted to access a row that is out of range ($i).")
@@ -64,6 +67,8 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
     else sys.error(s"Attempted to access a column that is out of range ($i).")
 
   def columns: Iterator[SudokuUnit] = (for (i <- cellrange) yield column(i)).map(_.toSeq).toIterator
+
+  def indexedColumns: IndexedSudokuUnit = ???
 
   //counting boxes from 1, left to right, top to bottom:
   // 1 2 3
@@ -92,6 +97,8 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
   def boxelems(i: Int): SudokuUnit = box(i).fold(Array())(_ ++ _)
 
   def boxes(): Iterator[SudokuUnit] = (for (i <- cellrange) yield boxelems(i)).toIterator
+
+  def indexedBoxes: IndexedSudokuUnit = ???
 
 
   def onerule(unit: SudokuUnit): Boolean = {
