@@ -560,4 +560,29 @@ class SQLSoundnessProofGraphTest extends FunSuite {
       }
     }
   }
+
+  test("Get obligations with zero subobligations") {
+    val obls = loaded_g.leaves()
+    assert(obls.size == 23)
+  }
+
+  test("Get obligation with 2 subobligations") {
+    val obls = loaded_g.obligations(2);
+    assert(obls.size == 9)
+
+  }
+
+  test("Get obligations with 3 subobligations") {
+    val obls = loaded_g.obligations(3)
+    assert(obls.size == 3)
+  }
+
+  test("Filter obligations based on type of applied step") {
+    val obls = loaded_g.obligationsWithTactic[Solve[VeritasConstruct, VeritasConstruct]]
+    assert(obls.size == 23)
+    obls.foreach { obl =>
+      val ps = loaded_g.appliedStep(obl)
+      assert(ps.get.tactic.isInstanceOf[Solve[VeritasConstruct, VeritasConstruct]])
+    }
+  }
 }

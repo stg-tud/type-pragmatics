@@ -1,5 +1,9 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
+
+import scala.reflect.ClassTag
+
 /**
   * Created by andiderp on 18/05/2017.
   */
@@ -49,12 +53,32 @@ trait ProofGraphTraversals[Spec, Goal] extends ProofGraph[Spec, Goal] {
     Seq() ++ collection.distinct // only use the first occurrence of an obligation
   }
 
+  def leaves(): Seq[Obligation] = obligations(0)
+
+  def obligations(numberOfSubOblsAllowed: Int): Seq[Obligation] = obligationDFS().filter { obl =>
+    val ps = appliedStep(obl)
+    if (ps.nonEmpty) {
+      val subobls = requiredObls(ps.get)
+      subobls.size == numberOfSubOblsAllowed
+    } else {
+      numberOfSubOblsAllowed == 0
+    }
+  }
+
   def proofstepsDFS(): Seq[ProofStep] = obligationDFS().foldLeft(Seq.empty[ProofStep]) { case (result, obl) =>
     val ps = appliedStep(obl)
     if (ps.nonEmpty)
       result :+ ps.get
     else
       result
+  }
+
+  def obligationsWithTactic[T](implicit tag: ClassTag[T]): Seq[Obligation] = obligationDFS().filter{ obl =>
+    val ps = appliedStep(obl)
+    ps.get.tactic match {
+      case _: T => true
+      case _ => false
+    }
   }
 
   def foldDFS[T](init: T)(f: (T, Obligation) => T): T = obligationDFS().foldLeft[T](init)(f)
