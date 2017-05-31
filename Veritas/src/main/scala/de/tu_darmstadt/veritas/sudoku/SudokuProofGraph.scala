@@ -56,6 +56,15 @@ class SudokuProofGraph(file: File, initialfield: SudokuField, rootstrategy: Stra
     }).mkString("\n")
   }
 
+  def printLastStep(): String = {
+    val ps_last = g.proofstepsDFS().last
+    val verificationstat = g.verifiedBy(ps_last)
+    "Verifier result: " + (verificationstat.get.status match {
+      case f: Finished[EmptySpec, SudokuField] => f.status.proverResult.fullLogs
+      case s => s.toString
+    })
+  }
+
 }
 
 
@@ -74,6 +83,7 @@ object SudokuProofGraph {
     PropertyTypes.registerPropertyType[SudokuIntermediateStepVerifier](g.store)
     PropertyTypes.registerPropertyType[NakedGroup](g.store)
     PropertyTypes.registerPropertyType[FoundNakedGroup](g.store)
+    PropertyTypes.registerPropertyType[OnlyCellWithCandidate.type](g.store)
 
   }
 }
