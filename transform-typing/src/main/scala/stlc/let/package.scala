@@ -1,3 +1,5 @@
+package stlc
+
 import stlc.Statics._
 import stlc.Syntax._
 import system.LanguageExtension

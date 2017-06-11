@@ -1,4 +1,4 @@
-package delta
+package stlc.delta
 
 import system.Transformation
 import stlc.Statics._

@@ -6,7 +6,7 @@ scalaVersion := "2.11.8"
 
 libraryDependencies += "default" %% "veritas" % "1.1"
 
-libraryDependencies += "veritas-benchmarking" %% "veritas-benchmarking" % "1.0"
+libraryDependencies += "veritas-benchmarking" %% "veritas-benchmarking" % "1.1"
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0"
 

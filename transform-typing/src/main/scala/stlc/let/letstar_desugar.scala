@@ -1,4 +1,4 @@
-package let
+package stlc.let
 
 import system.Syntax._
 import stlc.Statics._

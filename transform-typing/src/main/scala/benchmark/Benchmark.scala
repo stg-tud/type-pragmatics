@@ -141,11 +141,11 @@ object Benchmark extends App {
 
   val transformations = {
     if (args.size >= 3) args(2) match {
-      case "let" => Seq(let.let_desugar)
-      case "delta" => Seq(delta.edelta)
-      case "cps" => Seq(cps.ecps)
+      case "stlc/let" => Seq(stlc.let.let_desugar)
+      case "stlc/delta" => Seq(stlc.delta.edelta)
+      case "stlc/cps" => Seq(stlc.cps.ecps)
     }
-    else Seq(let.let_desugar, delta.edelta, cps.ecps)
+    else Seq(stlc.let.let_desugar, stlc.delta.edelta, stlc.cps.ecps)
   }
 
   for (trans <- transformations;

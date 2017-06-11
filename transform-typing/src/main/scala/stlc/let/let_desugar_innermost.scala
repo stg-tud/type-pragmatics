@@ -1,11 +1,11 @@
-package let
+package stlc.let
 
-import system.Syntax._
 import stlc.Statics._
 import stlc.Syntax._
+import system.Syntax._
 import system.Transformation
 
-object let_desugar extends Transformation(stlc.language + let_ext) {
+object let_desugar_innermost extends Transformation(stlc.language + let_ext) {
 
   override val contractComplianceTimeout: Int = 120
 
@@ -40,10 +40,13 @@ object let_desugar extends Transformation(stlc.language + let_ext) {
   )
 
   val letdesugar_lam = Rewrite(
-    letdesugar(lam("x"~Name, "T1"~Typ, "e"~Exp), "C"~Ctx, Arr("T1"~Typ, "T2"~Typ)),
+    letdesugar(lam("x"~Name, "T1"~Typ, "e"~Exp), "C"~Ctx, "T"~Typ),
     // ~>
     lam("x"~Name, "T1"~Typ,
-      letdesugar("e"~Exp, bind("C"~Ctx, "x"~Name, "T1"~Typ), "T2"~Typ))
+      letdesugar("e"~Exp, bind("C"~Ctx, "x"~Name, "T1"~Typ), "T2"~Typ)),
+    where = Seq(
+      Judg(equ(Typ), "T"~Typ, Arr("T1"~Typ, "T2"~Typ))
+    )
   )
 
   val letdesugar_app = Rewrite(
@@ -60,10 +63,10 @@ object let_desugar extends Transformation(stlc.language + let_ext) {
   val letdesugar_let = Rewrite(
     letdesugar(let("x"~Name, "e1"~Exp, "e2"~Exp), "C"~Ctx, "T"~Typ),
     // ~>
-    app(
-      lam("x"~Name, "T1"~Typ,
-        letdesugar("e2"~Exp, bind("C"~Ctx, "x"~Name, "T1"~Typ), "T"~Typ)),
-      letdesugar("e1"~Exp, "C"~Ctx, "T1"~Typ)),
+    letdesugar(
+      app(lam("x"~Name, "T1"~Typ, "e2"~Exp), "e1"~Exp),
+      "C"~Ctx,
+      "T"~Typ),
     where = Seq(
       Judg(Typed, "C"~Ctx, "e1"~Exp, "T1"~Typ)
     )

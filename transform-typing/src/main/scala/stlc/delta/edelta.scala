@@ -1,4 +1,4 @@
-package delta
+package stlc.delta
 
 import stlc.Statics._
 import stlc.Syntax._

@@ -1,4 +1,4 @@
-package cps
+package stlc.cps
 
 import stlc.Statics._
 import stlc.Syntax._
