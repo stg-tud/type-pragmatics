@@ -17,7 +17,7 @@ object DropUnreachableDefinitions {
 
   def allReachable(syms: Set[Symbol], reach: Reach): Boolean = syms.forall(reachable(_, reach))
 
-  def reachable(sym: Symbol, reach: Reach): Boolean = sym.isEqNeq || reach.contains(sym)
+  def reachable(sym: Symbol, reach: Reach): Boolean = sym.isEqNeq || sym.isFresh || sym.isNotin || reach.contains(sym)
 
   def dropUnreachable(obl: ProofObligation): ProofObligation = {
     val reach: Reach = mutable.Set()
@@ -36,9 +36,10 @@ object DropUnreachableDefinitions {
       else false
     }
     val ass = obl.assumptions.filter(a => allReachable(a.symbols, reach))
-    val trans = obl.trans.filter(t => reachable(t.contractedSym, reach))
-    val extraSym = obl.trans.flatMap(t => if (trans.isDefined) None else Some(t.contractedSym))
-    val lang = dropUnreachable(obl.lang, reach, extraSym)
+    val trans = obl.trans.map(t =>
+      if (reachable(t.contractedSym, reach)) t
+      else new DummyTrans(t))
+    val lang = dropUnreachable(obl.lang, reach)
 
     ProofObligation(
       obl.name,
@@ -53,8 +54,15 @@ object DropUnreachableDefinitions {
     )
   }
 
-  def dropUnreachable(lang: Language, reach: Reach, extra: Iterable[Symbol]): Language = {
-    val syms = lang.syms.filter(reachable(_, reach)) ++ extra
+  class DummyTrans(t: Transformation) extends Transformation(null) {
+    override val contract: (Rule, Int) = (Rule("Dummy", Judg(TRUE)), -1)
+    override val rewrites: Seq[Rewrite] = Seq()
+    override lazy val contractedSym: Symbol = t.contractedSym
+    override lazy val undeclaredSymbols: Set[Symbol] = t.undeclaredSymbols
+  }
+
+  def dropUnreachable(lang: Language, reach: Reach): Language = {
+    val syms = lang.syms.filter(reachable(_, reach))
     val rules = lang.rules.filter(r => allReachable(r.symbols, reach))
     val transs = lang.transs.filter(t => reachable(t.contractedSym, reach))
     Language(lang.name, lang.sorts, syms, rules, transs)

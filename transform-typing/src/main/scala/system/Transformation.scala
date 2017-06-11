@@ -15,11 +15,11 @@ abstract class Transformation(val lang: Language) {
   lazy val rules: ListMap[Rule, Int] = ListMap(contract) ++ lemmas
 
 //  final lazy val contractedTerms = contracts.map{case (c,pos) => c.conclusion.terms(pos).asInstanceOf[App]}
-  final lazy val contractedSym = rewrites.head.sym
+  lazy val contractedSym = rewrites.head.sym
   final lazy val contractedTerm = contract._1.contractedTerm(contract._2)
 
 
-  final lazy val undeclaredSymbols = {
+  lazy val undeclaredSymbols = {
     val lsyms = rules.foldLeft(Set[Symbol]())((set, c) => set ++ c._1.symbols)
     val rsyms = rewrites.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
     val otherTransSyms = lang.transs.map(t => t.contractedSym).toSet

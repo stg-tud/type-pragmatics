@@ -129,7 +129,7 @@ object GenerateTFF {
         Seq(compileSymbolDeclaration(freshSym), compileRuleDecl(freshIsNotin))
       case sym if sym.isNotin =>
         Seq(compileSymbolDeclaration(sym))
-      case sym if sym.isEq || sym.isNeq =>
+      case sym if sym.isEq || sym.isNeq || sym.name == "OR" =>
         // ignore isEq and isNeq since they translate to TFF-native `=` and `!=`
         None
 //      case sym => Seq(compileSymbolDeclaration(sym))
@@ -166,6 +166,8 @@ object GenerateTFF {
 
   def compileRewrites(rewrites: Seq[Rewrite]): Seq[TffAnnotated] = {
     // TODO generate inversion rule?
+    if (rewrites.isEmpty)
+      return Seq()
 
     val sym = rewrites.head.pat.sym
 
