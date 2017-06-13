@@ -128,10 +128,11 @@ trait ProofGraphTraversals[Spec, Goal] extends ProofGraph[Spec, Goal] {
     val convertedObl = newGraph.obligationProducer.newObligation(obl.spec, obl.goal)
     val ps = appliedStep(obl)
     if (ps.nonEmpty) {
-      newGraph.applyTactic(convertedObl, ps.get.tactic)
+      val tactic = ps.get.tactic
+      newGraph.applyTactic(convertedObl, tactic)
       val obls = requiredObls(ps.get).map { _._1 }
-      for (obl <- obls)
-        constructChildren(obl, newGraph)
+      for (subobl <- obls)
+        constructChildren(subobl, newGraph)
     }
   }
 }

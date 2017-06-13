@@ -101,9 +101,18 @@ class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir:
         spec
       }
 
-      val obl = txn.newEntity(TObligation)
-      obl.setProperty(pOblGoal, goalObj)
-      obl.setLink(lOblSpec, spec)
+      // find exisiting obl or create a new one
+      val existingObls = txn.find(TObligation, pOblGoal, goalObj).asScala
+      val withSpecLinked = existingObls.find { entity =>
+        val spec = entity.getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[Spec]
+        spec == specObj
+      }
+      val obl = withSpecLinked.headOption.getOrElse {
+        val obl = txn.newEntity(TObligation)
+        obl.setProperty(pOblGoal, goalObj)
+        obl.setLink(lOblSpec, spec)
+        obl
+      }
       new Obligation(obl.getId, specObj, goalObj)
     }
   }

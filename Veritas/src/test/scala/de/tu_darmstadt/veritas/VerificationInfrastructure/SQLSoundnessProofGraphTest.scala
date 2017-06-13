@@ -585,4 +585,44 @@ class SQLSoundnessProofGraphTest extends FunSuite {
       assert(ps.get.tactic.isInstanceOf[Solve[VeritasConstruct, VeritasConstruct]])
     }
   }
+
+  test("Extract subgraph at root") {
+    val obl = loaded_g.obligations(2).head
+    val dbFile = File.createTempFile("test-newgraph", "")
+    dbFile.delete()
+    dbFile.mkdir()
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+    SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
+    loaded_g.extractSubgraph(loaded_g.storedObligations.head._2, newGraph)
+    assert(newGraph.storedObligations.size == 1)
+    val rootObl = newGraph.storedObligations.head._2
+
+    val ps = newGraph.appliedStep(rootObl)
+    assert(ps.nonEmpty)
+    assert(newGraph.obligationDFS.size == 41)
+    assert(newGraph.leaves.size == 23)
+    assert(newGraph.obligations(2).size == 9)
+    assert(loaded_g.obligations(3).size == 3)
+  }
+
+  test("Extract subgraph with only two subobligations") {
+    val obl = loaded_g.obligations(2).head
+    val dbFile = File.createTempFile("test-newgraph", "")
+    dbFile.delete()
+    dbFile.mkdir()
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+    SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
+    // because we get the DFS order the last obligation with two subobligations has only solve tactics based on structure of the graph
+    loaded_g.extractSubgraph(loaded_g.obligations(2).last, newGraph)
+    assert(newGraph.storedObligations.size == 1)
+    val rootObl = newGraph.storedObligations.head._2
+    val ps = newGraph.appliedStep(rootObl)
+    assert(ps.nonEmpty)
+    val subobligations = newGraph.requiredObls(ps.get)
+    assert(subobligations.size == 2)
+    subobligations.foreach { subobl =>
+      val ps = newGraph.appliedStep(subobl._1)
+      assert(ps.get.tactic.isInstanceOf[Solve[_,_]])
+    }
+  }
 }
