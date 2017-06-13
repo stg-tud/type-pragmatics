@@ -34,5 +34,5 @@ object SolveSingleCandidate extends SudokuTactic {
     }
   }
 
-  override def toString: String = "Solving a hidden single."
+  override def toString: String = "Solving a naked single."
 }

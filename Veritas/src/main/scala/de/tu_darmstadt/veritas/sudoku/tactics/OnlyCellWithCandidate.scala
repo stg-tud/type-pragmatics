@@ -1,7 +1,8 @@
 package de.tu_darmstadt.veritas.sudoku.tactics
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.TacticApplicationException
+
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{Tactic, TacticApplicationException}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, ObligationProducer}
-import de.tu_darmstadt.veritas.sudoku.{EmptySpec, IndexedSudokuUnit, SudokuField}
+import de.tu_darmstadt.veritas.sudoku._
 
 /**
   * Tactic for solving situations where
@@ -24,7 +25,29 @@ object OnlyCellWithCandidate extends SudokuTactic {
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[EmptySpec, SudokuField, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
     val sudokuField = obl.goal
-    val units: IndexedSudokuUnit = sudokuField.indexedRows ++ sudokuField.indexedColumns ++ sudokuField.indexedBoxes
-    ???
+    val cellrange = sudokuField.config.cellrange
+    val units: Seq[IndexedSudokuUnit] = sudokuField.indexedRows ++ sudokuField.indexedColumns ++ sudokuField.indexedBoxes
+
+    // given a unit and a cell value, find all cells whose candidates contain the given number
+    def cellsWithCandidate(u: IndexedSudokuUnit, i: Int): IndexedSudokuUnit =
+      u.filter { case (pos, c) => c.candidates contains i }
+
+    //lazily compute all cells in all units that are the only ones to possess a certain candidate in their unit
+    lazy val onlycands: Seq[(Int, IndexedCell)] =
+      for (u <- units; i <- cellrange; cwc = cellsWithCandidate(u, i)
+           if cwc.size == 1) yield (i, cwc.head)
+
+    if (onlycands.isEmpty)
+      throw NoSingleCandidateFound
+    else {
+      //force computation of first cell that is the only one to have a certain candidate within a unit
+      val (cand, (pos, celltoupdate)) = onlycands.head
+      val newcell = SudokuCell(cand, Set())
+      val newedge = FillSingleCandidate(pos, cand)
+      val newfield = sudokuField.updateSudokuField(Seq((pos, newcell)))
+      Seq((produce.newObligation(obl.spec, newfield), newedge))
+    }
   }
+
+  override def toString: String = "Solving cell: Was the only cell in a unit to contain a given candidate."
 }

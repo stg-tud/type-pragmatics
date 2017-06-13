@@ -53,8 +53,9 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
 
   def rows: Iterator[SudokuUnit] = field.map(_.toSeq).toIterator
 
-  def indexedRows: IndexedSudokuUnit =
-    for (i <- field.indices; j <- field(0).indices) yield ((i+1, j+1), field(i)(j))
+  def indexedRows: Seq[IndexedSudokuUnit] =
+    for (i <- field.indices) yield
+      for (j <- field(0).indices) yield ((i + 1, j + 1), field(i)(j))
 
   //counting rows from 1!
   def row(i: Int): Row =
@@ -68,7 +69,9 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
 
   def columns: Iterator[SudokuUnit] = (for (i <- cellrange) yield column(i)).map(_.toSeq).toIterator
 
-  def indexedColumns: IndexedSudokuUnit = ???
+  def indexedColumns: Seq[IndexedSudokuUnit] =
+    for (c <- field(0).indices) yield
+      for (r <- field.indices) yield ((r + 1, c + 1), field(r)(c))
 
   //counting boxes from 1, left to right, top to bottom:
   // 1 2 3
@@ -98,7 +101,12 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
 
   def boxes(): Iterator[SudokuUnit] = (for (i <- cellrange) yield boxelems(i)).toIterator
 
-  def indexedBoxes: IndexedSudokuUnit = ???
+  def indexedBoxes: Seq[IndexedSudokuUnit] =
+    for (i <- cellrange) yield {
+      val (rowrange, colrange) = boxindices(i)
+      for (r <- rowrange; c <- colrange) yield
+        ((r, c), field(r - 1)(c - 1))
+    }
 
 
   def onerule(unit: SudokuUnit): Boolean = {
@@ -130,7 +138,7 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
     val givencols = cells.map(_._2)
     if (sharedRow != 0) {
       val r = row(sharedRow)
-      val colsindices = for (c <- r.indices if !(givencols contains (c+1))) yield c+1
+      val colsindices = for (c <- r.indices if !(givencols contains (c + 1))) yield c + 1
       for (i <- colsindices) yield ((sharedRow, i), cellAt((sharedRow, i)).get)
     }
     else Seq()
@@ -154,7 +162,7 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
     val givenrows = cells.map(_._1)
     if (sharedCol != 0) {
       val c = column(sharedCol)
-      val rowindices = for (r <- c.indices if !(givenrows contains (r+1))) yield r+1
+      val rowindices = for (r <- c.indices if !(givenrows contains (r + 1))) yield r + 1
       for (i <- rowindices) yield ((i, sharedCol), cellAt((i, sharedCol)).get)
     }
     else Seq()
