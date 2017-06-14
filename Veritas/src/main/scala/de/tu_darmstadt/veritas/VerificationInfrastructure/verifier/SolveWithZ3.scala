@@ -9,7 +9,7 @@ abstract class SolveWithZ3[Spec, Goal] {
 
   type Var // Variable type
 
-  val z3config: Map[String, Any] = Map("MODEL" -> true, "timeout" -> 60000)
+  val z3config: Map[String, Any] = Map("MODEL" -> true, "timeout" -> 120000)
 
   val context: Z3Context = new Z3Context(z3config.iterator.toList: _*)
   val solver: Z3Solver = context.mkSolver()
