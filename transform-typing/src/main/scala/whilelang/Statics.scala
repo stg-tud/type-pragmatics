@@ -1,6 +1,7 @@
 package whilelang
 
 import system.Names.notin
+import system.Names.fresh
 import system.Syntax._
 import whilelang.Syntax._
 
@@ -150,20 +151,25 @@ object Statics {
     Judg(Typed, "C"~Ctx, "e1"~Exp, Dbl())
   )
   val Typed_not = rule("Typed-not",
-    Judg(Typed, "C"~Ctx, unop(neg(), "e1"~Exp), Bool()),
+    Judg(Typed, "C"~Ctx, unop(not(), "e1"~Exp), Bool()),
     // if ----------------
     Judg(Typed, "C"~Ctx, "e1"~Exp, Bool())
   )
-  val Typed_vecnew = rule("Typed-vecalloc",
+  val Typed_vecnew = rule("Typed-vecnew",
     Judg(Typed, "C"~Ctx, vecnew("size"~Exp, "T"~Typ), Vec("T"~Typ)),
     // if ----------------
     Judg(Typed, "C"~Ctx, "size"~Exp, Dbl())
   )
-  val Typed_vecread = rule("Typed-vecalloc",
+  val Typed_vecread = rule("Typed-vecread",
     Judg(Typed, "C"~Ctx, vecread("e"~Exp, "ix"~Exp), "T"~Typ),
     // if ----------------
     Judg(Typed, "C"~Ctx, "e"~Exp, Vec("T"~Typ)),
     Judg(Typed, "C"~Ctx, "ix"~Exp, Dbl())
+  )
+  val Typed_veclength = rule("Typed-veclength",
+    Judg(Typed, "C"~Ctx, veclength("e"~Exp), Dbl()),
+    // if ----------------
+    Judg(Typed, "C"~Ctx, "e"~Exp, Vec("T"~Typ))
   )
   val Typed_block = rule("Typed-block",
     Judg(Typed, "C"~Ctx, block("s"~Stm), "T"~Typ),
@@ -336,5 +342,4 @@ object Statics {
     Judg(notin(Stm), "x"~Name, "s"~Stm),
     Judg(TypedS, bind("C"~Ctx, "x"~Name, "Tx"~Typ), "s"~Stm, "T"~Typ)
   ))
-
 }

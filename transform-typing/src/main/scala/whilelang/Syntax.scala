@@ -53,6 +53,7 @@ object Syntax {
   val unop = symbol("unop", in = List(UnOp, Exp), out = Exp)
   val vecnew = symbol("vecnew", in = List(Exp, Typ), out = Exp)
   val vecread = symbol("vecread", in = List(Exp, Exp), out = Exp)
+  val veclength = symbol("veclength", in = List(Exp), out = Exp)
   val block = symbol("block", in = List(Stm), out = Exp)
 
   // statements

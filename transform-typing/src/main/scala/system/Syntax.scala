@@ -333,7 +333,7 @@ object Syntax {
   }
 
   case class Rewrite(pat: App, gen: Term, where: Seq[Judg] = Seq()) {
-    assert(pat.sort == gen.sort)
+    assert(pat.sort == gen.sort, s"Pattern sort ${pat.sort} does not match gen sort ${gen.sort}")
     val boundVars = pat.freevars ++ where.flatMap(_.freevars)
     val usedVars = gen.freevars // ++ where.values.flatMap(_.freevars)
     assert(usedVars.subsetOf(boundVars), s"Unbound variables ${usedVars.diff(boundVars)} in rewriting $this")

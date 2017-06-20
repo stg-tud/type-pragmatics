@@ -74,6 +74,9 @@ object Verification {
       val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))
       obls4
     }
+
+    def verify(mode: String = "casc", timeout: Double = 30, otherArgs: Seq[String] = Seq()): ProverResult =
+      Verification.verify(this, mode, timeout, otherArgs)
   }
 
 
@@ -112,11 +115,25 @@ object Verification {
     catch {case _: NullPointerException => }
     println()
 
-    val summaries = runner.summary.getFileSummaries
+    var summaries = runner.summary.getFileSummaries
     if (summaries.size == 1 && summaries.head._2.size == 1) {
       val result = summaries.head._2.head._2.proverResult
       if (result.status == Proved)
         println(s"SUCCESS $name")
+      else if (result.status.isInstanceOf[Inconclusive] && result.details.toList.exists(_.contains("differs from tool time"))) {
+        println(s"SUSPICIOUS TIMING: REPEATING VERIFICATION ATTEMPT")
+        try {runner.run()}
+        catch {case _: NullPointerException => }
+        println()
+        summaries = runner.summary.getFileSummaries
+      }
+      else if (result.status.isInstanceOf[Inconclusive] && result.timeSeconds.isDefined && (result.timeSeconds.get * 10 < timeout)) {
+        println(s"SUSPICIOUS TIMING:  REPEATING VERIFICATION ATTEMPT")
+        try {runner.run()}
+        catch {case _: NullPointerException => }
+        println()
+        summaries = runner.summary.getFileSummaries
+      }
       else
         println(s"FAILURE $name")
       ProverResult(file, result.status, result.timeSeconds, result.details)

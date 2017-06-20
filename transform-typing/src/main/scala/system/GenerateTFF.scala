@@ -7,8 +7,10 @@ import de.tu_darmstadt.veritas.backend.tff._
 import de.tu_darmstadt.veritas.backend.transformation.ToTff
 import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
 import de.tu_darmstadt.veritas.backend.transformation.defs.{AllFunctionInversionAxioms, CurrentFun, GenerateCtorAxiomsTyped}
+import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import system.Syntax._
 import system.GenerateVeritas._
+import system.optimize.GoalUnpacking
 
 object GenerateTFF {
 
@@ -129,7 +131,7 @@ object GenerateTFF {
         Seq(compileSymbolDeclaration(freshSym), compileRuleDecl(freshIsNotin))
       case sym if sym.isNotin =>
         Seq(compileSymbolDeclaration(sym))
-      case sym if sym.isEq || sym.isNeq || sym.name == "OR" =>
+      case sym if sym.isEq || sym.isNeq || sym.name == "OR" || sym.name == "AND" || sym.isExists =>
         // ignore isEq and isNeq since they translate to TFF-native `=` and `!=`
         None
 //      case sym => Seq(compileSymbolDeclaration(sym))
