@@ -87,11 +87,11 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
               app(ref(Var("k", Name)),
                 add(ref(Var("x1", Name)), ref(Var("x2", Name))))))))
     ),
-    where = Seq(
-      Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx))),
-      Judg(equ(Name), Var("x1", Name), fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)))),
-      Judg(equ(Name), Var("x2", Name), fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(Nat(), omega)), Var("x1", Name), Nat())))
-    )
+    where = Names.mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
+      "k" -> Arr(Nat(), omega),
+      "x1" -> Nat(),
+      "x2" -> Nat()
+    ))
   )
 
   val ecps_lam = Rewrite(
@@ -140,11 +140,12 @@ object ecps extends Transformation(stlc.language + tcps + ccps) {
     ),
     where = Seq(
       Judg(TOk, Var("T1", Typ)),
-      Judg(Typed, Var("C", Ctx), Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ))),
-      Judg(equ(Name), Var("k", Name), fresh(Ctx)(Var("C", Ctx))),
-      Judg(equ(Name), Var("xf", Name), fresh(Ctx)(bind(Var("C", Ctx), Var("k", Name), Arr(tcps(Var("T", Typ), omega), omega)))),
-      Judg(equ(Name), Var("xv", Name), fresh(Ctx)(bind(bind(Var("C", Ctx), Var("k", Name), Arr(tcps(Var("T", Typ), omega), omega)), Var("xf", Name), tcps(Arr(Var("T1", Typ), Var("T", Typ)), omega))))
-    )
+      Judg(Typed, Var("C", Ctx), Var("e1", Exp), Arr(Var("T1", Typ), Var("T", Typ)))
+    ) ++ Names.mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
+      "k" -> Arr(tcps(Var("T", Typ), omega), omega),
+      "xf" -> tcps(Arr(Var("T1", Typ), Var("T", Typ)), omega),
+      "xv" -> tcps(Var("T1", Typ), omega)
+    ))
   )
 
   override val rewrites: Seq[Rewrite] = Seq(

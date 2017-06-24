@@ -139,13 +139,14 @@ object Benchmark extends App {
   csv.delete()
   detailedCsv.delete()
 
-  val transformations = {
+  val transformations: Seq[Transformation] = {
     if (args.size >= 3) args(2) match {
       case "stlc/let" => Seq(stlc.let.let_desugar)
       case "stlc/delta" => Seq(stlc.delta.edelta)
       case "stlc/cps" => Seq(stlc.cps.ecps)
+      case "whilelang/matrix" => Seq(whilelang.matrix.edesugar)
     }
-    else Seq(stlc.let.let_desugar, stlc.delta.edelta, stlc.cps.ecps)
+    else Seq(stlc.let.let_desugar, stlc.delta.edelta, stlc.cps.ecps, whilelang.matrix.edesugar)
   }
 
   for (trans <- transformations;

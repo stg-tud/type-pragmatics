@@ -128,7 +128,7 @@ object GenerateTFF {
         val freshSym = Names.fresh(sort)
         val freshIsNotin = Names.freshNotin(sort)
         // we assume symbol `notinSym` is already declared as part of the language
-        Seq(compileSymbolDeclaration(freshSym), compileRuleDecl(freshIsNotin))
+        compileSymbolDeclaration(freshSym) +: freshIsNotin.map(compileRuleDecl(_))
       case sym if sym.isNotin =>
         Seq(compileSymbolDeclaration(sym))
       case sym if sym.isEq || sym.isNeq || sym.name == "OR" || sym.name == "AND" || sym.isExists =>

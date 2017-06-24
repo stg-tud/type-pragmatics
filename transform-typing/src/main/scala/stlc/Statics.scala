@@ -2,6 +2,7 @@ package stlc
 
 import system.Syntax._
 import Syntax._
+import system.Names
 import system.Names.notin
 
 object Statics {

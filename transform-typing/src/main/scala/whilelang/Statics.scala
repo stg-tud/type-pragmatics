@@ -178,6 +178,14 @@ object Statics {
   )
 
 
+  def auxctx(n: Int, ctx: Term) = (1 to n).foldLeft(ctx)((ctx, i) => bind(ctx, s"x$i"~Name, s"T$i"~Typ))
+  val Diff_Fresh = rule(Lemma("Diff-Fresh",
+    mkAnd(
+      for (i <- 0 until 10; j <- i+1 until 10)
+        yield neq(Name)(fresh(Ctx)(auxctx(i, "C"~Ctx)), fresh(Ctx)(auxctx(j, "C"~Ctx)))
+    ).asInstanceOf[App].toJudg
+  ))
+
   val Typed_uniqueness = rule(Lemma("Typed-uniqueness",
     Judg(equ(Typ), "T1"~Typ, "T2"~Typ),
     // if ----------------

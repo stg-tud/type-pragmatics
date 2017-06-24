@@ -14,15 +14,18 @@ object Verification {
   case class VerificationError(msg: String) extends Exception
 
   case class ProofObligation(
-    name: String,
-    lang: Language,
-    opaques: Seq[Symbol],
-    existentials: Set[Var],
-    axioms: Seq[Rule],
-    trans: Option[Transformation],
-    assumptions: Seq[Judg],
-    goals: Seq[Judg],
-    gensym: Gensym) {
+      name: String,
+      lang: Language,
+      opaques: Seq[Symbol],
+      existentials: Set[Var],
+      axioms: Seq[Rule],
+      trans: Option[Transformation],
+      assumptions: Seq[Judg],
+      goals: Seq[Judg],
+      gensym: Gensym) {
+
+    assert(goals.nonEmpty, s"May not construct proof obligation without any goals")
+
     override def toString: String = {
       val indent = "  "
       val ps = axioms.mkString("\n" + indent)
@@ -67,8 +70,8 @@ object Verification {
       tff
     }
 
-    def optimized: Seq[ProofObligation] = {
-      val obls1 = GoalUnpacking.unpackObligation(this)
+    def optimized: Stream[ProofObligation] = {
+      val obls1 = GoalUnpacking.unpackObligation(this).toStream
       val obls2 = obls1.flatMap(GoalNormalization.normalizeObligation(_))
       val obls3 = obls2.map(ExistentialHints.existentialHints(_))
       val obls4 = obls3.map(DropUnreachableDefinitions.dropUnreachable(_))

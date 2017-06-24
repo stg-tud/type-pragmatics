@@ -6,13 +6,13 @@ import system.Syntax._
 import system.{Names, Transformation}
 import system.Names._
 
-object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
+object edesugar extends Transformation(whilelang.language + matrix_ext) {
 
-  val desugar = Symbol("desugar", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
+  val edesugar = Symbol("desugar", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
 
   override val contract: (Rule, Int) =
     Lemma("Typed-desugar",
-      Judg(Typed, "C"~Ctx, desugar("e"~Exp, "C"~Ctx, "T"~Typ), "T"~Typ),
+      Judg(Typed, "C"~Ctx, edesugar("e"~Exp, "C"~Ctx, "T"~Typ), "T"~Typ),
       // if ----------------
       Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ)
     ) -> 1
@@ -20,7 +20,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
 
   // desugar constructs of matrix extension
   val desugar_newmatrix = Rewrite(
-    desugar(newmatrix("m"~Num, "n"~Num), "C"~Ctx, "T"~Typ),
+    edesugar(newmatrix("m"~Num, "n"~Num), "C"~Ctx, "T"~Typ),
     // ~>
     /*
     Vec<Vec<Dbl>> result = new Vector(m);
@@ -42,14 +42,14 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
         exp(closeMatrix(ref("result"~Name)))
       ))
     ),
-    where = mkFreshJudgs(Ctx, "C"~Ctx, bind, Typed, ref)(List(
+    where = mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
       "result" -> Vec(Vec(Dbl())),
       "i" -> Dbl()
     ))
   )
 
   val desugar_matrix_add = Rewrite(
-    desugar(binop("e1"~Exp, add(), "e2"~Exp), "C"~Ctx, Matrix()),
+    edesugar(binop("e1"~Exp, add(), "e2"~Exp), "C"~Ctx, Matrix()),
     // ~>
     /*
     Vec<Vec<Dbl>> v1 = `e1`.openMatrix();
@@ -66,8 +66,8 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     v1.closedMatrix(m, n)
     */
     block(
-      declare("v1"~Name, Vec(Vec(Dbl())), openMatrix(desugar("e1"~Exp, "C"~Ctx, Matrix())), seq(
-        declare("v2"~Name, Vec(Vec(Dbl())), openMatrix(desugar("e2"~Exp, "C"~Ctx, Matrix())),
+      declare("v1"~Name, Vec(Vec(Dbl())), openMatrix(edesugar("e1"~Exp, "C"~Ctx, Matrix())), seq(
+        declare("v2"~Name, Vec(Vec(Dbl())), openMatrix(edesugar("e2"~Exp, "C"~Ctx, Matrix())),
           declare("i"~Name, Dbl(), num(zero()),
             declare("j"~Name, Dbl(), num(zero()),
               loop(binop(ref("i"~Name), lt(), veclength(ref("v1"~Name))), seq(
@@ -93,7 +93,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
       Seq(
         Judg(Typed, "C"~Ctx, "e1"~Exp, Matrix()),
         Judg(Typed, "C"~Ctx, "e2"~Exp, Matrix())
-      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind, Typed, ref)(List(
+      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
         "v1" -> Vec(Vec(Dbl())),
         "v2" -> Vec(Vec(Dbl())),
         "i" -> Dbl(),
@@ -103,7 +103,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
   )
 
   val desugar_matrix_mul_scalar_left = Rewrite(
-    desugar(binop("e1"~Exp, mul(), "e2"~Exp), "C"~Ctx, Matrix()),
+    edesugar(binop("e1"~Exp, mul(), "e2"~Exp), "C"~Ctx, Matrix()),
     // ~>
     /*
     Dbl s = `e1`;
@@ -120,8 +120,8 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     v.closedMatrix(m, n)
     */
     block(
-      declare("s"~Name, Dbl(), desugar("e1"~Exp, "C"~Ctx, Dbl()),
-        declare("v"~Name, Vec(Vec(Dbl())), openMatrix(desugar("e2"~Exp, "C"~Ctx, Matrix())), seq(
+      declare("s"~Name, Dbl(), edesugar("e1"~Exp, "C"~Ctx, Dbl()),
+        declare("v"~Name, Vec(Vec(Dbl())), openMatrix(edesugar("e2"~Exp, "C"~Ctx, Matrix())), seq(
           declare("i"~Name, Dbl(), num(zero()),
             declare("j"~Name, Dbl(), num(zero()),
               loop(binop(ref("i"~Name), lt(), veclength(ref("v"~Name))), seq(
@@ -147,7 +147,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
       Seq(
         Judg(Typed, "C"~Ctx, "e1"~Exp, Dbl()),
         Judg(Typed, "C"~Ctx, "e2"~Exp, Matrix())
-      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind, Typed, ref)(List(
+      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
         "s" -> Dbl(),
         "v" -> Vec(Vec(Dbl())),
         "i" -> Dbl(),
@@ -157,7 +157,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
   )
 
   val desugar_matrix_mul_scalar_right = Rewrite(
-    desugar(binop("e1"~Exp, mul(), "e2"~Exp), "C"~Ctx, Matrix()),
+    edesugar(binop("e1"~Exp, mul(), "e2"~Exp), "C"~Ctx, Matrix()),
     // ~>
     /*
     Vec<Vec<Dbl>> v = `e1`.openMatrix();
@@ -174,8 +174,8 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     v.closedMatrix(m, n)
     */
     block(
-      declare("v"~Name, Vec(Vec(Dbl())), openMatrix(desugar("e1"~Exp, "C"~Ctx, Matrix())), seq(
-        declare("s"~Name, Dbl(), desugar("e2"~Exp, "C"~Ctx, Dbl()),
+      declare("v"~Name, Vec(Vec(Dbl())), openMatrix(edesugar("e1"~Exp, "C"~Ctx, Matrix())), seq(
+        declare("s"~Name, Dbl(), edesugar("e2"~Exp, "C"~Ctx, Dbl()),
           declare("i"~Name, Dbl(), num(zero()),
             declare("j"~Name, Dbl(), num(zero()),
               loop(binop(ref("i"~Name), lt(), veclength(ref("v"~Name))), seq(
@@ -201,7 +201,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
       Seq(
         Judg(Typed, "C"~Ctx, "e1"~Exp, Matrix()),
         Judg(Typed, "C"~Ctx, "e2"~Exp, Dbl())
-      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind, Typed, ref)(List(
+      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
         "s" -> Dbl(),
         "v" -> Vec(Vec(Dbl())),
         "i" -> Dbl(),
@@ -211,12 +211,12 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
   )
 
   val desugar_matrix_mul = Rewrite(
-    desugar(binop("e1"~Exp, mul(), "e2"~Exp), "C"~Ctx, Matrix()),
+    edesugar(binop("e1"~Exp, mul(), "e2"~Exp), "C"~Ctx, Matrix()),
     // ~>
     /*
-    Vec<Vec<Dbl>> result = new Vec(m);
     Vec<Vec<Dbl>> v1 = desugar(`e1`).openMatrix();
     Vec<Vec<Dbl>> v2 = desugar(`e2`).openMatrix();
+    Vec<Vec<Dbl>> result = new Vec(m);
     double i = 0;
     double j = 0;
     while (i < m) {
@@ -236,8 +236,8 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     result.closedMatrix(m, n)
     */
     block(
-      declare("v1"~Name, Vec(Vec(Dbl())), openMatrix(desugar("e1"~Exp, "C"~Ctx, Matrix(/*"m"~Num, "x"~Num*/))),
-        declare("v2"~Name, Vec(Vec(Dbl())), openMatrix(desugar("e2"~Exp, "C"~Ctx, Matrix(/*"x"~Num, "n"~Num*/))),
+      declare("v1"~Name, Vec(Vec(Dbl())), openMatrix(edesugar("e1"~Exp, "C"~Ctx, Matrix(/*"m"~Num, "x"~Num*/))),
+        declare("v2"~Name, Vec(Vec(Dbl())), openMatrix(edesugar("e2"~Exp, "C"~Ctx, Matrix(/*"x"~Num, "n"~Num*/))),
           declare("result"~Name, Vec(Vec(Dbl())), vecnew(veclength(ref("v1"~Name)), Vec(Dbl())), seq(
             declare("i"~Name, Dbl(), num(zero()),
               declare("j"~Name, Dbl(), num(zero()),
@@ -274,7 +274,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
       Seq(
         Judg(Typed, "C"~Ctx, "e1"~Exp, Matrix(/*"m"~Num, "x"~Num*/)),
         Judg(Typed, "C"~Ctx, "e2"~Exp, Matrix(/*"x"~Num, "n"~Num*/))
-      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind, Typed, ref)(List(
+      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
         "v1" -> Vec(Vec(Dbl())),
         "v2" -> Vec(Vec(Dbl())),
         "result" -> Vec(Vec(Dbl())),
@@ -287,7 +287,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
   )
 
   val desugar_matrix_transpose = Rewrite(
-    desugar(unop(transpose(), "e"~Exp), "C"~Ctx, Matrix(/*"n"~Num, "m"~Num*/)),
+    edesugar(unop(transpose(), "e"~Exp), "C"~Ctx, Matrix(/*"n"~Num, "m"~Num*/)),
     // ~>
     /*
     Vec<Vec<Dbl>> result = new Vec(n);
@@ -305,7 +305,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     v1.closedMatrix(m, n)
     */
     block(
-      declare("v"~Name, Vec(Vec(Dbl())), openMatrix(desugar("e"~Exp, "C"~Ctx, Matrix())),
+      declare("v"~Name, Vec(Vec(Dbl())), openMatrix(edesugar("e"~Exp, "C"~Ctx, Matrix())),
         declare("result"~Name, Vec(Vec(Dbl())), vecnew(veclength(vecread(ref("v"~Name), num(zero()))), Vec(Dbl())), seq(
           declare("i"~Name, Dbl(), num(zero()),
             declare("j"~Name, Dbl(), num(zero()),
@@ -329,7 +329,7 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     where = {
       Seq(
         Judg(Typed, "C"~Ctx, "e"~Exp, Matrix())
-      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind, Typed, ref)(List(
+      ) ++ mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
         "v" -> Vec(Vec(Dbl())),
         "result" -> Vec(Vec(Dbl())),
         "i" -> Dbl(),
@@ -339,17 +339,17 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
   )
 
   val   desugar_closeMatrix = Rewrite(
-    desugar(closeMatrix("e"~Exp), "C"~Ctx, "T"~Typ),
+    edesugar(closeMatrix("e"~Exp), "C"~Ctx, "T"~Typ),
     // ~>
-    closeMatrix(desugar("e"~Exp, "C"~Ctx, Vec(Vec(Dbl())))),
+    closeMatrix(edesugar("e"~Exp, "C"~Ctx, Vec(Vec(Dbl())))),
     where = Seq(
       Judg(Typed, "C"~Ctx, "e"~Exp, Vec(Vec(Dbl())))
     )
   )
   val desugar_openMatrix = Rewrite(
-    desugar(openMatrix("e"~Exp), "C"~Ctx, "T"~Typ),
+    edesugar(openMatrix("e"~Exp), "C"~Ctx, "T"~Typ),
     // ~>
-    openMatrix(desugar("e"~Exp, "C"~Ctx, Matrix())),
+    openMatrix(edesugar("e"~Exp, "C"~Ctx, Matrix())),
     where = Seq(
       Judg(Typed, "C"~Ctx, "e"~Exp, Matrix())
     )
@@ -361,29 +361,29 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
 
   // traverse constructs of base language
   val desugar_vtrue = Rewrite(
-    desugar(vtrue(), "C"~Ctx, "T"~Typ),
+    edesugar(vtrue(), "C"~Ctx, "T"~Typ),
     // ~>
     vtrue()
   )
   val desugar_vfalse = Rewrite(
-    desugar(vfalse(), "C"~Ctx, "T"~Typ),
+    edesugar(vfalse(), "C"~Ctx, "T"~Typ),
     // ~>
     vfalse()
   )
   val desugar_ref = Rewrite(
-    desugar(ref("x"~Name), "C"~Ctx, "T"~Typ),
+    edesugar(ref("x"~Name), "C"~Ctx, "T"~Typ),
     // ~>
     ref("x"~Name)
   )
   val desugar_num = Rewrite(
-    desugar(num("n"~Num), "C"~Ctx, "T"~Typ),
+    edesugar(num("n"~Num), "C"~Ctx, "T"~Typ),
     // ~>
     num("n"~Num)
   )
   val desugar_num_binop = Rewrite(
-    desugar(binop("e1"~Exp, "op"~BinOp, "e2"~Exp), "C"~Ctx, Dbl()),
+    edesugar(binop("e1"~Exp, "op"~BinOp, "e2"~Exp), "C"~Ctx, Dbl()),
     // ~>
-    binop(desugar("e1"~Exp, "C"~Ctx, Dbl()), "op"~BinOp, desugar("e2"~Exp, "C"~Ctx, Dbl())),
+    binop(edesugar("e1"~Exp, "C"~Ctx, Dbl()), "op"~BinOp, edesugar("e2"~Exp, "C"~Ctx, Dbl())),
     where = Seq(
       mkOr(Seq(
         equ(BinOp)("op"~BinOp, add()),
@@ -396,9 +396,9 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     )
   )
   val desugar_bool_binop = Rewrite(
-    desugar(binop("e1"~Exp, "op"~BinOp, "e2"~Exp), "C"~Ctx, Bool()),
+    edesugar(binop("e1"~Exp, "op"~BinOp, "e2"~Exp), "C"~Ctx, Bool()),
     // ~>
-    binop(desugar("e1"~Exp, "C"~Ctx, Bool()), "op"~BinOp, desugar("e2"~Exp, "C"~Ctx, Bool())),
+    binop(edesugar("e1"~Exp, "C"~Ctx, Bool()), "op"~BinOp, edesugar("e2"~Exp, "C"~Ctx, Bool())),
     where = Seq(
       Judg(OR,
         equ(BinOp)("op"~BinOp, and()),
@@ -409,9 +409,9 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     )
   )
   val desugar_num_compare = Rewrite(
-    desugar(binop("e1"~Exp, "op"~BinOp, "e2"~Exp), "C"~Ctx, Bool()),
+    edesugar(binop("e1"~Exp, "op"~BinOp, "e2"~Exp), "C"~Ctx, Bool()),
     // ~>
-    binop(desugar("e1"~Exp, "C"~Ctx, Dbl()), "op"~BinOp, desugar("e2"~Exp, "C"~Ctx, Dbl())),
+    binop(edesugar("e1"~Exp, "C"~Ctx, Dbl()), "op"~BinOp, edesugar("e2"~Exp, "C"~Ctx, Dbl())),
     where = Seq(
       mkOr(Seq(
         equ(BinOp)("op"~BinOp, eqop()),
@@ -423,44 +423,44 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
     )
   )
   val desugar_bool_equals = Rewrite(
-    desugar(binop("e1"~Exp, eqop(), "e2"~Exp), "C"~Ctx, Bool()),
+    edesugar(binop("e1"~Exp, eqop(), "e2"~Exp), "C"~Ctx, Bool()),
     // ~>
-    binop(desugar("e1"~Exp, "C"~Ctx, Bool()), eqop(), desugar("e2"~Exp, "C"~Ctx, Bool())),
+    binop(edesugar("e1"~Exp, "C"~Ctx, Bool()), eqop(), edesugar("e2"~Exp, "C"~Ctx, Bool())),
     where = Seq(
       Judg(Typed, "C"~Ctx, "e1"~Exp, Bool()),
       Judg(Typed, "C"~Ctx, "e2"~Exp, Bool())
     )
   )
   val desugar_neg = Rewrite(
-    desugar(unop(neg(), "e"~Exp), "C"~Ctx, Dbl()),
+    edesugar(unop(neg(), "e"~Exp), "C"~Ctx, Dbl()),
     // ~>
-    unop(neg(), desugar("e"~Exp, "C"~Ctx, Dbl()))
+    unop(neg(), edesugar("e"~Exp, "C"~Ctx, Dbl()))
   )
   val desugar_not = Rewrite(
-    desugar(unop(not(), "e"~Exp), "C"~Ctx, Bool()),
+    edesugar(unop(not(), "e"~Exp), "C"~Ctx, Bool()),
     // ~>
-    unop(not(), desugar("e"~Exp, "C"~Ctx, Bool()))
+    unop(not(), edesugar("e"~Exp, "C"~Ctx, Bool()))
   )
   val desugar_vecnew = Rewrite(
-    desugar(vecnew("size"~Exp, "Te"~Typ), "C"~Ctx, "T"~Typ),
+    edesugar(vecnew("size"~Exp, "Te"~Typ), "C"~Ctx, "T"~Typ),
     // ~>
-    vecnew(desugar("size"~Exp, "C"~Ctx, Dbl()), "Te"~Typ)
+    vecnew(edesugar("size"~Exp, "C"~Ctx, Dbl()), "Te"~Typ)
   )
   val desugar_vecread = Rewrite(
-    desugar(vecread("e"~Exp, "ix"~Exp), "C"~Ctx, "T"~Typ),
+    edesugar(vecread("e"~Exp, "ix"~Exp), "C"~Ctx, "T"~Typ),
     // ~>
-    vecread(desugar("e"~Exp, "C"~Ctx, Vec("T"~Typ)), desugar("ix"~Exp, "C"~Ctx, Dbl()))
+    vecread(edesugar("e"~Exp, "C"~Ctx, Vec("T"~Typ)), edesugar("ix"~Exp, "C"~Ctx, Dbl()))
   )
   val desugar_veclength = Rewrite(
-    desugar(veclength("e"~Exp), "C"~Ctx, Dbl()),
+    edesugar(veclength("e"~Exp), "C"~Ctx, Dbl()),
     // ~>
-    veclength(desugar("e"~Exp, "C"~Ctx, Vec("T"~Typ))),
+    veclength(edesugar("e"~Exp, "C"~Ctx, Vec("T"~Typ))),
     where = Seq(
       Judg(Typed, "C"~Ctx, "e"~Exp, Vec("T"~Typ))
     )
   )
   val desugar_block = Rewrite(
-    desugar(block("s"~Stm), "C"~Ctx, "T"~Typ),
+    edesugar(block("s"~Stm), "C"~Ctx, "T"~Typ),
     // ~>
     block("s"~Stm)
   )
@@ -494,14 +494,4 @@ object matrix_desugar extends Transformation(whilelang.language + matrix_ext) {
   )
 
   checkSyntax()
-}
-
-object Run extends scala.App {
-//  val compliant = matrix_desugar.isContractCompliant
-  val complete = matrix_desugar.isComplete
-//  val sound = matrix_desugar.isSound
-
-//  println(s"Compliant = $compliant")
-  println(s"Complete = $complete")
-//  println(s"Sound = $sound")
 }
