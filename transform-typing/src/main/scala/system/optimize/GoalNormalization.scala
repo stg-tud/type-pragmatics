@@ -42,10 +42,14 @@ object GoalNormalization {
     val assumptions = obl.assumptions.flatMap(normalizeTransAppsJudg(_))
     val axioms = obl.axioms.map(normalizeTransAppsRule(_))
     val goals = nonEqGoals.flatMap(normalizeTransAppsJudg(_))
+    val goalsSubst = goals.map(_.subst(substFix, true))
+
+    if (eqGoalsNormed.isEmpty && goalsSubst.isEmpty)
+      return Seq()
 
     Seq(obl.copy(
       existentials = obl.existentials.diff(substFix.keySet),
-      goals = eqGoalsNormed ++ goals.map(_.subst(substFix, true)),
+      goals = eqGoalsNormed ++ goalsSubst,
       assumptions = assumptions.map(_.subst(substFix, true)),
       axioms = axioms.map(_.subst(substFix))
     ))

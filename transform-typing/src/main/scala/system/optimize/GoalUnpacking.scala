@@ -47,7 +47,7 @@ object GoalUnpacking {
     def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter): Seq[ProofObligation]
   }
   private case object Proved extends Unpacked {
-    override def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter) = Seq(nextObligation(Seq(), obl))
+    override def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter) = Seq()
   }
   private case object DontKnow extends Unpacked {
     override def resultingObligations(obl: ProofObligation, goal: Judg)(implicit counter: Counter) = Seq(nextObligation(Seq(goal), obl))
@@ -135,8 +135,8 @@ object GoalUnpacking {
   }
 
   /*
-     * Merges those obligations that have overlapping sets of existentially quantified variables resulting from unpacking.
-     */
+   * Merges those obligations that have overlapping sets of existentially quantified variables resulting from unpacking.
+   */
   def mergeExistentialObligations(judg: Judg, goals: Seq[ProofObligation]): Seq[ProofObligation] = {
     var buckets = mutable.Seq[(mutable.Set[Var], mutable.ListBuffer[ProofObligation])]()
     val judgVars = judg.freevars
