@@ -144,9 +144,9 @@ object Benchmark extends App {
       case "stlc/let" => Seq(stlc.let.let_desugar)
       case "stlc/delta" => Seq(stlc.delta.edelta)
       case "stlc/cps" => Seq(stlc.cps.ecps)
-      case "whilelang/matrix" => Seq(whilelang.matrix.edesugar)
+      case "whilelang/matrix" => Seq(whilelang.matrix.desugar)
     }
-    else Seq(stlc.let.let_desugar, stlc.delta.edelta, stlc.cps.ecps, whilelang.matrix.edesugar)
+    else Seq(stlc.let.let_desugar, stlc.delta.edelta, stlc.cps.ecps, whilelang.matrix.desugar)
   }
 
   for (trans <- transformations;
