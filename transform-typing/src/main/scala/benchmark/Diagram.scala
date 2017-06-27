@@ -82,7 +82,7 @@ object Diagram extends App {
 
       val series = new MemXYSeries(sorted ++ restime, percentiles ++ restprogres, config.toString)
       series.pointSize = Some(0.1)
-      series.lineWidth = Some(0.1)
+      series.lineWidth = Some(1)
       series.pointType = Some(PointType.fullBox)
       series.color = Some(encodedColors(config))
       config -> series
