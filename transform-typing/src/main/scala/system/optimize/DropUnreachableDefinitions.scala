@@ -17,7 +17,7 @@ object DropUnreachableDefinitions {
 
   def allReachable(syms: Set[Symbol], reach: Reach): Boolean = syms.forall(reachable(_, reach))
 
-  def reachable(sym: Symbol, reach: Reach): Boolean = sym.isEqNeq || sym.isFresh || sym.isNotin || reach.contains(sym)
+  def reachable(sym: Symbol, reach: Reach): Boolean = sym.isEqNeq || reach.contains(sym)
 
   def dropUnreachable(obl: ProofObligation): ProofObligation = {
     val reach: Reach = mutable.Set()
