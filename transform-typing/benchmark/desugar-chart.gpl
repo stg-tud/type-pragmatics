@@ -12,12 +12,12 @@ set xlabel "Time (s)"
 set ylabel "Completion (%)"
 # XYData Plotting
 plot \
-'-'  using 1:2 title "NoUnpack" with linespoints linecolor rgbcolor "#8dd3c7" pointsize 0.100000 pointtype 5 linewidth 1.000000 , \
-'-'  using 1:2 title "NoNormalization" with linespoints linecolor rgbcolor "#dddd93" pointsize 0.100000 pointtype 5 linewidth 1.000000 , \
-'-'  using 1:2 title "NoExistentialHints" with linespoints linecolor rgbcolor "#bebada" pointsize 0.100000 pointtype 5 linewidth 1.000000 , \
-'-'  using 1:2 title "NoDropUnreachable" with linespoints linecolor rgbcolor "#80b1d3" pointsize 0.100000 pointtype 5 linewidth 1.000000 , \
-'-'  using 1:2 title "None" with linespoints linecolor rgbcolor "#fdb462" pointsize 0.100000 pointtype 5 linewidth 1.000000 , \
-'-'  using 1:2 title "All" with linespoints linecolor rgbcolor "#fb8072" pointsize 0.100000 pointtype 5 linewidth 1.000000 
+'-'  using 1:2 title "NoUnpack" with linespoints linecolor rgbcolor "#8dd3c7" pointsize 0.200000 pointtype 5 linewidth 1.500000 , \
+'-'  using 1:2 title "NoNormalization" with linespoints linecolor rgbcolor "#dddd93" pointsize 0.200000 pointtype 5 linewidth 1.500000 , \
+'-'  using 1:2 title "NoExistentialHints" with linespoints linecolor rgbcolor "#bebada" pointsize 0.200000 pointtype 5 linewidth 1.500000 , \
+'-'  using 1:2 title "NoDropUnreachable" with linespoints linecolor rgbcolor "#80b1d3" pointsize 0.200000 pointtype 5 linewidth 1.500000 , \
+'-'  using 1:2 title "None" with linespoints linecolor rgbcolor "#fdb462" pointsize 0.200000 pointtype 5 linewidth 1.500000 , \
+'-'  using 1:2 title "All" with linespoints linecolor rgbcolor "#fb8072" pointsize 0.200000 pointtype 5 linewidth 1.500000 
 # NoUnpack
 0.009	0.0033444816053511705
 0.01	0.006688963210702341
