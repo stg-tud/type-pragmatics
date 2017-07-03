@@ -6,6 +6,10 @@ import system.Syntax._
 import system.{Names, Transformation}
 import system.Names._
 
+object Run extends scala.App {
+  desugar
+}
+
 object desugar extends Transformation(whilelang.language + matrix_ext) {
 
   val desugar = Symbol("desugar", in = List(Exp, Ctx, Typ), out = Exp, constr = false)
@@ -20,29 +24,37 @@ object desugar extends Transformation(whilelang.language + matrix_ext) {
 
   // desugar constructs of matrix extension
   val desugar_newmatrix = Rewrite(
-    desugar(newmatrix("m"~Num, "n"~Num), "C"~Ctx, "T"~Typ),
+    desugar(newmatrix("e1"~Exp, "e2"~Exp), "C"~Ctx, "T"~Typ),
     // ~>
     /*
+    double m = `e1`;
+    double n = `e2`;
     Vec<Vec<Dbl>> result = new Vector(m);
     double i = 0;
     while (i < m) {
       result[i] = new Vector(n);
       i = i + 1;
     }
-    result.closeMatrix(m, n)
+    result.closeMatrix()
     */
     block(
-      declare("result"~Name, Vec(Vec(Dbl())), vecnew(num("m"~Num), Vec(Dbl())), seq(
-        declare("i"~Name, Dbl(), num(zero()),
-          loop(binop(ref("i"~Name), lt(), num("m"~Num)), seq(
-            vecwrite(ref("result"~Name), ref("i"~Name), vecnew(num("n"~Num), Dbl())),
-            assign("i"~Name, binop(ref("i"~Name), add(), num(one())))
+      declare("m"~Name, Dbl(), desugar("e1"~Exp, "C"~Ctx, Dbl()),
+        declare("n"~Name, Dbl(), desugar("e2"~Exp, "C"~Ctx, Dbl()),
+          declare("result"~Name, Vec(Vec(Dbl())), vecnew(ref("m"~Name), Vec(Dbl())), seq(
+            declare("i"~Name, Dbl(), num(zero()),
+              loop(binop(ref("i"~Name), lt(), ref("m"~Name)), seq(
+                vecwrite(ref("result"~Name), ref("i"~Name), vecnew(ref("n"~Name), Dbl())),
+                assign("i"~Name, binop(ref("i"~Name), add(), num(one())))
+              ))
+            ),
+            exp(closeMatrix(ref("result"~Name)))
           ))
-        ),
-        exp(closeMatrix(ref("result"~Name)))
-      ))
+        )
+      )
     ),
     where = mkFreshJudgs(Ctx, "C"~Ctx, bind)(List(
+      "m" -> Dbl(),
+      "n" -> Dbl(),
       "result" -> Vec(Vec(Dbl())),
       "i" -> Dbl()
     ))
@@ -216,15 +228,15 @@ object desugar extends Transformation(whilelang.language + matrix_ext) {
     /*
     Vec<Vec<Dbl>> v1 = desugar(`e1`).openMatrix();
     Vec<Vec<Dbl>> v2 = desugar(`e2`).openMatrix();
-    Vec<Vec<Dbl>> result = new Vec(m);
+    Vec<Vec<Dbl>> result = new Vec(v1.length);
     double i = 0;
     double j = 0;
-    while (i < m) {
-      result[i] = new Vec(n);
-      while (j < n) {
+    while (i < v1.length) {
+      result[i] = new Vec(v2[0].length);
+      while (j < v2[0].length) {
         double r = 0;
         double cell = 0;
-        while (r < x) {
+        while (r < v2.length) {
           cell = cell + (v1[i][r] * v2[r][j])
           r = r + 1;
         }
@@ -233,7 +245,7 @@ object desugar extends Transformation(whilelang.language + matrix_ext) {
       }
       i = i + 1;
     }
-    result.closedMatrix(m, n)
+    result.closedMatrix()
     */
     block(
       declare("v1"~Name, Vec(Vec(Dbl())), openMatrix(desugar("e1"~Exp, "C"~Ctx, Matrix(/*"m"~Num, "x"~Num*/))),
@@ -242,8 +254,8 @@ object desugar extends Transformation(whilelang.language + matrix_ext) {
             declare("i"~Name, Dbl(), num(zero()),
               declare("j"~Name, Dbl(), num(zero()),
                 loop(binop(ref("i"~Name), lt(), veclength(ref("v1"~Name))), seq(seq(
-                  vecwrite(ref("result"~Name), ref("i"~Name), vecnew(veclength(vecread(ref("v1"~Name), ref("i"~Name))), Dbl())),
-                  loop(binop(ref("j"~Name), lt(), veclength(vecread(ref("v1"~Name), ref("i"~Name)))), seq(
+                  vecwrite(ref("result"~Name), ref("i"~Name), vecnew(veclength(vecread(ref("v2"~Name), num(zero()))), Dbl())),
+                  loop(binop(ref("j"~Name), lt(), veclength(vecread(ref("v2"~Name), num(zero())))), seq(
                     declare("r"~Name, Dbl(), num(zero()),
                       declare("cell"~Name, Dbl(), num(zero()), seq(
                         loop(binop(ref("r"~Name), lt(), veclength(ref("v2"~Name))), seq(
@@ -290,8 +302,8 @@ object desugar extends Transformation(whilelang.language + matrix_ext) {
     desugar(unop(transpose(), "e"~Exp), "C"~Ctx, Matrix(/*"n"~Num, "m"~Num*/)),
     // ~>
     /*
-    Vec<Vec<Dbl>> result = new Vec(n);
     Vec<Vec<Dbl>> v = `e`.openMatrix();
+    Vec<Vec<Dbl>> result = new Vec(v[zero].length);
     double i = 0;
     double j = 0;
     while (i < n) {

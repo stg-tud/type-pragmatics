@@ -55,7 +55,11 @@ object Diagram extends App {
       val obl = trimmed(cells(2))
       val status = trimmed(cells(3))
       val time = trimmed(cells(4)).toDouble
-      rows += Row(trans, config, obl, status, time)
+      if (dropTrivial && time < TRIVIAL_TIME) {
+        // skip
+      }
+      else
+        rows += Row(trans, config, obl, status, time)
     }
     ???
   }
@@ -94,20 +98,28 @@ object Diagram extends App {
 
     val xaxis = new NumericAxis
     xaxis.log
+    xaxis.range_=((0.1, 100))
     xaxis.label_=("Time (s)")
     val yaxis = new NumericAxis
     yaxis.range_=((0.0, 1.0))
-    yaxis.label_=("Completion (%)")
+    if (dropTrivial)
+      yaxis.label_=("Non-trivial completion (%)")
+    else
+      yaxis.label_=("Completion (%)")
 
     val chart = new XYChart(None, data, x = xaxis, y = yaxis)
-    chart.showLegend = true
+    chart.showLegend = !dropTrivial
     chart.legendPosX = LegendPosX.Center
 
     val plotter = new MyGnuplotPlotter(chart)
-    plotter.pdf("benchmark/", s"$trans-chart")
+    val outName = s"$trans-chart" ++ (if (dropTrivial) "-notrivial" else "")
+    plotter.pdf("benchmark/", outName)
   }
 
-  for (file <- args)
+  val TRIVIAL_TIME = 0.1
+  val dropTrivial = args.nonEmpty && args(0) == "--drop-trivial"
+
+  for (file <- args if file != "--drop-trivial")
     run(new File(file))
 }
 

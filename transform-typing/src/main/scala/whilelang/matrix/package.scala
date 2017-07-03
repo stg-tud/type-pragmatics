@@ -8,7 +8,7 @@ import system.Syntax._
 package object matrix {
   val Matrix = Symbol("Matrix", in = List(), out = Typ)
 
-  val newmatrix = Symbol("newmatrix", in = List(Num, Num), out = Exp)
+  val newmatrix = Symbol("newmatrix", in = List(Exp, Exp), out = Exp)
   val openMatrix = Symbol("openMatrix", in = List(Exp), out = Exp)
   val closeMatrix = Symbol("closeMatrix", in = List(Exp), out = Exp)
   val transpose = Symbol("transpose", in = List(), out = UnOp)
@@ -29,8 +29,10 @@ package object matrix {
   )
 
   val Typed_newmatrix = Rule("Typed-newmatrix",
-    Judg(Typed, "C"~Ctx, newmatrix("m"~Num, "n"~Num), Matrix())
+    Judg(Typed, "C"~Ctx, newmatrix("e1"~Exp, "e2"~Exp), Matrix()),
     // if ----------------
+    Judg(Typed, "C"~Ctx, "e1"~Exp, Dbl()),
+    Judg(Typed, "C"~Ctx, "e2"~Exp, Dbl())
   )
   val Typed_matrix_add = Rule("Typed-matrix-add",
     Judg(Typed, "C"~Ctx, binop("e1"~Exp, add(), "e2"~Exp), Matrix()),
@@ -68,6 +70,14 @@ package object matrix {
 
 
   // specialized inversion axioms
+  val Typed_inv_newmatrix = Lemma("Typed-Inv-newmatrix",
+    Judg(AND,
+      Judg(Typed, "C"~Ctx, "e1"~Exp, Dbl()).toApp,
+      Judg(Typed, "C"~Ctx, "e2"~Exp, Dbl()).toApp
+    ),
+    // if ----------------
+    Judg(Typed, "C"~Ctx, newmatrix("e1"~Exp, "e2"~Exp), "T"~Typ)
+  )
   val Typed_inv_vecread = Lemma("Typed-Inv-vecread",
     Judg(AND,
       Judg(Typed, "C"~Ctx, "e"~Exp, Vec("T"~Typ)).toApp,
@@ -76,24 +86,6 @@ package object matrix {
     // if ----------------
     Judg(Typed, "C"~Ctx, vecread("e"~Exp, "ix"~Exp), "T"~Typ)
   )
-//  val Typed_inv_add = Lemma("Typed-Inv-add",
-//    Judg(OR,
-//      mkAnd(Seq(
-//        Judg(Typed, "C"~Ctx, "e1"~Exp, Dbl()).toApp,
-//        Judg(Typed, "C"~Ctx, "e2"~Exp, Dbl()).toApp,
-//        Judg(equ(Typ), "T"~Typ, Dbl()).toApp
-//      )),
-//      mkExists(Seq("m"~Num, "n"~Num),
-//        mkAnd(Seq(
-//          Judg(Typed, "C"~Ctx, "e1"~Exp, Matrix()).toApp,
-//          Judg(Typed, "C"~Ctx, "e2"~Exp, Matrix()).toApp,
-//          Judg(equ(Typ), "T"~Typ, Matrix()).toApp
-//        ))
-//      )
-//    ),
-//    // if ----------------
-//    Judg(Typed, "C"~Ctx, binop("e1"~Exp, add(), "e2"~Exp), "T"~Typ)
-//  )
 
 
   object matrix_ext extends LanguageExtension("matrix-ext",
@@ -110,6 +102,7 @@ package object matrix {
       Typed_matrix_mul_scalar_right,
       Typed_matrix_transpose,
 
+      Typed_inv_newmatrix,
       Typed_inv_vecread
     )
   )
