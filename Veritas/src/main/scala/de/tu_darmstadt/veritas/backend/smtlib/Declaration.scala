@@ -5,16 +5,19 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.{PrettyPrintWriter, Pret
 /**
   * Created by andiderp on 03.07.17.
   */
-
 sealed trait Declaration extends SMTLib
 
 case class DataTypeDeclaration(name: String, cotrs: Seq[Constructor]) extends Declaration {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write("(declare-datatypes ")
-    writer.write(s"(($name 0))")
-    writer.write("((")
-    cotrs.foreach { writer.write(_).write(" ") }
-    writer.write(")))")
+    writer.write(s"(($name 0)) ")
+    writer.write("( (")
+    writer.write(cotrs.head)
+    cotrs.tail.foreach { cotr =>
+      writer.write(" ")
+      writer.write(cotr)
+    }
+    writer.write(") ) )")
   }
 }
 
@@ -26,21 +29,22 @@ case class Sort(name: String) extends Declaration {
 
 case class Constructor(name: String, selectors: Seq[Selector]) extends PrettyPrintable {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
-    writer.write(s"$name")
+    writer.write(s"($name")
     if (selectors.nonEmpty)
-      writer.write(" ")
     selectors.foreach { sel =>
-      writer.write(sel)
       writer.write(" ")
+      writer.write(sel)
     }
+    writer.write(")")
   }
 }
 
 case class Selector(name: String, returnType: Type) extends PrettyPrintable {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
-    writer.write(name)
+    writer.write(s"($name")
     writer.write(" ")
     writer.write(returnType)
+    writer.write(")")
   }
 }
 
@@ -52,7 +56,11 @@ case class FunctionDeclaration(name: String, parameter: Seq[Type], result: Type)
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write(s"(declare-fun ${name} ")
     writer.write("(")
-    parameter.foreach { writer.write(_).write(" ") }
+    writer.write(parameter.head)
+    parameter.tail.foreach { p =>
+      writer.write(" ")
+      writer.write(p)
+    }
     writer.write(")")
     writer.write(" ")
     writer.write(result)
