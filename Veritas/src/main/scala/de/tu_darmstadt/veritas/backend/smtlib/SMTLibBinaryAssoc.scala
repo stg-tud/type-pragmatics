@@ -23,7 +23,7 @@ final class Or private (val args: Seq[Term]) extends SMTLibBinaryAssoc(args, "or
   override def toString = args.mkString("Or(", ", ", ")")
 }
 object Or {
-  def apply(args: Seq[Term]): SMTLib =
+  def apply(args: Seq[Term]): Term =
     args match {
       case Seq()       => False
       case Seq(single) => single
@@ -36,7 +36,7 @@ final class And private (val args: Seq[Term]) extends SMTLibBinaryAssoc(args, "a
   override def toString = args.mkString("And(", ", ", ")")
 }
 object And {
-  def apply(args: Seq[Term]): SMTLib =
+  def apply(args: Seq[Term]): Term =
     args match {
       case Seq()       => True
       case Seq(single) => single
@@ -44,4 +44,8 @@ object And {
     }
 
   def unapply(e: And): Option[Seq[Term]] = Some(e.args)
+}
+
+final case class Eq private (val args: Seq[Term]) extends SMTLibBinaryAssoc(args, "=") {
+  override def toString = args.mkString("Eq(", ", ", ")")
 }

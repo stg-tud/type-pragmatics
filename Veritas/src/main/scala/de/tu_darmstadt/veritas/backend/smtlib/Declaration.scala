@@ -31,10 +31,10 @@ case class Constructor(name: String, selectors: Seq[Selector]) extends PrettyPri
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write(s"($name")
     if (selectors.nonEmpty)
-    selectors.foreach { sel =>
-      writer.write(" ")
-      writer.write(sel)
-    }
+      selectors.foreach { sel =>
+        writer.write(" ")
+        writer.write(sel)
+      }
     writer.write(")")
   }
 }
