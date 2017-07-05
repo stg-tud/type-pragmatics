@@ -6,4 +6,3 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.{PrettyPrintWriter, Pret
   * Created by andiderp on 03.07.17.
   */
 trait SMTLib extends PrettyPrintable
-

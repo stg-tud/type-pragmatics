@@ -1,11 +1,14 @@
 package de.tu_darmstadt.veritas.backend.smtlib
 
-import de.tu_darmstadt.veritas.backend.util.prettyprint.{PrettyPrintWriter, SimplePrettyPrintable}
+import de.tu_darmstadt.veritas.backend.util.prettyprint.{PrettyPrintWriter, PrettyPrintable, SimplePrettyPrintable}
 
 /**
   * Created by andiderp on 03.07.17.
   */
-case class DataTypeDeclaration(name: String, cotrs: Seq[Constructor]) extends SMTLib {
+
+sealed trait Declaration extends SMTLib
+
+case class DataTypeDeclaration(name: String, cotrs: Seq[Constructor]) extends Declaration {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write("(declare-datatypes ")
     writer.write(s"(($name 0))")
@@ -15,13 +18,13 @@ case class DataTypeDeclaration(name: String, cotrs: Seq[Constructor]) extends SM
   }
 }
 
-case class Sort(name: String) extends SMTLib {
+case class Sort(name: String) extends Declaration {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write(s"(declare-sort ${name} 0)")
   }
 }
 
-case class Constructor(name: String, selectors: Seq[Selector]) extends SMTLib {
+case class Constructor(name: String, selectors: Seq[Selector]) extends PrettyPrintable {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write(s"$name")
     if (selectors.nonEmpty)
@@ -33,7 +36,7 @@ case class Constructor(name: String, selectors: Seq[Selector]) extends SMTLib {
   }
 }
 
-case class Selector(name: String, returnType: Type) extends SMTLib {
+case class Selector(name: String, returnType: Type) extends PrettyPrintable {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write(name)
     writer.write(" ")
@@ -43,4 +46,16 @@ case class Selector(name: String, returnType: Type) extends SMTLib {
 
 case class Type(name: String) extends SimplePrettyPrintable {
   override def prettyString: String = name
+}
+
+case class FunctionDeclaration(name: String, parameter: Seq[Type], result: Type) extends Declaration {
+  override def prettyPrint(writer: PrettyPrintWriter): Unit = {
+    writer.write(s"(declare-fun ${name} ")
+    writer.write("(")
+    parameter.foreach { writer.write(_).write(" ") }
+    writer.write(")")
+    writer.write(" ")
+    writer.write(result)
+    writer.write(")")
+  }
 }
