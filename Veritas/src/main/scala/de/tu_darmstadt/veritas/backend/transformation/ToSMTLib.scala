@@ -155,8 +155,8 @@ class ToSMTLib {
   private def encodeFunctionExp(f: FunctionExp): Term =
     f match {
       case FunctionExpNot(f) => Not(encodeFunctionExp(f))
-      case FunctionExpEq(f1, f2) => Eq(Seq(encodeFunctionExpMeta(f1), encodeFunctionExpMeta(f2)))
-      case FunctionExpNeq(f1, f2) => Not(Eq(Seq(encodeFunctionExpMeta(f1), encodeFunctionExpMeta(f2))))
+      case FunctionExpEq(f1, f2) => Eq(encodeFunctionExpMeta(f1), encodeFunctionExpMeta(f2))
+      case FunctionExpNeq(f1, f2) => Not(Eq(encodeFunctionExpMeta(f1), encodeFunctionExpMeta(f2)))
       case FunctionExpAnd(l, r) => And(Seq(encodeFunctionExp(l), encodeFunctionExp(r)))
       case FunctionExpOr(l, r) => Or(Seq(encodeFunctionExp(l), encodeFunctionExp(r)))
       case FunctionExpBiImpl(l, r) => encodeBiImpl(l, r)
@@ -179,7 +179,7 @@ class ToSMTLib {
     encodedRight match {
       case True => encodedLeft
       case False => Not(encodedLeft)
-      case _ => Eq(Seq(encodedLeft, encodedRight))
+      case _ => Eq(encodedLeft, encodedRight)
     }
   }
 

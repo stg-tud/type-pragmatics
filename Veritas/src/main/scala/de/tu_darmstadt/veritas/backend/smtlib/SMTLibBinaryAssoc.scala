@@ -45,7 +45,3 @@ object And {
 
   def unapply(e: And): Option[Seq[Term]] = Some(e.args)
 }
-
-final case class Eq private (val args: Seq[Term]) extends SMTLibBinaryAssoc(args, "=") {
-  override def toString = args.mkString("Eq(", ", ", ")")
-}

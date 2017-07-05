@@ -25,3 +25,12 @@ object Impl {
 
   def unapply(e: Impl): Option[(Term, Term)] = Some((e.argLeft, e.argRight))
 }
+
+final class Eq private (val argLeft: Term, val argRight: Term) extends SMTLibBinaryNonassoc(argLeft, argRight , "=") {
+  override def toString = s"Eq($argLeft, $argRight)"
+}
+object Eq {
+  def apply(argLeft: Term, argRight: Term) = new Eq(argLeft, argRight)
+
+  def unapply(e: Eq): Option[(Term, Term)] = Some((e.argLeft, e.argRight))
+}
