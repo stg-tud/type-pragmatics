@@ -1,7 +1,6 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
-import javax.security.auth.login.Configuration
-
+import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.ast.{DataTypeConstructor, Module, SortRef}
 import de.tu_darmstadt.veritas.backend.smtlib._
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypes, CollectTypesClass}
