@@ -3,6 +3,8 @@ package de.tu_darmstadt.veritas.inputdsl
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL.{SymLeaf, SymNode, SymTree}
 
+import scala.language.implicitConversions
+
 /**
   * DSL for data type definitions
   */

@@ -10,6 +10,8 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.transformation.collect.Typeable
 
+import scala.language.implicitConversions
+
 sealed trait FunctionExpMeta extends VeritasConstruct with PrettyPrintable
 
 sealed trait FunctionExp extends FunctionExpMeta with PrettyPrintable
