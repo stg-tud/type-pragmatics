@@ -15,46 +15,21 @@ final case object False extends Term with SimplePrettyPrintable {
   override val prettyString = "false"
 }
 
-abstract class Variable(name: String) extends Term {
-  override def prettyPrint(writer: PrettyPrintWriter): Unit = {
-    writer.write(name)
-  }
-}
-
-final case class VariableBinding(name: String, formula: Term) extends Variable(name) {
-  override def prettyPrint(writer: PrettyPrintWriter): Unit = {
-    writer.write(s"($name ")
-    writer.write(formula)
-    writer.write(")")
-  }
-}
-
-final case class VariableReference(name: String) extends Variable(name)
-
-final case class SortedVariable(name: String, sort: Type) extends Variable(name) {
-  override def prettyPrint(writer: PrettyPrintWriter): Unit = {
-    writer.write(s"$name ")
-    writer.write(sort)
-  }
-}
-
-
-final case class Not private (formula: Term) extends Term {
+final class Not private (val formula: Term) extends Term {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write("(not ")
     writer.write(formula)
     writer.write(")")
   }
 }
-
-//object Not {
-//  def apply(formula: Term): Term = formula match {
-//    case True => False
-//    case False => True
-//    case _ => new Not(formula)
-//  }
-//  def unapply(e: Not): Option[Not]
-//}
+object Not {
+  def apply(formula: Term): Term = formula match {
+    case True => False
+    case False => True
+    case _ => new Not(formula)
+  }
+  def unapply(e: Not): Option[Term] = Some(e.formula)
+}
 
 final case class Let(bindings: Seq[VariableBinding], formula: Term) extends Term {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
