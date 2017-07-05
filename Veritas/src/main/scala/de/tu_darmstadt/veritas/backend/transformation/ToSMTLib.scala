@@ -1,28 +1,11 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
-import de.tu_darmstadt.veritas.backend.{Configuration, ProblemTrans}
+import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.smtlib._
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypes, CollectTypesClass}
-import de.tu_darmstadt.veritas.backend.transformation.defs.{FunctionEqToAxiomsSimple, FunctionEqToAxiomsWLetIf, TranslateAllTypingJudgments}
-import de.tu_darmstadt.veritas.backend.transformation.imports.ResolveImports
-import de.tu_darmstadt.veritas.backend.transformation.lowlevel.{DesugarLemmas, FilterGoalModules, VarToApp0}
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
-
-
-object BasicSMTLibTrans extends SeqTrans(
-  FilterGoalModules, //optimization: only interested in modules with goals!
-  ResolveImports,
-  VarToApp0,
-  DesugarLemmas)
-
-object FunctionSMTLibTrans extends SeqTrans(FunctionEqToAxiomsWLetIf, TranslateAllTypingJudgments)
-
-object SMTLibTrans extends SeqTrans(
-  BasicSMTLibTrans,
-  FunctionSMTLibTrans)
-//  ProblemTrans)
 
 class ToSMTLib {
   private var closedDatatypeDeclarations: Seq[DataTypeDeclaration] = Seq()
@@ -32,6 +15,7 @@ class ToSMTLib {
   private var goal: Option[Goal] = None
 
   private var types: CollectTypes = _
+
   def toSMTLibFile(veritasModule: Module)(implicit config: Configuration): SMTLibFile = {
     //make sure every mutable state is initialized when applying this!
     closedDatatypeDeclarations = Seq()
@@ -60,15 +44,15 @@ class ToSMTLib {
     }
   }
 
-
   private def encodeClosedDataType(name: String, constructors: Seq[DataTypeConstructor]): DataTypeDeclaration = {
-    val encodedCotrs = constructors.map { encodeConstructor(_) }
+    val encodedCotrs = constructors.map {
+      encodeConstructor(_)
+    }
     DataTypeDeclaration(name, encodedCotrs)
   }
 
   private def encodeConstructor(cotr: DataTypeConstructor): Constructor = {
     // because we dont have the information of selector names we encode them as dataTypename_indexOfParam
-    // TODO: maybe create global map for class to know the selector names for all datatypes
     val encodedSelectors = cotr.in.zipWithIndex.map { case (sr, index) =>
       val selectorName = s"${cotr.name}_${index}"
       Selector(selectorName, Type(sr.name))
@@ -108,7 +92,7 @@ class ToSMTLib {
   /**
     * translates goals to SMTLib
     */
-  protected def encodeGoal(g: TypingRule): Goal =
+  private def encodeGoal(g: TypingRule): Goal =
     g match {
       case TypingRule(name, prems, conseqs) =>
         Goal(name, Assertion(encodeTypingRule(prems, conseqs)))
@@ -164,6 +148,7 @@ class ToSMTLib {
       }
       case _ => throw TransformationError("Encountered unsupported judgment while translating a goal or axiom (e.g. typing judgment)")
     }
+
   /**
     * translate individual function expressions to SMTLib (-> Term);
     */
@@ -194,7 +179,7 @@ class ToSMTLib {
     encodedRight match {
       case True => encodedLeft
       case False => Not(encodedLeft)
-      case _ => Eq(Seq(encodedLeft, encodedRight))//And(Seq(Impl(left, right), Impl(right, left)))
+      case _ => Eq(Seq(encodedLeft, encodedRight))
     }
   }
 
