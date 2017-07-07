@@ -95,7 +95,7 @@ class ToSMTLib {
   private def encodeGoal(g: TypingRule): Goal =
     g match {
       case TypingRule(name, prems, conseqs) =>
-        Goal(name, Assertion(encodeTypingRule(prems, conseqs)))
+        Goal(name, Assertion(Not(encodeTypingRule(prems, conseqs))))
     }
 
   private def encodeTypingRule(premises: Seq[TypingRuleJudgment], consequences: Seq[TypingRuleJudgment]): Term = {
