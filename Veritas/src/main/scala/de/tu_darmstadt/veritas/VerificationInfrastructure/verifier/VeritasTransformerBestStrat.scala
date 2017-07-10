@@ -7,6 +7,7 @@ import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.fof.FofFile
+import de.tu_darmstadt.veritas.backend.smtlib.SMTLibFile
 import de.tu_darmstadt.veritas.backend.tff.TffFile
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
@@ -27,23 +28,26 @@ case class TFFFormat(tff: TffFile) extends TPTP {
   override def toString: String = tff.toPrettyString()
 }
 
+case class SMTLibFormat(smtLib: SMTLibFile) extends VerifierFormat {
+  override def toString: String = smtLib.toPrettyString()
+}
 
-trait TPTPTransformerError extends TransformerError
 
-case class TPTPTTypeInferenceError(e: TypeInference.TypeError) extends TPTPTransformerError
 
-case class TPTPTransformationError[T](e: TransformationError[T]) extends TPTPTransformerError
+case class FormatTypeInferenceError(e: TypeInference.TypeError) extends TransformerError
 
-case class TPTPBackendError[T](e: BackendError[T]) extends TPTPTransformerError
+case class FormatTransformationError[T](e: TransformationError[T]) extends TransformerError
 
-case class TPTPOtherError(message: String) extends TPTPTransformerError
+case class FormatBackendError[T](e: BackendError[T]) extends TransformerError
+
+case class FormatOtherError(message: String) extends TransformerError
 
 /**
   * Translate VeriTaS module to TFF using the "most advantageous" strategies we determined so far
   * (module transformations)
   */
-class VeritasTransformer(config: Configuration) extends Transformer[VeritasConstruct, VeritasConstruct, TPTP] {
-  override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct]): Try[TPTP] = {
+class VeritasTransformer[Format](config: Configuration) extends Transformer[VeritasConstruct, VeritasConstruct, Format] {
+  override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct]): Try[Format] = {
     spec match {
       case Module(name, imps, moddefs) => {
 
@@ -63,7 +67,7 @@ class VeritasTransformer(config: Configuration) extends Transformer[VeritasConst
         val propagatedInfo = (for (el <- parentedges) yield el.propagateInfoList).toSet
 
         if (propagatedInfo.size > 1)
-          Failure(TPTPOtherError(s"The given edges for transforming the proof problem " +
+          Failure(FormatOtherError(s"The given edges for transforming the proof problem " +
             s"for $goal disagreed in the propagatable information $propagatedInfo"))
         else {
           //wrap goal in local block together with info to be propagated from assumptions
@@ -101,19 +105,22 @@ class VeritasTransformer(config: Configuration) extends Transformer[VeritasConst
 
             if (ifConfig(FinalEncoding, FinalEncoding.TFF)(config))
               Success(TFFFormat(files.head.asInstanceOf[TffFile]))
+            else if (ifConfig(FinalEncoding, FinalEncoding.SMTLib)(config))
+              Success(SMTLibFormat(files.head.asInstanceOf[SMTLibFile]))
             else
               Success(FOFFormat(files.head.asInstanceOf[FofFile]))
+
           } catch {
-            case tinf: TypeInference.TypeError => Failure(TPTPTTypeInferenceError(tinf))
-            case trans: TransformationError[_] => Failure(TPTPTransformationError(trans))
-            case be: BackendError[_] => Failure(TPTPBackendError(be))
-            case cast: ClassCastException => Failure(TPTPOtherError(s"Module $module was not transformed to the expected format."))
+            case tinf: TypeInference.TypeError => Failure(FormatTypeInferenceError(tinf))
+            case trans: TransformationError[_] => Failure(FormatTransformationError(trans))
+            case be: BackendError[_] => Failure(FormatBackendError(be))
+            case cast: ClassCastException => Failure(FormatOtherError(s"Module $module was not transformed to the expected format."))
             case e: Exception => throw e
           }
         }
 
       }
-      case _ => Failure(TPTPOtherError(s"The problem specification passed to the VeritasTransformerBestStrat was not a Module: $spec"))
+      case _ => Failure(FormatOtherError(s"The problem specification passed to the VeritasTransformerBestStrat was not a Module: $spec"))
     }
   }
 }

@@ -8,23 +8,16 @@ import de.tu_darmstadt.veritas.backend.ast.{Module, VeritasConstruct}
 import scala.util.{Failure, Success}
 
 /**
-  * Created by andiderp on 06/04/2017.
+  * Created by andiderp on 10.07.17.
   */
-class TPTPEproverVerifier(timeout: Int = 10) extends TPTPVerifier {
-  /** Textual description that should be unique (used for ordering verifiers) */
-  override val desc: String = "TPTPEproverVerifier"
+trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
+  override type V = SMTLibFormat
 
-  override def prover: Prover[TPTP] = Eprover(timeout)
-}
-
-trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
-  override type V = TPTP
-
-  def prover: Prover[TPTP]
+  def prover: Prover[SMTLibFormat]
 
   override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]](goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct], hints: Option[VerifierHints], produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result]): Result = {
-    val transformer = new VeritasTransformer[TPTP](
-      Configuration(Map(FinalEncoding -> FinalEncoding.BareFOF,
+    val transformer = new VeritasTransformer[SMTLibFormat](
+      Configuration(Map(FinalEncoding -> FinalEncoding.SMTLib,
         Simplification -> Simplification.LogicalAndConstructors,
         VariableEncoding -> VariableEncoding.InlineEverything,
         Selection -> Selection.SelectAll,
@@ -34,8 +27,8 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
         val transformedProb = transformer.transformProblem(goal, spec, parentedges, assumptions)
 
         transformedProb match {
-          case Success(tptp) => {
-            val proverstatus = prover.callProver(tptp)
+          case Success(smtLib) => {
+            val proverstatus = prover.callProver(smtLib)
             produce.newStepResult(Finished(proverstatus, this),
               proverstatus.proverResult.proofEvidence,
               proverstatus.proverResult.message)
@@ -48,4 +41,6 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
       case _ => produce.newStepResult(VerifierFailure(s"Specification was not a module $spec", this), None, None)
     }
   }
+}
+
 }
