@@ -28,7 +28,7 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
         Simplification -> Simplification.LogicalAndConstructors,
         VariableEncoding -> VariableEncoding.InlineEverything,
         Selection -> Selection.SelectAll,
-        Problem -> Problem.All)))
+        Problem -> Problem.All)), x => x.asInstanceOf[TPTP])
     spec match {
       case Module(name, imps, moddefs) => {
         val transformedProb = transformer.transformProblem(goal, spec, parentedges, assumptions)

@@ -4,12 +4,7 @@ import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{Evidence, TSTP}
 
-/**
-  * Expects the correct Vampire binaries in the project path, named "vampire-3.0", "vampire-4.0" or "vampire-4.1"
-  *
-  * @param timeout in seconds
-  */
-case class Vampire(version: String, timeout: Int, mode: String = "casc") extends Prover[TPTP] {
+sealed abstract class Vampire[Format <: VerifierFormat](version: String, timeout: Int, mode: String = "casc", flags: Seq[String] = Seq()) extends Prover[Format] {
   private val proverCommand =
     findBinaryInPath(if (version == null) s"vampire" else s"vampire-$version")
 
@@ -24,18 +19,20 @@ case class Vampire(version: String, timeout: Int, mode: String = "casc") extends
 
     call = call ++ Seq("--proof", "tptp")
     call = call ++ Seq("--output_axiom_names", "on")
+    call = call ++ flags
 
     call = call :+ file.getAbsolutePath
     call
   }
 
-  override def callProver(problem: TPTP): ProverStatus = {
+  override def callProver(problem: Format): ProverStatus = {
     import scala.sys.process._
 
     val start = System.nanoTime()
     val suffix = problem match {
       case TFFFormat(_) => "tff"
       case FOFFormat(_) => "fof"
+      case SMTLibFormat(_) => "smt2"
     }
     //make temporary files for prover input and output
     val tempInFile = File.createTempFile("problem-to-prove", suffix)
@@ -71,6 +68,16 @@ case class Vampire(version: String, timeout: Int, mode: String = "casc") extends
   }
 
 }
+
+/**
+  * Expects the correct Vampire binaries in the project path, named "vampire-3.0", "vampire-4.0" or "vampire-4.1"
+  *
+  * @param timeout in seconds
+  */
+case class VampireTPTP(version: String, timeout: Int, mode: String = "casc") extends Vampire[TPTP](version, timeout, mode)
+
+case class VampireZ3(timeout: Int, mode: String = "casc") extends Vampire[SMTLibFormat]("vampire-4.1_z3_tar", timeout, mode)
+case class Vampire4_1_tar(timeout: Int, mode: String = "casc") extends Vampire[SMTLibFormat]("vampire-4.1_tar", timeout, mode, flags = Seq("--input_syntax", "smtlib2"))
 
 case class TSTPProof(proof: String) extends TSTP[String] {
   override def getData: String = proof

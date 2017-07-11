@@ -46,7 +46,7 @@ case class FormatOtherError(message: String) extends TransformerError
   * Translate VeriTaS module to TFF using the "most advantageous" strategies we determined so far
   * (module transformations)
   */
-class VeritasTransformer[Format](config: Configuration) extends Transformer[VeritasConstruct, VeritasConstruct, Format] {
+class VeritasTransformer[Format <: VerifierFormat](config: Configuration, formatProducer: VerifierFormat => Format) extends Transformer[VeritasConstruct, VeritasConstruct, Format] {
   override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct]): Try[Format] = {
     spec match {
       case Module(name, imps, moddefs) => {
@@ -104,11 +104,11 @@ class VeritasTransformer[Format](config: Configuration) extends Transformer[Veri
             val files = mods.map(m => TypingTrans.finalEncoding(m)(config))
 
             if (ifConfig(FinalEncoding, FinalEncoding.TFF)(config))
-              Success(TFFFormat(files.head.asInstanceOf[TffFile]))
+              Success(formatProducer(TFFFormat(files.head.asInstanceOf[TffFile])))
             else if (ifConfig(FinalEncoding, FinalEncoding.SMTLib)(config))
-              Success(SMTLibFormat(files.head.asInstanceOf[SMTLibFile]))
+              Success(formatProducer(SMTLibFormat(files.head.asInstanceOf[SMTLibFile])))
             else
-              Success(FOFFormat(files.head.asInstanceOf[FofFile]))
+              Success(formatProducer(FOFFormat(files.head.asInstanceOf[FofFile])))
 
           } catch {
             case tinf: TypeInference.TypeError => Failure(FormatTypeInferenceError(tinf))
@@ -130,5 +130,4 @@ object VeritasTransformerBestStrat extends VeritasTransformer(
     Simplification -> Simplification.LogicalAndConstructors,
     VariableEncoding -> VariableEncoding.InlineEverything,
     Selection -> Selection.SelectAll,
-    Problem -> Problem.All)))
-
+    Problem -> Problem.All)), x => x.asInstanceOf[TFFFormat])

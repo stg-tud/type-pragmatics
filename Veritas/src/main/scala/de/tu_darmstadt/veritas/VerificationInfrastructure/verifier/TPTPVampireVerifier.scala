@@ -13,5 +13,5 @@ class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1") extends TP
   /** Textual description that should be unique (used for ordering verifiers) */
   override val desc: String = "TPTPVampireVerifier"
 
-  override def prover: Prover[TPTP] = Vampire(timeout = timeout, version = version)
+  override def prover: Prover[TPTP] = VampireTPTP(timeout = timeout, version = version)
 }

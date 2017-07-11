@@ -391,6 +391,34 @@ class SQLSimpleProofGraphs extends FunSuite {
     }
   }
 
+  test("Verify all Goals in ProofGraph (Z3VampireVerifier)") {
+    val pg = makeAllGoalsProofGraph(allProvableTests)
+    val verifier = new Z3VampireVerifier()
+
+    for ((name, goal) <- allProvableTests) {
+      val retrievedResult = retrieveResult(pg, name, verifier)
+
+      assert(retrievedResult.status.isVerified)
+      assert(retrievedResult.status.isInstanceOf[Finished[_, _]])
+      assert(retrievedResult.errorMsg.isEmpty)
+      assert(retrievedResult.evidence.nonEmpty)
+    }
+  }
+
+  test("Verify all Goals in ProofGraph (ADTVampireVerifier)") {
+    val pg = makeAllGoalsProofGraph(allProvableTests)
+    val verifier = new ADTVampireVerifier()
+
+    for ((name, goal) <- allProvableTests) {
+      val retrievedResult = retrieveResult(pg, name, verifier)
+
+      assert(retrievedResult.status.isVerified)
+      assert(retrievedResult.status.isInstanceOf[Finished[_, _]])
+      assert(retrievedResult.errorMsg.isEmpty)
+      assert(retrievedResult.evidence.nonEmpty)
+    }
+  }
+
   def retrieveResult(pg: ProofGraph[VeritasConstruct, VeritasConstruct],
                      name: String,
                      verifier: Verifier[VeritasConstruct, VeritasConstruct]): GenStepResult[VeritasConstruct, VeritasConstruct] = {

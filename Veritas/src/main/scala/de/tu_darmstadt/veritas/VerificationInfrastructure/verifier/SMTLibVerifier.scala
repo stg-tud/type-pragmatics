@@ -21,7 +21,7 @@ trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
         Simplification -> Simplification.LogicalAndConstructors,
         VariableEncoding -> VariableEncoding.InlineEverything,
         Selection -> Selection.SelectAll,
-        Problem -> Problem.All)))
+        Problem -> Problem.All)), x => x.asInstanceOf[SMTLibFormat])
     spec match {
       case Module(name, imps, moddefs) => {
         val transformedProb = transformer.transformProblem(goal, spec, parentedges, assumptions)
@@ -41,6 +41,4 @@ trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
       case _ => produce.newStepResult(VerifierFailure(s"Specification was not a module $spec", this), None, None)
     }
   }
-}
-
 }
