@@ -44,6 +44,8 @@ class ToSMTLib {
     }
   }
 
+  private def isPredefinedFunction(name: String): Boolean = ToSMTLib.PREDEFINED_FUNCTIONNAMES.contains(name)
+
   private def encodeClosedDataType(name: String, constructors: Seq[DataTypeConstructor]): DataTypeDeclaration = {
     val encodedCotrs = constructors.map {
       encodeConstructor(_)
@@ -53,11 +55,16 @@ class ToSMTLib {
 
   private def encodeConstructor(cotr: DataTypeConstructor): Constructor = {
     // because we dont have the information of selector names we encode them as dataTypename_indexOfParam
+    val name =
+      if (isPredefinedFunction(cotr.name))
+        "f" + cotr.name
+      else
+        cotr.name
     val encodedSelectors = cotr.in.zipWithIndex.map { case (sr, index) =>
-      val selectorName = s"${cotr.name}_${index}"
+      val selectorName = s"${name}_${index}"
       Selector(selectorName, Type(sr.name))
     }
-    Constructor(cotr.name, encodedSelectors)
+    Constructor(name, encodedSelectors)
   }
 
   private def encodeFunctionType(name: String, parameter: Seq[SortRef], result: SortRef): FunctionDeclaration = {
@@ -203,5 +210,7 @@ class ToSMTLib {
 }
 
 object ToSMTLib {
+  val PREDEFINED_FUNCTIONNAMES = Seq("true", "false", "not", "=>", "and", "or", "xor", "=", "distinct", "ite")
+
   def apply(m: Module)(implicit config: Configuration) = (new ToSMTLib).toSMTLibFile(m)(config)
 }

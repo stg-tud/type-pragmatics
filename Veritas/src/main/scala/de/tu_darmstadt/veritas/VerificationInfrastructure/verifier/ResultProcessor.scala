@@ -25,7 +25,7 @@ abstract class ResultProcessor(outfile: File, defaultTimeout: Double, processLog
   def result: ProverStatus =
     proved match {
       case None => {
-        val details = ATPResultDetails(logBuilder.toString(), Some(message), None, None, time)
+        val details = ATPResultDetails(logBuilder.toString(), if (message == null) None else Some(message), None, None, time)
         if (error)
           ProverFailure(details)
         else
