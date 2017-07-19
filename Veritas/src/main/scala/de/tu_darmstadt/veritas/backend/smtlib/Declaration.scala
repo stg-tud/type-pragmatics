@@ -7,6 +7,16 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.{PrettyPrintWriter, Pret
   */
 sealed trait Declaration extends SMTLib
 
+case class ConstantDeclaration(name: String, typ: Type) extends Declaration {
+  override def prettyPrint(writer: PrettyPrintWriter): Unit = {
+    writer.write(s"(declare-const ")
+    writer.write(name)
+    writer.write(" ")
+    writer.write(typ)
+    writer.write(")")
+  }
+}
+
 case class DataTypeDeclaration(name: String, cotrs: Seq[Constructor]) extends Declaration {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write("(declare-datatypes ")

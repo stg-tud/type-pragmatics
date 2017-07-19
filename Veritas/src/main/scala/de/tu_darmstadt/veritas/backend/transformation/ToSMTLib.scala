@@ -10,6 +10,7 @@ import de.tu_darmstadt.veritas.backend.util.{FreeVariables, Util}
 class ToSMTLib {
   private var closedDatatypeDeclarations: Seq[DataTypeDeclaration] = Seq()
   private var openDatatypeDeclarations: Seq[Sort] = Seq()
+  private var constDeclarations: Seq[ConstantDeclaration] = Seq()
   private var functionDeclarations: Seq[FunctionDeclaration] = Seq()
   private var assertions: Seq[Assertion] = Seq()
   private var goal: Option[Goal] = None
@@ -20,6 +21,7 @@ class ToSMTLib {
     //make sure every mutable state is initialized when applying this!
     closedDatatypeDeclarations = Seq()
     openDatatypeDeclarations = Seq()
+    constDeclarations = Seq()
     functionDeclarations = Seq()
     assertions = Seq()
     goal = None
@@ -33,6 +35,8 @@ class ToSMTLib {
       else
         closedDatatypeDeclarations :+= encodeClosedDataType(n, cotrs)
     // collect constants TODO: why does ToTFF not add constants?
+    for (const <- types.consts)
+      constDeclarations :+= encodeConstant(const)
     for ((name, (in, out)) <- types.functypes ++ types.pfunctypes)
       functionDeclarations :+= encodeFunctionType(name, in, out)
     veritasModule match {
@@ -71,6 +75,10 @@ class ToSMTLib {
     val encodedParams = parameter.map { sr => Type(sr.name) }
     val encodedResult = Type(result.name)
     FunctionDeclaration(name, encodedParams, encodedResult)
+  }
+
+  def encodeConstant(name: String): ConstantDeclaration = {
+    ConstantDeclaration(name, Type(types.constrTypes(name)._2.name))
   }
 
   private def encodeBody(body: Seq[ModuleDef]): Unit = {
@@ -207,6 +215,7 @@ class ToSMTLib {
         SMTLibFile(name, g.name,
           openDatatypeDeclarations ++
             sortedClosedDatatypeDecls ++
+            constDeclarations ++
             functionDeclarations ++
             assertions ++
             Seq(g, CheckSat))
