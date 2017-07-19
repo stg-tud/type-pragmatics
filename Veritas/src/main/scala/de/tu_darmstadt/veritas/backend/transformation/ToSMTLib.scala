@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.smtlib._
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypes, CollectTypesClass}
-import de.tu_darmstadt.veritas.backend.util.FreeVariables
+import de.tu_darmstadt.veritas.backend.util.{FreeVariables, Util}
 
 class ToSMTLib {
   private var closedDatatypeDeclarations: Seq[DataTypeDeclaration] = Seq()
@@ -202,8 +202,14 @@ class ToSMTLib {
 
   private def constructFinalSMTLib(name: String): SMTLibFile = {
     goal match {
-      case Some(g) => SMTLibFile(name, g.name,
-        openDatatypeDeclarations ++ closedDatatypeDeclarations ++ functionDeclarations ++ assertions ++ Seq(g, CheckSat))
+      case Some(g) =>
+        val sortedClosedDatatypeDecls = Util.sortByPartialOrdering(closedDatatypeDeclarations, ToSMTLib.dataTypeLessThan)
+        SMTLibFile(name, g.name,
+          openDatatypeDeclarations ++
+            sortedClosedDatatypeDecls ++
+            functionDeclarations ++
+            assertions ++
+            Seq(g, CheckSat))
       case None => throw TransformationError(s"There was no goal in Module ${name}; SMTLib Transformation failed!")
     }
   }
@@ -211,6 +217,9 @@ class ToSMTLib {
 
 object ToSMTLib {
   val PREDEFINED_FUNCTIONNAMES = Seq("true", "false", "not", "=>", "and", "or", "xor", "=", "distinct", "ite")
+
+  def dataTypeLessThan(x: DataTypeDeclaration, y: DataTypeDeclaration): Boolean =
+    y.cotrs.flatMap(_.selectors).exists(_.returnType.name == x.name)
 
   def apply(m: Module)(implicit config: Configuration) = (new ToSMTLib).toSMTLibFile(m)(config)
 }
