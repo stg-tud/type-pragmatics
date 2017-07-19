@@ -34,26 +34,23 @@ class ToSMTLib {
         openDatatypeDeclarations :+= Sort(n)
       else
         closedDatatypeDeclarations :+= encodeClosedDataType(n, cotrs)
-    // collect constants TODO: why does ToTFF not add constants?
     for (const <- types.consts)
       constDeclarations :+= encodeConstant(const)
     for ((name, (in, out)) <- types.functypes ++ types.pfunctypes)
       functionDeclarations :+= encodeFunctionType(name, in, out)
     veritasModule match {
-      case Module(name, Seq(), body) => {
+      case Module(name, Seq(), body) =>
         encodeBody(body)
         constructFinalSMTLib(name)
-      }
-      case Module(name, _, _) => throw TransformationError(s"Failed to transform Module ${name} to SMTLib: Module still contained imports!")
+      case Module(name, _, _) =>
+        throw TransformationError(s"Failed to transform Module $name to SMTLib: Module still contained imports!")
     }
   }
 
   private def isPredefinedFunction(name: String): Boolean = ToSMTLib.PREDEFINED_FUNCTIONNAMES.contains(name)
 
   private def encodeClosedDataType(name: String, constructors: Seq[DataTypeConstructor]): DataTypeDeclaration = {
-    val encodedCotrs = constructors.map {
-      encodeConstructor(_)
-    }
+    val encodedCotrs = constructors.map(encodeConstructor)
     DataTypeDeclaration(name, encodedCotrs)
   }
 
@@ -65,7 +62,7 @@ class ToSMTLib {
       else
         cotr.name
     val encodedSelectors = cotr.in.zipWithIndex.map { case (sr, index) =>
-      val selectorName = s"${name}_${index}"
+      val selectorName = s"${name}_$index"
       Selector(selectorName, Type(sr.name))
     }
     Constructor(name, encodedSelectors)
@@ -82,14 +79,14 @@ class ToSMTLib {
   }
 
   private def encodeBody(body: Seq[ModuleDef]): Unit = {
-    body.dropRight(1).foreach {
+    body.init.foreach {
       case a@Axioms(_) => assertions ++= encodeAssertions(a)
-      case Goals(gs, _) => throw TransformationError("Found goal in Module which was not at last position!")
-      case DataType(_, name, cs) => {}
-      case Consts(cs, _) => {}
-      case Sorts(s) => {}
-      case Functions(fds) => {}
-      case PartialFunctions(fds) => {}
+      case Goals(_, _) => throw TransformationError("Found goal in Module which was not at last position!")
+      case DataType(_, _, _) =>
+      case Consts(_, _) =>
+      case Sorts(_) =>
+      case Functions(_) =>
+      case PartialFunctions(_) =>
       case _ => throw TransformationError("Unsupported top-level construct!")
     }
     body.last match {
@@ -138,30 +135,28 @@ class ToSMTLib {
   private def encodeJudgement(jdg: TypingRuleJudgment): Term =
     jdg match {
       case FunctionExpJudgment(f) => encodeFunctionExp(f)
-      case ExistsJudgment(vars, jdglist) => {
+      case ExistsJudgment(vars, jdglist) =>
         val mappedvars = makeVarlist(vars, jdglist)
         if (mappedvars.isEmpty)
           And(jdglist map encodeJudgement)
         else
           Exists(mappedvars, And(jdglist map encodeJudgement))
-      }
-      case ForallJudgment(vars, jdglist) => {
+      case ForallJudgment(vars, jdglist) =>
         val mappedvars = makeVarlist(vars, jdglist)
         if (mappedvars.isEmpty)
           And(jdglist map encodeJudgement)
         else
           ForAll(mappedvars, And(jdglist map encodeJudgement))
-      }
-      case NotJudgment(jdg) => Not(encodeJudgement(jdg))
-      case OrJudgment(ors) => {
+      case NotJudgment(njdg) => Not(encodeJudgement(njdg))
+      case OrJudgment(ors) =>
         val translatedors = ors map (orcase => And(orcase map encodeJudgement))
         if (translatedors.isEmpty)
           True
         else if (translatedors.length == 1)
           translatedors.head
         else Or(translatedors)
-      }
-      case _ => throw TransformationError("Encountered unsupported judgment while translating a goal or axiom (e.g. typing judgment)")
+      case _ =>
+        throw TransformationError("Encountered unsupported judgment while translating a goal or axiom")
     }
 
   /**
@@ -169,18 +164,24 @@ class ToSMTLib {
     */
   private def encodeFunctionExp(f: FunctionExp): Term =
     f match {
-      case FunctionExpNot(f) => Not(encodeFunctionExp(f))
+      case FunctionExpNot(fe) => Not(encodeFunctionExp(fe))
       case FunctionExpEq(f1, f2) => Eq(encodeFunctionExpMeta(f1), encodeFunctionExpMeta(f2))
       case FunctionExpNeq(f1, f2) => Not(Eq(encodeFunctionExpMeta(f1), encodeFunctionExpMeta(f2)))
       case FunctionExpAnd(l, r) => And(Seq(encodeFunctionExp(l), encodeFunctionExp(r)))
       case FunctionExpOr(l, r) => Or(Seq(encodeFunctionExp(l), encodeFunctionExp(r)))
       case FunctionExpBiImpl(l, r) => encodeBiImpl(l, r)
-      case FunctionExpLet(name, binding, body) => Let(Seq(VariableBinding(name, encodeFunctionExpMeta(binding))), encodeFunctionExp(body.asInstanceOf[FunctionExp]))
-      case FunctionExpIf(cond, thenE, elseE) => IfThenElse(encodeFunctionExp(cond), encodeFunctionExp(thenE.asInstanceOf[FunctionExp]), encodeFunctionExp(elseE.asInstanceOf[FunctionExp]))
+      case FunctionExpLet(name, binding, body) =>
+        Let(Seq(VariableBinding(name, encodeFunctionExpMeta(binding))),
+          encodeFunctionExp(body.asInstanceOf[FunctionExp]))
+      case FunctionExpIf(cond, thenE, elseE) =>
+        IfThenElse(encodeFunctionExp(cond),
+          encodeFunctionExp(thenE.asInstanceOf[FunctionExp]),
+          encodeFunctionExp(elseE.asInstanceOf[FunctionExp]))
       case FunctionExpApp(n, args) => Appl(n, args map encodeFunctionExpMeta)
       case FunctionExpTrue => True
       case FunctionExpFalse => False
-      case _ => throw TransformationError("Encountered unsupported function expression while translating (e.g. if or let expression)")
+      case _ =>
+        throw TransformationError("Encountered unsupported function expression while translating")
     }
 
   private def encodeBiImpl(left: FunctionExp, right: FunctionExp): Term = {
@@ -203,15 +204,21 @@ class ToSMTLib {
       case FunctionMeta(MetaVar(m)) => VariableReference(m)
       case FunctionExpVar(n) => VariableReference(n) //can occur inside lets, but should not occur elsewhere!
       case FunctionExpApp(n, args) => Appl(n, args map encodeFunctionExpMeta)
-      case FunctionExpLet(name, binding, body) => Let(Seq(VariableBinding(name, encodeFunctionExpMeta(binding))), encodeFunctionExpMeta(body))
-      case FunctionExpIf(cond, thenE, elseE) => IfThenElse(encodeFunctionExp(cond), encodeFunctionExpMeta(thenE), encodeFunctionExpMeta(elseE))
+      case FunctionExpLet(name, binding, body) =>
+        Let(Seq(VariableBinding(name, encodeFunctionExpMeta(binding))),
+          encodeFunctionExpMeta(body))
+      case FunctionExpIf(cond, thenE, elseE) =>
+        IfThenElse(encodeFunctionExp(cond),
+          encodeFunctionExpMeta(thenE),
+          encodeFunctionExpMeta(elseE))
       case _ => throw TransformationError("Encountered unexpected construct in encodeFunctionExpMeta.")
     }
 
   private def constructFinalSMTLib(name: String): SMTLibFile = {
     goal match {
       case Some(g) =>
-        val sortedClosedDatatypeDecls = Util.sortByPartialOrdering(closedDatatypeDeclarations, ToSMTLib.dataTypeLessThan)
+        val sortedClosedDatatypeDecls =
+          Util.sortByPartialOrdering(closedDatatypeDeclarations, ToSMTLib.dataTypeLessThan)
         SMTLibFile(name, g.name,
           openDatatypeDeclarations ++
             sortedClosedDatatypeDecls ++
@@ -219,7 +226,7 @@ class ToSMTLib {
             functionDeclarations ++
             assertions ++
             Seq(g, CheckSat))
-      case None => throw TransformationError(s"There was no goal in Module ${name}; SMTLib Transformation failed!")
+      case None => throw TransformationError(s"There was no goal in Module $name; SMTLib Transformation failed!")
     }
   }
 }
@@ -230,5 +237,9 @@ object ToSMTLib {
   def dataTypeLessThan(x: DataTypeDeclaration, y: DataTypeDeclaration): Boolean =
     y.cotrs.flatMap(_.selectors).exists(_.returnType.name == x.name)
 
-  def apply(m: Module)(implicit config: Configuration) = (new ToSMTLib).toSMTLibFile(m)(config)
+  def apply(m: Module)(implicit config: Configuration): SMTLibFile = {
+    val encoder = new ToSMTLib
+    encoder.toSMTLibFile(m)(config)
+  }
+
 }
