@@ -15,7 +15,28 @@ class ToSMTLib {
   private var assertions: Seq[Assertion] = Seq()
   private var goal: Option[Goal] = None
 
+  //append string prefixes to translated names in order to avoid name clashes with keywords
+
+  private val functionnameprefix: String = "f"
+  private val constructornameprefix: String = "c"
+  private val constantprefix: String = "cst"
+  private val varprefix: String = "v"
+
+  private def addtypeprefix(t: String): String = if (t == "Bool") t else "t" + t
+
+  private def applicationprefix(name: String): String = {
+    lazy val allconstructors: Seq[String] = (types.dataTypes.values flatMap (p => p._2)).toSeq map (dt => dt.name)
+    val allconstants: Set[String] = types.consts
+    if (allconstructors contains name)
+      constructornameprefix + name
+    else if (allconstants contains name)
+      constantprefix + name
+    else
+      functionnameprefix + name
+  }
+
   private var types: CollectTypes = _
+
 
   def toSMTLibFile(veritasModule: Module)(implicit config: Configuration): SMTLibFile = {
     //make sure every mutable state is initialized when applying this!
@@ -31,7 +52,7 @@ class ToSMTLib {
 
     for ((n, (isOpen, cotrs)) <- types.dataTypes)
       if (isOpen)
-        openDatatypeDeclarations :+= Sort(n)
+        openDatatypeDeclarations :+= Sort(addtypeprefix(n))
       else
         closedDatatypeDeclarations :+= encodeClosedDataType(n, cotrs)
     for (const <- types.consts)
@@ -51,31 +72,27 @@ class ToSMTLib {
 
   private def encodeClosedDataType(name: String, constructors: Seq[DataTypeConstructor]): DataTypeDeclaration = {
     val encodedCotrs = constructors.map(encodeConstructor)
-    DataTypeDeclaration(name, encodedCotrs)
+    DataTypeDeclaration(addtypeprefix(name), encodedCotrs)
   }
 
   private def encodeConstructor(cotr: DataTypeConstructor): Constructor = {
     // because we dont have the information of selector names we encode them as dataTypename_indexOfParam
-    val name =
-      if (isPredefinedFunction(cotr.name))
-        "f" + cotr.name
-      else
-        cotr.name
+    val name = constructornameprefix + cotr.name
     val encodedSelectors = cotr.in.zipWithIndex.map { case (sr, index) =>
       val selectorName = s"${name}_$index"
-      Selector(selectorName, Type(sr.name))
+      Selector(selectorName, Type(addtypeprefix(sr.name)))
     }
     Constructor(name, encodedSelectors)
   }
 
   private def encodeFunctionType(name: String, parameter: Seq[SortRef], result: SortRef): FunctionDeclaration = {
-    val encodedParams = parameter.map { sr => Type(sr.name) }
-    val encodedResult = Type(result.name)
-    FunctionDeclaration(name, encodedParams, encodedResult)
+    val encodedParams = parameter.map { sr => Type(addtypeprefix(sr.name)) }
+    val encodedResult = Type(addtypeprefix(result.name))
+    FunctionDeclaration(functionnameprefix + name, encodedParams, encodedResult)
   }
 
   def encodeConstant(name: String): ConstantDeclaration = {
-    ConstantDeclaration(name, Type(types.constrTypes(name)._2.name))
+    ConstantDeclaration(constantprefix + name, Type(addtypeprefix(types.constrTypes(name)._2.name)))
   }
 
   private def encodeBody(body: Seq[ModuleDef]): Unit = {
@@ -126,7 +143,7 @@ class ToSMTLib {
 
   private def makeVarlist(vars: Seq[MetaVar], jdgs: Seq[TypingRuleJudgment]): Seq[SortedVariable] = {
     for (v <- vars)
-      yield SortedVariable(v.name, Type(v.sortType.name))
+      yield SortedVariable(varprefix + v.name, Type(addtypeprefix(v.sortType.name)))
   }
 
   /**
@@ -171,13 +188,13 @@ class ToSMTLib {
       case FunctionExpOr(l, r) => Or(Seq(encodeFunctionExp(l), encodeFunctionExp(r)))
       case FunctionExpBiImpl(l, r) => encodeBiImpl(l, r)
       case FunctionExpLet(name, binding, body) =>
-        Let(Seq(VariableBinding(name, encodeFunctionExpMeta(binding))),
+        Let(Seq(VariableBinding(varprefix + name, encodeFunctionExpMeta(binding))),
           encodeFunctionExp(body.asInstanceOf[FunctionExp]))
       case FunctionExpIf(cond, thenE, elseE) =>
         IfThenElse(encodeFunctionExp(cond),
           encodeFunctionExp(thenE.asInstanceOf[FunctionExp]),
           encodeFunctionExp(elseE.asInstanceOf[FunctionExp]))
-      case FunctionExpApp(n, args) => Appl(n, args map encodeFunctionExpMeta)
+      case FunctionExpApp(n, args) => Appl(applicationprefix(n), args map encodeFunctionExpMeta)
       case FunctionExpTrue => True
       case FunctionExpFalse => False
       case _ =>
@@ -201,11 +218,11 @@ class ToSMTLib {
 
   private def encodeFunctionExpMeta(f: FunctionExpMeta): Term =
     f match {
-      case FunctionMeta(MetaVar(m)) => VariableReference(m)
-      case FunctionExpVar(n) => VariableReference(n) //can occur inside lets, but should not occur elsewhere!
-      case FunctionExpApp(n, args) => Appl(n, args map encodeFunctionExpMeta)
+      case FunctionMeta(MetaVar(m)) => VariableReference(varprefix + m)
+      case FunctionExpVar(n) => VariableReference(varprefix + n) //can occur inside lets, but should not occur elsewhere!
+      case FunctionExpApp(n, args) => Appl(applicationprefix(n), args map encodeFunctionExpMeta)
       case FunctionExpLet(name, binding, body) =>
-        Let(Seq(VariableBinding(name, encodeFunctionExpMeta(binding))),
+        Let(Seq(VariableBinding(varprefix + name, encodeFunctionExpMeta(binding))),
           encodeFunctionExpMeta(body))
       case FunctionExpIf(cond, thenE, elseE) =>
         IfThenElse(encodeFunctionExp(cond),
