@@ -562,6 +562,7 @@ object SQLSoundnessProofGraph {
     PropertyTypes.registerPropertyType[findColTypeImpliesfindColInduction.type](g.store)
     PropertyTypes.registerPropertyType[projectTypeAttrLImpliesfindAllColTypeInduction.type](g.store)
     PropertyTypes.registerPropertyType[dropFirstColRawPreservesWelltypedRawInduction.type](g.store)
+    PropertyTypes.registerPropertyType[verifier.Unknown[_, _]](g.store)
   }
 }
 
