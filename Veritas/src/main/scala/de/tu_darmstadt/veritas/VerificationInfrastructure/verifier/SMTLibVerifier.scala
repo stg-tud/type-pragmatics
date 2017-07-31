@@ -28,6 +28,9 @@ trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
 
         transformedProb match {
           case Success(smtLib) => {
+            //for debugging purposes
+            println("SMTLIB file: ")
+            println(smtLib.toString)
             val proverstatus = prover.callProver(smtLib)
             produce.newStepResult(Finished(proverstatus, this),
               proverstatus.proverResult.proofEvidence,

@@ -24,7 +24,7 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
 
   override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]](goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct], hints: Option[VerifierHints], produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result]): Result = {
     val transformer = new VeritasTransformer[TPTP](
-      Configuration(Map(FinalEncoding -> FinalEncoding.BareFOF,
+      Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
         Simplification -> Simplification.LogicalAndConstructors,
         VariableEncoding -> VariableEncoding.InlineEverything,
         Selection -> Selection.SelectAll,
@@ -35,6 +35,9 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
 
         transformedProb match {
           case Success(tptp) => {
+            //for debugging purposes
+            println("TPTP file: ")
+            println(tptp.toString)
             val proverstatus = prover.callProver(tptp)
             produce.newStepResult(Finished(proverstatus, this),
               proverstatus.proverResult.proofEvidence,
