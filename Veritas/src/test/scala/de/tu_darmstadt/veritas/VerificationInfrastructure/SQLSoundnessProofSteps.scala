@@ -456,7 +456,7 @@ object SQLSoundnessProofSteps {
   val dropFirstColRawPreservesWelltypedRawTconsConsts = consts('rts ::> 'RawTable)
 
   val dropFirstColRawPreservesWelltypedRawTconsIH: Axioms = axiom(
-    ((~'rt === 'rtr) &
+    ((~'rt === 'rts) &
       (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
       ('welltypedRawtable (~'tt, ~'rt))
       ).===>("dropFirstColRaw-preserves-welltypedRaw-tcons-IH")(
@@ -464,7 +464,7 @@ object SQLSoundnessProofSteps {
     ))
 
   val dropFirstColRawPreservesWelltypedRawTcons: Goals = goal(
-    ((~'rt === 'tcons (~'r, 'rtr)) &
+    ((~'rt === 'tcons (~'r, 'rts)) &
       (~'tt === 'ttcons (~'n, ~'ft, ~'ttr)) &
       ('welltypedRawtable (~'tt, ~'rt))
       ).===>("dropFirstColRaw-preserves-welltypedRaw-tcons")(

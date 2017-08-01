@@ -461,8 +461,10 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     println(resstep.status)
 
     //for this step, there was a type inference error in loaded graph!
+    //now fixed, so test fails
     assert(!resstep.status.isVerified)
     assert(resstep.status.isInstanceOf[VerifierFailure[_,_]])
+    println(resstep.status)
     assert(resstep.errorMsg.isEmpty)
     assert(resstep.evidence.isEmpty)
   }
