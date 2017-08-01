@@ -578,7 +578,7 @@ object ConstructSQLSoundnessGraph extends App {
 
   val pg = new SQLSoundnessProofGraph(file)
 
-  pg.verifySingleStepsSimple()
+  //pg.verifySingleStepsSimple()
 
 }
 
