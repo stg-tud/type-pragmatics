@@ -46,7 +46,7 @@ object SQLSoundnessProofSteps {
       (!'isValue (~'q)) &
       (~'TTC |- ~'q :: ~'TT) &
       'StoreContextConsistent (~'TS, ~'TTC)
-      ).===>("SQL-Progress-T-selectFromWhere-test")(
+      ).===>("SQL-Progress-T-selectFromWhere")(
       exists(~'qo) |
         ('reduce (~'q, ~'TS) === 'someQuery (~'qo)))
   )
@@ -243,7 +243,7 @@ object SQLSoundnessProofSteps {
       'StoreContextConsistent (~'TS, ~'TTC) &
       ('lookupStore (~'tn, ~'TS) === 'someTable (~'t)) &
       ('lookupContext (~'tn, ~'TTC) === 'someTType (~'tt))
-      ).===>("welltyped-lookup")(
+      ).===>("welltyped-lookup-bind")(
       'welltypedtable (~'tt, ~'t))
   )
 
