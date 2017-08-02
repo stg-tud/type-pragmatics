@@ -22,13 +22,14 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
 
   def prover: Prover[TPTP]
 
+  def transformer = new VeritasTransformer[TPTP](
+    Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
+      Simplification -> Simplification.LogicalAndConstructors,
+      VariableEncoding -> VariableEncoding.InlineEverything,
+      Selection -> Selection.SelectAll,
+      Problem -> Problem.All)), x => x.asInstanceOf[TPTP])
+
   override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]](goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct], hints: Option[VerifierHints], produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result]): Result = {
-    val transformer = new VeritasTransformer[TPTP](
-      Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
-        Simplification -> Simplification.LogicalAndConstructors,
-        VariableEncoding -> VariableEncoding.InlineEverything,
-        Selection -> Selection.SelectAll,
-        Problem -> Problem.All)), x => x.asInstanceOf[TPTP])
     spec match {
       case Module(name, imps, moddefs) => {
         val transformedProb = transformer.transformProblem(goal, spec, parentedges, assumptions)

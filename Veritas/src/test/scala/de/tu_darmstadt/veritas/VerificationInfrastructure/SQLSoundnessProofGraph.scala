@@ -298,8 +298,8 @@ class SQLSoundnessProofGraph(file: File) {
   import SQLMockTactics._
   import SQLSoundnessProofSteps._
 
-  val g: ProofGraphXodus[VeritasConstruct, VeritasConstruct] =
-    new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file)
+  val g: ProofGraphXodus[VeritasConstruct, VeritasConstruct] with ProofGraphTraversals[VeritasConstruct, VeritasConstruct] =
+    new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
   SQLSoundnessProofGraph.initializeGraphTypes(g)
 
 
@@ -578,7 +578,7 @@ object ConstructSQLSoundnessGraph extends App {
 
   val pg = new SQLSoundnessProofGraph(file)
 
-  //pg.verifySingleStepsSimple()
+  pg.verifySingleStepsSimple()
 
 }
 
