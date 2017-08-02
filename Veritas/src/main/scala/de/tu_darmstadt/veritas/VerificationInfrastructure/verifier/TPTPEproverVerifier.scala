@@ -36,8 +36,8 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
         transformedProb match {
           case Success(tptp) => {
             //for debugging purposes
-            println("TPTP file: ")
-            println(tptp.toString)
+            //println("TPTP file: ")
+            //println(tptp.toString)
             val proverstatus = prover.callProver(tptp)
             produce.newStepResult(Finished(proverstatus, this),
               proverstatus.proverResult.proofEvidence,
