@@ -4,7 +4,6 @@ import org.scalatest.FunSuite
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics.MockInduction
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Solve
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.FreshNames
@@ -32,7 +31,7 @@ class VampireWorkshopComparisons extends FunSuite {
   val defaultlong_timeout = 120
   val unsuccessful_timeout = 1
 
-  val timeout_queue = Seq(5, 10, 30, 120)
+  val timeout_queue = Seq(5, 10, 30, 90)
 
   def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
   def makeCustomVampireTarQueue: Seq[Verifier[VeritasConstruct, VeritasConstruct]] =
