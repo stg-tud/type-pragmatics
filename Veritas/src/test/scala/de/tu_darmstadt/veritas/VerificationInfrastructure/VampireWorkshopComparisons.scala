@@ -5,6 +5,7 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics.MockInduction
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 
@@ -53,6 +54,12 @@ class VampireWorkshopComparisons extends FunSuite {
 
     val SQLPG = new SQLSoundnessProofGraph(file)
     val pg = SQLPG.g //actual ProofGraphXodus instance
+
+    //visualize proof graph
+    val graphfile = new File("SQLProgressPG.png")
+    if (file.exists()) recursivedelete(file)
+    Dot(pg, graphfile)
+
 
     val noinductobls = pg.obligationDFS() filter (o => !pg.appliedStep(o).get.tactic.isInstanceOf[MockInduction])
     val solveps = for (obl <- noinductobls) pg.appliedStep(obl)
