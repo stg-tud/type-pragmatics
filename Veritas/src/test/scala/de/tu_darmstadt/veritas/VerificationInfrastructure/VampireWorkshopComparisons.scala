@@ -32,17 +32,20 @@ class VampireWorkshopComparisons extends FunSuite {
   val defaultlong_timeout = 120
   val unsuccessful_timeout = 1
 
-  val timeout_queue = Seq(5, 10, 30, 90)
+  val timeout_queue = Seq() //Seq(5, 10, 30, 90)
 
   def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
+
   def makeCustomVampireTarQueue: Seq[Verifier[VeritasConstruct, VeritasConstruct]] =
     for (t <- timeout_queue) yield makeCustomVampireTar(t)
 
   def makeCustomVampireZ3(timeout: Int) = new Z3VampireVerifier(timeout)
+
   def makeCustomVampireZ3Queue: Seq[Verifier[VeritasConstruct, VeritasConstruct]] =
     for (t <- timeout_queue) yield makeCustomVampireZ3(t)
 
   def makeCustomVampire(timeout: Int, logic: String) = new TPTPVampireVerifier(timeout, "4.1", logic)
+
   def makeCustomVampireQueue(logic: String): Seq[Verifier[VeritasConstruct, VeritasConstruct]] =
     for (t <- timeout_queue) yield makeCustomVampire(t, logic)
 
@@ -54,11 +57,6 @@ class VampireWorkshopComparisons extends FunSuite {
 
     val SQLPG = new SQLSoundnessProofGraph(file)
     val pg = SQLPG.g //actual ProofGraphXodus instance
-
-    //visualize proof graph
-    val graphfile = new File("SQLProgressPG.png")
-    if (file.exists()) recursivedelete(file)
-    Dot(pg, graphfile)
 
 
     val noinductobls = pg.obligationDFS() filter (o => !pg.appliedStep(o).get.tactic.isInstanceOf[MockInduction])
@@ -95,21 +93,118 @@ class VampireWorkshopComparisons extends FunSuite {
       maybefinal.getOrElse(results.last)
     }
 
-      for (obl <- noinductobls) {
-        val ps = pg.appliedStep(obl).get
-        val goalname = extractGoalName(obl.goal)
-        val vampire_4_1_fof = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireQueue("fof"))
-        val vampire_4_1_tff = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireQueue("tff"))
-        val vampire_4_1_tar = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireTarQueue)
-        val vampire_4_1_Z3_tar = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireZ3Queue)
+    for (obl <- noinductobls) {
+      val ps = pg.appliedStep(obl).get
+      val goalname = extractGoalName(obl.goal)
+      val vampire_4_1_fof = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireQueue("fof"))
+      val vampire_4_1_tff = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireQueue("tff"))
+      val vampire_4_1_tar = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireTarQueue)
+      val vampire_4_1_Z3_tar = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireZ3Queue)
 
-        val vampire_4_1_fof_res = printStepResult(vampire_4_1_fof)
-        val vampire_4_1_tff_res = printStepResult(vampire_4_1_tff)
-        val vampire_4_1_tar_res = printStepResult(vampire_4_1_tar)
-        val vampire_4_1_Z3_tar_res = printStepResult(vampire_4_1_Z3_tar)
 
-        println(s"$goalname; $vampire_4_1_fof_res; $vampire_4_1_tff_res; $vampire_4_1_tar_res; $vampire_4_1_Z3_tar_res")
-      }
+      val vampire_4_1_fof_res = printStepResult(vampire_4_1_fof)
+      val vampire_4_1_tff_res = printStepResult(vampire_4_1_tff)
+      val vampire_4_1_tar_res = printStepResult(vampire_4_1_tar)
+      val vampire_4_1_Z3_tar_res = printStepResult(vampire_4_1_Z3_tar)
+
+      println(s"$goalname; $vampire_4_1_fof_res; $vampire_4_1_tff_res; $vampire_4_1_tar_res; $vampire_4_1_Z3_tar_res")
+    }
+  }
+
+  test("Visualize different graphs (fof)") {
+    //construct a new test database with SQL progress proof graph
+    val file = new File("SQLProgressProof-visualization-fof")
+    if (file.exists()) recursivedelete(file)
+    if (!file.mkdir()) sys.error("Could not create new store for SQLSoundnessProofGraph-visualization-fof.")
+
+    val SQLPG = new SQLSoundnessProofGraph(file)
+    val pg = SQLPG.g //actual ProofGraphXodus instance
+
+    //visualize proof graph
+
+    def visualizeGraph(filename: String) {
+      val graphfile = new File(filename)
+      if (file.exists()) recursivedelete(file)
+      Dot(pg, graphfile)
     }
 
+    visualizeGraph("SQLProgressNothingVerified.png")
+
+    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampire(90, "fof")))
+    visualizeGraph("SQLProgressFOF.png")
+
   }
+
+  test("Visualize different graphs (tff)") {
+    //construct a new test database with SQL progress proof graph
+    val file = new File("SQLProgressProof-visualization-tff")
+    if (file.exists()) recursivedelete(file)
+    if (!file.mkdir()) sys.error("Could not create new store for SQLSoundnessProofGraph-visualization-tff.")
+
+    val SQLPG = new SQLSoundnessProofGraph(file)
+    val pg = SQLPG.g //actual ProofGraphXodus instance
+
+    //visualize proof graph
+
+    def visualizeGraph(filename: String) {
+      val graphfile = new File(filename)
+      if (file.exists()) recursivedelete(file)
+      Dot(pg, graphfile)
+    }
+
+
+    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampire(90, "tff")))
+    visualizeGraph("SQLProgressTFF.png")
+
+  }
+
+  test("Visualize different graphs (tar)") {
+    //construct a new test database with SQL progress proof graph
+    val file = new File("SQLProgressProof-visualization-tar")
+    if (file.exists()) recursivedelete(file)
+    if (!file.mkdir()) sys.error("Could not create new store for SQLSoundnessProofGraph-visualization-tar.")
+
+    val SQLPG = new SQLSoundnessProofGraph(file)
+    val pg = SQLPG.g //actual ProofGraphXodus instance
+
+    //visualize proof graph
+
+    def visualizeGraph(filename: String) {
+      val graphfile = new File(filename)
+      if (file.exists()) recursivedelete(file)
+      Dot(pg, graphfile)
+    }
+
+    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampireTar(90)))
+    visualizeGraph("SQLProgressTAR.png")
+
+  }
+
+  test("Visualize different graphs (z3tar)") {
+    //construct a new test database with SQL progress proof graph
+    val file = new File("SQLProgressProof-visualization-z3tar")
+    if (file.exists()) recursivedelete(file)
+    if (!file.mkdir()) sys.error("Could not create new store for SQLSoundnessProofGraph-visualization-z3tar.")
+
+    val SQLPG = new SQLSoundnessProofGraph(file)
+    val pg = SQLPG.g //actual ProofGraphXodus instance
+
+    //visualize proof graph
+
+    def visualizeGraph(filename: String) {
+      val graphfile = new File(filename)
+      if (file.exists()) recursivedelete(file)
+      Dot(pg, graphfile)
+    }
+
+    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampireZ3(90)))
+    visualizeGraph("SQLProgressZ3TAR.png")
+
+  }
+
+
+
+
+
+
+}
