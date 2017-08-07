@@ -93,3 +93,5 @@ VeritasSpoofax/test/stlc/proofs/
 /xodus-entity-browser/build
 /xodus-entity-browser/.gradle
 /Veritas/SQLProgressProof-comparison
+Veritas/*.png
+Veritas/*.dot
