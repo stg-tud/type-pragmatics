@@ -7,10 +7,16 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.{PrettyPrintWriter, Pret
   */
 trait SMTLib extends PrettyPrintable
 
-final case class Assertion(content: SMTLib) extends SMTLib {
+final case class Assertion(content: SMTLib, name: Option[String] = None) extends SMTLib {
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write("(assert ")
+    if (name.nonEmpty)
+      writer.write("(! ")
     writer.write(content)
+    if (name.nonEmpty) {
+      writer.write(s" :named ${name.get})")
+    }
+
     writer.write(")")
   }
 }

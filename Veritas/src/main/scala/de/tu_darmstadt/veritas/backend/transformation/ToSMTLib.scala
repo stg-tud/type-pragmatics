@@ -114,7 +114,7 @@ class ToSMTLib {
 
   private def encodeAssertions(axioms: Axioms): Seq[Assertion] = {
     axioms.axioms.map { axiom =>
-      Assertion(encodeTypingRule(axiom.premises, axiom.consequences))
+      Assertion(encodeTypingRule(axiom.premises, axiom.consequences), Some(axiom.name))
     }
   }
 
@@ -124,7 +124,7 @@ class ToSMTLib {
   private def encodeGoal(g: TypingRule): Goal =
     g match {
       case TypingRule(name, prems, conseqs) =>
-        Goal(name, Assertion(Not(encodeTypingRule(prems, conseqs))))
+        Goal(name, Assertion(Not(encodeTypingRule(prems, conseqs)), Some(name)))
     }
 
   private def encodeTypingRule(premises: Seq[TypingRuleJudgment], consequences: Seq[TypingRuleJudgment]): Term = {
