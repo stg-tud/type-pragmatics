@@ -9,6 +9,9 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
   val oblShape = "shape=box"
   val psShape = "shape=diamond"
 
+  val oblPrefix = "obl"
+  val psPrefix = "ps"
+
   private val builder: StringBuilder = StringBuilder.newBuilder
 
   override def getResult(): String = {
@@ -21,7 +24,7 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
     val oblColor = colorObl(obl)
     val oblVisual = cleanLabel(labelObligation(obl))
     val style = Seq(oblShape, s"color=$oblColor", s"label=$oblVisual")//, "style=filled")
-    encodeNode(obl.hashCode.toString, style)
+    encodeNode(oblPrefix + normalizeHashCode(obl.hashCode).toString, style)
   }
 
   private def labelObligation(obligation: graph.Obligation): String =
@@ -73,8 +76,11 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
     val psColor = colorProofStep(ps)
     val psVisual = cleanLabel(labelProofStep(ps))
     val style = Seq(psShape, s"color=$psColor", s"label=$psVisual")//, "style=filled")
-    encodeNode(ps.hashCode.toString, style)
+    encodeNode(psPrefix + normalizeHashCode(ps.hashCode).toString, style)
   }
+
+  private def normalizeHashCode(hash: Int): Int = hash & Integer.MAX_VALUE
+
 
   private def labelProofStep(ps: graph.ProofStep): String = ps.tactic.getClass.getSimpleName
 
@@ -90,17 +96,17 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
 
   override def linkToProofStep(obl: graph.Obligation, ps: graph.ProofStep): Unit = {
     indent()
-    builder.append(obl.hashCode)
+    builder.append(oblPrefix + normalizeHashCode(obl.hashCode))
     builder.append(" -> ")
-    builder.append(ps.hashCode)
+    builder.append(psPrefix + normalizeHashCode(ps.hashCode))
     newline()
   }
 
   override def linkFromProofStep(ps: graph.ProofStep, obl: graph.Obligation, edgeLabel: EdgeLabel): Unit = {
     indent()
-    builder.append(ps.hashCode)
+    builder.append(psPrefix + normalizeHashCode(ps.hashCode))
     builder.append(" -> ")
-    builder.append(obl.hashCode)
+    builder.append(oblPrefix + normalizeHashCode(obl.hashCode))
     val label = Seq(s"label=${cleanLabel(edgeLabel.desc)}")
     setAppearance(label)
     newline()
