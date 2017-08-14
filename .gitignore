@@ -95,3 +95,4 @@ VeritasSpoofax/test/stlc/proofs/
 /Veritas/SQLProgressProof-comparison
 Veritas/*.png
 Veritas/*.dot
+/Veritas/SQLSoundnessProofGraph-store
