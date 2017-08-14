@@ -107,7 +107,8 @@ class SudokuLeafVerifier
    parentedges: Iterable[EdgeLabel],
    assumptions: Iterable[SudokuField],
    hints: Option[VerifierHints],
-   produce: StepResultProducer[EmptySpec, SudokuField, Result]): Result = {
+   produce: StepResultProducer[EmptySpec, SudokuField, Result],
+   pathforlogs: Option[String] = None): Result = {
     val sresult = solveAndGetResult(spec, goal, makeSolutionVariables(goal))
     val pstatus: ProverStatus =
       if (sresult(0).startsWith("Z3 failed."))

@@ -9,7 +9,8 @@ case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](ind
                                                                parentedges: Iterable[EdgeLabel],
                                                                subobl: Iterable[GenObligation[Spec, Goal]],
                                                                verifier: Verifier[Spec, Goal],
-                                                               produce: StepResultProducer[Spec, Goal, Result]): Result =
+                                                               produce: StepResultProducer[Spec, Goal, Result],
+                                                               pathforlogs: Option[String] = None): Result =
     super.verifyStep(obl, parentedges, subobl, verifier, produce)
 
 

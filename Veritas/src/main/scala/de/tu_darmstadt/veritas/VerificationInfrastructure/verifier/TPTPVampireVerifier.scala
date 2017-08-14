@@ -13,7 +13,7 @@ import scala.util.{Failure, Success}
   */
 class TPTPVampireVerifier(timeout: Int = 10, version: String = "4.1", logictype: String = "tff") extends TPTPVerifier {
   /** Textual description that should be unique (used for ordering verifiers) */
-  override val desc: String = "TPTPVampireVerifier"
+  override val desc: String = s"TPTPVampireVerifier-$version-$logictype"
 
   override def prover: Prover[TPTP] = VampireTPTP(timeout = timeout, version = version)
 

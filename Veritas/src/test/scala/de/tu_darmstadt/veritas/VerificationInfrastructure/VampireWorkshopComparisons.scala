@@ -32,22 +32,22 @@ class VampireWorkshopComparisons extends FunSuite {
   val defaultlong_timeout = 120
   val unsuccessful_timeout = 1
 
-  val timeout_queue = Seq() //Seq(5, 10, 30, 90)
+  val timeout_queue = Seq(5, 10, 30, 90, 120)
 
   def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
 
-  def makeCustomVampireTarQueue: Seq[Verifier[VeritasConstruct, VeritasConstruct]] =
-    for (t <- timeout_queue) yield makeCustomVampireTar(t)
+  def makeCustomVampireTarQueue: Map[Int, Verifier[VeritasConstruct, VeritasConstruct]] =
+    (for (t <- timeout_queue) yield (t -> makeCustomVampireTar(t))).toMap
 
   def makeCustomVampireZ3(timeout: Int) = new Z3VampireVerifier(timeout)
 
-  def makeCustomVampireZ3Queue: Seq[Verifier[VeritasConstruct, VeritasConstruct]] =
-    for (t <- timeout_queue) yield makeCustomVampireZ3(t)
+  def makeCustomVampireZ3Queue: Map[Int, Verifier[VeritasConstruct, VeritasConstruct]] =
+    (for (t <- timeout_queue) yield (t -> makeCustomVampireZ3(t))).toMap
 
   def makeCustomVampire(timeout: Int, logic: String) = new TPTPVampireVerifier(timeout, "4.1", logic)
 
-  def makeCustomVampireQueue(logic: String): Seq[Verifier[VeritasConstruct, VeritasConstruct]] =
-    for (t <- timeout_queue) yield makeCustomVampire(t, logic)
+  def makeCustomVampireQueue(logic: String): Map[Int, Verifier[VeritasConstruct, VeritasConstruct]] =
+    (for (t <- timeout_queue) yield (t -> makeCustomVampire(t, logic))).toMap
 
   test("Compare verification of SQL progress proof goals") {
     //construct a new test database with SQL progress proof graph
@@ -79,10 +79,10 @@ class VampireWorkshopComparisons extends FunSuite {
         case VerifierFailure(err, _) => "VerifierFailure :" + err
       }
 
-    def tryVerifyingWithIncreasingTimeouts(ps: pg.ProofStep, vers: Seq[Verifier[VeritasConstruct, VeritasConstruct]]): pg.StepResult = {
+    def tryVerifyingWithIncreasingTimeouts(ps: pg.ProofStep, vers: Map[Int,Verifier[VeritasConstruct, VeritasConstruct]]): pg.StepResult = {
       lazy val results =
-        for (ver <- vers) yield {
-          pg.verifyProofStep(ps, ver)
+        for ((t, ver) <- vers) yield {
+          pg.verifyProofStep(ps, ver, Some(s"VampireWorkshopComparisonFiles/${ver.desc}-$t"))
         }
       val maybefinal = results.find { sr =>
         sr.status match {

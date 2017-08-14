@@ -46,7 +46,7 @@ case class FormatOtherError(message: String) extends TransformerError
   * Translate VeriTaS module to TFF using the "most advantageous" strategies we determined so far
   * (module transformations)
   */
-class VeritasTransformer[Format <: VerifierFormat](config: Configuration, formatProducer: VerifierFormat => Format) extends Transformer[VeritasConstruct, VeritasConstruct, Format] {
+class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, formatProducer: VerifierFormat => Format) extends Transformer[VeritasConstruct, VeritasConstruct, Format] {
   override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[VeritasConstruct]): Try[Format] = {
     spec match {
       case Module(name, imps, moddefs) => {

@@ -9,13 +9,17 @@ import de.tu_darmstadt.veritas.backend.ast._
 
 import scala.util.{Failure, Success}
 
-/**
-  * Created by andiderp on 10.07.17.
-  */
-trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
-  override type V = SMTLibFormat
+trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
+  override type V = TPTP
 
-  def prover: Prover[SMTLibFormat]
+  def prover: Prover[TPTP]
+
+  def transformer = new VeritasTransformer[TPTP](
+    Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
+      Simplification -> Simplification.LogicalAndConstructors,
+      VariableEncoding -> VariableEncoding.InlineEverything,
+      Selection -> Selection.SelectAll,
+      Problem -> Problem.All)), x => x.asInstanceOf[TPTP])
 
   protected def extractGoalName(vc: VeritasConstruct): String =
     vc match {
@@ -44,38 +48,36 @@ trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
    hints: Option[VerifierHints],
    produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result],
    pathforlogs: Option[String] = None): Result = {
-    val transformer = new VeritasTransformer[SMTLibFormat](
-      Configuration(Map(FinalEncoding -> FinalEncoding.SMTLib,
-        Simplification -> Simplification.LogicalAndConstructors,
-        VariableEncoding -> VariableEncoding.InlineEverything,
-        Selection -> Selection.SelectAll,
-        Problem -> Problem.All)), x => x.asInstanceOf[SMTLibFormat])
     spec match {
       case Module(name, imps, moddefs) => {
         val transformedProb = transformer.transformProblem(goal, spec, parentedges, assumptions)
-        val fileending = ".smt2"
+        val fileending =
+          if (transformer.config.contains(Configuration(Map(FinalEncoding -> FinalEncoding.TFF))))
+            ".tff"
+          else ".fof"
         val goalname = extractGoalName(goal)
 
         transformedProb match {
-          case Success(smtLib) => {
+          case Success(tptp) => {
             //for debugging purposes
-            //println("SMTLIB file: ")
-            //println(smtLib.toString)
+            //println("TPTP file: ")
+            //println(tptp.toString)
 
-            val proverstatus = prover.callProver(smtLib)
+            val proverstatus = prover.callProver(tptp)
 
             val res = produce.newStepResult(Finished(proverstatus, this),
               proverstatus.proverResult.proofEvidence,
               proverstatus.proverResult.message)
 
             if (pathforlogs.isDefined) {
-              val smtfile = new File(pathforlogs.get + goalname + fileending)
+              val tptpfile = new File(pathforlogs.get + extractGoalName(goal) + fileending)
               val evidencefile = new File(pathforlogs.get + goalname + ".log")
-              writeToFile(smtfile, smtLib.toString)
+              writeToFile(tptpfile, tptp.toString)
               writeToFile(evidencefile, proverstatus.proverResult.fullLogs)
             }
 
             res
+
           }
           case Failure(err) => {
             produce.newStepResult(VerifierFailure(s"Problem during transformation step: $err", this), None, None)
