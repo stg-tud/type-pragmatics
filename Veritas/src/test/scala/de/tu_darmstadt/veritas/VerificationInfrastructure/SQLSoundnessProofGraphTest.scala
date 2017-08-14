@@ -118,7 +118,7 @@ class SQLSoundnessProofGraphTest extends FunSuite {
 
   }
 
-  test("Successfully proven individual set cases (tvalue+tvalue) in loaded graph") {
+  test("Not proven individual set cases (tvalue+tvalue) in loaded graph") {
     val successfulObls = List(loaded_g.requiredObls(unioncasePS).head,
       loaded_g.requiredObls(intersectioncasePS).head, loaded_g.requiredObls(differencecasePS).head)
 
@@ -130,9 +130,9 @@ class SQLSoundnessProofGraphTest extends FunSuite {
       assert(resO.nonEmpty)
       val res = resO.get
 
-      assert(res.status.isVerified)
-      assert(res.errorMsg.isEmpty)
-      assert(res.evidence.nonEmpty)
+      assert(!res.status.isVerified)
+      assert(res.errorMsg.nonEmpty)
+      assert(res.evidence.isEmpty)
     }
   }
 
@@ -263,7 +263,7 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     loaded_g.requiredObls(filterRowsPreservesTablePS))
 
 
-  test("Verification of filterRowsPreservesTable cases (successful base case, inconclusive step case)") {
+  test("Verification of filterRowsPreservesTable cases (successful base ad step case)") {
     val cases = List(filterRowsPreservesTablebasecase, filterRowsPreservesTablestepcase)
     val casePSs = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield ps
     val ress = for (ps <- casePSs) yield loaded_g.verifiedBy(ps)
@@ -282,9 +282,9 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     val PSstep = casePSs.last
     val resstep = ress.last.get
 
-    assert(!resstep.status.isVerified)
-    assert(resstep.errorMsg.nonEmpty)
-    assert(resstep.evidence.isEmpty)
+    assert(resstep.status.isVerified)
+    assert(resstep.errorMsg.isEmpty)
+    assert(resstep.evidence.nonEmpty)
   }
 
   val projectTableProgressobl = MockLemmaApplication.selectLemma(projectTableProgress.lemmas.head.name,
@@ -292,14 +292,15 @@ class SQLSoundnessProofGraphTest extends FunSuite {
   val projectTableProgressPS = loaded_g.appliedStep(projectTableProgressobl).get
 
 
-  test("Incomplete verification of projectTableProgress via auxiliary lemma projectColsProgress") {
+  test("Verification of projectTableProgress via auxiliary lemma projectColsProgress") {
     val resO = loaded_g.verifiedBy(projectTableProgressPS)
     assert(resO.nonEmpty)
     val res = resO.get
-    assert(!res.status.isVerified)
-    assert(res.errorMsg.nonEmpty)
-    assert(res.evidence.isEmpty)
+    assert(res.status.isVerified)
+    assert(res.errorMsg.isEmpty)
+    assert(res.evidence.nonEmpty)
 
+    //induction application unverified
     assert(!projectTableProgressPS.tactic.allRequiredOblsVerified(loaded_g)(projectTableProgressobl,
       loaded_g.requiredObls(projectTableProgressPS)))
   }
@@ -314,7 +315,7 @@ class SQLSoundnessProofGraphTest extends FunSuite {
 
 
 
-  test("Verification of cases of projectColsProgress (successful base case, inconclusive step case)") {
+  test("Verification of cases of projectColsProgress (successful base and step case)") {
     val cases = List(projectColsProgressbasecase, projectColsProgressstepcase)
     val casePSs = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield ps
     val ress = for (ps <- casePSs) yield loaded_g.verifiedBy(ps)
@@ -333,9 +334,9 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     val PSstep = casePSs.last
     val resstep = ress.last.get
 
-    assert(!resstep.status.isVerified)
-    assert(resstep.errorMsg.nonEmpty)
-    assert(resstep.evidence.isEmpty)
+    assert(resstep.status.isVerified)
+    assert(resstep.errorMsg.isEmpty)
+    assert(resstep.evidence.nonEmpty)
   }
 
   val projectColsProgressstepcasePS = loaded_g.appliedStep(projectColsProgressstepcase).get
@@ -440,7 +441,7 @@ class SQLSoundnessProofGraphTest extends FunSuite {
   val dropFirstColRawPreservesWelltypedRawstepcase = MockInduction.selectCase(dropFirstColRawPreservesWelltypedRawTcons.goals.head.name,
     loaded_g.requiredObls(dropFirstColRawPreservesWelltypedRawPS))
 
-  test("Verification of cases of dropFirstColRawPreservesWelltypedRaw (successful base case, inconclusive step case)") {
+  test("Verification of cases of dropFirstColRawPreservesWelltypedRaw (successful base and step case)") {
     val cases = List(dropFirstColRawPreservesWelltypedRawbasecase, dropFirstColRawPreservesWelltypedRawstepcase)
     val casePSs = for (c <- cases; ps <- loaded_g.appliedStep(c)) yield ps
     val ress = for (ps <- casePSs) yield loaded_g.verifiedBy(ps)
@@ -460,13 +461,9 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     val resstep = ress.last.get
     println(resstep.status)
 
-    //for this step, there was a type inference error in loaded graph!
-    //now fixed, so test fails
-    assert(!resstep.status.isVerified)
-    assert(resstep.status.isInstanceOf[VerifierFailure[_,_]])
-    println(resstep.status)
+    assert(resstep.status.isVerified)
     assert(resstep.errorMsg.isEmpty)
-    assert(resstep.evidence.isEmpty)
+    assert(resstep.evidence.nonEmpty)
   }
 
   test("ProofGraphUI proofstepDFS traverses in the correct order") {
