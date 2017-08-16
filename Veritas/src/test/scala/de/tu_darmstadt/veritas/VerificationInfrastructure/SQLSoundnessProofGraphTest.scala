@@ -520,14 +520,15 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
     SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
     loaded_g.mapStepResult(newGraph)(obl => newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None))
+    assert(loaded_g.proofstepsDFS().size == newGraph.proofstepsDFS().size)
     newGraph.proofstepsDFS().foreach { ps =>
       val stepresult = newGraph.verifiedBy(ps)
       assert(stepresult.nonEmpty)
-      assert(stepresult.get.isInstanceOf[Unknown[_, _]])
+      assert(stepresult.get.status.isInstanceOf[Unknown[_, _]])
     }
   }
 
-  test("ProofGraphUI mapStepResult set Solve tactic stepresults to Unknown otherwise keep the old stepresult") {
+  test("ProofGraphUI mapStepResult set Solve tactic stepresults to Unknown") {
     val dbFile = File.createTempFile("test-newgraph", "")
     dbFile.delete()
     dbFile.mkdir()
@@ -536,27 +537,28 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     loaded_g.mapStepResult(newGraph){ obl =>
       val convertedObl = loaded_g.obligationProducer.newObligation(obl.spec, obl.goal)
       val ps = loaded_g.appliedStep(convertedObl)
-      if (ps.nonEmpty && ps.get.tactic.isInstanceOf[Solve[_,_]])
-        newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None)
-      else {
-        val prevStepResult = loaded_g.verifiedBy(ps.get)
-        newGraph.stepResultProducer.newStepResult(prevStepResult.get.status, prevStepResult.get.evidence, prevStepResult.get.errorMsg)
+      var newResult: Option[newGraph.StepResult] = None
+      if (ps.nonEmpty) {
+        if(ps.get.tactic.isInstanceOf[Solve[_,_]])
+          newResult = Some(newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None))
+        else {
+          val prevStepResult = loaded_g.verifiedBy(ps.get)
+          if (prevStepResult.nonEmpty)
+            newResult =
+              Some(newGraph.stepResultProducer.newStepResult(
+                prevStepResult.get.status, prevStepResult.get.evidence, prevStepResult.get.errorMsg))
+        }
       }
+      if(newResult.nonEmpty)
+        newResult.get
+      else
+        newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None)
     }
     newGraph.proofstepsDFS().foreach { ps =>
       val stepresult = newGraph.verifiedBy(ps)
       assert(stepresult.nonEmpty)
       if (ps.tactic.isInstanceOf[Solve[_,_]])
         assert(stepresult.get.status.isInstanceOf[Unknown[_, _]])
-      else {
-        val loaded_ps = loaded_g.proofstepsDFS().find { lps =>
-          lps.tactic == ps.tactic
-        }.get
-        val shouldBeResult = loaded_g.verifiedBy(loaded_ps).get
-        assert(stepresult.get.status.compare(shouldBeResult.status) == 0)
-        assert(stepresult.get.errorMsg == shouldBeResult.errorMsg)
-        assert(stepresult.get.evidence == shouldBeResult.evidence)
-      }
     }
   }
 
