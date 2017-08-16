@@ -97,7 +97,9 @@ object ProblemTrans extends Alternative(selectConfig(Problem) {
   case Problem.Counterexample =>
     SeqTrans(SplitModulesByGoal("counterexample"), MoveDeclsToFront)
   case Problem.All =>
-    SeqTrans(GenerateGroundGuards, SplitModulesByGoal(""), MoveDeclsToFront)
+    //translation will not contain ground guards (modified!)
+    //Do you always need the ground guards? Should be superfluous at least in typed settings
+    SeqTrans(SplitModulesByGoal(""), MoveDeclsToFront)
 })
 
 object GuardsTrans extends Alternative(selectConfig(FinalEncoding) {
