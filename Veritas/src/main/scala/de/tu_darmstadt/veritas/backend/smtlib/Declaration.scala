@@ -66,10 +66,12 @@ case class FunctionDeclaration(name: String, parameter: Seq[Type], result: Type)
   override def prettyPrint(writer: PrettyPrintWriter): Unit = {
     writer.write(s"(declare-fun ${name} ")
     writer.write("(")
-    writer.write(parameter.head)
-    parameter.tail.foreach { p =>
-      writer.write(" ")
-      writer.write(p)
+    if (parameter.nonEmpty) {
+      writer.write(parameter.head)
+      parameter.tail.foreach { p =>
+        writer.write(" ")
+        writer.write(p)
+      }
     }
     writer.write(")")
     writer.write(" ")

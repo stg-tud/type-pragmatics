@@ -71,7 +71,7 @@ object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
 object DataTypeTrans extends Alternative(selectConfig(FinalEncoding) {
   case FinalEncoding.GuardedFOF | FinalEncoding.BareFOF | FinalEncoding.TFF | FinalEncoding.FOOL =>
     SeqTrans(ConstructorTrans, GenerateDiffAxiomsForConsts)
-  case FinalEncoding.SMTLib => Identity
+  case FinalEncoding.SMTLib => GenerateCountablyInfiniteEncoding
 })
 
 object FunctionTrans extends Alternative(selectConfig(FinalEncoding) {
