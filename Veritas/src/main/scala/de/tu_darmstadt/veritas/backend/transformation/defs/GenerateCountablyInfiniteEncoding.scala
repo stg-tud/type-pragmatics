@@ -4,6 +4,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.util.FreshNames
+import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment._
 
 /**
   * Generates functions which encode that an open datatype is isomorph to the natural numbers
@@ -19,7 +20,8 @@ object GenerateCountablyInfiniteEncoding extends ModuleTransformation {
         val finit = Functions(Seq(FunctionDef(FunctionSig(initName, Seq(), t), Seq())))
         val fenum = Functions(Seq(FunctionDef(FunctionSig(enumName, Seq(t), t), Seq())))
         val enumEq = makeEqAxiom(DataTypeConstructor(enumName, Seq(t)))
-        Seq(dt, finit, fenum, Axioms(Seq(enumEq)))
+        val diff = makeDiffAxiom(DataTypeConstructor(initName, Seq()), DataTypeConstructor(enumName, Seq(t)))
+        Seq(dt, finit, fenum, Axioms(Seq(enumEq, diff)))
     }
   }
 
@@ -36,6 +38,18 @@ object GenerateCountablyInfiniteEncoding extends ModuleTransformation {
           FunctionExpApp(c.name, argsRight)))),
       Seq(FunctionExpJudgment(
         FunctionExpAnd((argsLeft, argsRight).zipped map (FunctionExpEq(_, _))))))
+  }
+
+  private def makeDiffAxiom(c1: DataTypeConstructor, c2: DataTypeConstructor) = {
+    val freshNames = new FreshNames
+    val args1 = c1.in map (_.name)
+    val args2 = c2.in map (_.name)
+    val argsLeft = freshNames(args1) map (x => FunctionMeta(MetaVar(x)))
+    val argsRight = freshNames(args2) map (x => FunctionMeta(MetaVar(x)))
+
+    TypingRule("DIFF-" + c1.name + "-" + c2.name, Nil,
+      Seq(FunctionExpNeq(FunctionExpApp(c1.name, argsLeft),
+        FunctionExpApp(c2.name, argsRight))))
   }
 }
 
