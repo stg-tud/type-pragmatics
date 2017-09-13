@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Solve
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.Solve
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}

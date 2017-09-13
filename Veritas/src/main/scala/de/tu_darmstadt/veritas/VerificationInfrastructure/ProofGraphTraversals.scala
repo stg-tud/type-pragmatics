@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.Tactic
 
 import scala.reflect.ClassTag
 

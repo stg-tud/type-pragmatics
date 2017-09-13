@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.{ByteArrayInputStream, File, ObjectInputStream, ObjectOutputStream}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{NoInfoEdgeLabel, Solve, Tactic}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{NoInfoEdgeLabel, Solve, Tactic}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Unknown, VerifierStatus}
 import jetbrains.exodus.bindings.ComparableBinding
 import jetbrains.exodus.entitystore._

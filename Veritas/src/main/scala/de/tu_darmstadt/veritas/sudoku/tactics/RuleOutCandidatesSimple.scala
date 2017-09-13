@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.sudoku.tactics
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.TacticApplicationException
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.TacticApplicationException
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, ObligationProducer}
 import de.tu_darmstadt.veritas.sudoku._
 

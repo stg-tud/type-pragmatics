@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.sudoku.tactics
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{Tactic, TacticApplicationException}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{Tactic, TacticApplicationException}
 import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
 
 /**

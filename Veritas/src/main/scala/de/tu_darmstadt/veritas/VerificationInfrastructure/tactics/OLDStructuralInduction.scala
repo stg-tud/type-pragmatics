@@ -1,9 +1,9 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
+package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Verifier
 
-case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](spec: Spec, cases: Seq[(Goal, StructInductCase[Spec])]) extends Tactic[Spec, Goal] {
+case class OLDStructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](spec: Spec, cases: Seq[(Goal, StructInductCase[Spec])]) extends Tactic[Spec, Goal] {
   //TODO we might have to refine the verifier call for induction once we really support this via a prover
   override def verifyStep[Result <: GenStepResult[Spec, Goal]](obl: GenObligation[Spec, Goal],
                                                                parentedges: Iterable[EdgeLabel],
@@ -15,7 +15,7 @@ case class StructuralInduction[Spec <: Ordered[Spec], Goal <: Ordered[Goal]](spe
 
 
   override def compare(that: Tactic[Spec, Goal]): Int = that match {
-    case that: StructuralInduction[Spec, Goal] => {
+    case that: OLDStructuralInduction[Spec, Goal] => {
       val caseslengthcomp = this.cases.length compare that.cases.length
       if (caseslengthcomp == 0) {
         //compare individual cases against each other until first difference found

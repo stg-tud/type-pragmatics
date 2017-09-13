@@ -2,8 +2,9 @@ package de.tu_darmstadt.veritas.sudoku
 
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.Strategy
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Finished
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraphTraversals, ProofGraphXodus, PropertyTypes, Strategy}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraphTraversals, ProofGraphXodus, PropertyTypes}
 import de.tu_darmstadt.veritas.sudoku.tactics._
 
 class EmptySpec extends Comparable[EmptySpec] with Serializable {

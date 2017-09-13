@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, TPTPVampireVerifier, TSTPProof, VerifierFailure}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}

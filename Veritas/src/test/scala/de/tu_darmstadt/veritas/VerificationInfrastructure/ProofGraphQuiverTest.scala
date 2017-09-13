@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.Tactic
 import org.scalatest.FunSuite
 import quiver.{LEdge, LNode}
 

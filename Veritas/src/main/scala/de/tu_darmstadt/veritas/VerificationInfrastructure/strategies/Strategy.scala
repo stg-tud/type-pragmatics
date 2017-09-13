@@ -1,4 +1,6 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure
+package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
+
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGraphTraversals}
 
 /**
   * A Strategy takes a graph and modifies it (e.g. via applying tactics and

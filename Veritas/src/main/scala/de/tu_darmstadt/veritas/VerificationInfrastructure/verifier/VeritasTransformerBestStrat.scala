@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, PropagatableInfo}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{FixedVars, InductionHypotheses}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{FixedVars, InductionHypotheses}
 import de.tu_darmstadt.veritas.backend.{Configuration, MainTrans, TypingTrans}
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse

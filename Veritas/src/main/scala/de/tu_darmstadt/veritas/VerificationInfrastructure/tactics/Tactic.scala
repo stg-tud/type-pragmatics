@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.tactic
+package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier}

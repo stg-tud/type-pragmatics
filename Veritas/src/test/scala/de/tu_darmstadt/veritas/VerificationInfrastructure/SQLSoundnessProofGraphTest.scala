@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.{CaseDistinctionCase, Solve}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{CaseDistinctionCase, Solve}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Unknown, VerifierFailure}
 import de.tu_darmstadt.veritas.backend.ast.VeritasConstruct
 import org.scalatest.FunSuite

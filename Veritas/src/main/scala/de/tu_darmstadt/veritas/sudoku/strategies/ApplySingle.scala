@@ -1,7 +1,8 @@
 package de.tu_darmstadt.veritas.sudoku.strategies
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactic.Tactic
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGraphTraversals, Strategy}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.Strategy
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.Tactic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGraphTraversals}
 import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
 
 /**
