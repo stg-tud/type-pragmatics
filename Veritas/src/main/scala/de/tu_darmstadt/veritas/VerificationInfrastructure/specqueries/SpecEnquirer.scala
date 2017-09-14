@@ -11,14 +11,23 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
   */
 trait SpecEnquirer[Defs, Formulae <: Defs] {
 
-  //query methods for extracting information from specification/goals
-  def extractFunctionCalls(s: Defs): Seq[Defs]
-
-  def getArguments(functioncall: Defs): Seq[Defs]
-
+  //queries regarding the shape of a definition
   def isRecursiveFunction(functioncall: Defs): Boolean
 
   def isClosedADT(v: Defs): Boolean
+
+  def isForall(g: Formulae): Boolean
+
+  def isImplication(g: Formulae): Boolean
+
+  /**
+    * receive a formula that is universally or existentially quantified, return the body of the formula
+    * @param quantifiedBody
+    * @return
+    */
+  def getQuantifiedBody(quantifiedBody: Formulae): Formulae
+
+  def getArguments(functioncall: Defs): Seq[Defs]
 
   // for a variable of type closed ADT, extract the different cases
   def getCases(v: Defs): Seq[Defs]
@@ -40,6 +49,9 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   // the conjuncts themselves are formulae
   //for other formulae, returns the empty sequence
   def getConclusions(g: Formulae): Seq[Formulae]
+
+  //query methods for extracting information from specification/goals
+  def extractFunctionCalls(s: Defs): Seq[Defs]
 
   //constructor functions - really necessary here?
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae

@@ -3,7 +3,6 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 
-//TODO require Goal <: Spec everywhere in addition?
 case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs](inductionvar: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
@@ -28,18 +27,13 @@ case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs](inductio
     //TODO: refine conditions, if necessary
   }
 
-  //TODO goalMatchesPattern is a candidate for a common DSStrategy method
+  //TODO goalMatchesPattern is a candidate for a common Tactic method
   // idea: introduce a small pattern language to describe goal patterns?
-  def goalMatchesPattern(goal: Formulae): Boolean = ???
-//  def goalMatchesPattern(g: Goal): Boolean = isForall(g) && {
-//    val body = forallBody(g)
-//    isImplication(body)
-//
-//  }
-//
-//  isEquivalent(g,
-//    makeForall(extractUniversallyQuantifiedVars(g), makeImplication(extractPremises(g), extractConclusions(g))))
-
+  def goalMatchesPattern(g: Formulae): Boolean =
+  isForall(g) && {
+    val body = getQuantifiedBody(g)
+    isImplication(body) && getConclusions(body).nonEmpty
+  }
 
 
   //  override def applyToPG(pg: ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal])(obl: pg.Obligation): ProofGraph[Spec, Goal] = {
