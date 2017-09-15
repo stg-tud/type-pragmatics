@@ -50,15 +50,39 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   //for other formulae, returns the empty sequence
   def getConclusions(g: Formulae): Seq[Formulae]
 
+  //receives a block of variable declarations, returns single variable declarations
+  def getVars(varblock: Defs): Seq[Defs]
+
+  //expects a construct with a named formula and extracts the formula's name
+  def getFormulaName(f: Formulae): String
+
   //query methods for extracting information from specification/goals
   def extractFunctionCalls(s: Defs): Seq[Defs]
 
-  //constructor functions - really necessary here?
+  //from a given definition or formula, extract all free variables
+  def extractFreeVariables(d: Defs): Seq[Defs]
+
+  //renames all variables in given definition nd so that there are no name clashes with free variables in refd
+  // returns definition nd with renamed variables and the sequence of free variables in the the renamed nd
+  def consolidateFreeVariableNames(nd: Defs, refd: Defs): (Defs, Seq[Defs])
+
+  //constructor functions
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae
 
   def makeImplication(prems: Seq[Formulae], concs: Seq[Formulae]): Formulae
 
   def makeEquation(left: Defs, right: Defs): Formulae
+
+  //expects a list of individual variables, and groups them to a block ov variable/constant declarations
+  def makeVarGroup(vars: Seq[Defs]): Defs
+
+  def makeFormulaGroup(ffs: Seq[Formulae]): Formulae
+
+  //expects an unnamed formula or a named one and attaches or overwrites the new name
+  def makeNamedFormula(f: Formulae, name: String): Formulae
+
+  def makeEmptyFormula(): Formulae
+
 
 
 }

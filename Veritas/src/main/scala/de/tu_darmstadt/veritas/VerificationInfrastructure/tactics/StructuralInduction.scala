@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 
-case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs](inductionvar: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](inductionvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -36,27 +36,6 @@ case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs](inductio
   }
 
 
-  //  override def applyToPG(pg: ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal])(obl: pg.Obligation): ProofGraph[Spec, Goal] = {
-  //     val goal = obl.goal
-  //    if (isApplicable(goal)) {
-  //      val iv_cases = getCases(inductionvar)
-  //      val induction_subgoals : Seq[Goal] = iv_cases map (ic => specToGoal(makeForall(extractUniversallyQuantifiedVars(goal),
-  //        makeImplication(makeEquation(inductionvar, ic) +: extractPremises(goal), extractConclusions(goal)))))
-  //      //TODO: create the induction hypotheses
-  //      val fixed_vars: Seq[Option[FixedVars[Spec]]] = iv_cases map (ic => {
-  //        val rarg = getRecArgs(ic)
-  //        if (rarg.isEmpty) None else Some(FixedVars(rarg))
-  //      })
-  //      val final_ihs : Seq[StructInductCase[Spec]] = ???
-  //      val finalinductioncases: Seq[(Goal, StructInductCase[Spec])] = induction_subgoals zip final_ihs
-  //      pg.applyTactic(obl, OLDStructuralInduction[Spec, Goal](spec, finalinductioncases /*all the induction cases*/))
-  //      pg
-  //    }
-  //    else
-  //      pg //TODO throw an exception that explains why the strategy failed
-
-
-  //  }
   /**
     * applying a tactic to a ProofStep returns the edges generated from this application
     * edges include edge labels and sub-ProofSteps
@@ -67,7 +46,74 @@ case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs](inductio
     * @throws TacticApplicationException
     * @return
     */
-  override def apply[Obligation](obl: GenObligation[Defs, Formulae], obllabels: Iterable[EdgeLabel], produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = ???
+  override def apply[Obligation](obl: GenObligation[Defs, Formulae],
+                                 obllabels: Iterable[EdgeLabel],
+                                 produce: ObligationProducer[Defs, Formulae, Obligation]):
+  Iterable[(Obligation, EdgeLabel)] = {
+    val goal = obl.goal
+    if (isApplicable(goal)) {
+      val goalbody = getQuantifiedBody(goal)
+      val iv_cases = getCases(inductionvar) map { ic =>
+        consolidateFreeVariableNames(ic, goalbody)
+      }
 
-  override def compare(that: Tactic[Defs, Formulae]): Int = ???
+      val prems = getPremises(goalbody)
+      val concs = getConclusions(goalbody)
+
+      val induction_subgoals: Seq[Formulae] =
+        iv_cases map { case (renamed_ic, new_quantified_vars) => {
+          val added_premises = makeEquation(inductionvar, renamed_ic) +: prems
+          val added_quantvars = new_quantified_vars ++ getUniversallyQuantifiedVars(goal)
+          //reassemble goal and attach name
+          val casename = "-case" + iv_cases.indexOf((renamed_ic, new_quantified_vars))
+          makeNamedFormula(makeForall(added_quantvars,
+            makeImplication(added_premises, concs)), getFormulaName(goal) ++ casename)
+        }
+        }
+
+      val fixed_Vars: Seq[Option[FixedVars[Defs]]] = iv_cases map { case (renamed_ic, _) => {
+        val rarg = getRecArgsADT(renamed_ic)
+        if (rarg.isEmpty) None else Some(FixedVars(makeVarGroup(rarg)))
+      }
+      }
+
+      val final_ihs: Seq[StructInductCase[Defs, Formulae]] =
+        for ((fv, ics) <- fixed_Vars zip induction_subgoals) yield {
+          val casename = getFormulaName(ics)
+          fv match {
+            case None => StructInductCase(casename, fv, InductionHypotheses[Formulae](makeEmptyFormula()))
+            case Some(fvblock) => {
+              val added_premises_ih = for (fv <- getVars(fvblock.fixedvars)) yield makeEquation(inductionvar, fv)
+              val ihs = for (ihprem <- added_premises_ih) yield {
+                val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
+                makeForall(getUniversallyQuantifiedVars(goal),
+                  makeImplication(added_premises_ih ++ prems, concs))
+              }
+              StructInductCase(casename, fv, InductionHypotheses[Formulae](makeFormulaGroup(ihs)))
+            }
+          }
+        }
+
+      val finalinductioncases: Seq[(Formulae, StructInductCase[Defs, Formulae])] = induction_subgoals zip final_ihs
+
+      //modify the proof graph: create new obligations, return pairs of obligations and edges
+      for ((sobl, edge) <- finalinductioncases) yield {
+        val newobl = produce.newObligation(spec, sobl)
+        (newobl, edge)
+      }
+    }
+    else Seq() //TODO throw an exception that explains why the tactic failed
+  }
+
+  override def compare(that: Tactic[Defs, Formulae]): Int =
+    that match {
+      case structuralInduction: StructuralInduction[Defs, Formulae] => {
+        val comp_indvar = inductionvar compare structuralInduction.inductionvar
+        if (comp_indvar == 0)
+          spec compare structuralInduction.spec
+        else
+          comp_indvar
+      }
+      case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+    }
 }
