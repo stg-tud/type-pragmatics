@@ -29,10 +29,10 @@ object SQLMockTactics {
 
   object MockInduction {
     def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
-      required.find(_._2.asInstanceOf[StructInductCase[VeritasConstruct]].casename == name).get._1
+      required.find(_._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasConstruct]].casename == name).get._1
 
     def selectCase[ProofStep, Spec, Goal](g: ProofGraph[Spec, Goal])(name: String, ps: g.ProofStep): g.Obligation =
-      g.requiredObls(ps).find(_._2.asInstanceOf[StructInductCase[VeritasConstruct]].casename == name).get._1
+      g.requiredObls(ps).find(_._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasConstruct]].casename == name).get._1
   }
 
   // Apply structural induction to progress root via ad-hoc instance of MockInduction,
