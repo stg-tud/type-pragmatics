@@ -59,6 +59,8 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   //receives a block of variable declarations, returns single variable declarations
   def getVars(varblock: Defs): Seq[Defs]
 
+  def getFormulae(formblock: Formulae): Seq[Formulae]
+
   //expects a construct with a named formula and extracts the formula's name
   def getFormulaName(f: Formulae): String
 

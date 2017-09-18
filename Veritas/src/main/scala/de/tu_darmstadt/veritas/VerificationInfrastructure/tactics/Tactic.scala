@@ -7,6 +7,23 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier}
   * Tactics for labeling edges of ProofTrees
   */
 trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] with Serializable {
+
+  //obtain propagatable info from incoming edges and forward if there are no conflicts
+  protected def obtainPropagatableInfo[Obligation](obllabels: Iterable[EdgeLabel]) = {
+
+    val full_propagatedInfo = obllabels map (el => el.propagateInfoList)
+
+    val all_same_elements = (full_propagatedInfo map (ps => ps.toSet)).toSeq.distinct
+
+    val propagatedInfo =
+      if (full_propagatedInfo.isEmpty || all_same_elements.size > 1)
+        Seq()
+      else full_propagatedInfo.head
+
+    propagatedInfo
+  }
+
+
   /**
     * checks whether a given obligation is verified with regard to the tactic
     *

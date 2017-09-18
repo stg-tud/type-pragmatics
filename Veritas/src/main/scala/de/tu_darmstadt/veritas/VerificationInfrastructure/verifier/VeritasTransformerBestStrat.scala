@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, PropagatableInfo}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{FixedVars, InductionHypotheses}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{FixedVar, InductionHypothesis}
 import de.tu_darmstadt.veritas.backend.{Configuration, MainTrans, TypingTrans}
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
@@ -31,7 +31,6 @@ case class TFFFormat(tff: TffFile) extends TPTP {
 case class SMTLibFormat(smtLib: SMTLibFile) extends VerifierFormat {
   override def toString: String = smtLib.toPrettyString()
 }
-
 
 
 case class FormatTypeInferenceError(e: TypeInference.TypeError) extends TransformerError
@@ -64,61 +63,60 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
           for (assm <- assumptions if assm.isInstanceOf[Goals])
             yield Axioms(assm.asInstanceOf[Goals].goals)
 
-        val propagatedInfo = (for (el <- parentedges) yield el.propagateInfoList).toSet
+        val propagatedInfo = parentedges map (el => el.propagateInfoList)
 
-        if (propagatedInfo.size > 1)
-          Failure(FormatOtherError(s"The given edges for transforming the proof problem " +
-            s"for $goal disagreed in the propagatable information $propagatedInfo"))
-        else {
-          //wrap goal in local block together with info to be propagated from assumptions
-          val augmentedpropagInfo: Seq[ModuleDef] =
-            if (propagatedInfo.isEmpty)
-              assmAxioms.toSeq ++ Seq(goaldef)
-            else {
-              def extractModuleDef[A](a: A): Option[ModuleDef] =
-                a match {
-                  case m: ModuleDef => Some(m)
-                  case _ => {
-                    println(s"Given propagatable info $a was not a ModuleDef, therefore ignored");
-                    None
-                  }
+        val all_same_elements = (propagatedInfo map (ps => ps.toSet)).toSeq.distinct
+
+
+        //wrap goal in local block together with info to be propagated from assumptions
+        val augmentedpropagInfo: Seq[ModuleDef] =
+          if (propagatedInfo.isEmpty || all_same_elements.size > 1)
+          //either there is no propagated info, or the edges disagree in the propagated info
+          //in the later case, the only sound way is to ignore the propagatedInfo in the proof problem
+          //(may introduce incompleteness
+            assmAxioms.toSeq ++ Seq(goaldef)
+          else {
+            def extractModuleDef[A](a: A): Option[ModuleDef] =
+              a match {
+                case m: ModuleDef => Some(m)
+                case _ => {
+                  println(s"Given propagatable info $a was not a ModuleDef, therefore ignored");
+                  None
                 }
+              }
 
-              for (p <- propagatedInfo.head;
-                   pi <- p.propagateInfo();
-                   mpi <- extractModuleDef(pi))
-                yield mpi
-            }
-
-          val augmentedgoal =
-            if (augmentedpropagInfo.isEmpty)
-              assmAxioms.toSeq ++ Seq(goaldef)
-            else
-              Seq(Local(augmentedpropagInfo ++ assmAxioms.toSeq ++ Seq(goaldef)))
-
-
-          val module = Module(name + "Transformed", imps, moddefs ++ augmentedgoal)
-
-          try {
-            val mods = MainTrans(Seq(module))(config)
-            val files = mods.map(m => TypingTrans.finalEncoding(m)(config))
-
-            if (ifConfig(FinalEncoding, FinalEncoding.TFF)(config))
-              Success(formatProducer(TFFFormat(files.head.asInstanceOf[TffFile])))
-            else if (ifConfig(FinalEncoding, FinalEncoding.SMTLib)(config))
-              Success(formatProducer(SMTLibFormat(files.head.asInstanceOf[SMTLibFile])))
-            else
-              Success(formatProducer(FOFFormat(files.head.asInstanceOf[FofFile])))
-
-          } catch {
-            case tinf: TypeInference.TypeError => Failure(FormatTypeInferenceError(tinf))
-            case trans: TransformationError[_] => Failure(FormatTransformationError(trans))
-            case be: BackendError[_] => Failure(FormatBackendError(be))
-            case cast: ClassCastException => Failure(FormatOtherError(s"Module $module was not transformed to the expected format."))
-            case e: Exception => throw e
+            for (p <- propagatedInfo.head;
+                 mpi <- extractModuleDef(p.propagateInfo()))
+              yield mpi
           }
-        }
 
+        val augmentedgoal =
+          if (augmentedpropagInfo.isEmpty)
+            assmAxioms.toSeq ++ Seq(goaldef)
+          else
+            Seq(Local(augmentedpropagInfo ++ assmAxioms.toSeq ++ Seq(goaldef)))
+
+
+        val module = Module(name + "Transformed", imps, moddefs ++ augmentedgoal)
+
+        try {
+          val mods = MainTrans(Seq(module))(config)
+          val files = mods.map(m => TypingTrans.finalEncoding(m)(config))
+
+          if (ifConfig(FinalEncoding, FinalEncoding.TFF)(config))
+            Success(formatProducer(TFFFormat(files.head.asInstanceOf[TffFile])))
+          else if (ifConfig(FinalEncoding, FinalEncoding.SMTLib)(config))
+            Success(formatProducer(SMTLibFormat(files.head.asInstanceOf[SMTLibFile])))
+          else
+            Success(formatProducer(FOFFormat(files.head.asInstanceOf[FofFile])))
+
+        } catch {
+          case tinf: TypeInference.TypeError => Failure(FormatTypeInferenceError(tinf))
+          case trans: TransformationError[_] => Failure(FormatTransformationError(trans))
+          case be: BackendError[_] => Failure(FormatBackendError(be))
+          case cast: ClassCastException => Failure(FormatOtherError(s"Module $module was not transformed to the expected format."))
+          case e: Exception => throw e
+        }
       }
       case _ => Failure(FormatOtherError(s"The problem specification passed to the VeritasTransformerBestStrat was not a Module: $spec"))
     }

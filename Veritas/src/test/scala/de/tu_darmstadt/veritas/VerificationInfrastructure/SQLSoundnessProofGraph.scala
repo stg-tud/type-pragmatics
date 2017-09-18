@@ -55,20 +55,19 @@ object SQLMockTactics {
 
 
       Seq((tvaluecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTtvalue.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (selectfromwherecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTselectFromWhere.goals.head.name,
-          None,
-          InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+          Seq(), Seq(), Seq())),
         (unioncase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTUnion.goals.head.name,
-          Some(FixedVars(unionconsts)),
-          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTUnionIH1.axioms.head, SQLProgressTUnionIH2.axioms.head))))),
+          unionconsts map ((c: VeritasConstruct) => FixedVar(c)), //TODO: think about a good way to get rid of the upcast
+          Seq(InductionHypothesis(Axioms(Seq(SQLProgressTUnionIH1.axioms.head))), InductionHypothesis(Axioms(Seq(SQLProgressTUnionIH2.axioms.head)))), Seq())),
         (intersectioncase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTIntersection.goals.head.name,
-          Some(FixedVars(intersectionconsts)),
-          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTIntersectionIH1.axioms.head, SQLProgressTIntersectionIH2.axioms.head))))),
+          intersectionconsts map ((c: VeritasConstruct) => FixedVar(c)), //TODO: think about a good way to get rid of the upcast
+          Seq(InductionHypothesis(Axioms(Seq(SQLProgressTIntersectionIH1.axioms.head))), InductionHypothesis(Axioms(Seq(SQLProgressTIntersectionIH2.axioms.head)))), Seq())),
         (differencecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTDifference.goals.head.name,
-          Some(FixedVars(differenceconsts)),
-          InductionHypotheses[VeritasConstruct](Axioms(Seq(SQLProgressTDifferenceIH1.axioms.head, SQLProgressTDifferenceIH2.axioms.head))))))
+          differenceconsts map ((c: VeritasConstruct) => FixedVar(c)), //TODO: think about a good way to get rid of the upcast
+          Seq(InductionHypothesis(Axioms(Seq(SQLProgressTDifferenceIH1.axioms.head))), InductionHypothesis(Axioms(Seq(SQLProgressTDifferenceIH2.axioms.head)))), Seq())))
+
     }
   }
 
@@ -81,11 +80,10 @@ object SQLMockTactics {
       val successfulLookupBindObl = produce.newObligation(fullSQLspec, successfulLookupBind)
 
       Seq((successfulLookupEmptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](successfulLookupEmpty.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (successfulLookupBindObl, StructInductCase[VeritasConstruct, VeritasConstruct](successfulLookupBind.goals.head.name,
-          Some(FixedVars(successfulLookupBindConsts)),
-          InductionHypotheses[VeritasConstruct](successfulLookupBindIH))))
+          Seq(FixedVar(successfulLookupBindConsts)),
+          Seq(InductionHypothesis[VeritasConstruct](successfulLookupBindIH)), Seq())))
 
     }
   }
@@ -100,11 +98,10 @@ object SQLMockTactics {
       val welltypedLookupBindObl = produce.newObligation(fullSQLspec, welltypedLookupBind)
 
       Seq((welltypedLookupEmptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](welltypedLookupEmpty.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (welltypedLookupBindObl, StructInductCase[VeritasConstruct, VeritasConstruct](welltypedLookupBind.goals.head.name,
-          Some(FixedVars(welltypedLookupConsts)),
-          InductionHypotheses[VeritasConstruct](welltypedLookupBindIH))))
+          Seq(FixedVar(welltypedLookupConsts)),
+          Seq(InductionHypothesis[VeritasConstruct](welltypedLookupBindIH)), Seq())))
 
     }
 
@@ -119,11 +116,10 @@ object SQLMockTactics {
       val filterRowsPreservesTableTconsObl = produce.newObligation(fullSQLspec, filterRowsPreservesTableTcons)
 
       Seq((filterRowsPreservesTableTemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](filterRowsPreservesTableTempty.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (filterRowsPreservesTableTconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](filterRowsPreservesTableTcons.goals.head.name,
-          Some(FixedVars(filterRowsPreservesTableTconsConsts)),
-          InductionHypotheses[VeritasConstruct](filterRowsPreservesTableTconsIH))))
+          Seq(FixedVar(filterRowsPreservesTableTconsConsts)),
+          Seq(InductionHypothesis[VeritasConstruct](filterRowsPreservesTableTconsIH)), Seq())))
 
     }
   }
@@ -137,11 +133,10 @@ object SQLMockTactics {
       val projectColsProgressAconsObl = produce.newObligation(fullSQLspec, projectColsProgressAcons)
 
       Seq((projectColsProgressAemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectColsProgressAempty.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (projectColsProgressAconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectColsProgressAcons.goals.head.name,
-          Some(FixedVars(projectColsProgressAconsConsts)),
-          InductionHypotheses[VeritasConstruct](projectColsProgressAconsIH))))
+          Seq(FixedVar(projectColsProgressAconsConsts)),
+          Seq(InductionHypothesis[VeritasConstruct](projectColsProgressAconsIH)), Seq())))
 
     }
   }
@@ -154,11 +149,10 @@ object SQLMockTactics {
       val projectTypeImpliesFindColAconsObl = produce.newObligation(fullSQLspec, projectTypeImpliesFindColAcons)
 
       Seq((projectTypeImpliesFindColAemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectTypeImpliesFindColAempty.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (projectTypeImpliesFindColAconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectTypeImpliesFindColAcons.goals.head.name,
-          Some(FixedVars(projectTypeImpliesFindColAconsConsts)),
-          InductionHypotheses[VeritasConstruct](projectTypeImpliesFindColAconsIH))))
+          Seq(FixedVar(projectTypeImpliesFindColAconsConsts)),
+          Seq(InductionHypothesis[VeritasConstruct](projectTypeImpliesFindColAconsIH)), Seq())))
 
     }
   }
@@ -171,11 +165,10 @@ object SQLMockTactics {
       val findColTypeImpliesfindColAconsObl = produce.newObligation(fullSQLspec, findColTypeImpliesfindColAcons)
 
       Seq((findColTypeImpliesfindColAemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](findColTypeImpliesfindColAempty.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (findColTypeImpliesfindColAconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](findColTypeImpliesfindColAcons.goals.head.name,
-          Some(FixedVars(findColTypeImpliesfindColAconsConsts)),
-          InductionHypotheses[VeritasConstruct](findColTypeImpliesfindColAconsIH))))
+          Seq(FixedVar(findColTypeImpliesfindColAconsConsts)),
+          Seq(InductionHypothesis[VeritasConstruct](findColTypeImpliesfindColAconsIH)), Seq())))
 
     }
   }
@@ -188,11 +181,10 @@ object SQLMockTactics {
       val projectTypeAttrLImpliesfindAllColTypeAconsObl = produce.newObligation(fullSQLspec, projectTypeAttrLImpliesfindAllColTypeAcons)
 
       Seq((projectTypeAttrLImpliesfindAllColTypeAemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAempty.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (projectTypeAttrLImpliesfindAllColTypeAconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAcons.goals.head.name,
-          Some(FixedVars(projectTypeAttrLImpliesfindAllColTypeAconsConsts)),
-          InductionHypotheses[VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAconsIH))))
+          Seq(FixedVar(projectTypeAttrLImpliesfindAllColTypeAconsConsts)),
+          Seq(InductionHypothesis[VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAconsIH)), Seq())))
 
     }
   }
@@ -205,11 +197,10 @@ object SQLMockTactics {
       val dropFirstColRawPreservesWelltypedRawTconsObl = produce.newObligation(fullSQLspec, dropFirstColRawPreservesWelltypedRawTcons)
 
       Seq((dropFirstColRawPreservesWelltypedRawTemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](dropFirstColRawPreservesWelltypedRawTempty.goals.head.name,
-        None,
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        Seq(), Seq(), Seq())),
         (dropFirstColRawPreservesWelltypedRawTconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](dropFirstColRawPreservesWelltypedRawTcons.goals.head.name,
-          Some(FixedVars(dropFirstColRawPreservesWelltypedRawTconsConsts)),
-          InductionHypotheses[VeritasConstruct](dropFirstColRawPreservesWelltypedRawTconsIH))))
+          Seq(FixedVar(dropFirstColRawPreservesWelltypedRawTconsConsts)),
+          Seq(InductionHypothesis[VeritasConstruct](dropFirstColRawPreservesWelltypedRawTconsIH)), Seq())))
 
     }
   }
@@ -250,14 +241,13 @@ object SQLMockTactics {
       // in the edges from the given obllabels (unused here) and decide which one
       // to forward where
       Seq((mkcase(0), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "1",
-        Some(FixedVars(setconsts)),
-        InductionHypotheses[VeritasConstruct](Axioms(Seq())))),
+        (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))))),
         (mkcase(1), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "2",
-          Some(FixedVars(setconsts)),
-          InductionHypotheses[VeritasConstruct](mkSQLProgressTSetCaseIH(2, setname, 'q2)))),
+          (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))) :+
+            InductionHypothesis[VeritasConstruct](mkSQLProgressTSetCaseIH(2, setname, 'q2)))),
         (mkcase(2), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "3",
-          Some(FixedVars(setconsts)),
-          InductionHypotheses[VeritasConstruct](mkSQLProgressTSetCaseIH(1, setname, 'q1)))))
+          (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))) :+
+            InductionHypothesis[VeritasConstruct](mkSQLProgressTSetCaseIH(1, setname, 'q1)))))
     }
 
   }

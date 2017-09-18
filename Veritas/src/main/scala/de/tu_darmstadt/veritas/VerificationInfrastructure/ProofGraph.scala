@@ -14,7 +14,7 @@ trait EdgeLabel extends Ordered[EdgeLabel] with Serializable {
 
 trait PropagatableInfo {
   type P <: Ordered[P]
-  def propagateInfo(): Option[P]
+  def propagateInfo(): P
 }
 
 trait GenProofStep[Spec, Goal] {

@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, IProofGraph, ObligationProducer}
+import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
 case class CaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](distvar: Defs, cases: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
@@ -28,25 +28,20 @@ case class CaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[
         val casename = "-case" + renamed_cases.indexOf((renamed_c, new_quantified_vars))
         makeNamedFormula(makeForall(added_quantvars,
           makeImplication(added_premises, concs)), getFormulaName(goal) ++ casename)
-      }}
+      }
+      }
 
-    //TODO: are fixed variables required in case distinctions?
-    // not new ones, but fixed ones propagated in the obllabels have to be forwarded!
+    val propagatedInfo: Seq[PropagatableInfo] = obtainPropagatableInfo(obllabels)
 
-    val edgelabels = for (cs <- case_subgoals) yield {
-      val casename = getFormulaName(cs)
-      //TODO: propagate information from edges properly....! (e.g. nested induction)
-      CaseDistinctionCase(casename, ???, ???)
-    }
+    val edgelabels = for (cs <- case_subgoals) yield
+      CaseDistinctionCase(getFormulaName(cs), propagatedInfo)
 
     for ((caseobl, edge) <- case_subgoals zip edgelabels) yield {
       val newobl = produce.newObligation(spec, caseobl)
       (newobl, edge)
     }
-
-
-
   }
+
 
   override def compare(that: Tactic[Defs, Formulae]): Int = that match {
     case that: CaseDistinction[Defs, Formulae] => {

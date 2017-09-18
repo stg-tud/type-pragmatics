@@ -32,7 +32,8 @@ class VampireWorkshopComparisons extends FunSuite {
   val defaultlong_timeout = 120
   val unsuccessful_timeout = 1
 
-  val timeout_queue = Seq(5, 10, 30, 90, 120)
+  //val timeout_queue = Seq(5, 10, 30, 90, 120)
+  val timeout_queue = Seq(1)
 
   def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
 

@@ -77,26 +77,27 @@ case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs with Orde
         }
         }
 
-      val fixed_Vars: Seq[Option[FixedVars[Defs]]] = iv_cases map { case (renamed_ic, _) => {
-        val rarg = getRecArgsADT(renamed_ic)
-        if (rarg.isEmpty) None else Some(FixedVars(makeVarGroup(rarg)))
+      val fixed_Vars: Seq[Seq[FixedVar[Defs]]] = iv_cases map { case (renamed_ic, _) => {
+        val rargs = getRecArgsADT(renamed_ic)
+        if (rargs.isEmpty) Seq() else rargs map (rarg => FixedVar(rarg))
       }
       }
 
+      val propagatedInfo: Seq[PropagatableInfo] = obtainPropagatableInfo(obllabels)
+
       val final_ihs: Seq[StructInductCase[Defs, Formulae]] =
-        for ((fv, ics) <- fixed_Vars zip induction_subgoals) yield {
-          val casename = getFormulaName(ics)
-          fv match {
-            case None => StructInductCase(casename, fv, InductionHypotheses[Formulae](makeEmptyFormula()))
-            case Some(fvblock) => {
-              val added_premises_ih = for (fv <- getVars(fvblock.fixedvars)) yield makeEquation(inductionvar, fv)
-              val ihs = for (ihprem <- added_premises_ih) yield {
-                val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
-                makeForall(getUniversallyQuantifiedVars(goal),
-                  makeImplication(added_premises_ih ++ prems, concs))
-              }
-              StructInductCase(casename, fv, InductionHypotheses[Formulae](makeFormulaGroup(ihs)))
+        for ((fvs, ic) <- fixed_Vars zip induction_subgoals) yield {
+          val casename = getFormulaName(ic)
+          if (fvs.isEmpty)
+            StructInductCase[Defs, Formulae](casename, Seq(), Seq(), propagatedInfo)
+          else {
+            val added_premises_ih = for (fv <- fvs) yield makeEquation(inductionvar, fv.fixedvar)
+            val ihs = for (ihprem <- added_premises_ih) yield {
+              val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
+              InductionHypothesis(makeForall(getUniversallyQuantifiedVars(goal),
+                makeImplication(added_premises_ih ++ prems, concs)))
             }
+            StructInductCase[Defs, Formulae](casename, fvs, ihs, propagatedInfo)
           }
         }
 

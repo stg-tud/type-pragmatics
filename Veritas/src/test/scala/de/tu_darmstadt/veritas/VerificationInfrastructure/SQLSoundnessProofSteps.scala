@@ -51,11 +51,11 @@ object SQLSoundnessProofSteps {
         ('reduce (~'q, ~'TS) === 'someQuery (~'qo)))
   )
 
-  val unionconsts = consts('q1 ::> 'Query,
-    'q2 ::> 'Query,
-    'TS ::> 'TStore,
-    'TTC ::> 'TTContext,
-    'TT ::> 'TType)
+  val unionconsts = Seq(consts('q1 ::> 'Query),
+    consts('q2 ::> 'Query),
+    consts('TS ::> 'TStore),
+    consts('TTC ::> 'TTContext),
+    consts('TT ::> 'TType))
 
   val SQLProgressTUnionIH1 =
     axiom(((!'isValue ('q1)) &
@@ -84,11 +84,11 @@ object SQLSoundnessProofSteps {
         ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
   )
 
-  val intersectionconsts = consts('q1 ::> 'Query,
-    'q2 ::> 'Query,
-    'TS ::> 'TStore,
-    'TTC ::> 'TTContext,
-    'TT ::> 'TType)
+  val intersectionconsts = Seq(consts('q1 ::> 'Query),
+    consts('q2 ::> 'Query),
+    consts('TS ::> 'TStore),
+    consts('TTC ::> 'TTContext),
+    consts('TT ::> 'TType))
 
   val SQLProgressTIntersectionIH1 =
     axiom(((!'isValue ('q1)) &
@@ -117,11 +117,11 @@ object SQLSoundnessProofSteps {
         ('reduce (~'q, 'TS) === 'someQuery (~'qo)))
   )
 
-  val differenceconsts = consts('q1 ::> 'Query,
-    'q2 ::> 'Query,
-    'TS ::> 'TStore,
-    'TTC ::> 'TTContext,
-    'TT ::> 'TType)
+  val differenceconsts = Seq(consts('q1 ::> 'Query),
+    consts('q2 ::> 'Query),
+    consts('TS ::> 'TStore),
+    consts('TTC ::> 'TTContext),
+    consts('TT ::> 'TType))
 
 
   val SQLProgressTDifferenceIH1 =
@@ -486,11 +486,11 @@ object SQLSoundnessProofSteps {
   val case2pred: Seq[TypingRuleJudgment] = (~'q1 === 'tvalue (~'t1)) & (forall(~'t2) | ('q2 ~= 'tvalue (~'t2)))
   val case3pred: Seq[TypingRuleJudgment] = Seq(forall(~'t1) | ('q1 ~= 'tvalue (~'t1)))
 
-  def setconsts = consts('q1 ::> 'Query,
-    'q2 ::> 'Query,
-    'TS ::> 'TStore,
-    'TTC ::> 'TTContext,
-    'TT ::> 'TType)
+  def setconsts = Seq(consts('q1 ::> 'Query),
+    consts('q2 ::> 'Query),
+    consts('TS ::> 'TStore),
+    consts('TTC ::> 'TTContext),
+    consts('TT ::> 'TType))
 
 
   def mkSQLProgressTSetCaseIH(i: Int, setname: String, indvar: Symbol) =

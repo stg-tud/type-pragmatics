@@ -4,18 +4,18 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Verifier
 
 
-// D: format for block of variable/constant declarations
-case class FixedVars[D <: Ordered[D]](fixedvars: D) extends PropagatableInfo {
+// D: format for single variable/constant
+case class FixedVar[D <: Ordered[D]](fixedvar: D) extends PropagatableInfo {
   override type P = D
 
-  override def propagateInfo(): Option[D] = Some(fixedvars)
+  override def propagateInfo(): D = fixedvar
 }
 
-// A: format of axioms
-case class InductionHypotheses[A <: Ordered[A]](ihs: A) extends PropagatableInfo {
+// A: format of single axiom
+case class InductionHypothesis[A <: Ordered[A]](ih: A) extends PropagatableInfo {
   override type P = A
 
-  override def propagateInfo(): Option[A] = Some(ihs)
+  override def propagateInfo(): A = ih
 }
 
 /**
@@ -24,24 +24,18 @@ case class InductionHypotheses[A <: Ordered[A]](ihs: A) extends PropagatableInfo
   * @param fixedvars variables that need to fixed so that they explicitly refer to the same variables in the ihs and in the goal
   * @param ihs       induction hypotheses
   */
-case class StructInductCase[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](casename: String, fixedvars: Option[FixedVars[Defs]],
-                                                   ihs: InductionHypotheses[Formulae]) extends EdgeLabel {
+case class StructInductCase[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](casename: String, fixedvars: Seq[FixedVar[Defs]],
+                                                                                            ihs: Seq[InductionHypothesis[Formulae]], propInfo: Seq[PropagatableInfo]) extends EdgeLabel {
 
   override def desc: String = casename
 
   override def propagateInfoList: Seq[PropagatableInfo] =
-    fixedvars match {
-      case Some(fv) => Seq(fv, ihs)
-      case None => Seq(ihs)
-    }
+    propInfo ++ fixedvars ++ ihs
 
   override def compare(that: EdgeLabel): Int = that match {
     case that: StructInductCase[Defs, Formulae] =>
-      val compare1 = this.casename compare that.casename
-      if (compare1 != 0) return compare1
-      val compare2 = this.ihs.ihs compare that.ihs.ihs
-      if (compare2 != 0) return compare2
-      0
+      this.casename compare that.casename //for now assume that case names are unique!
+
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 }
@@ -49,23 +43,15 @@ case class StructInductCase[Defs <: Ordered[Defs], Formulae <: Defs with Ordered
 //TODO the information necessary for this edge might need to be refined
 //TODO rethink the parameters of this EdgeLabel
 case class CaseDistinctionCase[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](casename: String,
-                                                      fixedvars: Option[FixedVars[Defs]],
-                                                      ihs: InductionHypotheses[Formulae]) extends EdgeLabel {
+                                                                                               propInfo: Seq[PropagatableInfo]) extends EdgeLabel {
   override def desc: String = casename
 
-  override def propagateInfoList: Seq[PropagatableInfo] =
-    fixedvars match {
-      case Some(fv) => Seq(fv, ihs)
-      case None => Seq(ihs)
-    }
+  override def propagateInfoList: Seq[PropagatableInfo] = propInfo
 
   override def compare(that: EdgeLabel): Int = that match {
-    case that: CaseDistinctionCase[Defs, Formulae] =>
-      val compare1 = this.casename compare that.casename
-      if (compare1 != 0) return compare1
-      val compare2 = this.ihs.ihs compare that.ihs.ihs
-      if (compare2 != 0) return compare2
-      0
+    case that: StructInductCase[Defs, Formulae] =>
+      this.casename compare that.casename //for now assume that case names are unique!
+
     case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 
