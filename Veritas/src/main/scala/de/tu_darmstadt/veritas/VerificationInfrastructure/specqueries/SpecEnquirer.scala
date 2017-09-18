@@ -40,9 +40,15 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   //for other formulae, returns the empty sequence
   def getUniversallyQuantifiedVars(g: Formulae): Seq[Defs]
 
+  //expects a quantified formula (existentially or universally quantified)
+  //returns sequence of quantified variables (top-level)
+  //for other formulae, returns the empty sequence
+  //TODO: is getQuantifiedVars needed/useful?
+  //def getQuantifiedVars(g: Formulae): Seq[Defs]
+
   //expects an implication and returns the sequence of conjuncts from the premise
   // the conjuncts themselves are formulae
-  //for other formulae, returns the empty sequence
+  //for other formulae, returns the given sequence (interpreted as implication with empty premises!)
   def getPremises(g: Formulae): Seq[Formulae]
 
   //expects an implication and returns the sequence of conjuncts from the conclusion
