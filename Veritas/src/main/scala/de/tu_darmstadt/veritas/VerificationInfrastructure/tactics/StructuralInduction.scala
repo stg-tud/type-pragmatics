@@ -50,12 +50,18 @@ case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs with Orde
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[Defs, Formulae, Obligation]):
   Iterable[(Obligation, EdgeLabel)] = {
+    //TODO: propagate information from edges properly....! (e.g. nested induction)
     val goal = obl.goal
     if (isApplicable(goal)) {
       val goalbody = getQuantifiedBody(goal)
+
+      //get terms for individual ADT cases,
+      // make sure that variables in cases terms do not clash with any variables in body of goal
       val iv_cases = getCases(inductionvar) map { ic =>
         consolidateFreeVariableNames(ic, goalbody)
       }
+
+      //TODO: remove recursive arguments from new_quantified_vars - these are the ones that will become fixed variables, hence do not need to be quantified!
 
       val prems = getPremises(goalbody)
       val concs = getConclusions(goalbody)
@@ -65,7 +71,7 @@ case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs with Orde
           val added_premises = makeEquation(inductionvar, renamed_ic) +: prems
           val added_quantvars = new_quantified_vars ++ getUniversallyQuantifiedVars(goal)
           //reassemble goal and attach name
-          val casename = "-case" + iv_cases.indexOf((renamed_ic, new_quantified_vars))
+          val casename = "-icase" + iv_cases.indexOf((renamed_ic, new_quantified_vars))
           makeNamedFormula(makeForall(added_quantvars,
             makeImplication(added_premises, concs)), getFormulaName(goal) ++ casename)
         }
