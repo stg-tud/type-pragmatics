@@ -3,11 +3,12 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
-case class CaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](distvar: Defs, cases: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class CaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](cases: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
-  // tactic is always applicable (no applicability condition)?
+
   // assume that goal is a quantified expression
+  def isApplicable(g: Formulae): Boolean = isQuantified(g)
 
 
   override def apply[Obligation](obl: GenObligation[Defs, Formulae],
@@ -15,18 +16,19 @@ case class CaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[
                                  produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
     val goal = obl.goal
     val goalbody = getQuantifiedBody(goal)
-    val prems = getPremises(goalbody) //could be empty
+    val prems = getPremises(goalbody) //could be empty, which is ok (then goalbody becomes an implication)
     val concs = getConclusions(goalbody)
-    val renamed_cases = cases map (c => consolidateFreeVariableNames(c, goalbody))
+
+    // assumes that the variables within the cases are already appropriately named
+    // with regard to the remaining variables in the goal (no unwanted name clashes!)
 
     val case_subgoals: Seq[Formulae] =
-      renamed_cases map { case (renamed_c, new_quantified_vars) => {
-        // add equations for different cases of distvar as premises
-        val added_premises = makeEquation(distvar, renamed_c) +: prems
-        val added_quantvars = new_quantified_vars ++ getUniversallyQuantifiedVars(goal)
+      cases map { c => {
+        //simply add each goal to the premises
+        val added_premises = c +: prems
         //reassemble goal and attach name
-        val casename = "-case" + renamed_cases.indexOf((renamed_c, new_quantified_vars))
-        makeNamedFormula(makeForall(added_quantvars,
+        val casename = "-case" + cases.indexOf(c)
+        makeNamedFormula(makeForallQuantifyFreeVariables(
           makeImplication(added_premises, concs)), getFormulaName(goal) ++ casename)
       }
       }
@@ -59,6 +61,9 @@ case class CaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[
 
 case class StructuralCaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](distvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
+  import queryspec._
+
+  def isApplicable(g: Formulae): Boolean = isClosedADT(distvar) && isQuantified(g)
 
   /**
     * applying a tactic to a ProofStep returns the edges generated from this application
@@ -72,8 +77,20 @@ case class StructuralCaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs wit
     */
   override def apply[Obligation](obl: GenObligation[Defs, Formulae],
                                  obllabels: Iterable[EdgeLabel],
-                                 produce: ObligationProducer[Defs, Formulae, Obligation]) =
-    ???
+                                 produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+    val goal = obl.goal
+    val goalbody = getQuantifiedBody(goal)
+    if (isApplicable(goal)) {
+      //make sure that variable names of cases do not clash with variables names in goal
+      val dist_cases_defs_renamed = getCases(distvar) map (c => consolidateFreeVariableNames(c, goalbody))
+      val dist_cases = dist_cases_defs_renamed map (dc => makeEquation(distvar, dc))
+      CaseDistinction[Defs, Formulae](dist_cases, spec, queryspec)(obl, obllabels, produce)
+    } else
+      Seq() //TODO throw an exception that explains why the tactic failed
+  }
 
-  override def compare(that: Tactic[Defs, Formulae]) = ???
+  override def compare(that: Tactic[Defs, Formulae]): Int = that match {
+    case that: StructuralCaseDistinction[Defs, Formulae] => this.distvar compare that.distvar
+    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  }
 }

@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.FixedVar
+
 /**
   * name convention for methods:
   * - extract... methods get any top-level Defs construct and recursively traverse the construct collecting wanted information
@@ -9,7 +11,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
   * @tparam Formulae Types for formulae, e.g. axioms, lemmas, goals
   *
   */
-trait SpecEnquirer[Defs, Formulae <: Defs] {
+trait SpecEnquirer[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]] {
 
   //queries regarding the shape of a definition
   def isRecursiveFunction(functioncall: Defs): Boolean
@@ -17,6 +19,10 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   def isClosedADT(v: Defs): Boolean
 
   def isForall(g: Formulae): Boolean
+
+  def isExists(g: Formulae): Boolean
+
+  def isQuantified(g: Formulae): Boolean = isForall(g) || isExists(g)
 
   def isImplication(g: Formulae): Boolean
 
@@ -71,11 +77,15 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   def extractFreeVariables(d: Defs): Seq[Defs]
 
   //renames all variables in given definition nd so that there are no name clashes with free variables in refd
-  // returns definition nd with renamed variables and the sequence of free variables in the the renamed nd
-  def consolidateFreeVariableNames(nd: Defs, refd: Defs): (Defs, Seq[Defs])
+  // returns definition nd with renamed variables
+  def consolidateFreeVariableNames[D <: Defs](nd: D, refd: D): D
 
   //constructor functions
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae
+
+  //constructs a universally quantified formula where all free variables will be quantified
+  //except for the ones which are fixed variables (have to become constants!)
+  def makeForallQuantifyFreeVariables(body: Formulae, fixed: Seq[FixedVar[Defs]] = Seq()): Formulae
 
   def makeImplication(prems: Seq[Formulae], concs: Seq[Formulae]): Formulae
 
