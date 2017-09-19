@@ -428,7 +428,7 @@ object SQLSoundnessProofSteps {
     ))
 
   val projectTypeAttrLImpliesfindAllColTypeAcons: Goals = goal(
-    ((~'al === 'acons (~'a, 'aempty)) &
+    ((~'al === 'acons (~'a, 'alr)) &
       ('projectTypeAttrL (~'al, ~'tt) === 'someTType (~'tt2)) &
       ('attrIn (~'n, ~'al))
       ).===>("projectTypeAttrL-implies-findAllColType-acons")(
