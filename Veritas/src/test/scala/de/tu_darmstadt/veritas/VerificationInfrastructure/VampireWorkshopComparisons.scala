@@ -32,8 +32,8 @@ class VampireWorkshopComparisons extends FunSuite {
   val defaultlong_timeout = 120
   val unsuccessful_timeout = 1
 
-  //val timeout_queue = Seq(5, 10, 30, 90, 120)
-  val timeout_queue = Seq(1)
+  val timeout_queue = Seq(5, 10, 30, 90, 120)
+  //val timeout_queue = Seq(1)
 
   def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
 
@@ -83,7 +83,7 @@ class VampireWorkshopComparisons extends FunSuite {
     def tryVerifyingWithIncreasingTimeouts(ps: pg.ProofStep, vers: Map[Int,Verifier[VeritasConstruct, VeritasConstruct]]): pg.StepResult = {
       lazy val results =
         for ((t, ver) <- vers) yield {
-          pg.verifyProofStep(ps, ver, Some(s"VampireWorkshopComparisonFiles/${ver.desc}-$t"))
+          pg.verifyProofStep(ps, ver, Some(s"VampireWorkshopComparisonFiles/_TEST/${ver.desc}-$t-"))
         }
       val maybefinal = results.find { sr =>
         sr.status match {
