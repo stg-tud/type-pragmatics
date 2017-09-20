@@ -268,14 +268,14 @@ object SQLMockTactics {
                                    obllabels: Iterable[EdgeLabel],
                                    produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] =
       for (lem <- lemmas) yield
-        produce.newObligation(fullSQLspec, Goals(lem.lemmas, lem.timeout)) -> LemmaApplication(lem.lemmas.head.name)
+        produce.newObligation(fullSQLspec, Goals(lem.lemmas, lem.timeout)) -> LemmaApplicationStep(lem.lemmas.head.name)
 
     override def compare(that: Tactic[VeritasConstruct, VeritasConstruct]): Int = ???
   }
 
   object MockLemmaApplication {
     def selectLemma[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
-      required.find(_._2.asInstanceOf[LemmaApplication[VeritasConstruct]].lemmaname == name).get._1
+      required.find(_._2.asInstanceOf[LemmaApplicationStep[VeritasConstruct]].lemmaname == name).get._1
   }
 
 }
@@ -543,7 +543,7 @@ object SQLSoundnessProofGraph {
     PropertyTypes.registerPropertyType[TSTPProof](g.store)
     PropertyTypes.registerPropertyType[Solve[_, _]](g.store)
     PropertyTypes.registerPropertyType[MockLemmaApplication](g.store)
-    PropertyTypes.registerPropertyType[LemmaApplication[_]](g.store)
+    PropertyTypes.registerPropertyType[LemmaApplicationStep[_]](g.store)
     PropertyTypes.registerPropertyType[successfulLookupInduction.type](g.store)
     PropertyTypes.registerPropertyType[welltypedLookupInduction.type](g.store)
     PropertyTypes.registerPropertyType[filterRowsPreservesTableInduction.type](g.store)
