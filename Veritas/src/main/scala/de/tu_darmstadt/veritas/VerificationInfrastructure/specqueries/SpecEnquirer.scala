@@ -91,16 +91,7 @@ trait SpecEnquirer[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae
 
   def makeEquation(left: Defs, right: Defs): Formulae
 
-  //expects a list of individual variables, and groups them to a block ov variable/constant declarations
-  def makeVarGroup(vars: Seq[Defs]): Defs
-
-  def makeFormulaGroup(ffs: Seq[Formulae]): Formulae
-
   //expects an unnamed formula or a named one and attaches or overwrites the new name
   def makeNamedFormula(f: Formulae, name: String): Formulae
-
-  def makeEmptyFormula(): Formulae
-
-
 
 }
