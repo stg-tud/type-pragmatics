@@ -16,6 +16,8 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoList
 
 sealed trait ModuleDef extends VeritasConstruct with PrettyPrintable
 
+trait VeritasFormula extends VeritasConstruct
+
 case class Local(defs: Seq[ModuleDef]) extends ModuleDef with ModuleDefHolder {
   // from ModuleDefHolder
   override def imports = Seq()
@@ -78,7 +80,7 @@ case class Strategy(name: String, imports: Seq[Import], defs: Seq[ModuleDef]) ex
   }
 }
 
-case class Goals(goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
+case class Goals(goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef with VeritasFormula {
   override val children = Seq(goals)
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -88,7 +90,7 @@ case class Goals(goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef
   }
 }
 
-case class GoalsWithStrategy(strategy: String, goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
+case class GoalsWithStrategy(strategy: String, goals: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef with VeritasFormula {
   override val children = Seq(goals)
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -98,7 +100,7 @@ case class GoalsWithStrategy(strategy: String, goals: Seq[TypingRule], timeout: 
   }
 }
 
-case class Lemmas(lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
+case class Lemmas(lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef with VeritasFormula {
   override val children = Seq(lemmas)
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -108,7 +110,7 @@ case class Lemmas(lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleD
   }
 }
 
-case class LemmasWithStrategy(strategy: String, lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef {
+case class LemmasWithStrategy(strategy: String, lemmas: Seq[TypingRule], timeout: Option[Int]) extends ModuleDef with VeritasFormula {
   override val children = Seq(lemmas)
 
   override def prettyPrint(writer: PrettyPrintWriter) = {
@@ -118,7 +120,7 @@ case class LemmasWithStrategy(strategy: String, lemmas: Seq[TypingRule], timeout
   }
 }
 
-case class Axioms(axioms: Seq[TypingRule]) extends ModuleDef {
+case class Axioms(axioms: Seq[TypingRule]) extends ModuleDef with VeritasFormula {
   override val children = Seq(axioms)
 
   override def prettyPrint(writer: PrettyPrintWriter) = {

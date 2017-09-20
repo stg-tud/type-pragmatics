@@ -9,7 +9,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 
 import scala.language.implicitConversions
 
-sealed trait TypingRuleJudgment extends VeritasConstruct with PrettyPrintable
+sealed trait TypingRuleJudgment extends VeritasConstruct with PrettyPrintable with VeritasFormula
 
 case class TypingJudgment(f1: FunctionExpMeta, f2: FunctionExpMeta, f3: FunctionExpMeta) extends TypingRuleJudgment {
   override val children = Seq(Seq(f1), Seq(f2), Seq(f3))
