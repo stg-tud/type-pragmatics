@@ -7,13 +7,13 @@ class VeritasSpecEnquirer extends SpecEnquirer[VeritasConstruct, VeritasConstruc
 
   override def isRecursiveFunction(functioncall: VeritasConstruct): Boolean = ???
 
-  override def isClosedADT(v: VeritasConstruct) = ???
+  override def isClosedADT(v: VeritasConstruct): Boolean = ???
 
-  override def isForall(g: VeritasConstruct) = ???
+  override def isForall(g: VeritasConstruct): Boolean = ???
 
-  override def isExists(g: VeritasConstruct) = ???
+  override def isExists(g: VeritasConstruct): Boolean = ???
 
-  override def isImplication(g: VeritasConstruct) = ???
+  override def isImplication(g: VeritasConstruct): Boolean = ???
 
   /**
     * receive a formula that is universally or existentially quantified, return the body of the formula
