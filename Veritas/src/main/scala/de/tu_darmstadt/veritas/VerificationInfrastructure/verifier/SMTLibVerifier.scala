@@ -12,12 +12,12 @@ import scala.util.{Failure, Success}
 /**
   * Created by andiderp on 10.07.17.
   */
-trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
+trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasFormula] {
   override type V = SMTLibFormat
 
   def prover: Prover[SMTLibFormat]
 
-  protected def extractGoalName(vc: VeritasConstruct): String =
+  protected def extractGoalName(vc: VeritasFormula): String =
     vc match {
       case Goals(gl, _) => gl.head.name
       case Lemmas(ll, _) => ll.head.name
@@ -36,13 +36,13 @@ trait SMTLibVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
     }
   }
 
-  override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]]
-  (goal: VeritasConstruct,
+  override def verify[Result <: GenStepResult[VeritasConstruct, VeritasFormula]]
+  (goal: VeritasFormula,
    spec: VeritasConstruct,
    parentedges: Iterable[EdgeLabel],
-   assumptions: Iterable[VeritasConstruct],
+   assumptions: Iterable[VeritasFormula],
    hints: Option[VerifierHints],
-   produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result],
+   produce: StepResultProducer[VeritasConstruct, VeritasFormula, Result],
    pathforlogs: Option[String] = None): Result = {
     val transformer = new VeritasTransformer[SMTLibFormat](
       Configuration(Map(FinalEncoding -> FinalEncoding.SMTLib,

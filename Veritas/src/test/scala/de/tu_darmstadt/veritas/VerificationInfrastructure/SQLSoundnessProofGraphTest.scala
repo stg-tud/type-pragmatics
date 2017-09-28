@@ -4,7 +4,7 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{CaseDistinctionCase, Solve}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Unknown, VerifierFailure}
-import de.tu_darmstadt.veritas.backend.ast.VeritasConstruct
+import de.tu_darmstadt.veritas.backend.ast.{VeritasConstruct, VeritasFormula}
 import org.scalatest.FunSuite
 
 
@@ -22,8 +22,8 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     sys.error("Test store SQLSoundnessProofGraph-store does not exist.")
   }
 
-  val loaded_g: ProofGraphXodus[VeritasConstruct, VeritasConstruct] with ProofGraphTraversals[VeritasConstruct, VeritasConstruct] =
-    new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+  val loaded_g: ProofGraphXodus[VeritasConstruct, VeritasFormula] with ProofGraphTraversals[VeritasConstruct, VeritasFormula] =
+    new ProofGraphXodus[VeritasConstruct, VeritasFormula](file) with ProofGraphTraversals[VeritasConstruct, VeritasFormula]
 
   SQLSoundnessProofGraph.initializeGraphTypes(loaded_g)
 
@@ -472,53 +472,54 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     val proofsteps = loaded_g.proofstepsDFS()
     assert(proofsteps.size == 41)
     assert(proofsteps(0).tactic == rootInductionProgress)
-    assert(proofsteps(1).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    val solve = Solve[VeritasConstruct, VeritasFormula]()
+    assert(proofsteps(1).tactic == solve)
     assert(proofsteps(2).tactic.isInstanceOf[MockLemmaApplication])
     assert(proofsteps(3).tactic == successfulLookupInduction)
-    assert(proofsteps(4).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(5).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(4).tactic == solve)
+    assert(proofsteps(5).tactic == solve)
     assert(proofsteps(6).tactic == welltypedLookupInduction)
-    assert(proofsteps(7).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(8).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(7).tactic == solve)
+    assert(proofsteps(8).tactic == solve)
     assert(proofsteps(9).tactic.isInstanceOf[MockLemmaApplication])
     assert(proofsteps(10).tactic == filterRowsPreservesTableInduction)
-    assert(proofsteps(11).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(12).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(11).tactic == solve)
+    assert(proofsteps(12).tactic == solve)
     assert(proofsteps(13).tactic.isInstanceOf[MockLemmaApplication])
     assert(proofsteps(14).tactic == projectColsProgressInduction)
-    assert(proofsteps(15).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(15).tactic == solve)
     assert(proofsteps(16).tactic.isInstanceOf[MockLemmaApplication])
     assert(proofsteps(17).tactic == projectTypeImpliesFindColInduction)
-    assert(proofsteps(18).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(18).tactic == solve)
     assert(proofsteps(19).tactic.isInstanceOf[MockLemmaApplication])
     assert(proofsteps(20).tactic == findColTypeImpliesfindColInduction)
-    assert(proofsteps(21).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(21).tactic == solve)
     assert(proofsteps(22).tactic.isInstanceOf[MockLemmaApplication])
     assert(proofsteps(23).tactic == dropFirstColRawPreservesWelltypedRawInduction)
-    assert(proofsteps(24).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(25).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(24).tactic == solve)
+    assert(proofsteps(25).tactic == solve)
     assert(proofsteps(26).tactic == projectTypeAttrLImpliesfindAllColTypeInduction)
-    assert(proofsteps(27).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(28).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(27).tactic == solve)
+    assert(proofsteps(28).tactic == solve)
     assert(proofsteps(29).tactic.isInstanceOf[SetCaseDistinction])
-    assert(proofsteps(30).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(31).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(32).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(30).tactic == solve)
+    assert(proofsteps(31).tactic == solve)
+    assert(proofsteps(32).tactic == solve)
     assert(proofsteps(33).tactic.isInstanceOf[SetCaseDistinction])
-    assert(proofsteps(34).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(35).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(36).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(34).tactic == solve)
+    assert(proofsteps(35).tactic == solve)
+    assert(proofsteps(36).tactic == solve)
     assert(proofsteps(37).tactic.isInstanceOf[SetCaseDistinction])
-    assert(proofsteps(38).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(39).tactic == Solve[VeritasConstruct, VeritasConstruct]())
-    assert(proofsteps(40).tactic == Solve[VeritasConstruct, VeritasConstruct]())
+    assert(proofsteps(38).tactic == solve)
+    assert(proofsteps(39).tactic == solve)
+    assert(proofsteps(40).tactic == solve)
   }
 
   test("ProofGraphUI mapStepResult set every StepResult to Unknown") {
     val dbFile = File.createTempFile("test-newgraph", "")
     dbFile.delete()
     dbFile.mkdir()
-    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasFormula](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasFormula]
     SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
     loaded_g.mapStepResult(newGraph)(obl => newGraph.stepResultProducer.newStepResult(new Unknown(null), None, None))
     assert(loaded_g.proofstepsDFS().size == newGraph.proofstepsDFS().size)
@@ -533,7 +534,7 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     val dbFile = File.createTempFile("test-newgraph", "")
     dbFile.delete()
     dbFile.mkdir()
-    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasFormula](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasFormula]
     SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
     loaded_g.mapStepResult(newGraph){ obl =>
       val convertedObl = loaded_g.obligationProducer.newObligation(obl.spec, obl.goal)
@@ -580,11 +581,11 @@ class SQLSoundnessProofGraphTest extends FunSuite {
   }
 
   test("Filter obligations based on type of applied step") {
-    val obls = loaded_g.obligationsWithTactic[Solve[VeritasConstruct, VeritasConstruct]]
+    val obls = loaded_g.obligationsWithTactic[Solve[VeritasConstruct, VeritasFormula]]
     assert(obls.size == 23)
     obls.foreach { obl =>
       val ps = loaded_g.appliedStep(obl)
-      assert(ps.get.tactic.isInstanceOf[Solve[VeritasConstruct, VeritasConstruct]])
+      assert(ps.get.tactic.isInstanceOf[Solve[VeritasConstruct, VeritasFormula]])
     }
   }
 
@@ -593,7 +594,7 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     val dbFile = File.createTempFile("test-newgraph", "")
     dbFile.delete()
     dbFile.mkdir()
-    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasFormula](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasFormula]
     SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
     loaded_g.extractSubgraph(loaded_g.storedObligations.head._2, newGraph)
     assert(newGraph.storedObligations.size == 1)
@@ -612,7 +613,7 @@ class SQLSoundnessProofGraphTest extends FunSuite {
     val dbFile = File.createTempFile("test-newgraph", "")
     dbFile.delete()
     dbFile.mkdir()
-    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasConstruct](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+    val newGraph = new ProofGraphXodus[VeritasConstruct, VeritasFormula](dbFile) with ProofGraphTraversals[VeritasConstruct, VeritasFormula]
     SQLSoundnessProofGraph.initializeGraphTypes(newGraph)
     // because we get the DFS order the last obligation with two subobligations has only solve tactics based on structure of the graph
     loaded_g.extractSubgraph(loaded_g.obligations(2).last, newGraph)

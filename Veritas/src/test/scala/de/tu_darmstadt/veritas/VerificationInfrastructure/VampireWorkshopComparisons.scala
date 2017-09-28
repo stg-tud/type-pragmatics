@@ -32,22 +32,22 @@ class VampireWorkshopComparisons extends FunSuite {
   val defaultlong_timeout = 120
   val unsuccessful_timeout = 1
 
-  val timeout_queue = Seq(5, 10, 30, 90, 120)
-  //val timeout_queue = Seq(1)
+  //val timeout_queue = Seq(5, 10, 30, 90, 120)
+  val timeout_queue = Seq(1)
 
   def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
 
-  def makeCustomVampireTarQueue: Map[Int, Verifier[VeritasConstruct, VeritasConstruct]] =
+  def makeCustomVampireTarQueue: Map[Int, Verifier[VeritasConstruct, VeritasFormula]] =
     (for (t <- timeout_queue) yield (t -> makeCustomVampireTar(t))).toMap
 
   def makeCustomVampireZ3(timeout: Int) = new Z3VampireVerifier(timeout)
 
-  def makeCustomVampireZ3Queue: Map[Int, Verifier[VeritasConstruct, VeritasConstruct]] =
+  def makeCustomVampireZ3Queue: Map[Int, Verifier[VeritasConstruct, VeritasFormula]] =
     (for (t <- timeout_queue) yield (t -> makeCustomVampireZ3(t))).toMap
 
   def makeCustomVampire(timeout: Int, logic: String) = new TPTPVampireVerifier(timeout, "4.1", logic)
 
-  def makeCustomVampireQueue(logic: String): Map[Int, Verifier[VeritasConstruct, VeritasConstruct]] =
+  def makeCustomVampireQueue(logic: String): Map[Int, Verifier[VeritasConstruct, VeritasFormula]] =
     (for (t <- timeout_queue) yield (t -> makeCustomVampire(t, logic))).toMap
 
   test("Compare verification of SQL progress proof goals") {
@@ -80,7 +80,7 @@ class VampireWorkshopComparisons extends FunSuite {
         case VerifierFailure(err, _) => "VerifierFailure :" + err
       }
 
-    def tryVerifyingWithIncreasingTimeouts(ps: pg.ProofStep, vers: Map[Int,Verifier[VeritasConstruct, VeritasConstruct]]): pg.StepResult = {
+    def tryVerifyingWithIncreasingTimeouts(ps: pg.ProofStep, vers: Map[Int,Verifier[VeritasConstruct, VeritasFormula]]): pg.StepResult = {
       lazy val results =
         for ((t, ver) <- vers) yield {
           pg.verifyProofStep(ps, ver, Some(s"VampireWorkshopComparisonFiles/_TEST/${ver.desc}-$t-"))

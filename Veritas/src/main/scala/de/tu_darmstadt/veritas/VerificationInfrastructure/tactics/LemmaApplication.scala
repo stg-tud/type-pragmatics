@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligat
 
 //TODO edge information for lemma applications could be refined
 // IDEAS for later: possible lemma instantiations, application hints (order...?)
-case class LemmaApplicationStep[Goal <: Ordered[Goal]](lemmaname: String) extends EdgeLabel {
+case class LemmaApplicationStep[Goal](lemmaname: String) extends EdgeLabel {
   override def desc: String = lemmaname
 
   // current decision: lemma applications should not forward any propagatable info (such as fixed variables

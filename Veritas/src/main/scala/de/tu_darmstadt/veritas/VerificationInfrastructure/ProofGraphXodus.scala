@@ -10,11 +10,26 @@ import jetbrains.exodus.util.LightOutputStream
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
+import scala.language.implicitConversions
 
 
-class ProofGraphXodus[Spec <: Comparable[Spec], Goal <: Comparable[Goal]](dbDir: File) extends ProofGraph[Spec, Goal] {
+class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
   import ProofGraphXodus._
+
+
+  //try some implicit magic in order to make a type Ordered if necessary
+  implicit def makeOrdered[T](t: T): Ordered[T] = new Ordered[T] {
+    def compare(that: T): Int = {
+      val hcompare = this.hashCode compare that.hashCode
+      if (hcompare != 0)
+        return hcompare
+      if (this == that)
+        return 0
+      throw new RuntimeException(s"Failed to compare $this and $that using hash codes.")
+    }
+  }
+
 
   val store: PersistentEntityStore = PersistentEntityStores.newInstance(dbDir)
   //PropertyTypes.registerAll(store)

@@ -1,7 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{ADTVampireVerifier, TPTPVampireVerifier, Verifier, Z3VampireVerifier}
-import de.tu_darmstadt.veritas.backend.ast.VeritasConstruct
+import de.tu_darmstadt.veritas.backend.ast.{VeritasConstruct, VeritasFormula}
 import org.scalatest.FunSuite
 
 
@@ -24,14 +24,14 @@ class SMTLIBtests extends FunSuite {
   def makeCustomVampire(timeout: Int) = new TPTPVampireVerifier(timeout)
 
   def successfulVerification(ps: loaded_g.ProofStep,
-                             v: Verifier[VeritasConstruct, VeritasConstruct]): Unit = {
+                             v: Verifier[VeritasConstruct, VeritasFormula]): Unit = {
     val res = loaded_g.verifyProofStep(ps, v)
     println(res.status) //for debugging
     assert(res.status.isVerified)
   }
 
   def inconclusiveVerification(ps: loaded_g.ProofStep,
-                               v: Verifier[VeritasConstruct, VeritasConstruct]): Unit = {
+                               v: Verifier[VeritasConstruct, VeritasFormula]): Unit = {
     val res = loaded_g.verifyProofStep(ps, v)
     println(res.status) //for debugging
     assert(!res.status.isVerified)

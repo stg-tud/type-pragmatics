@@ -13,7 +13,7 @@ trait EdgeLabel extends Ordered[EdgeLabel] with Serializable {
 }
 
 trait PropagatableInfo {
-  type P <: Ordered[P]
+  type P
   def propagateInfo(): P
 }
 

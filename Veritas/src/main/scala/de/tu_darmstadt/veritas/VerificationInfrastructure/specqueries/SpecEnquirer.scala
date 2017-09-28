@@ -11,7 +11,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.FixedVar
   * @tparam Formulae Types for formulae, e.g. axioms, lemmas, goals
   *
   */
-trait SpecEnquirer[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]] {
+trait SpecEnquirer[Defs, Formulae <: Defs] {
 
   //queries regarding the shape of a definition
   def isRecursiveFunction(functioncall: Defs): Boolean
@@ -85,7 +85,7 @@ trait SpecEnquirer[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae
 
   //constructs a universally quantified formula where all free variables will be quantified
   //except for the ones which are fixed variables (have to become constants!)
-  def makeForallQuantifyFreeVariables(body: Formulae, fixed: Seq[FixedVar[Defs]] = Seq()): Formulae
+  def makeForallQuantifyFreeVariables(body: Formulae, fixed: Seq[Defs] = Seq()): Formulae
 
   def makeImplication(prems: Seq[Formulae], concs: Seq[Formulae]): Formulae
 

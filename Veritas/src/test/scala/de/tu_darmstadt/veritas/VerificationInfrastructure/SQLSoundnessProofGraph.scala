@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, TPTPVampireVerifier, TSTPProof, VerifierFailure}
 import de.tu_darmstadt.veritas.backend.ast._
@@ -14,25 +15,26 @@ object SQLMockTactics {
 
   import SQLSoundnessProofSteps._
 
+
   //Mock tactics
   // class for creating mock induction tactics, with convenience methods like selectCase
-  class MockInduction(inductionvar: VeritasConstruct) extends Tactic[VeritasConstruct, VeritasConstruct] {
+  class MockInduction(inductionvar: VeritasConstruct) extends Tactic[VeritasConstruct, VeritasFormula] {
 
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] =
       Seq()
 
-    override def compare(that: Tactic[VeritasConstruct, VeritasConstruct]): Int = ???
+    override def compare(that: Tactic[VeritasConstruct, VeritasFormula]): Int = ???
 
   }
 
   object MockInduction {
     def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
-      required.find(_._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasConstruct]].casename == name).get._1
+      required.find(_._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]].casename == name).get._1
 
     def selectCase[ProofStep, Spec, Goal](g: ProofGraph[Spec, Goal])(name: String, ps: g.ProofStep): g.Obligation =
-      g.requiredObls(ps).find(_._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasConstruct]].casename == name).get._1
+      g.requiredObls(ps).find(_._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]].casename == name).get._1
   }
 
   // Apply structural induction to progress root via ad-hoc instance of MockInduction,
@@ -40,9 +42,9 @@ object SQLMockTactics {
 
   object rootInductionProgress extends MockInduction(MetaVar("q")) {
 
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val tvaluecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTtvalue)
 
       val selectfromwherecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTselectFromWhere)
@@ -54,36 +56,38 @@ object SQLMockTactics {
       val differencecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference)
 
 
-      Seq((tvaluecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTtvalue.goals.head.name,
+
+
+      Seq((tvaluecase, StructInductCase[VeritasConstruct, VeritasFormula](SQLProgressTtvalue.goals.head.name,
         Seq(), Seq(), Seq())),
-        (selectfromwherecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTselectFromWhere.goals.head.name,
+        (selectfromwherecase, StructInductCase[VeritasConstruct, VeritasFormula](SQLProgressTselectFromWhere.goals.head.name,
           Seq(), Seq(), Seq())),
-        (unioncase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTUnion.goals.head.name,
+        (unioncase, StructInductCase[VeritasConstruct, VeritasFormula](SQLProgressTUnion.goals.head.name,
           unionconsts map ((c: VeritasConstruct) => FixedVar(c)), //TODO: think about a good way to get rid of the upcast
-          Seq(InductionHypothesis(Axioms(Seq(SQLProgressTUnionIH1.axioms.head))), InductionHypothesis(Axioms(Seq(SQLProgressTUnionIH2.axioms.head)))), Seq())),
-        (intersectioncase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTIntersection.goals.head.name,
+          Seq(InductionHypothesis[VeritasFormula](Axioms(Seq(SQLProgressTUnionIH1.axioms.head))), InductionHypothesis[VeritasFormula](Axioms(Seq(SQLProgressTUnionIH2.axioms.head)))), Seq())),
+        (intersectioncase, StructInductCase[VeritasConstruct, VeritasFormula](SQLProgressTIntersection.goals.head.name,
           intersectionconsts map ((c: VeritasConstruct) => FixedVar(c)), //TODO: think about a good way to get rid of the upcast
-          Seq(InductionHypothesis(Axioms(Seq(SQLProgressTIntersectionIH1.axioms.head))), InductionHypothesis(Axioms(Seq(SQLProgressTIntersectionIH2.axioms.head)))), Seq())),
-        (differencecase, StructInductCase[VeritasConstruct, VeritasConstruct](SQLProgressTDifference.goals.head.name,
+          Seq(InductionHypothesis[VeritasFormula](Axioms(Seq(SQLProgressTIntersectionIH1.axioms.head))), InductionHypothesis[VeritasFormula](Axioms(Seq(SQLProgressTIntersectionIH2.axioms.head)))), Seq())),
+        (differencecase, StructInductCase[VeritasConstruct, VeritasFormula](SQLProgressTDifference.goals.head.name,
           differenceconsts map ((c: VeritasConstruct) => FixedVar(c)), //TODO: think about a good way to get rid of the upcast
-          Seq(InductionHypothesis(Axioms(Seq(SQLProgressTDifferenceIH1.axioms.head))), InductionHypothesis(Axioms(Seq(SQLProgressTDifferenceIH2.axioms.head)))), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](Axioms(Seq(SQLProgressTDifferenceIH1.axioms.head))), InductionHypothesis[VeritasFormula](Axioms(Seq(SQLProgressTDifferenceIH2.axioms.head)))), Seq())))
 
     }
   }
 
   object successfulLookupInduction extends MockInduction(MetaVar("TS")) {
 
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val successfulLookupEmptyObl = produce.newObligation(fullSQLspec, successfulLookupEmpty)
       val successfulLookupBindObl = produce.newObligation(fullSQLspec, successfulLookupBind)
 
-      Seq((successfulLookupEmptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](successfulLookupEmpty.goals.head.name,
+      Seq((successfulLookupEmptyObl, StructInductCase[VeritasConstruct, VeritasFormula](successfulLookupEmpty.goals.head.name,
         Seq(), Seq(), Seq())),
-        (successfulLookupBindObl, StructInductCase[VeritasConstruct, VeritasConstruct](successfulLookupBind.goals.head.name,
+        (successfulLookupBindObl, StructInductCase[VeritasConstruct, VeritasFormula](successfulLookupBind.goals.head.name,
           Seq(FixedVar(successfulLookupBindConsts)),
-          Seq(InductionHypothesis[VeritasConstruct](successfulLookupBindIH)), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](successfulLookupBindIH)), Seq())))
 
     }
   }
@@ -91,17 +95,17 @@ object SQLMockTactics {
 
   object welltypedLookupInduction extends MockInduction(MetaVar("TS")) {
 
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val welltypedLookupEmptyObl = produce.newObligation(fullSQLspec, welltypedLookupEmpty)
       val welltypedLookupBindObl = produce.newObligation(fullSQLspec, welltypedLookupBind)
 
-      Seq((welltypedLookupEmptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](welltypedLookupEmpty.goals.head.name,
+      Seq((welltypedLookupEmptyObl, StructInductCase[VeritasConstruct, VeritasFormula](welltypedLookupEmpty.goals.head.name,
         Seq(), Seq(), Seq())),
-        (welltypedLookupBindObl, StructInductCase[VeritasConstruct, VeritasConstruct](welltypedLookupBind.goals.head.name,
+        (welltypedLookupBindObl, StructInductCase[VeritasConstruct, VeritasFormula](welltypedLookupBind.goals.head.name,
           Seq(FixedVar(welltypedLookupConsts)),
-          Seq(InductionHypothesis[VeritasConstruct](welltypedLookupBindIH)), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](welltypedLookupBindIH)), Seq())))
 
     }
 
@@ -109,117 +113,117 @@ object SQLMockTactics {
   }
 
   object filterRowsPreservesTableInduction extends MockInduction(MetaVar("rt")) {
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val filterRowsPreservesTableTemptyObl = produce.newObligation(fullSQLspec, filterRowsPreservesTableTempty)
       val filterRowsPreservesTableTconsObl = produce.newObligation(fullSQLspec, filterRowsPreservesTableTcons)
 
-      Seq((filterRowsPreservesTableTemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](filterRowsPreservesTableTempty.goals.head.name,
+      Seq((filterRowsPreservesTableTemptyObl, StructInductCase[VeritasConstruct, VeritasFormula](filterRowsPreservesTableTempty.goals.head.name,
         Seq(), Seq(), Seq())),
-        (filterRowsPreservesTableTconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](filterRowsPreservesTableTcons.goals.head.name,
+        (filterRowsPreservesTableTconsObl, StructInductCase[VeritasConstruct, VeritasFormula](filterRowsPreservesTableTcons.goals.head.name,
           Seq(FixedVar(filterRowsPreservesTableTconsConsts)),
-          Seq(InductionHypothesis[VeritasConstruct](filterRowsPreservesTableTconsIH)), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](filterRowsPreservesTableTconsIH)), Seq())))
 
     }
   }
 
 
   object projectColsProgressInduction extends MockInduction(MetaVar("al2")) {
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val projectColsProgressAemptyObl = produce.newObligation(fullSQLspec, projectColsProgressAempty)
       val projectColsProgressAconsObl = produce.newObligation(fullSQLspec, projectColsProgressAcons)
 
-      Seq((projectColsProgressAemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectColsProgressAempty.goals.head.name,
+      Seq((projectColsProgressAemptyObl, StructInductCase[VeritasConstruct, VeritasFormula](projectColsProgressAempty.goals.head.name,
         Seq(), Seq(), Seq())),
-        (projectColsProgressAconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectColsProgressAcons.goals.head.name,
+        (projectColsProgressAconsObl, StructInductCase[VeritasConstruct, VeritasFormula](projectColsProgressAcons.goals.head.name,
           Seq(FixedVar(projectColsProgressAconsConsts)),
-          Seq(InductionHypothesis[VeritasConstruct](projectColsProgressAconsIH)), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](projectColsProgressAconsIH)), Seq())))
 
     }
   }
 
   object projectTypeImpliesFindColInduction extends MockInduction(MetaVar("al2")) {
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val projectTypeImpliesFindColAemptyObl = produce.newObligation(fullSQLspec, projectTypeImpliesFindColAempty)
       val projectTypeImpliesFindColAconsObl = produce.newObligation(fullSQLspec, projectTypeImpliesFindColAcons)
 
-      Seq((projectTypeImpliesFindColAemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectTypeImpliesFindColAempty.goals.head.name,
+      Seq((projectTypeImpliesFindColAemptyObl, StructInductCase[VeritasConstruct, VeritasFormula](projectTypeImpliesFindColAempty.goals.head.name,
         Seq(), Seq(), Seq())),
-        (projectTypeImpliesFindColAconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectTypeImpliesFindColAcons.goals.head.name,
+        (projectTypeImpliesFindColAconsObl, StructInductCase[VeritasConstruct, VeritasFormula](projectTypeImpliesFindColAcons.goals.head.name,
           Seq(FixedVar(projectTypeImpliesFindColAconsConsts)),
-          Seq(InductionHypothesis[VeritasConstruct](projectTypeImpliesFindColAconsIH)), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](projectTypeImpliesFindColAconsIH)), Seq())))
 
     }
   }
 
   object findColTypeImpliesfindColInduction extends MockInduction(MetaVar("al")) {
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val findColTypeImpliesfindColAemptyObl = produce.newObligation(fullSQLspec, findColTypeImpliesfindColAempty)
       val findColTypeImpliesfindColAconsObl = produce.newObligation(fullSQLspec, findColTypeImpliesfindColAcons)
 
-      Seq((findColTypeImpliesfindColAemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](findColTypeImpliesfindColAempty.goals.head.name,
+      Seq((findColTypeImpliesfindColAemptyObl, StructInductCase[VeritasConstruct, VeritasFormula](findColTypeImpliesfindColAempty.goals.head.name,
         Seq(), Seq(), Seq())),
-        (findColTypeImpliesfindColAconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](findColTypeImpliesfindColAcons.goals.head.name,
+        (findColTypeImpliesfindColAconsObl, StructInductCase[VeritasConstruct, VeritasFormula](findColTypeImpliesfindColAcons.goals.head.name,
           Seq(FixedVar(findColTypeImpliesfindColAconsConsts)),
-          Seq(InductionHypothesis[VeritasConstruct](findColTypeImpliesfindColAconsIH)), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](findColTypeImpliesfindColAconsIH)), Seq())))
 
     }
   }
 
   object projectTypeAttrLImpliesfindAllColTypeInduction extends MockInduction(MetaVar("al")) {
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val projectTypeAttrLImpliesfindAllColTypeAemptyObl = produce.newObligation(fullSQLspec, projectTypeAttrLImpliesfindAllColTypeAempty)
       val projectTypeAttrLImpliesfindAllColTypeAconsObl = produce.newObligation(fullSQLspec, projectTypeAttrLImpliesfindAllColTypeAcons)
 
-      Seq((projectTypeAttrLImpliesfindAllColTypeAemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAempty.goals.head.name,
+      Seq((projectTypeAttrLImpliesfindAllColTypeAemptyObl, StructInductCase[VeritasConstruct, VeritasFormula](projectTypeAttrLImpliesfindAllColTypeAempty.goals.head.name,
         Seq(), Seq(), Seq())),
-        (projectTypeAttrLImpliesfindAllColTypeAconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAcons.goals.head.name,
+        (projectTypeAttrLImpliesfindAllColTypeAconsObl, StructInductCase[VeritasConstruct, VeritasFormula](projectTypeAttrLImpliesfindAllColTypeAcons.goals.head.name,
           Seq(FixedVar(projectTypeAttrLImpliesfindAllColTypeAconsConsts)),
-          Seq(InductionHypothesis[VeritasConstruct](projectTypeAttrLImpliesfindAllColTypeAconsIH)), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](projectTypeAttrLImpliesfindAllColTypeAconsIH)), Seq())))
 
     }
   }
 
   object dropFirstColRawPreservesWelltypedRawInduction extends MockInduction(MetaVar("rt")) {
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
       val dropFirstColRawPreservesWelltypedRawTemptyObl = produce.newObligation(fullSQLspec, dropFirstColRawPreservesWelltypedRawTempty)
       val dropFirstColRawPreservesWelltypedRawTconsObl = produce.newObligation(fullSQLspec, dropFirstColRawPreservesWelltypedRawTcons)
 
-      Seq((dropFirstColRawPreservesWelltypedRawTemptyObl, StructInductCase[VeritasConstruct, VeritasConstruct](dropFirstColRawPreservesWelltypedRawTempty.goals.head.name,
+      Seq((dropFirstColRawPreservesWelltypedRawTemptyObl, StructInductCase[VeritasConstruct, VeritasFormula](dropFirstColRawPreservesWelltypedRawTempty.goals.head.name,
         Seq(), Seq(), Seq())),
-        (dropFirstColRawPreservesWelltypedRawTconsObl, StructInductCase[VeritasConstruct, VeritasConstruct](dropFirstColRawPreservesWelltypedRawTcons.goals.head.name,
+        (dropFirstColRawPreservesWelltypedRawTconsObl, StructInductCase[VeritasConstruct, VeritasFormula](dropFirstColRawPreservesWelltypedRawTcons.goals.head.name,
           Seq(FixedVar(dropFirstColRawPreservesWelltypedRawTconsConsts)),
-          Seq(InductionHypothesis[VeritasConstruct](dropFirstColRawPreservesWelltypedRawTconsIH)), Seq())))
+          Seq(InductionHypothesis[VeritasFormula](dropFirstColRawPreservesWelltypedRawTconsIH)), Seq())))
 
     }
   }
 
 
   //class for creating mock case distinctions
-  class MockCaseDistinction(cases: Seq[VeritasConstruct]) extends Tactic[VeritasConstruct, VeritasConstruct] {
+  class MockCaseDistinction(cases: Seq[VeritasConstruct]) extends Tactic[VeritasConstruct, VeritasFormula] {
 
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] =
       Seq()
 
-    override def compare(that: Tactic[VeritasConstruct, VeritasConstruct]): Int = ???
+    override def compare(that: Tactic[VeritasConstruct, VeritasFormula]): Int = ???
   }
 
   object MockCaseDistinction {
     def selectCase[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
-      required.find(_._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct, VeritasConstruct]].casename == name).get._1
+      required.find(_._2.asInstanceOf[CaseDistinctionCase[VeritasConstruct, VeritasFormula]].casename == name).get._1
   }
 
 
@@ -230,9 +234,9 @@ object SQLMockTactics {
 
     val casepreds = Seq(case1pred, case2pred, case3pred)
 
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]):
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]):
     Iterable[(Obligation, EdgeLabel)] = {
       def mkcase(i: Int): Obligation = produce.newObligation(fullSQLspec,
         mkSQLProgressTSetCase(i, setsym, setname, casepreds(i)))
@@ -240,20 +244,20 @@ object SQLMockTactics {
       //note: a real tactic would have to extract the information to be propagated
       // in the edges from the given obllabels (unused here) and decide which one
       // to forward where
-      Seq((mkcase(0), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "1",
+      Seq((mkcase(0), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "1",
         (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))))),
-        (mkcase(1), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "2",
+        (mkcase(1), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "2",
           (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))) :+
-            InductionHypothesis[VeritasConstruct](mkSQLProgressTSetCaseIH(2, setname, 'q2)))),
-        (mkcase(2), CaseDistinctionCase[VeritasConstruct, VeritasConstruct](setname + "3",
+            InductionHypothesis[VeritasFormula](mkSQLProgressTSetCaseIH(2, setname, 'q2)))),
+        (mkcase(2), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "3",
           (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))) :+
-            InductionHypothesis[VeritasConstruct](mkSQLProgressTSetCaseIH(1, setname, 'q1)))))
+            InductionHypothesis[VeritasFormula](mkSQLProgressTSetCaseIH(1, setname, 'q1)))))
     }
 
   }
 
   //class for creating mock lemma generation tactics
-  case class MockLemmaApplication(lemmas: Seq[Lemmas]) extends Tactic[VeritasConstruct, VeritasConstruct] {
+  case class MockLemmaApplication(lemmas: Seq[Lemmas]) extends Tactic[VeritasConstruct, VeritasFormula] {
     /**
       * applying a tactic to a ProofStep returns the edges generated from this application
       * edges include edge labels and sub-ProofSteps
@@ -264,18 +268,18 @@ object SQLMockTactics {
       * @throws TacticApplicationException
       * @return
       */
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasConstruct],
+    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
                                    obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasConstruct, Obligation]): Iterable[(Obligation, EdgeLabel)] =
+                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] =
       for (lem <- lemmas) yield
         produce.newObligation(fullSQLspec, Goals(lem.lemmas, lem.timeout)) -> LemmaApplicationStep(lem.lemmas.head.name)
 
-    override def compare(that: Tactic[VeritasConstruct, VeritasConstruct]): Int = ???
+    override def compare(that: Tactic[VeritasConstruct, VeritasFormula]): Int = ???
   }
 
   object MockLemmaApplication {
     def selectLemma[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
-      required.find(_._2.asInstanceOf[LemmaApplicationStep[VeritasConstruct]].lemmaname == name).get._1
+      required.find(_._2.asInstanceOf[LemmaApplicationStep[VeritasFormula]].lemmaname == name).get._1
   }
 
 }
@@ -288,9 +292,11 @@ class SQLSoundnessProofGraph(file: File) {
   import SQLMockTactics._
   import SQLSoundnessProofSteps._
 
-  val g: ProofGraphXodus[VeritasConstruct, VeritasConstruct] with ProofGraphTraversals[VeritasConstruct, VeritasConstruct] =
-    new ProofGraphXodus[VeritasConstruct, VeritasConstruct](file) with ProofGraphTraversals[VeritasConstruct, VeritasConstruct]
+  val g: ProofGraphXodus[VeritasConstruct, VeritasFormula] with ProofGraphTraversals[VeritasConstruct, VeritasFormula] =
+    new ProofGraphXodus[VeritasConstruct, VeritasFormula](file) with ProofGraphTraversals[VeritasConstruct, VeritasFormula]
   SQLSoundnessProofGraph.initializeGraphTypes(g)
+
+  val specenq = new VeritasSpecEnquirer
 
 
   //progress root obligation
@@ -299,10 +305,11 @@ class SQLSoundnessProofGraph(file: File) {
 
   // first proof step: structural induction
   val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
+  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, StructuralInduction(MetaVar("q"), fullSQLspec, specenq))
 
   //apply simply Solve-tactic to t-value base case
   val tvaluecaseobl = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, g.requiredObls(rootinductionPS))
-  val tvaluecasePS = g.applyTactic(tvaluecaseobl, Solve[VeritasConstruct, VeritasConstruct])
+  val tvaluecasePS = g.applyTactic(tvaluecaseobl, Solve[VeritasConstruct, VeritasFormula])
 
   // Case distinctions for Union, Intersection, Difference cases
   val unionCaseDistinction = SetCaseDistinction(unionsym, sunion)
@@ -325,7 +332,7 @@ class SQLSoundnessProofGraph(file: File) {
     g.requiredObls(intersectioncasePS) ++ g.requiredObls(differencecasePS)
 
   val setPS = for ((o, e) <- setobls) yield {
-    g.applyTactic(o, Solve[VeritasConstruct, VeritasConstruct])
+    g.applyTactic(o, Solve[VeritasConstruct, VeritasFormula])
   }
 
   //prove selectFromWhereCase via auxiliary lemmas:
@@ -345,10 +352,10 @@ class SQLSoundnessProofGraph(file: File) {
   val successfulLookupPS = g.applyTactic(successfulLookupobl, successfulLookupInduction)
 
   val successfulLookupbasecase = MockInduction.selectCase(successfulLookupEmpty.goals.head.name, g.requiredObls(successfulLookupPS))
-  val successfulLookupbasecasePL = g.applyTactic(successfulLookupbasecase, Solve[VeritasConstruct, VeritasConstruct])
+  val successfulLookupbasecasePL = g.applyTactic(successfulLookupbasecase, Solve[VeritasConstruct, VeritasFormula])
 
   val successfulLookupstepcase = MockInduction.selectCase(successfulLookupBind.goals.head.name, g.requiredObls(successfulLookupPS))
-  val successfulLookupstepcasePL = g.applyTactic(successfulLookupstepcase, Solve[VeritasConstruct, VeritasConstruct])
+  val successfulLookupstepcasePL = g.applyTactic(successfulLookupstepcase, Solve[VeritasConstruct, VeritasFormula])
 
   val welltypedLookupobl = MockLemmaApplication.selectLemma(welltypedLookup.lemmas.head.name,
     g.requiredObls(selLemmaPS))
@@ -357,10 +364,10 @@ class SQLSoundnessProofGraph(file: File) {
   val welltypedLookupPS = g.applyTactic(welltypedLookupobl, welltypedLookupInduction)
 
   val welltypedLookupbasecase = MockInduction.selectCase(welltypedLookupEmpty.goals.head.name, g.requiredObls(welltypedLookupPS))
-  val welltypedLookupbasecasePS = g.applyTactic(welltypedLookupbasecase, Solve[VeritasConstruct, VeritasConstruct])
+  val welltypedLookupbasecasePS = g.applyTactic(welltypedLookupbasecase, Solve[VeritasConstruct, VeritasFormula])
 
   val welltypedLookupstepcase = MockInduction.selectCase(welltypedLookupBind.goals.head.name, g.requiredObls(welltypedLookupPS))
-  val welltypedLookupstepcasePS = g.applyTactic(welltypedLookupstepcase, Solve[VeritasConstruct, VeritasConstruct])
+  val welltypedLookupstepcasePS = g.applyTactic(welltypedLookupstepcase, Solve[VeritasConstruct, VeritasFormula])
 
   // prove lemma filterPreservesType via auxiliary lemma filterRowsPreservesTable
   val filterPreservesTypeobl = MockLemmaApplication.selectLemma(filterPreservesType.lemmas.head.name,
@@ -378,11 +385,11 @@ class SQLSoundnessProofGraph(file: File) {
   val filterRowsPreservesTablebasecase = MockInduction.selectCase(filterRowsPreservesTableTempty.goals.head.name,
     g.requiredObls(filterRowsPreservesTableOblPS))
   val filterRowsPreservesTablebasecasePS = g.applyTactic(filterRowsPreservesTablebasecase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   val filterRowsPreservesTablestepcase = MockInduction.selectCase(filterRowsPreservesTableTcons.goals.head.name, g.requiredObls(filterRowsPreservesTableOblPS))
   val filterRowsPreservesTablestepcasePS = g.applyTactic(filterRowsPreservesTablestepcase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   //try to prove projectTableProgress via lemma application with projectColsProgress?
   //yes, works, apparently no case distinction necessary!
@@ -401,7 +408,7 @@ class SQLSoundnessProofGraph(file: File) {
   val projectColsProgressbasecase = MockInduction.selectCase(projectColsProgressAempty.goals.head.name,
     g.requiredObls(projectColsProgressPS))
   val projectColsProgressbasecasePS = g.applyTactic(projectColsProgressbasecase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   // step case requires an auxiliary lemma (projectTypeImpliesFindCol)
   val projectColsProgressstepcase = MockInduction.selectCase(projectColsProgressAcons.goals.head.name, g.requiredObls(projectColsProgressPS))
@@ -417,7 +424,7 @@ class SQLSoundnessProofGraph(file: File) {
   val projectTypeImpliesFindColbasecase = MockInduction.selectCase(projectTypeImpliesFindColAempty.goals.head.name,
     g.requiredObls(projectTypeImpliesFindColPS))
   val projectTypeImpliesFindColbasecasePS = g.applyTactic(projectTypeImpliesFindColbasecase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   // step case requires two auxiliary lemmas
   val projectTypeImpliesFindColstepcase = MockInduction.selectCase(projectTypeImpliesFindColAcons.goals.head.name,
@@ -434,7 +441,7 @@ class SQLSoundnessProofGraph(file: File) {
   val findColTypeImpliesfindColbasecase = MockInduction.selectCase(findColTypeImpliesfindColAempty.goals.head.name,
     g.requiredObls(findColTypeImpliesfindColPS))
   val findColTypeImpliesfindColbasecasePS = g.applyTactic(findColTypeImpliesfindColbasecase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   //step requires auxiliary lemma dropFirstColRawPreservesWelltypedRaw
   val findColTypeImpliesfindColstepcase = MockInduction.selectCase(findColTypeImpliesfindColAcons.goals.head.name,
@@ -451,12 +458,12 @@ class SQLSoundnessProofGraph(file: File) {
   val projectTypeAttrLImpliesfindAllColTypebasecase = MockInduction.selectCase(projectTypeAttrLImpliesfindAllColTypeAempty.goals.head.name,
     g.requiredObls(projectTypeAttrLImpliesfindAllColTypePS))
   val projectTypeAttrLImpliesfindAllColTypebasecasePS = g.applyTactic(projectTypeAttrLImpliesfindAllColTypebasecase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   val projectTypeAttrLImpliesfindAllColTypestepcase = MockInduction.selectCase(projectTypeAttrLImpliesfindAllColTypeAcons.goals.head.name,
     g.requiredObls(projectTypeAttrLImpliesfindAllColTypePS))
   val projectTypeAttrLImpliesfindAllColTypestepcasePS = g.applyTactic(projectTypeAttrLImpliesfindAllColTypestepcase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   //prove dropFirstColRawPreservesWelltypedRaw via induction
   val dropFirstColRawPreservesWelltypedRawObl = MockLemmaApplication.selectLemma(dropFirstColRawPreservesWelltypedRaw.lemmas.head.name,
@@ -467,12 +474,12 @@ class SQLSoundnessProofGraph(file: File) {
   val dropFirstColRawPreservesWelltypedRawbasecase = MockInduction.selectCase(dropFirstColRawPreservesWelltypedRawTempty.goals.head.name,
     g.requiredObls(dropFirstColRawPreservesWelltypedRawPS))
   val dropFirstColRawPreservesWelltypedRawbasecasePS = g.applyTactic(dropFirstColRawPreservesWelltypedRawbasecase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   val dropFirstColRawPreservesWelltypedRawstepcase = MockInduction.selectCase(dropFirstColRawPreservesWelltypedRawTcons.goals.head.name,
     g.requiredObls(dropFirstColRawPreservesWelltypedRawPS))
   val dropFirstColRawPreservesWelltypedRawstepcasePS = g.applyTactic(dropFirstColRawPreservesWelltypedRawstepcase,
-    Solve[VeritasConstruct, VeritasConstruct])
+    Solve[VeritasConstruct, VeritasFormula])
 
   //verify chosen steps with chosen verifiers
   def verifySingleStepsSimple() = {
@@ -529,15 +536,17 @@ class SQLSoundnessProofGraph(file: File) {
 }
 
 object SQLSoundnessProofGraph {
-  def initializeGraphTypes(g: ProofGraphXodus[VeritasConstruct, VeritasConstruct]) = {
+  def initializeGraphTypes(g: ProofGraphXodus[VeritasConstruct, VeritasFormula]) = {
     //register all the necessary property types
     PropertyTypes.registerPropertyType[VeritasConstruct](g.store)
+    //PropertyTypes.registerPropertyType[VeritasFormula](g.store)
+    //PropertyTypes.registerPropertyType[VeritasFormula with Ordered[VeritasFormula]](g.store)
     PropertyTypes.registerPropertyType[Module](g.store)
     PropertyTypes.registerPropertyType[Goals](g.store)
     PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
-    PropertyTypes.registerPropertyType[StructInductCase[VeritasConstruct, VeritasConstruct]](g.store)
+    PropertyTypes.registerPropertyType[StructInductCase[VeritasConstruct, VeritasFormula]](g.store)
     PropertyTypes.registerPropertyType[SetCaseDistinction](g.store)
-    PropertyTypes.registerPropertyType[CaseDistinctionCase[VeritasConstruct, VeritasConstruct]](g.store)
+    PropertyTypes.registerPropertyType[CaseDistinctionCase[VeritasConstruct, VeritasFormula]](g.store)
     PropertyTypes.registerPropertyType[Finished[_, _]](g.store)
     PropertyTypes.registerPropertyType[VerifierFailure[_, _]](g.store)
     PropertyTypes.registerPropertyType[TSTPProof](g.store)

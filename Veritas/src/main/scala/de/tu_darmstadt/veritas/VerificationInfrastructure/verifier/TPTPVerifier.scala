@@ -9,7 +9,7 @@ import de.tu_darmstadt.veritas.backend.ast._
 
 import scala.util.{Failure, Success}
 
-trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
+trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasFormula] {
   override type V = TPTP
 
   def prover: Prover[TPTP]
@@ -21,7 +21,7 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
       Selection -> Selection.SelectAll,
       Problem -> Problem.All)), x => x.asInstanceOf[TPTP])
 
-  protected def extractGoalName(vc: VeritasConstruct): String =
+  protected def extractGoalName(vc: VeritasFormula): String =
     vc match {
       case Goals(gl, _) => gl.head.name
       case Lemmas(ll, _) => ll.head.name
@@ -40,13 +40,13 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasConstruct] {
     }
   }
 
-  override def verify[Result <: GenStepResult[VeritasConstruct, VeritasConstruct]]
-  (goal: VeritasConstruct,
+  override def verify[Result <: GenStepResult[VeritasConstruct, VeritasFormula]]
+  (goal: VeritasFormula,
    spec: VeritasConstruct,
    parentedges: Iterable[EdgeLabel],
-   assumptions: Iterable[VeritasConstruct],
+   assumptions: Iterable[VeritasFormula],
    hints: Option[VerifierHints],
-   produce: StepResultProducer[VeritasConstruct, VeritasConstruct, Result],
+   produce: StepResultProducer[VeritasConstruct, VeritasFormula, Result],
    pathforlogs: Option[String] = None): Result = {
     spec match {
       case Module(name, imps, moddefs) => {

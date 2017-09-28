@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 
-case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](inductionvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -74,7 +74,7 @@ case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs with Orde
           //reassemble goal and attach name
           val casename = "-icase" + iv_cases.indexOf(renamed_ic)
           makeNamedFormula(makeForallQuantifyFreeVariables(
-            makeImplication(added_premises, concs), fvs), getFormulaName(goal) ++ casename)
+            makeImplication(added_premises, concs), fvs map { fv => fv.fixedvar }), getFormulaName(goal) ++ casename)
         }
         }
 
@@ -107,15 +107,23 @@ case class StructuralInduction[Defs <: Ordered[Defs], Formulae <: Defs with Orde
     else Seq() //TODO throw an exception that explains why the tactic failed
   }
 
-  override def compare(that: Tactic[Defs, Formulae]): Int =
-    that match {
-      case structuralInduction: StructuralInduction[Defs, Formulae] => {
-        val comp_indvar = inductionvar compare structuralInduction.inductionvar
-        if (comp_indvar == 0)
-          spec compare structuralInduction.spec
-        else
-          comp_indvar
-      }
-      case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
-    }
+  override def compare(that: Tactic[Defs, Formulae]): Int = {
+    val hcompare = this.hashCode compare that.hashCode
+    if (hcompare != 0)
+      return hcompare
+    if (this == that)
+      return 0
+    throw new RuntimeException(s"Failed to compare $this and $that using hash codes.")
+  }
+
+  //    that match {
+  //      case structuralInduction: StructuralInduction[Defs, Formulae] => {
+  //        val comp_indvar = inductionvar compare structuralInduction.inductionvar
+  //        if (comp_indvar == 0)
+  //          spec compare structuralInduction.spec
+  //        else
+  //          comp_indvar
+  //      }
+  //      case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
+  //    }
 }
