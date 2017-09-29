@@ -537,12 +537,13 @@ class SQLSoundnessProofGraph(file: File) {
 
 object SQLSoundnessProofGraph {
   def initializeGraphTypes(g: ProofGraphXodus[VeritasConstruct, VeritasFormula]) = {
+    PropertyTypes.registerWrapperType(g.store)
     //register all the necessary property types
-    PropertyTypes.registerPropertyType[VeritasConstruct](g.store)
+    //PropertyTypes.registerPropertyType[VeritasConstruct](g.store)
     //PropertyTypes.registerPropertyType[VeritasFormula](g.store)
     //PropertyTypes.registerPropertyType[VeritasFormula with Ordered[VeritasFormula]](g.store)
-    PropertyTypes.registerPropertyType[Module](g.store)
-    PropertyTypes.registerPropertyType[Goals](g.store)
+    //PropertyTypes.registerPropertyType[Module](g.store)
+    //PropertyTypes.registerPropertyType[Goals](g.store)
     PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
     PropertyTypes.registerPropertyType[StructInductCase[VeritasConstruct, VeritasFormula]](g.store)
     PropertyTypes.registerPropertyType[SetCaseDistinction](g.store)

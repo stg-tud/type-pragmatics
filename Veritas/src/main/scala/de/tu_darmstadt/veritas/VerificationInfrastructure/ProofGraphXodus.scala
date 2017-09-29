@@ -13,22 +13,35 @@ import scala.reflect.ClassTag
 import scala.language.implicitConversions
 
 
+class OrderedWrapper[T](val obj: T) extends Ordered[T] {
+
+  def compare(that: T): Int = {
+    val hcompare = this.hashCode compare that.hashCode
+    if (hcompare != 0)
+      return hcompare
+    if (this equals that)
+      return 0
+    throw new RuntimeException(s"Failed to compare $this and $that using hash codes (happens if objects are different but still return the same hash codes!)")
+  }
+
+  override def equals(cobj: scala.Any): Boolean = cobj match {
+    case ord: OrderedWrapper[T] => obj equals ord.obj
+    case _ => super.equals(cobj)
+  }
+
+  override def hashCode(): Int = obj.hashCode()
+}
+
 class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
   import ProofGraphXodus._
 
-
   //try some implicit magic in order to make a type Ordered if necessary
-  implicit def makeOrdered[T](t: T): Ordered[T] = new Ordered[T] {
-    def compare(that: T): Int = {
-      val hcompare = this.hashCode compare that.hashCode
-      if (hcompare != 0)
-        return hcompare
-      if (this == that)
-        return 0
-      throw new RuntimeException(s"Failed to compare $this and $that using hash codes.")
-    }
-  }
+  //if makeOrdered shall really be implicit, make sure that types that are already Ordered are not wrapped again
+  //currently, makeOrdered should only ever be called for stuff that is not Ordered
+  def makeOrdered[T](t: T): OrderedWrapper[T] = new OrderedWrapper[T](t)
+
+  def readOrdered[T](to: Comparable[_]): T = to.asInstanceOf[OrderedWrapper[T]].obj
 
 
   val store: PersistentEntityStore = PersistentEntityStores.newInstance(dbDir)
@@ -96,8 +109,8 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
   class Obligation(val id: EntityId, val spec: Spec, val goal: Goal) extends GenObligation[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
-      this(id, entity.getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[Spec],
-            entity.getProperty(pOblGoal).asInstanceOf[Goal])
+      this(id, readOrdered[Spec](entity.getLink(lOblSpec).getProperty(pSpecContent)),
+            readOrdered[Goal](entity.getProperty(pOblGoal)))
 
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
@@ -109,22 +122,25 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
     def newObligationST(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
       // TODO maybe improve performance through index Spec->Entity, but maybe Xodus does that already or this is not performance-critical anyways
-      val existing = txn.find(TSpec, pSpecContent, specObj).asScala
+      val ordered_specObj = makeOrdered(specObj)
+      val ordered_goalObj = makeOrdered(goalObj)
+
+      val existing = txn.find(TSpec, pSpecContent, ordered_specObj).asScala
       val spec = existing.headOption.getOrElse {
         val spec = txn.newEntity(TSpec)
-        spec.setProperty(pSpecContent, specObj)
+        spec.setProperty(pSpecContent, ordered_specObj)
         spec
       }
 
       // find exisiting obl or create a new one
-      val existingObls = txn.find(TObligation, pOblGoal, goalObj).asScala
+      val existingObls = txn.find(TObligation, pOblGoal, ordered_goalObj).asScala
       val withSpecLinked = existingObls.find { entity =>
-        val spec = entity.getLink(lOblSpec).getProperty(pSpecContent).asInstanceOf[Spec]
+        val spec = readOrdered[Spec](entity.getLink(lOblSpec).getProperty(pSpecContent))
         spec == specObj
       }
       val obl = withSpecLinked.headOption.getOrElse {
         val obl = txn.newEntity(TObligation)
-        obl.setProperty(pOblGoal, goalObj)
+        obl.setProperty(pOblGoal, ordered_goalObj)
         obl.setLink(lOblSpec, spec)
         obl
       }
@@ -366,10 +382,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
   }
 
   def fromNullable[T <: AnyRef](v: T): Option[T] =
-    if (v == null)
-      None
-    else
-      Some(v)
+    Option(v)
 
 
   /* GC helpers */
@@ -448,21 +461,43 @@ object PropertyTypes {
 
 
   def registerPropertyType[T <: Comparable[_] with Serializable](store: PersistentEntityStore)
-                                              (implicit tag: ClassTag[T]) =
+  (implicit tag: ClassTag[T]) =
+  store.executeInTransaction(new StoreTransactionalExecutable() {
+    override def execute(txn: StoreTransaction): Unit = {
+      val binding = new ComparableBinding {
+        override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
+          val oos = new ObjectOutputStream(output)
+          oos.writeObject(obj)
+        }
+
+        override def readObject(stream: ByteArrayInputStream) = {
+          val ois = new ObjectInputStream(stream)
+          ois.readObject().asInstanceOf[T]
+        }
+      }
+
+      val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
+      store.registerCustomPropertyType(txn, clazz, binding)
+    }
+  })
+
+  def registerWrapperType(store: PersistentEntityStore) =
     store.executeInTransaction(new StoreTransactionalExecutable() {
       override def execute(txn: StoreTransaction): Unit = {
         val binding = new ComparableBinding {
           override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
+            val cobj = obj.asInstanceOf[OrderedWrapper[_]]
             val oos = new ObjectOutputStream(output)
-            oos.writeObject(obj)
+            oos.writeObject(cobj.obj)
           }
 
           override def readObject(stream: ByteArrayInputStream) = {
             val ois = new ObjectInputStream(stream)
-            ois.readObject().asInstanceOf[T]
+            new OrderedWrapper(ois.readObject())
           }
         }
 
+        val tag = implicitly [ClassTag[OrderedWrapper[_]]]
         val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
         store.registerCustomPropertyType(txn, clazz, binding)
       }
