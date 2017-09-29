@@ -12,7 +12,7 @@ libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
 
 libraryDependencies += "io.verizon.quiver" %% "core" % "5.4.12"
 
-libraryDependencies += "org.jetbrains.xodus" % "xodus-entity-store" % "1.0.4"
+libraryDependencies += "org.jetbrains.xodus" % "xodus-entity-store" % "1.0.6"
 
 libraryDependencies += "net.ruippeixotog" %% "scala-scraper" % "1.2.1"
 
