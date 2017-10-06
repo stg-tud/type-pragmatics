@@ -17,7 +17,7 @@ case class SudokuCell(value: Int, candidates: Set[Int]) {
   * Representation of a Sudoku field, with domain-specific queries
   * parametric in cellrange (standard: 1-9), but assumes quadratic Sudoku
   */
-class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable[SudokuField] with Serializable {
+class SudokuField(val field: Field, val config: SudokuConfig) extends Serializable {
 
   import config._
 
@@ -240,10 +240,6 @@ class SudokuField(val field: Field, val config: SudokuConfig) extends Comparable
       else (c.candidates.toSeq.sortWith(_ <= _) map (symmap(_))).mkString("")
     })).mkString(" ")).mkString("\n")
   }
-
-  //TODO is there a better way to implement comparison here?
-  override def compareTo(o: SudokuField): Int =
-    (for ((c1, c2) <- (this.cells zip o.cells) if (c1 != c2)) yield c1).size
 }
 
 case class SudokuConfig(cellrange: Range,

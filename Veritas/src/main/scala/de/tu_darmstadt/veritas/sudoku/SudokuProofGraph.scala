@@ -7,9 +7,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.Finished
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraphTraversals, ProofGraphXodus, PropertyTypes}
 import de.tu_darmstadt.veritas.sudoku.tactics._
 
-class EmptySpec extends Comparable[EmptySpec] with Serializable {
-  override def compareTo(o: EmptySpec): Int = this.hashCode() compare o.hashCode()
-}
+class EmptySpec extends Serializable
 
 /**
   * controls construction of a sudoku proof graph
@@ -19,7 +17,8 @@ class SudokuProofGraph(file: File, initialfield: SudokuField, rootstrategy: Stra
 
   val g: ProofGraphXodus[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField] =
     new ProofGraphXodus[EmptySpec, SudokuField](file) with ProofGraphTraversals[EmptySpec, SudokuField]
-  SudokuProofGraph.initializeGraphTypes(g)
+  PropertyTypes.registerWrapperType(g.store)
+  //SudokuProofGraph.initializeGraphTypes(g)
 
   val initialobligation: g.Obligation = g.newObligation(new EmptySpec, initialfield)
   g.storeObligation("initial", initialobligation)
@@ -70,21 +69,26 @@ class SudokuProofGraph(file: File, initialfield: SudokuField, rootstrategy: Stra
 
 
 object SudokuProofGraph {
+
+  /**
+    * old: all of these types once implemented Comparable themselves and hence needed to be statically registered
+    * @param g
+    */
   def initializeGraphTypes(g: ProofGraphXodus[EmptySpec, SudokuField]) = {
-    PropertyTypes.registerPropertyType[SudokuField](g.store)
-    PropertyTypes.registerPropertyType[EmptySpec](g.store)
-    PropertyTypes.registerPropertyType[SolveSudoku.type](g.store)
-    PropertyTypes.registerPropertyType[RuleOutCandidatesSimple.type](g.store)
-    PropertyTypes.registerPropertyType[SimpleRuleOut](g.store)
-    PropertyTypes.registerPropertyType[SolveSingleCandidate.type](g.store)
-    PropertyTypes.registerPropertyType[FillSingleCandidate](g.store)
-    PropertyTypes.registerPropertyType[Finished[EmptySpec, SudokuField]](g.store)
-    PropertyTypes.registerPropertyType[Z3Evidence](g.store)
-    PropertyTypes.registerPropertyType[SudokuLeafVerifier](g.store)
-    PropertyTypes.registerPropertyType[SudokuIntermediateStepVerifier](g.store)
-    PropertyTypes.registerPropertyType[NakedGroup](g.store)
-    PropertyTypes.registerPropertyType[FoundNakedGroup](g.store)
-    PropertyTypes.registerPropertyType[OnlyCellWithCandidate.type](g.store)
+    //PropertyTypes.registerPropertyType[SudokuField](g.store)
+    //PropertyTypes.registerPropertyType[EmptySpec](g.store)
+    //PropertyTypes.registerPropertyType[SolveSudoku.type](g.store)
+    //PropertyTypes.registerPropertyType[RuleOutCandidatesSimple.type](g.store)
+    //PropertyTypes.registerPropertyType[SimpleRuleOut](g.store)
+    //PropertyTypes.registerPropertyType[SolveSingleCandidate.type](g.store)
+    //PropertyTypes.registerPropertyType[FillSingleCandidate](g.store)
+    //PropertyTypes.registerPropertyType[Finished[EmptySpec, SudokuField]](g.store)
+    //PropertyTypes.registerPropertyType[Z3Evidence](g.store)
+    //PropertyTypes.registerPropertyType[SudokuLeafVerifier](g.store)
+    //PropertyTypes.registerPropertyType[SudokuIntermediateStepVerifier](g.store)
+    //PropertyTypes.registerPropertyType[NakedGroup](g.store)
+    //PropertyTypes.registerPropertyType[FoundNakedGroup](g.store)
+    //PropertyTypes.registerPropertyType[OnlyCellWithCandidate.type](g.store)
 
   }
 }

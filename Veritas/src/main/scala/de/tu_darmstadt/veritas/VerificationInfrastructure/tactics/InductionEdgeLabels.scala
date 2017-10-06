@@ -31,12 +31,6 @@ case class StructInductCase[Defs, Formulae <: Defs](casename: String, fixedvars:
   override def propagateInfoList: Seq[PropagatableInfo] =
     propInfo ++ fixedvars ++ ihs
 
-  override def compare(that: EdgeLabel): Int = that match {
-    case that: StructInductCase[Defs, Formulae] =>
-      this.casename compare that.casename //for now assume that case names are unique!
-
-    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
-  }
 }
 
 //TODO the information necessary for this edge might need to be refined
@@ -45,13 +39,6 @@ case class CaseDistinctionCase[Defs, Formulae <: Defs](casename: String, propInf
   override def desc: String = casename
 
   override def propagateInfoList: Seq[PropagatableInfo] = propInfo
-
-  override def compare(that: EdgeLabel): Int = that match {
-    case that: StructInductCase[Defs, Formulae] =>
-      this.casename compare that.casename //for now assume that case names are unique!
-
-    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
-  }
 
 }
 

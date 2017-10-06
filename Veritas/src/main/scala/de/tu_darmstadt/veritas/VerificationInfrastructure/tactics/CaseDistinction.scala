@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
-case class CaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](cases: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class CaseDistinction[Defs, Formulae <: Defs](cases: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -43,23 +43,9 @@ case class CaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[
       (newobl, edge)
     }
   }
-
-
-  override def compare(that: Tactic[Defs, Formulae]): Int = that match {
-    case that: CaseDistinction[Defs, Formulae] => {
-      val lengthcomp = this.cases.length compare that.cases.length
-      if (lengthcomp == 0) {
-        lazy val comp_individual_cases = (this.cases zip that.cases) map { case (c1, c2) => c1 compare c2 }
-        (comp_individual_cases find (_ != 0)).getOrElse(0)
-      }
-      else lengthcomp
-    }
-    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
-  }
-
 }
 
-case class StructuralCaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](distvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -87,10 +73,5 @@ case class StructuralCaseDistinction[Defs <: Ordered[Defs], Formulae <: Defs wit
       CaseDistinction[Defs, Formulae](dist_cases, spec, queryspec)(obl, obllabels, produce)
     } else
       Seq() //TODO throw an exception that explains why the tactic failed
-  }
-
-  override def compare(that: Tactic[Defs, Formulae]): Int = that match {
-    case that: StructuralCaseDistinction[Defs, Formulae] => this.distvar compare that.distvar
-    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
   }
 }

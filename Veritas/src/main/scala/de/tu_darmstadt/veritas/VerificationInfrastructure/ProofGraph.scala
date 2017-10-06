@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, Ve
 import scala.collection.mutable
 
 
-trait EdgeLabel extends Ordered[EdgeLabel] with Serializable {
+trait EdgeLabel extends Serializable {
   def desc: String
   def propagateInfoList: Seq[PropagatableInfo]
 }

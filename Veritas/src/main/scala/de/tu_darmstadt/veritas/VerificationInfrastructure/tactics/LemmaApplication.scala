@@ -12,14 +12,9 @@ case class LemmaApplicationStep[Goal](lemmaname: String) extends EdgeLabel {
   // or induction hypotheses) since the proof of a lemma has to be possible independently of where in the
   // proof graph it appears
   override def propagateInfoList: Seq[PropagatableInfo] = Seq()
-
-  override def compare(that: EdgeLabel): Int = that match {
-    case lem: LemmaApplicationStep[Goal] => this.lemmaname compare lem.lemmaname
-    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
-  }
 }
 
-case class LemmaApplication[Defs <: Ordered[Defs], Formulae <: Defs with Ordered[Formulae]](lemmas: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class LemmaApplication[Defs, Formulae <: Defs](lemmas: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -40,18 +35,6 @@ case class LemmaApplication[Defs <: Ordered[Defs], Formulae <: Defs with Ordered
       val lemmaobl = produce.newObligation(spec, lemma)
       val lemmaedge = LemmaApplicationStep(getFormulaName(lemma))
       (lemmaobl, lemmaedge)
-    }
-  }
-
-  override def compare(that: Tactic[Defs, Formulae]): Int = that match {
-    case lem: LemmaApplication[Defs, Formulae] => {
-      val lemmacomp = this.lemmas.length compare lem.lemmas.length
-      if (lemmacomp == 0) {
-        lazy val individual_comp = this.lemmas zip lem.lemmas map { case (l1, l2) => l1 compare l2 }
-        (individual_comp find (_ != 0)).getOrElse(this.spec compare lem.spec)
-      }
-      else
-        lemmacomp
     }
   }
 }

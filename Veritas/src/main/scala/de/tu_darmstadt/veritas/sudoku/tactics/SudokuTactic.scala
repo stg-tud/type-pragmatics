@@ -8,8 +8,4 @@ import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
 /**
   * Abstract class for Sudoku Tactics
   */
-abstract class SudokuTactic extends Tactic[EmptySpec, SudokuField] {
-
-  override def compare(that: Tactic[EmptySpec, SudokuField]): Int =
-    this.hashCode() compare that.hashCode()
-}
+abstract class SudokuTactic extends Tactic[EmptySpec, SudokuField]

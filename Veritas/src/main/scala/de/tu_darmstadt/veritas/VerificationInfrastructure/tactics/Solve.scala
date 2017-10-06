@@ -8,11 +8,6 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligat
   */
 
 case class Solve[Spec, Goal]() extends Tactic[Spec, Goal] {
-  override def compare(that: Tactic[Spec, Goal]): Int = that match {
-    case that: Solve[Spec, Goal] => 0
-    case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
-   }
-
   /* applying the Solve tactic does not generate any edges */
   def apply[Obligation](obl: GenObligation[Spec, Goal],
                         obllabels: Iterable[EdgeLabel],

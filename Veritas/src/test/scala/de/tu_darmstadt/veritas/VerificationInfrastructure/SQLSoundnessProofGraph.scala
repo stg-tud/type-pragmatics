@@ -24,9 +24,6 @@ object SQLMockTactics {
                                    obllabels: Iterable[EdgeLabel],
                                    produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] =
       Seq()
-
-    override def compare(that: Tactic[VeritasConstruct, VeritasFormula]): Int = ???
-
   }
 
   object MockInduction {
@@ -217,8 +214,6 @@ object SQLMockTactics {
                                    obllabels: Iterable[EdgeLabel],
                                    produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] =
       Seq()
-
-    override def compare(that: Tactic[VeritasConstruct, VeritasFormula]): Int = ???
   }
 
   object MockCaseDistinction {
@@ -274,7 +269,6 @@ object SQLMockTactics {
       for (lem <- lemmas) yield
         produce.newObligation(fullSQLspec, Goals(lem.lemmas, lem.timeout)) -> LemmaApplicationStep(lem.lemmas.head.name)
 
-    override def compare(that: Tactic[VeritasConstruct, VeritasFormula]): Int = ???
   }
 
   object MockLemmaApplication {
@@ -544,25 +538,25 @@ object SQLSoundnessProofGraph {
     //PropertyTypes.registerPropertyType[VeritasFormula with Ordered[VeritasFormula]](g.store)
     //PropertyTypes.registerPropertyType[Module](g.store)
     //PropertyTypes.registerPropertyType[Goals](g.store)
-    PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
-    PropertyTypes.registerPropertyType[StructInductCase[VeritasConstruct, VeritasFormula]](g.store)
-    PropertyTypes.registerPropertyType[SetCaseDistinction](g.store)
-    PropertyTypes.registerPropertyType[CaseDistinctionCase[VeritasConstruct, VeritasFormula]](g.store)
-    PropertyTypes.registerPropertyType[Finished[_, _]](g.store)
-    PropertyTypes.registerPropertyType[VerifierFailure[_, _]](g.store)
-    PropertyTypes.registerPropertyType[TSTPProof](g.store)
-    PropertyTypes.registerPropertyType[Solve[_, _]](g.store)
-    PropertyTypes.registerPropertyType[MockLemmaApplication](g.store)
-    PropertyTypes.registerPropertyType[LemmaApplicationStep[_]](g.store)
-    PropertyTypes.registerPropertyType[successfulLookupInduction.type](g.store)
-    PropertyTypes.registerPropertyType[welltypedLookupInduction.type](g.store)
-    PropertyTypes.registerPropertyType[filterRowsPreservesTableInduction.type](g.store)
-    PropertyTypes.registerPropertyType[projectColsProgressInduction.type](g.store)
-    PropertyTypes.registerPropertyType[projectTypeImpliesFindColInduction.type](g.store)
-    PropertyTypes.registerPropertyType[findColTypeImpliesfindColInduction.type](g.store)
-    PropertyTypes.registerPropertyType[projectTypeAttrLImpliesfindAllColTypeInduction.type](g.store)
-    PropertyTypes.registerPropertyType[dropFirstColRawPreservesWelltypedRawInduction.type](g.store)
-    PropertyTypes.registerPropertyType[verifier.Unknown[_, _]](g.store)
+    //PropertyTypes.registerPropertyType[rootInductionProgress.type](g.store)
+    //PropertyTypes.registerPropertyType[StructInductCase[VeritasConstruct, VeritasFormula]](g.store)
+    //PropertyTypes.registerPropertyType[SetCaseDistinction](g.store)
+    //PropertyTypes.registerPropertyType[CaseDistinctionCase[VeritasConstruct, VeritasFormula]](g.store)
+    //PropertyTypes.registerPropertyType[Finished[_, _]](g.store)
+    //PropertyTypes.registerPropertyType[VerifierFailure[_, _]](g.store)
+    //PropertyTypes.registerPropertyType[TSTPProof](g.store)
+    //PropertyTypes.registerPropertyType[Solve[_, _]](g.store)
+    //PropertyTypes.registerPropertyType[MockLemmaApplication](g.store)
+    //PropertyTypes.registerPropertyType[LemmaApplicationStep[_]](g.store)
+    //PropertyTypes.registerPropertyType[successfulLookupInduction.type](g.store)
+    //PropertyTypes.registerPropertyType[welltypedLookupInduction.type](g.store)
+    //PropertyTypes.registerPropertyType[filterRowsPreservesTableInduction.type](g.store)
+    //PropertyTypes.registerPropertyType[projectColsProgressInduction.type](g.store)
+    //PropertyTypes.registerPropertyType[projectTypeImpliesFindColInduction.type](g.store)
+    //PropertyTypes.registerPropertyType[findColTypeImpliesfindColInduction.type](g.store)
+    //PropertyTypes.registerPropertyType[projectTypeAttrLImpliesfindAllColTypeInduction.type](g.store)
+    //PropertyTypes.registerPropertyType[dropFirstColRawPreservesWelltypedRawInduction.type](g.store)
+    //PropertyTypes.registerPropertyType[verifier.Unknown[_, _]](g.store)
   }
 }
 

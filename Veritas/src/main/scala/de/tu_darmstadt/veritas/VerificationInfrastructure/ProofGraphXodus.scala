@@ -12,7 +12,10 @@ import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 import scala.language.implicitConversions
 
-
+/**
+  * Class for making any type ordered, if desired (used by ProofGraphXodus implementation for writing objects into
+  * the database)
+ */
 class OrderedWrapper[T](val obj: T) extends Ordered[T] {
 
   def compare(that: T): Int = {
@@ -36,11 +39,14 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
   import ProofGraphXodus._
 
-  //try some implicit magic in order to make a type Ordered if necessary
+  //make a type Ordered if necessary - should be called whenever a type that does not implement Comparable/Ordered
+  //shall be written into the database
   //if makeOrdered shall really be implicit, make sure that types that are already Ordered are not wrapped again
   //currently, makeOrdered should only ever be called for stuff that is not Ordered
   def makeOrdered[T](t: T): OrderedWrapper[T] = new OrderedWrapper[T](t)
 
+  //read an ordered wrapper with the given type T inside out of the database
+  //has to be called when reading an object out of the database that was wrapped in OrderedWrapper when written into the database
   def readOrdered[T](to: Comparable[_]): T = to.asInstanceOf[OrderedWrapper[T]].obj
 
 
@@ -86,7 +92,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
   class ProofStep(val id: EntityId, val tactic: Tactic[Spec, Goal]) extends GenProofStep[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
-      this(id, entity.getProperty(pStepTactic).asInstanceOf[Tactic[Spec, Goal]])
+      this(id, readOrdered[Tactic[Spec, Goal]](entity.getProperty(pStepTactic)))
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
 
@@ -153,8 +159,8 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
     def this(id: EntityId, entity: Entity) =
       this(
         id,
-        entity.getProperty(pResultStatus).asInstanceOf[VerifierStatus[Spec, Goal]],
-        fromNullable(entity.getProperty(pResultEvidence).asInstanceOf[Evidence]),
+        readOrdered[VerifierStatus[Spec, Goal]](entity.getProperty(pResultStatus)),
+        fromNullable(readOrdered[Evidence](entity.getProperty(pResultEvidence))),
         fromNullable(entity.getProperty(pResultErrorMsg).asInstanceOf[String])
       )
 
@@ -167,11 +173,11 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
     def newStepResult(txn: StoreTransaction, status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult = {
       val result = txn.newEntity(TStepResult)
-      result.setProperty(pResultStatus, status)
+      result.setProperty(pResultStatus, makeOrdered(status))
       if (errorMsg.isDefined)
         result.setProperty(pResultErrorMsg, errorMsg.get)
       if (evidence.isDefined)
-        result.setProperty(pResultEvidence, evidence.get)
+        result.setProperty(pResultEvidence, makeOrdered(evidence.get))
       new StepResult(result.getId, status, evidence, errorMsg)
     }
   }
@@ -240,7 +246,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
           edges.map { edge =>
             val obl = edge.getLink(lEdgeRequiredObl)
             edge.delete()
-            (new Obligation(obl.getId(), obl), edge.getProperty(pEdgeLabel).asInstanceOf[EdgeLabel])
+            (new Obligation(obl.getId(), obl), readOrdered[EdgeLabel](edge.getProperty(pEdgeLabel)))
           }
         }
         else
@@ -271,14 +277,14 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
     transaction { txn =>
       val target = targetObj.entity(txn)
       val step = txn.newEntity(TProofStep)
-      step.setProperty(pStepTactic, tactic)
+      step.setProperty(pStepTactic, makeOrdered(tactic))
       step.setLink(lStepTargetedObl, target)
       target.setLink(lOblAppliedStep, step)
 
       for ((requiredObj, label) <- newOrRetainedEdges) {
         val required = requiredObj.entity(txn)
         val edge = txn.newEntity(TEdge)
-        edge.setProperty(pEdgeLabel, label)
+        edge.setProperty(pEdgeLabel, makeOrdered(label))
 
         edge.setLink(lEdgeRequiredObl, required)
         required.addLink(lOblRequiringEdges, edge)
@@ -351,7 +357,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
     val edges = Seq() ++ step.entity(txn).getLinks(lStepRequiredEdges).asScala
     edges.map { edge =>
       val requiredObl = new Obligation(edge.getLink(lEdgeRequiredObl).getId, txn)
-      val label = edge.getProperty(pEdgeLabel).asInstanceOf[EdgeLabel]
+      val label = readOrdered[EdgeLabel](edge.getProperty(pEdgeLabel))
       requiredObl -> label
     }
   }
@@ -362,7 +368,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
     val edges = Seq() ++ obl.entity(txn).getLinks(lOblRequiringEdges).asScala
     edges.map { edge =>
       val requiringStep = new ProofStep(edge.getLink(lEdgeRequiringStep).getId, txn)
-      val label = edge.getProperty(pEdgeLabel).asInstanceOf[EdgeLabel]
+      val label = readOrdered[EdgeLabel](edge.getProperty(pEdgeLabel))
       requiringStep -> label
     }
   }
@@ -452,14 +458,16 @@ object ProofGraphXodus {
 }
 
 object PropertyTypes {
-  def registerAll(store: PersistentEntityStore) {
-    registerPropertyType[Solve[_, _]](store)
-    registerPropertyType[NoInfoEdgeLabel.type](store)
-    registerPropertyType[VerifierStatus[_, _]](store)
-    registerPropertyType[Unknown[_, _]](store)
-  }
 
-
+  /**
+    * This function has to be statically called once for every ProofGraphXodus instance and every type
+    * T <: Comparable[_] which shall be written in the database
+    * in the current setup, it should not be necessary anymore to call this function for any type, since all
+    * types will be wrapped in OrderedWrapper automatically
+    * @param store
+    * @param tag
+    * @tparam T
+    */
   def registerPropertyType[T <: Comparable[_] with Serializable](store: PersistentEntityStore)
   (implicit tag: ClassTag[T]) =
   store.executeInTransaction(new StoreTransactionalExecutable() {
@@ -481,6 +489,13 @@ object PropertyTypes {
     }
   })
 
+  /**
+    * this function has to be called once for every ProofGraphXodus instance
+    * it registers the OrderedWrapper as property for the database, which wraps all the types of objects that
+    * shall be written into the database
+    *
+    * @param store
+    */
   def registerWrapperType(store: PersistentEntityStore) =
     store.executeInTransaction(new StoreTransactionalExecutable() {
       override def execute(txn: StoreTransaction): Unit = {

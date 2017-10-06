@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier}
 /**
   * Tactics for labeling edges of ProofTrees
   */
-trait Tactic[Spec, Goal] extends Ordered[Tactic[Spec, Goal]] with Serializable {
+trait Tactic[Spec, Goal] extends Serializable {
 
   //obtain propagatable info from incoming edges and forward if there are no conflicts
   protected def obtainPropagatableInfo[Obligation](obllabels: Iterable[EdgeLabel]) = {

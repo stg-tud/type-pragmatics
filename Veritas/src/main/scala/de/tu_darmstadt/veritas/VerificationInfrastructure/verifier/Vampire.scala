@@ -81,8 +81,6 @@ case class Vampire4_1_tar(timeout: Int, mode: String = "casc") extends Vampire[S
 
 case class TSTPProof(proof: String) extends TSTP[String] {
   override def getData: String = proof
-
-  override def compare(that: Evidence): Int = this.hashCode() compare that.hashCode()
 }
 
 

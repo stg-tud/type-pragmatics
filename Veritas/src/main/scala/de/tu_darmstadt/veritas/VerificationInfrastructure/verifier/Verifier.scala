@@ -11,13 +11,11 @@ trait VerifierHints
   * starting/stopping a proof attempt...)
   *
   */
-trait Verifier[Spec, Goal] extends Ordered[Verifier[Spec, Goal]] with Serializable {
+trait Verifier[Spec, Goal] extends Serializable {
   type V <: VerifierFormat
 
   /** Textual description that should be unique (used for ordering verifiers) */
   val desc: String
-
-  override def compare(that: Verifier[Spec, Goal]): Int = this.desc compare that.desc
 
   /**
     * A concrete verifier may call any combination of transformers & provers

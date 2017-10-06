@@ -106,24 +106,4 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
     }
     else Seq() //TODO throw an exception that explains why the tactic failed
   }
-
-  override def compare(that: Tactic[Defs, Formulae]): Int = {
-    val hcompare = this.hashCode compare that.hashCode
-    if (hcompare != 0)
-      return hcompare
-    if (this == that)
-      return 0
-    throw new RuntimeException(s"Failed to compare $this and $that using hash codes.")
-  }
-
-  //    that match {
-  //      case structuralInduction: StructuralInduction[Defs, Formulae] => {
-  //        val comp_indvar = inductionvar compare structuralInduction.inductionvar
-  //        if (comp_indvar == 0)
-  //          spec compare structuralInduction.spec
-  //        else
-  //          comp_indvar
-  //      }
-  //      case _ => this.getClass.getCanonicalName.compare(that.getClass.getCanonicalName)
-  //    }
 }

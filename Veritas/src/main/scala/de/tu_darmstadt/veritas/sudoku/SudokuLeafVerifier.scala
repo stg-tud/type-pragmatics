@@ -7,9 +7,7 @@ import z3.scala.dsl.{Distinct, IntVar}
 
 import scala.reflect.ClassTag
 
-class Z3Evidence(val model: String) extends Evidence {
-  override def compare(that: Evidence): Int = this.hashCode() compare that.hashCode()
-}
+class Z3Evidence(val model: String) extends Evidence
 
 class Z3ResultDetails(val messstr: String, val mod: Option[String]) extends ResultDetails with Serializable {
   /**
