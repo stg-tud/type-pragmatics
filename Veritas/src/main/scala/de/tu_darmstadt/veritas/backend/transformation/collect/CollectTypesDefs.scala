@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 
-trait CollectTypes extends ModuleTransformation {
+trait CollectTypesDefs extends ModuleTransformation {
   //TODO: do we allow different data types declarations with the same name?
   // if yes, clarify semantics - if necessary, make sure that _dataTypes collects
   // ALL data type constructors that belong to a definition!
@@ -14,21 +14,23 @@ trait CollectTypes extends ModuleTransformation {
   private var _consts: Set[String] = Set() // just the constants
   private var _functypes: Map[String, (Seq[SortRef], SortRef)] = Map()
   private var _pfunctypes: Map[String, (Seq[SortRef], SortRef)] = Map()
+  private var _funcdefs: Map[String, Seq[FunctionEq]] = Map()
 
   def dataTypes = _dataTypes
   def constrTypes = _constrTypes
   def consts = _consts
   def functypes = _functypes
   def pfunctypes = _pfunctypes
+  def funcdefs = _funcdefs
 
-  def symbolType(name: String) = constrTypes.get(name) match {
+  def symbolType(name: String): Option[(Seq[SortRef], SortRef)] = constrTypes.get(name) match {
     case Some(t) => Some(t)
     case None => functypes.get(name) match {
       case Some(t) => Some(t)
       case None => pfunctypes.get(name)
     }
   }
-  
+
 
   /**
    * top-level function for translating a Module to a TffFile
@@ -38,7 +40,8 @@ trait CollectTypes extends ModuleTransformation {
     _constrTypes = Map()
     _functypes = Map()
     _pfunctypes = Map()
-    
+    _funcdefs = Map()
+
     val is = trace(_is)(transModuleImport(_))
     val mdefs = transModuleTypedDefs(_mdefs)
     Seq(Module(name, is, mdefs))
@@ -48,39 +51,43 @@ trait CollectTypes extends ModuleTransformation {
    * Make sure that type symbols are properly scoped by local and strategy blocks
    */
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = mdef match {
-    case d: DataType => 
+    case d: DataType =>
       _dataTypes += (d.name -> (d.open, d.constrs))
       super.transModuleDefs(d)
-      
+
     case Local(defs) =>
       val oldDataTypes = _dataTypes
       val oldconstypes = _constrTypes
       val oldconsts = _consts
       val oldfunctypes = _functypes
       val oldpfunctypes = _pfunctypes
+      val oldfuncdefs = _funcdefs
       val res = transModuleTypedDefs(defs)
       _dataTypes = oldDataTypes
       _constrTypes = oldconstypes
       _consts = oldconsts
       _functypes = oldfunctypes
       _pfunctypes = oldpfunctypes
+      _funcdefs = oldfuncdefs
       Seq(Local(res))
 
-    case Strategy(name,is,defs) => 
+    case Strategy(name,is,defs) =>
       val oldDataTypes = _dataTypes
       val oldconstypes = _constrTypes
       val oldconsts = _consts
       val oldfunctypes = _functypes
       val oldpfunctypes = _pfunctypes
+      val oldfuncdefs = _funcdefs
       val res = transModuleTypedDefs(defs)
       _dataTypes = oldDataTypes
       _constrTypes = oldconstypes
       _consts = oldconsts
       _functypes = oldfunctypes
       _pfunctypes = oldpfunctypes
+      _funcdefs = oldfuncdefs
       Seq(Strategy(name, is, res))
-      
-    case _ => 
+
+    case _ =>
       super.transModuleDefs(mdef)
   }
 
@@ -101,7 +108,7 @@ trait CollectTypes extends ModuleTransformation {
       case Right(Seq(mdef)) => trace(mdef)(transModuleDefs(_))
     }
   }
-  
+
   override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = {
     withSuper(super.transDataTypeConstructor(d, open, dataType)) {
       case d =>
@@ -144,11 +151,21 @@ trait CollectTypes extends ModuleTransformation {
         Seq(tr)
     }
 
-  def inferMetavarTypes(tr: TypingRule): Map[MetaVar, SortRef] = 
+  override def transFunctionDefs(fdef: FunctionDef): Seq[FunctionDef] =
+    withSuper(super.transFunctionDefs(fdef)) {
+      case fdef => {
+        val fname = fdef.signature.name
+        if (!_funcdefs.isDefinedAt(fname))
+          _funcdefs += (fname -> fdef.eqn)
+        Seq(fdef)
+      }
+    }
+
+  def inferMetavarTypes(tr: TypingRule): Map[MetaVar, SortRef] =
     new TypeInference(symbolType).inferMetavarTypes(tr)
 
-  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Map[MetaVar, SortRef] = 
+  def inferMetavarTypes(vars: Iterable[MetaVar], jdgs: Seq[TypingRuleJudgment]): Map[MetaVar, SortRef] =
     new TypeInference(symbolType).inferMetavarTypes(vars, jdgs)
 }
 
-class CollectTypesClass extends CollectTypes
+class CollectTypesDefsClass extends CollectTypesDefs

@@ -13,10 +13,12 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.FixedVar
   */
 trait SpecEnquirer[Defs, Formulae <: Defs] {
 
-  //queries regarding the shape of a definition
-  def isRecursiveFunction(functioncall: Defs): Boolean
+  val fullspec: Defs
 
-  def isClosedADT(v: Defs): Boolean
+  //queries regarding the shape of a definition
+
+  //expects a variable and the current term in which the variable appears, ask if variable has a type that is a closed ADT
+  def isClosedADT(v: Defs, term: Defs): Boolean
 
   def isForall(g: Formulae): Boolean
 
@@ -28,15 +30,21 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
 
   /**
     * receive a formula that is universally or existentially quantified, return the body of the formula
-    * @param quantifiedBody
+ *
+    * @param quantifiedFormula
     * @return
     */
-  def getQuantifiedBody(quantifiedBody: Formulae): Formulae
+  def getQuantifiedBody(quantifiedFormula: Formulae): Formulae
 
+  /**
+    * expects a term that is a function application, extracts the arguments from it
+    * @param functioncall
+    * @return
+    */
   def getArguments(functioncall: Defs): Seq[Defs]
 
   // for a variable of type closed ADT, extract the different cases
-  def getCases(v: Defs): Seq[Defs]
+  def getCases(v: Defs, term: Defs): Seq[Defs]
 
   //from an ADT case, extract the recursive arguments (may be empty if there are none)
   def getRecArgsADT(c: Defs): Seq[Defs]
@@ -62,11 +70,6 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   //for other formulae, returns the empty sequence
   def getConclusions(g: Formulae): Seq[Formulae]
 
-  //receives a block of variable declarations, returns single variable declarations
-  def getVars(varblock: Defs): Seq[Defs]
-
-  def getFormulae(formblock: Formulae): Seq[Formulae]
-
   //expects a construct with a named formula and extracts the formula's name
   def getFormulaName(f: Formulae): String
 
@@ -76,9 +79,10 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   //from a given definition or formula, extract all free variables
   def extractFreeVariables(d: Defs): Seq[Defs]
 
-  //renames all variables in given definition nd so that there are no name clashes with free variables in refd
-  // returns definition nd with renamed variables
-  def consolidateFreeVariableNames[D <: Defs](nd: D, refd: D): D
+  // names all variables in given definition nd so that there are no name clashes with free variables in refd
+  // returns definition nd with named variables
+  // TODO rethink type signature?
+  def assignCaseVariables[D <: Defs](nd: D, refd: D): D
 
   //constructor functions
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae

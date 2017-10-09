@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefs
 
 /**
  * generates inversion axioms for functions and partial functions
@@ -16,7 +16,7 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
  * (uses the discovered function axioms for generating the inversion lemmas!)
  *
  */
-trait FunctionInversionAxioms extends CollectTypes {
+trait FunctionInversionAxioms extends CollectTypesDefs {
   val freshNames = new FreshNames
 
   /**

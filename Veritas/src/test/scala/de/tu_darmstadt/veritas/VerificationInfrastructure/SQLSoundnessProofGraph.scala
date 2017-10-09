@@ -290,7 +290,7 @@ class SQLSoundnessProofGraph(file: File) {
     new ProofGraphXodus[VeritasConstruct, VeritasFormula](file) with ProofGraphTraversals[VeritasConstruct, VeritasFormula]
   SQLSoundnessProofGraph.initializeGraphTypes(g)
 
-  val specenq = new VeritasSpecEnquirer
+  val specenq = new VeritasSpecEnquirer(fullSQLspec)
 
 
   //progress root obligation

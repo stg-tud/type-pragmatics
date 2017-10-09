@@ -49,7 +49,7 @@ case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs, spec
 
   import queryspec._
 
-  def isApplicable(g: Formulae): Boolean = isClosedADT(distvar) && isQuantified(g)
+  def isApplicable(g: Formulae): Boolean = isClosedADT(distvar, g) && isQuantified(g)
 
   /**
     * applying a tactic to a ProofStep returns the edges generated from this application
@@ -68,7 +68,7 @@ case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs, spec
     val goalbody = getQuantifiedBody(goal)
     if (isApplicable(goal)) {
       //make sure that variable names of cases do not clash with variables names in goal
-      val dist_cases_defs_renamed = getCases(distvar) map (c => consolidateFreeVariableNames(c, goalbody))
+      val dist_cases_defs_renamed = getCases(distvar, goalbody) map (c => assignCaseVariables(c, goalbody))
       val dist_cases = dist_cases_defs_renamed map (dc => makeEquation(distvar, dc))
       CaseDistinction[Defs, Formulae](dist_cases, spec, queryspec)(obl, obllabels, produce)
     } else

@@ -6,8 +6,8 @@ import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefsClass
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefs
 
 
 /**
@@ -42,7 +42,7 @@ class ToTff {
    */
   private var goal: Option[TffAnnotated] = None
 
-  private var types: CollectTypes = _
+  private var types: CollectTypesDefs = _
 
   /**
    * top-level function for translating a Module to a TffFile
@@ -53,7 +53,7 @@ class ToTff {
     axiomlist = Seq()
     goal = None
 
-    types = new CollectTypesClass
+    types = new CollectTypesDefsClass
     types.apply(Seq(veritasModule))
 
     typedSymbols = Map()

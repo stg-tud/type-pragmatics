@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.smtlib._
-import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypes, CollectTypesClass}
+import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
 import de.tu_darmstadt.veritas.backend.util.{FreeVariables, Util}
 
 class ToSMTLib {
@@ -35,7 +35,7 @@ class ToSMTLib {
       functionnameprefix + name
   }
 
-  private var types: CollectTypes = _
+  private var types: CollectTypesDefs = _
 
 
   def toSMTLibFile(veritasModule: Module)(implicit config: Configuration): SMTLibFile = {
@@ -47,7 +47,7 @@ class ToSMTLib {
     assertions = Seq()
     goal = None
 
-    types = new CollectTypesClass
+    types = new CollectTypesDefsClass
     types.apply(Seq(veritasModule))
 
     for ((n, (isOpen, cotrs)) <- types.dataTypes)

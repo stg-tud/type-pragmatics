@@ -19,10 +19,11 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
     * - premises or conclusions of goal contain calls to recursive functions/jugdments
     */
   def isApplicable(g: Formulae): Boolean = {
+    //note: line below will currently only work if function calls have induction variable directly as
     val functioncall_with_inductionvar: Option[Defs] = extractFunctionCalls(g) find (fc => getArguments(fc) contains inductionvar)
     goalMatchesPattern(g) &&
       (getUniversallyQuantifiedVars(g) contains inductionvar) &&
-      isClosedADT(inductionvar) &&
+      isClosedADT(inductionvar, g) &&
       functioncall_with_inductionvar.isDefined
     //TODO: refine conditions, if necessary
   }
@@ -58,21 +59,21 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
 
       //get terms for individual ADT cases,
       // make sure that variables in cases terms do not clash with any variables in body of goal
-      val iv_cases = getCases(inductionvar) map { ic =>
-        consolidateFreeVariableNames(ic, goalbody)
+      val iv_cases = getCases(inductionvar, goalbody) map { ic =>
+        assignCaseVariables(ic, goalbody)
       }
 
-      val fixed_Vars: Seq[Seq[FixedVar[Defs]]] = iv_cases map { renamed_ic => {
-        val rargs = getRecArgsADT(renamed_ic)
+      val fixed_Vars: Seq[Seq[FixedVar[Defs]]] = iv_cases map { named_ic => {
+        val rargs = getRecArgsADT(named_ic)
         if (rargs.isEmpty) Seq() else rargs map (rarg => FixedVar(rarg))
       }
       }
 
       val induction_subgoals: Seq[Formulae] =
-        (iv_cases zip fixed_Vars) map { case (renamed_ic, fvs) => {
-          val added_premises = makeEquation(inductionvar, renamed_ic) +: prems
+        (iv_cases zip fixed_Vars) map { case (named_ic, fvs) => {
+          val added_premises = makeEquation(inductionvar, named_ic) +: prems
           //reassemble goal and attach name
-          val casename = "-icase" + iv_cases.indexOf(renamed_ic)
+          val casename = "-icase" + iv_cases.indexOf(named_ic)
           makeNamedFormula(makeForallQuantifyFreeVariables(
             makeImplication(added_premises, concs), fvs map { fv => fv.fixedvar }), getFormulaName(goal) ++ casename)
         }
