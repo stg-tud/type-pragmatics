@@ -187,7 +187,6 @@ class ToTff {
 
   /**
    * translates typing rules (= implications) to Tff
-   * TODO: universal quantification over all free variables!!
    */
   protected def typingRuleToTff(prems: Seq[TypingRuleJudgment], conseqs: Seq[TypingRuleJudgment]) = {
     val quantifiedVars = FreeVariables.freeVariables(prems ++ conseqs)
