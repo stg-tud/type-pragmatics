@@ -1,12 +1,9 @@
 package de.tu_darmstadt.veritas.backend.ast
 
-import de.tu_darmstadt.veritas.backend.stratego.StrategoAppl
-import de.tu_darmstadt.veritas.backend.stratego.StrategoList
+
 import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
-import de.tu_darmstadt.veritas.backend.stratego.StrategoInt
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
-import de.tu_darmstadt.veritas.backend.util.Context
 import de.tu_darmstadt.veritas.backend.stratego.StrategoString
 import de.tu_darmstadt.veritas.backend.util.prettyprint.SimplePrettyPrintable
 import de.tu_darmstadt.veritas.backend.ast.function._
