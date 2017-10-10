@@ -43,7 +43,7 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
     */
   def getArguments(functioncall: Defs): Seq[Defs]
 
-  // for a variable of type closed ADT, extract the different cases
+  // for a variable of type closed ADT, extract the different cases (variable is typed as in the given term)
   def getCases(v: Defs, term: Defs): Seq[Defs]
 
   //from an ADT case, extract the recursive arguments (may be empty if there are none)
