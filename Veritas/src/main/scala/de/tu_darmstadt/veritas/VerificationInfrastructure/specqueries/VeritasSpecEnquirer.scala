@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.Configuration._
-import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpApp
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionEq, FunctionExpApp, FunctionExpEq, FunctionExpMeta}
 import de.tu_darmstadt.veritas.backend.ast.{TypingRuleJudgment, _}
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
@@ -35,16 +35,6 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     tdcollector(Seq(mod))(defconfig).head
   }
 
-  //determine if a function in the given spec is a recursive function (directly calling itself)
-  private def isRecursiveFunction(fname: String): Boolean =
-    if (tdcollector.funcdefs.isDefinedAt(fname)) {
-      val eqs = tdcollector.funcdefs(fname)
-      lazy val allfunccalls = for (eq <- eqs; fcs <- extractFunctionCalls(eq.right)
-                                   if fcs.isInstanceOf[FunctionExpApp]) yield fcs.asInstanceOf[FunctionExpApp]
-      allfunccalls.exists(fexpapp => fexpapp.functionName == fname)
-    }
-    else false
-
   // try to retrieve a TypingRule construct from a given VeritasFormula
   private def retrieveTypingRule(f: VeritasFormula): Option[TypingRule] = f match {
     case t@TypingRule(_, _, _) => Some(t)
@@ -58,7 +48,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     case _ => None
   }
 
-  // list all unquantified variables in the given formula (empty if formula does not have free variables
+  // list all unquantified variables in the given formula (empty if formula does not have free variables)
   private def getFreeVariables(f: VeritasFormula): Set[MetaVar] =
     retrieveTypingRule(f) match {
       case Some(TypingRule(_, prems, conseqs)) => FreeVariables.freeVariables(prems ++ conseqs)
@@ -96,8 +86,8 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
   override def isForall(g: VeritasFormula): Boolean =
     retrieveTypingRule(g) match {
-      case Some(TypingRule(_, Seq(), ForallJudgment(_, _))) => true
-      case Some(TypingRule(_, Seq(), ExistsJudgment(_, _))) => false
+      case Some(TypingRule(_, Seq(), Seq(ForallJudgment(_, _)))) => true
+      case Some(TypingRule(_, Seq(), Seq(ExistsJudgment(_, _)))) => false
       case Some(t@TypingRule(_, _, _)) => getFreeVariables(t).nonEmpty
       case None => false
       //this might not yet cover all the cases as intended
@@ -105,7 +95,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
   override def isExists(g: VeritasFormula): Boolean = g match {
     case ExistsJudgment(_, _) => true
-    case TypingRule(_, Seq(), ExistsJudgment(_, _)) => true
+    case TypingRule(_, Seq(), Seq(ExistsJudgment(_, _))) => true
     case _ => false
     //this might not yet cover all the cases as intended
   }
@@ -116,6 +106,22 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     case _ => false
   }
 
+  //determine if a function in the given spec is a recursive function (directly calling itself)
+  override def isRecursiveFunctionCall(fc: VeritasConstruct): Boolean =
+    fc match {
+      case FunctionExpApp(fname, _) => {
+        if (tdcollector.funcdefs.isDefinedAt(fname)) {
+          val eqs = tdcollector.funcdefs(fname)
+          lazy val allfunccalls = for (eq <- eqs;
+                                       fcs <- extractFunctionCalls(eq.right)
+                                       if fcs.isInstanceOf[FunctionExpApp]) yield fcs.asInstanceOf[FunctionExpApp]
+          allfunccalls.exists(fexpapp => fexpapp.functionName == fname)
+        }
+        else false
+      }
+      case _ => sys.error("Cannot determine if a construct that is not a FunctionExpApp is a call to a recursive function.")
+    }
+
   /**
     * receive a formula that is universally or existentially quantified, return the body of the formula
     *
@@ -124,20 +130,21 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     */
   override def getQuantifiedBody(quantifiedFormula: VeritasFormula): VeritasFormula =
     quantifiedFormula match {
-        //first two cases are improvised, since Veritas ASTs currently have no separate conjunction construct,
-        //hence we cannot simply return the body of a quantified judgment (would be Seq[VeritasFormula])
-        //careful, this essentially throws quantification away!
-    case TypingRule(name, Seq(), ForallJudgment(_, body)) => TypingRule(name + "-body", Seq(), body)
-    case TypingRule(name, Seq(), ExistsJudgment(_, body)) => TypingRule(name + "-body", Seq(), body)
-    case t@TypingRule(name, _, _) if getFreeVariables(t).nonEmpty => t
-    case ForallJudgment(_, body) => TypingRule("forallJdg_anonym-body", Seq(), body) //TODO generate a better, unique name?
-    case ExistsJudgment(_, body) => TypingRule("existJdg_anonym-body", Seq(), body) //TODO generate a better, unique name?
-    case _ => sys.error("VeritasSpecEnquirer cannot determine the quantified body of a non-quantified formula")
-    // alternatively, maybe simply return the formula that was given without throwing an error?
-  }
+      //first two cases are improvised, since Veritas ASTs currently have no separate conjunction construct,
+      //hence we cannot simply return the body of a quantified judgment (would be Seq[VeritasFormula])
+      //careful, this essentially throws quantification away!
+      case TypingRule(name, Seq(), Seq(ForallJudgment(_, body))) => TypingRule(name + "-body", Seq(), body)
+      case TypingRule(name, Seq(), Seq(ExistsJudgment(_, body))) => TypingRule(name + "-body", Seq(), body)
+      case t@TypingRule(name, _, _) if getFreeVariables(t).nonEmpty => t
+      case ForallJudgment(_, body) => TypingRule("forallJdg_anonym-body", Seq(), body) //TODO generate a better, unique name?
+      case ExistsJudgment(_, body) => TypingRule("existJdg_anonym-body", Seq(), body) //TODO generate a better, unique name?
+      case _ => sys.error("VeritasSpecEnquirer cannot determine the quantified body of a non-quantified formula")
+      // alternatively, maybe simply return the formula that was given without throwing an error?
+    }
 
   /**
     * expects a term that is a function application, extracts the arguments from it
+    *
     * @param functioncall
     * @return
     */
@@ -161,38 +168,68 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     case _ => Seq() //alternatively, throw error or warning here?
   }
 
-  //from an ADT case, extract the recursive arguments (may be empty if there are none)
+  //from a named ADT case, extract the recursive arguments (may be empty if there are none)
   //assume unique constructors!
   override def getRecArgsADT(c: VeritasConstruct): Seq[VeritasConstruct] = c match {
-    case DataTypeConstructor(name, args) => ??? //first retrieve datatype that has this constructor!
-    case _ => sys.error("Cannot determine recursive arguments for a construct that is not a DataTypeConstructor")
+    case fexpapp@FunctionExpApp(name, args) => {
+      //retrieve datatype that has this constructor (make sure it is only one!)
+      val dtmap = for ((dtname, (_, dtconstrs)) <- tdcollector.dataTypes; dtcons <- dtconstrs
+                       if dtcons.name == name) yield dtname -> dtcons
+      if (dtmap.isEmpty)
+        sys.error(s"Could not find a datatype that has constructor $name")
+      else if (dtmap.size > 1)
+        sys.error(s"Constructor $name is not unique; found in datatypes $dtmap")
+      else {
+        val (dtname, dtcons) = dtmap.head
+        //throw an error if argument sizes don't match up
+        if (args.length != dtcons.in.length)
+          sys.error(s"Wrong number of arguments for a constructor: $dtcons expected ${dtcons.in.length} arguments, named expression $fexpapp had ${args.length} arguments.")
+        //retrieve recursive arguments from arguments
+        val recargs = for ((sr, fexpm) <- dtcons.in zip args if sr.name == dtname) yield fexpm
+        recargs
+      }
+    }
+    case _ => sys.error("Cannot determine recursive arguments for a construct that is not a FunctionExpApp")
   }
 
-  override def getUniversallyQuantifiedVars(g: VeritasFormula): Seq[MetaVar] = g match {
-    case t: TypingRule => ???
-    case ForallJudgment(vars, _) => vars
-    case ExistsJudgment(vars, _) => vars
-    case _ => Seq() //alternatively, throw error or warning here?
+  //expects a universally quantified formula, hands back a list of variables
+  // (which we define as not being formulas by themselves - is that a good idea?)
+  //for other formulae, returns the empty sequence
+  override def getUniversallyQuantifiedVars(g: VeritasFormula): Set[VeritasConstruct] =
+  retrieveTypingRule(g) match {
+    case Some(tr) => getFreeVariables(tr) map (mv => mv.asInstanceOf[VeritasConstruct]) //TODO: maybe find a solution to get around the manual upcast?
+    case None => g match {
+      case ForallJudgment(vars, _) => vars.toSet
+      case _ => Set() //alternatively, throw error or warning here?
+    }
   }
 
-  override def getPremises(g: VeritasFormula): Seq[VeritasFormula] = g match {
-    case TypingRule(_, prems, _) => prems
-    case _ => Seq() //alternatively, throw error or warning here?
+  //expects an implication and returns the sequence of conjuncts from the premise
+  // the conjuncts themselves are formulae
+  //for other formulae, returns the empty sequence (interpreted as implication with empty premises!)
+  override def getPremises(g: VeritasFormula): Seq[VeritasFormula] =
+  retrieveTypingRule(g) match {
+    case Some(TypingRule(_, prems, _)) => prems
+    case None => Seq() //alternatively, throw error or warning here?
   }
 
-  override def getConclusions(g: VeritasFormula): Seq[VeritasFormula] = g match {
-    case TypingRule(_, _, concs) => concs
-    case _ => Seq() //alternatively, throw error or warning here?
+  //expects an implication and returns the sequence of conjuncts from the conclusion
+  // the conjuncts themselves are formulae
+  //for other formulae, returns the given formula
+  override def getConclusions(g: VeritasFormula): Seq[VeritasFormula] =
+  retrieveTypingRule(g) match {
+    case Some(TypingRule(_, _, conseqs)) => conseqs
+    case None => Seq(g)
   }
 
-  override def getFormulaName(f: VeritasFormula): String = f match {
-    case TypingRule(name, _, _) => name
-    case _ => sys.error("Cannot determine formula name of Veritas construct that is not a TypingRule")
-  }
+  //expects a construct with a named formula and extracts the formula's name
+  override def getFormulaName(f: VeritasFormula): String =
+    retrieveTypingRule(f) match {
+      case Some(TypingRule(name, _, _)) => name
+      case None => sys.error("Cannot get name of an unnamed formula.")
+    }
 
   override def extractFunctionCalls(s: VeritasConstruct): Seq[VeritasConstruct] = ???
-
-  override def extractFreeVariables(d: VeritasConstruct) = ???
 
   override def assignCaseVariables[D <: VeritasConstruct](nd: D, refd: D) = ???
 
@@ -202,11 +239,28 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     case _ => sys.error("Could not construct a TypingRule with given body")
   }
 
+  //constructs a universally quantified formula where all free variables will be quantified
+  //except for the ones which are fixed variables (have to become constants, for example!)
   override def makeForallQuantifyFreeVariables(body: VeritasFormula, fixed: Seq[VeritasConstruct]) = ???
 
-  override def makeImplication(prems: Seq[VeritasFormula], concs: Seq[VeritasFormula]) = ???
+  //for Veritas ASTs: try to cast all prems and concs to TypingRuleJudgments, then create a TypingRule with a generic name
+  override def makeImplication(prems: Seq[VeritasFormula], concs: Seq[VeritasFormula]): VeritasFormula = {
+    //TODO: maybe make this function a bit more generous later on, so that it actually attempts to extract sensible Seq[TypingRuleJudgment] from the given arguments
+    try {
+      val tjprems = for (p <- prems) yield p.asInstanceOf[TypingRuleJudgment]
+      val tjconcs = for (c <- concs) yield c.asInstanceOf[TypingRuleJudgment]
+      TypingRule("generatedImplication_anon", tjprems, tjconcs)
+    } catch {
+      case ex: ClassCastException => sys.error("When trying to create an implication, was unable to cast all of the given premises/conclusions to TypingRuleJudgments")
+    }
+  }
 
-  override def makeEquation(left: VeritasConstruct, right: VeritasConstruct) = ???
+  override def makeEquation(left: VeritasConstruct, right: VeritasConstruct): VeritasFormula =
+    (left, right) match {
+      case (l: FunctionExpMeta, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpEq(l, r))
+      case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an equation.")
+    }
 
-  override def makeNamedFormula(f: VeritasFormula, name: String) = ???
+
+  override def makeNamedFormula(f: VeritasFormula, name: String): VeritasFormula = ???
 }

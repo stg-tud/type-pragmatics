@@ -19,12 +19,15 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
     * - premises or conclusions of goal contain calls to recursive functions/jugdments
     */
   def isApplicable(g: Formulae): Boolean = {
-    //note: line below will currently only work if function calls have induction variable directly as
-    val functioncall_with_inductionvar: Option[Defs] = extractFunctionCalls(g) find (fc => getArguments(fc) contains inductionvar)
+    //note: line below will currently only work if there is at least one function call (to a recursive function)
+    // that has the induction variable directly as argument
+    val rec_functioncall_with_inductionvar: Option[Defs] = extractFunctionCalls(g) find
+      (fc => isRecursiveFunctionCall(fc) &&
+        (getArguments(fc) contains inductionvar))
     goalMatchesPattern(g) &&
       (getUniversallyQuantifiedVars(g) contains inductionvar) &&
       isClosedADT(inductionvar, g) &&
-      functioncall_with_inductionvar.isDefined
+      rec_functioncall_with_inductionvar.isDefined
     //TODO: refine conditions, if necessary
   }
 
@@ -90,7 +93,7 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
             val added_premises_ih = for (fv <- fvs) yield makeEquation(inductionvar, fv.fixedvar)
             val ihs = for (ihprem <- added_premises_ih) yield {
               val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
-              InductionHypothesis(makeForall(getUniversallyQuantifiedVars(goal),
+              InductionHypothesis(makeForall(getUniversallyQuantifiedVars(goal).toSeq,
                 makeImplication(added_premises_ih ++ prems, concs)))
             }
             StructInductCase[Defs, Formulae](casename, fvs, ihs, propagatedInfo)
