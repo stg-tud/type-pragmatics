@@ -77,7 +77,7 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
           val added_premises = makeEquation(inductionvar, named_ic) +: prems
           //reassemble goal and attach name
           val casename = "-icase" + iv_cases.indexOf(named_ic)
-          makeNamedFormula(makeForallQuantifyFreeVariables(
+          makeNamedGoal(makeForallQuantifyFreeVariables(
             makeImplication(added_premises, concs), fvs map { fv => fv.fixedvar }), getFormulaName(goal) ++ casename)
         }
         }
@@ -93,8 +93,8 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
             val added_premises_ih = for (fv <- fvs) yield makeEquation(inductionvar, fv.fixedvar)
             val ihs = for (ihprem <- added_premises_ih) yield {
               val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
-              InductionHypothesis(makeForall(getUniversallyQuantifiedVars(goal).toSeq,
-                makeImplication(added_premises_ih ++ prems, concs)))
+              InductionHypothesis(makeNamedAxiom(makeForall(getUniversallyQuantifiedVars(goal).toSeq,
+                makeImplication(added_premises_ih ++ prems, concs)), ihname))
             }
             StructInductCase[Defs, Formulae](casename, fvs, ihs, propagatedInfo)
           }

@@ -2,10 +2,11 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.Configuration._
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionEq, FunctionExpApp, FunctionExpEq, FunctionExpMeta}
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast.{TypingRuleJudgment, _}
+import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
-import de.tu_darmstadt.veritas.backend.util.FreeVariables
+import de.tu_darmstadt.veritas.backend.util.{FreeVariables, FreshNames}
 
 class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasConstruct, VeritasFormula] {
 
@@ -34,6 +35,34 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     }
     tdcollector(Seq(mod))(defconfig).head
   }
+
+  //generate a top-down traversal starting from the type of a given VeritasConstruct, based on ModuleTransformation
+  private class VeritasConstructTraverser extends ModuleTransformation {
+
+    //subclasses can use this variable to collect the special Veritas constructs that they want to extract
+    var collected: Seq[VeritasConstruct] = Seq()
+
+    def apply(vc: VeritasConstruct): Seq[VeritasConstruct] = {
+      vc match {
+        case m: Module => trans(m)
+        case md: ModuleDef => transModuleDefs(md)
+        case fd: FunctionDef => transFunctionDefs(fd)
+        case fs: FunctionSig => Seq(transFunctionSig(fs))
+        case feq: FunctionEq => transFunctionEqs(feq)
+        case fp: FunctionPattern => transFunctionPatterns(fp)
+        case tp: TypingRule => transTypingRules(tp)
+        case trj: TypingRuleJudgment => transTypingRuleJudgments(trj)
+        case mv: MetaVar => transMetaVars(mv)
+        case fe: FunctionExp => transFunctionExps(fe)
+        case fem: FunctionExpMeta => transFunctionExpMetas(fem)
+        case sd: SortDef => transSortDefs(sd)
+        case c: ConstDecl => transConstDecl(c)
+        case dtc: DataTypeConstructor => transDataTypeConstructor(dtc, tdcollector.constrTypes(dtc.name)._2.name)
+        case sr: SortRef => transSortRefs(sr)
+      }
+    }
+  }
+
 
   // try to retrieve a TypingRule construct from a given VeritasFormula
   private def retrieveTypingRule(f: VeritasFormula): Option[TypingRule] = f match {
@@ -153,7 +182,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     case _ => Seq() //alternatively, throw error or warning here?
   }
 
-  // for a variable of type closed ADT, extract the different cases (variable is typed as in the given term)
+  // for a variable of type closed ADT, extract the different cases (variable v is typed as in the given term)
   override def getCases(v: VeritasConstruct, term: VeritasConstruct): Seq[VeritasConstruct] = v match {
     case mv@MetaVar(_) => {
       term match {
@@ -229,9 +258,64 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case None => sys.error("Cannot get name of an unnamed formula.")
     }
 
-  override def extractFunctionCalls(s: VeritasConstruct): Seq[VeritasConstruct] = ???
+  //from a given definition, extract all the calls to functions
+  override def extractFunctionCalls(s: VeritasConstruct): Seq[VeritasConstruct] = {
+    val functionCallExtractor = new VeritasConstructTraverser {
+      override def transFunctionExp(f: FunctionExp): FunctionExp =
+        withSuper(super.transFunctionExp(f)) {
+          case fea@FunctionExpApp(fn, args) => {
+            //only collect calls to functions, not datatype constructors!
+            if (tdcollector.functypes.contains(fn))
+              collected :+ fea
+            FunctionExpApp(fn, trace(args)(transFunctionExpMetas(_)))
+          }
+        }
 
-  override def assignCaseVariables[D <: VeritasConstruct](nd: D, refd: D) = ???
+      override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
+        withSuper(super.transFunctionExps(f)) {
+          case fea@FunctionExpApp(fn, args) => {
+            //only collect calls to functions, not datatype constructors!
+            if (tdcollector.functypes.contains(fn))
+              collected :+ fea
+            Seq(FunctionExpApp(fn, trace(args)(transFunctionExpMetas(_))))
+          }
+        }
+    }
+    functionCallExtractor(s)
+    functionCallExtractor.collected
+  }
+
+  override def assignCaseVariables(nd: VeritasConstruct, refd: VeritasConstruct): VeritasConstruct =
+    nd match {
+      case DataTypeConstructor(name, args) => {
+        //obtain all (free?) variables in refd (it should suffice to obtain the free variables)
+        val freevars = refd match {
+          case TypingRule(_, prems, conseqs) => FreeVariables.freeVariables(prems ++ conseqs, Set(): Set[MetaVar])
+          case trj: TypingRuleJudgment => FreeVariables.freeVariables(trj, Set(): Set[MetaVar])
+          case fem: FunctionExpMeta => FreeVariables.freeVariables(fem, Set(): Set[MetaVar])
+          case _ => sys.error(s"Cannot retrieve free variables from this expression $refd")
+        }
+
+        val freevarnames = freevars map (fv => fv.name)
+
+        val fresh = new FreshNames
+
+        val namedargs = for (a <- args) yield {
+          //name arguments of datatype constructor according to their types
+          val abasename = a.name
+          var argname = abasename
+          //make sure name clashes among the variables and with the free variables from refd are avoided
+          while (freevarnames contains argname) {
+            argname = fresh.freshName(abasename)
+          }
+          argname
+        }
+
+        FunctionExpApp(name, namedargs map (n => FunctionMeta(MetaVar(n))))
+      }
+      case _ => sys.error("Can only assign variables to DataTypeConstructor")
+    }
+
 
   override def makeForall(vars: Seq[VeritasConstruct], body: VeritasFormula): VeritasFormula = body match {
     case TypingRule(_, _, _) => body
@@ -241,7 +325,9 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
   //constructs a universally quantified formula where all free variables will be quantified
   //except for the ones which are fixed variables (have to become constants, for example!)
-  override def makeForallQuantifyFreeVariables(body: VeritasFormula, fixed: Seq[VeritasConstruct]) = ???
+  //Veritas format can ignore parameter fixed, will be correctly handled during transformation
+  override def makeForallQuantifyFreeVariables(body: VeritasFormula, fixed: Seq[VeritasConstruct]): VeritasFormula =
+  retrieveTypingRule(body).getOrElse(sys.error(s"Could not make the given formula $body into a typing rule."))
 
   //for Veritas ASTs: try to cast all prems and concs to TypingRuleJudgments, then create a TypingRule with a generic name
   override def makeImplication(prems: Seq[VeritasFormula], concs: Seq[VeritasFormula]): VeritasFormula = {
@@ -261,6 +347,17 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an equation.")
     }
 
+  //expects an unnamed formula or a named one and attaches or overwrites the new name, always creating a typing rule
+  private def makeNamedFormula(f: VeritasFormula, name: String): TypingRule = retrieveTypingRule(f) match {
+    case Some(TypingRule(_, prems, conseqs)) => TypingRule(name, prems, conseqs)
+    case None => sys.error(s"Was unable to produce a named formula out of $f") //should not happen
+  }
 
-  override def makeNamedFormula(f: VeritasFormula, name: String): VeritasFormula = ???
+  //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
+  override def makeNamedGoal(f: VeritasFormula, name: String): VeritasFormula =
+    Goals(Seq(makeNamedFormula(f, name)), None)
+
+  //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
+  def makeNamedAxiom(f: VeritasFormula, name: String): VeritasFormula =
+    Axioms(Seq(makeNamedFormula(f, name)))
 }

@@ -46,7 +46,7 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
     */
   def getArguments(functioncall: Defs): Seq[Defs]
 
-  // for a variable of type closed ADT, extract the different cases (variable is typed as in the given term)
+  // for a variable of type closed ADT, extract the different cases (variable v is typed as in the given term)
   def getCases(v: Defs, term: Defs): Seq[Defs]
 
   //from a named ADT case, extract the recursive arguments (may be empty if there are none)
@@ -85,7 +85,7 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
   // names all variables in given definition nd so that there are no name clashes with free variables in refd
   // returns definition nd with named variables
   // TODO rethink type signature?
-  def assignCaseVariables[D <: Defs](nd: D, refd: D): D
+  def assignCaseVariables(nd: Defs, refd: Defs): Defs
 
   //constructor functions
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae
@@ -98,7 +98,10 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
 
   def makeEquation(left: Defs, right: Defs): Formulae
 
-  //expects an unnamed formula or a named one and attaches or overwrites the new name
-  def makeNamedFormula(f: Formulae, name: String): Formulae
+  //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
+  def makeNamedGoal(f: Formulae, name: String): Formulae
+
+  //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
+  def makeNamedAxiom(f: Formulae, name: String): Formulae
 
 }

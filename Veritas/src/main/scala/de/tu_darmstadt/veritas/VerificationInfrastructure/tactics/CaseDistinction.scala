@@ -28,7 +28,7 @@ case class CaseDistinction[Defs, Formulae <: Defs](cases: Seq[Formulae], spec: D
         val added_premises = c +: prems
         //reassemble goal and attach name
         val casename = "-case" + cases.indexOf(c)
-        makeNamedFormula(makeForallQuantifyFreeVariables(
+        makeNamedGoal(makeForallQuantifyFreeVariables(
           makeImplication(added_premises, concs)), getFormulaName(goal) ++ casename)
       }
       }
