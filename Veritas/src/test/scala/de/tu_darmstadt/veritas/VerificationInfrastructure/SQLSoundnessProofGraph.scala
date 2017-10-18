@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.ConstructSQLSoundnessGraph.pg
 import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
@@ -298,8 +299,15 @@ class SQLSoundnessProofGraph(file: File) {
   g.storeObligation("SQL progress", progressObligation)
 
   // first proof step: structural induction
-  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
-  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, StructuralInduction(MetaVar("q"), fullSQLspec, specenq))
+  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress) //mock tactic with hardcoded steps
+  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, StructuralInduction(MetaVar("q"), fullSQLspec, specenq))
+
+  val rootobl = g.findObligation("SQL progress").get
+  val subobs = g.requiredObls(rootinductionPS)
+
+  println("Root obligation: " + rootobl)
+  println("Induction cases:")
+  println(subobs)
 
   //apply simply Solve-tactic to t-value base case
   val tvaluecaseobl = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, g.requiredObls(rootinductionPS))
@@ -565,14 +573,27 @@ object SQLSoundnessProofGraph {
 // attempting to verify as much as possible
 object ConstructSQLSoundnessGraph extends App {
 
+  def recursivedelete(file: File) {
+    if (file.isDirectory)
+      Option(file.listFiles).map(_.toList).getOrElse(Nil).foreach(recursivedelete(_))
+    file.delete
+  }
+
   val file = new File("SQLSoundnessProofGraph-store")
-  file.delete() //simply overwrite any old folder
+  recursivedelete(file) //simply overwrite any old folder
   //try to create new folder
   if (!file.mkdir()) sys.error("Could not create new store for SQLSoundnessProofGraph-store.")
 
   val pg = new SQLSoundnessProofGraph(file)
 
-  pg.verifySingleStepsSimple()
+  //pg.verifySingleStepsSimple()
+
+  val rootobl = pg.g.findObligation("SQL progress").get
+  val subobs = pg.g.requiredObls(pg.rootinductionPS)
+
+  println("Root obligation: " + rootobl)
+  println("Induction cases:")
+  println(subobs)
 
 }
 

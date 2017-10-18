@@ -6,6 +6,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast.{TypingRuleJudgment, _}
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
+import de.tu_darmstadt.veritas.backend.transformation.defs.{InferTypingJudgmentsSignature, TranslateAllTypingJudgments, TranslateTypingJudgments}
 import de.tu_darmstadt.veritas.backend.util.{FreeVariables, FreshNames}
 
 class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasConstruct, VeritasFormula] {
@@ -19,11 +20,22 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     Selection -> Selection.SelectAll,
     Problem -> Problem.All))
 
-  private val tdcollector: CollectTypesDefs = new CollectTypesDefsClass
+  //for inferring types of functions and datatypes
+  private val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
+
+  //object for inferring the signature of the typing judgments over the entire spec
+  private object TypingJudgmentTranslator extends TranslateTypingJudgments with Serializable {
+
+    //convenience method for being able to apply the translator directly to a typing rule
+    def apply(tr: TypingRule): TypingRule = {
+      this.transTypingRules(tr).head
+    }
+  }
 
   /**
     * wrap given spec in Module, if it is not already a Module
     * also, apply module to collector of types and definitions in order to make all types and defs accessible via tdcollector
+    * (including inference of signature of typing judgment and placing the function signatures in tdcollector)
     *
     * @return
     */
@@ -33,17 +45,24 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case mdef: ModuleDef => Module("GenSpecModule", Seq(), Seq(mdef))
       case _ => sys.error("Could not wrap given specification in Module, which is required for VeritasSpecEnquirer.")
     }
-    tdcollector(Seq(mod))(defconfig).head
+
+    val module_tjtranslated = TypingJudgmentTranslator(Seq(mod))(defconfig) //once at instantiation time: infer signature of typing judgment over entire spec
+    tdcollector(module_tjtranslated)(defconfig).head //once at instantiation time: collect all datatype/function definitions etc. over entire spec (including signatures of typing judgments, inferred previously)
   }
 
   //generate a top-down traversal starting from the type of a given VeritasConstruct, based on ModuleTransformation
-  private class VeritasConstructTraverser extends ModuleTransformation {
+  private class VeritasConstructTraverser extends ModuleTransformation with Serializable {
 
     //subclasses can use this variable to collect the special Veritas constructs that they want to extract
     var collected: Seq[VeritasConstruct] = Seq()
 
     def apply(vc: VeritasConstruct): Seq[VeritasConstruct] = {
       vc match {
+        case Goals(Seq(tr), _) => transTypingRules(tr)
+        case GoalsWithStrategy(_, Seq(tr), _) => transTypingRules(tr)
+        case Lemmas(Seq(tr), _) => transTypingRules(tr)
+        case LemmasWithStrategy(_, Seq(tr), _) => transTypingRules(tr)
+        case Axioms(Seq(tr)) => transTypingRules(tr)
         case m: Module => trans(m)
         case md: ModuleDef => transModuleDefs(md)
         case fd: FunctionDef => transFunctionDefs(fd)
@@ -59,6 +78,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
         case c: ConstDecl => transConstDecl(c)
         case dtc: DataTypeConstructor => transDataTypeConstructor(dtc, tdcollector.constrTypes(dtc.name)._2.name)
         case sr: SortRef => transSortRefs(sr)
+        case _ => sys.error("Given Veritas construct not suppported by VeritasConstructTraverser.")
       }
     }
   }
@@ -87,7 +107,11 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   // get types of all variables (free and quantified)
   private def getAllVarTypes(f: VeritasFormula): Map[MetaVar, SortRef] =
     retrieveTypingRule(f) match {
-      case Some(tr@TypingRule(_, _, _)) => tdcollector.inferMetavarTypes(tr)
+      case Some(tr@TypingRule(_, _, _)) => {
+        //first, preprocess typing rule (translate typing judgments)
+        val processedrule = TypingJudgmentTranslator(tr)
+        tdcollector.inferMetavarTypes(processedrule)
+      }
       case None => Map() //should not happen
     }
 
@@ -158,16 +182,14 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     * @return
     */
   override def getQuantifiedBody(quantifiedFormula: VeritasFormula): VeritasFormula =
-    quantifiedFormula match {
+    retrieveTypingRule(quantifiedFormula) match {
       //first two cases are improvised, since Veritas ASTs currently have no separate conjunction construct,
       //hence we cannot simply return the body of a quantified judgment (would be Seq[VeritasFormula])
       //careful, this essentially throws quantification away!
-      case TypingRule(name, Seq(), Seq(ForallJudgment(_, body))) => TypingRule(name + "-body", Seq(), body)
-      case TypingRule(name, Seq(), Seq(ExistsJudgment(_, body))) => TypingRule(name + "-body", Seq(), body)
-      case t@TypingRule(name, _, _) if getFreeVariables(t).nonEmpty => t
-      case ForallJudgment(_, body) => TypingRule("forallJdg_anonym-body", Seq(), body) //TODO generate a better, unique name?
-      case ExistsJudgment(_, body) => TypingRule("existJdg_anonym-body", Seq(), body) //TODO generate a better, unique name?
-      case _ => sys.error("VeritasSpecEnquirer cannot determine the quantified body of a non-quantified formula")
+      case Some(TypingRule(name, Seq(), Seq(ForallJudgment(_, body)))) => TypingRule(name + "-body", Seq(), body)
+      case Some(TypingRule(name, Seq(), Seq(ExistsJudgment(_, body)))) => TypingRule(name + "-body", Seq(), body)
+      case Some(t@TypingRule(name, _, _)) if getFreeVariables(t).nonEmpty => t
+      case None => sys.error(s"VeritasSpecEnquirer cannot determine the quantified body of a non-quantified formula: $quantifiedFormula")
       // alternatively, maybe simply return the formula that was given without throwing an error?
     }
 
@@ -178,7 +200,10 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     * @return
     */
   override def getArguments(functioncall: VeritasConstruct): Seq[VeritasConstruct] = functioncall match {
-    case FunctionExpApp(_, args) => args
+    case FunctionExpApp(_, args) => args map {
+      case FunctionMeta(mv) => mv //make sure to unwrap MetaVars!
+      case cs => cs
+    }
     case _ => Seq() //alternatively, throw error or warning here?
   }
 
@@ -225,31 +250,31 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   // (which we define as not being formulas by themselves - is that a good idea?)
   //for other formulae, returns the empty sequence
   override def getUniversallyQuantifiedVars(g: VeritasFormula): Set[VeritasConstruct] =
-  retrieveTypingRule(g) match {
-    case Some(tr) => getFreeVariables(tr) map (mv => mv.asInstanceOf[VeritasConstruct]) //TODO: maybe find a solution to get around the manual upcast?
-    case None => g match {
-      case ForallJudgment(vars, _) => vars.toSet
-      case _ => Set() //alternatively, throw error or warning here?
+    retrieveTypingRule(g) match {
+      case Some(tr) => getFreeVariables(tr) map (mv => mv.asInstanceOf[VeritasConstruct]) //TODO: maybe find a solution to get around the manual upcast?
+      case None => g match {
+        case ForallJudgment(vars, _) => vars.toSet
+        case _ => Set() //alternatively, throw error or warning here?
+      }
     }
-  }
 
   //expects an implication and returns the sequence of conjuncts from the premise
   // the conjuncts themselves are formulae
   //for other formulae, returns the empty sequence (interpreted as implication with empty premises!)
   override def getPremises(g: VeritasFormula): Seq[VeritasFormula] =
-  retrieveTypingRule(g) match {
-    case Some(TypingRule(_, prems, _)) => prems
-    case None => Seq() //alternatively, throw error or warning here?
-  }
+    retrieveTypingRule(g) match {
+      case Some(TypingRule(_, prems, _)) => prems
+      case None => Seq() //alternatively, throw error or warning here?
+    }
 
   //expects an implication and returns the sequence of conjuncts from the conclusion
   // the conjuncts themselves are formulae
   //for other formulae, returns the given formula
   override def getConclusions(g: VeritasFormula): Seq[VeritasFormula] =
-  retrieveTypingRule(g) match {
-    case Some(TypingRule(_, _, conseqs)) => conseqs
-    case None => Seq(g)
-  }
+    retrieveTypingRule(g) match {
+      case Some(TypingRule(_, _, conseqs)) => conseqs
+      case None => Seq(g)
+    }
 
   //expects a construct with a named formula and extracts the formula's name
   override def getFormulaName(f: VeritasFormula): String =
@@ -266,7 +291,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
           case fea@FunctionExpApp(fn, args) => {
             //only collect calls to functions, not datatype constructors!
             if (tdcollector.functypes.contains(fn))
-              collected :+ fea
+              collected = collected :+ fea
             FunctionExpApp(fn, trace(args)(transFunctionExpMetas(_)))
           }
         }
@@ -276,7 +301,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
           case fea@FunctionExpApp(fn, args) => {
             //only collect calls to functions, not datatype constructors!
             if (tdcollector.functypes.contains(fn))
-              collected :+ fea
+              collected = collected :+ fea
             Seq(FunctionExpApp(fn, trace(args)(transFunctionExpMetas(_))))
           }
         }
@@ -301,13 +326,13 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
         val fresh = new FreshNames
 
         val namedargs = for (a <- args) yield {
-          //name arguments of datatype constructor according to their types
-          val abasename = a.name
+          //name arguments of datatype constructor according to their types (prepending a small letter)
+          val abasename = "v" + a.name
           var argname = abasename
           //make sure name clashes among the variables and with the free variables from refd are avoided
-          while (freevarnames contains argname) {
+          do {
             argname = fresh.freshName(abasename)
-          }
+          } while (freevarnames contains argname)
           argname
         }
 
@@ -327,7 +352,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   //except for the ones which are fixed variables (have to become constants, for example!)
   //Veritas format can ignore parameter fixed, will be correctly handled during transformation
   override def makeForallQuantifyFreeVariables(body: VeritasFormula, fixed: Seq[VeritasConstruct]): VeritasFormula =
-  retrieveTypingRule(body).getOrElse(sys.error(s"Could not make the given formula $body into a typing rule."))
+    retrieveTypingRule(body).getOrElse(sys.error(s"Could not make the given formula $body into a typing rule."))
 
   //for Veritas ASTs: try to cast all prems and concs to TypingRuleJudgments, then create a TypingRule with a generic name
   override def makeImplication(prems: Seq[VeritasFormula], concs: Seq[VeritasFormula]): VeritasFormula = {
@@ -343,6 +368,8 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
   override def makeEquation(left: VeritasConstruct, right: VeritasConstruct): VeritasFormula =
     (left, right) match {
+      case (l: MetaVar, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpEq(FunctionMeta(l), r))
+      case (l: FunctionExpMeta, r: MetaVar) => FunctionExpJudgment(FunctionExpEq(l, FunctionMeta(r)))
       case (l: FunctionExpMeta, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpEq(l, r))
       case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an equation.")
     }

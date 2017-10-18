@@ -19,9 +19,10 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
     * - premises or conclusions of goal contain calls to recursive functions/jugdments
     */
   def isApplicable(g: Formulae): Boolean = {
+    val fcs = extractFunctionCalls(g)
     //note: line below will currently only work if there is at least one function call (to a recursive function)
     // that has the induction variable directly as argument
-    val rec_functioncall_with_inductionvar: Option[Defs] = extractFunctionCalls(g) find
+    val rec_functioncall_with_inductionvar: Option[Defs] = fcs find
       (fc => isRecursiveFunctionCall(fc) &&
         (getArguments(fc) contains inductionvar))
     goalMatchesPattern(g) &&

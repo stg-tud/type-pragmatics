@@ -106,13 +106,13 @@ trait TranslateTypingJudgments extends ModuleTransformation {
    * set to true as soon as the typing judgment was defined once in current scope
    * (to prevent duplicate definitions)
    */
-  private var tjdeclared: Boolean = false
+  protected var tjdeclared: Boolean = false
 
   /**
    * set to true as soon as the simple typing judgment was defined once in current scope
    * (to prevent duplicate definitions)
    */
-  private var stjdeclared: Boolean = false
+  protected var stjdeclared: Boolean = false
 
   override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     tjdeclared = false

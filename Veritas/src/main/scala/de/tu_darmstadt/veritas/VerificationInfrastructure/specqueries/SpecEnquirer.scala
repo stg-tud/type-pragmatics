@@ -11,7 +11,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.FixedVar
   * @tparam Formulae Types for formulae, e.g. axioms, lemmas, goals
   *
   */
-trait SpecEnquirer[Defs, Formulae <: Defs] {
+trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   val fullspec: Defs
 
