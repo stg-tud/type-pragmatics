@@ -95,7 +95,7 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
             val ihs = for (ihprem <- added_premises_ih) yield {
               val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
               InductionHypothesis(makeNamedAxiom(makeForall(getUniversallyQuantifiedVars(goal).toSeq,
-                makeImplication(added_premises_ih ++ prems, concs)), ihname))
+                makeImplication(ihprem +: prems, concs)), ihname))
             }
             StructInductCase[Defs, Formulae](casename, fvs, ihs, propagatedInfo)
           }
@@ -111,4 +111,23 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
     }
     else Seq() //TODO throw an exception that explains why the tactic failed
   }
+
+  //call with a parent obligation and the sub-obligations that this parent requires
+  //will try to match the cases against induction cases and then assemble a map from case names to (Obligation, EdgeLabel)
+  def enumerateCases[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Map[String, (Obligation, EdgeLabel)] =
+    {
+      (for (r <- required) yield {
+        r._2 match {
+          case StructInductCase(name,_,_,_) => name -> r
+          case c => sys.error(s"Enumerate cases of a structural induction: The given required sub-obligations were not all labeled as induction cases: $c")
+        }
+      }).toMap
+    }
+
+  def enumerateCaseNames[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Seq[String] =
+    enumerateCases(required).keys.toSeq.sortWith(_ < _) //alphabetical ordering
+
+  def selectCase[Obligation](casename: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
+    enumerateCases(required)(casename)._1
+
 }

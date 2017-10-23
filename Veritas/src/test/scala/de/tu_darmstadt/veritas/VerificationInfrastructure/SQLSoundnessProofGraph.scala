@@ -298,35 +298,33 @@ class SQLSoundnessProofGraph(file: File) {
   val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
   g.storeObligation("SQL progress", progressObligation)
 
+  private val rootInduction = StructuralInduction(MetaVar("q"), fullSQLspec, specenq)
   // first proof step: structural induction
   //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress) //mock tactic with hardcoded steps
-  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, StructuralInduction(MetaVar("q"), fullSQLspec, specenq))
+  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
 
   val rootobl = g.findObligation("SQL progress").get
-  val subobs = g.requiredObls(rootinductionPS)
-
-  println("Root obligation: " + rootobl)
-  println("Induction cases:")
-  println(subobs)
+  val rootsubobs = g.requiredObls(rootinductionPS)
+  val casenames = rootInduction.enumerateCaseNames[g.Obligation](rootsubobs)
 
   //apply simply Solve-tactic to t-value base case
-  val tvaluecaseobl = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, g.requiredObls(rootinductionPS))
+  val tvaluecaseobl = rootInduction.selectCase(casenames(0), rootsubobs)
   val tvaluecasePS = g.applyTactic(tvaluecaseobl, Solve[VeritasConstruct, VeritasFormula])
 
   // Case distinctions for Union, Intersection, Difference cases
   val unionCaseDistinction = SetCaseDistinction(unionsym, sunion)
 
-  val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, g.requiredObls(rootinductionPS))
+  val unioncaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
   val unioncasePS = g.applyTactic(unioncaseobl, unionCaseDistinction)
 
   val intersectionCaseDistinction = SetCaseDistinction(intersectionsym, sintersection)
 
-  val intersectioncaseobl = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, g.requiredObls(rootinductionPS))
+  val intersectioncaseobl = rootInduction.selectCase(casenames(3), rootsubobs)
   val intersectioncasePS = g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
 
   val differenceCaseDistinction = SetCaseDistinction(differencesym, sdifference)
 
-  val differencecaseobl = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, g.requiredObls(rootinductionPS))
+  val differencecaseobl = rootInduction.selectCase(casenames(4), rootsubobs)
   val differencecasePS = g.applyTactic(differencecaseobl, differenceCaseDistinction)
 
   //apply Solve tactic to all of the set cases
@@ -338,8 +336,7 @@ class SQLSoundnessProofGraph(file: File) {
   }
 
   //prove selectFromWhereCase via auxiliary lemmas:
-  val selcase = MockInduction.selectCase(SQLProgressTselectFromWhere.goals.head.name,
-    g.requiredObls(rootinductionPS))
+  val selcase = rootInduction.selectCase(casenames(1), rootsubobs)
 
 
   //apply lemma application tactic to selection case
