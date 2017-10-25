@@ -109,8 +109,8 @@ trait CollectTypesDefs extends ModuleTransformation {
     }
   }
 
-  override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = {
-    withSuper(super.transDataTypeConstructor(d, open, dataType)) {
+  override def transDataTypeConstructor(d: DataTypeConstructor, dataType: String): Seq[DataTypeConstructor] = {
+    withSuper(super.transDataTypeConstructor(d, dataType)) {
       case d =>
         _constrTypes += (d.name -> (d.in -> SortRef(dataType)))
         Seq(d)

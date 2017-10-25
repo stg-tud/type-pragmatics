@@ -11,7 +11,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.FixedVar
   * @tparam Formulae Types for formulae, e.g. axioms, lemmas, goals
   *
   */
-trait SpecEnquirer[Defs, Formulae <: Defs] {
+trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   val fullspec: Defs
 
@@ -28,6 +28,9 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
 
   def isImplication(g: Formulae): Boolean
 
+  //expects a function call, from which the function's name can be extracted!
+  def isRecursiveFunctionCall(fc: Defs): Boolean
+
   /**
     * receive a formula that is universally or existentially quantified, return the body of the formula
  *
@@ -43,16 +46,17 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
     */
   def getArguments(functioncall: Defs): Seq[Defs]
 
-  // for a variable of type closed ADT, extract the different cases (variable is typed as in the given term)
+  // for a variable of type closed ADT, extract the different cases (variable v is typed as in the given term)
   def getCases(v: Defs, term: Defs): Seq[Defs]
 
-  //from an ADT case, extract the recursive arguments (may be empty if there are none)
+  //from a named ADT case, extract the recursive arguments (may be empty if there are none)
+  //assume unique constructors!
   def getRecArgsADT(c: Defs): Seq[Defs]
 
   //expects a universally quantified formula, hands back a list of variables
   // (which we define as not being formulas by themselves - is that a good idea?)
   //for other formulae, returns the empty sequence
-  def getUniversallyQuantifiedVars(g: Formulae): Seq[Defs]
+  def getUniversallyQuantifiedVars(g: Formulae): Set[Defs]
 
   //expects a quantified formula (existentially or universally quantified)
   //returns sequence of quantified variables (top-level)
@@ -62,40 +66,42 @@ trait SpecEnquirer[Defs, Formulae <: Defs] {
 
   //expects an implication and returns the sequence of conjuncts from the premise
   // the conjuncts themselves are formulae
-  //for other formulae, returns the given sequence (interpreted as implication with empty premises!)
+  //for other formulae, returns the empty sequence (interpreted as implication with empty premises!)
   def getPremises(g: Formulae): Seq[Formulae]
 
   //expects an implication and returns the sequence of conjuncts from the conclusion
   // the conjuncts themselves are formulae
-  //for other formulae, returns the empty sequence
+  //for other formulae, returns the given formula
   def getConclusions(g: Formulae): Seq[Formulae]
 
   //expects a construct with a named formula and extracts the formula's name
   def getFormulaName(f: Formulae): String
 
   //query methods for extracting information from specification/goals
-  def extractFunctionCalls(s: Defs): Seq[Defs]
 
-  //from a given definition or formula, extract all free variables
-  def extractFreeVariables(d: Defs): Seq[Defs]
+  //from a given definition, extract all the calls to functions
+  def extractFunctionCalls(s: Defs): Seq[Defs]
 
   // names all variables in given definition nd so that there are no name clashes with free variables in refd
   // returns definition nd with named variables
   // TODO rethink type signature?
-  def assignCaseVariables[D <: Defs](nd: D, refd: D): D
+  def assignCaseVariables(nd: Defs, refd: Defs): Defs
 
   //constructor functions
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae
 
   //constructs a universally quantified formula where all free variables will be quantified
-  //except for the ones which are fixed variables (have to become constants!)
+  //except for the ones which are fixed variables (have to become constants, for example!)
   def makeForallQuantifyFreeVariables(body: Formulae, fixed: Seq[Defs] = Seq()): Formulae
 
   def makeImplication(prems: Seq[Formulae], concs: Seq[Formulae]): Formulae
 
   def makeEquation(left: Defs, right: Defs): Formulae
 
-  //expects an unnamed formula or a named one and attaches or overwrites the new name
-  def makeNamedFormula(f: Formulae, name: String): Formulae
+  //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
+  def makeNamedGoal(f: Formulae, name: String): Formulae
+
+  //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
+  def makeNamedAxiom(f: Formulae, name: String): Formulae
 
 }

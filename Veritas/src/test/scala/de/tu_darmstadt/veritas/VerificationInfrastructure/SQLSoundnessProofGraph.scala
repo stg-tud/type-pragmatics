@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.ConstructSQLSoundnessGraph.pg
 import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
@@ -297,28 +298,33 @@ class SQLSoundnessProofGraph(file: File) {
   val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
   g.storeObligation("SQL progress", progressObligation)
 
+  private val rootInduction = StructuralInduction(MetaVar("q"), fullSQLspec, specenq)
   // first proof step: structural induction
-  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress)
-  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, StructuralInduction(MetaVar("q"), fullSQLspec, specenq))
+  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress) //mock tactic with hardcoded steps
+  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
+
+  val rootobl = g.findObligation("SQL progress").get
+  val rootsubobs = g.requiredObls(rootinductionPS)
+  val casenames = rootInduction.enumerateCaseNames[g.Obligation](rootsubobs)
 
   //apply simply Solve-tactic to t-value base case
-  val tvaluecaseobl = MockInduction.selectCase(SQLProgressTtvalue.goals.head.name, g.requiredObls(rootinductionPS))
+  val tvaluecaseobl = rootInduction.selectCase(casenames(0), rootsubobs)
   val tvaluecasePS = g.applyTactic(tvaluecaseobl, Solve[VeritasConstruct, VeritasFormula])
 
   // Case distinctions for Union, Intersection, Difference cases
   val unionCaseDistinction = SetCaseDistinction(unionsym, sunion)
 
-  val unioncaseobl = MockInduction.selectCase(SQLProgressTUnion.goals.head.name, g.requiredObls(rootinductionPS))
+  val unioncaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
   val unioncasePS = g.applyTactic(unioncaseobl, unionCaseDistinction)
 
   val intersectionCaseDistinction = SetCaseDistinction(intersectionsym, sintersection)
 
-  val intersectioncaseobl = MockInduction.selectCase(SQLProgressTIntersection.goals.head.name, g.requiredObls(rootinductionPS))
+  val intersectioncaseobl = rootInduction.selectCase(casenames(3), rootsubobs)
   val intersectioncasePS = g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
 
   val differenceCaseDistinction = SetCaseDistinction(differencesym, sdifference)
 
-  val differencecaseobl = MockInduction.selectCase(SQLProgressTDifference.goals.head.name, g.requiredObls(rootinductionPS))
+  val differencecaseobl = rootInduction.selectCase(casenames(4), rootsubobs)
   val differencecasePS = g.applyTactic(differencecaseobl, differenceCaseDistinction)
 
   //apply Solve tactic to all of the set cases
@@ -330,8 +336,7 @@ class SQLSoundnessProofGraph(file: File) {
   }
 
   //prove selectFromWhereCase via auxiliary lemmas:
-  val selcase = MockInduction.selectCase(SQLProgressTselectFromWhere.goals.head.name,
-    g.requiredObls(rootinductionPS))
+  val selcase = rootInduction.selectCase(casenames(1), rootsubobs)
 
 
   //apply lemma application tactic to selection case
@@ -565,14 +570,27 @@ object SQLSoundnessProofGraph {
 // attempting to verify as much as possible
 object ConstructSQLSoundnessGraph extends App {
 
+  def recursivedelete(file: File) {
+    if (file.isDirectory)
+      Option(file.listFiles).map(_.toList).getOrElse(Nil).foreach(recursivedelete(_))
+    file.delete
+  }
+
   val file = new File("SQLSoundnessProofGraph-store")
-  file.delete() //simply overwrite any old folder
+  recursivedelete(file) //simply overwrite any old folder
   //try to create new folder
   if (!file.mkdir()) sys.error("Could not create new store for SQLSoundnessProofGraph-store.")
 
   val pg = new SQLSoundnessProofGraph(file)
 
-  pg.verifySingleStepsSimple()
+  //pg.verifySingleStepsSimple()
+
+  val rootobl = pg.g.findObligation("SQL progress").get
+  val subobs = pg.g.requiredObls(pg.rootinductionPS)
+
+  println("Root obligation: " + rootobl)
+  println("Induction cases:")
+  println(subobs)
 
 }
 

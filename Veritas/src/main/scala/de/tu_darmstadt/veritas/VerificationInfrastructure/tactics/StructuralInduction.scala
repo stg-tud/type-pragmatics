@@ -19,12 +19,16 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
     * - premises or conclusions of goal contain calls to recursive functions/jugdments
     */
   def isApplicable(g: Formulae): Boolean = {
-    //note: line below will currently only work if function calls have induction variable directly as
-    val functioncall_with_inductionvar: Option[Defs] = extractFunctionCalls(g) find (fc => getArguments(fc) contains inductionvar)
+    val fcs = extractFunctionCalls(g)
+    //note: line below will currently only work if there is at least one function call (to a recursive function)
+    // that has the induction variable directly as argument
+    val rec_functioncall_with_inductionvar: Option[Defs] = fcs find
+      (fc => isRecursiveFunctionCall(fc) &&
+        (getArguments(fc) contains inductionvar))
     goalMatchesPattern(g) &&
       (getUniversallyQuantifiedVars(g) contains inductionvar) &&
       isClosedADT(inductionvar, g) &&
-      functioncall_with_inductionvar.isDefined
+      rec_functioncall_with_inductionvar.isDefined
     //TODO: refine conditions, if necessary
   }
 
@@ -74,7 +78,7 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
           val added_premises = makeEquation(inductionvar, named_ic) +: prems
           //reassemble goal and attach name
           val casename = "-icase" + iv_cases.indexOf(named_ic)
-          makeNamedFormula(makeForallQuantifyFreeVariables(
+          makeNamedGoal(makeForallQuantifyFreeVariables(
             makeImplication(added_premises, concs), fvs map { fv => fv.fixedvar }), getFormulaName(goal) ++ casename)
         }
         }
@@ -90,8 +94,8 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
             val added_premises_ih = for (fv <- fvs) yield makeEquation(inductionvar, fv.fixedvar)
             val ihs = for (ihprem <- added_premises_ih) yield {
               val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
-              InductionHypothesis(makeForall(getUniversallyQuantifiedVars(goal),
-                makeImplication(added_premises_ih ++ prems, concs)))
+              InductionHypothesis(makeNamedAxiom(makeForall(getUniversallyQuantifiedVars(goal).toSeq,
+                makeImplication(ihprem +: prems, concs)), ihname))
             }
             StructInductCase[Defs, Formulae](casename, fvs, ihs, propagatedInfo)
           }
@@ -107,4 +111,23 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
     }
     else Seq() //TODO throw an exception that explains why the tactic failed
   }
+
+  //call with a parent obligation and the sub-obligations that this parent requires
+  //will try to match the cases against induction cases and then assemble a map from case names to (Obligation, EdgeLabel)
+  def enumerateCases[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Map[String, (Obligation, EdgeLabel)] =
+    {
+      (for (r <- required) yield {
+        r._2 match {
+          case StructInductCase(name,_,_,_) => name -> r
+          case c => sys.error(s"Enumerate cases of a structural induction: The given required sub-obligations were not all labeled as induction cases: $c")
+        }
+      }).toMap
+    }
+
+  def enumerateCaseNames[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Seq[String] =
+    enumerateCases(required).keys.toSeq.sortWith(_ < _) //alphabetical ordering
+
+  def selectCase[Obligation](casename: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
+    enumerateCases(required)(casename)._1
+
 }

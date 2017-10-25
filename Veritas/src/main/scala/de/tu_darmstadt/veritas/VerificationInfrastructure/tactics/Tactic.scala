@@ -48,7 +48,7 @@ trait Tactic[Spec, Goal] extends Serializable {
     * the given verifier
     *
     * the default implementation simply calls the given verifier with all given edges and no hints;
-    * other concrete implementations may decide to behave differently be overriding this method
+    * other concrete implementations may decide to behave differently by overriding this method
     *
     * @param obl
     * @param parentedges
