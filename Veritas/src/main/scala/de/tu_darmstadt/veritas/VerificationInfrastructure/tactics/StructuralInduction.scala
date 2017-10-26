@@ -67,11 +67,10 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
         assignCaseVariables(ic, goalbody)
       }
 
-      val fixed_Vars: Seq[Seq[FixedVar[Defs]]] = iv_cases map { named_ic => {
-        val rargs = getRecArgsADT(named_ic)
-        if (rargs.isEmpty) Seq() else rargs map (rarg => FixedVar(rarg))
-      }
-      }
+      val fixed_Vars: Seq[Seq[FixedVar[Defs]]] = iv_cases map (named_ic => makeFixedRecArgs(named_ic))
+        //val rargs = getRecArgsADT(named_ic)
+        //if (rargs.isEmpty) Seq() else rargs map (rarg => FixedVar(rarg))
+
 
       val induction_subgoals: Seq[Formulae] =
         (iv_cases zip fixed_Vars) map { case (named_ic, fvs) => {

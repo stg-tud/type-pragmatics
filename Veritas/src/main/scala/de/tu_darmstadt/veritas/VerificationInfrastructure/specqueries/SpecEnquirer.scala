@@ -84,8 +84,11 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   // names all variables in given definition nd so that there are no name clashes with free variables in refd
   // returns definition nd with named variables
-  // TODO rethink type signature?
   def assignCaseVariables(nd: Defs, refd: Defs): Defs
+
+  // given a named ADT case, create definition of fixed variables for all recursive arguments of that case
+  // (the specific format has to decide how to achieve that)
+  def makeFixedRecArgs(c: Defs): Seq[FixedVar[Defs]]
 
   //constructor functions
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae
