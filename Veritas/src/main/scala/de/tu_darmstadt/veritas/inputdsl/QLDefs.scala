@@ -947,7 +947,7 @@ object QLDefs {
         (~'qm === 'qmbind ('qid1, 'l, 'YesNo, 'qmempty)) &
         (~'q === 'qsingle ('question ('qid1, 'l, 'YesNO)))
         ).===>("test-3")(
-        ('reduce ('QC (~'am, ~'qm, ,'qsingle ('ask ('qid1)))) === 'someQConf ('QC (~'am, ~'qm, ~'q))))))
+        ('reduce ('QC (~'am, ~'qm, 'qsingle ('ask ('qid1)))) === 'someQConf ('QC (~'am, ~'qm, ~'q))))))
 
   val test4: Local = local(
     differentconsts(
@@ -959,7 +959,7 @@ object QLDefs {
         (~'qm === 'qmbind ('qid1, 'l, 'YesNo, 'qmempty)) &
         (~'q === 'qsingle ('question ('qid1, 'l, 'YesNO)))
         ).===>("test-4")(
-        ('reduce ('QC (~'am, ~'qm, ,'qsingle ('ask ('qid2)))) === 'noQConf))))
+        ('reduce ('QC (~'am, ~'qm, 'qsingle ('ask ('qid2)))) === 'noQConf))))
 
   val test5: Goals = goal(
     (~'am === 'abind (~'qid, 'B ('yes), 'aempty)
