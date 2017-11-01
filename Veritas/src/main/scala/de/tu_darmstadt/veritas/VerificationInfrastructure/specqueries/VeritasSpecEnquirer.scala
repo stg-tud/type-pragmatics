@@ -344,7 +344,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
   // given a named ADT case, create definition of fixed variables for all recursive arguments of that case
   // (the specific format has to decide how to achieve that - e.g. Veritas ASTs have to create Consts (with type information))
-  override def makeFixedRecArgs(c: VeritasConstruct): Seq[FixedVar[VeritasConstruct]] = c match {
+  override def makeFixedRecArgsDefs(c: VeritasConstruct): Seq[FixedVar[VeritasConstruct]] = c match {
     case fexpapp@FunctionExpApp(name, args) => {
       //retrieve datatype that has this constructor (make sure it is only one!)
       val dtmap = for ((dtname, (_, dtconstrs)) <- tdcollector.dataTypes; dtcons <- dtconstrs
@@ -372,6 +372,13 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       }
     }
     case _ => sys.error("Cannot determine recursive arguments for a construct that is not a FunctionExpApp")
+  }
+
+
+  override def makeFixedTerm(unfixed_var: VeritasConstruct): VeritasConstruct = unfixed_var match {
+    case FunctionMeta(MetaVar(name)) => FunctionExpApp(name, Seq())
+    case MetaVar(name) => FunctionExpApp(name, Seq())
+    case _ => sys.error(s"Tried to transform a non-metavar to a fixed term: $unfixed_var")
   }
 
   override def makeForall(vars: Seq[VeritasConstruct], body: VeritasFormula): VeritasFormula = body match {

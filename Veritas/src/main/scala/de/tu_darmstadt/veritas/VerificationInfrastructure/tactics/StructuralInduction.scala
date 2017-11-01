@@ -68,10 +68,10 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
       }
 
       //create definitions for fixed vars in the appropriate format
-      val fixed_Vars_defs: Seq[Seq[FixedVar[Defs]]] = iv_cases map (named_ic => makeFixedRecArgs(named_ic))
+      val fixed_Vars_defs: Seq[Seq[FixedVar[Defs]]] = iv_cases map (named_ic => makeFixedRecArgsDefs(named_ic))
 
-      //get only the variables that are fixed (for generating equations in the next step
-      val fixed_Vars_raw: Seq[Seq[Defs]] = iv_cases map (named_ic => getRecArgsADT(named_ic))
+      //get only the variables that are fixed (for generating equations in the next step)
+      val fixed_Vars_raw: Seq[Seq[Defs]] = iv_cases map (named_ic => getRecArgsADT(named_ic) map (mv => makeFixedTerm(mv)))
 
       //form induction subgoals (adding equations as premises to the original goal, quantifying all free variables
       //except for the ones that were fixed

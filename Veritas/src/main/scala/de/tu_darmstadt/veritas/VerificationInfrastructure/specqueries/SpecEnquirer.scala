@@ -86,9 +86,13 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
   // returns definition nd with named variables
   def assignCaseVariables(nd: Defs, refd: Defs): Defs
 
-  // given a named ADT case, create definition of fixed variables for all recursive arguments of that case
+  // given a named ADT case, create the definition of fixed variables for all recursive arguments of that case
   // (the specific format has to decide how to achieve that)
-  def makeFixedRecArgs(c: Defs): Seq[FixedVar[Defs]]
+  def makeFixedRecArgsDefs(c: Defs): Seq[FixedVar[Defs]]
+
+  //given an unfixed variable, return a fixed one (as a term)
+  //depending on whether the format differentiates between fixed and unfixed variables in terms, this might simply be the identity function
+  def makeFixedTerm(unfixed_var: Defs): Defs
 
   //constructor functions
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae
