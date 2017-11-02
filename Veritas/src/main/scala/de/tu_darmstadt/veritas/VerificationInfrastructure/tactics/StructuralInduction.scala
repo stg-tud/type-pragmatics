@@ -67,16 +67,20 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
         assignCaseVariables(ic, goalbody)
       }
 
-      //create definitions for fixed vars in the appropriate format
+      // now fix variables for all recursive arguments
+      // 1) create definitions for fixed vars in the appropriate format
       val fixed_Vars_defs: Seq[Seq[FixedVar[Defs]]] = iv_cases map (named_ic => makeFixedRecArgsDefs(named_ic))
 
-      //get only the variables that are fixed (for generating equations in the next step)
+      // 2) get only the variables that are fixed (for generating equations in the next step)
       val fixed_Vars_raw: Seq[Seq[Defs]] = iv_cases map (named_ic => getRecArgsADT(named_ic) map (mv => makeFixedTerm(mv)))
 
-      //form induction subgoals (adding equations as premises to the original goal, quantifying all free variables
-      //except for the ones that were fixed
+      // 3) form induction subgoals (adding equations as premises to the original goal, quantifying all free variables
+      //except for the ones that were fixed, and fix variables in case term)
       val induction_subgoals: Seq[Formulae] =
         (iv_cases zip fixed_Vars_raw) map { case (named_ic, fvs) => {
+          //fix the fixed variables (recursive arguments) in named_ic
+          // PROBLEM: outside of a specific induction case, the variables should not yet be fixed...!
+          //val named_ic_fixed_recargs = makeTermWithFixedRecArgs(named_ic)
           val added_premises = makeEquation(inductionvar, named_ic) +: prems
           //reassemble goal and attach name
           val casename = "-icase" + iv_cases.indexOf(named_ic)

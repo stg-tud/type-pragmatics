@@ -92,7 +92,11 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   //given an unfixed variable, return a fixed one (as a term)
   //depending on whether the format differentiates between fixed and unfixed variables in terms, this might simply be the identity function
+  //assumes that fixed variables can have the same name as the unfixed ones!
   def makeFixedTerm(unfixed_var: Defs): Defs
+
+  //receives a named ADT case and fixes the recursive arguments
+  def makeTermWithFixedRecArgs(term: Defs): Defs
 
   //constructor functions
   def makeForall(vars: Seq[Defs], body: Formulae): Formulae

@@ -331,9 +331,10 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
           val abasename = "v" + a.name
           var argname = abasename
           //make sure name clashes among the variables and with the free variables from refd are avoided
+          //also ensure that no names from existing constants are used (?)
           do {
             argname = fresh.freshName(abasename)
-          } while (freevarnames contains argname)
+          } while ((freevarnames contains argname) && (tdcollector.consts contains argname))
           argname
         }
 
@@ -363,11 +364,11 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
         val mvrecargs = for (rarg <- recargs) yield rarg match {
           //case mv@MetaVar(_) => mv
           case FunctionMeta(mv@MetaVar(_)) => mv
-            //TODO think about how to create fixed variables for arguments that are not meta variables
+          //TODO think about how to create fixed variables for arguments that are not meta variables
           case _ => sys.error("When creating fixed variables for recursive arguments: Currently only supports metavar arguments!")
         }
         val consts = mvrecargs map (rarg => FixedVar(Consts(Seq(ConstDecl(rarg.name, SortRef(dtname))), false)))
-        consts map {case FixedVar(cd) => FixedVar(cd.asInstanceOf[VeritasConstruct])}
+        consts map { case FixedVar(cd) => FixedVar(cd.asInstanceOf[VeritasConstruct]) }
         //TODO find a good way to omit the manual upcast (just making FixedVar covariant in type argument does not work)
       }
     }
@@ -379,6 +380,31 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     case FunctionMeta(MetaVar(name)) => FunctionExpApp(name, Seq())
     case MetaVar(name) => FunctionExpApp(name, Seq())
     case _ => sys.error(s"Tried to transform a non-metavar to a fixed term: $unfixed_var")
+  }
+
+
+  override def makeTermWithFixedRecArgs(term: VeritasConstruct): VeritasConstruct = term match {
+    case fexpapp@FunctionExpApp(name, args) => {
+      //make sure that only metavar arguments are included
+      //TODO are there cases in which this fails? deal with non-metavar arguments!
+      val recargs: Seq[FunctionMeta] = (getRecArgsADT(fexpapp) filter {
+        case fm: FunctionMeta => true
+        case _ => false}) map (_.asInstanceOf[FunctionMeta])
+
+      //TODO is it enough to just look at the arguments, or is deeper traversal necessary in some cases?
+      val newargs = args map (a => if (recargs contains a) makeFixedTerm(a).asInstanceOf[FunctionExpMeta] else a)
+
+      FunctionExpApp(name, newargs)
+
+      /*val termtraverser = new VeritasConstructTraverser {
+        override def transFunctionExpMeta(f: FunctionExpMeta): FunctionExpMeta = f match {
+          case fm@FunctionMeta(_) => if (recargs contains fm) makeFixedTerm(fm).asInstanceOf[FunctionExpMeta] else super.transFunctionExpMeta(fm)
+          case _ => super.transFunctionExpMeta(f)
+        }
+      }*/
+
+    }
+    case _ => sys.error("Cannot fix recursive arguments for a construct that is not a FunctionExpApp")
   }
 
   override def makeForall(vars: Seq[VeritasConstruct], body: VeritasFormula): VeritasFormula = body match {
