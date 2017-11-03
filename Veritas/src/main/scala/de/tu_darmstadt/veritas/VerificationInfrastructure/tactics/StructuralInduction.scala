@@ -67,44 +67,40 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
         assignCaseVariables(ic, goalbody)
       }
 
-      // now fix variables for all recursive arguments
-      // 1) create definitions for fixed vars in the appropriate format
-      val fixed_Vars_defs: Seq[Seq[FixedVar[Defs]]] = iv_cases map (named_ic => makeFixedRecArgsDefs(named_ic))
+      //recursive arguments of named case terms have to become fixed variables
+      val fixed_Vars: Seq[Seq[Defs]] = iv_cases map (named_ic => getRecArgsADT(named_ic))
 
-      // 2) get only the variables that are fixed (for generating equations in the next step)
-      val fixed_Vars_raw: Seq[Seq[Defs]] = iv_cases map (named_ic => getRecArgsADT(named_ic) map (mv => makeFixedTerm(mv)))
-
-      // 3) form induction subgoals (adding equations as premises to the original goal, quantifying all free variables
-      //except for the ones that were fixed, and fix variables in case term)
+      // form induction subgoals (add equations as premises to the original goal)
+      // design decision: all variables become quantified, including fixed ones
+      // problem transformation will take care of treating fixed variables accordingly
       val induction_subgoals: Seq[Formulae] =
-        (iv_cases zip fixed_Vars_raw) map { case (named_ic, fvs) => {
-          //fix the fixed variables (recursive arguments) in named_ic
-          // PROBLEM: outside of a specific induction case, the variables should not yet be fixed...!
-          //val named_ic_fixed_recargs = makeTermWithFixedRecArgs(named_ic)
+        iv_cases map { named_ic => {
           val added_premises = makeEquation(inductionvar, named_ic) +: prems
           //reassemble goal and attach name
           val casename = "-icase" + iv_cases.indexOf(named_ic)
           makeNamedGoal(
             makeForallQuantifyFreeVariables(makeImplication(added_premises, concs),
-              fvs), getFormulaName(goal) ++ casename)
+              Seq()), getFormulaName(goal) ++ casename)
         }
         }
 
+
+      // create edge labels: induction hypotheses (all variables universally quantified) + fixed variables!
       val propagatedInfo: Seq[PropagatableInfo] = obtainPropagatableInfo(obllabels)
 
       val final_ihs: Seq[StructInductCase[Defs, Formulae]] =
-        for (((fvs, fvraws), ic) <- (fixed_Vars_defs zip fixed_Vars_raw) zip induction_subgoals) yield {
+        for ((fvs, ic) <- fixed_Vars zip induction_subgoals) yield {
           val casename = getFormulaName(ic)
           if (fvs.isEmpty)
             StructInductCase[Defs, Formulae](casename, Seq(), Seq(), propagatedInfo)
           else {
-            val added_premises_ih = for (fvraw <- fvraws) yield makeEquation(inductionvar, fvraw)
+            val added_premises_ih = for (fv <- fvs) yield makeEquation(inductionvar, fv)
             val ihs = for (ihprem <- added_premises_ih) yield {
               val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
               InductionHypothesis(makeNamedAxiom(makeForall(getUniversallyQuantifiedVars(goal).toSeq,
                 makeImplication(ihprem +: prems, concs)), ihname))
             }
-            StructInductCase[Defs, Formulae](casename, fvs, ihs, propagatedInfo)
+            StructInductCase[Defs, Formulae](casename, fvs map (fv => FixedVar(fv)), ihs, propagatedInfo)
           }
         }
 

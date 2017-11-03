@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpe
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, TPTPVampireVerifier, TSTPProof, VerifierFailure}
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpApp
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionMeta}
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
 
@@ -323,13 +323,10 @@ class SQLSoundnessProofGraph(file: File) {
     import SymTreeDSL._
     import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
 
-    val fv1term = AppNode(Symbol(fv1name), Seq())
-    val fv2term = AppNode(Symbol(fv2name), Seq())
-
     //TODO: here t1 and t2 are guessed to be free variable names (which will work out in this particular case) - better: generate fresh names
-    val case1pred: Seq[TypingRuleJudgment] = (fv1term === 'tvalue (~'t1)) & (fv2term === 'tvalue (~'t2))
-    val case2pred: Seq[TypingRuleJudgment] = (fv1term === 'tvalue (~'t1)) & (forall(~'t2) | (fv2term ~= 'tvalue (~'t2)))
-    val case3pred: Seq[TypingRuleJudgment] = Seq(forall(~'t1) | (fv1term ~= 'tvalue (~'t1)))
+    val case1pred: Seq[TypingRuleJudgment] = (~(Symbol(fv1name)) === 'tvalue (~'t1)) & (~(Symbol(fv2name)) === 'tvalue (~'t2))
+    val case2pred: Seq[TypingRuleJudgment] = (~(Symbol(fv1name)) === 'tvalue (~'t1)) & (forall(~'t2) | (~(Symbol(fv2name)) ~= 'tvalue (~'t2)))
+    val case3pred: Seq[TypingRuleJudgment] = Seq(forall(~'t1) | (~(Symbol(fv1name)) ~= 'tvalue (~'t1)))
 
     Seq(case1pred, case2pred, case3pred)
   }
@@ -345,8 +342,9 @@ class SQLSoundnessProofGraph(file: File) {
     }
 
     (fv1, fv2) match {
-      case (Consts(Seq(ConstDecl(n1, _)), _), Consts(Seq(ConstDecl(n2, _)), _)) => (n1, n2)
-      case _ => sys.error("fixed variables did not contain constant definitions as expected")
+      case (MetaVar(n1), MetaVar(n2)) => (n1, n2)
+      case (FunctionMeta(MetaVar(n1)), FunctionMeta(MetaVar(n2))) => (n1, n2)
+      case _ => sys.error("fixed variables did not have expected format")
     }
   }
 
