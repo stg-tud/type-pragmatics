@@ -31,7 +31,7 @@ package object VerificationInfrastructure {
       */
     override def verify[Result <: GenStepResult[Spec, Goal]](goal: Goal, spec: Spec,
                                                              parentedges: Iterable[EdgeLabel],
-                                                             assumptions: Iterable[Goal],
+                                                             assumptions: Iterable[(EdgeLabel, Goal)],
                                                              hints: Option[VerifierHints],
                                                              produce: StepResultProducer[Spec, Goal, Result],
                                                              pathforlogs: Option[String] = None): Result =

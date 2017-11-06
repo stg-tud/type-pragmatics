@@ -103,7 +103,7 @@ class SudokuLeafVerifier
   (goal: SudokuField,
    spec: EmptySpec,
    parentedges: Iterable[EdgeLabel],
-   assumptions: Iterable[SudokuField],
+   assumptions: Iterable[(EdgeLabel, SudokuField)],
    hints: Option[VerifierHints],
    produce: StepResultProducer[EmptySpec, SudokuField, Result],
    pathforlogs: Option[String] = None): Result = {

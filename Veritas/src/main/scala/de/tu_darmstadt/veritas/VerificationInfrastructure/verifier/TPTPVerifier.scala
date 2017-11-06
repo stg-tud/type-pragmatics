@@ -44,7 +44,7 @@ trait TPTPVerifier extends Verifier[VeritasConstruct, VeritasFormula] {
   (goal: VeritasFormula,
    spec: VeritasConstruct,
    parentedges: Iterable[EdgeLabel],
-   assumptions: Iterable[VeritasFormula],
+   assumptions: Iterable[(EdgeLabel, VeritasFormula)],
    hints: Option[VerifierHints],
    produce: StepResultProducer[VeritasConstruct, VeritasFormula, Result],
    pathforlogs: Option[String] = None): Result = {
