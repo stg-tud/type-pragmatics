@@ -474,7 +474,7 @@ object SQLSoundnessProofSteps {
   val sdifference = "Difference"
 
   val case1pred: Seq[TypingRuleJudgment] = ('q1 === 'tvalue (~'t1)) & ('q2 === 'tvalue (~'t2))
-  val case2pred: Seq[TypingRuleJudgment] = (~'q1 === 'tvalue (~'t1)) & (forall(~'t2) | ('q2 ~= 'tvalue (~'t2)))
+  val case2pred: Seq[TypingRuleJudgment] = ('q1 === 'tvalue (~'t1)) & (forall(~'t2) | ('q2 ~= 'tvalue (~'t2)))
   val case3pred: Seq[TypingRuleJudgment] = Seq(forall(~'t1) | ('q1 ~= 'tvalue (~'t1)))
 
   def setconsts = Seq(consts('q1 ::> 'Query),

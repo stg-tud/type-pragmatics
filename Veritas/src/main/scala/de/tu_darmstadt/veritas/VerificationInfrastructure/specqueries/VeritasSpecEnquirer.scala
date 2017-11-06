@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.FixedVar
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function._
@@ -330,9 +331,10 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
           val abasename = "v" + a.name
           var argname = abasename
           //make sure name clashes among the variables and with the free variables from refd are avoided
+          //also ensure that no names from existing constants are used (?)
           do {
             argname = fresh.freshName(abasename)
-          } while (freevarnames contains argname)
+          } while ((freevarnames contains argname) && (tdcollector.consts contains argname))
           argname
         }
 
@@ -340,7 +342,6 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       }
       case _ => sys.error("Can only assign variables to DataTypeConstructor")
     }
-
 
   override def makeForall(vars: Seq[VeritasConstruct], body: VeritasFormula): VeritasFormula = body match {
     case TypingRule(_, _, _) => body

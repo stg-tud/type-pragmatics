@@ -8,6 +8,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpe
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, TPTPVampireVerifier, TSTPProof, VerifierFailure}
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionMeta}
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 import org.scalatest.FunSuite
 
@@ -306,23 +307,64 @@ class SQLSoundnessProofGraph(file: File) {
   val rootobl = g.findObligation("SQL progress").get
   val rootsubobs = g.requiredObls(rootinductionPS)
   val casenames = rootInduction.enumerateCaseNames[g.Obligation](rootsubobs)
+  val caseedges: Seq[StructInductCase[VeritasConstruct, VeritasFormula]] =
+    (rootInduction.enumerateCases(rootsubobs) map
+      {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
 
   //apply simply Solve-tactic to t-value base case
   val tvaluecaseobl = rootInduction.selectCase(casenames(0), rootsubobs)
   val tvaluecasePS = g.applyTactic(tvaluecaseobl, Solve[VeritasConstruct, VeritasFormula])
 
   // Case distinctions for Union, Intersection, Difference cases
-  val unionCaseDistinction = SetCaseDistinction(unionsym, sunion)
+  // construct the case predicates:
+
+  def makeSetCasePreds(fv1name: String, fv2name: String): Seq[Seq[TypingRuleJudgment]] = {
+    import FunctionDSL._
+    import SymTreeDSL._
+    import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
+
+    //TODO: here t1 and t2 are guessed to be free variable names (which will work out in this particular case) - better: generate fresh names
+    val case1pred: Seq[TypingRuleJudgment] = (~(Symbol(fv1name)) === 'tvalue (~'t1)) & (~(Symbol(fv2name)) === 'tvalue (~'t2))
+    val case2pred: Seq[TypingRuleJudgment] = (~(Symbol(fv1name)) === 'tvalue (~'t1)) & (forall(~'t2) | (~(Symbol(fv2name)) ~= 'tvalue (~'t2)))
+    val case3pred: Seq[TypingRuleJudgment] = Seq(forall(~'t1) | (~(Symbol(fv1name)) ~= 'tvalue (~'t1)))
+
+    Seq(case1pred, case2pred, case3pred)
+  }
+
+  def makeSetCaseDistinction(fv1name: String, fv2name: String): CaseDistinction[VeritasConstruct, VeritasFormula] =
+    CaseDistinction(makeSetCasePreds(fv1name, fv2name), fullSQLspec, specenq)
+
+  def extract2FVNames(casename: String): (String, String) = {
+    val cases = rootInduction.enumerateCases(rootsubobs)(casename)._2
+    val (fv1, fv2) = cases match {
+      case StructInductCase(_,fv,_,_) => (fv(0).fixedvar, fv(1).fixedvar)
+      case _ => sys.error(s"Expected a StructInductCase label at the given casename $casename")
+    }
+
+    (fv1, fv2) match {
+      case (MetaVar(n1), MetaVar(n2)) => (n1, n2)
+      case (FunctionMeta(MetaVar(n1)), FunctionMeta(MetaVar(n2))) => (n1, n2)
+      case _ => sys.error("fixed variables did not have expected format")
+    }
+  }
+
+  //val unionCaseDistinction = SetCaseDistinction(unionsym, sunion) //hard-coded mock tactic
+  val unioncaseFVs = extract2FVNames(casenames(2))
+  val unionCaseDistinction = makeSetCaseDistinction(unioncaseFVs._1, unioncaseFVs._2)
 
   val unioncaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
   val unioncasePS = g.applyTactic(unioncaseobl, unionCaseDistinction)
 
-  val intersectionCaseDistinction = SetCaseDistinction(intersectionsym, sintersection)
+  //val intersectionCaseDistinction = SetCaseDistinction(intersectionsym, sintersection) //hard-coded mock tactic
+  val intersectioncaseFVs = extract2FVNames(casenames(3))
+  val intersectionCaseDistinction = makeSetCaseDistinction(intersectioncaseFVs._1, intersectioncaseFVs._2)
 
   val intersectioncaseobl = rootInduction.selectCase(casenames(3), rootsubobs)
   val intersectioncasePS = g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
 
-  val differenceCaseDistinction = SetCaseDistinction(differencesym, sdifference)
+  //val differenceCaseDistinction = SetCaseDistinction(differencesym, sdifference) //hard-coded mock tactic
+  val differencecaseFVs = extract2FVNames(casenames(4))
+  val differenceCaseDistinction = makeSetCaseDistinction(differencecaseFVs._1, differencecaseFVs._2)
 
   val differencecaseobl = rootInduction.selectCase(casenames(4), rootsubobs)
   val differencecasePS = g.applyTactic(differencecaseobl, differenceCaseDistinction)

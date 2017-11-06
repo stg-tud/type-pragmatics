@@ -84,7 +84,6 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   // names all variables in given definition nd so that there are no name clashes with free variables in refd
   // returns definition nd with named variables
-  // TODO rethink type signature?
   def assignCaseVariables(nd: Defs, refd: Defs): Defs
 
   //constructor functions

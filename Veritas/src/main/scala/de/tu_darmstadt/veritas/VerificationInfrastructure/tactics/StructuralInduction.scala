@@ -35,10 +35,10 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
   //TODO goalMatchesPattern is a candidate for a common Tactic method
   // idea: introduce a small pattern language to describe goal patterns?
   def goalMatchesPattern(g: Formulae): Boolean =
-  isForall(g) && {
-    val body = getQuantifiedBody(g)
-    isImplication(body) && getConclusions(body).nonEmpty
-  }
+    isForall(g) && {
+      val body = getQuantifiedBody(g)
+      isImplication(body) && getConclusions(body).nonEmpty
+    }
 
 
   /**
@@ -67,22 +67,25 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
         assignCaseVariables(ic, goalbody)
       }
 
-      val fixed_Vars: Seq[Seq[FixedVar[Defs]]] = iv_cases map { named_ic => {
-        val rargs = getRecArgsADT(named_ic)
-        if (rargs.isEmpty) Seq() else rargs map (rarg => FixedVar(rarg))
-      }
-      }
+      //recursive arguments of named case terms have to become fixed variables
+      val fixed_Vars: Seq[Seq[Defs]] = iv_cases map (named_ic => getRecArgsADT(named_ic))
 
+      // form induction subgoals (add equations as premises to the original goal)
+      // design decision: all variables become quantified, including fixed ones
+      // problem transformation will take care of treating fixed variables accordingly
       val induction_subgoals: Seq[Formulae] =
-        (iv_cases zip fixed_Vars) map { case (named_ic, fvs) => {
+        iv_cases map { named_ic => {
           val added_premises = makeEquation(inductionvar, named_ic) +: prems
           //reassemble goal and attach name
           val casename = "-icase" + iv_cases.indexOf(named_ic)
-          makeNamedGoal(makeForallQuantifyFreeVariables(
-            makeImplication(added_premises, concs), fvs map { fv => fv.fixedvar }), getFormulaName(goal) ++ casename)
+          makeNamedGoal(
+            makeForallQuantifyFreeVariables(makeImplication(added_premises, concs),
+              Seq()), getFormulaName(goal) ++ casename)
         }
         }
 
+
+      // create edge labels: induction hypotheses (all variables universally quantified) + fixed variables!
       val propagatedInfo: Seq[PropagatableInfo] = obtainPropagatableInfo(obllabels)
 
       val final_ihs: Seq[StructInductCase[Defs, Formulae]] =
@@ -91,13 +94,13 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
           if (fvs.isEmpty)
             StructInductCase[Defs, Formulae](casename, Seq(), Seq(), propagatedInfo)
           else {
-            val added_premises_ih = for (fv <- fvs) yield makeEquation(inductionvar, fv.fixedvar)
+            val added_premises_ih = for (fv <- fvs) yield makeEquation(inductionvar, fv)
             val ihs = for (ihprem <- added_premises_ih) yield {
               val ihname = casename + "-IH" + added_premises_ih.indexOf(ihprem)
               InductionHypothesis(makeNamedAxiom(makeForall(getUniversallyQuantifiedVars(goal).toSeq,
                 makeImplication(ihprem +: prems, concs)), ihname))
             }
-            StructInductCase[Defs, Formulae](casename, fvs, ihs, propagatedInfo)
+            StructInductCase[Defs, Formulae](casename, fvs map (fv => FixedVar(fv)), ihs, propagatedInfo)
           }
         }
 
@@ -114,15 +117,14 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
 
   //call with a parent obligation and the sub-obligations that this parent requires
   //will try to match the cases against induction cases and then assemble a map from case names to (Obligation, EdgeLabel)
-  def enumerateCases[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Map[String, (Obligation, EdgeLabel)] =
-    {
-      (for (r <- required) yield {
-        r._2 match {
-          case StructInductCase(name,_,_,_) => name -> r
-          case c => sys.error(s"Enumerate cases of a structural induction: The given required sub-obligations were not all labeled as induction cases: $c")
-        }
-      }).toMap
-    }
+  def enumerateCases[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Map[String, (Obligation, EdgeLabel)] = {
+    (for (r <- required) yield {
+      r._2 match {
+        case StructInductCase(name, _, _, _) => name -> r
+        case c => sys.error(s"Enumerate cases of a structural induction: The given required sub-obligations were not all labeled as induction cases: $c")
+      }
+    }).toMap
+  }
 
   def enumerateCaseNames[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Seq[String] =
     enumerateCases(required).keys.toSeq.sortWith(_ < _) //alphabetical ordering

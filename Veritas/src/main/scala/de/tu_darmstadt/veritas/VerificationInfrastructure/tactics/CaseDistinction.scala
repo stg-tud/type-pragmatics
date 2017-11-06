@@ -3,7 +3,9 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
-case class CaseDistinction[Defs, Formulae <: Defs](cases: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+
+
+case class CaseDistinction[Defs, Formulae <: Defs](cases: Seq[Seq[Formulae]], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -25,7 +27,7 @@ case class CaseDistinction[Defs, Formulae <: Defs](cases: Seq[Formulae], spec: D
     val case_subgoals: Seq[Formulae] =
       cases map { c => {
         //simply add each goal to the premises
-        val added_premises = c +: prems
+        val added_premises = c ++ prems
         //reassemble goal and attach name
         val casename = "-case" + cases.indexOf(c)
         makeNamedGoal(makeForallQuantifyFreeVariables(
@@ -69,7 +71,7 @@ case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs, spec
     if (isApplicable(goal)) {
       //make sure that variable names of cases do not clash with variables names in goal
       val dist_cases_defs_renamed = getCases(distvar, goalbody) map (c => assignCaseVariables(c, goalbody))
-      val dist_cases = dist_cases_defs_renamed map (dc => makeEquation(distvar, dc))
+      val dist_cases = dist_cases_defs_renamed map (dc => Seq(makeEquation(distvar, dc)))
       CaseDistinction[Defs, Formulae](dist_cases, spec, queryspec)(obl, obllabels, produce)
     } else
       Seq() //TODO throw an exception that explains why the tactic failed
