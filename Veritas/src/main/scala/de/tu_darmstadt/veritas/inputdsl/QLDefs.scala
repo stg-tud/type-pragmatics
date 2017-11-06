@@ -482,12 +482,12 @@ object QLDefs {
          (~'q === 'qsingle ('question (~'qid, ~'l, ~'at))) &
          (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
          (~'qm2 === 'atmempty) &
-         ('lookupATMap (~'qid, ~'at) === 'noAType)) |
+         ('lookupATMap (~'qid, ~'atm1) === 'noAType)) |
        =>>(exists(~'qid, ~'at, ~'exp) |
          (~'q === 'qsingle ('value (~'qid, ~'at, ~'exp))) &
          (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
          (~'qm2 === 'atmempty) &
-         ('lookupATMap (~'qid, ~'at) === 'noAType) &
+         ('lookupATMap (~'qid, ~'atm1) === 'noAType) &
          ('echeck (~'atm1, ~'exp) === 'someAType (~'at))) |
        =>>(exists(~'qid, ~'l, ~'at) |
          (~'q === 'qsingle ('defquestion (~'qid, ~'l, ~'at))) &
@@ -522,7 +522,7 @@ object QLDefs {
   val Tinvqempty = lemma(
     ((~'q === 'qempty) &
       ('MC (~'atm1, ~'qm1) |- ~'q :: 'MC (~'atm2, ~'qm2))
-      ).===>("T-inv-q-empty")(
+      ).===>("T-inv-qempty")(
       (~'atm2 === 'atmempty) &
         (~'qm2 === 'atmempty)))
 
@@ -600,7 +600,7 @@ object QLDefs {
     Seq(Tinvgeneral, Tinv, Tinvqempty, Tinvqsinglequestion, Tinvqsinglevalue, Tinvqsingledefquestion, Tinvqsingleask, Tinvqseq, Tinvqcond, Tinvqgroup, TinvqcCheck))
 
   val counterexample1: Goals = goal(
-    (~'atm === 'atmbind (~'qid, ~'t, 'atmempty)
+    (~'atm === 'atmbind (~'qid1, ~'t, 'atmempty)
       ).===>("counterexample-1")(
       (exists(~'atm2) | ('intersectATM (~'atm, ~'atm2) ~= 'atmempty))))
 
@@ -610,13 +610,13 @@ object QLDefs {
       (exists(~'qid) | ('lookupATMap (~'qid, ~'atm) ~= 'noAType))))
 
   val counterexample3: Goals = goal(
-    ((~'q ~= 'qsingle ('value (~'qid1, 'Number, 'qvar (~'qid2)))) &
+    ((~'q === 'qsingle ('value (~'qid1, 'Number, 'qvar (~'qid2)))) &
       (~'am1 === 'abind (~'qid2, 'Num ('zero), 'aempty))
       ).===>("counterexample-3")(
       (exists(~'am2) | ('reduce ('QC (~'am1, ~'qm, ~'q)) ~= 'reduce ('QC (~'am2, ~'qm, ~'q))))))
 
   val counterexample4: Goals = goal(
-    ((~'exp ~= 'binop ('qvar (~'qid1), 'mulop, 'qvar (~'qid2))) &
+    ((~'exp === 'binop ('qvar (~'qid1), 'mulop, 'qvar (~'qid2))) &
       (~'am1 === 'abind (~'qid1, 'Num ('zero), 'abind (~'qid2, 'Num ('succ ('zero)), 'aempty)))
       ).===>("counterexample-4")(
       (exists(~'am2) | ('reduceExp (~'exp, ~'am1) ~= 'reduceExp (~'exp, ~'am2)))))
@@ -629,10 +629,10 @@ object QLDefs {
           ('reduce ('QC (~'am, 'qmempty, ~'q1)) ~= 'noQConf))))
 
   val counterexample6: Goals = goal(
-    ((~'q1 === 'qsingle ('ask (~'qid1)))
+    ((~'q === 'qsingle ('ask (~'qid)))
       ).===>("counterexample-6")(
       (exists(~'qm) |
-        ('reduce ('QC ('aempty, 'qm, ~'q)) ~= 'noQConf))))
+        ('reduce ('QC ('aempty, ~'qm, ~'q)) ~= 'noQConf))))
 
   val counterexample7: Goals = goal(
     ===>("counterexample-7")(
@@ -677,7 +677,7 @@ object QLDefs {
 
   val execution3: Goals = goal(
     ===>("execution-3")(
-      (exists(~'result) | 'evalBinOp ('divop ('Num ('succ ('zero)), 'Num ('succ ('zero)))) === ~'result)))
+      (exists(~'result) | 'evalBinOp ('divop,  'Num ('succ ('zero)), 'Num ('succ ('zero))) === ~'result)))
 
   val execution4: Local = local(
     differentconsts(
@@ -721,7 +721,7 @@ object QLDefs {
     goal(
       ((~'q1 === 'qsingle ('question ('qid1, 'l1, 'Number))) &
         (~'q2 === 'qsingle ('question ('qid2, 'l2, 'Number))) &
-        (~'q2 === 'qcond ('constant ('B ('yes), ~'q1, ~'q2)))
+        (~'q === 'qcond ('constant ('B ('yes)), ~'q1, ~'q2))
         ).===>("execution-7")(
         (exists(~'result) |
           'reduce ('QC ('aempty, 'qmempty, ~'q)) === ~'result))))
@@ -742,7 +742,7 @@ object QLDefs {
       'l2 ::> 'Label,
       'l3 ::> 'Label),
     goal(
-      ((~'qm === 'qmbind ('qid1, 'l1, 'Number, 'qmbind ('qid2, 'l2, 'Test, 'qmbind ('qid3, 'l3, 'YesNo))))
+      ((~'qm === 'qmbind ('qid1, 'l1, 'Number, 'qmbind ('qid2, 'l2, 'Text, 'qmbind ('qid3, 'l3, 'YesNo))))
         ).===>("execution-9")(
         (exists(~'result) |
           'lookupQMap ('qid3, ~'qm) === ~'result))))
@@ -767,7 +767,7 @@ object QLDefs {
       ((~'am1 === 'abind ('qid1, ~'av1, 'abind ('qid2, ~'av2, 'aempty))) &
         (~'am2 === 'abind ('qid2, ~'av2, 'abind ('qid1, ~'av1, 'aempty)))
         ).===>("proof-1")(
-          'lookupAnsMap ('qid1, ~'am1)  === 'lookupAnsMap ('qid2, ~'am2))))
+          'lookupAnsMap ('qid1, ~'am1)  === 'lookupAnsMap ('qid1, ~'am2))))
 
   val proof2: Goals = goal(
     ((~'q === 'qsingle ('question (~'qid, ~'l, ~'t))) &
@@ -779,21 +779,21 @@ object QLDefs {
   val proof3: Goals = goal(
     ((~'dq === 'qsingle ('defquestion (~'qid, ~'l, ~'t))) &
       ('reduce ('QC (~'am, ~'qm, ~'dq)) === 'someQConf ('QC (~'am1, ~'qm1, ~'eq))) &
-      (~'aq == 'qsingle ('ask (~'qid)))
+      (~'aq === 'qsingle ('ask (~'qid)))
       ).===>("proof-3")(
       'isSomeQC ('reduce ('QC (~'am1, ~'qm1, ~'aq)))))
 
   val proof4: Goals = goal(
-    ((~'q === 'qsingle ('question (~'qid, ~'l, 'Number))) &
+    ((~'q === 'qsingle ('question (~'qid1, ~'l, 'Number))) &
       ('reduce ('QC (~'am1, ~'qm1, ~'q)) === 'someQConf ('QC (~'am2, ~'qm2, 'qempty))) &
       (~'exp === 'binop ('qvar (~'qid1), 'addop, 'constant ('Num ('succ ('zero))))) &
-      (~'qexp == 'qsingle ('value (~'qid2, 'Number, ~'exp)))
+      (~'qexp === 'qsingle ('value (~'qid2, 'Number, ~'exp)))
       ).===>("proof-4")(
       'isSomeQC ('reduce ('QC (~'am2, ~'qm2, ~'qexp)))))
 
   val proof5: Goals = goal(
-    ((~'q1 === 'qsingle ('fquestion (~'qid1, ~'l1, ~'t1))) &
-      (~'q2 === 'qsingle ('fquestion (~'qid2, ~'l2, ~'t2))) &
+    ((~'q1 === 'qsingle ('question (~'qid1, ~'l1, ~'t1))) &
+      (~'q2 === 'qsingle ('question (~'qid2, ~'l2, ~'t2))) &
       (~'qs === 'qseq (~'q1, ~'q2)) &
       ('MC ('atmempty, 'atmempty) |- ~'qs :: 'MC (~'atm, ~'qm))
       ).===>("proof-5")(
@@ -816,8 +816,8 @@ object QLDefs {
       'qcCheck (~'menv, ~'qc, ~'atm)))
 
   val proof8: Goals = goal(
-    ((~'amt1 === 'atmbind (~'qid1, ~'t1, 'atmempty)) &
-      (~'amt2 === 'atmbind (~'qid2, ~'t2, 'atmempty))
+    ((~'atm1 === 'atmbind (~'qid1, ~'t1, 'atmempty)) &
+      (~'atm2 === 'atmbind (~'qid2, ~'t2, 'atmempty))
       ).===>("proof-8")(
       'intersectATM (~'atm1, ~'atm2)  === 'intersectATM (~'atm2, ~'atm1)))
 
@@ -829,7 +829,7 @@ object QLDefs {
       ((~'q1 === 'qsingle ('question ('qid1, ~'l1, ~'t1))) &
         (~'q2 === 'qsingle ('question ('qid2, ~'l2, ~'t2))) &
         (~'qcond === 'qcond (~'exp, ~'q1, ~'q2)) &
-        ('echeck ('atmempty, ~'exp) === 'someAType ('YesNo))
+        'echeck ('atmempty, ~'exp) === 'someAType ('YesNo)
         ).===>("proof-9")(
         ('MC ('atmempty, 'atmempty) |- ~'qcond :: 'MC ('atmempty, 'atmempty)))))
 
@@ -838,7 +838,7 @@ object QLDefs {
     ('evalBinOp (~'op, ~'av1, ~'av2) === 'someExp ('constant (~'avr))
       ).===>("proof-10")(
       ('typeOf (~'av1) === 'typeOf (~'av2)) &
-      ('typeOf (~'avr) === 'typeOf (~'var))))
+      ('typeOf (~'avr) === 'typeOf (~'avr))))
 
   val Proofs = Module("Proofs", Seq(Resolved(BasicTypes), Resolved(QLSyntax), Resolved(QLSemanticsData), Resolved(QLSemantics), Resolved(QLTypeSystem), Resolved(QLTypeSystemInv)),
     Seq(proof1, proof2, proof3, proof4, proof5, proof6, proof7, proof8, proof9, proof10))
@@ -872,7 +872,7 @@ object QLDefs {
 
   val synthesis5: Goals = goal(
     ===>("synthesis-5")(
-      (exists(~'atm1, ~'atm1) |
+      (exists(~'atm1, ~'atm2) |
         (~'atm1 ~= 'atmempty) &
           (~'atm2 ~= 'atmempty) &
           ('intersectATM (~'atm1, ~'atm2) === 'atmempty))))
@@ -895,7 +895,7 @@ object QLDefs {
       (~'atm === 'atmbind ('qid1, 'Number, 'atmbind ('qid2, 'Text, 'atmbind ('qid3, 'YesNo, 'atmempty)))
       ).===>("synthesis-7")(
         (exists(~'qm) |
-          ('typeQM ('qm) === ~'atm)))))
+          ('typeQM (~'qm) === ~'atm)))))
 
   val synthesis8: Local = local(
     consts(
@@ -904,14 +904,14 @@ object QLDefs {
       'qid ::> 'QID),
     goal(
       ((~'e === 'binop ('constant ('Num ('zero)), 'addop, 'constant ('Num ('succ ('zero))))) &
-        (~'qcres === 'someQConf ('QC ('am, 'qm, 'qsingle ('value ('qid, 'Number (~'e))))))
+        (~'qcres === 'someQConf ('QC ('am, 'qm, 'qsingle ('value ('qid, 'Number, ~'e)))))
         ).===>("synthesis-8")(
         (exists(~'qc) |
-          ('reduce ('qc) === ~'qcres)))))
+          ('reduce (~'qc) === ~'qcres)))))
 
   val synthesis9: Goals = goal(
     ===>("synthesis-9")(
-      (exists(~'n1, ~'n1) |
+      (exists(~'n1, ~'n2) |
           'minus (~'n1, ~'n2) === 'zero)))
 
   val synthesis10: Goals = goal(
@@ -936,7 +936,7 @@ object QLDefs {
     goal(
       (~'am === 'abind ('qid1, 'Num ('zero), 'abind ('qid2, 'Num ('succ ('zero)), 'aempty))
         ).===>("test-2")(
-        ('lookupAnsMap ('qid, ~'am) === 'someAval ('Num ('succ ('zero)))))))
+        ('lookupAnsMap ('qid2, ~'am) === 'someAval ('Num ('succ ('zero)))))))
 
   val test3: Local = local(
     differentconsts(
@@ -945,7 +945,7 @@ object QLDefs {
     goal(
       ((~'am === 'aempty) &
         (~'qm === 'qmbind ('qid1, 'l, 'YesNo, 'qmempty)) &
-        (~'q === 'qsingle ('question ('qid1, 'l, 'YesNO)))
+        (~'q === 'qsingle ('question ('qid1, 'l, 'YesNo)))
         ).===>("test-3")(
         ('reduce ('QC (~'am, ~'qm, 'qsingle ('ask ('qid1)))) === 'someQConf ('QC (~'am, ~'qm, ~'q))))))
 
@@ -957,7 +957,7 @@ object QLDefs {
     goal(
       ((~'am === 'aempty) &
         (~'qm === 'qmbind ('qid1, 'l, 'YesNo, 'qmempty)) &
-        (~'q === 'qsingle ('question ('qid1, 'l, 'YesNO)))
+        (~'q === 'qsingle ('question ('qid1, 'l, 'YesNo)))
         ).===>("test-4")(
         ('reduce ('QC (~'am, ~'qm, 'qsingle ('ask ('qid2)))) === 'noQConf))))
 
