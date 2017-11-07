@@ -4,13 +4,14 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, Propagatab
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{FixedVar, InductionHypothesis, StructInductCase}
 import de.tu_darmstadt.veritas.backend.{Configuration, MainTrans, TypingTrans}
 import de.tu_darmstadt.veritas.backend.Configuration._
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpFalse, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.fof.FofFile
 import de.tu_darmstadt.veritas.backend.smtlib.SMTLibFile
 import de.tu_darmstadt.veritas.backend.tff.TffFile
-import de.tu_darmstadt.veritas.backend.transformation.TransformationError
-import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
+import de.tu_darmstadt.veritas.backend.transformation.{ModuleTransformation, TransformationError}
+import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass, TypeInference}
+import de.tu_darmstadt.veritas.backend.transformation.defs.TranslateTypingJudgments
 import de.tu_darmstadt.veritas.backend.util.{BackendError, FreeVariables}
 import de.tu_darmstadt.veritas.inputdsl.FunctionDSL.FunExpFalse
 
@@ -46,9 +47,75 @@ case class FormatOtherError(message: String) extends TransformerError
   * (module transformations)
   */
 class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, formatProducer: VerifierFormat => Format) extends Transformer[VeritasConstruct, VeritasConstruct, Format] {
+
+  //for inferring types of functions and datatypes
+  private val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
+
+  //object for inferring the signature of the typing judgments over the entire spec
+  private object TypingJudgmentTranslator extends TranslateTypingJudgments with Serializable {
+
+    //convenience method for being able to apply the translator directly to a typing rule
+    def apply(tr: TypingRule): TypingRule = {
+      this.transTypingRules(tr).head
+    }
+  }
+
+  private val defconfig = Configuration(Map(
+    Simplification -> Simplification.None,
+    VariableEncoding -> VariableEncoding.Unchanged,
+    FinalEncoding -> FinalEncoding.TFF,
+    Selection -> Selection.SelectAll,
+    Problem -> Problem.All))
+
+  // try to retrieve a TypingRule construct from a given VeritasFormula
+  private def retrieveTypingRule(f: VeritasFormula): Option[TypingRule] = f match {
+    case t@TypingRule(_, _, _) => Some(t)
+    case tj: TypingRuleJudgment => Some(TypingRule("wrappedTypingRuleJdgm", Seq(), Seq(tj)))
+    // above covers all cases such as OrJudgment, NotJudgment, ForallJudgment...
+    case Goals(Seq(t@TypingRule(_, _, _)), _) => Some(t)
+    case GoalsWithStrategy(_, Seq(t@TypingRule(_, _, _)), _) => Some(t)
+    case Lemmas(Seq(t@TypingRule(_, _, _)), _) => Some(t)
+    case LemmasWithStrategy(_, Seq(t@TypingRule(_, _, _)), _) => Some(t)
+    case Axioms(Seq(t@TypingRule(_, _, _))) => Some(t)
+    case _ => None
+  }
+
+  //generate a top-down traversal starting from the type of a given VeritasConstruct, based on ModuleTransformation
+  private class VeritasConstructTraverser extends ModuleTransformation with Serializable {
+
+    //subclasses can use this variable to collect the special Veritas constructs that they want to extract
+    var collected: Seq[VeritasConstruct] = Seq()
+
+    def apply(vc: VeritasConstruct): Seq[VeritasConstruct] = {
+      vc match {
+        case Goals(Seq(tr), _) => transTypingRules(tr)
+        case GoalsWithStrategy(_, Seq(tr), _) => transTypingRules(tr)
+        case Lemmas(Seq(tr), _) => transTypingRules(tr)
+        case LemmasWithStrategy(_, Seq(tr), _) => transTypingRules(tr)
+        case Axioms(Seq(tr)) => transTypingRules(tr)
+        case m: Module => trans(m)
+        case md: ModuleDef => transModuleDefs(md)
+        case fd: FunctionDef => transFunctionDefs(fd)
+        case fs: FunctionSig => Seq(transFunctionSig(fs))
+        case feq: FunctionEq => transFunctionEqs(feq)
+        case fp: FunctionPattern => transFunctionPatterns(fp)
+        case tp: TypingRule => transTypingRules(tp)
+        case trj: TypingRuleJudgment => transTypingRuleJudgments(trj)
+        case mv: MetaVar => transMetaVars(mv)
+        case fe: FunctionExp => transFunctionExps(fe)
+        case fem: FunctionExpMeta => transFunctionExpMetas(fem)
+        case sd: SortDef => transSortDefs(sd)
+        case c: ConstDecl => transConstDecl(c)
+        case dtc: DataTypeConstructor => transDataTypeConstructor(dtc, tdcollector.constrTypes(dtc.name)._2.name)
+        case sr: SortRef => transSortRefs(sr)
+        case _ => sys.error("Given Veritas construct not suppported by VeritasConstructTraverser.")
+      }
+    }
+  }
+
   override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[(EdgeLabel, VeritasConstruct)]): Try[Format] = {
     spec match {
-      case Module(name, imps, moddefs) => {
+      case m@Module(name, imps, moddefs) => {
 
         val goaldef: ModuleDef = goal match {
           case g: ModuleDef => g
@@ -57,6 +124,10 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
             Goals(Seq(TypingRule("false-goal", Seq(), Seq(FunctionExpJudgment(FunctionExpFalse)))), None)
           }
         }
+
+        //initialize type inference
+        val module_tjtranslated = TypingJudgmentTranslator(Seq(m))(defconfig)
+        tdcollector(module_tjtranslated)(defconfig).head
 
         def getFixedMVs(els: Iterable[EdgeLabel]): Set[MetaVar] =
           (for (el <- els; pinf <- el.propagateInfoList
@@ -100,15 +171,43 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         val ihs_childrenonly = childihs diff ihs_intersection
 
         //Step 1: form constant definitions for the fixed variables of the parents (including the ones shared with children)
-        // (requires type inference for fixed meta variable)
+        // (requires type inference for fixed meta variables - this requires all assumptions
 
-        //TODO new problem transformation Step 1
+        // get typing rule from goal
+        val goaltr = goal match {
+          case vf: VeritasFormula => retrieveTypingRule(vf).get
+          case _ => sys.error(s"Goal to be transformed (${goal}) did not have the correct format (typing rule required)")
+        }
+
+        //get typing rules from ihs
+        val parentihtrs = for (pih <- parentihs) yield {
+          val formula = pih.ih
+          retrieveTypingRule(formula).get
+        }
+
+        // infer types for the meta variables from typing rule for goal, ihs, and assumptions
+        val mv_types_goal = tdcollector.inferMetavarTypes(goaltr)
+        val mvs_ihs = for (pih <- parentihtrs) yield {
+          tdcollector.inferMetavarTypes(pih)
+        }
+
+        //here, we assume that inferred types will not disagree! If they do not, an error should be thrown
+        val unionmvtypes: Map[MetaVar, SortRef] = (mv_types_goal +: mvs_ihs.toSeq).fold(Map[MetaVar, SortRef]())((m1, m2) => m1 ++ m2)
+        val fixedmvtypes: Map[MetaVar, SortRef] = unionmvtypes.filter(p => parentfvs contains p._1)
+
+        val fixedvar_defs: Consts = Consts(
+          (for (fv <- parentfvs) yield {
+            ConstDecl(fv.name, fixedmvtypes(fv))
+          }).toSeq, false)
+
 
         //Step 2: make assumptions (Axioms) out of parentihs:
         //for ihs from ihs_parentsonly, fix all variables that appear in parentfvs
-        //for ihs in ihs_intersection, fix all variables in fvs_intersection, universally quantify the rest
+        //for ihs in ihs_intersection, fix all variables in fvs_intersection
 
         //TODO new problem transformation Step 2
+
+
 
         //Step 3: make assumptions (Axioms) out of child goals:
         //add ihs from ihs_childrenonly as premises to childassms (encode nested implication a => b via !a \/ b)
@@ -123,7 +222,6 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         //Step 5: wrap everything in a local block
 
         //TODO new problem transformation Step 5
-
 
 
         //TODO: cleanup old code, remove

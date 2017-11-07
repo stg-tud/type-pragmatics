@@ -1,6 +1,5 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.FixedVar
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function._
