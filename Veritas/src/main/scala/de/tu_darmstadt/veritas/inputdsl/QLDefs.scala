@@ -477,7 +477,7 @@ object QLDefs {
     ('MC (~'atm1, ~'qm1) |- ~'q :: 'MC (~'atm2, ~'qm2)
     ).===>("T-inv")(
      OR(
-       =>>(~'q === 'qemtpy & ~'atm2 === 'atmempty & ~'qm2 === 'atmempty) |
+       =>>(~'q === 'qempty & ~'atm2 === 'atmempty & ~'qm2 === 'atmempty) |
        =>>(exists(~'qid, ~'l, ~'at) |
          (~'q === 'qsingle ('question (~'qid, ~'l, ~'at))) &
          (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
