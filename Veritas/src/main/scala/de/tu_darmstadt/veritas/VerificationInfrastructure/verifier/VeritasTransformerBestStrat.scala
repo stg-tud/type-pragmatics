@@ -113,6 +113,42 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
     }
   }
 
+  private def fixMVsinVC[C <: VeritasConstruct](vc: C, mvs_to_fix: Set[MetaVar]): C = {
+    val traverser = new VeritasConstructTraverser {
+      override def transFunctionExpMeta(f: FunctionExpMeta): FunctionExpMeta =
+        withSuper(super.transFunctionExpMeta(f)) {
+          case FunctionMeta(mv@MetaVar(name)) =>
+            if (mvs_to_fix contains mv)
+              FunctionExpApp(name, Seq())
+            else
+              super.transFunctionExpMeta(f)
+        }
+
+      override def transFunctionExpMetas(f: FunctionExpMeta): Seq[FunctionExpMeta] = Seq(transFunctionExpMeta(f))
+    }
+
+    traverser(vc).head.asInstanceOf[C] //TODO catch some potential errors here if necessary
+  }
+
+  //extract fixed variables from edge labels
+  private def getFixedMVs(els: Iterable[EdgeLabel]): Set[MetaVar] =
+    (for (el <- els; pinf <- el.propagateInfoList
+          if (pinf match {
+            case FixedVar(FunctionMeta(MetaVar(_))) => true;
+            case _ => false
+          })) yield
+    //TODO do safer casting here
+      pinf.asInstanceOf[FixedVar[_]].fixedvar.asInstanceOf[FunctionMeta].metavar).toSet
+
+  //extract induction hypotheses from edge labels
+  private def getIHs(els: Iterable[EdgeLabel]): Set[InductionHypothesis[VeritasFormula]] =
+    (for (el <- els; pinf <- el.propagateInfoList
+          if (pinf match {
+            case InductionHypothesis(_) => true
+            case _ => false
+          })) yield
+      pinf.asInstanceOf[InductionHypothesis[VeritasFormula]]).toSet
+
   override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[(EdgeLabel, VeritasConstruct)]): Try[Format] = {
     spec match {
       case m@Module(name, imps, moddefs) => {
@@ -128,22 +164,6 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         //initialize type inference
         val module_tjtranslated = TypingJudgmentTranslator(Seq(m))(defconfig)
         tdcollector(module_tjtranslated)(defconfig).head
-
-        def getFixedMVs(els: Iterable[EdgeLabel]): Set[MetaVar] =
-          (for (el <- els; pinf <- el.propagateInfoList
-                if (pinf match {
-                  case FixedVar(MetaVar(_)) => true;
-                  case _ => false
-                })) yield
-            el.asInstanceOf[FixedVar[_]].fixedvar.asInstanceOf[MetaVar]).toSet
-
-        def getIHs(els: Iterable[EdgeLabel]): Set[InductionHypothesis[VeritasFormula]] =
-          (for (el <- els; pinf <- el.propagateInfoList
-                if (pinf match {
-                  case InductionHypothesis(_) => true
-                  case _ => false
-                })) yield
-            pinf.asInstanceOf[InductionHypothesis[VeritasFormula]]).toSet
 
 
         //Step 0: Determine intersection of fixed variables and IHs from incoming and outgoing edges;
@@ -179,22 +199,28 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
           case _ => sys.error(s"Goal to be transformed (${goal}) did not have the correct format (typing rule required)")
         }
 
+        def extractTypingRulefromIHs(ihs: Set[InductionHypothesis[VeritasFormula]]): Set[TypingRule] =
+          for (pih <- ihs) yield {
+            val formula = pih.ih
+            retrieveTypingRule(formula).get
+          }
+
         //get typing rules from ihs
-        val parentihtrs = for (pih <- parentihs) yield {
-          val formula = pih.ih
-          retrieveTypingRule(formula).get
-        }
+        val parentihtrs = extractTypingRulefromIHs(parentihs)
 
         // infer types for the meta variables from typing rule for goal, ihs, and assumptions
-        val mv_types_goal = tdcollector.inferMetavarTypes(goaltr)
+        val pre_processed_goaltr = TypingJudgmentTranslator(goaltr)
+        val mv_types_goal = tdcollector.inferMetavarTypes(pre_processed_goaltr)
         val mvs_ihs = for (pih <- parentihtrs) yield {
-          tdcollector.inferMetavarTypes(pih)
+          val pre_processed_pih = TypingJudgmentTranslator(pih)
+          tdcollector.inferMetavarTypes(pre_processed_pih)
         }
 
         //here, we assume that inferred types will not disagree! If they do not, an error should be thrown
         val unionmvtypes: Map[MetaVar, SortRef] = (mv_types_goal +: mvs_ihs.toSeq).fold(Map[MetaVar, SortRef]())((m1, m2) => m1 ++ m2)
         val fixedmvtypes: Map[MetaVar, SortRef] = unionmvtypes.filter(p => parentfvs contains p._1)
 
+        // final consts block with all necessary constant declarations
         val fixedvar_defs: Consts = Consts(
           (for (fv <- parentfvs) yield {
             ConstDecl(fv.name, fixedmvtypes(fv))
@@ -202,118 +228,73 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
 
 
         //Step 2: make assumptions (Axioms) out of parentihs:
+
         //for ihs from ihs_parentsonly, fix all variables that appear in parentfvs
+        val parentonlyihstrs = extractTypingRulefromIHs(ihs_parentsonly)
+        val parentonly_ihs_ax: Iterable[Axioms] = for (ihtr <- parentonlyihstrs) yield Axioms(Seq(fixMVsinVC[TypingRule](ihtr, parentfvs)))
+
         //for ihs in ihs_intersection, fix all variables in fvs_intersection
-
-        //TODO new problem transformation Step 2
-
+        val intersectionihstrs = extractTypingRulefromIHs(ihs_intersection)
+        val intersection_ihs_ax: Iterable[Axioms] = for (ihtr <- intersectionihstrs) yield Axioms(Seq(fixMVsinVC[TypingRule](ihtr, fvs_intersection)))
 
 
         //Step 3: make assumptions (Axioms) out of child goals:
         //add ihs from ihs_childrenonly as premises to childassms (encode nested implication a => b via !a \/ b)
+        //add only IHs from corresponding edges to the assumptions, not the union of all IHs on all edges to children!
         //fix all fixed variables from fvs_intersection, fixed variables from fvs_childrenonly have to be universally quantified
-
-        //TODO new problem transformation Step 3
-
-        //Step 4: fix parentfvs in goal
-
-        //TODO new problem transformation Step 4
-
-        //Step 5: wrap everything in a local block
-
-        //TODO new problem transformation Step 5
-
-
-        //TODO: cleanup old code, remove
-
-
-        //Part 1: form assumptions - check edges to children for propagatable info such as fixed variables and IHs:
-        //IHs need to be included in implication, intersection of fixed variables must not be quantified twice while doing this
-        // solution: transform IHs to disjunction, add as assumptions to the axioms gained from the child obligations
-
         val assmAxioms: Iterable[Axioms] =
           for ((el, assm) <- assumptions) yield
             assm match {
-              case Goals(ax@Seq(TypingRule(name, prems, conseqs)), _) =>
+              case Goals(ax@Seq(tr@TypingRule(name, prems, conseqs)), _) =>
                 if (el.propagateInfoList.isEmpty)
-                // assumption can be transformed to axiom as is
-                  Axioms(ax)
+                  //no additional premises necessary, only fix fvs in fvs_intersection
+                  Axioms(Seq(fixMVsinVC[TypingRule](tr, fvs_intersection)))
                 else
-                // need to parse propagatable info, look for fixed variables / IHs, and integrate into final assumption
+                // need to add IHs from ihs_childrenonly as premises to corresponding assumptions
                 {
-                  val ihs: Seq[InductionHypothesis[_]] =
+                  val ihs_from_edge: Set[InductionHypothesis[VeritasFormula]] =
                     (el.propagateInfoList filter {
-                      case ih@InductionHypothesis(_) => true
+                      case InductionHypothesis(_) => true
                       case _ => false
-                    }) map (_.asInstanceOf[InductionHypothesis[_]])
+                    }).toSet map ((pi: PropagatableInfo) => pi.asInstanceOf[InductionHypothesis[VeritasFormula]])
 
-                  val fvs: Set[MetaVar] =
-                    ((el.propagateInfoList filter {
-                      case fv@FixedVar(_) => true
-                      case _ => false
-                    }) map {
-                      case FixedVar(mv@MetaVar(_)) => mv
-                      case FixedVar(FunctionMeta(mv@MetaVar(_))) => mv
-                    }).toSet
-
+                  val relevant_ihs = ihs_from_edge intersect ihs_childrenonly
 
                   // create additional premises for the assumptions (encoding nested implication a => b via !a \/ b)
                   // add inner universal quantification for all free variables except the fixed ones (no unsound double quantification of fixed variables!!)
-                  val additionalAssms: Seq[TypingRuleJudgment] = for (ih <- ihs) yield ih.propagateInfo() match {
+                  val additionalAssms: Seq[TypingRuleJudgment] = (for (ih <- relevant_ihs) yield ih.propagateInfo() match {
                     case Axioms(Seq(TypingRule(_, premises, consequences))) => {
                       val ihprems: Seq[Seq[TypingRuleJudgment]] = premises map (tr => Seq(NotJudgment(tr)))
-                      val freevars_in_ih = FreeVariables.freeVariables(ihprems.flatten ++ consequences, fvs) //ignore fixed variables
+                      val freevars_in_ih = FreeVariables.freeVariables(ihprems.flatten ++ consequences, childfvs) //ignore variables to be fixed for children (will be quantified universally at top level), quantify all the remaining free variables!
                       ForallJudgment(freevars_in_ih.toSeq, Seq(OrJudgment(ihprems ++ Seq(consequences))))
                     }
-                  }
-                  Axioms(Seq(TypingRule(name, additionalAssms ++ prems, conseqs)))
+                  }).toSeq
+                  //finally, fix all the fixed variables that appear in fvs_intersection in the entire assumption
+                  Axioms(Seq(fixMVsinVC[TypingRule](TypingRule(name, additionalAssms ++ prems, conseqs), fvs_intersection)))
                 }
 
               case _ => sys.error(s"Assumption $assm in the proof graph had a format which is currently not supported.")
             }
 
+        //Step 4: fix parentfvs in goal
+        val final_goal = Goals(Seq(fixMVsinVC[TypingRule](goaltr, parentfvs)), None)
 
-        //Part 2: Check incoming edges (parentedges) for fixed variables/IHS. If yes, introduce constants for fixed variables
-        //and transform all assumptions and the final obligation by replacing the MetaVars for the corresponding variables
-        //with FunctionExpApp(...) constructs (to refer to the constants)
+        //Step 5: wrap everything (constant declaration, additional axioms, and transformed goal) in a local block
+        // (only if there are fixed variables, otherwise only add the additional axioms for IHs and assupmtions)
+        val all_additional_assumptions: Seq[Axioms] =
+          (parentonly_ihs_ax ++ intersection_ihs_ax ++ assmAxioms).toSeq
 
-
-        val propagatedInfo = parentedges map (el => el.propagateInfoList)
-
-        val all_same_elements = (propagatedInfo map (ps => ps.toSet)).toSeq.distinct
-
-
-        //wrap goal in local block together with info to be propagated from assumptions
-        val augmentedpropagInfo: Seq[ModuleDef] =
-          if (propagatedInfo.isEmpty || all_same_elements.size > 1)
-          //either there is no propagated info, or the edges disagree in the propagated info
-          //in the later case, the only sound way is to ignore the propagatedInfo in the proof problem
-          //(may introduce incompleteness
-            assmAxioms.toSeq ++ Seq(goaldef)
-          else {
-            def extractModuleDef[A](a: A): Option[ModuleDef] =
-              a match {
-                case m: ModuleDef => Some(m)
-                case _ => {
-                  println(s"Given propagatable info $a was not a ModuleDef, therefore ignored");
-                  None
-                }
-              }
-
-            for (p <- propagatedInfo.head;
-                 mpi <- extractModuleDef(p.propagateInfo()))
-              yield mpi
-          }
-
-        val augmentedgoal =
-          if (augmentedpropagInfo.isEmpty)
-            assmAxioms.toSeq ++ Seq(goaldef)
+        val final_augmentedgoal: Seq[ModuleDef] =
+          if (fixedvar_defs.consts.isEmpty)
+            all_additional_assumptions ++ Seq(final_goal)
           else
-            Seq(Local(augmentedpropagInfo ++ assmAxioms.toSeq ++ Seq(goaldef)))
+            Seq(Local(Seq(fixedvar_defs) ++ all_additional_assumptions ++ Seq(goaldef)))
 
 
-        val module = Module(name + "Transformed", imps, moddefs ++ augmentedgoal)
+        //wrap everything in a module including the specification
+        val module = Module(name + "Transformed", imps, moddefs ++ final_augmentedgoal)
 
+        //finally, transform the entire problem using our standard transformation pipeline
         try {
           val mods = MainTrans(Seq(module))(config)
           val files = mods.map(m => TypingTrans.finalEncoding(m)(config))

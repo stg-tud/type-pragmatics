@@ -70,6 +70,7 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
       //recursive arguments of named case terms have to become fixed variables
       val fixed_Vars: Seq[Seq[Defs]] = iv_cases map (named_ic => getRecArgsADT(named_ic))
 
+
       // form induction subgoals (add equations as premises to the original goal)
       // design decision: all variables become quantified, including fixed ones
       // problem transformation will take care of treating fixed variables accordingly
