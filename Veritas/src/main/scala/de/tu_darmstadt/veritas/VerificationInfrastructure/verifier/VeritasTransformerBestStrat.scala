@@ -9,11 +9,11 @@ import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.fof.FofFile
 import de.tu_darmstadt.veritas.backend.smtlib.SMTLibFile
 import de.tu_darmstadt.veritas.backend.tff.TffFile
-import de.tu_darmstadt.veritas.backend.transformation.{ModuleTransformation, TransformationError}
+import de.tu_darmstadt.veritas.backend.transformation.{ModuleTransformation, SeqTrans, TransformationError}
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass, TypeInference}
-import de.tu_darmstadt.veritas.backend.transformation.defs.TranslateTypingJudgments
+import de.tu_darmstadt.veritas.backend.transformation.defs.{TranslateAllTypingJudgments, TranslateTypingJudgments}
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
 import de.tu_darmstadt.veritas.backend.util.{BackendError, FreeVariables}
-import de.tu_darmstadt.veritas.inputdsl.FunctionDSL.FunExpFalse
 
 import scala.util.{Failure, Success, Try}
 
@@ -51,12 +51,12 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
   //for inferring types of functions and datatypes
   private val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
 
-  //object for inferring the signature of the typing judgments over the entire spec
-  private object TypingJudgmentTranslator extends TranslateTypingJudgments with Serializable {
-
+  //when inferring meta variables of a typing rule, prepare the rule so that meta vars can be inferred
+  //requires removing any FunctionExpVar constructs and translating typing judgments to functions/predicates
+  private object PrepareMetaVarInference extends SeqTrans(VarToApp0, TranslateAllTypingJudgments) {
     //convenience method for being able to apply the translator directly to a typing rule
     def apply(tr: TypingRule): TypingRule = {
-      this.transTypingRules(tr).head
+      ts.foldLeft(tr)((t1, t2) => t2.transTypingRules(t1).head)
     }
   }
 
@@ -137,7 +137,7 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
             case FixedVar(FunctionMeta(MetaVar(_))) => true;
             case _ => false
           })) yield
-    //TODO do safer casting here
+      //TODO do safer casting here
       pinf.asInstanceOf[FixedVar[_]].fixedvar.asInstanceOf[FunctionMeta].metavar).toSet
 
   //extract induction hypotheses from edge labels
@@ -162,7 +162,7 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         }
 
         //initialize type inference
-        val module_tjtranslated = TypingJudgmentTranslator(Seq(m))(defconfig)
+        val module_tjtranslated = PrepareMetaVarInference(Seq(m))(defconfig)
         tdcollector(module_tjtranslated)(defconfig).head
 
 
@@ -209,10 +209,10 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         val parentihtrs = extractTypingRulefromIHs(parentihs)
 
         // infer types for the meta variables from typing rule for goal, ihs, and assumptions
-        val pre_processed_goaltr = TypingJudgmentTranslator(goaltr)
+        val pre_processed_goaltr = PrepareMetaVarInference(goaltr)
         val mv_types_goal = tdcollector.inferMetavarTypes(pre_processed_goaltr)
         val mvs_ihs = for (pih <- parentihtrs) yield {
-          val pre_processed_pih = TypingJudgmentTranslator(pih)
+          val pre_processed_pih = PrepareMetaVarInference(pih)
           tdcollector.inferMetavarTypes(pre_processed_pih)
         }
 
@@ -243,38 +243,38 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         //add only IHs from corresponding edges to the assumptions, not the union of all IHs on all edges to children!
         //fix all fixed variables from fvs_intersection, fixed variables from fvs_childrenonly have to be universally quantified
         val assmAxioms: Iterable[Axioms] =
-          for ((el, assm) <- assumptions) yield
-            assm match {
-              case Goals(ax@Seq(tr@TypingRule(name, prems, conseqs)), _) =>
-                if (el.propagateInfoList.isEmpty)
-                  //no additional premises necessary, only fix fvs in fvs_intersection
-                  Axioms(Seq(fixMVsinVC[TypingRule](tr, fvs_intersection)))
-                else
-                // need to add IHs from ihs_childrenonly as premises to corresponding assumptions
-                {
-                  val ihs_from_edge: Set[InductionHypothesis[VeritasFormula]] =
-                    (el.propagateInfoList filter {
-                      case InductionHypothesis(_) => true
-                      case _ => false
-                    }).toSet map ((pi: PropagatableInfo) => pi.asInstanceOf[InductionHypothesis[VeritasFormula]])
+        for ((el, assm) <- assumptions) yield
+          assm match {
+            case Goals(ax@Seq(tr@TypingRule(name, prems, conseqs)), _) =>
+              if (el.propagateInfoList.isEmpty)
+              //no additional premises necessary, only fix fvs in fvs_intersection
+                Axioms(Seq(fixMVsinVC[TypingRule](tr, fvs_intersection)))
+              else
+              // need to add IHs from ihs_childrenonly as premises to corresponding assumptions
+              {
+                val ihs_from_edge: Set[InductionHypothesis[VeritasFormula]] =
+                  (el.propagateInfoList filter {
+                    case InductionHypothesis(_) => true
+                    case _ => false
+                  }).toSet map ((pi: PropagatableInfo) => pi.asInstanceOf[InductionHypothesis[VeritasFormula]])
 
-                  val relevant_ihs = ihs_from_edge intersect ihs_childrenonly
+                val relevant_ihs = ihs_from_edge intersect ihs_childrenonly
 
-                  // create additional premises for the assumptions (encoding nested implication a => b via !a \/ b)
-                  // add inner universal quantification for all free variables except the fixed ones (no unsound double quantification of fixed variables!!)
-                  val additionalAssms: Seq[TypingRuleJudgment] = (for (ih <- relevant_ihs) yield ih.propagateInfo() match {
-                    case Axioms(Seq(TypingRule(_, premises, consequences))) => {
-                      val ihprems: Seq[Seq[TypingRuleJudgment]] = premises map (tr => Seq(NotJudgment(tr)))
-                      val freevars_in_ih = FreeVariables.freeVariables(ihprems.flatten ++ consequences, childfvs) //ignore variables to be fixed for children (will be quantified universally at top level), quantify all the remaining free variables!
-                      ForallJudgment(freevars_in_ih.toSeq, Seq(OrJudgment(ihprems ++ Seq(consequences))))
-                    }
-                  }).toSeq
-                  //finally, fix all the fixed variables that appear in fvs_intersection in the entire assumption
-                  Axioms(Seq(fixMVsinVC[TypingRule](TypingRule(name, additionalAssms ++ prems, conseqs), fvs_intersection)))
-                }
+                // create additional premises for the assumptions (encoding nested implication a => b via !a \/ b)
+                // add inner universal quantification for all free variables except the fixed ones (no unsound double quantification of fixed variables!!)
+                val additionalAssms: Seq[TypingRuleJudgment] = (for (ih <- relevant_ihs) yield ih.propagateInfo() match {
+                  case Axioms(Seq(TypingRule(_, premises, consequences))) => {
+                    val ihprems: Seq[Seq[TypingRuleJudgment]] = premises map (tr => Seq(NotJudgment(tr)))
+                    val freevars_in_ih = FreeVariables.freeVariables(ihprems.flatten ++ consequences, childfvs) //ignore variables to be fixed for children (will be quantified universally at top level), quantify all the remaining free variables!
+                    ForallJudgment(freevars_in_ih.toSeq, Seq(OrJudgment(ihprems ++ Seq(consequences))))
+                  }
+                }).toSeq
+                //finally, fix all the fixed variables that appear in fvs_intersection in the entire assumption
+                Axioms(Seq(fixMVsinVC[TypingRule](TypingRule(name, additionalAssms ++ prems, conseqs), fvs_intersection)))
+              }
 
-              case _ => sys.error(s"Assumption $assm in the proof graph had a format which is currently not supported.")
-            }
+            case _ => sys.error(s"Assumption $assm in the proof graph had a format which is currently not supported.")
+          }
 
         //Step 4: fix parentfvs in goal
         val final_goal = Goals(Seq(fixMVsinVC[TypingRule](goaltr, parentfvs)), None)
@@ -282,7 +282,7 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         //Step 5: wrap everything (constant declaration, additional axioms, and transformed goal) in a local block
         // (only if there are fixed variables, otherwise only add the additional axioms for IHs and assupmtions)
         val all_additional_assumptions: Seq[Axioms] =
-          (parentonly_ihs_ax ++ intersection_ihs_ax ++ assmAxioms).toSeq
+        (parentonly_ihs_ax ++ intersection_ihs_ax ++ assmAxioms).toSeq
 
         val final_augmentedgoal: Seq[ModuleDef] =
           if (fixedvar_defs.consts.isEmpty)

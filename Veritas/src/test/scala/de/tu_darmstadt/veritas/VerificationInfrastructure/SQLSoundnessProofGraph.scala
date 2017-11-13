@@ -55,8 +55,6 @@ object SQLMockTactics {
       val differencecase: Obligation = produce.newObligation(fullSQLspec, SQLProgressTDifference)
 
 
-
-
       Seq((tvaluecase, StructInductCase[VeritasConstruct, VeritasFormula](SQLProgressTtvalue.goals.head.name,
         Seq(), Seq(), Seq())),
         (selectfromwherecase, StructInductCase[VeritasConstruct, VeritasFormula](SQLProgressTselectFromWhere.goals.head.name,
@@ -295,9 +293,29 @@ class SQLSoundnessProofGraph(file: File) {
   val specenq = new VeritasSpecEnquirer(fullSQLspec)
 
 
-  //progress root obligation
+  //add progress root obligation
   val progressObligation: g.Obligation = g.newObligation(fullSQLspec, SQLProgress)
   g.storeObligation("SQL progress", progressObligation)
+
+  //apply structural induction on a given induction var to a given obligation and retrieve all resulting obligations
+  def applyInductionGetCases(obl: g.Obligation, indvar: MetaVar): Map[String, (g.Obligation, EdgeLabel)] = {
+    val indtac = StructuralInduction(indvar, fullSQLspec, specenq)
+    val ps = g.applyTactic(obl, indtac)
+    val subobls = g.requiredObls(ps)
+    indtac.enumerateCases(subobls)
+  }
+
+  // mutual function: apply Solve tactic to all sub-obligations of a given obligation and return the resulting proof steps
+  def applySolveToAllSub(obl: g.Obligation): Seq[g.ProofStep] = {
+    g.appliedStep(obl) match {
+      case Some(ps) => {
+        val subobls = g.requiredObls(ps).map(_._1)
+        (for (o <- subobls) yield g.applyTactic(o, Solve[VeritasConstruct, VeritasFormula])).toSeq
+      }
+      case None => Seq()
+    }
+
+  }
 
   private val rootInduction = StructuralInduction(MetaVar("q"), fullSQLspec, specenq)
   // first proof step: structural induction
@@ -305,14 +323,16 @@ class SQLSoundnessProofGraph(file: File) {
   val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
 
   val rootobl = g.findObligation("SQL progress").get
-  val rootsubobs = g.requiredObls(rootinductionPS)
-  val casenames = rootInduction.enumerateCaseNames[g.Obligation](rootsubobs)
-  val caseedges: Seq[StructInductCase[VeritasConstruct, VeritasFormula]] =
-    (rootInduction.enumerateCases(rootsubobs) map
-      {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
+  val rootobl_edge_map = applyInductionGetCases(rootobl, MetaVar("q"))
+
+  //val rootsubobs = g.requiredObls(rootinductionPS)
+  val rootcasenames = rootobl_edge_map.keys.toSeq.sortWith(_ < _)
+  //val caseedges: Seq[StructInductCase[VeritasConstruct, VeritasFormula]] =
+  //  (rootInduction.enumerateCases(rootsubobs) map
+  //    {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
 
   //apply simply Solve-tactic to t-value base case
-  val tvaluecaseobl = rootInduction.selectCase(casenames(0), rootsubobs)
+  val tvaluecaseobl = rootobl_edge_map(rootcasenames(0))._1
   val tvaluecasePS = g.applyTactic(tvaluecaseobl, Solve[VeritasConstruct, VeritasFormula])
 
   // Case distinctions for Union, Intersection, Difference cases
@@ -335,9 +355,9 @@ class SQLSoundnessProofGraph(file: File) {
     CaseDistinction(makeSetCasePreds(fv1name, fv2name), fullSQLspec, specenq)
 
   def extract2FVNames(casename: String): (String, String) = {
-    val cases = rootInduction.enumerateCases(rootsubobs)(casename)._2
+    val cases = rootobl_edge_map(casename)._2
     val (fv1, fv2) = cases match {
-      case StructInductCase(_,fv,_,_) => (fv(0).fixedvar, fv(1).fixedvar)
+      case StructInductCase(_, fv, _, _) => (fv(0).fixedvar, fv(1).fixedvar)
       case _ => sys.error(s"Expected a StructInductCase label at the given casename $casename")
     }
 
@@ -348,37 +368,36 @@ class SQLSoundnessProofGraph(file: File) {
     }
   }
 
+
   //val unionCaseDistinction = SetCaseDistinction(unionsym, sunion) //hard-coded mock tactic
-  val unioncaseFVs = extract2FVNames(casenames(2))
+  val unioncaseFVs = extract2FVNames(rootcasenames(2))
   val unionCaseDistinction = makeSetCaseDistinction(unioncaseFVs._1, unioncaseFVs._2)
 
-  val unioncaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
+  val unioncaseobl = rootobl_edge_map(rootcasenames(2))._1
   val unioncasePS = g.applyTactic(unioncaseobl, unionCaseDistinction)
 
   //val intersectionCaseDistinction = SetCaseDistinction(intersectionsym, sintersection) //hard-coded mock tactic
-  val intersectioncaseFVs = extract2FVNames(casenames(3))
+  val intersectioncaseFVs = extract2FVNames(rootcasenames(3))
   val intersectionCaseDistinction = makeSetCaseDistinction(intersectioncaseFVs._1, intersectioncaseFVs._2)
 
-  val intersectioncaseobl = rootInduction.selectCase(casenames(3), rootsubobs)
+  val intersectioncaseobl = rootobl_edge_map(rootcasenames(3))._1
   val intersectioncasePS = g.applyTactic(intersectioncaseobl, intersectionCaseDistinction)
 
   //val differenceCaseDistinction = SetCaseDistinction(differencesym, sdifference) //hard-coded mock tactic
-  val differencecaseFVs = extract2FVNames(casenames(4))
+  val differencecaseFVs = extract2FVNames(rootcasenames(4))
   val differenceCaseDistinction = makeSetCaseDistinction(differencecaseFVs._1, differencecaseFVs._2)
 
-  val differencecaseobl = rootInduction.selectCase(casenames(4), rootsubobs)
+  val differencecaseobl = rootobl_edge_map(rootcasenames(4))._1
   val differencecasePS = g.applyTactic(differencecaseobl, differenceCaseDistinction)
 
   //apply Solve tactic to all of the set cases
-  val setobls = g.requiredObls(unioncasePS) ++
-    g.requiredObls(intersectioncasePS) ++ g.requiredObls(differencecasePS)
+  val setPS = (for (c <- Seq(unioncaseobl, intersectioncaseobl, differencecaseobl)) yield {
+    applySolveToAllSub(c)
+  }).flatten
 
-  val setPS = for ((o, e) <- setobls) yield {
-    g.applyTactic(o, Solve[VeritasConstruct, VeritasFormula])
-  }
 
   //prove selectFromWhereCase via auxiliary lemmas:
-  val selcase = rootInduction.selectCase(casenames(1), rootsubobs)
+  val selcase = rootobl_edge_map(rootcasenames(1))._1
 
 
   //apply lemma application tactic to selection case
@@ -386,29 +405,20 @@ class SQLSoundnessProofGraph(file: File) {
     filterPreservesType, projectTableProgress))
   val selLemmaPS = g.applyTactic(selcase, selLemmaTac)
 
+
+  // prove lemma successfulLookup via simple structural induction, cases via Solve
   val successfulLookupobl = MockLemmaApplication.selectLemma(successfulLookup.lemmas.head.name,
     g.requiredObls(selLemmaPS))
+  applyInductionGetCases(successfulLookupobl, MetaVar("TS"))
+  val successfulLookup_cases_PS = applySolveToAllSub(successfulLookupobl)
 
-  // prove lemma successfulLookup via simple structural induction
-  val successfulLookupPS = g.applyTactic(successfulLookupobl, successfulLookupInduction)
-
-  val successfulLookupbasecase = MockInduction.selectCase(successfulLookupEmpty.goals.head.name, g.requiredObls(successfulLookupPS))
-  val successfulLookupbasecasePL = g.applyTactic(successfulLookupbasecase, Solve[VeritasConstruct, VeritasFormula])
-
-  val successfulLookupstepcase = MockInduction.selectCase(successfulLookupBind.goals.head.name, g.requiredObls(successfulLookupPS))
-  val successfulLookupstepcasePL = g.applyTactic(successfulLookupstepcase, Solve[VeritasConstruct, VeritasFormula])
-
-  val welltypedLookupobl = MockLemmaApplication.selectLemma(welltypedLookup.lemmas.head.name,
-    g.requiredObls(selLemmaPS))
 
   // prove lemma welltypedLookup via simple structural induction
-  val welltypedLookupPS = g.applyTactic(welltypedLookupobl, welltypedLookupInduction)
+  val welltypedLookupobl = MockLemmaApplication.selectLemma(welltypedLookup.lemmas.head.name,
+    g.requiredObls(selLemmaPS))
+  applyInductionGetCases(welltypedLookupobl, MetaVar("TS"))
+  val welltypedLookup_cases_PS = applySolveToAllSub(welltypedLookupobl)
 
-  val welltypedLookupbasecase = MockInduction.selectCase(welltypedLookupEmpty.goals.head.name, g.requiredObls(welltypedLookupPS))
-  val welltypedLookupbasecasePS = g.applyTactic(welltypedLookupbasecase, Solve[VeritasConstruct, VeritasFormula])
-
-  val welltypedLookupstepcase = MockInduction.selectCase(welltypedLookupBind.goals.head.name, g.requiredObls(welltypedLookupPS))
-  val welltypedLookupstepcasePS = g.applyTactic(welltypedLookupstepcase, Solve[VeritasConstruct, VeritasFormula])
 
   // prove lemma filterPreservesType via auxiliary lemma filterRowsPreservesTable
   val filterPreservesTypeobl = MockLemmaApplication.selectLemma(filterPreservesType.lemmas.head.name,
@@ -420,17 +430,9 @@ class SQLSoundnessProofGraph(file: File) {
   val filterRowsPreservesTableObl = MockLemmaApplication.selectLemma(filterRowsPreservesTable.lemmas.head.name,
     g.requiredObls(filterPreservesTypePS))
 
-  val filterRowsPreservesTableOblPS = g.applyTactic(filterRowsPreservesTableObl, filterRowsPreservesTableInduction)
-
   // prove lemmma filterRowsPreservesTable via simple structural induction
-  val filterRowsPreservesTablebasecase = MockInduction.selectCase(filterRowsPreservesTableTempty.goals.head.name,
-    g.requiredObls(filterRowsPreservesTableOblPS))
-  val filterRowsPreservesTablebasecasePS = g.applyTactic(filterRowsPreservesTablebasecase,
-    Solve[VeritasConstruct, VeritasFormula])
-
-  val filterRowsPreservesTablestepcase = MockInduction.selectCase(filterRowsPreservesTableTcons.goals.head.name, g.requiredObls(filterRowsPreservesTableOblPS))
-  val filterRowsPreservesTablestepcasePS = g.applyTactic(filterRowsPreservesTablestepcase,
-    Solve[VeritasConstruct, VeritasFormula])
+  applyInductionGetCases(filterRowsPreservesTableObl, MetaVar("rt"))
+  val filterRowsPreservesTablePS = applySolveToAllSub(filterRowsPreservesTableObl)
 
   //try to prove projectTableProgress via lemma application with projectColsProgress?
   //yes, works, apparently no case distinction necessary!
@@ -444,15 +446,16 @@ class SQLSoundnessProofGraph(file: File) {
   val projectColsProgressObl = MockLemmaApplication.selectLemma(projectColsProgress.lemmas.head.name,
     g.requiredObls(projectTableProgressPS))
 
-  val projectColsProgressPS = g.applyTactic(projectColsProgressObl, projectColsProgressInduction)
+  val projectColsProgress_casemap = applyInductionGetCases(projectColsProgressObl, MetaVar("al2"))
+  val projectColsProgress_casenames = projectColsProgress_casemap.keys.toSeq.sortWith(_ < _)
 
-  val projectColsProgressbasecase = MockInduction.selectCase(projectColsProgressAempty.goals.head.name,
-    g.requiredObls(projectColsProgressPS))
+  val projectColsProgressbasecase = projectColsProgress_casemap(projectColsProgress_casenames(0))._1
+
   val projectColsProgressbasecasePS = g.applyTactic(projectColsProgressbasecase,
     Solve[VeritasConstruct, VeritasFormula])
 
   // step case requires an auxiliary lemma (projectTypeImpliesFindCol)
-  val projectColsProgressstepcase = MockInduction.selectCase(projectColsProgressAcons.goals.head.name, g.requiredObls(projectColsProgressPS))
+  val projectColsProgressstepcase = projectColsProgress_casemap(projectColsProgress_casenames(1))._1
   val projectColsProgressstepcasePS = g.applyTactic(projectColsProgressstepcase,
     MockLemmaApplication(Seq(projectTypeImpliesFindCol)))
 
@@ -460,16 +463,15 @@ class SQLSoundnessProofGraph(file: File) {
   val projectTypeImpliesFindColObl = MockLemmaApplication.selectLemma(projectTypeImpliesFindCol.lemmas.head.name,
     g.requiredObls(projectColsProgressstepcasePS))
 
-  val projectTypeImpliesFindColPS = g.applyTactic(projectTypeImpliesFindColObl, projectTypeImpliesFindColInduction)
+  val projectTypeImpliesFindCol_casemap = applyInductionGetCases(projectTypeImpliesFindColObl, MetaVar("al2"))
+  val projectTypeImpliesFindCol_casenames = projectTypeImpliesFindCol_casemap.keys.toSeq.sortWith(_ < _)
 
-  val projectTypeImpliesFindColbasecase = MockInduction.selectCase(projectTypeImpliesFindColAempty.goals.head.name,
-    g.requiredObls(projectTypeImpliesFindColPS))
+  val projectTypeImpliesFindColbasecase = projectTypeImpliesFindCol_casemap(projectTypeImpliesFindCol_casenames(0))._1
   val projectTypeImpliesFindColbasecasePS = g.applyTactic(projectTypeImpliesFindColbasecase,
     Solve[VeritasConstruct, VeritasFormula])
 
   // step case requires two auxiliary lemmas
-  val projectTypeImpliesFindColstepcase = MockInduction.selectCase(projectTypeImpliesFindColAcons.goals.head.name,
-    g.requiredObls(projectTypeImpliesFindColPS))
+  val projectTypeImpliesFindColstepcase = projectTypeImpliesFindCol_casemap(projectTypeImpliesFindCol_casenames(1))._1
   val projectTypeImpliesFindColstepcasePS = g.applyTactic(projectTypeImpliesFindColstepcase,
     MockLemmaApplication(Seq(findColTypeImpliesfindCol, projectTypeAttrLImpliesfindAllColType)))
 
@@ -477,16 +479,15 @@ class SQLSoundnessProofGraph(file: File) {
   val findColTypeImpliesfindColObl = MockLemmaApplication.selectLemma(findColTypeImpliesfindCol.lemmas.head.name,
     g.requiredObls(projectTypeImpliesFindColstepcasePS))
 
-  val findColTypeImpliesfindColPS = g.applyTactic(findColTypeImpliesfindColObl, findColTypeImpliesfindColInduction)
+  val findColTypeImpliesfindCol_casemap = applyInductionGetCases(findColTypeImpliesfindColObl, MetaVar("al"))
+  val findColTypeImpliesfindCol_casenames = findColTypeImpliesfindCol_casemap.keys.toSeq.sortWith(_ < _)
 
-  val findColTypeImpliesfindColbasecase = MockInduction.selectCase(findColTypeImpliesfindColAempty.goals.head.name,
-    g.requiredObls(findColTypeImpliesfindColPS))
+  val findColTypeImpliesfindColbasecase = findColTypeImpliesfindCol_casemap(findColTypeImpliesfindCol_casenames(0))._1
   val findColTypeImpliesfindColbasecasePS = g.applyTactic(findColTypeImpliesfindColbasecase,
     Solve[VeritasConstruct, VeritasFormula])
 
   //step requires auxiliary lemma dropFirstColRawPreservesWelltypedRaw
-  val findColTypeImpliesfindColstepcase = MockInduction.selectCase(findColTypeImpliesfindColAcons.goals.head.name,
-    g.requiredObls(findColTypeImpliesfindColPS))
+  val findColTypeImpliesfindColstepcase = findColTypeImpliesfindCol_casemap(findColTypeImpliesfindCol_casenames(1))._1
   val findColTypeImpliesfindColstepcasePS = g.applyTactic(findColTypeImpliesfindColstepcase,
     MockLemmaApplication(Seq(dropFirstColRawPreservesWelltypedRaw)))
 
@@ -494,33 +495,15 @@ class SQLSoundnessProofGraph(file: File) {
   val projectTypeAttrLImpliesfindAllColTypeObl = MockLemmaApplication.selectLemma(projectTypeAttrLImpliesfindAllColType.lemmas.head.name,
     g.requiredObls(projectTypeImpliesFindColstepcasePS))
 
-  val projectTypeAttrLImpliesfindAllColTypePS = g.applyTactic(projectTypeAttrLImpliesfindAllColTypeObl, projectTypeAttrLImpliesfindAllColTypeInduction)
-
-  val projectTypeAttrLImpliesfindAllColTypebasecase = MockInduction.selectCase(projectTypeAttrLImpliesfindAllColTypeAempty.goals.head.name,
-    g.requiredObls(projectTypeAttrLImpliesfindAllColTypePS))
-  val projectTypeAttrLImpliesfindAllColTypebasecasePS = g.applyTactic(projectTypeAttrLImpliesfindAllColTypebasecase,
-    Solve[VeritasConstruct, VeritasFormula])
-
-  val projectTypeAttrLImpliesfindAllColTypestepcase = MockInduction.selectCase(projectTypeAttrLImpliesfindAllColTypeAcons.goals.head.name,
-    g.requiredObls(projectTypeAttrLImpliesfindAllColTypePS))
-  val projectTypeAttrLImpliesfindAllColTypestepcasePS = g.applyTactic(projectTypeAttrLImpliesfindAllColTypestepcase,
-    Solve[VeritasConstruct, VeritasFormula])
+  applyInductionGetCases(projectTypeAttrLImpliesfindAllColTypeObl, MetaVar("al"))
+  val projectTypeAttrLImpliesfindAllColTypePS = applySolveToAllSub(projectTypeAttrLImpliesfindAllColTypeObl)
 
   //prove dropFirstColRawPreservesWelltypedRaw via induction
   val dropFirstColRawPreservesWelltypedRawObl = MockLemmaApplication.selectLemma(dropFirstColRawPreservesWelltypedRaw.lemmas.head.name,
     g.requiredObls(findColTypeImpliesfindColstepcasePS))
 
-  val dropFirstColRawPreservesWelltypedRawPS = g.applyTactic(dropFirstColRawPreservesWelltypedRawObl, dropFirstColRawPreservesWelltypedRawInduction)
-
-  val dropFirstColRawPreservesWelltypedRawbasecase = MockInduction.selectCase(dropFirstColRawPreservesWelltypedRawTempty.goals.head.name,
-    g.requiredObls(dropFirstColRawPreservesWelltypedRawPS))
-  val dropFirstColRawPreservesWelltypedRawbasecasePS = g.applyTactic(dropFirstColRawPreservesWelltypedRawbasecase,
-    Solve[VeritasConstruct, VeritasFormula])
-
-  val dropFirstColRawPreservesWelltypedRawstepcase = MockInduction.selectCase(dropFirstColRawPreservesWelltypedRawTcons.goals.head.name,
-    g.requiredObls(dropFirstColRawPreservesWelltypedRawPS))
-  val dropFirstColRawPreservesWelltypedRawstepcasePS = g.applyTactic(dropFirstColRawPreservesWelltypedRawstepcase,
-    Solve[VeritasConstruct, VeritasFormula])
+  applyInductionGetCases(dropFirstColRawPreservesWelltypedRawObl, MetaVar("rt"))
+  val dropFirstColRawPreservesWelltypedRawPS = applySolveToAllSub(dropFirstColRawPreservesWelltypedRawObl)
 
   //verify chosen steps with chosen verifiers
   def verifySingleStepsSimple() = {
@@ -544,16 +527,17 @@ class SQLSoundnessProofGraph(file: File) {
     g.verifyProofStep(selLemmaPS, simpleVampire4_1)
 
     //successful steps (?)
-    g.verifyProofStep(successfulLookupbasecasePL, simpleVampire4_1)
-    g.verifyProofStep(successfulLookupstepcasePL, simpleVampire4_1)
+    for (ps <- successfulLookup_cases_PS)
+      g.verifyProofStep(ps, simpleVampire4_1)
 
-    g.verifyProofStep(welltypedLookupbasecasePS, simpleVampire4_1)
-    g.verifyProofStep(welltypedLookupstepcasePS, simpleVampire4_1)
+    for (ps <- welltypedLookup_cases_PS)
+      g.verifyProofStep(ps, simpleVampire4_1)
+
 
     g.verifyProofStep(filterPreservesTypePS, simpleVampire4_1)
 
-    g.verifyProofStep(filterRowsPreservesTablebasecasePS, simpleVampire4_1)
-    g.verifyProofStep(filterRowsPreservesTablestepcasePS, simpleVampire4_1)
+    for (ps <- filterRowsPreservesTablePS)
+        g.verifyProofStep(ps, simpleVampire4_1)
 
     g.verifyProofStep(projectTableProgressPS, simpleVampire4_1_20)
 
@@ -566,11 +550,12 @@ class SQLSoundnessProofGraph(file: File) {
     g.verifyProofStep(findColTypeImpliesfindColbasecasePS, simpleVampire4_1)
     g.verifyProofStep(findColTypeImpliesfindColstepcasePS, simpleVampire4_1)
 
-    g.verifyProofStep(projectTypeAttrLImpliesfindAllColTypebasecasePS, simpleVampire4_1)
-    g.verifyProofStep(projectTypeAttrLImpliesfindAllColTypestepcasePS, simpleVampire4_1)
+    for (ps <- projectTypeAttrLImpliesfindAllColTypePS)
+      g.verifyProofStep(ps, simpleVampire4_1)
 
-    g.verifyProofStep(dropFirstColRawPreservesWelltypedRawbasecasePS, simpleVampire4_1)
-    g.verifyProofStep(dropFirstColRawPreservesWelltypedRawstepcasePS, simpleVampire4_1)
+    for (ps <- dropFirstColRawPreservesWelltypedRawPS)
+      g.verifyProofStep(ps, simpleVampire4_1)
+
   }
 
 

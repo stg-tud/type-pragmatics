@@ -242,10 +242,10 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
             result.delete()
           // delete all required edges and gc all required obligations
           val edges = step.getLinks(lStepRequiredEdges).asScala.toSeq
-          step.delete()
+          step.delete() //????? should this be deleted? sometimes throws strange NullPointerExceptions
           edges.map { edge =>
             val obl = edge.getLink(lEdgeRequiredObl)
-            edge.delete()
+            edge.delete() //???? should this be deleted? sometimes throws strange NullPointerExceptions
             (new Obligation(obl.getId(), obl), readOrdered[EdgeLabel](edge.getProperty(pEdgeLabel)))
           }
         }

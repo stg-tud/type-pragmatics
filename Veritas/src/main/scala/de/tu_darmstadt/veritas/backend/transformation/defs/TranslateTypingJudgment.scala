@@ -242,4 +242,4 @@ trait TranslateTypingJudgments extends ModuleTransformation {
   }
 }
 
-object TranslateAllTypingJudgments extends TranslateTypingJudgments
+object TranslateAllTypingJudgments extends TranslateTypingJudgments with Serializable
