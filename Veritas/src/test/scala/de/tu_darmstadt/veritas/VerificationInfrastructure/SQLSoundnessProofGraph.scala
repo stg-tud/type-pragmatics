@@ -317,10 +317,10 @@ class SQLSoundnessProofGraph(file: File) {
 
   }
 
-  private val rootInduction = StructuralInduction(MetaVar("q"), fullSQLspec, specenq)
+  //private val rootInduction = StructuralInduction(MetaVar("q"), fullSQLspec, specenq)
   // first proof step: structural induction
   //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress) //mock tactic with hardcoded steps
-  val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
+  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
 
   val rootobl = g.findObligation("SQL progress").get
   val rootobl_edge_map = applyInductionGetCases(rootobl, MetaVar("q"))
@@ -610,14 +610,6 @@ object ConstructSQLSoundnessGraph extends App {
 
   val pg = new SQLSoundnessProofGraph(file)
 
-  //pg.verifySingleStepsSimple()
-
-  val rootobl = pg.g.findObligation("SQL progress").get
-  val subobs = pg.g.requiredObls(pg.rootinductionPS)
-
-  println("Root obligation: " + rootobl)
-  println("Induction cases:")
-  println(subobs)
 
 }
 

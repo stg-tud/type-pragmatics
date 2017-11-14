@@ -227,6 +227,8 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
       tactic(targetObj, edgeLabel, obligationProducer)
     }
 
+    //TODO: code below throws NullPointerExceptions when one tries to actually overwrite an already existing proof step!
+    //currently, don't try overwriting proof steps
     val newOrRetainedEdges = transaction { txn =>
       val obl = targetObj.entity(txn)
       val step = obl.getLink(lOblAppliedStep)
