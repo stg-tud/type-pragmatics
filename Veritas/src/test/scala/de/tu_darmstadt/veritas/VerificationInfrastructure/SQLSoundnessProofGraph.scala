@@ -2,15 +2,12 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.File
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.ConstructSQLSoundnessGraph.pg
-import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, TPTPVampireVerifier, TSTPProof, VerifierFailure}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.TPTPVampireVerifier
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionMeta}
-import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
-import org.scalatest.FunSuite
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionMeta
+import de.tu_darmstadt.veritas.inputdsl.{FunctionDSL, SymTreeDSL}
 
 object SQLMockTactics {
   //This object contains all MockTactics and hand-coded obligations for the SQL soundness proof graph
@@ -317,19 +314,10 @@ class SQLSoundnessProofGraph(file: File) {
 
   }
 
-  //private val rootInduction = StructuralInduction(MetaVar("q"), fullSQLspec, specenq)
-  // first proof step: structural induction
-  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInductionProgress) //mock tactic with hardcoded steps
-  //val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
-
   val rootobl = g.findObligation("SQL progress").get
   val rootobl_edge_map = applyInductionGetCases(rootobl, MetaVar("q"))
 
-  //val rootsubobs = g.requiredObls(rootinductionPS)
   val rootcasenames = rootobl_edge_map.keys.toSeq.sortWith(_ < _)
-  //val caseedges: Seq[StructInductCase[VeritasConstruct, VeritasFormula]] =
-  //  (rootInduction.enumerateCases(rootsubobs) map
-  //    {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
 
   //apply simply Solve-tactic to t-value base case
   val tvaluecaseobl = rootobl_edge_map(rootcasenames(0))._1
