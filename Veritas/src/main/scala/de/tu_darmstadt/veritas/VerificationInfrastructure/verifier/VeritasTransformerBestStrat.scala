@@ -288,7 +288,7 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
           if (fixedvar_defs.consts.isEmpty)
             all_additional_assumptions ++ Seq(final_goal)
           else
-            Seq(Local(Seq(fixedvar_defs) ++ all_additional_assumptions ++ Seq(goaldef)))
+            Seq(Local(Seq(fixedvar_defs) ++ all_additional_assumptions ++ Seq(final_goal)))
 
 
         //wrap everything in a module including the specification
