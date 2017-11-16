@@ -39,26 +39,49 @@ trait SPLSpecification {
   def exists[T1, T2, T3, T4, T5, T6, T7](fun: Function7[T1, T2, T3, T4, T5, T6, T7, Boolean]): Boolean = true
 
   //let
-  //typing
-  // G |- e :: T
 
   // every expression has to be a subclass of this trait
   // Therefore we can can determine automatically which params belong to the expression domain
   trait Expression
   trait Context
   trait Typ
+
+  // implicits for easier notation
+  // Context |- Expression :: Typ or Expression :: Typ
+  implicit class _Expression(expr: Expression) {
+    def :: (typ: Typ): Boolean = typable(expr, typ)
+  }
+
+  implicit class _Typ(typ: Typ) {
+    def :: (expr: Expression): _ExprTypBinding = _ExprTypBinding((expr, typ))
+  }
+
+  implicit class _Context(context: Context) {
+    def |- (binding: _ExprTypBinding): Boolean = typable(context, binding.binding._1, binding.binding._2)
+  }
+
+  implicit class _ExprTypBinding(val binding: (Expression, Typ))
+
+  implicit def toBoolean(binding: _ExprTypBinding): Boolean = typable(binding.binding._1, binding.binding._2)
+
   def typable(context: Context, exp: Expression, typ: Typ): Boolean
+  def typable(exp: Expression, typ: Typ): Boolean
 }
 // Because of scalameta we cannot easily know what all the superclasses of a class are.
 // The first step is it to build up the type hierarchy and check if only acceptable types are used.
 
 object Spec extends SPLSpecification {
   def typable(context: Context, exp: Expression, typ: Typ): Boolean = true
+  def typable(exp: Expression, typ: Typ): Boolean = true
   trait char
 
-  trait YN
+  trait YN extends Expression
   case class yes() extends YN
   case class no() extends YN
+
+  trait AType extends Typ
+  case class YesNo() extends AType
+
 
   def and(b1: YN, b2: YN): YN = (b1, b2) match {
     case (yes(), yes()) => yes()
@@ -113,7 +136,6 @@ object Spec extends SPLSpecification {
 
   trait ATMap
   trait QID
-  trait AType
 
   def counterexample2(atm: ATMap, qid1: QID, t: AType, atm2: ATMap) = {
     require(true)
@@ -128,9 +150,8 @@ object Spec extends SPLSpecification {
 
     @Goal
     def x(x: ATMap) = {
-      require(true)
+      require(yes() :: YesNo())
     } ensuring (
-      // exp |- x :: exp
       forall((a: ATMap, b: QID) => a == b) && exists((a: ATMap) => true)
     )
   }
