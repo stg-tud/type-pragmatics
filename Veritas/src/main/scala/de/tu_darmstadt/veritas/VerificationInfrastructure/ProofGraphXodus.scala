@@ -1,9 +1,8 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import java.io.{ByteArrayInputStream, File, ObjectInputStream, ObjectOutputStream}
-
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{NoInfoEdgeLabel, Solve, Tactic}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Unknown, VerifierStatus}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.Tactic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.VerifierStatus
 import jetbrains.exodus.bindings.ComparableBinding
 import jetbrains.exodus.entitystore._
 import jetbrains.exodus.util.LightOutputStream
@@ -15,7 +14,7 @@ import scala.language.implicitConversions
 /**
   * Class for making any type ordered, if desired (used by ProofGraphXodus implementation for writing objects into
   * the database)
- */
+  */
 class OrderedWrapper[T](val obj: T) extends Ordered[T] {
 
   def compare(that: T): Int = {
@@ -83,6 +82,21 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
     result.get
   }
 
+  // wrap a property early into Option, to prevent null values flying around
+  // should be used whenever getProperty for an entity may return null
+  def safeReadOption[T](ent: Entity, label: String): Option[T] = {
+    Option(ent.getProperty(label)).map[T](e => readOrdered[T](e))
+  }
+
+  // for looking up properties that normally, should never be null
+  // returns a non-wrapped values, throws an exception if null was nevertheless returned
+  def safeRead[T](ent: Entity, label: String): T = {
+    safeReadOption[T](ent, label) match {
+      case Some(p) => p
+      case None => sys.error(s"A property that should not be null was null: $label for $ent")
+    }
+  }
+
 
   protected trait EntityObj {
     def id: EntityId
@@ -92,7 +106,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
   class ProofStep(val id: EntityId, val tactic: Tactic[Spec, Goal]) extends GenProofStep[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
-      this(id, readOrdered[Tactic[Spec, Goal]](entity.getProperty(pStepTactic)))
+      this(id, safeRead[Tactic[Spec, Goal]](entity, pStepTactic))
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
 
@@ -115,8 +129,8 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
   class Obligation(val id: EntityId, val spec: Spec, val goal: Goal) extends GenObligation[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
-      this(id, readOrdered[Spec](entity.getLink(lOblSpec).getProperty(pSpecContent)),
-            readOrdered[Goal](entity.getProperty(pOblGoal)))
+      this(id, safeRead[Spec](entity.getLink(lOblSpec), pSpecContent),
+        safeRead[Goal](entity, pOblGoal))
 
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
@@ -141,7 +155,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
       // find exisiting obl or create a new one
       val existingObls = txn.find(TObligation, pOblGoal, ordered_goalObj).asScala
       val withSpecLinked = existingObls.find { entity =>
-        val spec = readOrdered[Spec](entity.getLink(lOblSpec).getProperty(pSpecContent))
+        val spec = safeRead[Spec](entity.getLink(lOblSpec), pSpecContent)
         spec == specObj
       }
       val obl = withSpecLinked.headOption.getOrElse {
@@ -159,9 +173,9 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
     def this(id: EntityId, entity: Entity) =
       this(
         id,
-        readOrdered[VerifierStatus[Spec, Goal]](entity.getProperty(pResultStatus)),
-        fromNullable(readOrdered[Evidence](entity.getProperty(pResultEvidence))),
-        fromNullable(entity.getProperty(pResultErrorMsg).asInstanceOf[String])
+        safeRead[VerifierStatus[Spec, Goal]](entity, pResultStatus),
+        safeReadOption[Evidence](entity, pResultEvidence),
+        Option(entity.getProperty(pResultErrorMsg).asInstanceOf[String])
       )
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
@@ -244,11 +258,11 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
             result.delete()
           // delete all required edges and gc all required obligations
           val edges = step.getLinks(lStepRequiredEdges).asScala.toSeq
-          step.delete() //????? should this be deleted? sometimes throws strange NullPointerExceptions
+          step.delete()
           edges.map { edge =>
             val obl = edge.getLink(lEdgeRequiredObl)
-            edge.delete() //???? should this be deleted? sometimes throws strange NullPointerExceptions
-            (new Obligation(obl.getId(), obl), readOrdered[EdgeLabel](edge.getProperty(pEdgeLabel)))
+            edge.delete()
+            (new Obligation(obl.getId(), obl), safeRead[EdgeLabel](edge,pEdgeLabel))
           }
         }
         else
@@ -359,7 +373,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
     val edges = Seq() ++ step.entity(txn).getLinks(lStepRequiredEdges).asScala
     edges.map { edge =>
       val requiredObl = new Obligation(edge.getLink(lEdgeRequiredObl).getId, txn)
-      val label = readOrdered[EdgeLabel](edge.getProperty(pEdgeLabel))
+      val label = safeRead[EdgeLabel](edge,pEdgeLabel)
       requiredObl -> label
     }
   }
@@ -370,7 +384,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
     val edges = Seq() ++ obl.entity(txn).getLinks(lOblRequiringEdges).asScala
     edges.map { edge =>
       val requiringStep = new ProofStep(edge.getLink(lEdgeRequiringStep).getId, txn)
-      val label = readOrdered[EdgeLabel](edge.getProperty(pEdgeLabel))
+      val label = safeRead[EdgeLabel](edge,pEdgeLabel)
       requiringStep -> label
     }
   }
@@ -388,10 +402,6 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
       Some(new StepResult(result.getId, txn))
     }
   }
-
-  def fromNullable[T <: AnyRef](v: T): Option[T] =
-    Option(v)
-
 
   /* GC helpers */
 
@@ -466,30 +476,31 @@ object PropertyTypes {
     * T <: Comparable[_] which shall be written in the database
     * in the current setup, it should not be necessary anymore to call this function for any type, since all
     * types will be wrapped in OrderedWrapper automatically
+    *
     * @param store
     * @param tag
     * @tparam T
     */
   def registerPropertyType[T <: Comparable[_] with Serializable](store: PersistentEntityStore)
-  (implicit tag: ClassTag[T]) =
-  store.executeInTransaction(new StoreTransactionalExecutable() {
-    override def execute(txn: StoreTransaction): Unit = {
-      val binding = new ComparableBinding {
-        override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
-          val oos = new ObjectOutputStream(output)
-          oos.writeObject(obj)
+                                                                (implicit tag: ClassTag[T]) =
+    store.executeInTransaction(new StoreTransactionalExecutable() {
+      override def execute(txn: StoreTransaction): Unit = {
+        val binding = new ComparableBinding {
+          override def writeObject(output: LightOutputStream, obj: Comparable[_]) = {
+            val oos = new ObjectOutputStream(output)
+            oos.writeObject(obj)
+          }
+
+          override def readObject(stream: ByteArrayInputStream) = {
+            val ois = new ObjectInputStream(stream)
+            ois.readObject().asInstanceOf[T]
+          }
         }
 
-        override def readObject(stream: ByteArrayInputStream) = {
-          val ois = new ObjectInputStream(stream)
-          ois.readObject().asInstanceOf[T]
-        }
+        val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
+        store.registerCustomPropertyType(txn, clazz, binding)
       }
-
-      val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
-      store.registerCustomPropertyType(txn, clazz, binding)
-    }
-  })
+    })
 
   /**
     * this function has to be called once for every ProofGraphXodus instance
@@ -514,7 +525,7 @@ object PropertyTypes {
           }
         }
 
-        val tag = implicitly [ClassTag[OrderedWrapper[_]]]
+        val tag = implicitly[ClassTag[OrderedWrapper[_]]]
         val clazz = tag.runtimeClass.asInstanceOf[Class[_ <: Comparable[_]]]
         store.registerCustomPropertyType(txn, clazz, binding)
       }
