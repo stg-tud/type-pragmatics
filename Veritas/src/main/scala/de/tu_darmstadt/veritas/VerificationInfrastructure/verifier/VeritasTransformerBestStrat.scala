@@ -209,33 +209,33 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         val parentihtrs = extractTypingRulefromIHs(parentihs)
 
         // infer types for the meta variables from typing rule for goal, ihs, and assumptions
-//        val pre_processed_goaltr = PrepareMetaVarInference(goaltr)
-//        val mv_types_goal = tdcollector.inferMetavarTypes(pre_processed_goaltr)
-//        val mvs_ihs = for (pih <- parentihtrs) yield {
-//          val pre_processed_pih = PrepareMetaVarInference(pih)
-//          tdcollector.inferMetavarTypes(pre_processed_pih)
-//        }
+        val pre_processed_goaltr = PrepareMetaVarInference(goaltr)
+        val mv_types_goal = tdcollector.inferMetavarTypes(pre_processed_goaltr)
+        val mvs_ihs = for (pih <- parentihtrs) yield {
+          val pre_processed_pih = PrepareMetaVarInference(pih)
+          tdcollector.inferMetavarTypes(pre_processed_pih)
+        }
 
         //here, we assume that inferred types will not disagree! If they do not, an error should be thrown
-        //val unionmvtypes: Map[MetaVar, SortRef] = (mv_types_goal +: mvs_ihs.toSeq).fold(Map[MetaVar, SortRef]())((m1, m2) => m1 ++ m2)
-        //val fixedmvtypes: Map[MetaVar, SortRef] = unionmvtypes.filter(p => parentfvs contains p._1)
+        val unionmvtypes: Map[MetaVar, SortRef] = (mv_types_goal +: mvs_ihs.toSeq).fold(Map[MetaVar, SortRef]())((m1, m2) => m1 ++ m2)
+        val fixedmvtypes: Map[MetaVar, SortRef] = unionmvtypes.filter(p => parentfvs contains p._1)
 
         // final consts block with all necessary constant declarations
-        //val fixedvar_defs: Consts = Consts(
-        //  (for (fv <- parentfvs) yield {
-        //    ConstDecl(fv.name, fixedmvtypes(fv))
-        //  }).toSeq, false)
+        val fixedvar_defs: Consts = Consts(
+          (for (fv <- parentfvs) yield {
+            ConstDecl(fv.name, fixedmvtypes(fv))
+          }).toSeq, false)
 
 
         //Step 2: make assumptions (Axioms) out of parentihs:
 
         //for ihs from ihs_parentsonly, fix all variables that appear in parentfvs
-        //val parentonlyihstrs = extractTypingRulefromIHs(ihs_parentsonly)
-        //val parentonly_ihs_ax: Iterable[Axioms] = for (ihtr <- parentonlyihstrs) yield Axioms(Seq(fixMVsinVC[TypingRule](ihtr, parentfvs)))
+        val parentonlyihstrs = extractTypingRulefromIHs(ihs_parentsonly)
+        val parentonly_ihs_ax: Iterable[Axioms] = for (ihtr <- parentonlyihstrs) yield Axioms(Seq(fixMVsinVC[TypingRule](ihtr, parentfvs)))
 
         //for ihs in ihs_intersection, fix all variables in fvs_intersection
-        //val intersectionihstrs = extractTypingRulefromIHs(ihs_intersection)
-        //val intersection_ihs_ax: Iterable[Axioms] = for (ihtr <- intersectionihstrs) yield Axioms(Seq(fixMVsinVC[TypingRule](ihtr, fvs_intersection)))
+        val intersectionihstrs = extractTypingRulefromIHs(ihs_intersection)
+        val intersection_ihs_ax: Iterable[Axioms] = for (ihtr <- intersectionihstrs) yield Axioms(Seq(fixMVsinVC[TypingRule](ihtr, fvs_intersection)))
 
 
         //Step 3: make assumptions (Axioms) out of child goals:
@@ -248,7 +248,7 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
             case Goals(ax@Seq(tr@TypingRule(name, prems, conseqs)), _) =>
               if (el.propagateInfoList.isEmpty)
               //no additional premises necessary, only fix fvs in fvs_intersection
-                Axioms(Seq(tr))
+                Axioms(Seq(fixMVsinVC[TypingRule](tr, fvs_intersection)))
               else
               // need to add IHs from ihs_childrenonly as premises to corresponding assumptions
               {
@@ -270,41 +270,26 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
                   }
                 }).toSeq
                 //finally, fix all the fixed variables that appear in fvs_intersection in the entire assumption
-                Axioms(Seq(TypingRule(name, additionalAssms ++ prems, conseqs)))
+                Axioms(Seq(fixMVsinVC[TypingRule](TypingRule(name, additionalAssms ++ prems, conseqs), fvs_intersection)))
               }
 
             case _ => sys.error(s"Assumption $assm in the proof graph had a format which is currently not supported.")
           }
 
         //Step 4: fix parentfvs in goal
-
-        val additionalAssms_parentihs: Seq[TypingRuleJudgment] = (for (ih <- parentihtrs) yield
-          ih match {
-            case TypingRule(name, premises, consequences) => {
-              val ihprems: Seq[Seq[TypingRuleJudgment]] = premises map (tr => Seq(NotJudgment(tr)))
-              val freevars_in_ih = FreeVariables.freeVariables(ihprems.flatten ++ consequences, parentfvs) //ignore variables to be fixed for children (will be quantified universally at top level), quantify all the remaining free variables!
-              ForallJudgment(freevars_in_ih.toSeq, Seq(OrJudgment(ihprems ++ Seq(consequences))))
-            }
-          }).toSeq
-
-        val augmented_goaltr = goaltr match {
-          case TypingRule(name, prems, consequences) => TypingRule(name, additionalAssms_parentihs ++ prems, consequences)
-        }
-
-        val final_goal = Goals(Seq(augmented_goaltr), None)
+        val final_goal = Goals(Seq(fixMVsinVC[TypingRule](goaltr, parentfvs)), None)
 
         //Step 5: wrap everything (constant declaration, additional axioms, and transformed goal) in a local block
         // (only if there are fixed variables, otherwise only add the additional axioms for IHs and assupmtions)
-//        val all_additional_assumptions: Seq[Axioms] =
-//        (parentonly_ihs_ax ++ intersection_ihs_ax ++ assmAxioms).toSeq
-//
-//        val final_augmentedgoal: Seq[ModuleDef] =
-//          if (fixedvar_defs.consts.isEmpty)
-//            all_additional_assumptions ++ Seq(final_goal)
-//          else
-//            Seq(Local(Seq(fixedvar_defs) ++ all_additional_assumptions ++ Seq(final_goal)))
+        val all_additional_assumptions: Seq[Axioms] =
+        (parentonly_ihs_ax ++ intersection_ihs_ax ++ assmAxioms).toSeq
 
-        val final_augmentedgoal = assmAxioms.toSeq :+ final_goal
+        val final_augmentedgoal: Seq[ModuleDef] =
+          if (fixedvar_defs.consts.isEmpty)
+            all_additional_assumptions ++ Seq(final_goal)
+          else
+            Seq(Local(Seq(fixedvar_defs) ++ all_additional_assumptions ++ Seq(final_goal)))
+
 
         //wrap everything in a module including the specification
         val module = Module(name + "Transformed", imps, moddefs ++ final_augmentedgoal)
