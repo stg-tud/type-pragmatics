@@ -16,6 +16,8 @@ libraryDependencies += "org.jetbrains.xodus" % "xodus-entity-store" % "1.0.6"
 
 libraryDependencies += "net.ruippeixotog" %% "scala-scraper" % "1.2.1"
 
+libraryDependencies += "org.scalameta" %% "scalameta" % "2.1.2"
+
 unmanagedJars in Compile += file("lib/scalaz3_2.11-3.0.jar")
 
 assemblyJarName in assembly := "Veritas.jar"

@@ -15,12 +15,6 @@ trait SPLSpecification {
   case class SimpleRecursive() extends StaticAnnotation
   case class Transform() extends StaticAnnotation
 
-  case class LemmaWith(name: String) extends StaticAnnotation
-  case class GoalWith(name: String) extends StaticAnnotation
-  case class HideAll() extends StaticAnnotation
-  case class Hide() extends StaticAnnotation
-  case class Strategy() extends StaticAnnotation
-
   // shortcomings: is not executable. But we dont even know yet what it means to have exectuable axioms / lemmas
   def forall[T1](fun: Function1[T1, Boolean]): Boolean = true
   def forall[T1, T2](fun: Function2[T1, T2, Boolean]): Boolean = true
@@ -73,6 +67,7 @@ trait SPLSpecification {
 object Spec extends SPLSpecification {
   def typable(context: Context, exp: Expression, typ: Typ): Boolean = true
   def typable(exp: Expression, typ: Typ): Boolean = true
+  @Open
   trait char
 
   trait YN extends Expression
@@ -142,6 +137,7 @@ object Spec extends SPLSpecification {
     require(true)
   } ensuring (atm != null)
 
+
   @Local
   trait X {
     @Different
@@ -157,7 +153,6 @@ object Spec extends SPLSpecification {
   }
 
 
-  @Strategy
   trait Y {
     @Local
     trait Sub {
@@ -168,20 +163,21 @@ object Spec extends SPLSpecification {
         require(true)
       } ensuring (true)
 
-      @HideAll
       @Goal
       def goal = {
         require(true)
       } ensuring (true)
     }
 
-    // what does hide all do?
     def y = {
     } ensuring(true)
   }
 
-  @GoalWith("Y")
   def finalgoal = {
     require(true)
+  } ensuring (true)
+
+  def toProof(): Boolean = {
+    true
   } ensuring (true)
 }
