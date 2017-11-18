@@ -15,15 +15,14 @@ class SPLTranslatorTest extends FunSuite {
     val file = new File(filesDir, "ADTCorrect.scala")
     val module = translator.translate(file)
     println(module)
-    assert(module.isSuccess)
-    assert(module.get.name == "ADTCorrect")
-    assert(module.get.defs.size == 4)
-    assert(module.get.defs.head == DataType(true, "First", Seq()))
-    assert(module.get.defs(1) == DataType(false, "Num", Seq(
+    assert(module.name == "ADTCorrect")
+    assert(module.defs.size == 4)
+    assert(module.defs.head == DataType(true, "First", Seq()))
+    assert(module.defs(1) == DataType(false, "Num", Seq(
       DataTypeConstructor("zero", Seq()),
       DataTypeConstructor("succ", Seq(SortRef("Num"))),
       DataTypeConstructor("succ2", Seq(SortRef("Num"), SortRef("First"))))))
-    assert(module.get.defs(2) == DataType(true, "OtherNum", Seq(
+    assert(module.defs(2) == DataType(true, "OtherNum", Seq(
       DataTypeConstructor("otherzero", Seq()),
       DataTypeConstructor("othersucc", Seq(SortRef("Num"))),
       DataTypeConstructor("othersucc2", Seq(SortRef("OtherNum"), SortRef("First"))))))
@@ -32,37 +31,40 @@ class SPLTranslatorTest extends FunSuite {
   test("fail because trait has type parameter") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTFailTypeParams.scala")
-    val module = translator.translate(file)
-    assert(module.isFailure)
+    assertThrows[IllegalArgumentException] {
+      translator.translate(file)
+    }
   }
 
   test("fail because case class has type parameter") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTFailCaseClassTypeParams.scala")
-    val module = translator.translate(file)
-    assert(module.isFailure)
+    assertThrows[IllegalArgumentException] {
+      translator.translate(file)
+    }
   }
 
   test("fail because case class has no own defined base trait") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTFailCaseClassNoBaseTrait.scala")
-    val module = translator.translate(file)
-    assert(module.isFailure)
+    assertThrows[IllegalArgumentException] {
+      translator.translate(file)
+    }
   }
 
   test("fail because case class inherits from Expression") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTFailCaseClassExpressionBase.scala")
-    val module = translator.translate(file)
-    assert(module.isFailure)
+    assertThrows[IllegalArgumentException] {
+      translator.translate(file)
+    }
   }
 
   test("translate functions correctly") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "FunctionCorrect.scala")
     val module = translator.translate(file)
-    assert(module.isSuccess)
-    val fns = module.get.defs.collect { case f: Functions => f}.head
+    val fns = module.defs.collect { case f: Functions => f}.head
     val zeroExp = FunctionExpApp("zero", Seq())
     val zeroPat = FunctionPatApp("zero", Seq())
     assert(fns.funcs(0) ==
