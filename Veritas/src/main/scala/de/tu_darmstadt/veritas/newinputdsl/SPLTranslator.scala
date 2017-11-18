@@ -41,9 +41,11 @@ class SPLTranslator {
         val moduleName = o.name.value
         val adts = collectADTs(o.templ.stats)
         val translatedDataTypes = adts.map { case (base, cases) => translateADT(base, cases) }
-        val failure = getFailure(translatedDataTypes.toSeq)
+        val functions = collectFunctions(o.templ.stats)
+        val translatedFunctions = functions.map { translateFunction }
+        val failure = getFailure(translatedDataTypes.toSeq ++ translatedFunctions)
         if (failure.isEmpty) {
-          val defs = translatedDataTypes.map {_.get }.toSeq
+          val defs: Seq[ModuleDef] = translatedDataTypes.map { _.get }.toSeq ++ Seq(Functions(translatedFunctions.map { _.get }))
           Success(Module(moduleName, Seq(), defs))
         } else {
           Failure(failure.get)
@@ -101,7 +103,7 @@ class SPLTranslator {
       return Failure(new IllegalArgumentException("Type Parameters are not allowed"))
     val constrs = cases.map { translateCaseClass }
     swapFailure(constrs) match  {
-      case Success(constrs) => Success(DataType(open, name, constrs))
+      case Success(cotrs) => Success(DataType(open, name, cotrs))
       case Failure(e) => Failure(e)
     }
   }
@@ -154,13 +156,15 @@ class SPLTranslator {
     }
 
   def translateFunction(fn: Defn.Def): Try[FunctionDef] = {
-    fn.name
     // decltype has to be given
+    if (fn.decltpe.isEmpty)
+      return Failure(new IllegalArgumentException("The return type of a function has to be explicitly defined"))
     val signature = translateFunctionSignature(fn.name, fn.paramss.head, fn.decltpe.get)
     signature match {
-      case Success(sigs) =>
+      case Success(sig) =>
         val equations =
           fn.body match {
+              // TODO: check that the expr over which is matched is a tuple in the correct order of function params
             case Term.Match(expr, cases) =>
               cases.map { translateCase(fn.name.value, _) }
             case _ =>
@@ -168,7 +172,7 @@ class SPLTranslator {
           }
         swapFailure(equations) match {
           case Success(eqs) =>
-            Success(FunctionDef(sigs, eqs))
+            Success(FunctionDef(sig, eqs))
           case Failure(e) => Failure(e)
         }
       case Failure(e) => Failure(e)
@@ -195,14 +199,13 @@ class SPLTranslator {
   def translateCase(funName: String, cas: Case): Try[FunctionEq] = {
     val patterns = translateCasePattern(cas.pat)
     patterns match {
-      case Success(patterns) => {
-        val body = translateCaseBody(cas.body)
+      case Success(transPatterns) =>
+        val body = translateCaseExp(cas.body)
         body match {
-          case Success(body) =>
-            Success(FunctionEq(funName, patterns, body))
+          case Success(right) =>
+            Success(FunctionEq(funName, transPatterns, right))
           case Failure(e) => Failure(e)
         }
-      }
       case Failure(e) => Failure(e)
     }
   }
@@ -210,20 +213,18 @@ class SPLTranslator {
   def translateCasePattern(pat: Pat): Try[Seq[FunctionPattern]] = {
     // TODO do i need to check that only constructos of our adts are used?
     pat match {
-      case Pat.Extract(term, pattern) => {
+      case Pat.Extract(term, pattern) =>
         val args = pattern.map { translateInnerCasePattern }
         swapFailure(args) match {
-          case Success(args) => Success(Seq(FunctionPatApp(term.toString, args)))
+          case Success(transArgs) => Success(Seq(FunctionPatApp(term.toString, transArgs)))
           case Failure(e) => Failure(e)
         }
-      }
-      case Pat.Tuple(pattern) => {
+      case Pat.Tuple(pattern) =>
         val args = pattern.map { translateInnerCasePattern }
         swapFailure(args) match {
-          case Success(args) => Success(args)
+          case Success(transArgs) => Success(transArgs)
           case Failure(e) => Failure(e)
         }
-      }
       case Pat.Var(name) => Success(Seq(FunctionPatVar(name.value)))
       case _ => Failure(new IllegalArgumentException("Other pattern than tuple, application or variable is used"))
     }
@@ -232,71 +233,101 @@ class SPLTranslator {
   def translateInnerCasePattern(pat: Pat): Try[FunctionPattern] = {
     // TODO do i need to check that only constructos of our adts are used?
     pat match {
-      case Pat.Extract(term, pattern) => {
+      case Pat.Extract(term, pattern) =>
         val args = pattern.map { translateInnerCasePattern }
         swapFailure(args) match {
-          case Success(args) => Success(FunctionPatApp(term.toString, args))
+          case Success(transArgs) => Success(FunctionPatApp(term.toString, transArgs))
           case Failure(e) => Failure(e)
-        }
       }
       case Pat.Var(name) => Success(FunctionPatVar(name.value))
       case _ => Failure(new IllegalArgumentException("Other pattern than application or variable is used"))
     }
   }
 
-  def translateCaseExp(body: Term): Try[FunctionExp] = ???
-  def translateCaseBody(body: Term): Try[FunctionExp] = ???/*{
+  def translateCaseExp(body: Term): Try[FunctionExp] =
     body match {
-      case Term.If(cond, then, els) => {
-        translateCaseExp(cond) match {
-          case Success(transCond) =>
-            translateCaseBody(then) match {
-              case Success(transThen) =>
-                translateCaseBody(els) match {
-                  case Success(transEls) =>
-                    Success(FunctionExpIf(transCond, transThen, transEls))
-                  case Failure(e) => Failure(e)
-                }
-              case Failure(e) => Failure(e)
-            }
-          case Failure(e) => Failure(e)
-        }
-      }
-      case Term.Apply(name, args) => {
-        val transArgs = args.map { translateCaseBody }
-        swapFailure(transArgs) match {
-          case Success(transArgs) => Success(FunctionExpApp(name.toString, transArgs))
-          case Failure(e) => Failure(e)
-        }
-      }
-      case Term.ApplyInfix(lhs, name, nil, Seq(rhs)) => {
-        translateCaseBody(lhs) match {
-          case Success(lhs) =>
-            translateCaseBody(rhs) match {
-              case Success(rhs) =>
-                name.value match {
-                  case "==" => Success(FunctionExpEq(lhs, rhs))
-                  case "!=" => Success(FunctionExpNeq(lhs, rhs))
-                    // TODO: split exp and meta
-                    // exp is wiht && || ! == != and meta is only with == !=
-                    // what is the difference in scala?
-                  //case "&&" => Success(FunctionExpAnd(lhs, rhs))
-                  //case "||" => Success(FunctionExpOr(lhs, rhs))
-                  case _=> Failure(new IllegalArgumentException("Unsupported operator was used"))
-                }
-              case Failure(e) => Failure(e)
-            }
-          case Failure(e) => Failure(e)
-        }
-      }
+        // let, true, false
+      case Term.If(cond, then, els) => translateIf(cond, then, els)
+      case Term.Apply(name, args) =>  translateApply(name, args)
+      case Term.ApplyInfix(lhs, name, nil, Seq(rhs)) => translateApplyInfix(lhs, name, rhs)
+      case Term.Block(stats) => translateBlock(stats)
+      case Term.ApplyUnary(name, expr) =>
+        if (name.value == "!")
+          translateCaseExp(expr) match {
+            case Success(f) => Success(FunctionExpNot(f))
+            case Failure(e) => Failure(e)
+          }
+        else Failure(new IllegalArgumentException("This unary operator is not supported"))
       case Term.Name(name) => Success(FunctionExpVar(name))
       case _ => Failure(new IllegalArgumentException("Construct is not supported in function bodies"))
+  }
+
+  def translateBlock(stats: Seq[Stat]): Try[FunctionExp] = {
+    val bindings = stats.init.collect {
+      case Defn.Val(Seq(), Seq(Pat.Var(name)), None, rhs) =>
+        (name, translateCaseExp(rhs))
+    }
+    val failed = bindings.find(_._2.isFailure)
+    if (failed.nonEmpty) {
+      return failed.get._2.asInstanceOf[Failure[FunctionExp]]
+    }
+    val in = stats.last match {
+      case expr: Term => translateCaseExp(expr)
+      case _ => Failure(new IllegalArgumentException("Last term of block is not an expression"))
+    }
+    in match {
+      case Success(in) =>
+        val result = bindings.foldRight(in){ case ((name, binding), res) =>
+            FunctionExpLet(name.value, binding.get, res)
+        }
+        Success(result)
+      case Failure(e) => Failure(e)
     }
   }
-  */
-  // if else
-  // val expr
-  // exprs are apply ApplyInfix(== && || !=) Defn.Val
+
+  def translateIf(cond: Term, then: Term, els: Term): Try[FunctionExpIf] =
+    translateCaseExp(cond) match {
+      case Success(transCond) =>
+        translateCaseExp(then) match {
+          case Success(transThen) =>
+            translateCaseExp(els) match {
+              case Success(transEls) =>
+                Success(FunctionExpIf(transCond, transThen, transEls))
+              case Failure(e) => Failure(e)
+            }
+          case Failure(e) => Failure(e)
+        }
+      case Failure(e) => Failure(e)
+    }
+
+  def translateApply(name: Term, args: Seq[Term]): Try[FunctionExpApp] = {
+    val transArgs = args.map { translateCaseExp }
+    swapFailure(transArgs) match {
+      case Success(transArgs) => Success(FunctionExpApp(name.toString, transArgs))
+      case Failure(e) => Failure(e)
+    }
+  }
+
+  // assume that we have left assoc operators (&& ||) in spoofax it was right but that seems counterintuitive
+  def translateApplyInfix(lhs: Term, name: Term.Name, rhs: Term): Try[FunctionExp] =
+    translateCaseExp(lhs) match {
+      case Success(lhs) =>
+        translateCaseExp(rhs) match {
+          case Success(rhs) =>
+            name.value match {
+                // TODO: biimplication
+              case "==" => Success(FunctionExpEq(lhs, rhs))
+              case "!=" => Success(FunctionExpNeq(lhs, rhs))
+              case "&&" => Success(FunctionExpAnd(lhs, rhs))
+              case "||" => Success(FunctionExpOr(lhs, rhs))
+              case _ => Failure(new IllegalArgumentException("Unsupported operator was used"))
+            }
+          case Failure(e) => Failure(e)
+        }
+      case Failure(e) => Failure(e)
+    }
+
+  def translateName(name: String): Try[FunctionExp] = Success(FunctionExpVar(name))
 
   // TODO: need parsing functions for all the possible Constructs
 
