@@ -15,6 +15,11 @@ trait SPLSpecification {
   case class SimpleRecursive() extends StaticAnnotation
   case class Transform() extends StaticAnnotation
 
+  implicit class _Boolean(lhs: Boolean) {
+    def <==> (rhs: Boolean): Boolean = biimplication(lhs, rhs)
+  }
+  def biimplication(lhs: Boolean, rhs: Boolean): Boolean = (!lhs || rhs) && (!rhs || lhs)
+
   // shortcomings: is not executable. But we dont even know yet what it means to have exectuable axioms / lemmas
   def forall[T1](fun: Function1[T1, Boolean]): Boolean = true
   def forall[T1, T2](fun: Function2[T1, T2, Boolean]): Boolean = true
@@ -31,8 +36,6 @@ trait SPLSpecification {
   def exists[T1, T2, T3, T4, T5](fun: Function5[T1, T2, T3, T4, T5, Boolean]): Boolean = true
   def exists[T1, T2, T3, T4, T5, T6](fun: Function6[T1, T2, T3, T4, T5, T6, Boolean]): Boolean = true
   def exists[T1, T2, T3, T4, T5, T6, T7](fun: Function7[T1, T2, T3, T4, T5, T6, T7, Boolean]): Boolean = true
-
-  //let
 
   // every expression has to be a subclass of this trait
   // Therefore we can can determine automatically which params belong to the expression domain
@@ -61,8 +64,6 @@ trait SPLSpecification {
   def typable(context: Context, exp: Expression, typ: Typ): Boolean
   def typable(exp: Expression, typ: Typ): Boolean
 }
-// Because of scalameta we cannot easily know what all the superclasses of a class are.
-// The first step is it to build up the type hierarchy and check if only acceptable types are used.
 
 object Spec extends SPLSpecification {
   def typable(context: Context, exp: Expression, typ: Typ): Boolean = true

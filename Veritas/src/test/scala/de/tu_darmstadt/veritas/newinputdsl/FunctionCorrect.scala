@@ -33,7 +33,7 @@ object FunctionCorrect extends SPLSpecification {
   def singlelet(a: Num, b: YN): YN = (a, b) match {
     case (zero(), yes()) =>
       val x = plus(zero(), succ(zero()))
-      if (x == zero()) yes() else no()
+      if (!(x == zero())) yes() else no()
   }
 
   def multiplelets(a: Num, b: YN): YN = (a, b) match {
@@ -41,6 +41,6 @@ object FunctionCorrect extends SPLSpecification {
       val x = plus(zero(), succ(zero()))
       val y = plus(zero(), succ(zero()))
       val z = plus(zero(), succ(zero()))
-      if (x == zero()) yes() else no()
+      if ((x == zero()) <==> (y == zero())) yes() else no()
   }
 }

@@ -113,9 +113,10 @@ class SPLTranslatorTest extends FunSuite {
             FunctionExpLet("x",
               FunctionExpApp("plus", Seq(zeroExp, FunctionExpApp("succ", Seq(zeroExp)))),
               FunctionExpIf(
-                FunctionExpEq(FunctionExpVar("x"), zeroExp),
-                FunctionExpApp("yes", Seq()),
-                FunctionExpApp("no", Seq())))))))
+                FunctionExpNot(
+                  FunctionExpEq(FunctionExpVar("x"), zeroExp)),
+                  FunctionExpApp("yes", Seq()),
+                  FunctionExpApp("no", Seq())))))))
     assert(fns.funcs(4) ==
       FunctionDef(
         FunctionSig("multiplelets", Seq(SortRef("Num"), SortRef("YN")), SortRef("YN")),
@@ -128,8 +129,34 @@ class SPLTranslatorTest extends FunSuite {
                 FunctionExpLet("z",
                   FunctionExpApp("plus", Seq(zeroExp, FunctionExpApp("succ", Seq(zeroExp)))),
                 FunctionExpIf(
-                  FunctionExpEq(FunctionExpVar("x"), zeroExp),
+                  FunctionExpBiImpl(
+                    FunctionExpEq(FunctionExpVar("x"), zeroExp),
+                    FunctionExpEq(FunctionExpVar("y"), zeroExp)),
                   FunctionExpApp("yes", Seq()),
                   FunctionExpApp("no", Seq())))))))))
+  }
+
+  test("fail because function definied within function") {
+    val translator = new SPLTranslator
+    val file = new File(filesDir, "FunctionFailDefFunction.scala")
+    assertThrows[IllegalArgumentException] {
+      translator.translate(file)
+    }
+  }
+
+  test("fail because function has type params") {
+    val translator = new SPLTranslator
+    val file = new File(filesDir, "FunctionFailTypeParams.scala")
+    assertThrows[IllegalArgumentException] {
+      translator.translate(file)
+    }
+  }
+
+  test("fail because top of function not match") {
+    val translator = new SPLTranslator
+    val file = new File(filesDir, "FunctionFailTopNotMatch.scala")
+    assertThrows[IllegalArgumentException] {
+      translator.translate(file)
+    }
   }
 }

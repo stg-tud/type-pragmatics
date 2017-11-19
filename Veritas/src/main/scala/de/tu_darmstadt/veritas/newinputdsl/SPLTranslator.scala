@@ -6,7 +6,6 @@ import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 
 import scala.meta._
-import scala.util.{Failure, Success, Try}
 
 trait DomainSpecificKnowledge {
   def simpleRecursiveFunctions(): Functions
@@ -48,10 +47,6 @@ class SPLTranslator {
       } else
         throw new IllegalArgumentException("Object does not inherit from SPLSpecification")
     }
-
-  def getFailure[T](seq: Seq[Try[T]]): Option[Throwable] = {
-    seq.find( _.isFailure).map { _.failed.get }
-  }
 
   def collectADTs(parsed: Seq[Stat]): Map[Defn.Trait, Seq[Defn.Class]] = {
     val caseClasses = collectCaseClasses(parsed)
@@ -102,15 +97,6 @@ class SPLTranslator {
 
   def checkBaseTraitSuperType(supertypes: Seq[String]): Boolean = supertypes.forall(!_.contains(SPLTranslator.predefTraits))
 
-  def swapFailure[T](attemps: Seq[Try[T]]): Try[Seq[T]] = {
-    val failure = attemps.find { _.isFailure }
-    failure match {
-      case None => Success(attemps.map { _.get })
-      case Some(Failure(e)) => Failure(e)
-      case _ => null // cannot happen
-    }
-  }
-
   def isOpen(tr: Defn.Trait): Boolean = {
     containsAnnotation(tr.mods, "Open")
   }
@@ -148,6 +134,8 @@ class SPLTranslator {
     // decltype has to be given
     if (fn.decltpe.isEmpty)
       throw new IllegalArgumentException("The return type of a function has to be explicitly defined")
+    if (fn.tparams.nonEmpty)
+      throw new IllegalArgumentException("A function definition does not allow type parameters")
     val signature = translateFunctionSignature(fn.name, fn.paramss.head, fn.decltpe.get)
     val equations = fn.body match {
         // TODO: check that the expr over which is matched is a tuple in the correct order of function params
@@ -218,9 +206,10 @@ class SPLTranslator {
     }
 
   def translateBlock(stats: Seq[Stat]): FunctionExp = {
-    val bindings = stats.init.collect {
+    val bindings = stats.init.map {
       case Defn.Val(Seq(), Seq(Pat.Var(name)), None, rhs) =>
         (name, translateCaseExp(rhs))
+      case _ => throw new IllegalArgumentException("")
     }
     val in = stats.last match {
       case expr: Term => translateCaseExp(expr)
@@ -248,6 +237,7 @@ class SPLTranslator {
       case "!=" => FunctionExpNeq(transLhs, transRhs)
       case "&&" => FunctionExpAnd(transLhs, transRhs)
       case "||" => FunctionExpOr(transLhs, transRhs)
+      case "<==>" => FunctionExpBiImpl(transLhs, transRhs)
       case _ => throw new IllegalArgumentException("Unsupported operator was used")
     }
   }
