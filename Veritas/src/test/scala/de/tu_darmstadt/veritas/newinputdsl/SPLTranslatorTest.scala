@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.newinputdsl
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.backend.ast.{DataType, DataTypeConstructor, Functions, SortRef}
+import de.tu_darmstadt.veritas.backend.ast._
 import org.scalatest.FunSuite
 
 class SPLTranslatorTest extends FunSuite {
@@ -16,7 +16,6 @@ class SPLTranslatorTest extends FunSuite {
     val module = translator.translate(file)
     println(module)
     assert(module.name == "ADTCorrect")
-    assert(module.defs.size == 4)
     assert(module.defs.head == DataType(true, "First", Seq()))
     assert(module.defs(1) == DataType(false, "Num", Seq(
       DataTypeConstructor("zero", Seq()),
@@ -158,5 +157,13 @@ class SPLTranslatorTest extends FunSuite {
     assertThrows[IllegalArgumentException] {
       translator.translate(file)
     }
+  }
+
+  test("translate axioms correctly") {
+    val translator = new SPLTranslator
+    val file = new File(filesDir, "AxiomCorrect.scala")
+    val module = translator.translate(file)
+    val axioms = module.defs.collect { case a: Axioms => a}.head
+    println(axioms)
   }
 }

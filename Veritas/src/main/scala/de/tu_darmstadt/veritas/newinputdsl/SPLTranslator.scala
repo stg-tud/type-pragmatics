@@ -42,7 +42,9 @@ class SPLTranslator {
         val translatedDataTypes = adts.map { case (base, cases) => translateADT(base, cases) }
         val functions = collectFunctions(o.templ.stats)
         val translatedFunctions = functions.map { translateFunction }
-        val defs: Seq[ModuleDef] = translatedDataTypes.toSeq ++ Seq(Functions(translatedFunctions))
+        val axioms = collectAxioms(o.templ.stats)
+        val translatedAxioms = axioms.map { translateAxiom }
+        val defs: Seq[ModuleDef] = translatedDataTypes.toSeq ++ Seq(Functions(translatedFunctions)) ++ Seq(Axioms(translatedAxioms))
         Module(moduleName, Seq(), defs)
       } else
         throw new IllegalArgumentException("Object does not inherit from SPLSpecification")
@@ -163,7 +165,8 @@ class SPLTranslator {
 
   def translateCase(funName: String, cas: Case): FunctionEq = {
     val patterns = translateCasePattern(cas.pat)
-    val body = translateCaseExp(cas.body)
+    val funTranslator = FunctionTranslator(Seq())
+    val body = funTranslator.translateExp(cas.body)
     FunctionEq(funName, patterns, body)
   }
 
@@ -190,67 +193,79 @@ class SPLTranslator {
     }
   }
 
-  def translateCaseExp(body: Term): FunctionExp =
-    body match {
-        // let, true, false
-      case Term.If(cond, then, els) => translateIf(cond, then, els)
-      case Term.Apply(name, args) =>  translateApply(name, args)
-      case Term.ApplyInfix(lhs, name, nil, Seq(rhs)) => translateApplyInfix(lhs, name, rhs)
-      case Term.Block(stats) => translateBlock(stats)
-      case Term.ApplyUnary(name, expr) =>
-        if (name.value == "!")
-          FunctionExpNot(translateCaseExp(expr))
-        else throw new IllegalArgumentException("This unary operator is not supported")
-      case Term.Name(name) => FunctionExpVar(name)
-      case _ => throw new IllegalArgumentException("Construct is not supported in function bodies")
-    }
-
-  def translateBlock(stats: Seq[Stat]): FunctionExp = {
-    val bindings = stats.init.map {
-      case Defn.Val(Seq(), Seq(Pat.Var(name)), None, rhs) =>
-        (name, translateCaseExp(rhs))
-      case _ => throw new IllegalArgumentException("")
-    }
-    val in = stats.last match {
-      case expr: Term => translateCaseExp(expr)
-      case _ => throw new IllegalArgumentException("Last term of block is not an expression")
-    }
-    bindings.foldRight(in){ case ((name, binding), res) =>
-      FunctionExpLet(name.value, binding, res)
-    }
-  }
-
-  def translateIf(cond: Term, then: Term, els: Term): FunctionExpIf = FunctionExpIf(translateCaseExp(cond), translateCaseExp(then), translateCaseExp(els))
-
-  def translateApply(name: Term, args: Seq[Term]): FunctionExpApp = {
-    val transArgs = args.map { translateCaseExp }
-    FunctionExpApp(name.toString, transArgs)
-  }
-
-  // assume that we have left assoc operators (&& ||) in spoofax it was right but that seems counterintuitive
-  def translateApplyInfix(lhs: Term, name: Term.Name, rhs: Term): FunctionExp = {
-    val transLhs = translateCaseExp(lhs)
-    val transRhs = translateCaseExp(rhs)
-    name.value match {
-      // TODO: biimplication
-      case "==" => FunctionExpEq(transLhs, transRhs)
-      case "!=" => FunctionExpNeq(transLhs, transRhs)
-      case "&&" => FunctionExpAnd(transLhs, transRhs)
-      case "||" => FunctionExpOr(transLhs, transRhs)
-      case "<==>" => FunctionExpBiImpl(transLhs, transRhs)
-      case _ => throw new IllegalArgumentException("Unsupported operator was used")
-    }
-  }
-
-  def translateName(name: String): FunctionExp = FunctionExpVar(name)
-
   // TODO: need parsing functions for all the possible Constructs
 
-  def collectEnsuringFunctions(parsed: Seq[Stat]) = ???
-  def collectEnsuringRequiringFunctions(parsed: Seq[Stat]) = ???
+  def collectAnnotatedWithFunction(parsed: Seq[Stat], annotation: String) = parsed.collect {
+    case fn: Defn.Def => fn
+  }.filter { fn =>
+    val annots = fn.mods.collect{ case anot: Mod.Annot if anot.init.tpe.toString == annotation => anot}
+    annots.nonEmpty
+  }
 
-  def parseRequire(parsed: Parsed[Stat]): TypingRuleJudgment = ???
-  def parseEnsuring(parsed: Parsed[Stat]): TypingRuleJudgment = ???
+  def collectAxioms(parsed: Seq[Stat]): Seq[Defn.Def] = collectAnnotatedWithFunction(parsed, "Axiom")
+  def collectLemmas(parsed: Seq[Stat]): Seq[Defn.Def] = collectAnnotatedWithFunction(parsed, "Lemma")
+  def collectGoals(parsed: Seq[Stat]): Seq[Defn.Def] = collectAnnotatedWithFunction(parsed, "Goal")
+
+  def translateAxiom(fn: Defn.Def): TypingRule = {
+    if (fn.decltpe.isEmpty)
+      throw new IllegalArgumentException("The return type of a function has to be explicitly defined")
+    if (fn.tparams.nonEmpty)
+      throw new IllegalArgumentException("A function definition does not allow type parameters")
+    if (fn.paramss.size > 1)
+      throw new IllegalArgumentException("A function definition can only have one parameter list")
+    val metaBindings = fn.paramss.headOption.getOrElse(Nil).map { _.name.value }
+    fn.body match {
+      case Term.ApplyInfix(lhs, name, nil, Seq(rhs)) if name.value == "ensuring" =>
+        val premises = translateJudgmentBlock(lhs)(metaBindings)
+        val conclusions = translateTypingRule(rhs)(metaBindings)
+        TypingRule(fn.name.value, premises, Seq(conclusions))
+      case _ => throw new IllegalArgumentException("Axioms/Lemmas and Goals need to have an ensuring clause")
+    }
+  }
+
+  def translateJudgmentBlock(body: Term)(implicit metaVars: Seq[String] = Seq()): Seq[TypingRuleJudgment] = body match {
+    case Term.Block(inner) => inner.map { translateRequire(_)(metaVars) }
+    case _ => throw new IllegalArgumentException("")
+  }
+
+  def translateRequire(stat: Stat)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = stat match {
+    case Term.Apply(name, arg::Nil) if name.toString == "require" => translateTypingRule(arg)(metaVars)
+    case _ => throw new IllegalArgumentException("Inside Axioms/Lemmas/Goals only require statements can be used")
+  }
+
+  def translateTypingRule(term: Term)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = {
+    val funTranslator = FunctionTranslator(metaVars)
+    term match {
+      case Lit.Boolean(true) => FunctionExpJudgment(FunctionExpTrue)
+      case Lit.Boolean(false) => FunctionExpJudgment(FunctionExpFalse)
+      case Term.Apply(name, arg::Nil)  if name.toString == "forall" =>
+        val (vars, body) = translateQuantifiedExpr(arg)
+        ForallJudgment(vars, Seq(body))
+      case Term.Apply(name, arg::Nil)  if name.toString == "exists" =>
+        val (vars, body) = translateQuantifiedExpr(arg)
+        ExistsJudgment(vars, Seq(body))
+      case Term.Apply(name, args) => FunctionExpJudgment(funTranslator.translateExp(term))
+      case Term.ApplyInfix(lhs, name, Nil, arg::Nil) =>
+        name.value match {
+          case "::" => TypingJudgmentSimple(funTranslator.translateExpMeta(lhs), funTranslator.translateExpMeta(arg))
+          case "|-" => arg match {
+            case Term.ApplyInfix(inner, name, Nil, rhs::Nil) if name.value == "::" =>
+              TypingJudgment(funTranslator.translateExpMeta(lhs), funTranslator.translateExpMeta(inner), funTranslator.translateExpMeta(rhs))
+            case _ => throw new IllegalArgumentException("")
+          }
+          case "||" => throw new IllegalArgumentException("Needs to be implemented")// OrJudgment
+          case _ => throw new IllegalArgumentException("Unsupported infix operation")
+        }
+    }
+  }
+
+  def translateQuantifiedExpr(term: Term)(implicit metavars: Seq[String] = Seq()): (Seq[MetaVar], TypingRuleJudgment) = term match {
+    case Term.Function(params, body) =>
+      val quantifiedvars = params.map { p => MetaVar(p.name.value) }
+      val quantifiednames = quantifiedvars.map {_.name}
+      val funTranslator = FunctionTranslator(quantifiednames ++ metavars)
+      (quantifiedvars, FunctionExpJudgment(funTranslator.translateExp(body)))
+  }
 
   def parseTypableSimple(parsed: Parsed[Stat]): TypingJudgmentSimple = ???
   def parseTypable(parsed: Parsed[Stat]): TypingJudgment = ???
@@ -260,10 +275,68 @@ class SPLTranslator {
   def parseLocal(parsed: Parsed[Stat]): Local = ???
   def parseConstant(parsed: Parsed[Stat]): ConstDecl = ???
   def parseGoal(parsed: Parsed[Stat]): TypingRule = ???
-  def parseAxiom(parsed: Parsed[Stat]): TypingRule  = ???
   def parseLemma(parsed: Parsed[Stat]): TypingRule = ???
 }
 
 object SPLTranslator {
   val predefTraits = Seq("Expression", "Context", "Typ")
+}
+
+// base trait that is able to translate common structures of function exp
+case class FunctionTranslator(metavars: Seq[String]) {
+
+  def translateExpMeta(term: Term): FunctionExpMeta = term match {
+    case Term.Name(name) if metavars.contains(name) => FunctionMeta(MetaVar(name))
+    case _ => translateExp(term)
+  }
+
+  def translateExp(term: Term): FunctionExp = term match {
+    case Term.If(cond, then, els) => translateIf(cond, then, els)
+    case Term.Block(stats) => translateBlock(stats)
+    case Lit.Boolean(true) => FunctionExpTrue
+    case Lit.Boolean(false) => FunctionExpFalse
+    case Term.Apply(name, args) => translateApply(name, args)
+    case Term.ApplyUnary(name, expr) =>
+      if (name.value == "!")
+        FunctionExpNot(translateExp(expr))
+      else throw new IllegalArgumentException("This unary operator is not supported")
+    case Term.ApplyInfix(lhs, name, nil, Seq(rhs)) => translateApplyInfix(lhs, name, rhs)
+    case Term.Name(name) => FunctionExpVar(name)
+    case _ => throw new IllegalArgumentException("")
+  }
+
+  def translateIf(cond: Term, then: Term, els: Term): FunctionExp =
+    FunctionExpIf(translateExp(cond), translateExpMeta(then), translateExpMeta(els))
+
+  def translateApply(name: Term, args: Seq[Term]): FunctionExp = {
+    val transArgs = args.map { translateExpMeta }
+    FunctionExpApp(name.toString, transArgs)
+  }
+
+  def translateBlock(stats: Seq[Stat]): FunctionExpLet = {
+    val bindings = stats.init.map {
+      case Defn.Val(Seq(), Seq(Pat.Var(name)), None, rhs) =>
+        (name, translateExpMeta(rhs))
+      case _ => throw new IllegalArgumentException("")
+    }
+    val in = stats.last match {
+      case expr: Term => translateExpMeta(expr)
+      case _ => throw new IllegalArgumentException("Last term of block is not an expression")
+    }
+    var let = in
+    bindings.reverse.foreach { case (name, expr) =>
+       let = FunctionExpLet(name.value, expr, let)
+    }
+    let.asInstanceOf[FunctionExpLet]
+  }
+
+  // assume that we have left assoc operators (&& ||) in spoofax it was right but that seems counterintuitive
+  def translateApplyInfix(lhs: Term, name: Term.Name, rhs: Term): FunctionExp = name.value match {
+    case "==" => FunctionExpEq(translateExpMeta(lhs), translateExpMeta(rhs))
+    case "!=" => FunctionExpNeq(translateExpMeta(lhs), translateExpMeta(rhs))
+    case "&&" => FunctionExpAnd(translateExp(lhs), translateExp(rhs))
+    case "||" => FunctionExpOr(translateExp(lhs), translateExp(rhs))
+    case "<==>" => FunctionExpBiImpl(translateExp(lhs), translateExp(rhs))
+    case _ => throw new IllegalArgumentException("Unsupported operator was used")
+  }
 }
