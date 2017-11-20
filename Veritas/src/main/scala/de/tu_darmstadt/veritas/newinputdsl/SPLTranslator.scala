@@ -5,6 +5,7 @@ import java.io.File
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 
+import scala.collection.mutable.ListBuffer
 import scala.meta._
 
 trait DomainSpecificKnowledge {
@@ -25,7 +26,6 @@ class SPLTranslator {
             translateObject(o)
           case None => throw new IllegalArgumentException("Toplevel Construct is not an object")
         }
-
     }
   }
 
@@ -35,20 +35,32 @@ class SPLTranslator {
 
   // TODO see how we could track where the error occured
   def translateObject(o: Defn.Object): Module = {
-      // check if it extends SPLSpecification
-      if (o.templ.inits.nonEmpty && o.templ.inits.head.tpe.toString == "SPLSpecification") {
-        val moduleName = o.name.value
-        val adts = collectADTs(o.templ.stats)
-        val translatedDataTypes = adts.map { case (base, cases) => translateADT(base, cases) }
-        val functions = collectFunctions(o.templ.stats)
-        val translatedFunctions = functions.map { translateFunction }
-        val axioms = collectAxioms(o.templ.stats)
-        val translatedAxioms = axioms.map { translateAxiom }
-        val defs: Seq[ModuleDef] = translatedDataTypes.toSeq ++ Seq(Functions(translatedFunctions)) ++ Seq(Axioms(translatedAxioms))
-        Module(moduleName, Seq(), defs)
-      } else
-        throw new IllegalArgumentException("Object does not inherit from SPLSpecification")
-    }
+    // check if it extends SPLSpecification
+    if (o.templ.inits.nonEmpty && o.templ.inits.head.tpe.toString == "SPLSpecification") {
+      val moduleName = o.name.value
+      val defs = translateStats(o.templ.stats)
+      Module(moduleName, Seq(), defs)
+    } else
+      throw new IllegalArgumentException("Object does not inherit from SPLSpecification")
+  }
+
+  def translateStats(stats: Seq[Stat]): Seq[ModuleDef] = {
+    val adts = collectADTs(stats)
+    val translatedDataTypes = adts.map { case (base, cases) => translateADT(base, cases) }
+    val functions = collectFunctions(stats)
+    val translatedFunctions = functions.map { translateFunction }
+    val axioms = collectAxioms(stats)
+    val translatedAxioms = axioms.map { translateEnsuringFunction }
+    val lemmas = collectLemmas(stats)
+    val translatedLemmas = lemmas.map { translateEnsuringFunction }
+    val goals = collectGoals(stats)
+    val translatedGoals = goals.map { translateEnsuringFunction }
+    translatedDataTypes.toSeq ++
+      Seq(Functions(translatedFunctions)) ++
+      Seq(Axioms(translatedAxioms)) ++
+      Seq(Lemmas(translatedLemmas, None)) ++
+      Seq(Goals(translatedGoals, None))
+  }
 
   def collectADTs(parsed: Seq[Stat]): Map[Defn.Trait, Seq[Defn.Class]] = {
     val caseClasses = collectCaseClasses(parsed)
@@ -193,20 +205,18 @@ class SPLTranslator {
     }
   }
 
-  // TODO: need parsing functions for all the possible Constructs
+  def collectAxioms(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Axiom")
+  def collectLemmas(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Lemma")
+  def collectGoals(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Goal")
 
-  def collectAnnotatedWithFunction(parsed: Seq[Stat], annotation: String) = parsed.collect {
+  def collectFunctionAnnotatedWith(parsed: Seq[Stat], annotation: String): Seq[Defn.Def] = parsed.collect {
     case fn: Defn.Def => fn
   }.filter { fn =>
     val annots = fn.mods.collect{ case anot: Mod.Annot if anot.init.tpe.toString == annotation => anot}
     annots.nonEmpty
   }
 
-  def collectAxioms(parsed: Seq[Stat]): Seq[Defn.Def] = collectAnnotatedWithFunction(parsed, "Axiom")
-  def collectLemmas(parsed: Seq[Stat]): Seq[Defn.Def] = collectAnnotatedWithFunction(parsed, "Lemma")
-  def collectGoals(parsed: Seq[Stat]): Seq[Defn.Def] = collectAnnotatedWithFunction(parsed, "Goal")
-
-  def translateAxiom(fn: Defn.Def): TypingRule = {
+  def translateEnsuringFunction(fn: Defn.Def): TypingRule = {
     if (fn.decltpe.isEmpty)
       throw new IllegalArgumentException("The return type of a function has to be explicitly defined")
     if (fn.tparams.nonEmpty)
@@ -267,15 +277,46 @@ class SPLTranslator {
       (quantifiedvars, FunctionExpJudgment(funTranslator.translateExp(body)))
   }
 
-  def parseTypableSimple(parsed: Parsed[Stat]): TypingJudgmentSimple = ???
-  def parseTypable(parsed: Parsed[Stat]): TypingJudgment = ???
-  // TODO: do i need extra parsers for expju, existsju, forallju, orju, notju?
+  def collectLocalBlocks(parsed: Seq[Stat]): Seq[Defn.Trait] = parsed.collect {
+    case tr: Defn.Trait if containsAnnotation(tr.mods, "Local") => tr
+  }
 
-  def collectLocalBlocks(parsed: Seq[Stat]) = ???
-  def parseLocal(parsed: Parsed[Stat]): Local = ???
-  def parseConstant(parsed: Parsed[Stat]): ConstDecl = ???
-  def parseGoal(parsed: Parsed[Stat]): TypingRule = ???
-  def parseLemma(parsed: Parsed[Stat]): TypingRule = ???
+  def translateLocal(block: Defn.Trait): Local = {
+    // TODO: what do we need to check for?
+    if(block.templ.inits.nonEmpty)
+      throw new IllegalArgumentException("A local block can not extend another trait")
+    val valBlocks = collectValBlocks(block.templ.stats)
+    val translatedValBlocks = valBlocks.map { case (block, different) => translateConstantBlock(block, different) }
+    Local(translateStats(block.templ.stats) ++ translatedValBlocks)
+  }
+
+  def collectValBlocks(stats: Seq[Stat]): Seq[(Seq[Decl.Val], Boolean)] = {
+    val result = ListBuffer[(ListBuffer[Decl.Val], Boolean)]()
+    stats.foreach {
+      case _: Defn.Val => throw new IllegalArgumentException("Defintion of vals are not allowed")
+      case v: Decl.Val if containsAnnotation(v.mods, "Different") =>
+        result += ListBuffer[Decl.Val]() -> true
+      case v: Decl.Val =>
+        if (result.last._2)
+          result.last._1 += v
+        else
+          result += ListBuffer[Decl.Val]() -> false
+      case _ =>
+        result += ListBuffer[Decl.Val]() -> false
+    }
+    result.toList.map { block => (block._1.toList, block._2) }
+  }
+
+  def translateConstantBlock(vals: Seq[Decl.Val], different: Boolean): Consts =
+    Consts(vals.map { translateConstant }, different)
+
+  def translateConstant(v: Decl.Val): ConstDecl = {
+    val constName = v.pats match {
+      case Pat.Var(name) => name.value
+      case _ => throw new IllegalArgumentException("Another pattern than simple variable assignment was used")
+    }
+    ConstDecl(constName, SortRef(v.decltpe.toString()))
+  }
 }
 
 object SPLTranslator {
