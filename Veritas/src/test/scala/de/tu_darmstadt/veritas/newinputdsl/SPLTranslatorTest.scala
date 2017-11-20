@@ -159,11 +159,46 @@ class SPLTranslatorTest extends FunSuite {
     }
   }
 
-  test("translate axioms correctly") {
+  test("translate typingrules correctly") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "AxiomCorrect.scala")
     val module = translator.translate(file)
-    val axioms = module.defs.collect { case a: Axioms => a}.head
-    println(axioms)
+    val axioms = module.defs.collect { case a: Axioms => a}
+    val lemmas = module.defs.collect { case a: Lemmas => a}
+    val goals = module.defs.collect { case a: Goals => a}
+    assert(axioms(0).axioms(0) ==
+      TypingRule("simple", Seq(),
+        Seq(
+      ForallJudgment(
+      Seq(MetaVar("x")),
+      Seq(FunctionExpJudgment(
+        FunctionExpEq(
+          FunctionExpApp("succ", Seq(FunctionMeta(MetaVar("x")))),
+          FunctionExpApp("zero", Seq()))))))))
+
+    assert(lemmas(0).lemmas(0) ==
+      TypingRule("metavariables",
+        Seq(
+          FunctionExpJudgment(FunctionExpTrue),
+          ExistsJudgment(
+            Seq(MetaVar("x"), MetaVar("y")),
+            Seq(FunctionExpJudgment(
+              FunctionExpAnd(
+                FunctionExpNeq(FunctionMeta(MetaVar("x")), FunctionMeta(MetaVar("y"))),
+                FunctionExpEq(FunctionMeta(MetaVar("a")), FunctionMeta(MetaVar("x")))))))),
+        Seq(
+          ForallJudgment(
+            Seq(MetaVar("x")),
+            Seq(FunctionExpJudgment(
+              FunctionExpEq(
+                FunctionExpApp("succ", Seq(FunctionMeta(MetaVar("x")))),
+                FunctionMeta(MetaVar("z")))))))))
+
+    assert(goals(0).goals(0) ==
+      TypingRule("typing",
+        Seq(
+          TypingJudgmentSimple(FunctionMeta(MetaVar("z")), FunctionExpApp("atyp", Seq())),
+          TypingJudgment(FunctionExpApp("cempty", Seq()), FunctionMeta(MetaVar("a")), FunctionExpApp("atyp", Seq()))),
+        Seq(FunctionExpJudgment(FunctionExpTrue))))
   }
 }

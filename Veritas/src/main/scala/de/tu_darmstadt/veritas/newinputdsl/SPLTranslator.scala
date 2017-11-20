@@ -13,8 +13,14 @@ trait DomainSpecificKnowledge {
 }
 
 class SPLTranslator {
+  var adts: Map[Defn.Trait, Seq[Defn.Class]] = Map()
   def translate(sourceFile: File): Module = {
-    val parsedSource = sourceFile.parse[Source]
+    val sourceString = scala.io.Source.fromFile(sourceFile).mkString("")
+    translate(sourceString)
+  }
+
+  def translate(sourceString: String): Module = {
+    val parsedSource = sourceString.parse[Source]
     parsedSource.toEither match {
       case Left(error) => throw error.details
       case Right(source) =>
@@ -29,12 +35,12 @@ class SPLTranslator {
     }
   }
 
-  def collectTopLevelObject(source: Source): Option[Defn.Object] = source.collect {
+  private def collectTopLevelObject(source: Source): Option[Defn.Object] = source.collect {
     case o: Defn.Object => o
   }.headOption
 
   // TODO see how we could track where the error occured
-  def translateObject(o: Defn.Object): Module = {
+  private def translateObject(o: Defn.Object): Module = {
     // check if it extends SPLSpecification
     if (o.templ.inits.nonEmpty && o.templ.inits.head.tpe.toString == "SPLSpecification") {
       val moduleName = o.name.value
@@ -44,8 +50,8 @@ class SPLTranslator {
       throw new IllegalArgumentException("Object does not inherit from SPLSpecification")
   }
 
-  def translateStats(stats: Seq[Stat]): Seq[ModuleDef] = {
-    val adts = collectADTs(stats)
+  private def translateStats(stats: Seq[Stat]): Seq[ModuleDef] = {
+    adts = collectADTs(stats)
     val translatedDataTypes = adts.map { case (base, cases) => translateADT(base, cases) }
     val functions = collectFunctions(stats)
     val translatedFunctions = functions.map { translateFunction }
@@ -62,7 +68,7 @@ class SPLTranslator {
       Seq(Goals(translatedGoals, None))
   }
 
-  def collectADTs(parsed: Seq[Stat]): Map[Defn.Trait, Seq[Defn.Class]] = {
+  private def collectADTs(parsed: Seq[Stat]): Map[Defn.Trait, Seq[Defn.Class]] = {
     val caseClasses = collectCaseClasses(parsed)
     val traits = collectBaseTraits(parsed)
     traits.map { tr =>
@@ -73,17 +79,17 @@ class SPLTranslator {
     }.toMap
   }
 
-  def collectCaseClasses(parsed: Seq[Stat]): Seq[Defn.Class] = parsed.collect {
+  private def collectCaseClasses(parsed: Seq[Stat]): Seq[Defn.Class] = parsed.collect {
     case cc: Defn.Class if cc.mods.head.is[Mod.Case] => cc
   }
 
-  def collectBaseTraits(parsed: Seq[Stat]): Seq[Defn.Trait] = parsed.collect {
+  private def collectBaseTraits(parsed: Seq[Stat]): Seq[Defn.Trait] = parsed.collect {
     case tr: Defn.Trait => tr }.filterNot { tr =>
     containsAnnotation(tr.mods, "Local")
   }
 
   // check if a case class has no defined superclass or a superclass is not a within the object defined trait
-  def findIllegalCaseClasses(parsed: Seq[Stat]): Boolean = {
+  private def findIllegalCaseClasses(parsed: Seq[Stat]): Boolean = {
     val baseTraits = collectBaseTraits(parsed)
     val caseClasses = collectCaseClasses(parsed)
 
@@ -96,10 +102,9 @@ class SPLTranslator {
     noSuperClass || noBaseTraitSuperClass
   }
 
-  def translateADT(base: Defn.Trait, cases: Seq[Defn.Class]): DataType = {
+  private def translateADT(base: Defn.Trait, cases: Seq[Defn.Class]): DataType = {
     val open = isOpen(base)
     val name = base.name.value
-    // TODO check that basetrait inherits from Expression, Context or Domain
     val superclasses = base.templ.inits.map { _.tpe.toString }
     if (!checkBaseTraitSuperType(superclasses))
       throw new IllegalArgumentException("Base trait of abstract data type does not extend from Expression, Context, Typ")
@@ -109,20 +114,20 @@ class SPLTranslator {
     DataType(open, name, constrs)
   }
 
-  def checkBaseTraitSuperType(supertypes: Seq[String]): Boolean = supertypes.forall(!_.contains(SPLTranslator.predefTraits))
+  private def checkBaseTraitSuperType(supertypes: Seq[String]): Boolean = supertypes.forall(!_.contains(SPLTranslator.predefTraits))
 
-  def isOpen(tr: Defn.Trait): Boolean = {
+  private def isOpen(tr: Defn.Trait): Boolean = {
     containsAnnotation(tr.mods, "Open")
   }
 
-  def containsAnnotation(mods: Seq[Mod], annotation: String): Boolean = {
+  private def containsAnnotation(mods: Seq[Mod], annotation: String): Boolean = {
     val annotations = mods.collect {
       case annot: Mod.Annot => annot
     }
     annotations.exists { _.init.tpe.toString == annotation }
   }
 
-  def translateCaseClass(cas: Defn.Class): DataTypeConstructor = {
+  private def translateCaseClass(cas: Defn.Class): DataTypeConstructor = {
     val name = cas.name.value
     // always one parameterlist because it is case class and has to have one
     if (cas.tparams.nonEmpty)
@@ -131,20 +136,17 @@ class SPLTranslator {
     // TODO: needs to be a trait which was defined in the top level object
     if (cas.templ.inits.isEmpty)
       throw new IllegalArgumentException("The case class has no base trait and therefore does not belong to an abstract datatype definition")
-    val inits = cas.templ.inits.map { _.tpe.toString }
-    if (inits.contains("Expression", "Context", "Typ"))
-      throw new IllegalArgumentException("The case class has no base trait and therefore does not belong to an abstract datatype definition")
     val sortRefs = correctParamList(cas.ctor.paramss.head)
     DataTypeConstructor(name, sortRefs)
   }
 
-  def collectFunctions(parsed: Seq[Stat]): Seq[Defn.Def] =
+  private def collectFunctions(parsed: Seq[Stat]): Seq[Defn.Def] =
     parsed.collect {
       // has no goal, axiom, lemma annotation
       case fn: Defn.Def if fn.mods.isEmpty => fn
     }
 
-  def translateFunction(fn: Defn.Def): FunctionDef = {
+  private def translateFunction(fn: Defn.Def): FunctionDef = {
     // decltype has to be given
     if (fn.decltpe.isEmpty)
       throw new IllegalArgumentException("The return type of a function has to be explicitly defined")
@@ -161,12 +163,12 @@ class SPLTranslator {
     FunctionDef(signature, equations)
   }
 
-  def translateFunctionSignature(name: Term.Name, params: Seq[Term.Param], returnType: Type): FunctionSig = {
+  private def translateFunctionSignature(name: Term.Name, params: Seq[Term.Param], returnType: Type): FunctionSig = {
     val sortRefs = correctParamList(params)
     FunctionSig(name.value, sortRefs, SortRef(returnType.toString()))
   }
 
-  def correctParamList(params: Seq[Term.Param]): Seq[SortRef] = {
+  private def correctParamList(params: Seq[Term.Param]): Seq[SortRef] = {
     if (params.exists(_.decltpe.isEmpty))
       throw new IllegalArgumentException("")
     val sortRefs = params.map { param =>
@@ -175,17 +177,18 @@ class SPLTranslator {
     sortRefs
   }
 
-  def translateCase(funName: String, cas: Case): FunctionEq = {
+  private def translateCase(funName: String, cas: Case): FunctionEq = {
     val patterns = translateCasePattern(cas.pat)
     val funTranslator = FunctionTranslator(Seq())
     val body = funTranslator.translateExp(cas.body)
     FunctionEq(funName, patterns, body)
   }
 
-  def translateCasePattern(pat: Pat): Seq[FunctionPattern] = {
-    // TODO do i need to check that only constructos of our adts are used?
+  private def translateCasePattern(pat: Pat): Seq[FunctionPattern] = {
     pat match {
       case Pat.Extract(term, pattern) =>
+        if (!onlySelfDefinedCotrsUsed(term.toString))
+          throw new IllegalArgumentException("Only constructors of case classes defined within the object are allowed")
         val args = pattern.map { translateInnerCasePattern }
         Seq(FunctionPatApp(term.toString, args))
       case Pat.Tuple(pattern) => pattern.map { translateInnerCasePattern }
@@ -194,29 +197,36 @@ class SPLTranslator {
     }
   }
 
-  def translateInnerCasePattern(pat: Pat): FunctionPattern = {
-    // TODO do i need to check that only constructos of our adts are used?
+  private def onlySelfDefinedCotrsUsed(name: String): Boolean = {
+    adts.exists { case (base, cotrs) =>
+        cotrs.exists { _.name.value == name}
+    }
+  }
+
+  private def translateInnerCasePattern(pat: Pat): FunctionPattern = {
     pat match {
       case Pat.Extract(term, pattern) =>
         val args = pattern.map { translateInnerCasePattern }
+        if (!onlySelfDefinedCotrsUsed(term.toString))
+          throw new IllegalArgumentException("Only constructors of case classes defined within the object are allowed")
         FunctionPatApp(term.toString, args)
       case Pat.Var(name) => FunctionPatVar(name.value)
       case _ => throw new IllegalArgumentException("Other pattern than application or variable is used")
     }
   }
 
-  def collectAxioms(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Axiom")
-  def collectLemmas(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Lemma")
-  def collectGoals(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Goal")
+  private def collectAxioms(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Axiom")
+  private def collectLemmas(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Lemma")
+  private def collectGoals(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Goal")
 
-  def collectFunctionAnnotatedWith(parsed: Seq[Stat], annotation: String): Seq[Defn.Def] = parsed.collect {
+  private def collectFunctionAnnotatedWith(parsed: Seq[Stat], annotation: String): Seq[Defn.Def] = parsed.collect {
     case fn: Defn.Def => fn
   }.filter { fn =>
     val annots = fn.mods.collect{ case anot: Mod.Annot if anot.init.tpe.toString == annotation => anot}
     annots.nonEmpty
   }
 
-  def translateEnsuringFunction(fn: Defn.Def): TypingRule = {
+  private def translateEnsuringFunction(fn: Defn.Def): TypingRule = {
     if (fn.decltpe.isEmpty)
       throw new IllegalArgumentException("The return type of a function has to be explicitly defined")
     if (fn.tparams.nonEmpty)
@@ -233,17 +243,17 @@ class SPLTranslator {
     }
   }
 
-  def translateJudgmentBlock(body: Term)(implicit metaVars: Seq[String] = Seq()): Seq[TypingRuleJudgment] = body match {
+  private def translateJudgmentBlock(body: Term)(implicit metaVars: Seq[String] = Seq()): Seq[TypingRuleJudgment] = body match {
     case Term.Block(inner) => inner.map { translateRequire(_)(metaVars) }
     case _ => throw new IllegalArgumentException("")
   }
 
-  def translateRequire(stat: Stat)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = stat match {
+  private def translateRequire(stat: Stat)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = stat match {
     case Term.Apply(name, arg::Nil) if name.toString == "require" => translateTypingRule(arg)(metaVars)
     case _ => throw new IllegalArgumentException("Inside Axioms/Lemmas/Goals only require statements can be used")
   }
 
-  def translateTypingRule(term: Term)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = {
+  private def translateTypingRule(term: Term)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = {
     val funTranslator = FunctionTranslator(metaVars)
     term match {
       case Lit.Boolean(true) => FunctionExpJudgment(FunctionExpTrue)
@@ -269,7 +279,7 @@ class SPLTranslator {
     }
   }
 
-  def translateQuantifiedExpr(term: Term)(implicit metavars: Seq[String] = Seq()): (Seq[MetaVar], TypingRuleJudgment) = term match {
+  private def translateQuantifiedExpr(term: Term)(implicit metavars: Seq[String] = Seq()): (Seq[MetaVar], TypingRuleJudgment) = term match {
     case Term.Function(params, body) =>
       val quantifiedvars = params.map { p => MetaVar(p.name.value) }
       val quantifiednames = quantifiedvars.map {_.name}
@@ -277,11 +287,11 @@ class SPLTranslator {
       (quantifiedvars, FunctionExpJudgment(funTranslator.translateExp(body)))
   }
 
-  def collectLocalBlocks(parsed: Seq[Stat]): Seq[Defn.Trait] = parsed.collect {
+  private def collectLocalBlocks(parsed: Seq[Stat]): Seq[Defn.Trait] = parsed.collect {
     case tr: Defn.Trait if containsAnnotation(tr.mods, "Local") => tr
   }
 
-  def translateLocal(block: Defn.Trait): Local = {
+  private def translateLocal(block: Defn.Trait): Local = {
     // TODO: what do we need to check for?
     if(block.templ.inits.nonEmpty)
       throw new IllegalArgumentException("A local block can not extend another trait")
@@ -290,7 +300,7 @@ class SPLTranslator {
     Local(translateStats(block.templ.stats) ++ translatedValBlocks)
   }
 
-  def collectValBlocks(stats: Seq[Stat]): Seq[(Seq[Decl.Val], Boolean)] = {
+  private def collectValBlocks(stats: Seq[Stat]): Seq[(Seq[Decl.Val], Boolean)] = {
     val result = ListBuffer[(ListBuffer[Decl.Val], Boolean)]()
     stats.foreach {
       case _: Defn.Val => throw new IllegalArgumentException("Defintion of vals are not allowed")
@@ -307,10 +317,10 @@ class SPLTranslator {
     result.toList.map { block => (block._1.toList, block._2) }
   }
 
-  def translateConstantBlock(vals: Seq[Decl.Val], different: Boolean): Consts =
+  private def translateConstantBlock(vals: Seq[Decl.Val], different: Boolean): Consts =
     Consts(vals.map { translateConstant }, different)
 
-  def translateConstant(v: Decl.Val): ConstDecl = {
+  private def translateConstant(v: Decl.Val): ConstDecl = {
     val constName = v.pats match {
       case Pat.Var(name) => name.value
       case _ => throw new IllegalArgumentException("Another pattern than simple variable assignment was used")
@@ -321,9 +331,10 @@ class SPLTranslator {
 
 object SPLTranslator {
   val predefTraits = Seq("Expression", "Context", "Typ")
+
+  val predefTypes = Seq("Bool", "iType")
 }
 
-// base trait that is able to translate common structures of function exp
 case class FunctionTranslator(metavars: Seq[String]) {
 
   def translateExpMeta(term: Term): FunctionExpMeta = term match {
@@ -346,15 +357,15 @@ case class FunctionTranslator(metavars: Seq[String]) {
     case _ => throw new IllegalArgumentException("")
   }
 
-  def translateIf(cond: Term, then: Term, els: Term): FunctionExp =
+  private def translateIf(cond: Term, then: Term, els: Term): FunctionExp =
     FunctionExpIf(translateExp(cond), translateExpMeta(then), translateExpMeta(els))
 
-  def translateApply(name: Term, args: Seq[Term]): FunctionExp = {
+  private def translateApply(name: Term, args: Seq[Term]): FunctionExp = {
     val transArgs = args.map { translateExpMeta }
     FunctionExpApp(name.toString, transArgs)
   }
 
-  def translateBlock(stats: Seq[Stat]): FunctionExpLet = {
+  private def translateBlock(stats: Seq[Stat]): FunctionExpLet = {
     val bindings = stats.init.map {
       case Defn.Val(Seq(), Seq(Pat.Var(name)), None, rhs) =>
         (name, translateExpMeta(rhs))
@@ -372,7 +383,7 @@ case class FunctionTranslator(metavars: Seq[String]) {
   }
 
   // assume that we have left assoc operators (&& ||) in spoofax it was right but that seems counterintuitive
-  def translateApplyInfix(lhs: Term, name: Term.Name, rhs: Term): FunctionExp = name.value match {
+  private def translateApplyInfix(lhs: Term, name: Term.Name, rhs: Term): FunctionExp = name.value match {
     case "==" => FunctionExpEq(translateExpMeta(lhs), translateExpMeta(rhs))
     case "!=" => FunctionExpNeq(translateExpMeta(lhs), translateExpMeta(rhs))
     case "&&" => FunctionExpAnd(translateExp(lhs), translateExp(rhs))
