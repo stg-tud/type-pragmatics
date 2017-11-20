@@ -59,12 +59,12 @@ class SPLTranslatorTest extends FunSuite {
     }
   }
 
+  val zeroExp = FunctionExpApp("zero", Seq())
   test("translate functions correctly") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "FunctionCorrect.scala")
     val module = translator.translate(file)
     val fns = module.defs.collect { case f: Functions => f}.head
-    val zeroExp = FunctionExpApp("zero", Seq())
     val zeroPat = FunctionPatApp("zero", Seq())
     assert(fns.funcs(0) ==
       FunctionDef(
@@ -175,6 +175,12 @@ class SPLTranslatorTest extends FunSuite {
         FunctionExpEq(
           FunctionExpApp("succ", Seq(FunctionMeta(MetaVar("x")))),
           FunctionExpApp("zero", Seq()))))))))
+
+    assert(axioms(0).axioms(1) ==
+      TypingRule("orcase", Seq(),
+        Seq(OrJudgment(Seq(
+          Seq(FunctionExpJudgment(FunctionExpEq(zeroExp, zeroExp))),
+          Seq(FunctionExpJudgment(FunctionExpEq(zeroExp, zeroExp))))))))
 
     assert(lemmas(0).lemmas(0) ==
       TypingRule("metavariables",

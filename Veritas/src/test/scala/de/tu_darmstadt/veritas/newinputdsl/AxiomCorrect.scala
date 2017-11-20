@@ -19,6 +19,10 @@ object AxiomCorrect extends SPLSpecification {
   def simple(): Unit = {
   }  ensuring (forall((x: Num) => succ(x) == zero()))
 
+  @Axiom
+  def orcase(): Unit = {
+  } ensuring ((zero() == zero()) || (zero() == zero()))
+
   @Lemma
   def metavariables(z: Num, a: Num): Unit = {
     require(true)

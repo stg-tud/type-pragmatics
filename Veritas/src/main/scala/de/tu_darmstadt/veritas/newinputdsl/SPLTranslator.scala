@@ -258,6 +258,7 @@ class SPLTranslator {
     term match {
       case Lit.Boolean(true) => FunctionExpJudgment(FunctionExpTrue)
       case Lit.Boolean(false) => FunctionExpJudgment(FunctionExpFalse)
+        // TODO support multiple bodies? Maybe via &&
       case Term.Apply(name, arg::Nil)  if name.toString == "forall" =>
         val (vars, body) = translateQuantifiedExpr(arg)
         ForallJudgment(vars, Seq(body))
@@ -273,10 +274,25 @@ class SPLTranslator {
               TypingJudgment(funTranslator.translateExpMeta(lhs), funTranslator.translateExpMeta(inner), funTranslator.translateExpMeta(rhs))
             case _ => throw new IllegalArgumentException("")
           }
-          case "||" => throw new IllegalArgumentException("Needs to be implemented")// OrJudgment
-          case _ => throw new IllegalArgumentException("Unsupported infix operation")
+          case "||" => translateOrEnsuring(lhs, arg, metaVars)
+          case op => throw new IllegalArgumentException(s"Unsupported infix operation $op inside the ensuring statement")
         }
     }
+  }
+
+  private def translateOrEnsuring(lhs: Term, rhs: Term, metavars: Seq[String]): OrJudgment = {
+    val cases = ListBuffer[Seq[TypingRuleJudgment]]()
+    def process(term: Term): Unit = term match {
+      case Term.ApplyInfix(lhs, Term.Name("||"), Nil, rhs::Nil) =>
+        process(lhs)
+        process(rhs)
+      case _ =>
+        val funTranslator = FunctionTranslator(metavars)
+        cases += Seq(FunctionExpJudgment(funTranslator.translateExp(term)))
+    }
+    process(lhs)
+    process(rhs)
+    OrJudgment(cases)
   }
 
   private def translateQuantifiedExpr(term: Term)(implicit metavars: Seq[String] = Seq()): (Seq[MetaVar], TypingRuleJudgment) = term match {
