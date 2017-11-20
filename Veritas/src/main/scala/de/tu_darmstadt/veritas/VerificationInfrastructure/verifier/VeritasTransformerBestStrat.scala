@@ -68,7 +68,7 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
     Problem -> Problem.All))
 
   // try to retrieve a TypingRule construct from a given VeritasFormula
-  private def retrieveTypingRule(f: VeritasFormula): Option[TypingRule] = f match {
+  private def retrieveTypingRule(f: VeritasConstruct): Option[TypingRule] = f match {
     case t@TypingRule(_, _, _) => Some(t)
     case tj: TypingRuleJudgment => Some(TypingRule("wrappedTypingRuleJdgm", Seq(), Seq(tj)))
     // above covers all cases such as OrJudgment, NotJudgment, ForallJudgment...
@@ -244,8 +244,8 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         //fix all fixed variables from fvs_intersection, fixed variables from fvs_childrenonly have to be universally quantified
         val assmAxioms: Iterable[Axioms] =
         for ((el, assm) <- assumptions) yield
-          assm match {
-            case Goals(ax@Seq(tr@TypingRule(name, prems, conseqs)), _) =>
+          retrieveTypingRule(assm) match {
+            case Some(tr@TypingRule(name, prems, conseqs)) =>
               if (el.propagateInfoList.isEmpty)
               //no additional premises necessary, only fix fvs in fvs_intersection
                 Axioms(Seq(fixMVsinVC[TypingRule](tr, fvs_intersection)))

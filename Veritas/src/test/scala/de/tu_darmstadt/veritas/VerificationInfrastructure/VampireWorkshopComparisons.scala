@@ -3,7 +3,6 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import org.scalatest.FunSuite
 import java.io.File
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.SQLMockTactics.MockInduction
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
 import de.tu_darmstadt.veritas.backend.ast._
@@ -32,8 +31,8 @@ class VampireWorkshopComparisons extends FunSuite {
   val defaultlong_timeout = 120
   val unsuccessful_timeout = 1
 
-  val timeout_queue = Seq(5, 10, 30, 90, 120)
-  //val timeout_queue = Seq(1)
+  //val timeout_queue = Seq(5, 10, 30, 90, 120)
+  val timeout_queue = Seq(1)
 
   def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
 
@@ -50,67 +49,67 @@ class VampireWorkshopComparisons extends FunSuite {
   def makeCustomVampireQueue(logic: String): Map[Int, Verifier[VeritasConstruct, VeritasFormula]] =
     (for (t <- timeout_queue) yield (t -> makeCustomVampire(t, logic))).toMap
 
-//  test("Compare verification of SQL progress proof goals") {
-//    //construct a new test database with SQL progress proof graph
-//    val file = new File("SQLProgressProof-comparison")
-//    if (file.exists()) recursivedelete(file)
-//    if (!file.mkdir()) sys.error("Could not create new store for SQLSoundnessProofGraph-comparison.")
-//
-//    val SQLPG = new SQLSoundnessProofGraph(file)
-//    val pg = SQLPG.g //actual ProofGraphXodus instance
-//
-//
-//    val noinductobls = pg.obligationDFS() filter (o => !pg.appliedStep(o).get.tactic.isInstanceOf[MockInduction])
-//    val solveps = for (obl <- noinductobls) pg.appliedStep(obl)
-//
-//    println("Comparison results: ")
-//    println("Goalname; Vampire 4.1 FOF; Vampire 4.1 TFF; Vampire 4.1 tar SMTLIB; VampireZ3 4.1 tar SMTLIB")
-//
-//    def printStepResult(res: pg.StepResult): String =
-//      res.status match {
-//        case Finished(stat, ver) =>
-//          stat match {
-//            case Proved(ATPResultDetails(_, _, _, _, Some(t))) => "Proved (" + t + "s)."
-//            case Proved(_) => "Proved (unknown prover time)."
-//            case Disproved(_) => "Disproved."
-//            case Inconclusive(_) => "Inconclusive."
-//            case ProverFailure(_) => "Failure."
-//          }
-//        case Unknown(_) => "Unknown"
-//        case VerifierFailure(err, _) => "VerifierFailure :" + err
-//      }
-//
-//    def tryVerifyingWithIncreasingTimeouts(ps: pg.ProofStep, vers: Map[Int,Verifier[VeritasConstruct, VeritasFormula]]): pg.StepResult = {
-//      lazy val results =
-//        for ((t, ver) <- vers) yield {
-//          pg.verifyProofStep(ps, ver, Some(s"VampireWorkshopComparisonFiles/_TEST/${ver.desc}-$t-"))
-//        }
-//      val maybefinal = results.find { sr =>
-//        sr.status match {
-//          case Finished(Proved(_), _) => true
-//          case _ => false
-//        }
-//      }
-//      maybefinal.getOrElse(results.last)
-//    }
-//
-//    for (obl <- noinductobls) {
-//      val ps = pg.appliedStep(obl).get
-//      val goalname = extractGoalName(obl.goal)
-//      val vampire_4_1_fof = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireQueue("fof"))
-//      val vampire_4_1_tff = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireQueue("tff"))
-//      val vampire_4_1_tar = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireTarQueue)
-//      val vampire_4_1_Z3_tar = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireZ3Queue)
-//
-//
-//      val vampire_4_1_fof_res = printStepResult(vampire_4_1_fof)
-//      val vampire_4_1_tff_res = printStepResult(vampire_4_1_tff)
-//      val vampire_4_1_tar_res = printStepResult(vampire_4_1_tar)
-//      val vampire_4_1_Z3_tar_res = printStepResult(vampire_4_1_Z3_tar)
-//
-//      println(s"$goalname; $vampire_4_1_fof_res; $vampire_4_1_tff_res; $vampire_4_1_tar_res; $vampire_4_1_Z3_tar_res")
-//    }
-//  }
+  test("Compare verification of SQL progress proof goals") {
+    //construct a new test database with SQL progress proof graph
+    val file = new File("SQLProgressProof-comparison")
+    if (file.exists()) recursivedelete(file)
+    if (!file.mkdir()) sys.error("Could not create new store for SQLSoundnessProofGraph-comparison.")
+
+    val SQLPG = new SQLSoundnessProofGraph(file)
+    val pg = SQLPG.g //actual ProofGraphXodus instance
+
+
+    val obls = pg.obligationDFS()
+    val solveps = for (obl <- obls) pg.appliedStep(obl)
+
+    println("Comparison results: ")
+    println("Goalname; Vampire 4.1 FOF; Vampire 4.1 TFF; Vampire 4.1 tar SMTLIB; VampireZ3 4.1 tar SMTLIB")
+
+    def printStepResult(res: pg.StepResult): String =
+      res.status match {
+        case Finished(stat, ver) =>
+          stat match {
+            case Proved(ATPResultDetails(_, _, _, _, Some(t))) => "Proved (" + t + "s)."
+            case Proved(_) => "Proved (unknown prover time)."
+            case Disproved(_) => "Disproved."
+            case Inconclusive(_) => "Inconclusive."
+            case ProverFailure(_) => "Failure."
+          }
+        case Unknown(_) => "Unknown"
+        case VerifierFailure(err, _) => "VerifierFailure :" + err
+      }
+
+    def tryVerifyingWithIncreasingTimeouts(ps: pg.ProofStep, vers: Map[Int,Verifier[VeritasConstruct, VeritasFormula]]): pg.StepResult = {
+      lazy val results =
+        for ((t, ver) <- vers) yield {
+          pg.verifyProofStep(ps, ver, Some(s"VampireWorkshopComparisonFiles/_TEST/${ver.desc}-$t-"))
+        }
+      val maybefinal = results.find { sr =>
+        sr.status match {
+          case Finished(Proved(_), _) => true
+          case _ => false
+        }
+      }
+      maybefinal.getOrElse(results.last)
+    }
+
+    for (obl <- obls) {
+      val ps = pg.appliedStep(obl).get
+      val goalname = extractGoalName(obl.goal)
+      val vampire_4_1_fof = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireQueue("fof"))
+      val vampire_4_1_tff = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireQueue("tff"))
+      val vampire_4_1_tar = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireTarQueue)
+      val vampire_4_1_Z3_tar = tryVerifyingWithIncreasingTimeouts(ps, makeCustomVampireZ3Queue)
+
+
+      val vampire_4_1_fof_res = printStepResult(vampire_4_1_fof)
+      val vampire_4_1_tff_res = printStepResult(vampire_4_1_tff)
+      val vampire_4_1_tar_res = printStepResult(vampire_4_1_tar)
+      val vampire_4_1_Z3_tar_res = printStepResult(vampire_4_1_Z3_tar)
+
+      println(s"$goalname; $vampire_4_1_fof_res; $vampire_4_1_tff_res; $vampire_4_1_tar_res; $vampire_4_1_Z3_tar_res")
+    }
+  }
 
   test("Visualize different graphs (fof)") {
     //construct a new test database with SQL progress proof graph
@@ -131,7 +130,7 @@ class VampireWorkshopComparisons extends FunSuite {
 
     visualizeGraph("SQLProgressNothingVerified.png")
 
-    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampire(1, "fof")))
+    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampire(90, "fof")))
     visualizeGraph("SQLProgressFOF.png")
 
   }
@@ -154,7 +153,7 @@ class VampireWorkshopComparisons extends FunSuite {
     }
 
 
-    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampire(1, "tff")))
+    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampire(90, "tff")))
     visualizeGraph("SQLProgressTFF.png")
 
   }
@@ -176,7 +175,7 @@ class VampireWorkshopComparisons extends FunSuite {
       Dot(pg, graphfile)
     }
 
-    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampireTar(1)))
+    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampireTar(90)))
     visualizeGraph("SQLProgressTAR.png")
 
   }
@@ -198,14 +197,8 @@ class VampireWorkshopComparisons extends FunSuite {
       Dot(pg, graphfile)
     }
 
-    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampireZ3(1)))
+    pg.proofstepsDFS() map (ps => pg.verifyProofStep(ps, makeCustomVampireZ3(90)))
     visualizeGraph("SQLProgressZ3TAR.png")
 
   }
-
-
-
-
-
-
 }

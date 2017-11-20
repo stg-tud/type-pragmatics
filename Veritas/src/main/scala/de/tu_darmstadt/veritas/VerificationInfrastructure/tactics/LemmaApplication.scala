@@ -37,4 +37,10 @@ case class LemmaApplication[Defs, Formulae <: Defs](lemmas: Seq[Formulae], spec:
       (lemmaobl, lemmaedge)
     }
   }
+
+  def selectLemma[Obligation](name: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
+    required.find(_._2.asInstanceOf[LemmaApplicationStep[Formulae]].lemmaname == name) match {
+      case Some((obl, edge)) => obl
+      case None => sys.error(s"Lemma to be selected not found: $name")
+    }
 }
