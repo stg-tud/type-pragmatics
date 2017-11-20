@@ -35,12 +35,16 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
   private def cleanLabel(s: String): String = s.replaceAll("( |\\.|\\$|@|-)", "")
 
   private def colorObl(obl: graph.Obligation): String = {
-    val ps = graph.appliedStep(obl).get
+    val ps = fromObligation(obl)
     val result = graph.verifiedBy(ps)
+    val tuples = fromProofstep.get(ps) match {
+      case Some(t) => t
+      case None => sys.error(s"Could not find key in 'fromProofstep' map: $ps")
+    }
     val goalVerified =
       result.nonEmpty &&
         result.get.status.isVerified &&
-        ps.tactic.allRequiredOblsVerified(graph)(obl, fromProofstep(ps))
+        ps.tactic.allRequiredOblsVerified(graph)(obl, tuples)
     if (goalVerified)
       "green"
     else
