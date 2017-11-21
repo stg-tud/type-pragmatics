@@ -166,20 +166,25 @@ class SPLTranslatorTest extends FunSuite {
     val lemmas = module.defs.collect { case a: Lemmas => a}
     val goals = module.defs.collect { case a: Goals => a}
     assert(axioms(0).axioms(0) ==
-      TypingRule("simple", Seq(),
+      TypingRule("simple",
         Seq(
-      ForallJudgment(
-      Seq(MetaVar("x")),
-      Seq(FunctionExpJudgment(
-        FunctionExpEq(
-          FunctionExpApp("succ", Seq(FunctionMeta(MetaVar("x")))),
-          FunctionExpApp("zero", Seq()))))),
-        FunctionExpJudgment(FunctionExpTrue))))
+          FunctionExpJudgment(FunctionExpFalse),
+          FunctionExpJudgment(FunctionExpTrue)),
+        Seq(
+          ForallJudgment(
+          Seq(MetaVar("x")),
+          Seq(FunctionExpJudgment(
+            FunctionExpEq(
+              FunctionExpApp("succ", Seq(FunctionMeta(MetaVar("x")))),
+              FunctionExpApp("zero", Seq()))))),
+            FunctionExpJudgment(FunctionExpTrue))))
 
     assert(axioms(0).axioms(1) ==
       TypingRule("orcase", Seq(),
         Seq(OrJudgment(Seq(
-          Seq(FunctionExpJudgment(FunctionExpEq(zeroExp, zeroExp))),
+          Seq(
+            FunctionExpJudgment(FunctionExpEq(zeroExp, zeroExp)),
+            FunctionExpJudgment(FunctionExpEq(zeroExp, FunctionExpApp("succ", Seq(zeroExp))))),
           Seq(FunctionExpJudgment(FunctionExpEq(zeroExp, zeroExp))))))))
 
     assert(lemmas(0).lemmas(0) ==
@@ -188,10 +193,9 @@ class SPLTranslatorTest extends FunSuite {
           FunctionExpJudgment(FunctionExpTrue),
           ExistsJudgment(
             Seq(MetaVar("x"), MetaVar("y")),
-            Seq(FunctionExpJudgment(
-              FunctionExpAnd(
-                FunctionExpNeq(FunctionMeta(MetaVar("x")), FunctionMeta(MetaVar("y"))),
-                FunctionExpEq(FunctionMeta(MetaVar("a")), FunctionMeta(MetaVar("x")))))))),
+            Seq(
+              FunctionExpJudgment(FunctionExpNeq(FunctionMeta(MetaVar("x")), FunctionMeta(MetaVar("y")))),
+              FunctionExpJudgment(FunctionExpEq(FunctionMeta(MetaVar("a")), FunctionMeta(MetaVar("x"))))))),
         Seq(
           ForallJudgment(
             Seq(MetaVar("x")),

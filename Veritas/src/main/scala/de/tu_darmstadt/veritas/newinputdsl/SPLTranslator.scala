@@ -37,7 +37,6 @@ class SPLTranslator {
     case o: Defn.Object => o
   }.headOption
 
-  // TODO see how we could track where the error occured
   private def translateObject(o: Defn.Object): Module = {
     // check if it extends SPLSpecification
     if (o.templ.inits.nonEmpty && o.templ.inits.head.tpe.toString == "SPLSpecification") {
@@ -268,18 +267,25 @@ class SPLTranslator {
     case _ => Reporter().report("Inside Axioms/Lemmas/Goals only require statements can be used", stat.pos.startLine)
   }
 
+  private def translateTypingRuleJudgementSequence(term: Term)(implicit metavars: Seq[String] = Seq()): Seq[TypingRuleJudgment] = {
+    term match {
+      case Term.ApplyInfix(lhs, Term.Name("$$"), Nil, rhs::Nil) =>
+        translateTypingRuleJudgementSequence(lhs)(metavars) :+ translateTypingRule(rhs)(metavars)
+      case _ => Seq(translateTypingRule(term)(metavars))
+    }
+  }
+
   private def translateTypingRule(term: Term)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = {
     val funTranslator = FunctionTranslator(metaVars)
     term match {
       case Lit.Boolean(true) => FunctionExpJudgment(FunctionExpTrue)
       case Lit.Boolean(false) => FunctionExpJudgment(FunctionExpFalse)
-        // TODO support multiple bodies? Maybe via &&
       case Term.Apply(name, arg::Nil)  if name.toString == "forall" =>
-        val (vars, body) = translateQuantifiedExpr(arg)
-        ForallJudgment(vars, Seq(body))
+        val (vars, body) = translateQuantifiedExpr(arg)(metaVars)
+        ForallJudgment(vars, body)
       case Term.Apply(name, arg::Nil)  if name.toString == "exists" =>
-        val (vars, body) = translateQuantifiedExpr(arg)
-        ExistsJudgment(vars, Seq(body))
+        val (vars, body) = translateQuantifiedExpr(arg)(metaVars)
+        ExistsJudgment(vars, body)
       case Term.Apply(_, _) => FunctionExpJudgment(funTranslator.translateExp(term))
       case Term.ApplyInfix(lhs, name, Nil, arg::Nil) =>
         name.value match {
@@ -290,7 +296,8 @@ class SPLTranslator {
             case _ => Reporter().report("Invalid operator in typing statement", term.pos.startLine)
           }
           case "||" => translateOrEnsuring(lhs, arg, metaVars)
-          case op => Reporter().report(s"Unsupported infix operation $op inside the ensuring statement", term.pos.startLine)
+          case op =>
+            FunctionExpJudgment(funTranslator.translateExp(term))
         }
     }
   }
@@ -302,20 +309,18 @@ class SPLTranslator {
         process(l)
         process(r)
       case _ =>
-        val funTranslator = FunctionTranslator(metavars)
-        cases += Seq(FunctionExpJudgment(funTranslator.translateExp(term)))
+        cases += translateTypingRuleJudgementSequence(term)(metavars)
     }
     process(lhs)
     process(rhs)
     OrJudgment(cases)
   }
 
-  private def translateQuantifiedExpr(term: Term)(implicit metavars: Seq[String] = Seq()): (Seq[MetaVar], TypingRuleJudgment) = term match {
+  private def translateQuantifiedExpr(term: Term)(implicit metavars: Seq[String] = Seq()): (Seq[MetaVar], Seq[TypingRuleJudgment]) = term match {
     case Term.Function(params, body) =>
       val quantifiedvars = params.map { p => MetaVar(p.name.value) }
       val quantifiednames = quantifiedvars.map {_.name}
-      val funTranslator = FunctionTranslator(quantifiednames ++ metavars)
-      (quantifiedvars, FunctionExpJudgment(funTranslator.translateExp(body)))
+      (quantifiedvars, translateTypingRuleJudgementSequence(body)(quantifiednames ++ metavars))
   }
 
   private def collectLocalBlocks(parsed: Seq[Stat]): Seq[Defn.Trait] = parsed.collect {
@@ -367,4 +372,3 @@ object SPLTranslator {
 
   val predefTypes = Seq("Bool", "iType")
 }
-

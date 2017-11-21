@@ -17,7 +17,10 @@ trait SPLSpecification {
 
   implicit class _Boolean(lhs: Boolean) {
     def <==> (rhs: Boolean): Boolean = biimplication(lhs, rhs)
+    // TODO: need better notation maybe simple &&?
+    def $$ (rhs: Boolean): Boolean = lhs && rhs
   }
+
   def biimplication(lhs: Boolean, rhs: Boolean): Boolean = (!lhs || rhs) && (!rhs || lhs)
 
   // shortcomings: is not executable. But we dont even know yet what it means to have exectuable axioms / lemmas
