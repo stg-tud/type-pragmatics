@@ -8,12 +8,10 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 import scala.collection.mutable.ListBuffer
 import scala.meta._
 
-trait DomainSpecificKnowledge {
-  def simpleRecursiveFunctions(): Functions
-}
 
 class SPLTranslator {
   var adts: Map[Defn.Trait, Seq[Defn.Class]] = Map()
+
   def translate(sourceFile: File): Module = {
     val sourceString = scala.io.Source.fromFile(sourceFile).mkString("")
     translate(sourceString)
