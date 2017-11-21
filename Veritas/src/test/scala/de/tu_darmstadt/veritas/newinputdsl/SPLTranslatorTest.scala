@@ -207,4 +207,21 @@ class SPLTranslatorTest extends FunSuite {
           TypingJudgment(FunctionExpApp("cempty", Seq()), FunctionMeta(MetaVar("a")), FunctionExpApp("atyp", Seq()))),
         Seq(FunctionExpJudgment(FunctionExpTrue))))
   }
+
+  test("local block is correctly translated") {
+    val translator = new SPLTranslator
+    val file = new File(filesDir, "LocalCorrect.scala")
+    val module = translator.translate(file)
+    val locals = module.defs.collect { case l: Local => l }
+    assert(locals.head ==
+      Local(
+        Seq(
+          Functions(Seq()),
+          Axioms(Seq( TypingRule("non", Seq(), Seq(FunctionExpJudgment(FunctionExpTrue))))),
+          Lemmas(Seq(), None),
+          Goals(Seq(), None),
+          Consts(Seq(ConstDecl("a", SortRef("Num")), ConstDecl("b", SortRef("Num"))), false),
+          Consts(Seq(ConstDecl("c", SortRef("Num")), ConstDecl("d", SortRef("Num"))), true),
+          Consts(Seq(ConstDecl("e", SortRef("Num")), ConstDecl("f", SortRef("Num"))), false))))
+  }
 }

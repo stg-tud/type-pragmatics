@@ -44,8 +44,10 @@ class SPLTranslator {
     // check if it extends SPLSpecification
     if (o.templ.inits.nonEmpty && o.templ.inits.head.tpe.toString == "SPLSpecification") {
       val moduleName = o.name.value
+      val locals = collectLocalBlocks(o.templ.stats)
+      val transLocals = locals.map { translateLocal }
       val defs = translateStats(o.templ.stats)
-      Module(moduleName, Seq(), defs)
+      Module(moduleName, Seq(), defs ++ transLocals)
     } else
       throw new IllegalArgumentException("Object does not inherit from SPLSpecification")
   }
@@ -237,6 +239,7 @@ class SPLTranslator {
     fn.body match {
       case Term.ApplyInfix(lhs, name, nil, Seq(rhs)) if name.value == "ensuring" =>
         val premises = translateJudgmentBlock(lhs)(metaBindings)
+        // TODO: need support for multiple conclusions
         val conclusions = translateTypingRule(rhs)(metaBindings)
         TypingRule(fn.name.value, premises, Seq(conclusions))
       case _ => throw new IllegalArgumentException("Axioms/Lemmas and Goals need to have an ensuring clause")
@@ -321,12 +324,12 @@ class SPLTranslator {
     stats.foreach {
       case _: Defn.Val => throw new IllegalArgumentException("Defintion of vals are not allowed")
       case v: Decl.Val if containsAnnotation(v.mods, "Different") =>
-        result += ListBuffer[Decl.Val]() -> true
+        result += ListBuffer[Decl.Val](v) -> true
       case v: Decl.Val =>
-        if (result.last._2)
-          result.last._1 += v
+        if (result.isEmpty)
+          result += ListBuffer[Decl.Val](v) -> false
         else
-          result += ListBuffer[Decl.Val]() -> false
+          result.last._1 += v
       case _ =>
         result += ListBuffer[Decl.Val]() -> false
     }
@@ -337,7 +340,9 @@ class SPLTranslator {
     Consts(vals.map { translateConstant }, different)
 
   private def translateConstant(v: Decl.Val): ConstDecl = {
-    val constName = v.pats match {
+    if (v.pats.size > 1)
+      throw new IllegalArgumentException("Multiple variable declaration is not supported")
+    val constName = v.pats.head match {
       case Pat.Var(name) => name.value
       case _ => throw new IllegalArgumentException("Another pattern than simple variable assignment was used")
     }
