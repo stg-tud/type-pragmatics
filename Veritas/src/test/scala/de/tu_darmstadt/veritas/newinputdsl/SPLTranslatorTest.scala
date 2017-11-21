@@ -14,7 +14,6 @@ class SPLTranslatorTest extends FunSuite {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTCorrect.scala")
     val module = translator.translate(file)
-    println(module)
     assert(module.name == "ADTCorrect")
     assert(module.defs.head == DataType(true, "First", Seq()))
     assert(module.defs(1) == DataType(false, "Num", Seq(
@@ -30,7 +29,7 @@ class SPLTranslatorTest extends FunSuite {
   test("fail because trait has type parameter") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTFailTypeParams.scala")
-    assertThrows[IllegalArgumentException] {
+    assertThrows[SPLTranslationError] {
       translator.translate(file)
     }
   }
@@ -38,7 +37,7 @@ class SPLTranslatorTest extends FunSuite {
   test("fail because case class has type parameter") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTFailCaseClassTypeParams.scala")
-    assertThrows[IllegalArgumentException] {
+    assertThrows[SPLTranslationError] {
       translator.translate(file)
     }
   }
@@ -46,7 +45,7 @@ class SPLTranslatorTest extends FunSuite {
   test("fail because case class has no own defined base trait") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTFailCaseClassNoBaseTrait.scala")
-    assertThrows[IllegalArgumentException] {
+    assertThrows[SPLTranslationError] {
       translator.translate(file)
     }
   }
@@ -54,7 +53,7 @@ class SPLTranslatorTest extends FunSuite {
   test("fail because case class inherits from Expression") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "ADTFailCaseClassExpressionBase.scala")
-    assertThrows[IllegalArgumentException] {
+    assertThrows[SPLTranslationError] {
       translator.translate(file)
     }
   }
@@ -138,7 +137,7 @@ class SPLTranslatorTest extends FunSuite {
   test("fail because function definied within function") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "FunctionFailDefFunction.scala")
-    assertThrows[IllegalArgumentException] {
+    assertThrows[SPLTranslationError] {
       translator.translate(file)
     }
   }
@@ -146,7 +145,7 @@ class SPLTranslatorTest extends FunSuite {
   test("fail because function has type params") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "FunctionFailTypeParams.scala")
-    assertThrows[IllegalArgumentException] {
+    assertThrows[SPLTranslationError] {
       translator.translate(file)
     }
   }
@@ -154,7 +153,7 @@ class SPLTranslatorTest extends FunSuite {
   test("fail because top of function not match") {
     val translator = new SPLTranslator
     val file = new File(filesDir, "FunctionFailTopNotMatch.scala")
-    assertThrows[IllegalArgumentException] {
+    assertThrows[SPLTranslationError] {
       translator.translate(file)
     }
   }

@@ -21,7 +21,7 @@ case class FunctionTranslator(metavars: Seq[String]) {
     case Term.ApplyUnary(name, expr) =>
       if (name.value == "!")
         FunctionExpNot(translateExp(expr))
-      else throw new IllegalArgumentException("This unary operator is not supported")
+      else Reporter().report("This unary operator is not supported", term.pos.startLine)
     case Term.ApplyInfix(lhs, name, Nil, Seq(rhs)) => translateApplyInfix(lhs, name, rhs)
     case Term.Name(name) => FunctionExpVar(name)
     case _ => throw new IllegalArgumentException("")
@@ -39,11 +39,11 @@ case class FunctionTranslator(metavars: Seq[String]) {
     val bindings = stats.init.map {
       case Defn.Val(Seq(), Seq(Pat.Var(name)), None, rhs) =>
         (name, translateExpMeta(rhs))
-      case _ => throw new IllegalArgumentException("")
+      case v => Reporter().report("Found another statement than a definition of a val in the middle of a block", v.pos.startLine)
     }
     val in = stats.last match {
       case expr: Term => translateExpMeta(expr)
-      case _ => throw new IllegalArgumentException("Last term of block is not an expression")
+      case _ => Reporter().report("Last term of block is not an expression", stats.last.pos.startLine)
     }
     var let = in
     bindings.reverse.foreach { case (name, expr) =>
@@ -59,6 +59,6 @@ case class FunctionTranslator(metavars: Seq[String]) {
     case "&&" => FunctionExpAnd(translateExp(lhs), translateExp(rhs))
     case "||" => FunctionExpOr(translateExp(lhs), translateExp(rhs))
     case "<==>" => FunctionExpBiImpl(translateExp(lhs), translateExp(rhs))
-    case _ => throw new IllegalArgumentException("Unsupported operator was used")
+    case op => Reporter().report(s"Unsupported operator $op was used", lhs.pos.startLine)
   }
 }

@@ -28,9 +28,9 @@ class SPLTranslator {
           case Some(o) =>
             val illegalCaseClasses = findIllegalCaseClasses(o.templ.stats)
             if (illegalCaseClasses)
-              throw new IllegalArgumentException("A case class has no base trait or does not inherit from a trait that was defined with the object")
+              Reporter().report("A case class has no base trait or does not inherit from a trait that was defined with the object")
             translateObject(o)
-          case None => throw new IllegalArgumentException("Toplevel Construct is not an object")
+          case None => Reporter().report("The top level construct is not an object")
         }
     }
   }
@@ -48,8 +48,7 @@ class SPLTranslator {
       val transLocals = locals.map { translateLocal }
       val defs = translateStats(o.templ.stats)
       Module(moduleName, Seq(), defs ++ transLocals)
-    } else
-      throw new IllegalArgumentException("Object does not inherit from SPLSpecification")
+    } else Reporter().report(s"Object ${o.name.value} does not inherit from the trait SPLSpecification")
   }
 
   private def translateStats(stats: Seq[Stat]): Seq[ModuleDef] = {
@@ -109,9 +108,9 @@ class SPLTranslator {
     val name = base.name.value
     val superclasses = base.templ.inits.map { _.tpe.toString }
     if (!checkBaseTraitSuperType(superclasses))
-      throw new IllegalArgumentException("Base trait of abstract data type does not extend from Expression, Context, Typ")
+      Reporter().report("Base trait of abstract data type does not extend from Expression, Context, Typ", base.pos.startLine)
     if (base.tparams.nonEmpty)
-      throw new IllegalArgumentException("Type Parameters are not allowed")
+      Reporter().report("Type Parameters are not allowed", base.pos.startLine)
     val constrs = cases.map { translateCaseClass }
     DataType(open, name, constrs)
   }
@@ -133,11 +132,11 @@ class SPLTranslator {
     val name = cas.name.value
     // always one parameterlist because it is case class and has to have one
     if (cas.tparams.nonEmpty)
-      throw new IllegalArgumentException("Type Parameters are not allowed")
+      Reporter().report("Type Parameters are not allowed", cas.pos.startLine)
     // has to have a superclass which is not Expression, Context or Typ
     // TODO: needs to be a trait which was defined in the top level object
     if (cas.templ.inits.isEmpty)
-      throw new IllegalArgumentException("The case class has no base trait and therefore does not belong to an abstract datatype definition")
+      Reporter().report("The case class has no base trait and therefore does not belong to an abstract datatype definition", cas.pos.startLine)
     val sortRefs = correctParamList(cas.ctor.paramss.head)
     DataTypeConstructor(name, sortRefs)
   }
@@ -151,16 +150,16 @@ class SPLTranslator {
   private def translateFunction(fn: Defn.Def): FunctionDef = {
     // decltype has to be given
     if (fn.decltpe.isEmpty)
-      throw new IllegalArgumentException("The return type of a function has to be explicitly defined")
+      Reporter().report("The return type of a function has to be explicitly defined", fn.pos.startLine)
     if (fn.tparams.nonEmpty)
-      throw new IllegalArgumentException("A function definition does not allow type parameters")
+      Reporter().report("A function definition does not allow type parameters", fn.pos.startLine)
     val signature = translateFunctionSignature(fn.name, fn.paramss.head, fn.decltpe.get)
     val equations = fn.body match {
         // TODO: check that the expr over which is matched is a tuple in the correct order of function params
       case Term.Match(_, cases) =>
         cases.map { translateCase(fn.name.value, _) }
       case _ =>
-        throw new IllegalArgumentException("Toplevel construct of a function has to be a match")
+        Reporter().report("Top level construct of a function has to be a match", fn.body.pos.startLine)
     }
     FunctionDef(signature, equations)
   }
@@ -172,7 +171,7 @@ class SPLTranslator {
 
   private def correctParamList(params: Seq[Term.Param]): Seq[SortRef] = {
     if (params.exists(_.decltpe.isEmpty))
-      throw new IllegalArgumentException("")
+      Reporter().report("A parameter definition has no type defined")
     val sortRefs = params.map { param =>
       SortRef(param.decltpe.get.toString)
     }
@@ -190,12 +189,12 @@ class SPLTranslator {
     pat match {
       case Pat.Extract(term, pattern) =>
         if (!onlySelfDefinedCotrsUsed(term.toString))
-          throw new IllegalArgumentException("Only constructors of case classes defined within the object are allowed")
+          Reporter().report("Only constructors of case classes defined within the object are allowed", pat.pos.startLine)
         val args = pattern.map { translateInnerCasePattern }
         Seq(FunctionPatApp(term.toString, args))
       case Pat.Tuple(pattern) => pattern.map { translateInnerCasePattern }
       case Pat.Var(name) => Seq(FunctionPatVar(name.value))
-      case _ => throw new IllegalArgumentException("Other pattern than tuple, application or variable is used")
+      case _ => Reporter().report("Other pattern than tuple, application or variable is used", pat.pos.startLine)
     }
   }
 
@@ -210,10 +209,10 @@ class SPLTranslator {
       case Pat.Extract(term, pattern) =>
         val args = pattern.map { translateInnerCasePattern }
         if (!onlySelfDefinedCotrsUsed(term.toString))
-          throw new IllegalArgumentException("Only constructors of case classes defined within the object are allowed")
+          Reporter().report("Only constructors of case classes defined within the object are allowed", pat.pos.startLine)
         FunctionPatApp(term.toString, args)
       case Pat.Var(name) => FunctionPatVar(name.value)
-      case _ => throw new IllegalArgumentException("Other pattern than application or variable is used")
+      case _ => Reporter().report("Other pattern than application or variable is used", pat.pos.startLine)
     }
   }
 
@@ -230,11 +229,11 @@ class SPLTranslator {
 
   private def translateEnsuringFunction(fn: Defn.Def): TypingRule = {
     if (fn.decltpe.isEmpty)
-      throw new IllegalArgumentException("The return type of a function has to be explicitly defined")
+      Reporter().report("The return type of a function has to be explicitly defined", fn.pos.startLine)
     if (fn.tparams.nonEmpty)
-      throw new IllegalArgumentException("A function definition does not allow type parameters")
+      Reporter().report("A function definition does not allow type parameters", fn.pos.startLine)
     if (fn.paramss.size > 1)
-      throw new IllegalArgumentException("A function definition can only have one parameter list")
+      Reporter().report("A function definition can only have one parameter list", fn.pos.startLine)
     val metaBindings = fn.paramss.headOption.getOrElse(Nil).map { _.name.value }
     fn.body match {
       case Term.ApplyInfix(lhs, name, Nil, Seq(rhs)) if name.value == "ensuring" =>
@@ -242,18 +241,18 @@ class SPLTranslator {
         // TODO: need support for multiple conclusions
         val conclusions = translateTypingRule(rhs)(metaBindings)
         TypingRule(fn.name.value, premises, Seq(conclusions))
-      case _ => throw new IllegalArgumentException("Axioms/Lemmas and Goals need to have an ensuring clause")
+      case _ => Reporter().report("Axioms/Lemmas and Goals need to have an ensuring clause", fn.pos.startLine)
     }
   }
 
   private def translateJudgmentBlock(body: Term)(implicit metaVars: Seq[String] = Seq()): Seq[TypingRuleJudgment] = body match {
     case Term.Block(inner) => inner.map { translateRequire(_)(metaVars) }
-    case _ => throw new IllegalArgumentException("")
+    case _ => Reporter().report("")
   }
 
   private def translateRequire(stat: Stat)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = stat match {
     case Term.Apply(name, arg::Nil) if name.toString == "require" => translateTypingRule(arg)(metaVars)
-    case _ => throw new IllegalArgumentException("Inside Axioms/Lemmas/Goals only require statements can be used")
+    case _ => Reporter().report("Inside Axioms/Lemmas/Goals only require statements can be used", stat.pos.startLine)
   }
 
   private def translateTypingRule(term: Term)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = {
@@ -275,10 +274,10 @@ class SPLTranslator {
           case "|-" => arg match {
             case Term.ApplyInfix(inner, Term.Name("::"), Nil, rhs::Nil) =>
               TypingJudgment(funTranslator.translateExpMeta(lhs), funTranslator.translateExpMeta(inner), funTranslator.translateExpMeta(rhs))
-            case _ => throw new IllegalArgumentException("")
+            case _ => Reporter().report("Invalid operator in typing statement", term.pos.startLine)
           }
           case "||" => translateOrEnsuring(lhs, arg, metaVars)
-          case op => throw new IllegalArgumentException(s"Unsupported infix operation $op inside the ensuring statement")
+          case op => Reporter().report(s"Unsupported infix operation $op inside the ensuring statement", term.pos.startLine)
         }
     }
   }
@@ -313,7 +312,7 @@ class SPLTranslator {
   private def translateLocal(block: Defn.Trait): Local = {
     // TODO: what do we need to check for?
     if(block.templ.inits.nonEmpty)
-      throw new IllegalArgumentException("A local block can not extend another trait")
+      Reporter().report("A local block can not extend another trait", block.pos.startLine)
     val valBlocks = collectValBlocks(block.templ.stats)
     val translatedValBlocks = valBlocks.map { case (vals, different) => translateConstantBlock(vals, different) }
     Local(translateStats(block.templ.stats) ++ translatedValBlocks)
@@ -322,7 +321,7 @@ class SPLTranslator {
   private def collectValBlocks(stats: Seq[Stat]): Seq[(Seq[Decl.Val], Boolean)] = {
     val result = ListBuffer[(ListBuffer[Decl.Val], Boolean)]()
     stats.foreach {
-      case _: Defn.Val => throw new IllegalArgumentException("Defintion of vals are not allowed")
+      case v: Defn.Val => Reporter().report("Defintion of vals within a local block are not allowed", v.pos.startLine)
       case v: Decl.Val if containsAnnotation(v.mods, "Different") =>
         result += ListBuffer[Decl.Val](v) -> true
       case v: Decl.Val =>
@@ -341,10 +340,10 @@ class SPLTranslator {
 
   private def translateConstant(v: Decl.Val): ConstDecl = {
     if (v.pats.size > 1)
-      throw new IllegalArgumentException("Multiple variable declaration is not supported")
+      Reporter().report("Multiple variable declaration is not supported", v.pos.startLine)
     val constName = v.pats.head match {
       case Pat.Var(name) => name.value
-      case _ => throw new IllegalArgumentException("Another pattern than simple variable assignment was used")
+      case _ => Reporter().report("Another pattern than simple variable assignment was used", v.pats.head.pos.startLine)
     }
     ConstDecl(constName, SortRef(v.decltpe.toString()))
   }
