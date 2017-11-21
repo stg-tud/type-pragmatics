@@ -157,7 +157,7 @@ class SPLTranslator {
     val signature = translateFunctionSignature(fn.name, fn.paramss.head, fn.decltpe.get)
     val equations = fn.body match {
         // TODO: check that the expr over which is matched is a tuple in the correct order of function params
-      case Term.Match(expr, cases) =>
+      case Term.Match(_, cases) =>
         cases.map { translateCase(fn.name.value, _) }
       case _ =>
         throw new IllegalArgumentException("Toplevel construct of a function has to be a match")
@@ -200,7 +200,7 @@ class SPLTranslator {
   }
 
   private def onlySelfDefinedCotrsUsed(name: String): Boolean = {
-    adts.exists { case (base, cotrs) =>
+    adts.exists { case (_, cotrs) =>
         cotrs.exists { _.name.value == name}
     }
   }
@@ -237,7 +237,7 @@ class SPLTranslator {
       throw new IllegalArgumentException("A function definition can only have one parameter list")
     val metaBindings = fn.paramss.headOption.getOrElse(Nil).map { _.name.value }
     fn.body match {
-      case Term.ApplyInfix(lhs, name, nil, Seq(rhs)) if name.value == "ensuring" =>
+      case Term.ApplyInfix(lhs, name, Nil, Seq(rhs)) if name.value == "ensuring" =>
         val premises = translateJudgmentBlock(lhs)(metaBindings)
         // TODO: need support for multiple conclusions
         val conclusions = translateTypingRule(rhs)(metaBindings)
@@ -268,12 +268,12 @@ class SPLTranslator {
       case Term.Apply(name, arg::Nil)  if name.toString == "exists" =>
         val (vars, body) = translateQuantifiedExpr(arg)
         ExistsJudgment(vars, Seq(body))
-      case Term.Apply(name, args) => FunctionExpJudgment(funTranslator.translateExp(term))
+      case Term.Apply(_, _) => FunctionExpJudgment(funTranslator.translateExp(term))
       case Term.ApplyInfix(lhs, name, Nil, arg::Nil) =>
         name.value match {
           case "::" => TypingJudgmentSimple(funTranslator.translateExpMeta(lhs), funTranslator.translateExpMeta(arg))
           case "|-" => arg match {
-            case Term.ApplyInfix(inner, name, Nil, rhs::Nil) if name.value == "::" =>
+            case Term.ApplyInfix(inner, Term.Name("::"), Nil, rhs::Nil) =>
               TypingJudgment(funTranslator.translateExpMeta(lhs), funTranslator.translateExpMeta(inner), funTranslator.translateExpMeta(rhs))
             case _ => throw new IllegalArgumentException("")
           }
@@ -286,9 +286,9 @@ class SPLTranslator {
   private def translateOrEnsuring(lhs: Term, rhs: Term, metavars: Seq[String]): OrJudgment = {
     val cases = ListBuffer[Seq[TypingRuleJudgment]]()
     def process(term: Term): Unit = term match {
-      case Term.ApplyInfix(lhs, Term.Name("||"), Nil, rhs::Nil) =>
-        process(lhs)
-        process(rhs)
+      case Term.ApplyInfix(l, Term.Name("||"), Nil, r::Nil) =>
+        process(l)
+        process(r)
       case _ =>
         val funTranslator = FunctionTranslator(metavars)
         cases += Seq(FunctionExpJudgment(funTranslator.translateExp(term)))
@@ -315,7 +315,7 @@ class SPLTranslator {
     if(block.templ.inits.nonEmpty)
       throw new IllegalArgumentException("A local block can not extend another trait")
     val valBlocks = collectValBlocks(block.templ.stats)
-    val translatedValBlocks = valBlocks.map { case (block, different) => translateConstantBlock(block, different) }
+    val translatedValBlocks = valBlocks.map { case (vals, different) => translateConstantBlock(vals, different) }
     Local(translateStats(block.templ.stats) ++ translatedValBlocks)
   }
 
@@ -356,60 +356,3 @@ object SPLTranslator {
   val predefTypes = Seq("Bool", "iType")
 }
 
-case class FunctionTranslator(metavars: Seq[String]) {
-
-  def translateExpMeta(term: Term): FunctionExpMeta = term match {
-    case Term.Name(name) if metavars.contains(name) => FunctionMeta(MetaVar(name))
-    case _ => translateExp(term)
-  }
-
-  def translateExp(term: Term): FunctionExp = term match {
-    case Term.If(cond, then, els) => translateIf(cond, then, els)
-    case Term.Block(stats) => translateBlock(stats)
-    case Lit.Boolean(true) => FunctionExpTrue
-    case Lit.Boolean(false) => FunctionExpFalse
-    case Term.Apply(name, args) => translateApply(name, args)
-    case Term.ApplyUnary(name, expr) =>
-      if (name.value == "!")
-        FunctionExpNot(translateExp(expr))
-      else throw new IllegalArgumentException("This unary operator is not supported")
-    case Term.ApplyInfix(lhs, name, nil, Seq(rhs)) => translateApplyInfix(lhs, name, rhs)
-    case Term.Name(name) => FunctionExpVar(name)
-    case _ => throw new IllegalArgumentException("")
-  }
-
-  private def translateIf(cond: Term, then: Term, els: Term): FunctionExp =
-    FunctionExpIf(translateExp(cond), translateExpMeta(then), translateExpMeta(els))
-
-  private def translateApply(name: Term, args: Seq[Term]): FunctionExp = {
-    val transArgs = args.map { translateExpMeta }
-    FunctionExpApp(name.toString, transArgs)
-  }
-
-  private def translateBlock(stats: Seq[Stat]): FunctionExpLet = {
-    val bindings = stats.init.map {
-      case Defn.Val(Seq(), Seq(Pat.Var(name)), None, rhs) =>
-        (name, translateExpMeta(rhs))
-      case _ => throw new IllegalArgumentException("")
-    }
-    val in = stats.last match {
-      case expr: Term => translateExpMeta(expr)
-      case _ => throw new IllegalArgumentException("Last term of block is not an expression")
-    }
-    var let = in
-    bindings.reverse.foreach { case (name, expr) =>
-       let = FunctionExpLet(name.value, expr, let)
-    }
-    let.asInstanceOf[FunctionExpLet]
-  }
-
-  // assume that we have left assoc operators (&& ||) in spoofax it was right but that seems counterintuitive
-  private def translateApplyInfix(lhs: Term, name: Term.Name, rhs: Term): FunctionExp = name.value match {
-    case "==" => FunctionExpEq(translateExpMeta(lhs), translateExpMeta(rhs))
-    case "!=" => FunctionExpNeq(translateExpMeta(lhs), translateExpMeta(rhs))
-    case "&&" => FunctionExpAnd(translateExp(lhs), translateExp(rhs))
-    case "||" => FunctionExpOr(translateExp(lhs), translateExp(rhs))
-    case "<==>" => FunctionExpBiImpl(translateExp(lhs), translateExp(rhs))
-    case _ => throw new IllegalArgumentException("Unsupported operator was used")
-  }
-}
