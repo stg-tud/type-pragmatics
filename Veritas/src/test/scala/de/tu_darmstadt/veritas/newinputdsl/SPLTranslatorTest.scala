@@ -173,7 +173,8 @@ class SPLTranslatorTest extends FunSuite {
       Seq(FunctionExpJudgment(
         FunctionExpEq(
           FunctionExpApp("succ", Seq(FunctionMeta(MetaVar("x")))),
-          FunctionExpApp("zero", Seq()))))))))
+          FunctionExpApp("zero", Seq()))))),
+        FunctionExpJudgment(FunctionExpTrue))))
 
     assert(axioms(0).axioms(1) ==
       TypingRule("orcase", Seq(),

@@ -235,12 +235,27 @@ class SPLTranslator {
     val metaBindings = fn.paramss.headOption.getOrElse(Nil).map { _.name.value }
     fn.body match {
       case Term.ApplyInfix(lhs, name, Nil, Seq(rhs)) if name.value == "ensuring" =>
-        val premises = translateJudgmentBlock(lhs)(metaBindings)
-        // TODO: need support for multiple conclusions
-        val conclusions = translateTypingRule(rhs)(metaBindings)
-        TypingRule(fn.name.value, premises, Seq(conclusions))
-      case _ => Reporter().report("Axioms/Lemmas and Goals need to have an ensuring clause", fn.pos.startLine)
+        val (conclusions, requireBlock) = translateEnsuringClauses(lhs, rhs, metaBindings)
+        val premises = translateJudgmentBlock(requireBlock)(metaBindings)
+        TypingRule(fn.name.value, premises, conclusions)
+      case _ => Reporter().report("Axioms/Lemmas and Goals need to have at least one ensuring clause", fn.pos.startLine)
     }
+  }
+
+  private def translateEnsuringClauses(lhs: Term, rhs: Term, metavars: Seq[String]): (Seq[TypingRuleJudgment], Term) = {
+    val ensurings = ListBuffer[TypingRuleJudgment]()
+    var requireBlock: Term = null
+    def process(next: Term): Unit = next match {
+      case Term.ApplyInfix(l, Term.Name("ensuring"), Nil, r::Nil) =>
+        process(l)
+        process(r)
+      case Term.Block(_) => requireBlock = next
+      case _ =>
+        ensurings += translateTypingRule(next)(metavars)
+    }
+    process(lhs)
+    process(rhs)
+    (ensurings.toSeq, requireBlock)
   }
 
   private def translateJudgmentBlock(body: Term)(implicit metaVars: Seq[String] = Seq()): Seq[TypingRuleJudgment] = body match {

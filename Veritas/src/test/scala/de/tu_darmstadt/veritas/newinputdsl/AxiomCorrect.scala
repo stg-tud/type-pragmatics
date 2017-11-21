@@ -17,7 +17,11 @@ object AxiomCorrect extends SPLSpecification {
 
   @Axiom
   def simple(): Unit = {
-  }  ensuring (forall((x: Num) => succ(x) == zero()))
+  } ensuring (
+    forall((x: Num) => succ(x) == zero())
+  ) ensuring (
+      true
+  )
 
   @Axiom
   def orcase(): Unit = {
