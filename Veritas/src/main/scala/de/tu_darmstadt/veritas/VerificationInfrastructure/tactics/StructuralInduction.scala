@@ -2,6 +2,10 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, VerifierHints}
+
+
+case class StructuralInductionHint[Defs, Formulae <: Defs](goal: Formulae, inductionvar: Defs) extends VerifierHints
 
 case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
@@ -114,6 +118,32 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
       }
     }
     else Seq() //TODO throw an exception that explains why the tactic failed
+  }
+
+
+  /**
+    * verifying a step via its edges generates a step result
+    * the caller has to decide whether this result will be integrated into a proof graph or not
+    *
+    * for verifying a step, a tactic may generate a "hint" for the given verifier (depending on the goal and on
+    * the given verifier
+    *
+    * pass hint of structural induction on
+    *
+    * @param obl
+    * @param parentedges
+    * @param subobl
+    * @param verifier
+    * @return
+    */
+  override def verifyStep[Result <: GenStepResult[Defs, Formulae]](obl: GenObligation[Defs, Formulae],
+                                                                   parentedges: Iterable[EdgeLabel],
+                                                                   subobl: Iterable[(EdgeLabel, GenObligation[Defs, Formulae])],
+                                                                   verifier: Verifier[Defs, Formulae],
+                                                                   produce: StepResultProducer[Defs, Formulae, Result],
+                                                                   pathforlogs: Option[String]) = {
+    val inductionhint = Some(StructuralInductionHint(obl.goal, inductionvar))
+    verifier.verify(obl.goal, obl.spec, parentedges, subobl.map { case (e, so) => (e, so.goal) }, inductionhint, produce, pathforlogs)
   }
 
   //call with a parent obligation and the sub-obligations that this parent requires
