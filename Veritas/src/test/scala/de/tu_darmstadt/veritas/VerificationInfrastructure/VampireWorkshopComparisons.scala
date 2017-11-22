@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import org.scalatest.FunSuite
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.StructuralInduction
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
 import de.tu_darmstadt.veritas.backend.ast._
@@ -31,8 +32,8 @@ class VampireWorkshopComparisons extends FunSuite {
   val defaultlong_timeout = 120
   val unsuccessful_timeout = 1
 
-  //val timeout_queue = Seq(5, 10, 30, 90, 120)
-  val timeout_queue = Seq(1)
+  val timeout_queue = Seq(5, 10, 30, 90, 120)
+  //val timeout_queue = Seq(1)
 
   def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
 
@@ -59,8 +60,7 @@ class VampireWorkshopComparisons extends FunSuite {
     val pg = SQLPG.g //actual ProofGraphXodus instance
 
 
-    val obls = pg.obligationDFS()
-    val solveps = for (obl <- obls) pg.appliedStep(obl)
+    val obls = pg.obligationDFS() filter (o => !pg.appliedStep(o).get.tactic.isInstanceOf[StructuralInduction[VeritasConstruct, VeritasFormula]])
 
     println("Comparison results: ")
     println("Goalname; Vampire 4.1 FOF; Vampire 4.1 TFF; Vampire 4.1 tar SMTLIB; VampireZ3 4.1 tar SMTLIB")
