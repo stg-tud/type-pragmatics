@@ -101,3 +101,5 @@ Veritas/*.dot
 /Veritas/SQLProgressProof-visualization-tff
 /Veritas/SQLProgressProof-visualization-tar
 /Veritas/SQLProgressProof-visualization-fof
+/Veritas/SQLProgressProof-inductionsteps
+/Veritas/SQLProgressProof-manualsteps
