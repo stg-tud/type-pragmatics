@@ -98,6 +98,8 @@ class SQLVerificationTests extends FunSuite {
 
     val fresh = new FreshNames()
 
+    //test
+
     def extractGoalName(vc: VeritasConstruct): String =
       vc match {
         case Goals(gl, _) => gl.head.name
