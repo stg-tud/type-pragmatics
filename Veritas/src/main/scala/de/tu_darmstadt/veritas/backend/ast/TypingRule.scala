@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.backend.stratego.StrategoTerm
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
 
-case class TypingRule(name: String, premises: Seq[TypingRuleJudgment], consequences: Seq[TypingRuleJudgment]) extends VeritasConstruct with PrettyPrintable {
+case class TypingRule(name: String, premises: Seq[TypingRuleJudgment], consequences: Seq[TypingRuleJudgment]) extends VeritasFormula with PrettyPrintable {
   require(!consequences.isEmpty, "typing rule without consequences is not allowed")
   override val children = Seq(premises, consequences)
 

@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment._
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefs
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.Configuration
 
@@ -107,7 +107,7 @@ object GenerateAllTypeGuards extends GenerateTypeGuards {
  * inserts lightweight type guards (i.e. domain axiom only!) for existentially quantified variables
  * in execution goals
  */
-object GenerateExecutionGuards extends GenerateTypeGuards with CollectTypes {
+object GenerateExecutionGuards extends GenerateTypeGuards with CollectTypesDefs {
   override def insertGuardAxsHere(mdef: ModuleDef): Seq[ModuleDef] =
     mdef match {
       case goals @ Goals(gs, t) => {

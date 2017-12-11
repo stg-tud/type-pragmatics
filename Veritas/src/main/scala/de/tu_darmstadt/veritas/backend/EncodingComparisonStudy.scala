@@ -40,11 +40,22 @@ case object Fool extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) = ToFool(m)
 }
 
+//smtlib encoding
+case object SMTLib extends Typing {
+  override def finalEncoding(m: Module)(implicit config: Configuration) = ToSMTLib(m)
+}
+
 case class AlternativeTyping(select: Configuration => Typing) extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) =
     select(config).finalEncoding(m)
 
 }
+
+object BasicTrans extends SeqTrans(
+  FilterGoalModules, //optimization: only interested in modules with goals!
+  ResolveImports,
+  VarToApp0,
+  DesugarLemmas)
 
 object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF =>
@@ -57,16 +68,14 @@ object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
     GenerateCtorAxiomsTyped
 })
 
-object BasicTrans extends SeqTrans(
-  FilterGoalModules, //optimization: only interested in modules with goals!
-  ResolveImports,
-  VarToApp0,
-  DesugarLemmas,
-  ConstructorTrans,
-  GenerateDiffAxiomsForConsts)
+object DataTypeTrans extends Alternative(selectConfig(FinalEncoding) {
+  case FinalEncoding.GuardedFOF | FinalEncoding.BareFOF | FinalEncoding.TFF | FinalEncoding.FOOL =>
+    SeqTrans(ConstructorTrans, GenerateDiffAxiomsForConsts)
+  case FinalEncoding.SMTLib => GenerateCountablyInfiniteEncoding
+})
 
 object FunctionTrans extends Alternative(selectConfig(FinalEncoding) {
-  case FinalEncoding.FOOL => SeqTrans(FunctionEqToAxiomsWLetIf, TranslateAllTypingJudgments)
+  case FinalEncoding.FOOL | FinalEncoding.SMTLib => SeqTrans(FunctionEqToAxiomsWLetIf, TranslateAllTypingJudgments)
   case FinalEncoding.GuardedFOF | FinalEncoding.TFF | FinalEncoding.BareFOF => 
     SeqTrans(FunctionEqToAxiomsSimple, TranslateAllTypingJudgments)
 })
@@ -88,7 +97,9 @@ object ProblemTrans extends Alternative(selectConfig(Problem) {
   case Problem.Counterexample =>
     SeqTrans(SplitModulesByGoal("counterexample"), MoveDeclsToFront)
   case Problem.All =>
-    SeqTrans(GenerateGroundGuards, SplitModulesByGoal(""), MoveDeclsToFront)
+    //translation will not contain ground guards (modified!)
+    //Do you always need the ground guards? Should be superfluous at least in typed settings
+    SeqTrans(SplitModulesByGoal(""), MoveDeclsToFront)
 })
 
 object GuardsTrans extends Alternative(selectConfig(FinalEncoding) {
@@ -134,6 +145,7 @@ object SelectionTrans extends AlternativeSelection(selectConfig(Selection) {
 object MainTrans extends SeqTrans(
   // desugar Veritas constructs
   BasicTrans,
+  DataTypeTrans,
   FunctionTrans,
   // determines whether and which inversion axioms are generated for functions/typing rules
   // update: always generate function inversion axioms!
@@ -163,6 +175,7 @@ object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding) {
   case FinalEncoding.GuardedFOF => FofGuard
   case FinalEncoding.TFF        => Tff
   case FinalEncoding.FOOL       => Fool
+  case FinalEncoding.SMTLib     => SMTLib
 })
 
 case class EncodingComparison(vm: VariabilityModel, module: Module) extends Iterable[(Configuration, Seq[PrettyPrintableFile])] {

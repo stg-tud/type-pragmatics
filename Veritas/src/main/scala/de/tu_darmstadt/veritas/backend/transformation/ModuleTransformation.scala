@@ -51,8 +51,10 @@ trait ModuleTransformation {
    */
   def trace[VC <: VeritasConstruct, Res](vc: VC)(f: VC => Res) = {
     path = vc +: path
+    // need to be saved and restored because f could alter path in some way, couldn't find where exactly
+    val savedPath = path
     val res = f(vc)
-    path = path.tail
+    path = savedPath.tail
     res
   }
 
@@ -63,8 +65,9 @@ trait ModuleTransformation {
   def trace[VC <: VeritasConstruct, Res](vcs: Seq[VC])(f: VC => Seq[Res]) = {
     val res = vcs.flatMap { vc =>
       path = vc +: path
+      val savedPath = path
       val subres = f(vc)
-      path = path.tail
+      path = savedPath.tail
       subres
     }
     res
@@ -76,8 +79,9 @@ trait ModuleTransformation {
    */
   def trace2[VC <: VeritasConstruct, Res](vc: VC)(f: => Res) = {
     path = vc +: path
+    val savedPath = path
     val res = f
-    path = path.tail
+    path = savedPath.tail
     res
   }
 
@@ -124,7 +128,7 @@ trait ModuleTransformation {
     case Functions(fs)                => Seq(Functions((trace(fs)(transFunctionDefs(_)))))
     case PartialFunctions(fs)         => Seq(PartialFunctions((trace(fs)(transFunctionDefs(_)))))
     case Consts(cts, diff)            => Seq(Consts(trace(cts)(transConstDecl(_)), diff))
-    case DataType(open, name, cs)     => Seq(DataType(open, name, trace(cs)(transDataTypeConstructor(_, open, name))))
+    case DataType(open, name, cs)     => Seq(DataType(open, name, trace(cs)((d: DataTypeConstructor) => transDataTypeConstructor(d, name))))
     // if default case is not covered, compiler shows a warning if the match is not exhaustive
     // look for these warnings when extending the Veritas language!
     //case s                            => throw TransformationError("Unsupported construct in transModuleDef: " + s)
@@ -224,7 +228,7 @@ trait ModuleTransformation {
     case ConstDecl(n, out) => Seq(ConstDecl(n, transSortRef(out)))
   }
 
-  def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] = d match {
+  def transDataTypeConstructor(d: DataTypeConstructor, dataType: String): Seq[DataTypeConstructor] = d match {
     case DataTypeConstructor(n, in) => Seq(DataTypeConstructor(n, trace(in)(transSortRefs(_))))
   }
 

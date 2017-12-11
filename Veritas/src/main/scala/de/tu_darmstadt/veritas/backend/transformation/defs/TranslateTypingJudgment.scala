@@ -5,13 +5,13 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefs
 import de.tu_darmstadt.veritas.backend.util.BackendError
 
 /**
  * trait for inferring the types of the arguments of the different typing judgments
  */
-class InferTypingJudgmentsSignature extends CollectTypes {
+class InferTypingJudgmentsSignature extends CollectTypesDefs {
   //types of 3-argument typing judgment
   val targs: Array[Option[SortRef]] = Array(None, None, None)
 
@@ -106,13 +106,13 @@ trait TranslateTypingJudgments extends ModuleTransformation {
    * set to true as soon as the typing judgment was defined once in current scope
    * (to prevent duplicate definitions)
    */
-  private var tjdeclared: Boolean = false
+  protected var tjdeclared: Boolean = false
 
   /**
    * set to true as soon as the simple typing judgment was defined once in current scope
    * (to prevent duplicate definitions)
    */
-  private var stjdeclared: Boolean = false
+  protected var stjdeclared: Boolean = false
 
   override def apply(m: Seq[Module])(implicit config: Configuration): Seq[Module] = {
     tjdeclared = false
@@ -242,4 +242,4 @@ trait TranslateTypingJudgments extends ModuleTransformation {
   }
 }
 
-object TranslateAllTypingJudgments extends TranslateTypingJudgments
+object TranslateAllTypingJudgments extends TranslateTypingJudgments with Serializable

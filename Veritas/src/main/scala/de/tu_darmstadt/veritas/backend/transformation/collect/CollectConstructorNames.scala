@@ -43,8 +43,8 @@ trait CollectConstructorNames extends ModuleTransformation {
       case m => super.transModuleDefs(m)
     }
 
-  override def transDataTypeConstructor(d: DataTypeConstructor, open: Boolean, dataType: String): Seq[DataTypeConstructor] =
-    withSuper(super.transDataTypeConstructor(d, open, dataType)) {
+  override def transDataTypeConstructor(d: DataTypeConstructor, dataType: String): Seq[DataTypeConstructor] =
+    withSuper(super.transDataTypeConstructor(d, dataType)) {
       case c@DataTypeConstructor(n, in) =>
         constructorNames = constructorNames + n
         Seq(c)

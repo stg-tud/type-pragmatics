@@ -7,11 +7,11 @@ import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefs
 import de.tu_darmstadt.veritas.backend.tff.TffAtomicType
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesClass
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefsClass
 
-class InsertTypeGuardsForMetavars extends ModuleTransformation with CollectTypes {
+class InsertTypeGuardsForMetavars extends ModuleTransformation with CollectTypesDefs {
 
   override def transTypingRules(tr: TypingRule): Seq[TypingRule] = {
     tr match {

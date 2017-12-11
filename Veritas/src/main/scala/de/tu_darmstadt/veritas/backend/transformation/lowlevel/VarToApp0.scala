@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.CollectConstructor
 /**
  * (blindly) desugars FunctionPatVar and FunctionExpVar to FunctionPatApp/FunctionExpApp with zero arguments
  */
-object VarToApp0 extends ModuleTransformation with CollectConstructorNames {
+object VarToApp0 extends ModuleTransformation with CollectConstructorNames with Serializable {
   override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
     withSuper[FunctionExp](super.transFunctionExps(f)) {
       case v @ FunctionExpVar(n) => if ((constNames contains n) || (constructorNames contains n)) Seq(FunctionExpApp(n, Seq())) else Seq(v)

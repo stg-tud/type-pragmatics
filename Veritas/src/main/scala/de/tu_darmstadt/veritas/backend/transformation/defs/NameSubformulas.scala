@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.transformation.TransformationError
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefs
 
 trait CollectSubformulas extends ModuleTransformation {
   var freshNames = new FreshNames
@@ -431,7 +431,7 @@ object NameFunctionResultsOnly extends NameSubformulas {
 /**
  * name function arguments that are not meta-variables!
  */
-object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with CollectTypes {
+object NameSubstituteFunctionDefParametersOnly extends NameSubformulas with CollectTypesDefs {
   override def checkConstruct(vc: VeritasConstruct): Boolean = {
     if (super.checkConstruct(vc) && path.isDefinedAt(0) && path.isDefinedAt(1)) {
       //only rename in left-hand side of single equation in conclusion!

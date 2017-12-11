@@ -1,7 +1,6 @@
 package de.tu_darmstadt.veritas.inputdsl
 
-import de.tu_darmstadt.veritas.backend.ast.MetaVar
-
+import scala.language.implicitConversions
 /**
   * Common DSL syntax for writing flat symbol trees
   * used for generating constructors of data types, function patterns, function expressions

@@ -4,6 +4,8 @@ import de.tu_darmstadt.veritas.backend.ast.{Functions, MetaVar, PartialFunctions
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.inputdsl.SymTreeDSL._
 
+import scala.language.implicitConversions
+
 /**
   * DSL for top-level function definition syntax
   */
@@ -71,7 +73,18 @@ object FunctionDSL {
 
     def :=(exp: FunctionExp) = FunctionEq(fn, functionPats, exp)
 
-    def :=(exptree: FunExpTree) = FunctionEq(fn, functionPats, _funExpTreeToFunExp(exptree))
+    // when receiving trees, we have to check that there are not meta variables
+    def :=(exptree: FunExpTree) =
+      if (funExpMetaTreeContainsMV(exptree))
+        sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+      else FunctionEq(fn, functionPats, _funExpTreeToFunExp(exptree))
+
+    // can even receive a FunExpMetaTree (might sometimes happen, if a tree is generated from a SymTree expression
+    // but then, we have to downcast (checking first that there are no meta variables!
+    def :=(exptree: FunExpMetaTree) =
+    if (funExpMetaTreeContainsMV(exptree))
+      sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+    else FunctionEq(fn, functionPats, _funExpTreeToFunExp(exptree.asInstanceOf[FunExpTree])) //since we check for meta variables before, the cast should never fail...
 
     //required extra support for function equations with just one symbol
     def :=(s: Symbol) = FunctionEq(fn, functionPats, FunctionExpVar(s.name))
@@ -85,23 +98,87 @@ object FunctionDSL {
     def ===(rexp: FunExpMetaTree) = EqNode(this, rexp)
 
     def ~=(rexp: FunExpMetaTree) = NeqNode(this, rexp)
+
+    def unary_! : FunExpTree = this match {
+      case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+      case re : FunExpTree => !re
+      case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+    }
+
+    //also allow to call &&, ||, <=> on FunExpMetaTree, but will fail at runtime if top-level construct is a meta variable
+    def &&(rexp: FunExpMetaTree): FunExpTree =
+      this match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => re.&&(rexp)
+        case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+      }
+
+    def ||(rexp: FunExpMetaTree): FunExpTree =
+      this match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => re.||(rexp)
+        case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+      }
+
+
+    def <=>(rexp: FunExpMetaTree): FunExpTree =
+      this match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => re.<=>(rexp)
+        case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+      }
+
   }
 
+  case class MVarNode(mv: MetaVar) extends FunExpMetaTree with SymTree
+
+  def funExpMetaTreeContainsMV(fmt: FunExpMetaTree): Boolean =
+    fmt match {
+      case MVarNode(_) => true
+      case FunExpTrue => false
+      case FunExpFalse => false
+      case VarLeaf(s) => false
+      case AppNode(s, childlist) => childlist exists (c => funExpMetaTreeContainsMV(c))
+      case NotNode(child) => funExpMetaTreeContainsMV(child)
+      case EqNode(left, right) => funExpMetaTreeContainsMV(left) || funExpMetaTreeContainsMV(right)
+      case NeqNode(left, right) => funExpMetaTreeContainsMV(left) || funExpMetaTreeContainsMV(right)
+      case AndNode(left, right) => funExpMetaTreeContainsMV(left) || funExpMetaTreeContainsMV(right)
+      case OrNode(left, right) => funExpMetaTreeContainsMV(left) || funExpMetaTreeContainsMV(right)
+      case BiImplNode(left, right) => funExpMetaTreeContainsMV(left) || funExpMetaTreeContainsMV(right)
+      case IfNode(guard, th, els) => funExpMetaTreeContainsMV(guard) || funExpMetaTreeContainsMV(th) || funExpMetaTreeContainsMV(els)
+      case LetNode(s, named, in) => funExpMetaTreeContainsMV(named) || funExpMetaTreeContainsMV(in)
+      case _ => sys.error("Encountered an unexpected construct when checking whether a given function expressions contains a meta variable or not.")
+    }
 
   implicit class MVSymbol(s: Symbol) {
     def unary_~ : MVarNode = MVarNode(MetaVar(s.name))
   }
 
-  case class MVarNode(mv: MetaVar) extends FunExpMetaTree with SymTree
-
   abstract class FunExpTree extends FunExpMetaTree {
-    def unary_! = NotNode(this)
+    override def unary_! : FunExpTree = NotNode(this)
 
-    def &&(rexp: FunExpTree) = AndNode(this, rexp)
+    //let all the binary operations also accept FunExpMetaTree expressions (might be required since SymTrees are converted to FunExpMetaTree
+    //but check that they don't contain meta variables top level, since this is forbidden
+    override def &&(rexp: FunExpMetaTree): FunExpTree =
+      rexp match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => AndNode(this, re)
+        case _ => sys.error("When trying to create an AndNode, encountered an unsupported function construct")
+      }
 
-    def ||(rexp: FunExpTree) = OrNode(this, rexp)
+    override def ||(rexp: FunExpMetaTree): FunExpTree =
+      rexp match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => OrNode(this, re)
+        case _ => sys.error("When trying to create an OrNode, encountered an unsupported function construct")
+      }
 
-    def <=>(rexp: FunExpTree) = BiImplNode(this, rexp)
+    override def <=>(rexp: FunExpMetaTree): FunExpTree =
+      rexp match {
+        case MVarNode(_) => sys.error("found an expression that contains a meta variable at a place where this is not possible (e.g. function definition)")
+        case re : FunExpTree => BiImplNode(this, re)
+        case _ => sys.error("When trying to create a BiImplNode, encountered an unsupported function construct")
+      }
   }
 
   object FunExpTrue extends FunExpTree
@@ -128,14 +205,26 @@ object FunctionDSL {
 
   case class LetNode(s: Symbol, named: FunExpMetaTree, in: FunExpMetaTree) extends FunExpTree
 
-  implicit def _symTreeToFunExpTree(st: SymTree): FunExpTree = st match {
+  //  implicit def _symTreeToFunExpTree(st: SymTree): FunExpTree = st match {
+  //    case SymLeaf(sn) => VarLeaf(sn)
+  //    case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc: SymTree) => _symTreeToFunExpTree(stc) })
+  //    case MVarNode(mv) => sys.error(s"Cannot accept a meta variable $mv here! (happens for example if you try to use a meta variable in a function definition)")
+  //  }
+
+
+  implicit def _symTreeToFunExpMetaTree(st: SymTree): FunExpMetaTree = st match {
     case SymLeaf(sn) => VarLeaf(sn)
-    case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc: SymTree) => _symTreeToFunExpTree(stc) })
+    case SymNode(sn, childlist) => AppNode(sn, childlist map { (stc: SymTree) => _symTreeToFunExpMetaTree(stc) })
+    case mv@MVarNode(_) => mv
   }
 
   implicit def _boolToFunExp(b: Boolean): FunExpTree = if (b) FunExpTrue else FunExpFalse
 
-  def iff(gexp: FunExpTree) = _PartialIf1(gexp)
+  def iff(gexp: FunExpMetaTree) = gexp match {
+    case MVarNode(_) => sys.error("Guards of iffs cannot contain a meta variable top level.")
+    case gexp : FunExpTree => _PartialIf1(gexp)
+    case _ => sys.error("Encountered an unsupported function construct when creating an if-guard.")
+  }
 
   case class _PartialIf1(gexp: FunExpTree) {
     def th(texp: FunExpMetaTree) = _PartialIf2(gexp, texp)

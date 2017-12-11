@@ -195,7 +195,7 @@ strategy induction-findColType-implies-findCol {
 		const alr : AttrL
 		
 		axiom 
-		~al == aempty
+		~al == alr
 		welltypedtable(~tt, table(~al, ~rt))
 		findColType(~n, ~tt) == someFType(~ft)
 		=============================================== findColType-implies-findCol-acons-IH

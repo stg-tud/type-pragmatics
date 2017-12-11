@@ -157,7 +157,7 @@ case class DataTypeNameOfConstructorCollector(names: Set[String]) extends Inform
 
   override def collectFromTypingRule(tr: TypingRule): Unit =
     names.foreach { n =>
-      val pattern = ("""ground-([a-zA-Z][a-zA-Z0-9]*)-""" + n).r
+      val pattern = InformationCollectorUtil.ground("(" + InformationCollectorUtil.id + ")")(n)
       tr.name match {
         case pattern(datatypeName) => collectedInfo += datatypeName
         case _                     => {}
@@ -198,7 +198,7 @@ case class ConstructorNameOfDataTypeCollector(names: Set[String]) extends Inform
 
   override def collectFromTypingRule(tr: TypingRule): Unit =
     names.foreach { n =>
-      val pattern = ("""ground-""" + n + """-([a-zA-Z][a-zA-Z0-9]*)""").r
+      val pattern = InformationCollectorUtil.ground(n)("(" + InformationCollectorUtil.id + ")")
       tr.name match {
         case pattern(cotrName) => collectedInfo += cotrName
         case _                 => {}
