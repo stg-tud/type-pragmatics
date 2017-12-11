@@ -104,3 +104,4 @@ Veritas/*.dot
 /Veritas/SQLProgressProof-inductionsteps
 /Veritas/SQLProgressProof-manualsteps
 /Veritas/SQLProgressProof-allsteps
+/Veritas/SQLProgressProof-allsteps-inconclusive
