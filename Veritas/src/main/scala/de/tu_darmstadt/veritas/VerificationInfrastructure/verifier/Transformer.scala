@@ -25,7 +25,7 @@ trait Transformer[Spec, Goal, V <: VerifierFormat] {
     * @param spec
     * @param parentedges
     * @param assumptions
-    * @return
+    * @return triple: (specification (all definitions), goal-specific assumptions (lemmas, IHs, etc.), the actual goal)
     */
   def assembleFullProblem(goal: Goal, spec: Spec,
                           parentedges: Iterable[EdgeLabel],
