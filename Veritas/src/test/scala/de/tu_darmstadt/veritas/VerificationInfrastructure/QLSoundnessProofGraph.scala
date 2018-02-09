@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{Solve, StructInductCase, StructuralInduction}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{CaseDistinctionCase, Solve, StructInductCase, StructuralInduction}
 import de.tu_darmstadt.veritas.backend.ast.{MetaVar, VeritasConstruct, VeritasFormula}
 
 class QLSoundnessProofGraph(file: File) {
@@ -34,8 +34,17 @@ class QLSoundnessProofGraph(file: File) {
   val qemptycaseobl = rootInduction.selectCase(casenames(0), rootsubobs)
   val qemptycasePS = g.applyTactic(qemptycaseobl, Solve[VeritasConstruct, VeritasFormula])
 
-  // TODO apply CaseDistinction to qempty case
+  // TODO apply CaseDistinction to qsingle case
   val qsinglecaseobl = rootInduction.selectCase(casenames(1), rootsubobs)
+  // TODO how do we get the distinction var from generated subobs?
+  val qsingleCaseDistinction = StructuralInduction(MetaVar("qs"), fullQLspec, specenq)
+  val qsinglecasePS = g.applyTactic(qsinglecaseobl, qsingleCaseDistinction)
+
+  val qsinglesubobs = g.requiredObls(qsinglecasePS)
+  val qsinglecasenames = qsingleCaseDistinction.enumerateCaseNames[g.Obligation](qsinglesubobs)
+  val qsinglecaseedges: Seq[StructInductCase[VeritasConstruct, VeritasFormula]] =
+    (qsingleCaseDistinction.enumerateCases(rootsubobs) map
+      {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
 
   // TODO apply CaseDistinction to qcond case
   val qcondcaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
