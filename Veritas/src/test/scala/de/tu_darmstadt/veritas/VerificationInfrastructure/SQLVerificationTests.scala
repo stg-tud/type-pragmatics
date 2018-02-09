@@ -175,7 +175,7 @@ class SQLVerificationTests extends FunSuite {
 
     val indver = new TrustInductionSchemeVerifier[VeritasConstruct, VeritasFormula]()
     //use Vampire (4.1) with 90 sec timeout and fof encoding for verifying all steps that are not induction scheme applications
-    val noindver = makeCustomVampire(1, "fof")
+    val noindver = makeCustomVampire(120, "tff")
 
     //logging on console and saving problems that cannot be proved to extra files:
     for (obl <- indobls) {

@@ -31,6 +31,20 @@ object ExampleSpecification {
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
 
+  val NatType =
+    data('nat) of
+      'zero |
+      'succ ('nat)
+
+  val plusfunction = function ('plus.>>('nat, 'nat) -> 'nat) where
+    ('plus('x, 'zero) := 'x) |
+      ('plus('x, 'succ('y)) := 'succ('plus('x, 'y)))
+
+  val commutativity =
+    ('plus('x, 'y) === 'z)
+    ===>("commutatitivy")
+    ('plus('y, 'x) === 'z)
+
   val testtree1: SymNode = 'succ ('succ('nat, 'nat, 'succ ('nat)))
 
   val testopen1: DataType = open data 'test
