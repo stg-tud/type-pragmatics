@@ -24,12 +24,23 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
     // that has the induction variable directly as argument
     val rec_functioncall_with_inductionvar: Option[Defs] = fcs find
       (fc => isRecursiveFunctionCall(fc) &&
-        (getArguments(fc) contains inductionvar))
+        (getRecursiveArguments(fc) contains inductionvar))
     goalMatchesPattern(g) &&
       (getUniversallyQuantifiedVars(g) contains inductionvar) &&
       isClosedADT(inductionvar, g) &&
       rec_functioncall_with_inductionvar.isDefined
     //TODO: refine conditions, if necessary
+  }
+
+  private def getRecursiveArguments(call: Defs): Seq[Defs] = {
+    val args = getArguments(call)
+    args.flatMap { arg =>
+      val functionCalls = extractFunctionCalls(arg)
+      if (functionCalls.isEmpty)
+        arg +: getArguments(arg)
+      else
+        functionCalls.flatMap(getRecursiveArguments)
+    }
   }
 
   //TODO goalMatchesPattern is a candidate for a common Tactic method
