@@ -410,7 +410,7 @@ object QLDefs {
 
   val Tqempty = axiom(
     ===>("T-qempty")(
-      ~'MC |- 'qempty :: 'MC ('atmempty, 'atmempty)))
+      ~'MC |- 'qempty() :: 'MC ('atmempty, 'atmempty)))
 
   val Tquestion = axiom(
     ('lookupATMap (~'qid, ~'atm) === 'noAType
