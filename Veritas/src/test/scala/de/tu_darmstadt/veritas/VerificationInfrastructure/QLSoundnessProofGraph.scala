@@ -3,8 +3,9 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{CaseDistinctionCase, Solve, StructInductCase, StructuralInduction}
-import de.tu_darmstadt.veritas.backend.ast.{MetaVar, VeritasConstruct, VeritasFormula}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionExpEq, FunctionExpMeta, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, VeritasConstruct, VeritasFormula}
 
 class QLSoundnessProofGraph(file: File) {
   import QLSoundnessProofSteps._
@@ -14,6 +15,23 @@ class QLSoundnessProofGraph(file: File) {
   SQLSoundnessProofGraph.initializeGraphTypes(g)
 
   val specenq = new VeritasSpecEnquirer(fullQLspec)
+
+  def getCases(inductionVar: MetaVar, goal: VeritasFormula): Seq[VeritasFormula] = {
+    val goalBody = specenq.getQuantifiedBody(goal)
+    val ivCases = specenq.getCases(inductionVar, goalBody) map { ic =>
+      specenq.assignCaseVariables(ic, goalBody)
+    }
+    ivCases map (specenq.makeEquation(inductionVar, _))
+  }
+
+  // TODO maybe there can be other matching conditions like !app(~metavar) or app(~metavar)
+  def getNextMatchingVariables(matchingCondition: VeritasFormula): Seq[MetaVar] = {
+    matchingCondition.asInstanceOf[FunctionExpJudgment] match {
+      case FunctionExpJudgment(FunctionExpEq(rhs, FunctionExpApp(_, args))) =>
+        args.collect { case mv: FunctionMeta => mv.metavar }
+      case _ => Seq()
+    }
+  }
 
   //progress root obligation
   val progressObligation: g.Obligation = g.newObligation(fullQLspec, QLProgress)
@@ -34,17 +52,16 @@ class QLSoundnessProofGraph(file: File) {
   val qemptycaseobl = rootInduction.selectCase(casenames(0), rootsubobs)
   val qemptycasePS = g.applyTactic(qemptycaseobl, Solve[VeritasConstruct, VeritasFormula])
 
-  // TODO apply CaseDistinction to qsingle case
+  val matchingConds = getCases(MetaVar("q"), rootobl.goal)
   val qsinglecaseobl = rootInduction.selectCase(casenames(1), rootsubobs)
-  // TODO how do we get the distinction var from generated subobs?
-  val qsingleCaseDistinction = StructuralInduction(MetaVar("qs"), fullQLspec, specenq)
+
+  val qsingleCaseDistinction = StructuralCaseDistinction(getNextMatchingVariables(matchingConds(1)).head, fullQLspec, specenq)
   val qsinglecasePS = g.applyTactic(qsinglecaseobl, qsingleCaseDistinction)
 
   val qsinglesubobs = g.requiredObls(qsinglecasePS)
-  val qsinglecasenames = qsingleCaseDistinction.enumerateCaseNames[g.Obligation](qsinglesubobs)
-  val qsinglecaseedges: Seq[StructInductCase[VeritasConstruct, VeritasFormula]] =
-    (qsingleCaseDistinction.enumerateCases(rootsubobs) map
-      {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
+  val qsinglequestion = g.applyTactic(qsinglesubobs.toSeq(0)._1, Solve[VeritasConstruct, VeritasFormula])
+  val qsingledefquestion = g.applyTactic(qsinglesubobs.toSeq(1)._1, Solve[VeritasConstruct, VeritasFormula])
+
 
   // TODO apply CaseDistinction to qcond case
   val qcondcaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
