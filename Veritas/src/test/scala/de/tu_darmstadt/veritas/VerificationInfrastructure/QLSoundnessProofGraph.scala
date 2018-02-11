@@ -63,15 +63,18 @@ class QLSoundnessProofGraph(file: File) {
   val qsingledefquestion = g.applyTactic(qsinglesubobs.toSeq(1)._1, Solve[VeritasConstruct, VeritasFormula])
 
 
-  // TODO apply CaseDistinction to qcond case
-  val qcondcaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
-
   // TODO apply CaseDistinction to qseq case
-  val qseqcaseobl = rootInduction.selectCase(casenames(3), rootsubobs)
+  val qseqcaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
+  val qseqCaseDistinction = EqualityCaseDistinction(getNextMatchingVariables(matchingConds(2)).head, FunctionExpApp("qempty", Nil), fullQLspec, specenq)
+  val qseqcasePS = g.applyTactic(qseqcaseobl, qseqCaseDistinction)
+
+  // TODO apply CaseDistinction to qcond case
+  val qcondcaseobl = rootInduction.selectCase(casenames(3), rootsubobs)
 
   //apply simply Solve-tactic to qgroup base case
   val qgroupcaseobl = rootInduction.selectCase(casenames(4), rootsubobs)
   val qgroupcasePS = g.applyTactic(qgroupcaseobl, Solve[VeritasConstruct, VeritasFormula])
+
 }
 
 // Executing this object creates a new QL Soundness Proof Graph,

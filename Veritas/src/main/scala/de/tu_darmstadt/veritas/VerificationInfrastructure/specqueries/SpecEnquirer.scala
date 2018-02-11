@@ -97,6 +97,8 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   def makeEquation(left: Defs, right: Defs): Formulae
 
+  def makeInequation(left: Defs, right: Defs): Formulae
+
   //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
   def makeNamedGoal(f: Formulae, name: String): Formulae
 
