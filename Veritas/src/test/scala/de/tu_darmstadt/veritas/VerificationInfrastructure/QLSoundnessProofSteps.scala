@@ -15,7 +15,7 @@ object QLSoundnessProofSteps {
   import de.tu_darmstadt.veritas.inputdsl.QLDefs._
 
   val fullQLspec: Module = Module("QLspec", Seq(),
-    QLSyntax.defs ++ QLSemanticsData.defs ++ QLSemantics.defs ++ QLTypeSystem.defs ++ QLTypeSystemInv.defs)
+    BasicTypes.defs ++ QLSyntax.defs ++ QLSemanticsData.defs ++ QLSemantics.defs ++ QLTypeSystem.defs)//  ++ QLTypeSystemInv.defs)
 
   val QLProgress = goal(
     ((!'isValue('QC(~'am, ~'qm, ~'q))) &
@@ -188,5 +188,14 @@ object QLSoundnessProofSteps {
       ).===>("QL-Progress-T-qsingle-value")(
       exists(~'am0, ~'qm0, ~'q0) |
         'reduce('QC(~'am, ~'qm, ~'q)) === 'someQConf('QC(~'am0, ~'qm0, ~'q0)))
+  )
+
+  val ReduceExpProgress = lemma((
+    ((~'exp ~= 'constant(~'av)) &
+      ('typeAM(~'am) === ~'atm) &
+      ('echeck(~'atm, ~'exp) ~= ~'noAType)
+      ).===>("ReduceExp-Progress")(
+      exists(~'exp0) |
+        'reduce(~'exp, ~'am) === 'someExp(~'exp0)))
   )
 }

@@ -383,6 +383,18 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an inequation.")
     }
 
+  def makeNegation(body: VeritasConstruct): VeritasFormula =
+    body match {
+      case exp: FunctionExp => FunctionExpJudgment(FunctionExpNot(exp))
+      case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a negation.")
+    }
+
+  def makeTypingFunctionExpression(body: VeritasConstruct): VeritasFormula =
+    body match {
+      case exp: FunctionExp => FunctionExpJudgment(exp)
+      case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a function expression.")
+    }
+
   //expects an unnamed formula or a named one and attaches or overwrites the new name, always creating a typing rule
   private def makeNamedFormula(f: VeritasFormula, name: String): TypingRule = retrieveTypingRule(f) match {
     case Some(TypingRule(_, prems, conseqs)) => TypingRule(name, prems, conseqs)

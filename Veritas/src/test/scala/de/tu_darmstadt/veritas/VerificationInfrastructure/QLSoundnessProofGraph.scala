@@ -4,7 +4,8 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionExpEq, FunctionExpMeta, FunctionMeta}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.TPTPVampireVerifier
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, VeritasConstruct, VeritasFormula}
 
 class QLSoundnessProofGraph(file: File) {
@@ -39,6 +40,7 @@ class QLSoundnessProofGraph(file: File) {
 
   private val rootInduction = StructuralInduction(MetaVar("q"), fullQLspec, specenq)
   // first proof step: structural induction
+  //val rootPS = g.applyTactic(progressObligation, Solve[VeritasConstruct, VeritasFormula])
   val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
 
   val rootobl = g.findObligation("QL progress").get
@@ -49,33 +51,86 @@ class QLSoundnessProofGraph(file: File) {
       {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
 
   //apply simply Solve-tactic to qempty base case
-  val qemptycaseobl = rootInduction.selectCase(casenames(0), rootsubobs)
-  val qemptycasePS = g.applyTactic(qemptycaseobl, Solve[VeritasConstruct, VeritasFormula])
+  val qemptyObl = rootInduction.selectCase(casenames(0), rootsubobs)
+  val qemptyPS = g.applyTactic(qemptyObl, Solve[VeritasConstruct, VeritasFormula])
 
+  // TODO value and ask
   val matchingConds = getCases(MetaVar("q"), rootobl.goal)
-  val qsinglecaseobl = rootInduction.selectCase(casenames(1), rootsubobs)
+  val qsingleObl = rootInduction.selectCase(casenames(1), rootsubobs)
 
   val qsingleCaseDistinction = StructuralCaseDistinction(getNextMatchingVariables(matchingConds(1)).head, fullQLspec, specenq)
-  val qsinglecasePS = g.applyTactic(qsinglecaseobl, qsingleCaseDistinction)
+  val qsinglePS = g.applyTactic(qsingleObl, qsingleCaseDistinction)
 
-  val qsinglesubobs = g.requiredObls(qsinglecasePS)
-  val qsinglequestion = g.applyTactic(qsinglesubobs.toSeq(0)._1, Solve[VeritasConstruct, VeritasFormula])
-  val qsingledefquestion = g.applyTactic(qsinglesubobs.toSeq(1)._1, Solve[VeritasConstruct, VeritasFormula])
+  val qsinglesubobs = g.requiredObls(qsinglePS)
 
+  val qsinglequestionPS = g.applyTactic(qsinglesubobs.toSeq(0)._1, Solve[VeritasConstruct, VeritasFormula])
 
-  // TODO apply CaseDistinction to qseq case
-  val qseqcaseobl = rootInduction.selectCase(casenames(2), rootsubobs)
+  val qsingleMatchingConds = getCases(getNextMatchingVariables(matchingConds(1)).head, qsinglesubobs.toSeq(1)._1.goal)
+  val valueCaseDistinction = BooleanCaseDistinction(FunctionExpApp("expIsValue", Seq(FunctionMeta(getNextMatchingVariables(qsingleMatchingConds(1))(2)))), fullQLspec, specenq)
+
+  val valuePS = g.applyTactic(qsinglesubobs.toSeq(1)._1, valueCaseDistinction)
+  val valueCases = g.requiredObls(valuePS)
+
+  val progressReduceExpLemmaApplication = LemmaApplication(Seq(ReduceExpProgress), fullQLspec, specenq)
+
+  val expIsValueTruePS = g.applyTactic(valueCases.toSeq.head._1, Solve[VeritasConstruct, VeritasFormula])
+  val expIsValueFalsePS = g.applyTactic(valueCases.toSeq.last._1, progressReduceExpLemmaApplication)
+
+  val defquestionPS = g.applyTactic(qsinglesubobs.toSeq(2)._1, Solve[VeritasConstruct, VeritasFormula])
+  val askPS = g.applyTactic(qsinglesubobs.toSeq(3)._1, Solve[VeritasConstruct, VeritasFormula])
+
+  // apply CaseDistinction to qseq case
+  val qseqObl = rootInduction.selectCase(casenames(2), rootsubobs)
   val qseqCaseDistinction = EqualityCaseDistinction(getNextMatchingVariables(matchingConds(2)).head, FunctionExpApp("qempty", Nil), fullQLspec, specenq)
-  val qseqcasePS = g.applyTactic(qseqcaseobl, qseqCaseDistinction)
+  val qseqcasePS = g.applyTactic(qseqObl, qseqCaseDistinction)
+
+  val qseqsubobs = g.requiredObls(qseqcasePS)
+  val qseqsubPS = qseqsubobs.toSeq.map { case (obl, info) =>
+      g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
+  }
 
   // TODO apply CaseDistinction to qcond case
-  val qcondcaseobl = rootInduction.selectCase(casenames(3), rootsubobs)
+  val qcondObl = rootInduction.selectCase(casenames(3), rootsubobs)
+  val qcondPS = g.applyTactic(qcondObl, Solve[VeritasConstruct, VeritasFormula])
 
   //apply simply Solve-tactic to qgroup base case
-  val qgroupcaseobl = rootInduction.selectCase(casenames(4), rootsubobs)
-  val qgroupcasePS = g.applyTactic(qgroupcaseobl, Solve[VeritasConstruct, VeritasFormula])
+  val qgroupObl = rootInduction.selectCase(casenames(4), rootsubobs)
+  val qgroupPS = g.applyTactic(qgroupObl, Solve[VeritasConstruct, VeritasFormula])
 
+  //verify chosen steps with chosen verifiers
+  def verifySingleStepsSimple() = {
+    val simpleVampire4_1 = new TPTPVampireVerifier(5)
+    val simpleVampire4_1_20 = new TPTPVampireVerifier(20)
+    val simpleVampire4_1_120 = new TPTPVampireVerifier(120)
+
+    println(g.verifyProofStep(rootinductionPS, simpleVampire4_1_120).status)
+
+    //verify case distinction steps
+    println(g.verifyProofStep(qemptyPS, simpleVampire4_1_120).status)
+    println(g.verifyProofStep(qgroupPS, simpleVampire4_1_120).status)
+    println(g.verifyProofStep(qseqcasePS, simpleVampire4_1_120).status)
+    println(g.verifyProofStep(qsinglePS, simpleVampire4_1_120).status)
+    println(g.verifyProofStep(qcondPS, simpleVampire4_1_120).status)
+
+    println(g.verifyProofStep(defquestionPS, simpleVampire4_1_120).status)
+    println(g.verifyProofStep(qsinglequestionPS, simpleVampire4_1_120).status)
+    println(g.verifyProofStep(askPS, simpleVampire4_1_120).status)
+
+    println(g.verifyProofStep(expIsValueTruePS, simpleVampire4_1_120).status)
+    println(g.verifyProofStep(expIsValueFalsePS, simpleVampire4_1_120).status)
+
+    qseqsubPS.foreach { ps =>
+      println(g.verifyProofStep(ps, simpleVampire4_1_120).status)
+    }
+  }
 }
+
+object QLSoundnessProofGraph {
+  def initializeGraphTypes(g: ProofGraphXodus[VeritasConstruct, VeritasFormula]) = {
+    PropertyTypes.registerWrapperType(g.store)
+  }
+}
+
 
 // Executing this object creates a new QL Soundness Proof Graph,
 // attempting to verify as much as possible
@@ -94,7 +149,7 @@ object ConstructQLSoundnessGraph extends App {
 
   val pg = new QLSoundnessProofGraph(file)
 
-  //pg.verifySingleStepsSimple()
+  pg.verifySingleStepsSimple()
 
   val rootobl = pg.g.findObligation("QL progress").get
   val subobs = pg.g.requiredObls(pg.rootinductionPS)

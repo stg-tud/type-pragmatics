@@ -103,3 +103,29 @@ case class EqualityCaseDistinction[Defs, Formulae <: Defs](lhs: Defs, rhs: Defs,
   }
 
 }
+
+case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+  import queryspec._
+
+  // TODO: check
+  def isApplicable(g: Formulae): Boolean = true
+
+  /**
+    * applying a tactic to a ProofStep returns the edges generated from this application
+    * edges include edge labels and sub-ProofSteps
+    * caller has to decide whether the edges will be integrated into a proof graph or not
+    *
+    * @param obl
+    * @param obllabels labels from edges that lead to the given obligation (for propagating proof info if necessary)
+    * @throws TacticApplicationException
+    * @return
+    */
+  override def apply[Obligation](obl: GenObligation[Defs, Formulae],
+                                 obllabels: Iterable[EdgeLabel],
+                                 produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
+
+    val dist_cases = Seq(Seq(makeTypingFunctionExpression(body)), Seq(makeNegation(body)))
+    CaseDistinction[Defs, Formulae](dist_cases, spec, queryspec)(obl, obllabels, produce)
+  }
+
+}
