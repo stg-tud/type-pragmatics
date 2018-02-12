@@ -17,19 +17,23 @@ class QLSoundnessProofGraph(file: File) {
 
   val specenq = new VeritasSpecEnquirer(fullQLspec)
 
-  def getCases(inductionVar: MetaVar, goal: VeritasFormula): Seq[VeritasFormula] = {
+  def getCases(metaVar: MetaVar, goal: VeritasFormula): Seq[VeritasConstruct] = {
     val goalBody = specenq.getQuantifiedBody(goal)
-    val ivCases = specenq.getCases(inductionVar, goalBody) map { ic =>
+    val ivCases = specenq.getCases(metaVar, goalBody) map { ic =>
       specenq.assignCaseVariables(ic, goalBody)
     }
-    ivCases map (specenq.makeEquation(inductionVar, _))
+    ivCases
   }
 
-  // TODO maybe there can be other matching conditions like !app(~metavar) or app(~metavar)
-  def getNextMatchingVariables(matchingCondition: VeritasFormula): Seq[MetaVar] = {
-    matchingCondition.asInstanceOf[FunctionExpJudgment] match {
-      case FunctionExpJudgment(FunctionExpEq(rhs, FunctionExpApp(_, args))) =>
-        args.collect { case mv: FunctionMeta => mv.metavar }
+  def getIntroducedMetaVars(expression: VeritasConstruct): Seq[MetaVar] = {
+    def collectMetaVars(args: Seq[FunctionExpMeta]): Seq[MetaVar] =
+      args.collect { case mv: FunctionMeta => mv.metavar }
+
+    expression.asInstanceOf[FunctionExp] match {
+      //case FunctionExpJudgment(FunctionExpEq(rhs, FunctionExpApp(_, args))) => collectMetaVars(args)
+      //case FunctionExpJudgment(FunctionExpNeq(rhs, FunctionExpApp(_, args))) => collectMetaVars(args)
+      case FunctionExpApp(_, args) => collectMetaVars(args)
+      case FunctionExpNot(FunctionExpApp(_, args)) => collectMetaVars(args)
       case _ => Seq()
     }
   }
@@ -58,15 +62,15 @@ class QLSoundnessProofGraph(file: File) {
   val matchingConds = getCases(MetaVar("q"), rootobl.goal)
   val qsingleObl = rootInduction.selectCase(casenames(1), rootsubobs)
 
-  val qsingleCaseDistinction = StructuralCaseDistinction(getNextMatchingVariables(matchingConds(1)).head, fullQLspec, specenq)
+  val qsingleCaseDistinction = StructuralCaseDistinction(getIntroducedMetaVars(matchingConds(1)).head, fullQLspec, specenq)
   val qsinglePS = g.applyTactic(qsingleObl, qsingleCaseDistinction)
 
   val qsinglesubobs = g.requiredObls(qsinglePS)
 
   val qsinglequestionPS = g.applyTactic(qsinglesubobs.toSeq(0)._1, Solve[VeritasConstruct, VeritasFormula])
 
-  val qsingleMatchingConds = getCases(getNextMatchingVariables(matchingConds(1)).head, qsinglesubobs.toSeq(1)._1.goal)
-  val valueCaseDistinction = BooleanCaseDistinction(FunctionExpApp("expIsValue", Seq(FunctionMeta(getNextMatchingVariables(qsingleMatchingConds(1))(2)))), fullQLspec, specenq)
+  val qsingleMatchingConds = getCases(getIntroducedMetaVars(matchingConds(1)).head, qsinglesubobs.toSeq(1)._1.goal)
+  val valueCaseDistinction = BooleanCaseDistinction(FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(qsingleMatchingConds(1))(2)))), fullQLspec, specenq)
 
   val valuePS = g.applyTactic(qsinglesubobs.toSeq(1)._1, valueCaseDistinction)
   val valueCases = g.requiredObls(valuePS)
@@ -81,7 +85,7 @@ class QLSoundnessProofGraph(file: File) {
 
   // apply CaseDistinction to qseq case
   val qseqObl = rootInduction.selectCase(casenames(2), rootsubobs)
-  val qseqCaseDistinction = EqualityCaseDistinction(getNextMatchingVariables(matchingConds(2)).head, FunctionExpApp("qempty", Nil), fullQLspec, specenq)
+  val qseqCaseDistinction = EqualityCaseDistinction(getIntroducedMetaVars(matchingConds(2)).head, FunctionExpApp("qempty", Nil), fullQLspec, specenq)
   val qseqcasePS = g.applyTactic(qseqObl, qseqCaseDistinction)
 
   val qseqsubobs = g.requiredObls(qseqcasePS)
