@@ -1,13 +1,13 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.FixedVar
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast.{TypingRuleJudgment, _}
-import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
+import de.tu_darmstadt.veritas.backend.transformation.{ModuleTransformation, SeqTrans}
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
 import de.tu_darmstadt.veritas.backend.transformation.defs.{InferTypingJudgmentsSignature, TranslateAllTypingJudgments, TranslateTypingJudgments}
+import de.tu_darmstadt.veritas.backend.transformation.lowlevel.VarToApp0
 import de.tu_darmstadt.veritas.backend.util.{FreeVariables, FreshNames}
 
 class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasConstruct, VeritasFormula] {
@@ -24,12 +24,12 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   //for inferring types of functions and datatypes
   private val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
 
-  //object for inferring the signature of the typing judgments over the entire spec
-  private object TypingJudgmentTranslator extends TranslateTypingJudgments with Serializable {
-
+  //when inferring meta variables of a typing rule, prepare the rule so that meta vars can be inferred
+  //requires removing any FunctionExpVar constructs and translating typing judgments to functions/predicates
+  private object PrepareMetaVarInference extends SeqTrans(VarToApp0, TranslateAllTypingJudgments) {
     //convenience method for being able to apply the translator directly to a typing rule
     def apply(tr: TypingRule): TypingRule = {
-      this.transTypingRules(tr).head
+      ts.foldLeft(tr)((t1, t2) => t2.transTypingRules(t1).head)
     }
   }
 
@@ -47,7 +47,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case _ => sys.error("Could not wrap given specification in Module, which is required for VeritasSpecEnquirer.")
     }
 
-    val module_tjtranslated = TypingJudgmentTranslator(Seq(mod))(defconfig) //once at instantiation time: infer signature of typing judgment over entire spec
+    val module_tjtranslated = PrepareMetaVarInference(Seq(mod))(defconfig) //once at instantiation time: infer signature of typing judgment over entire spec
     tdcollector(module_tjtranslated)(defconfig).head //once at instantiation time: collect all datatype/function definitions etc. over entire spec (including signatures of typing judgments, inferred previously)
   }
 
@@ -110,7 +110,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     retrieveTypingRule(f) match {
       case Some(tr@TypingRule(_, _, _)) => {
         //first, preprocess typing rule (translate typing judgments)
-        val processedrule = TypingJudgmentTranslator(tr)
+        val processedrule = PrepareMetaVarInference(tr)
         tdcollector.inferMetavarTypes(processedrule)
       }
       case None => Map() //should not happen

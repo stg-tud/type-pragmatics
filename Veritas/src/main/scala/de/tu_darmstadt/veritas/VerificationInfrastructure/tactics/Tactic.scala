@@ -58,11 +58,11 @@ trait Tactic[Spec, Goal] extends Serializable {
     */
   def verifyStep[Result <: GenStepResult[Spec, Goal]](obl: GenObligation[Spec, Goal],
                                                       parentedges: Iterable[EdgeLabel],
-                                                      subobl: Iterable[GenObligation[Spec, Goal]],
+                                                      subobl: Iterable[(EdgeLabel, GenObligation[Spec, Goal])],
                                                       verifier: Verifier[Spec, Goal],
                                                       produce: StepResultProducer[Spec, Goal, Result],
                                                       pathforlogs: Option[String] = None): Result =
-    verifier.verify(obl.goal, obl.spec, parentedges, subobl.map(o => o.goal), None, produce, pathforlogs)
+    verifier.verify(obl.goal, obl.spec, parentedges, subobl.map { case (e, so) => (e, so.goal) }, None, produce, pathforlogs)
 
   /**
     * applying a tactic to a ProofStep returns the edges generated from this application

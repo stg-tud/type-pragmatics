@@ -142,7 +142,7 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
   def verifyProofStep(step: ProofStep, verifier: Verifier[Spec, Goal], pathforlogs: Option[String] = None): StepResult = {
     val oblToProve = targetedObl(step)
     val result = step.tactic.verifyStep(oblToProve, requiringSteps(oblToProve) map (_._2),
-      requiredObls(step) map (_._1), verifier, stepResultProducer, pathforlogs)
+      requiredObls(step) map (p => (p._2, p._1)), verifier, stepResultProducer, pathforlogs)
     setVerifiedBy(step, result)
     result
   }

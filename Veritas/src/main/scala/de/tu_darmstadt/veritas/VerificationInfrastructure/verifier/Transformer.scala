@@ -13,5 +13,5 @@ trait TransformerError extends Exception
 trait Transformer[Spec, Goal, V <: VerifierFormat] {
   def transformProblem(goal: Goal, spec: Spec,
                        parentedges: Iterable[EdgeLabel],
-                       assumptions: Iterable[Goal]): Try[V]
+                       assumptions: Iterable[(EdgeLabel, Goal)]): Try[V]
 }
