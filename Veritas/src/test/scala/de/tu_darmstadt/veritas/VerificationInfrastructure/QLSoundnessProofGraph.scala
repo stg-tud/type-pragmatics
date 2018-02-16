@@ -88,25 +88,9 @@ class QLSoundnessProofGraph(file: File) {
   val constantProgressReduceExpPS = g.applyTactic(progressReduceExpCases.head._1, Solve[VeritasConstruct, VeritasFormula])
 
   val progressLookupAnsMapLemma = LemmaApplication(Seq(LookupAnsMapProgress), fullQLspec, specenq)
-  println(progressReduceExpCases(1)._1.goal)
   val qvarPS = g.applyTactic(progressReduceExpCases(1)._1, progressLookupAnsMapLemma)
   val progressLookupAnsMap = g.requiredObls(qvarPS).toSeq.head._1
 
-  /*object progressLookupAnsMapInduction extends MockInduction(MetaVar("am")) {
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
-                                   obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
-      val emptyObl = produce.newObligation(fullQLspec, LookupAnsMapProgressEmpty)
-      val bindObl = produce.newObligation(fullQLspec, LookupAnsMapProgressAbind)
-
-      Seq((emptyObl, StructInductCase[VeritasConstruct, VeritasFormula](LookupAnsMapProgressEmpty.goals.head.name,
-        Seq(), Seq(), Seq())),
-        (bindObl, StructInductCase[VeritasConstruct, VeritasFormula](LookupAnsMapProgressAbind.goals.head.name,
-          Seq(FixedVar(LookupAnsMapProgressAbindConsts)),
-          Seq(InductionHypothesis[VeritasFormula](LookupAnsMapProgressAbindIH)), Seq())))
-
-    }
-  }*/
   val progressLookupAnsMapInduction = StructuralInduction(MetaVar("am"), fullQLspec, specenq)
   val progressLookupAnsMapInductionPS = g.applyTactic(progressLookupAnsMap, progressLookupAnsMapInduction)
   val progressLookupAnsMapInductionCases = g.requiredObls(progressLookupAnsMapInductionPS).toSeq
@@ -139,24 +123,7 @@ class QLSoundnessProofGraph(file: File) {
   val askPS = g.applyTactic(qsinglesubobs.toSeq(3)._1, progressLookupQMapLemmaApplication)
   val progressLookupQMap = g.requiredObls(askPS).toSeq.head._1
 
-  /*object progressLookupQMapInduction extends MockInduction(MetaVar("qm")) {
-    override def apply[Obligation](obl: GenObligation[VeritasConstruct, VeritasFormula],
-                                   obllabels: Iterable[EdgeLabel],
-                                   produce: ObligationProducer[VeritasConstruct, VeritasFormula, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
-
-      val emptyObl = produce.newObligation(fullQLspec, LookupQMapProgressEmpty)
-      val bindObl = produce.newObligation(fullQLspec, LookupQMapProgressQmbind)
-
-      Seq((emptyObl, StructInductCase[VeritasConstruct, VeritasFormula](LookupQMapProgressEmpty.goals.head.name,
-        Seq(), Seq(), Seq())),
-        (bindObl, StructInductCase[VeritasConstruct, VeritasFormula](LookupQMapProgressQmbind.goals.head.name,
-          Seq(FixedVar(LookupQMapProgressQmbindConsts)),
-          Seq(InductionHypothesis[VeritasFormula](LookupQMapProgressQmbindIH)), Seq())))
-
-    }
-  }*/
   val progressLookupQMapInduction = StructuralInduction(MetaVar("qm"), fullQLspec, specenq)
-
   val progressLookupQMapInductionPS = g.applyTactic(progressLookupQMap, progressLookupQMapInduction)
   val progressLookupQMapInductionCases = g.requiredObls(progressLookupQMapInductionPS).toSeq
   val progressLookupQMapInductionCasesPS = progressLookupQMapInductionCases.map { case (obl, _) =>

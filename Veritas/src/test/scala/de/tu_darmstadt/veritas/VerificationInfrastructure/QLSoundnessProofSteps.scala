@@ -1,12 +1,10 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.inputdsl.DataTypeDSL.consts
 import de.tu_darmstadt.veritas.inputdsl.{DataTypeDSL, FunctionDSL, SymTreeDSL}
 
 
 object QLSoundnessProofSteps {
-  import DataTypeDSL._
   import FunctionDSL._
   import SymTreeDSL._
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
