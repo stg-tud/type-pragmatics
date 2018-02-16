@@ -4,9 +4,10 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.TPTPVampireVerifier
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, VeritasConstruct, VeritasFormula}
+import de.tu_darmstadt.veritas.backend.ast._
 
 class QLSoundnessProofGraph(file: File) {
   import QLSoundnessProofSteps._
