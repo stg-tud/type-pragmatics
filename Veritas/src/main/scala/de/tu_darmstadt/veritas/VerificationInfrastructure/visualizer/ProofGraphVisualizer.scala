@@ -17,6 +17,10 @@ trait ProofGraphVisualizer[Output, Spec, Goal] {
   }
 
   protected def collect(name: String, obl: graph.Obligation): Unit = {
+    val obligationVisited = obligations.find(_._2.goal == obl.goal).nonEmpty
+    if (obligationVisited)
+      return
+
     obligations += (name -> obl)
     val ps = graph.appliedStep(obl)
     if (ps.nonEmpty) {

@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.tactics
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenObligation, ObligationProducer, PropagatableInfo}
+import de.tu_darmstadt.veritas.backend.ast.Goals
 
 //TODO edge information for lemma applications could be refined
 // IDEAS for later: possible lemma instantiations, application hints (order...?)
@@ -32,7 +33,7 @@ case class LemmaApplication[Defs, Formulae <: Defs](lemmas: Seq[Formulae], spec:
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
     for (lemma <- lemmas) yield {
-      val lemmaobl = produce.newObligation(spec, lemma)
+      val lemmaobl = produce.newObligation(spec, makeNamedGoal(lemma, getFormulaName(lemma)))
       val lemmaedge = LemmaApplicationStep(getFormulaName(lemma))
       (lemmaobl, lemmaedge)
     }

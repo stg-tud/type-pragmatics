@@ -25,19 +25,19 @@ object QLSoundnessProofSteps {
         'reduce('QC(~'am, ~'qm, ~'q)) === 'someQConf('QC(~'am0, ~'qm0, ~'q0)))
   )
 
-  val ReduceExpProgress = lemma((
+  val ReduceExpProgress = lemma(
     ((!'expIsValue(~'exp)) &
     // ((~'exp != 'constant(~'av)) &
       ('typeAM(~'am) === ~'atm) &
       ('echeck(~'atm, ~'exp) === 'someAType(~'at))
       ).===>("ReduceExp-Progress")(
       exists(~'exp0) |
-        'reduceExp(~'exp, ~'am) === 'someExp(~'exp0)))
+        'reduceExp(~'exp, ~'am) === 'someExp(~'exp0))
   )
 
-  val LookupAnsMapProgress = lemma((
+  val LookupAnsMapProgress = lemma(
     (('typeAM(~'am) === ~'atm) &
-      ('lookupATMap(~'qid, ~'atm) === 'someAType(~'at0)))
+      ('lookupATMap(~'qid, ~'atm) === 'someAType(~'at0))
     ).===>("LookupAnsMap-Progress")(
     exists(~'av0) | 'lookupAnsMap(~'qid, ~'am) === 'someAval(~'av0))
   )
@@ -48,9 +48,8 @@ object QLSoundnessProofSteps {
       exists(~'exp0) | 'getExp(~'eOpt) === ~'exp0)
   )
 
-  val LookupQMapProgress = lemma((
-    (~'qm === 'qmbind(~'qid2, ~'l, ~'t, ~'qmr)) &
-    ('typeQM(~'qm) === ~'qtm) &
+  val LookupQMapProgress = lemma(
+    (('typeQM(~'qm) === ~'qtm) &
     ('lookupATMap(~'qid, ~'qtm) === 'someAType(~'at))
   ).===>("LookupQMap-Progress")(
     exists(~'qid0, ~'l0, ~'t0) | 'lookupQMap(~'qid, ~'qm) === 'someQuestion(~'qid0, ~'l0, ~'t0))
