@@ -46,7 +46,7 @@ case class FormatOtherError(message: String) extends TransformerError
   * Translate VeriTaS module to TFF using the "most advantageous" strategies we determined so far
   * (module transformations)
   */
-class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, formatProducer: VerifierFormat => Format) extends Transformer[VeritasConstruct, VeritasConstruct, Format] {
+class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, formatProducer: VerifierFormat => Format) extends Transformer[VeritasConstruct, VeritasFormula, Format] {
 
   //for inferring types of functions and datatypes
   private val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
@@ -68,7 +68,7 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
     Problem -> Problem.All))
 
   // try to retrieve a TypingRule construct from a given VeritasFormula
-  private def retrieveTypingRule(f: VeritasFormula): Option[TypingRule] = f match {
+  private def retrieveTypingRule(f: VeritasConstruct): Option[TypingRule] = f match {
     case t@TypingRule(_, _, _) => Some(t)
     case tj: TypingRuleJudgment => Some(TypingRule("wrappedTypingRuleJdgm", Seq(), Seq(tj)))
     // above covers all cases such as OrJudgment, NotJudgment, ForallJudgment...
@@ -149,7 +149,25 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
           })) yield
       pinf.asInstanceOf[InductionHypothesis[VeritasFormula]]).toSet
 
-  override def transformProblem(goal: VeritasConstruct, spec: VeritasConstruct, parentedges: Iterable[EdgeLabel], assumptions: Iterable[(EdgeLabel, VeritasConstruct)]): Try[Format] = {
+
+  /**
+    * from an obligation node and the corresponding edges to the node and its children (assumptions),
+    * assemble the full proof problem
+    *
+    * this step incorporates proof information that is propagated along the proof graph (e.g.
+    * fixed variables, induction hypotheses) into the final proof problem, which then becomes
+    * Spec => (single) Goal and potentially uses scoping constructs from the input format, to deal with
+    * fixed variables etc.
+    *
+    * @param goal
+    * @param spec
+    * @param parentedges
+    * @param assumptions
+    * @return
+    */
+  override def assembleFullProblem(goal: VeritasFormula, spec: VeritasConstruct,
+                                   parentedges: Iterable[EdgeLabel],
+                                   assumptions: Iterable[(EdgeLabel, VeritasFormula)]): (VeritasConstruct, VeritasConstruct, VeritasFormula) = {
     spec match {
       case m@Module(name, imps, moddefs) => {
 
@@ -244,8 +262,8 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         //fix all fixed variables from fvs_intersection, fixed variables from fvs_childrenonly have to be universally quantified
         val assmAxioms: Iterable[Axioms] =
         for ((el, assm) <- assumptions) yield
-          assm match {
-            case Goals(ax@Seq(tr@TypingRule(name, prems, conseqs)), _) =>
+          retrieveTypingRule(assm) match {
+            case Some(tr@TypingRule(name, prems, conseqs)) =>
               if (el.propagateInfoList.isEmpty)
               //no additional premises necessary, only fix fvs in fvs_intersection
                 Axioms(Seq(fixMVsinVC[TypingRule](tr, fvs_intersection)))
@@ -284,15 +302,38 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
         val all_additional_assumptions: Seq[Axioms] =
         (parentonly_ihs_ax ++ intersection_ihs_ax ++ assmAxioms).toSeq
 
-        val final_augmentedgoal: Seq[ModuleDef] =
-          if (fixedvar_defs.consts.isEmpty)
-            all_additional_assumptions ++ Seq(final_goal)
+        val wrapped_spec = Module(name + "-Spec", imps, moddefs)
+
+        val wrapped_assumptions = Module(name + "-AdditionalAssumptions", imps,
+          (if (fixedvar_defs.consts.isEmpty)
+            all_additional_assumptions
           else
-            Seq(Local(Seq(fixedvar_defs) ++ all_additional_assumptions ++ Seq(final_goal)))
+            Seq()))
+
+        val final_assembled_goal: VeritasFormula =
+          if (fixedvar_defs.consts.isEmpty)
+            final_goal
+          else
+            Local(Seq(fixedvar_defs) ++ all_additional_assumptions ++ Seq(final_goal))
+
+        (wrapped_spec, wrapped_assumptions, final_assembled_goal)
+      }
+    }
+  }
 
 
-        //wrap everything in a module including the specification
-        val module = Module(name + "Transformed", imps, moddefs ++ final_augmentedgoal)
+  /**
+    * given a fully assembled proof problem of the form Spec => (single) Goal, translate to
+    * the final verification format
+    *
+    * @param problem
+    * @return
+    */
+  override def translateProblem(problem: (VeritasConstruct, VeritasConstruct, VeritasFormula)): Try[Format] =
+    problem match {
+      case (Module(name1, imps, defs), Module(name2, imps2, assmdefs), goal) if goal.isInstanceOf[ModuleDef] => {
+        //wrap everything in a single module, include the goal
+        val module = Module(name1, imps, (defs ++ assmdefs) :+ goal.asInstanceOf[ModuleDef])
 
         //finally, transform the entire problem using our standard transformation pipeline
         try {
@@ -314,9 +355,9 @@ class VeritasTransformer[Format <: VerifierFormat](val config: Configuration, fo
           case e: Exception => throw e
         }
       }
-      case _ => Failure(FormatOtherError(s"The problem specification passed to the VeritasTransformerBestStrat was not a Module: $spec"))
+      case _ => Failure(FormatOtherError(s"The problem specification passed to the problem transformation did not have the correct format: $problem"))
     }
-  }
+
 }
 
 object VeritasTransformerBestStrat extends VeritasTransformer(

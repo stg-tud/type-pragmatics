@@ -1,10 +1,12 @@
 package de.tu_darmstadt.veritas.backend.ast
 
+import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintable
+
 /**
  * superclass of all Veritas constructs
  * used for defining general operations on Veritas constructs
  */
-trait VeritasConstruct extends Serializable {
+trait VeritasConstruct extends Serializable with PrettyPrintable{
   /**
    * has to be overridden by each VeritasConstruct!
    * declares the children each Veritas construct has,

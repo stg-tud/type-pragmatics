@@ -15,7 +15,7 @@ sealed trait ModuleDef extends VeritasConstruct with PrettyPrintable
 
 trait VeritasFormula extends VeritasConstruct
 
-case class Local(defs: Seq[ModuleDef]) extends ModuleDef with ModuleDefHolder {
+case class Local(defs: Seq[ModuleDef]) extends ModuleDef with ModuleDefHolder with VeritasFormula {
   // from ModuleDefHolder
   override def imports = Seq()
   

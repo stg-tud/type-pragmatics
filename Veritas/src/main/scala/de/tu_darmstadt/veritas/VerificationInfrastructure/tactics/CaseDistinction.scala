@@ -45,6 +45,23 @@ case class CaseDistinction[Defs, Formulae <: Defs](cases: Seq[Seq[Formulae]], sp
       (newobl, edge)
     }
   }
+
+  //call with a parent obligation and the sub-obligations that this parent requires
+  //will try to match the cases against induction cases and then assemble a map from case names to (Obligation, EdgeLabel)
+  def enumerateCases[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Map[String, (Obligation, EdgeLabel)] = {
+    (for (r <- required) yield {
+      r._2 match {
+        case CaseDistinctionCase(name, _) => name -> r
+        case c => sys.error(s"Enumerate cases of a case distinction: The given required sub-obligations were not all labeled as case distinction cases: $c")
+      }
+    }).toMap
+  }
+
+  def enumerateCaseNames[Obligation](required: Iterable[(Obligation, EdgeLabel)]): Seq[String] =
+    enumerateCases(required).keys.toSeq.sortWith(_ < _) //alphabetical ordering
+
+  def selectCase[Obligation](casename: String, required: Iterable[(Obligation, EdgeLabel)]): Obligation =
+    enumerateCases(required)(casename)._1
 }
 
 case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {

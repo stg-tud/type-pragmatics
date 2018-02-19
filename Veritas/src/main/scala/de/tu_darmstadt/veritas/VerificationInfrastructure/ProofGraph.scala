@@ -153,7 +153,7 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
     * If no checker is registered for a given evidence class, the proof graph defaults to @link{defaultEvidencenChecker}.
     */
   private val evidenceCheckers: mutable.Map[Class[_ <: Evidence], AnyEvidenceChecker] = mutable.Map()
-  var defaultEvidencenChecker: AnyEvidenceChecker = Evidence.failing
+  var defaultEvidencenChecker: AnyEvidenceChecker = Evidence.trusting //TODO rethink default!
   override def lookupEvidenceChecker(evClass: Class[_ <: Evidence]): AnyEvidenceChecker =
     evidenceCheckers.getOrElse(evClass, defaultEvidencenChecker)
   def registerEvidenceChecker[Ev <: Evidence](evClass: Class[Ev], checker: EvidenceChecker[Ev]) =
