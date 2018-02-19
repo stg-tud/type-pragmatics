@@ -89,22 +89,22 @@ class QLSoundnessProofGraph(file: File) {
     g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
   }
 
-  val progressReduceExpLemmaApplication = LemmaApplication(Seq(ReduceExpProgress), fullQLspec, specenq)
-
   val expIsValueTruePS = g.applyTactic(valueCases.toSeq.head._1, Solve[VeritasConstruct, VeritasFormula])
+
+  val progressReduceExpLemmaApplication = LemmaApplication(Seq(ReduceExpProgress), fullQLspec, specenq)
   val expIsValueFalsePS = g.applyTactic(valueCases.toSeq.last._1, progressReduceExpLemmaApplication)
   val progressReduceExpSubs = g.requiredObls(expIsValueFalsePS)
+
   val reduceExpInduction = StructuralInduction(MetaVar("exp"), fullQLspec, specenq)
+  val progressReduceExpInductionPS = g.applyTactic(progressReduceExpSubs.toSeq.head._1, reduceExpInduction)
 
-  val progressReduceExpPS = g.applyTactic(progressReduceExpSubs.toSeq.head._1, reduceExpInduction)
-
-  val progressReduceExpCases = g.requiredObls(progressReduceExpPS).toSeq
+  val progressReduceExpInductionCases = g.requiredObls(progressReduceExpInductionPS).toSeq
   val progressReduceExpMatchingConds = getCases(MetaVar("exp"), ReduceExpProgress)
 
-  val constantProgressReduceExpPS = g.applyTactic(progressReduceExpCases.head._1, Solve[VeritasConstruct, VeritasFormula])
+  val constantProgressReduceExpPS = g.applyTactic(progressReduceExpInductionCases.head._1, Solve[VeritasConstruct, VeritasFormula])
 
   val progressLookupAnsMapLemma = LemmaApplication(Seq(LookupAnsMapProgress), fullQLspec, specenq)
-  val qvarPS = g.applyTactic(progressReduceExpCases(1)._1, progressLookupAnsMapLemma)
+  val qvarPS = g.applyTactic(progressReduceExpInductionCases(1)._1, progressLookupAnsMapLemma)
   val progressLookupAnsMap = g.requiredObls(qvarPS).toSeq.head._1
 
   val progressLookupAnsMapInduction = StructuralInduction(MetaVar("am"), fullQLspec, specenq)
@@ -118,8 +118,7 @@ class QLSoundnessProofGraph(file: File) {
       FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds(2)).head))),
         FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds(2)).last)))
     ), fullQLspec, specenq)
-  val binopProgressReduceExpPS = g.applyTactic(progressReduceExpCases(2)._1, binopProgressReduceExpDistinction)
-  printSubObs(binopProgressReduceExpPS)
+  val binopProgressReduceExpPS = g.applyTactic(progressReduceExpInductionCases(2)._1, binopProgressReduceExpDistinction)
   val binopProgressReduceExpCases = g.requiredObls(binopProgressReduceExpPS).toSeq
   val binopProgressReduceExpSomeExpPS = g.applyTactic(binopProgressReduceExpCases.head._1, Solve[VeritasConstruct, VeritasFormula])
   val binopProgressReduceExpNoExpPS = g.applyTactic(binopProgressReduceExpCases.last._1, Solve[VeritasConstruct, VeritasFormula])
@@ -127,7 +126,7 @@ class QLSoundnessProofGraph(file: File) {
   val unopProgressReduceExpDistinction = BooleanCaseDistinction(
     FunctionExpApp("expIsValue",
       Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds.last)(1)))), fullQLspec, specenq)
-  val unopProgressReduceExpDisitinctionPS = g.applyTactic(progressReduceExpCases.last._1, unopProgressReduceExpDistinction)
+  val unopProgressReduceExpDisitinctionPS = g.applyTactic(progressReduceExpInductionCases.last._1, unopProgressReduceExpDistinction)
   val unopProgressReduceExpCases = g.requiredObls(unopProgressReduceExpDisitinctionPS).toSeq
   val unopProgressReduceExpCasesPS = unopProgressReduceExpCases.map { case (obl, info) =>
     g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
