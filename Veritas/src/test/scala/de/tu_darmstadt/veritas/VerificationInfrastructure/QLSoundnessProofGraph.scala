@@ -39,10 +39,6 @@ class QLSoundnessProofGraph(file: File) {
     }
   }
 
-  def printSubObs(ps: g.ProofStep): Unit = {
-    g.requiredObls(ps).toSeq.foreach { case (obl, _) => println(obl.goal) }
-  }
-
   //progress root obligation
   val progressObligation: g.Obligation = g.newObligation(fullQLspec, QLProgress)
   g.storeObligation("QL progress", progressObligation)
@@ -143,8 +139,6 @@ class QLSoundnessProofGraph(file: File) {
     g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
   }
 
-
-  // TODO apply CaseDistinction to qcond case
   val qcondObl = rootInduction.selectCase(casenames(3), rootsubobs)
 
   val expOfQcond = getIntroducedMetaVars(matchingConds(3)).head
@@ -156,7 +150,6 @@ class QLSoundnessProofGraph(file: File) {
 
   val qcondPS = g.applyTactic(qcondObl, qcondCaseDisitinction)
   val qcondCases = g.requiredObls(qcondPS).toSeq
-  //qcondCases.foreach { case (obl, _) => println(obl.goal) }
   val qcondBooleanCasesPS = qcondCases.init.map { case (obl, _) =>
       g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
   }
@@ -166,65 +159,62 @@ class QLSoundnessProofGraph(file: File) {
   val qgroupObl = rootInduction.selectCase(casenames(4), rootsubobs)
   val qgroupPS = g.applyTactic(qgroupObl, Solve[VeritasConstruct, VeritasFormula])
 
-  def attachSolveSteps(): Unit = {
-    val oblsWithNoPS = g.obligationDFS().filter { obl => g.appliedStep(obl).isEmpty }
-    val solvePS = oblsWithNoPS.map {obl =>
-      g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
-    }
-  }
-
   //verify chosen steps with chosen verifiers
   def verifySingleStepsSimple() = {
     val simpleVampire4_1 = new TPTPVampireVerifier(5)
     val simpleVampire4_1_20 = new TPTPVampireVerifier(20)
     val simpleVampire4_1_120 = new TPTPVampireVerifier(120)
-    g.proofstepsDFS().foreach { ps =>
+
+    println(g.verifyProofStep(rootinductionPS, simpleVampire4_1_120).status.isVerified)
+
+    //verify case distinction steps
+    println(g.verifyProofStep(qemptyPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(qgroupPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(qseqcasePS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(qsinglePS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(askPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(valuePS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(qcondPS, simpleVampire4_1_120).status.isVerified)
+    qcondBooleanCasesPS.map { case ps =>
+      println(g.verifyProofStep(ps, simpleVampire4_1_120).status.isVerified)
+    }
+    println(g.verifyProofStep(qcondNonBooleanPS, simpleVampire4_1_20).status.isVerified)
+
+
+    println(g.verifyProofStep(progressLookupAnsMapInductionPS, simpleVampire4_1_120).status.isVerified)
+    progressLookupQMapInductionCasesPS.foreach { ps =>
+      println(g.verifyProofStep(ps, simpleVampire4_1_20).status.isVerified)
+    }
+    println(g.verifyProofStep(defquestionPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(questionPS, simpleVampire4_1_120).status.isVerified)
+
+    println(g.verifyProofStep(expIsValueTruePS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(expIsValueFalsePS, simpleVampire4_1_120).status.isVerified)
+
+    println(g.verifyProofStep(progressReduceExpInductionPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(qvarPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(progressLookupQMapInductionPS, simpleVampire4_1_120).status.isVerified)
+    progressLookupAnsMapInductionCasesPS.foreach { ps =>
+      println(g.verifyProofStep(ps, simpleVampire4_1_120).status.isVerified)
+    }
+    println(g.verifyProofStep(constantProgressReduceExpPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(binopProgressReduceExpPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(binopProgressReduceExpSomeExpPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(binopProgressReduceExpNoExpPS, simpleVampire4_1_120).status.isVerified)
+    println(g.verifyProofStep(unopProgressReduceExpDisitinctionPS, simpleVampire4_1_120).status.isVerified)
+    unopProgressReduceExpCasesPS.foreach { ps =>
       println(g.verifyProofStep(ps, simpleVampire4_1_120).status.isVerified)
     }
 
-    // println(g.verifyProofStep(rootinductionPS, simpleVampire4_1_120).status.isVerified)
+    qseqsubPS.foreach { ps =>
+      println(g.verifyProofStep(ps, simpleVampire4_1_120).status.isVerified)
+    }
+  }
 
-    //verify case distinction steps
-    // println(g.verifyProofStep(qemptyPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(qgroupPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(qseqcasePS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(qsinglePS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(askPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(qcondPS, simpleVampire4_1_120).status.isVerified)
-    // qcondBooleanCasesPS.map { case ps =>
-    //   println(g.verifyProofStep(ps, simpleVampire4_1_120).status.isVerified)
-    // }
-    // println(g.verifyProofStep(qcondNonBooleanPS, simpleVampire4_1_20).status.isVerified)
-
-
-    // println(g.verifyProofStep(progressLookupAnsMapInductionPS, simpleVampire4_1_120).status.isVerified)
-    // progressLookupQMapInductionCasesPS.foreach { ps =>
-    //    println(g.verifyProofStep(ps, simpleVampire4_1_20).status.isVerified)
-    // }
-    // println(g.verifyProofStep(defquestionPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(questionPS, simpleVampire4_1_120).status.isVerified)
-
-    // println(g.verifyProofStep(expIsValueTruePS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(expIsValueFalsePS, simpleVampire4_1_120).status.isVerified)
-
-    // println(g.verifyProofStep(progressReduceExpPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(qvarPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(progressLookupQMapInductionPS, simpleVampire4_1_120).status.isVerified)
-    // progressLookupAnsMapInductionCasesPS.foreach { ps =>
-    //   println(g.verifyProofStep(ps, simpleVampire4_1_120).status.isVerified)
-    // }
-    // println(g.verifyProofStep(constantProgressReduceExpPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(binopProgressReduceExpPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(binopProgressReduceExpSomeExpPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(binopProgressReduceExpNoExpPS, simpleVampire4_1_120).status.isVerified)
-    // println(g.verifyProofStep(unopProgressReduceExpDisitinctionPS, simpleVampire4_1_120).status.isVerified)
-    // unopProgressReduceExpCasesPS.foreach { ps =>
-    //   println(g.verifyProofStep(ps, simpleVampire4_1_120).status.isVerified)
-    // }
-
-    // qseqsubPS.tail.foreach { ps =>
-    //   println(g.verifyProofStep(ps, simpleVampire4_1_120).status.isVerified)
-    // }
+  def checkConsistency(): Unit = {
+    val vampireProver = VampireTPTP("4.1", 3600)
+    val checker = ConsistencyChecker(VeritasTransformerBestStrat.config, vampireProver)
+    println(checker.consistent(fullQLspec))
   }
 }
 
@@ -252,7 +242,6 @@ object ConstructQLSoundnessGraph extends App {
 
   val pg = new QLSoundnessProofGraph(file)
 
-  // pg.attachSolveSteps()
   pg.verifySingleStepsSimple()
   Dot(pg.g, new File("ql_progress.png"))
 
