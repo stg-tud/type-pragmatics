@@ -134,6 +134,22 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
+
+    def canEqual(other: Any): Boolean = other.isInstanceOf[Obligation]
+
+    override def equals(other: Any): Boolean = other match {
+      case that: Obligation =>
+        (that canEqual this) &&
+          id == that.id &&
+          goal == that.goal &&
+          spec == that.spec
+      case _ => false
+    }
+
+    override def hashCode(): Int = {
+      val state = Seq(id, goal, spec)
+      state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+    }
   }
 
   object obligationProducer extends ObligationProducer[Spec, Goal, Obligation] {

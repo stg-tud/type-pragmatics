@@ -8,7 +8,7 @@ trait ProofGraphVisualizer[Output, Spec, Goal] {
   protected val obligations = scala.collection.mutable.ListBuffer[(String, graph.Obligation)]()
   protected val proofsteps = scala.collection.mutable.ListBuffer[graph.ProofStep]()
   protected val fromObligation = scala.collection.mutable.Map[graph.Obligation, graph.ProofStep]()
-  protected val fromProofstep= scala.collection.mutable.Map[graph.ProofStep, Iterable[(graph.Obligation, EdgeLabel)]]()
+  protected val fromProofstep= scala.collection.mutable.Map[graph.ProofStep, Seq[(graph.Obligation, EdgeLabel)]]()
 
   protected def collect(): Unit = {
     for ((name, obl) <- graph.storedObligations) {
@@ -22,11 +22,13 @@ trait ProofGraphVisualizer[Output, Spec, Goal] {
     if (ps.nonEmpty) {
       fromObligation += (obl -> ps.get)
       proofsteps += ps.get
-      val edges = graph.requiredObls(ps.get)
+      val edges = graph.requiredObls(ps.get).toSeq
       fromProofstep += (ps.get -> edges)
       for ((subobl, edgeLabel) <- edges) {
         // TODO: how should the subobligation be named?
-        collect("sub", subobl)
+        val obligationVisited = obligations.find(_._2.goal == subobl.goal).nonEmpty
+        if (!obligationVisited)
+          collect("sub", subobl)
       }
     }
   }
