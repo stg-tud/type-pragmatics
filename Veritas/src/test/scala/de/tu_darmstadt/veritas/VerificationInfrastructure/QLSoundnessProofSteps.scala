@@ -13,7 +13,7 @@ object QLSoundnessProofSteps {
   import de.tu_darmstadt.veritas.inputdsl.QLDefs._
 
   val fullQLspec: Module = Module("QLspec", Seq(),
-    BasicTypes.defs ++ QLSyntax.defs ++ QLSemanticsData.defs ++ QLSemantics.defs ++ QLTypeSystem.defs ++ QLTypeSystemInv.defs)
+    BasicTypes.defs ++ QLSyntax.defs ++ QLSemanticsData.defs ++ QLSemantics.defs ++ QLTypeSystem.defs)// ++ QLTypeSystemInv.defs)
 
   val QLProgress = goal(
     ((!'isValue('QC(~'am, ~'qm, ~'q))) &
