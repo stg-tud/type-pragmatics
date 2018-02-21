@@ -1,4 +1,6 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
+
+import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
 
 object LocalCorrect extends SPLSpecification {
   override def typable(context: LocalCorrect.Context, exp: LocalCorrect.Expression, typ: LocalCorrect.Typ) = true

@@ -1,4 +1,6 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
+
+import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
 
 object FunctionCorrect extends SPLSpecification {
   override def typable(context: FunctionCorrect.Context, exp: FunctionCorrect.Expression, typ: FunctionCorrect.Typ) = true

@@ -8,7 +8,7 @@ import org.scalatest.FunSuite
 
 class SPLTranslatorTest extends FunSuite {
   val filesDir =
-    new File("src/test/scala/de/tu_darmstadt/veritas/newinputdsl")
+    new File("src/test/scala/de/tu_darmstadt/veritas/newinputdsl/translatorfiles")
 
   test("translate simple adts") {
     val translator = new SPLTranslator

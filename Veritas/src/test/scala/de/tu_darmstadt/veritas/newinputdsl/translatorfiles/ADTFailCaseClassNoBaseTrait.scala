@@ -1,4 +1,6 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
+
+import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
 
 object ADTFailCaseClassNoBaseTrait extends SPLSpecification {
   override def typable(context: ADTFailCaseClassNoBaseTrait.Context, exp: ADTFailCaseClassNoBaseTrait.Expression, typ: ADTFailCaseClassNoBaseTrait.Typ) = true
