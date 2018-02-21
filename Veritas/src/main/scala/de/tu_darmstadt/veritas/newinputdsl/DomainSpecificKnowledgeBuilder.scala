@@ -5,8 +5,6 @@ import java.io.File
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
 import de.tu_darmstadt.veritas.backend.ast.{DataType, FunctionExpJudgment, Goals, TypingRule}
 
-import scala.collection.mutable.ListBuffer
-
 trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLDomainSpecificKnowledgeAnnotations, Knowledge <: DomainSpecificKnowledge] {
   import scala.meta._
 
@@ -34,11 +32,10 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     build(base)
   }
 
-  protected var expressionTypes: ListBuffer[Defn.Trait] = null
-  protected var attachedProperties: MMap[(Defn.Def, String), Defn.Def] = null
-  protected var recursiveFunctions: MMap[Defn.Def, Defn.Trait] = null
-  protected var propertyNeeded: MMap[Defn.Def, (String, Seq[Case])] = null
-  protected var distinction: MMap[Case, Seq[Defn.Def]] = null
+  protected var attachedProperties: MMap[(Defn.Def, String), Defn.Def] = scala.collection.mutable.Map()
+  protected var recursiveFunctions: MMap[Defn.Def, Defn.Trait] = scala.collection.mutable.Map()
+  protected var propertyNeeded: MMap[Defn.Def, (String, Seq[Case])] = scala.collection.mutable.Map()
+  protected var distinction: MMap[Case, Seq[Defn.Def]] = scala.collection.mutable.Map()
 
   // fill maps or data types
   protected def collectInformation(): Unit = {
@@ -46,12 +43,23 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       case fn: Defn.Def =>
         if(ScalaMetaUtils.containsAnnotation(fn.mods, "Distinction"))
           collectDistinction(fn)
-        if(ScalaMetaUtils.containsAnnotation(fn.mods, "Property"))
-          collectProperty(fn)
-        if(ScalaMetaUtils.containsAnnotation(fn.mods, "PropertyNeeded"))
-          collectPropertyNeeded(fn)
+        if(ScalaMetaUtils.containsAnnotation(fn.mods, "PropertyAttached")) {
+          val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
+          val filteredAnnots = annots.filter { _.init.tpe.toString == "PropertyAttached" }
+          filteredAnnots.foreach { annot =>
+            collectProperty(fn, annot)
+          }
+        }
+        if(ScalaMetaUtils.containsAnnotation(fn.mods, "PropertyNeeded")) {
+          val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
+          val filteredAnnots = annots.filter { _.init.tpe.toString == "PropertyNeeded" }
+          filteredAnnots.foreach { annot =>
+            collectPropertyNeeded(fn, annot)
+          }
+        }
         if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
           collectRecursive(fn)
+      case _ => ()
     }
   }
 
@@ -81,19 +89,16 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
         if ScalaMetaUtils.containsAnnotation(fn.mods, annotName) && fn.name.value == name => fn
     }.headOption
 
-  private def collectProperty(fn: Defn.Def): Unit = {
-    val annot = collectAnnotation(fn.mods, "PropertyAttached")
-    val propertyName = annot.init.argss.head.head.asInstanceOf[Lit.String].value
-    val propertyReference = annot.init.argss.head(1).asInstanceOf[Lit.String].value
+  private def collectProperty(fn: Defn.Def, annot: Mod.Annot): Unit = {
+    val propertyReference = annot.init.argss.head.head.asInstanceOf[Lit.String].value
     collectFunctionDef(propertyReference, "Property") match {
       case Some(propertyDef) =>
-        attachedProperties += (fn, propertyName) -> propertyDef
+        attachedProperties += (fn, propertyDef.name.value) -> propertyDef
       case None => reporter.report("Property reference could not be found", annot.pos.startLine)
     }
   }
 
-  private def collectPropertyNeeded(fn: Defn.Def): Unit = {
-    val annot = collectAnnotation(fn.mods, "PropertyNeeded")
+  private def collectPropertyNeeded(fn: Defn.Def, annot: Mod.Annot): Unit = {
     val propertyName = annot.init.argss.head.head.asInstanceOf[Lit.String].value
     val propertyDef = collectFunctionDef(propertyName, "Property").head
     val functionEqPositions = annot.init.argss.tail.map { _.asInstanceOf[Lit.Int].value }
@@ -103,7 +108,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
 
   private def collectRecursive(fn: Defn.Def): Unit = {
     val annot = collectAnnotation(fn.mods, "Recursive")
-    val positions = annot.init.argss.head.tail.map { _.asInstanceOf[Lit.Int].value }
+    val positions = annot.init.argss.head.map { _.asInstanceOf[Lit.Int].value }
     // we know that at least one possible has to be given
     if (positions.isEmpty)
       reporter.report("At least one index has to be given for the Recursive annotation.", annot.pos.startLine)
@@ -112,30 +117,37 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       if (positions.tail.nonEmpty)
         collectInnerADT(outer, positions.tail)
       else
-        getTraitForParam(outer)
+        getTraitForLastParam(outer)
 
     recursiveFunctions += fn -> adtTrait
   }
 
-  private def getTraitForParam(param: Term.Param): Defn.Trait = {
+  private def getTraitForLastParam(param: Term.Param): Defn.Trait = {
     val paramTrait = adts.filterKeys { key =>
-      key.name.value == param.name.value
+      key.name.value == param.decltpe.get.toString
     }.headOption
-    if (paramTrait.get._2.size != 1)
-      reporter.report("The ADT of an argument of a recursive marked function should only have one constructor.", param.pos.startLine)
     paramTrait.get._1
   }
 
   private def collectInnerADT(param: Term.Param, nextPositions: Seq[Int]): Defn.Trait = {
-    val paramTrait = getTraitForParam(param)
-    val ctor = adts(paramTrait).head
-    val params = ctor.ctor.paramss.head
     if (nextPositions.isEmpty)
-      paramTrait
+      getTraitForLastParam(param)
     else {
+      val paramTrait = getTraitForParam(param)
+      val ctor = adts(paramTrait).head
+      val params = ctor.ctor.paramss.head
       val selectedParam = params(nextPositions.head)
       collectInnerADT(selectedParam, nextPositions.tail)
     }
+  }
+
+  private def getTraitForParam(param: Term.Param): Defn.Trait = {
+    val paramTrait = adts.filterKeys { key =>
+      key.name.value == param.decltpe.get.toString
+    }.headOption
+    if (paramTrait.get._2.size != 1)
+      reporter.report("The ADT of an argument of a recursive marked function should only have one constructor.", param.pos.startLine)
+    paramTrait.get._1
   }
 
   def buildBase(): DomainSpecificKnowledge = {

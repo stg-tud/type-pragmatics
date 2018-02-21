@@ -6,9 +6,9 @@ trait SPLDomainSpecificKnowledgeAnnotations {
   // TODO same for preservation
   // TODO Should this just be generalized? goal/lemma?
 
-  case object Property extends scala.annotation.Annotation
+  case class Property() extends scala.annotation.Annotation
   // a function can have multiple properties and each property gets a name assigned and a function
-  case class PropertyAttached(propertyName: String, functionName: String) extends scala.annotation.Annotation
+  case class PropertyAttached(functionName: String) extends scala.annotation.Annotation
   // trade-off to refer by position number because we cannot annotate a case
   case class PropertyNeeded(propertyName: String, functionEquationPositions: Int*) extends scala.annotation.Annotation {
     require(functionEquationPositions.nonEmpty)

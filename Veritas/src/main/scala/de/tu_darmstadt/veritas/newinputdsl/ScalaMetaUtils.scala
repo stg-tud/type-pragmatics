@@ -19,10 +19,18 @@ object ScalaMetaUtils {
     case o: Defn.Object => o
   }.headOption
 
-  def containsAnnotation(mods: Seq[Mod], annotation: String): Boolean = {
-    val annotations = mods.collect {
+  def collectAnnotations(mods: Seq[Mod]): Seq[Mod.Annot] =
+    mods.collect {
       case annot: Mod.Annot => annot
     }
-    annotations.exists { _.init.tpe.toString == annotation }
+
+  def containsAnnotation(mods: Seq[Mod], annotation: String): Boolean = {
+    val annots = collectAnnotations(mods)
+    annots.exists { _.init.tpe.toString == annotation }
+  }
+
+  def notContainsAnnotation(mods: Seq[Mod], annotation: String): Boolean = {
+    val annots = collectAnnotations(mods)
+    annots.forall { _.init.tpe.toString != annotation }
   }
 }

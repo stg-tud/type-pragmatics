@@ -70,7 +70,11 @@ class SPLTranslator {
   private def collectFunctions(parsed: Seq[Stat]): Seq[Defn.Def] =
     parsed.collect {
       // has no goal, axiom, lemma annotation
-      case fn: Defn.Def if fn.mods.isEmpty => fn
+      case fn: Defn.Def
+        // want to ignore properties and criterias that are attached to functions for domain specific knowledge
+        if ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") &&
+           ScalaMetaUtils.notContainsAnnotation(fn.mods, "DistinctionCriteria") =>
+          fn
     }
 
   private def collectAxioms(parsed: Seq[Stat]): Seq[Defn.Def] = collectFunctionAnnotatedWith(parsed, "Axiom")
