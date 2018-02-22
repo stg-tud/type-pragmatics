@@ -12,16 +12,16 @@ trait SPLFunctionDefinitionTranslator {
   def translateFunction(fn: Defn.Def): FunctionDef = {
     // decltype has to be given
     if (fn.decltpe.isEmpty)
-      reporter.report("The return type of a function has to be explicitly defined", fn.pos.startLine)
+      reporter.report(s"The return type of function ${fn.name.value} has to be explicitly defined", fn.pos.startLine)
     if (fn.tparams.nonEmpty)
-      reporter.report("A function definition does not allow type parameters", fn.pos.startLine)
+      reporter.report(s"A function definition does not allow type parameters (${fn.name.value})", fn.pos.startLine)
     val signature = translateFunctionSignature(fn.name, fn.paramss.head, fn.decltpe.get)
     val equations = fn.body match {
       // TODO: check that the expr over which is matched is a tuple in the correct order of function params
       case Term.Match(_, cases) =>
         cases.map { translateCase(fn.name.value, _) }
       case _ =>
-        reporter.report("Top level construct of a function has to be a match", fn.body.pos.startLine)
+        reporter.report(s"Top level construct of function ${fn.name.value} has to be a match", fn.body.pos.startLine)
     }
     FunctionDef(signature, equations)
   }
@@ -33,7 +33,7 @@ trait SPLFunctionDefinitionTranslator {
 
   private def correctParamList(params: Seq[Term.Param]): Seq[SortRef] = {
     if (params.exists(_.decltpe.isEmpty))
-      reporter.report("A parameter definition has no type defined")
+      reporter.report("The parameter definition has no type defined ")
     val sortRefs = params.map { param =>
       SortRef(param.decltpe.get.toString)
     }

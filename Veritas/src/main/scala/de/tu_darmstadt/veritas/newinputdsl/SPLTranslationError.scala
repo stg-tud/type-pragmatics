@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl
 
-class SPLTranslationError(msg: String) extends Error {
+case class SPLTranslationError(msg: String) extends Error {
   def this(msg: String, cause: Throwable) {
     this(msg)
     initCause(cause)

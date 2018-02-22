@@ -51,9 +51,9 @@ class SPLTranslator {
     val functionTranslator = SPLFunctionDefinitionTranslator(reporter, adts)
     val adtTranslator = SPLAlgebraicDataTypeTranslator(reporter)
     val translatedDataTypes = adts.map { case (base, cases) => adtTranslator.translateADT(base, cases) }
-    val functions = collectFunctions(stats)
-    val translatedFunctions = functions.map { functionTranslator.translateFunction }
     val axioms = collectAxioms(stats)
+    val functions = collectFunctions(stats).diff(axioms)
+    val translatedFunctions = functions.map { functionTranslator.translateFunction }
     val translatedAxioms = axioms.map { ensuringFunctionTranslator.translateEnsuringFunction }
     val lemmas = collectLemmas(stats)
     val translatedLemmas = lemmas.map { ensuringFunctionTranslator.translateEnsuringFunction }
@@ -71,7 +71,7 @@ class SPLTranslator {
       // has no goal, axiom, lemma annotation
       case fn: Defn.Def
         // want to ignore properties and criterias that are attached to functions for domain specific knowledge
-        if ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") &&
+        if fn.name.value != "typable" && ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") &&
            ScalaMetaUtils.notContainsAnnotation(fn.mods, "DistinctionCriteria") =>
           fn
     }
