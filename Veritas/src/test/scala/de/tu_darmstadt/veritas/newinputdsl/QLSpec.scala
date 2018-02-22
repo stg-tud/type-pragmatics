@@ -99,7 +99,7 @@ object QLSpec extends SPLSpecification {
     case someAval(aval) => true
   }
 
-  // TODO mark as partial
+  @Partial
   def getAval(opt: OptAval): Aval = opt match {
     case someAval(aval) => aval
   }
@@ -118,7 +118,7 @@ object QLSpec extends SPLSpecification {
     case someAType(atype) => true
   }
 
-  // TODO mark as partial
+  @Partial
   def getAType(opt: OptAType): AType = opt match {
     case someAType(atype) => atype
   }
@@ -206,17 +206,17 @@ object QLSpec extends SPLSpecification {
     case someQuestion(qid, l, at) => true
   }
 
-  // TODO mark as partial
+  @Partial
   def getQuestionQID(opt: OptQuestion): QID = opt match {
     case someQuestion(qid, l, at) => qid
   }
 
-  // TODO mark as partial
+  @Partial
   def getQuestionLabel(opt: OptQuestion): Label = opt match {
     case someQuestion(qid, l, at) => l
   }
 
-  // TODO mark as partial
+  @Partial
   def getQuestionAType(opt: OptQuestion): AType = opt match {
     case someQuestion(qid, l, at) => at
   }
@@ -266,7 +266,7 @@ object QLSpec extends SPLSpecification {
     case someQConf(qc) => true
   }
 
-  // TODO mark as partial
+  @Partial
   def getQC(opt: OptQConf): QConf = opt match {
     case someQConf(qc) => qc
   }
@@ -284,7 +284,7 @@ object QLSpec extends SPLSpecification {
     case someExp(e) => true
   }
 
-  // TODO mark as partial
+  @Partial
   def getExp(opt: OptExp): Exp = opt match {
     case someExp(e) => e
   }
@@ -294,7 +294,7 @@ object QLSpec extends SPLSpecification {
     case e => false
   }
 
-  // TODO mark as partial
+  @Partial
   def getExpValue(exp: Exp): Aval = exp match {
     case constant(av) => av
   }
@@ -352,7 +352,7 @@ object QLSpec extends SPLSpecification {
 
   @PropertyAttached("reduceExpProgress")
   @Recursive(0)
-  @PropertyNeeded("lookupAnsMap", 1)
+  @PropertyNeeded("lookupAnsMapProgress", 1)
   def reduceExp(exp: Exp, am: AnsMap): OptExp = (exp, am) match {
     case (constant(av), am) => noExp()
     case (qvar(qid), am) =>
@@ -469,7 +469,7 @@ object QLSpec extends SPLSpecification {
     case someMapConf(mc) => true
   }
 
-  // TODO mark as partial
+  @Partial
   def getMapConf(opt: OptMapConf): MapConf = opt match {
     case someMapConf(mc) => mc
   }
@@ -595,7 +595,7 @@ object QLSpec extends SPLSpecification {
   } ensuring exists((av0: Aval) => lookupAnsMap(qid, am) == someAval(av0))
 
   @Property
-  def lookupAnsMapProgress(qm: QMap, qtm: ATMap, qid: QID, at: AType): Unit = {
+  def lookupQMapProgress(qm: QMap, qtm: ATMap, qid: QID, at: AType): Unit = {
     require(typeQM(qm) == qtm)
     require(lookupATMap(qid, qtm) == someAType(at))
   } ensuring exists((qid0: QID, l0: Label, t0: AType) =>

@@ -10,6 +10,7 @@ trait SPLSpecification extends SPLDomainSpecificKnowledgeAnnotations {
   case class Lemma() extends StaticAnnotation
   case class Goal() extends StaticAnnotation
   case class Local() extends StaticAnnotation
+  case class Partial() extends StaticAnnotation
 
   // case class StaticDomain() extends StaticAnnotation
   // case class DynamicDomain() extends StaticAnnotation

@@ -129,7 +129,10 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val propertyDef = collectFunctionDef(propertyName, "Property")
     if (propertyDef.isEmpty)
       reporter.report(s"Property ${propertyName} could not be found", annot.pos.startLine)
-    val functionEqPositions = annot.init.argss.tail.map { _.asInstanceOf[Lit.Int].value }
+    val positions = annot.init.argss.head.tail
+    if (positions.isEmpty)
+      reporter.report(s"PropertyNeeded of function ${fn.name.value} should have at least one position for case state", annot.pos.startLine)
+    val functionEqPositions = positions.map { _.asInstanceOf[Lit.Int].value }
     val functionEqs = functionEqPositions.map { pos => collectCaseAtPosition(fn, pos) }
     propertyNeeded += propertyDef.get -> (fn.name.value, functionEqs)
   }

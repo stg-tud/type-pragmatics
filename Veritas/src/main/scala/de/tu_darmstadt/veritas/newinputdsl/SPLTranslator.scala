@@ -52,7 +52,9 @@ class SPLTranslator {
     val adtTranslator = SPLAlgebraicDataTypeTranslator(reporter)
     val translatedDataTypes = adts.map { case (base, cases) => adtTranslator.translateADT(base, cases) }
     val axioms = collectAxioms(stats)
-    val functions = collectFunctions(stats).diff(axioms)
+    val partialFunctions = collectPartialFunctions(stats).diff(axioms)
+    val functions = collectFunctions(stats).diff(axioms ++ partialFunctions)
+    val translatedPartialFunctions = partialFunctions.map { functionTranslator.translateFunction }
     val translatedFunctions = functions.map { functionTranslator.translateFunction }
     val translatedAxioms = axioms.map { ensuringFunctionTranslator.translateEnsuringFunction }
     val lemmas = collectLemmas(stats)
@@ -60,11 +62,22 @@ class SPLTranslator {
     val goals = collectGoals(stats)
     val translatedGoals = goals.map { ensuringFunctionTranslator.translateEnsuringFunction }
     translatedDataTypes.toSeq ++
+      Seq(PartialFunctions(translatedPartialFunctions)) ++
       Seq(Functions(translatedFunctions)) ++
       Seq(Axioms(translatedAxioms)) ++
       Seq(Lemmas(translatedLemmas, None)) ++
       Seq(Goals(translatedGoals, None))
   }
+  private def collectPartialFunctions(stats: Seq[Stat]): Seq[Defn.Def] =
+    stats.collect {
+      // has no goal, axiom, lemma annotation
+      case fn: Defn.Def
+        // want to ignore properties and criterias that are attached to functions for domain specific knowledge
+        if fn.name.value != "typable" && ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") &&
+          ScalaMetaUtils.notContainsAnnotation(fn.mods, "DistinctionCriteria") &&
+          ScalaMetaUtils.containsAnnotation(fn.mods, "Partial") =>
+        fn
+    }
 
   private def collectFunctions(parsed: Seq[Stat]): Seq[Defn.Def] =
     parsed.collect {
