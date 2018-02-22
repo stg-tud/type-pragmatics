@@ -1,10 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl
 
 trait SPLDomainSpecificKnowledgeAnnotations {
-  // TODO Algorithm needs to know what the a top level goal is
-  // TODO could be more than one
-  // TODO same for preservation
-  // TODO Should this just be generalized? goal/lemma?
 
   case class Property() extends scala.annotation.Annotation
   // a function can have multiple properties and each property gets a name assigned and a function
@@ -13,7 +9,6 @@ trait SPLDomainSpecificKnowledgeAnnotations {
   case class PropertyNeeded(propertyName: String, functionEquationPositions: Int*) extends scala.annotation.Annotation {
     require(functionEquationPositions.nonEmpty)
   }
-  // TODO need to check that if progressneeded is used the function refered has the progressprop annotation
 
   // TODO what happens if reduce semantics takes two arguments that need to be reduced?
   // => One solution would be that designers would be need a tuple adt
@@ -31,7 +26,7 @@ trait SPLDomainSpecificKnowledgeAnnotations {
   }
 
   // Used to mark a function that is referenced by a distinction annotation
-  case object DistinctionCriteria extends scala.annotation.Annotation
+  case class DistinctionCriteria() extends scala.annotation.Annotation
 
   // TODO how do we pass the distinction criteria?
   // these distinctions are equalities/inequalities
@@ -46,8 +41,6 @@ trait SPLDomainSpecificKnowledgeAnnotations {
 
   // TODO how do we make a lemma app in a sub of a distinction?
   // by progress/lemma needed? and determine which criteria fits the function pattern?
-
-
 }
 
 object SPLDomainSpecificKnowledgeAnnotations {
