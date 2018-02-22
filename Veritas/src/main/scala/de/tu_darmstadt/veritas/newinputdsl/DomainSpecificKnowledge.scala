@@ -9,4 +9,5 @@ trait DomainSpecificKnowledge {
   def attachedProperties: Map[(FunctionDef, String), TypingRule]
   def propertiesNeeded: Map[TypingRule, Seq[FunctionEq]]
   def recursiveFunctions: Map[FunctionDef, DataType]
+  def groupings: Seq[Seq[FunctionEq]]
 }

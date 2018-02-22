@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.newinputdsl.dskbuilderfiles
 
 import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
 
-object DSKRecursive extends SPLSpecification {
+object DSKRecursiveInnerHasMoreThanOneCtor extends SPLSpecification {
   override def typable(context: Context, exp: Expression, typ: Typ) = true
   override def typable(exp: Expression, typ: Typ) = true
 
@@ -19,6 +19,7 @@ object DSKRecursive extends SPLSpecification {
   trait inner extends Expression
   case class cons(x: value, inner: inner) extends inner
   case class nil() extends inner
+
 
   @Recursive(1, 0)
   def recursiveOneLevel(inner: inner, enclosing: enclosing): inner = (inner, enclosing) match {

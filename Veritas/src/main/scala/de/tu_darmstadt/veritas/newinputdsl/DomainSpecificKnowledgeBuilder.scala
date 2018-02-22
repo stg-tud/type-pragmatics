@@ -5,6 +5,8 @@ import java.io.File
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
 import de.tu_darmstadt.veritas.backend.ast.{DataType, FunctionExpJudgment, Goals, TypingRule}
 
+import scala.collection.mutable.ListBuffer
+
 trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLDomainSpecificKnowledgeAnnotations, Knowledge <: DomainSpecificKnowledge] {
   import scala.meta._
 
@@ -36,6 +38,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   protected var recursiveFunctions: MMap[Defn.Def, Defn.Trait] = scala.collection.mutable.Map()
   protected var propertyNeeded: MMap[Defn.Def, (String, Seq[Case])] = scala.collection.mutable.Map()
   protected var distinction: MMap[Case, Seq[Defn.Def]] = scala.collection.mutable.Map()
+  protected var groupings: ListBuffer[(String, Seq[Case])] = ListBuffer()
+
 
   // fill maps or data types
   protected def collectInformation(): Unit = {
@@ -43,23 +47,45 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       case fn: Defn.Def =>
         if(ScalaMetaUtils.containsAnnotation(fn.mods, "Distinction"))
           collectDistinction(fn)
-        if(ScalaMetaUtils.containsAnnotation(fn.mods, "PropertyAttached")) {
-          val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
-          val filteredAnnots = annots.filter { _.init.tpe.toString == "PropertyAttached" }
-          filteredAnnots.foreach { annot =>
-            collectProperty(fn, annot)
-          }
-        }
-        if(ScalaMetaUtils.containsAnnotation(fn.mods, "PropertyNeeded")) {
-          val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
-          val filteredAnnots = annots.filter { _.init.tpe.toString == "PropertyNeeded" }
-          filteredAnnots.foreach { annot =>
-            collectPropertyNeeded(fn, annot)
-          }
-        }
+        collectSpecificAnnotation(fn, "PropertyAttached", collectPropertyAttached)
+        collectSpecificAnnotation(fn, "PropertyNeeded", collectPropertyNeeded)
+        collectSpecificAnnotation(fn, "GroupedDistinction", collectGroupedDistinction)
         if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
           collectRecursive(fn)
       case _ => ()
+    }
+  }
+
+  def collectGroupedDistinction(fn: Defn.Def, annot: Mod.Annot): Unit = {
+    val functionEqGroupings: Seq[Seq[Int]] = collectSequence(annot.init.argss.head)
+    val functionEqs = functionEqGroupings.map { seq =>
+      seq.map { pos =>
+        collectCaseAtPosition(fn, pos)
+      }
+    }
+    groupings ++= functionEqs.map { (fn.name.value, _) }
+  }
+
+  def collectSequence(list: List[Term]): Seq[Seq[Int]] = {
+    if(list.isEmpty)
+      reporter.report("GroupedDistinction has to have at least one sequence.")
+
+    list.map { elem =>
+      elem match {
+        case Term.Apply(Term.Name("Seq"), args) =>
+          args.map { _.asInstanceOf[Lit.Int].value }
+        case _ => reporter.report("GroupedDistinction needs to get only Seq[Int] passed.", elem.pos.startLine)
+      }
+    }
+  }
+
+  private def collectSpecificAnnotation(fn: Defn.Def, annotName: String, annotationCollector: (Defn.Def, Mod.Annot) => Unit): Unit = {
+    if(ScalaMetaUtils.containsAnnotation(fn.mods, annotName)) {
+      val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
+      val filteredAnnots = annots.filter { _.init.tpe.toString == annotName }
+      filteredAnnots.foreach { annot =>
+        annotationCollector(fn, annot)
+      }
     }
   }
 
@@ -89,7 +115,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
         if ScalaMetaUtils.containsAnnotation(fn.mods, annotName) && fn.name.value == name => fn
     }.headOption
 
-  private def collectProperty(fn: Defn.Def, annot: Mod.Annot): Unit = {
+  private def collectPropertyAttached(fn: Defn.Def, annot: Mod.Annot): Unit = {
     val propertyReference = annot.init.argss.head.head.asInstanceOf[Lit.String].value
     collectFunctionDef(propertyReference, "Property") match {
       case Some(propertyDef) =>
@@ -154,10 +180,12 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val transAttachedProps = translateAttachedProperties()
     val transNeededProps = translatePropertiesNeeded()
     val transRecursiveFuncs = translateRecursiveFunctions()
+    val transGroupings = translateGrouping()
     new DomainSpecificKnowledge {
       override val attachedProperties = transAttachedProps
       override val propertiesNeeded = transNeededProps
       override val recursiveFunctions = transRecursiveFuncs
+      override val groupings = transGroupings
     }
   }
 
@@ -187,6 +215,13 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
         val cases = adts(tr)
         functionTranslator.translateFunction(fn) -> adtTranslator.translateADT(tr, cases)
     }.toMap
+  }
+
+  def translateGrouping(): Seq[Seq[FunctionEq]] = {
+    val functionTranslator = SPLFunctionDefinitionTranslator(reporter, adts)
+    groupings.map { case (name, eqs) =>
+      eqs.map { eq => functionTranslator.translateCase(name, eq) }
+    }
   }
 
   def build(base: DomainSpecificKnowledge): Knowledge

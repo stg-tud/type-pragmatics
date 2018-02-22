@@ -52,5 +52,5 @@ trait SPLDomainSpecificKnowledgeAnnotations {
 
 object SPLDomainSpecificKnowledgeAnnotations {
   val annotationsIngoringFunction: Seq[String] =
-    Seq("DistinctionCriteria")
+    Seq("DistinctionCriteria", "Property")
 }
