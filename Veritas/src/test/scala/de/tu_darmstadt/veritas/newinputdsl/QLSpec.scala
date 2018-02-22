@@ -301,16 +301,9 @@ object QLSpec extends SPLSpecification {
 
   // QLSemantics
 
-  // TODO how to design functions that have no body?
-  def askYesNo(l: Label): YN = l match {
-    case l => yes()
-  }
-  def askNumber(l: Label): nat = l match {
-    case l => zero()
-  }
-  def askText(l: Label): string = l match {
-    case l => sempty()
-  }
+  def askYesNo(l: Label): YN = ???
+  def askNumber(l: Label): nat = ???
+  def askText(l: Label): string = ???
 
   def getAnswer(l: Label, at: AType): Aval = (l, at) match {
     case (l, YesNo()) => B(askYesNo(l))
@@ -562,9 +555,7 @@ object QLSpec extends SPLSpecification {
   } ensuring MC(atm, qm) |- qcond(exp, q1, q2) :: MC(intersectATM(atm1, atm2), intersectATM(qm1, qm2))
 
   // TODO undefined functions how?
-  def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = (mc, qc, atm) match {
-    case (mc, qc, atm) => true
-  }
+  def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
 
   @Axiom
   def TqcCheck(am: AnsMap, atm1: ATMap, atm0: ATMap, qm0: ATMap, qm: QMap, q: Questionnaire, atm2: ATMap, qm2: ATMap): Unit = {

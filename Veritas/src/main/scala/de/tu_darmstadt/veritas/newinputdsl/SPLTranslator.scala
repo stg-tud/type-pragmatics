@@ -68,6 +68,7 @@ class SPLTranslator {
       Seq(Lemmas(translatedLemmas, None)) ++
       Seq(Goals(translatedGoals, None))
   }
+
   private def collectPartialFunctions(stats: Seq[Stat]): Seq[Defn.Def] =
     stats.collect {
       // has no goal, axiom, lemma annotation

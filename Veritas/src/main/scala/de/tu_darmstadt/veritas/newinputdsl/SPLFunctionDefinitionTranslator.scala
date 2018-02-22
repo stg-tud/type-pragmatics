@@ -20,6 +20,8 @@ trait SPLFunctionDefinitionTranslator {
       // TODO: check that the expr over which is matched is a tuple in the correct order of function params
       case Term.Match(_, cases) =>
         cases.map { translateCase(fn.name.value, _) }
+        // TODO is there a better way for functions without a function definition?
+      case Term.Name("???") => Seq()
       case _ =>
         reporter.report(s"Top level construct of function ${fn.name.value} has to be a match", fn.body.pos.startLine)
     }
