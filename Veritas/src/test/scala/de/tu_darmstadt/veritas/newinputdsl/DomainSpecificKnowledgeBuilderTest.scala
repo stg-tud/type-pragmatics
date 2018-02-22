@@ -43,7 +43,6 @@ class DomainSpecificKnowledgeBuilderTest extends FunSuite {
     val builder = DomainSpecificKnowledgeBuilder()
     val file = new File(filesDir, "DSKRecursive.scala")
     val dsk = builder.build(file)
-    println(dsk.recursiveFunctions)
 
     assert(dsk.recursiveFunctions.toSeq.head._1.signature.name == "twoParams")
     assert(dsk.recursiveFunctions.toSeq.head._2.name == "inner")
@@ -53,5 +52,23 @@ class DomainSpecificKnowledgeBuilderTest extends FunSuite {
 
     assert(dsk.recursiveFunctions.toSeq(2)._1.signature.name == "recursiveOneLevel")
     assert(dsk.recursiveFunctions.toSeq(2)._2.name == "inner")
+  }
+
+  test("Recursive inner adt has two ctors") {
+    val builder = DomainSpecificKnowledgeBuilder()
+    val file = new File(filesDir, "DSKRecursiveInnerHasMoreThanOneCtor.scala")
+
+    assertThrows[SPLTranslationError] {
+      builder.build(file)
+    }
+  }
+
+  test("Recursive has at least one position given") {
+    val builder = DomainSpecificKnowledgeBuilder()
+    val file = new File(filesDir, "DSKRecursiveAtLeastOnePositionGiven.scala")
+
+    assertThrows[SPLTranslationError] {
+      builder.build(file)
+    }
   }
 }
