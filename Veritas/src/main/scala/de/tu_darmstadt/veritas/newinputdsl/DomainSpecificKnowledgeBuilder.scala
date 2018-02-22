@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.newinputdsl
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
-import de.tu_darmstadt.veritas.backend.ast.{DataType, FunctionExpJudgment, Goals, TypingRule}
+import de.tu_darmstadt.veritas.backend.ast.{DataType, TypingRule}
 
 import scala.collection.mutable.ListBuffer
 
@@ -70,12 +70,12 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     if(list.isEmpty)
       reporter.report("GroupedDistinction has to have at least one sequence.")
 
-    list.map { elem =>
-      elem match {
-        case Term.Apply(Term.Name("Seq"), args) =>
-          args.map { _.asInstanceOf[Lit.Int].value }
-        case _ => reporter.report("GroupedDistinction needs to get only Seq[Int] passed.", elem.pos.startLine)
-      }
+    list.map {
+      case Term.Apply(Term.Name("Seq"), args) =>
+        args.map {
+          _.asInstanceOf[Lit.Int].value
+        }
+      case elem => reporter.report("GroupedDistinction needs to get only Seq[Int] passed.", elem.pos.startLine)
     }
   }
 
@@ -182,10 +182,10 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val transRecursiveFuncs = translateRecursiveFunctions()
     val transGroupings = translateGrouping()
     new DomainSpecificKnowledge {
-      override val attachedProperties = transAttachedProps
-      override val propertiesNeeded = transNeededProps
-      override val recursiveFunctions = transRecursiveFuncs
-      override val groupings = transGroupings
+      override val attachedProperties: Map[(FunctionDef, String), TypingRule] = transAttachedProps
+      override val propertiesNeeded: Map[TypingRule, Seq[FunctionEq]] = transNeededProps
+      override val recursiveFunctions: Map[FunctionDef, DataType] = transRecursiveFuncs
+      override val groupings: Seq[Seq[FunctionEq]] = transGroupings
     }
   }
 
