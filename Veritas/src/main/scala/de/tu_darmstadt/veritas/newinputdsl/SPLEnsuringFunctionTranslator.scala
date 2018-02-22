@@ -63,6 +63,7 @@ trait SPLEnsuringFunctionTranslator {
       case Term.Apply(name, arg::Nil)  if name.toString == "exists" =>
         val (vars, body) = translateQuantifiedExpr(arg)(metaVars)
         ExistsJudgment(vars, body)
+      case Term.ApplyUnary(name, _) if name.value == "!" => FunctionExpJudgment(funTranslator.translateExp(term))
       case Term.Apply(_, _) => FunctionExpJudgment(funTranslator.translateExp(term))
       case Term.ApplyInfix(lhs, name, Nil, arg::Nil) =>
         name.value match {

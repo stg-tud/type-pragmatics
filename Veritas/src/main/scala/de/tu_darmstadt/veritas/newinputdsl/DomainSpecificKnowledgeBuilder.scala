@@ -126,10 +126,12 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
 
   private def collectPropertyNeeded(fn: Defn.Def, annot: Mod.Annot): Unit = {
     val propertyName = annot.init.argss.head.head.asInstanceOf[Lit.String].value
-    val propertyDef = collectFunctionDef(propertyName, "Property").head
+    val propertyDef = collectFunctionDef(propertyName, "Property")
+    if (propertyDef.isEmpty)
+      reporter.report(s"Property ${propertyName} could not be found", annot.pos.startLine)
     val functionEqPositions = annot.init.argss.tail.map { _.asInstanceOf[Lit.Int].value }
     val functionEqs = functionEqPositions.map { pos => collectCaseAtPosition(fn, pos) }
-    propertyNeeded += propertyDef -> (fn.name.value, functionEqs)
+    propertyNeeded += propertyDef.get -> (fn.name.value, functionEqs)
   }
 
   private def collectRecursive(fn: Defn.Def): Unit = {
