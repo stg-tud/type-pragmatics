@@ -177,6 +177,8 @@ object QLSpec extends SPLSpecification {
   case class aempty() extends AnsMap
   case class abind(qid: QID, aval: Aval, al: AnsMap) extends AnsMap
 
+  @PropertyAttached("lookupAnsMapProgress")
+  @Recursive(1)
   def lookupAnsMap(qid: QID, am: AnsMap): OptAval = (qid, am) match {
     case (qid, aempty()) => noAval()
     case (qid1, abind(qid2, aval, aml)) =>
@@ -219,6 +221,8 @@ object QLSpec extends SPLSpecification {
     case someQuestion(qid, l, at) => at
   }
 
+  @PropertyAttached("lookupQMapProgress")
+  @Recursive(1)
   def lookupQMap(qid: QID, qm: QMap): OptQuestion = (qid, qm) match {
     case (qid, qmempty()) => noQuestion()
     case (qid1, qmbind(qid2, l, at, qml)) =>
@@ -346,6 +350,9 @@ object QLSpec extends SPLSpecification {
     case (op, a) => noExp()
   }
 
+  @PropertyAttached("reduceExpProgress")
+  @Recursive(0)
+  @PropertyNeeded("lookupAnsMap", 1)
   def reduceExp(exp: Exp, am: AnsMap): OptExp = (exp, am) match {
     case (constant(av), am) => noExp()
     case (qvar(qid), am) =>
@@ -379,6 +386,11 @@ object QLSpec extends SPLSpecification {
       }
   }
 
+  @Recursive(0, 2)
+  @PropertyAttached("qlProgress")
+  @PropertyNeeded("reduceExpProgress", 2, 9)
+  @PropertyNeeded("lookupQMapProgress", 4)
+  @GroupedDistinction(Seq(0), Seq(1, 2, 3, 4), Seq(5, 6), Seq(7, 8, 9), Seq(10))
   def reduce(qc: QConf): OptQConf = qc match {
     case (QC(am, qm, qempty())) => noQConf()
     case (QC(am, qm, qsingle(question(qid, l, t)))) =>
@@ -559,5 +571,34 @@ object QLSpec extends SPLSpecification {
     require(typeAM(am) == atm1)
     require(MC(appendATMap(atm0, atm1), appendATMap(qm0, typeQM(qm))) |- q :: MC(atm2 ,qm2))
   } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
+
+  @Property
+  def qlProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap, qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
+    require(!isValue(QC(am, qm, q)))
+    require(typeAM(am) == atm)
+    require(typeQM(qm) == qtm)
+    require(MC(atm, qtm) |- q :: MC(atm2, qtm2))
+  } ensuring exists((am0: AnsMap, qm0: QMap, q0: Questionnaire) =>
+    reduce(QC(am, qm, q)) == someQConf(QC(am0, qm0, q0)))
+
+  @Property
+  def reduceExpProgress(exp: Exp, am: AnsMap, atm: ATMap, at: AType): Unit = {
+    require(!expIsValue(exp))
+    require(typeAM(am) == atm)
+    require(echeck(atm, exp) == someAType(at))
+  } ensuring exists((exp0: Exp) => reduceExp(exp, am) == someExp(exp0))
+
+  @Property
+  def lookupAnsMapProgress(am: AnsMap, atm: ATMap, qid: QID, at: AType): Unit = {
+    require(typeAM(am) == atm)
+    require(lookupATMap(qid, atm) == someAType(at))
+  } ensuring exists((av0: Aval) => lookupAnsMap(qid, am) == someAval(av0))
+
+  @Property
+  def lookupAnsMapProgress(qm: QMap, qtm: ATMap, qid: QID, at: AType): Unit = {
+    require(typeQM(qm) == qtm)
+    require(lookupATMap(qid, qtm) == someAType(at))
+  } ensuring exists((qid0: QID, l0: Label, t0: AType) =>
+    lookupQMap(qid, qm) == someQuestion(qid0, l0, t0))
 
 }
