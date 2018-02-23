@@ -47,9 +47,9 @@ class SPLTranslator {
 
   private def translateStats(stats: Seq[Stat]): Seq[ModuleDef] = {
     adts = ADTCollector().collectADTs(stats)
-    val ensuringFunctionTranslator = SPLEnsuringFunctionTranslator(reporter)
-    val functionTranslator = SPLFunctionDefinitionTranslator(reporter, adts)
-    val adtTranslator = SPLAlgebraicDataTypeTranslator(reporter)
+    val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    val adtTranslator = AlgebraicDataTypeTranslator(reporter)
     val translatedDataTypes = adts.map { case (base, cases) => adtTranslator.translateADT(base, cases) }
     val axioms = collectAxioms(stats)
     val partialFunctions = collectPartialFunctions(stats).diff(axioms)
