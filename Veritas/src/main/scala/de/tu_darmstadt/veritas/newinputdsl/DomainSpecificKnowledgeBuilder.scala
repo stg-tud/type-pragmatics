@@ -181,22 +181,25 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     paramTrait.get._1
   }
 
+
   def buildBase(): DomainSpecificKnowledge = {
     val transAttachedProps = translateAttachedProperties()
     val transNeededProps = translatePropertiesNeeded()
     val transRecursiveFuncs = translateRecursiveFunctions()
     val transGroupings = translateGrouping()
+    val transDistinctions = translateDistinctions()
     new DomainSpecificKnowledge {
       override val attachedProperties: Map[(FunctionDef, String), TypingRule] = transAttachedProps
       override val propertiesNeeded: Map[TypingRule, Seq[FunctionEq]] = transNeededProps
       override val recursiveFunctions: Map[FunctionDef, DataType] = transRecursiveFuncs
       override val groupings: Seq[Seq[FunctionEq]] = transGroupings
+      override val distinctionsBasedOnExpressions =  transDistinctions
     }
   }
 
   def translateAttachedProperties(): Map[(FunctionDef, String), TypingRule] = {
-    val functionTranslator = SPLFunctionDefinitionTranslator(reporter, adts)
-    val ensuringFunctionTranslator = SPLEnsuringFunctionTranslator(reporter)
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
 
     attachedProperties.map { case ((fdef, name), typing) =>
       (functionTranslator.translateFunction(fdef), name) -> ensuringFunctionTranslator.translateEnsuringFunction(typing)
@@ -204,8 +207,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   }
 
   def translatePropertiesNeeded(): Map[TypingRule, Seq[FunctionEq]] = {
-    val functionTranslator = SPLFunctionDefinitionTranslator(reporter, adts)
-    val ensuringFunctionTranslator = SPLEnsuringFunctionTranslator(reporter)
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
     propertyNeeded.map { case (typing, (fnname, cases)) =>
       val transTyping = ensuringFunctionTranslator.translateEnsuringFunction(typing)
       val transCases = cases.map { c => functionTranslator.translateCase(fnname, c) }
@@ -214,8 +217,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   }
 
   def translateRecursiveFunctions(): Map[FunctionDef, DataType] = {
-    val functionTranslator = SPLFunctionDefinitionTranslator(reporter, adts)
-    val adtTranslator = SPLAlgebraicDataTypeTranslator(reporter)
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    val adtTranslator = AlgebraicDataTypeTranslator(reporter)
     recursiveFunctions.map { case (fn, tr) =>
         val cases = adts(tr)
         functionTranslator.translateFunction(fn) -> adtTranslator.translateADT(tr, cases)
@@ -223,10 +226,18 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   }
 
   def translateGrouping(): Seq[Seq[FunctionEq]] = {
-    val functionTranslator = SPLFunctionDefinitionTranslator(reporter, adts)
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     groupings.map { case (name, eqs) =>
       eqs.map { eq => functionTranslator.translateCase(name, eq) }
     }
+  }
+
+  def translateDistinctions(): Map[FunctionEq, Seq[FunctionExpJudgment]] = {
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
+    distinction.map { case ((name, cas), criterias) =>
+      functionTranslator.translateCase(name, cas) -> null
+    }.toMap
   }
 
   def build(base: DomainSpecificKnowledge): Knowledge

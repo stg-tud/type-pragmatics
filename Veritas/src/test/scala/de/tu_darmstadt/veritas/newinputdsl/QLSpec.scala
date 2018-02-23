@@ -343,9 +343,15 @@ object QLSpec extends SPLSpecification {
     case (op, a) => noExp()
   }
 
+  @DistinctionCriteria
+  def e1e2ExpIsValueCriteria(e1: Exp, e2: Exp): Boolean = expIsValue(e1) && expIsValue(e2)
+
   @PropertyAttached("reduceExpProgress")
   @Recursive(0)
   @PropertyNeeded("lookupAnsMapProgress", 1)
+  @Distinction("e1e2ExpIsValueCriteria", 2)
+  @Distinction("expIsValueCriteria", 3)
+  @Distinction("isSomeExpCriteria", 2)
   def reduceExp(exp: Exp, am: AnsMap): OptExp = (exp, am) match {
     case (constant(av), am) => noExp()
     case (qvar(qid), am) =>
@@ -379,11 +385,18 @@ object QLSpec extends SPLSpecification {
       }
   }
 
+  @DistinctionCriteria
+  def expIsValueCriteria(exp: Exp): Boolean = expIsValue(exp)
+
+  @DistinctionCriteria
+  def isSomeExpCriteria(opt: OptExp): Boolean = isSomeExp(opt)
+
   @Recursive(0, 2)
   @PropertyAttached("qlProgress")
   @PropertyNeeded("reduceExpProgress", 2, 9)
   @PropertyNeeded("lookupQMapProgress", 4)
   @GroupedDistinction(Seq(0), Seq(1, 2, 3, 4), Seq(5, 6), Seq(7, 8, 9), Seq(10))
+  @Distinction("expIsValueCriteria", 2)
   def reduce(qc: QConf): OptQConf = qc match {
     case (QC(am, qm, qempty())) => noQConf()
     case (QC(am, qm, qsingle(question(qid, l, t)))) =>
@@ -591,5 +604,6 @@ object QLSpec extends SPLSpecification {
     require(lookupATMap(qid, qtm) == someAType(at))
   } ensuring exists((qid0: QID, l0: Label, t0: AType) =>
     lookupQMap(qid, qm) == someQuestion(qid0, l0, t0))
+
 
 }

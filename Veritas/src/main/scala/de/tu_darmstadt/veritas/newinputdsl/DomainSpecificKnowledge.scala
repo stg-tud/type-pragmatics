@@ -9,9 +9,9 @@ trait DomainSpecificKnowledge {
   def propertiesNeeded: Map[TypingRule, Seq[FunctionEq]]
   def recursiveFunctions: Map[FunctionDef, DataType]
   def groupings: Seq[Seq[FunctionEq]]
+  def distinctionsBasedOnExpressions: Map[FunctionEq, Seq[FunctionExpJudgment]]
   // A toplevel property is a property that is not needed by any other function
   def toplevelProperties: Map[(FunctionDef, String), TypingRule] = attachedProperties.filter { case ((fdef, propName), prop) =>
       propertiesNeeded.keys.forall( _ != prop)
   }
-
 }
