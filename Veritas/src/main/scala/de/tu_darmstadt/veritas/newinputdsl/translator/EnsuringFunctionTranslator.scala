@@ -10,7 +10,7 @@ import scala.meta._
 trait EnsuringFunctionTranslator {
   def reporter: Reporter
 
-  def translateEnsuringFunction(fn: Defn.Def): TypingRule = {
+  def translate(fn: Defn.Def): TypingRule = {
     if (fn.decltpe.isEmpty)
       reporter.report("The return type of a function has to be explicitly defined", fn.pos.startLine)
     if (fn.tparams.nonEmpty)

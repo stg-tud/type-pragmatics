@@ -9,7 +9,7 @@ trait AlgebraicDataTypeTranslator {
 
   def reporter: Reporter
 
-  def translateADT(base: Defn.Trait, cases: Seq[Defn.Class]): DataType = {
+  def translate(base: Defn.Trait, cases: Seq[Defn.Class]): DataType = {
     val open = isOpen(base)
     val name = base.name.value
     val superclasses = base.templ.inits.map { _.tpe.toString }

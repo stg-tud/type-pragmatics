@@ -10,7 +10,7 @@ trait FunctionDefinitionTranslator {
   def reporter: Reporter
   def adts: Map[Defn.Trait, Seq[Defn.Class]]
 
-  def translateFunction(fn: Defn.Def): FunctionDef = {
+  def translate(fn: Defn.Def): FunctionDef = {
     // decltype has to be given
     if (fn.decltpe.isEmpty)
       reporter.report(s"The return type of function ${fn.name.value} has to be explicitly defined", fn.pos.startLine)

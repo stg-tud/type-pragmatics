@@ -214,7 +214,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
 
     attachedProperties.map { case ((fdef, name), typing) =>
-      (functionTranslator.translateFunction(fdef), name) -> ensuringFunctionTranslator.translateEnsuringFunction(typing)
+      (functionTranslator.translate(fdef), name) -> ensuringFunctionTranslator.translate(typing)
     }.toMap
   }
 
@@ -222,7 +222,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
     propertyNeeded.map { case (typing, (fnname, cases)) =>
-      val transTyping = ensuringFunctionTranslator.translateEnsuringFunction(typing)
+      val transTyping = ensuringFunctionTranslator.translate(typing)
       val transCases = cases.map { c => functionTranslator.translateCase(fnname, c) }
       transTyping -> transCases
     }.toMap
@@ -233,7 +233,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val adtTranslator = AlgebraicDataTypeTranslator(reporter)
     recursiveFunctions.map { case (fn, tr) =>
         val cases = adts(tr)
-        functionTranslator.translateFunction(fn) -> adtTranslator.translateADT(tr, cases)
+        functionTranslator.translate(fn) -> adtTranslator.translate(tr, cases)
     }.toMap
   }
 

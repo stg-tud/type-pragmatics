@@ -51,17 +51,17 @@ class SPLTranslator {
     val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     val adtTranslator = AlgebraicDataTypeTranslator(reporter)
-    val translatedDataTypes = adts.map { case (base, cases) => adtTranslator.translateADT(base, cases) }
+    val translatedDataTypes = adts.map { case (base, cases) => adtTranslator.translate(base, cases) }
     val axioms = collectAxioms(stats)
     val partialFunctions = collectPartialFunctions(stats).diff(axioms)
     val functions = collectFunctions(stats).diff(axioms ++ partialFunctions)
-    val translatedPartialFunctions = partialFunctions.map { functionTranslator.translateFunction }
-    val translatedFunctions = functions.map { functionTranslator.translateFunction }
-    val translatedAxioms = axioms.map { ensuringFunctionTranslator.translateEnsuringFunction }
+    val translatedPartialFunctions = partialFunctions.map { functionTranslator.translate }
+    val translatedFunctions = functions.map { functionTranslator.translate }
+    val translatedAxioms = axioms.map { ensuringFunctionTranslator.translate }
     val lemmas = collectLemmas(stats)
-    val translatedLemmas = lemmas.map { ensuringFunctionTranslator.translateEnsuringFunction }
+    val translatedLemmas = lemmas.map { ensuringFunctionTranslator.translate }
     val goals = collectGoals(stats)
-    val translatedGoals = goals.map { ensuringFunctionTranslator.translateEnsuringFunction }
+    val translatedGoals = goals.map { ensuringFunctionTranslator.translate }
     translatedDataTypes.toSeq ++
       Seq(PartialFunctions(translatedPartialFunctions)) ++
       Seq(Functions(translatedFunctions)) ++
