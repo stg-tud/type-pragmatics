@@ -4,6 +4,7 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.newinputdsl.translator.{SPLTranslationError, SPLTranslator}
 import org.scalatest.FunSuite
 
 class SPLTranslatorTest extends FunSuite {

@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
 
-import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object AxiomCorrect extends SPLSpecification {
   override def typable(context: AxiomCorrect.Context, exp: AxiomCorrect.Expression, typ: AxiomCorrect.Typ) = true

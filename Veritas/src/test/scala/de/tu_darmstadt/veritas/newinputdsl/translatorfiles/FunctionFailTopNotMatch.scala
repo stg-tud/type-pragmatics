@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
 
-import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object FunctionFailTopNotMatch extends SPLSpecification {
   override def typable(context: FunctionFailTopNotMatch.Context, exp: FunctionFailTopNotMatch.Expression, typ: FunctionFailTopNotMatch.Typ) = ???

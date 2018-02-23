@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl.dskbuilderfiles
 
-import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object DSKPropertyReferenceFail extends SPLSpecification {
   override def typable(context: DSKPropertyReferenceFail.Context, exp: DSKPropertyReferenceFail.Expression, typ: DSKPropertyReferenceFail.Typ) = true

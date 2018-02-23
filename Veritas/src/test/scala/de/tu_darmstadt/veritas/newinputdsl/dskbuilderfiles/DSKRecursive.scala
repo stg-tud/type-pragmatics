@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl.dskbuilderfiles
 
-import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object DSKRecursive extends SPLSpecification {
   override def typable(context: Context, exp: Expression, typ: Typ) = true

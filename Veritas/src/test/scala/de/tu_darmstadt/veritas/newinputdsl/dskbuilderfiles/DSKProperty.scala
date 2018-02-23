@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl.dskbuilderfiles
 
-import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object DSKProperty extends SPLSpecification {
   override def typable(context: DSKProperty.Context, exp: DSKProperty.Expression, typ: DSKProperty.Typ) = true

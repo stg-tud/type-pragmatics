@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.newinputdsl
 
+import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
+
 object QLSpec extends SPLSpecification {
   override def typable(context: Context, exp: Expression, typ: Typ) = true
   override def typable(exp: Expression, typ: Typ) = true

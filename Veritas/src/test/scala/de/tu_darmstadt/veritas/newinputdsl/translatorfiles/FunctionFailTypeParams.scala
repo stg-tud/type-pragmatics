@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
 
-import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object FunctionFailTypeParams extends SPLSpecification {
   override def typable(context: FunctionFailTypeParams.Context, exp: FunctionFailTypeParams.Expression, typ: FunctionFailTypeParams.Typ) = ???

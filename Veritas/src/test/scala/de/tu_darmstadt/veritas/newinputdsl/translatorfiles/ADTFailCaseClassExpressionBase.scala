@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
 
-import de.tu_darmstadt.veritas.newinputdsl.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object ADTFailCaseClassExpressionBase extends SPLSpecification {
   override def typable(context: ADTFailCaseClassExpressionBase.Context, exp: ADTFailCaseClassExpressionBase.Expression, typ: ADTFailCaseClassExpressionBase.Typ) = true
