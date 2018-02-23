@@ -1,6 +1,7 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translator
 
 import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment
+import de.tu_darmstadt.veritas.newinputdsl.util.Reporter
 
 import scala.meta._
 

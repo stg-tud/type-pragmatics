@@ -1,7 +1,8 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translator
 
 import de.tu_darmstadt.veritas.backend.ast.MetaVar
 import de.tu_darmstadt.veritas.backend.ast.function._
+import de.tu_darmstadt.veritas.newinputdsl.util.Reporter
 
 import scala.meta._
 

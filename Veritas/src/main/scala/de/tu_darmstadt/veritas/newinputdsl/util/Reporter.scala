@@ -1,4 +1,6 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.util
+
+import de.tu_darmstadt.veritas.newinputdsl.translator.SPLTranslationError
 
 trait Reporter {
   def report[T](msg: String, line: Int): T = {

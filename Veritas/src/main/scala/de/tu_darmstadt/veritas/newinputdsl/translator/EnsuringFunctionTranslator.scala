@@ -1,7 +1,8 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translator
 
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpFalse, FunctionExpTrue}
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpFalse, FunctionExpTrue}
+import de.tu_darmstadt.veritas.newinputdsl.util.Reporter
 
 import scala.collection.mutable.ListBuffer
 import scala.meta._

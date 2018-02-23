@@ -1,8 +1,9 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translator
 
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.newinputdsl.util.{ADTCollector, Reporter, ScalaMetaUtils}
 
 import scala.collection.mutable.ListBuffer
 import scala.meta._

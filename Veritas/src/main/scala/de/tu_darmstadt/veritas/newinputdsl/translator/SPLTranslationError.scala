@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translator
 
 case class SPLTranslationError(msg: String) extends Error {
   def this(msg: String, cause: Throwable) {

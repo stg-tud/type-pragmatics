@@ -1,6 +1,7 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.translator
 
 import de.tu_darmstadt.veritas.backend.ast.{DataType, DataTypeConstructor, SortRef}
+import de.tu_darmstadt.veritas.newinputdsl.util.{Reporter, ScalaMetaUtils}
 
 import scala.meta._
 

@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.util
 
 import scala.meta._
 

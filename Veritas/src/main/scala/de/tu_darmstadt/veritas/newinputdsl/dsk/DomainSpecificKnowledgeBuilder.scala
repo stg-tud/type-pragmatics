@@ -1,9 +1,12 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.newinputdsl.dsk
 
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
 import de.tu_darmstadt.veritas.backend.ast.{DataType, FunctionExpJudgment, TypingRule}
+import de.tu_darmstadt.veritas.newinputdsl.lang.{SPLDomainSpecificKnowledgeAnnotations, SPLSpecification}
+import de.tu_darmstadt.veritas.newinputdsl.translator.{AlgebraicDataTypeTranslator, DistinctionCriteriaTranslator, EnsuringFunctionTranslator, FunctionDefinitionTranslator}
+import de.tu_darmstadt.veritas.newinputdsl.util.{ADTCollector, Reporter, ScalaMetaUtils}
 
 import scala.collection.mutable.ListBuffer
 
