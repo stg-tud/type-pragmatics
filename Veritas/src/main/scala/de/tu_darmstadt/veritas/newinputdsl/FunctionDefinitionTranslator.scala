@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 
 import scala.meta._
 
-trait SPLFunctionDefinitionTranslator {
+trait FunctionDefinitionTranslator {
   def reporter: Reporter
   def adts: Map[Defn.Trait, Seq[Defn.Class]]
 
@@ -81,9 +81,9 @@ trait SPLFunctionDefinitionTranslator {
   }
 }
 
-object SPLFunctionDefinitionTranslator {
-  def apply(r: Reporter, a: Map[Defn.Trait, Seq[Defn.Class]]): SPLFunctionDefinitionTranslator = {
-    new SPLFunctionDefinitionTranslator {
+object FunctionDefinitionTranslator {
+  def apply(r: Reporter, a: Map[Defn.Trait, Seq[Defn.Class]]): FunctionDefinitionTranslator = {
+    new FunctionDefinitionTranslator {
       override val reporter: Reporter = r
       override val adts: Map[Defn.Trait, Seq[Defn.Class]] = a
     }

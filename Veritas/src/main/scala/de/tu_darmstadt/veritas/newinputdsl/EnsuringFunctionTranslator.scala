@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.backend.ast._
 import scala.collection.mutable.ListBuffer
 import scala.meta._
 
-trait SPLEnsuringFunctionTranslator {
+trait EnsuringFunctionTranslator {
   def reporter: Reporter
 
   def translateEnsuringFunction(fn: Defn.Def): TypingRule = {
@@ -110,9 +110,9 @@ trait SPLEnsuringFunctionTranslator {
   }
 }
 
-object SPLEnsuringFunctionTranslator {
-  def apply(r: Reporter): SPLEnsuringFunctionTranslator = {
-    new SPLEnsuringFunctionTranslator {
+object EnsuringFunctionTranslator {
+  def apply(r: Reporter): EnsuringFunctionTranslator = {
+    new EnsuringFunctionTranslator {
       override val reporter: Reporter = r
     }
   }

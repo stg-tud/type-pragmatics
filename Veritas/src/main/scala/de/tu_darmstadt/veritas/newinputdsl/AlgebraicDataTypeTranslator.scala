@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.backend.ast.{DataType, DataTypeConstructor, SortR
 
 import scala.meta._
 
-trait SPLAlgebraicDataTypeTranslator {
+trait AlgebraicDataTypeTranslator {
 
   def reporter: Reporter
 
@@ -49,9 +49,9 @@ trait SPLAlgebraicDataTypeTranslator {
   }
 }
 
-object SPLAlgebraicDataTypeTranslator {
-  def apply(r: Reporter): SPLAlgebraicDataTypeTranslator = {
-    new SPLAlgebraicDataTypeTranslator {
+object AlgebraicDataTypeTranslator {
+  def apply(r: Reporter): AlgebraicDataTypeTranslator = {
+    new AlgebraicDataTypeTranslator {
       override val reporter: Reporter = r
     }
   }
