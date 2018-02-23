@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.newinputdsl
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
-import de.tu_darmstadt.veritas.backend.ast.{DataType, TypingRule}
+import de.tu_darmstadt.veritas.backend.ast.{DataType, FunctionExpJudgment, TypingRule}
 
 import scala.collection.mutable.ListBuffer
 
@@ -37,16 +37,14 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   protected var attachedProperties: MMap[(Defn.Def, String), Defn.Def] = scala.collection.mutable.Map()
   protected var recursiveFunctions: MMap[Defn.Def, Defn.Trait] = scala.collection.mutable.Map()
   protected var propertyNeeded: MMap[Defn.Def, (String, Seq[Case])] = scala.collection.mutable.Map()
-  protected var distinction: MMap[Case, Seq[Defn.Def]] = scala.collection.mutable.Map()
+  protected var distinction: MMap[(String, Case), Seq[Defn.Def]] = scala.collection.mutable.Map()
   protected var groupings: ListBuffer[(String, Seq[Case])] = ListBuffer()
-
 
   // fill maps or data types
   protected def collectInformation(): Unit = {
     stats.foreach {
       case fn: Defn.Def =>
-        if(ScalaMetaUtils.containsAnnotation(fn.mods, "Distinction"))
-          collectDistinction(fn)
+        collectSpecificAnnotation(fn, "Distinction", collectDistinction)
         collectSpecificAnnotation(fn, "PropertyAttached", collectPropertyAttached)
         collectSpecificAnnotation(fn, "PropertyNeeded", collectPropertyNeeded)
         collectSpecificAnnotation(fn, "GroupedDistinction", collectGroupedDistinction)
@@ -79,7 +77,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     }
   }
 
-  private def collectSpecificAnnotation(fn: Defn.Def, annotName: String, annotationCollector: (Defn.Def, Mod.Annot) => Unit): Unit = {
+  protected def collectSpecificAnnotation(fn: Defn.Def, annotName: String, annotationCollector: (Defn.Def, Mod.Annot) => Unit): Unit = {
     if(ScalaMetaUtils.containsAnnotation(fn.mods, annotName)) {
       val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
       val filteredAnnots = annots.filter { _.init.tpe.toString == annotName }
@@ -95,7 +93,18 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val foundCase = collectCaseAtPosition(fn, functionEqPosition)
     val distinctionCriteriaNames = annot.init.argss.head.tail.map { _.asInstanceOf[Lit.String].value }
     val distinctionCriteriaDefs = distinctionCriteriaNames.flatMap { collectFunctionDef(_, "DistinctionCriteria") }
-    distinction += foundCase -> distinctionCriteriaDefs
+    distinction += (fn.name.value, foundCase) -> distinctionCriteriaDefs
+  }
+
+  private def collectDistinction(fn: Defn.Def, annot: Mod.Annot): Unit = {
+    val criteriaName = annot.init.argss.head.head.asInstanceOf[Lit.String].value
+    val functionEqPosition = annot.init.argss.head.tail.head.asInstanceOf[Lit.Int].value
+    val foundCase = collectCaseAtPosition(fn, functionEqPosition)
+    val distinctionCriteriaDef = collectFunctionDef(criteriaName, "DistinctionCriteria")
+    if (distinctionCriteriaDef.isEmpty)
+      reporter.report(s"The referenced distinction criteria ${criteriaName} was not found.", annot.pos.startLine)
+    val prevCriterias = distinction.getOrElse((fn.name.value, foundCase), Seq())
+    distinction += (fn.name.value, foundCase) -> (prevCriterias.seq :+ distinctionCriteriaDef.get)
   }
 
   def collectAnnotation(mods: Seq[Mod], name: String): Mod.Annot = {
@@ -234,9 +243,10 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
 
   def translateDistinctions(): Map[FunctionEq, Seq[FunctionExpJudgment]] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
-    val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
+    val criteriaTranslator = DistinctionCriteriaTranslator(reporter)
     distinction.map { case ((name, cas), criterias) =>
-      functionTranslator.translateCase(name, cas) -> null
+      val transCriterias = criterias.map { c => criteriaTranslator.translate(c) }
+      functionTranslator.translateCase(name, cas) -> transCriterias
     }.toMap
   }
 
