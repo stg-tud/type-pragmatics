@@ -393,12 +393,16 @@ object QLSpec extends SPLSpecification {
   @DistinctionCriteria
   def isSomeExpCriteria(opt: OptExp): Boolean = isSomeExp(opt)
 
+  @DistinctionCriteria
+  def qs1EmptyCriteria(qs1: Questionnaire): Boolean = qs1 == qempty()
+
   @Recursive(0, 2)
   @PropertyAttached("qlProgress")
   @PropertyNeeded("reduceExpProgress", 2, 9)
   @PropertyNeeded("lookupQMapProgress", 4)
   @GroupedDistinction(Seq(0), Seq(1, 2, 3, 4), Seq(5, 6), Seq(7, 8, 9), Seq(10))
   @Distinction("expIsValueCriteria", 2)
+  @Distinction("qs1EmptyCriteria", 5)
   def reduce(qc: QConf): OptQConf = qc match {
     case (QC(am, qm, qempty())) => noQConf()
     case (QC(am, qm, qsingle(question(qid, l, t)))) =>
@@ -579,6 +583,7 @@ object QLSpec extends SPLSpecification {
   } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
 
   @Property
+  @Goal
   def qlProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap, qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
     require(!isValue(QC(am, qm, q)))
     require(typeAM(am) == atm)

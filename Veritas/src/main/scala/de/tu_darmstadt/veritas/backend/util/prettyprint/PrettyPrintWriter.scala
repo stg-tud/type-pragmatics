@@ -38,6 +38,11 @@ class PrettyPrintWriter(writer: Writer = new StringWriter,
     }
   }
 
+  def newline(): this.type = {
+    write(linebreak)
+    this
+  }
+
   /**
    * Removes the last added indentation
    */

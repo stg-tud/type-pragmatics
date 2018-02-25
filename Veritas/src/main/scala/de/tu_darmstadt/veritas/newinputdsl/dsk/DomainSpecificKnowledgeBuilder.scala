@@ -37,11 +37,26 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     build(base)
   }
 
-  protected var attachedProperties: MMap[(Defn.Def, String), Defn.Def] = scala.collection.mutable.Map()
-  protected var recursiveFunctions: MMap[Defn.Def, Defn.Trait] = scala.collection.mutable.Map()
-  protected var propertyNeeded: MMap[Defn.Def, (String, Seq[Case])] = scala.collection.mutable.Map()
-  protected var distinction: MMap[(String, Case), Seq[Defn.Def]] = scala.collection.mutable.Map()
-  protected var groupings: ListBuffer[(String, Seq[Case])] = ListBuffer()
+  protected val attachedProperties: MMap[(Defn.Def, String), Defn.Def] = scala.collection.mutable.Map()
+  protected val recursiveFunctions: MMap[Defn.Def, Defn.Trait] = scala.collection.mutable.Map()
+  protected val propertyNeeded: MMap[Defn.Def, (String, Seq[Case])] = scala.collection.mutable.Map()
+  protected val distinction: MMap[(String, Case), Seq[Defn.Def]] = scala.collection.mutable.Map()
+  protected val groupings: ListBuffer[(String, Seq[Case])] = ListBuffer()
+  protected val typesOfMetaVars: MMap[(Defn.Def, String), Defn.Trait] = scala.collection.mutable.Map()
+
+  protected val expressions: ListBuffer[Defn.Trait] = ListBuffer()
+  protected val contexts: ListBuffer[Defn.Trait] = ListBuffer()
+  protected val types: ListBuffer[Defn.Trait] = ListBuffer()
+
+  def collectCategoryOfDataType(tr: Defn.Trait): Unit = {
+    val supertraits = tr.templ.inits.map { _.tpe.toString }
+    if (supertraits.contains("Expression"))
+      expressions += tr
+    if (supertraits.contains("Context"))
+      contexts += tr
+    if (supertraits.contains("Typ"))
+      types += tr
+  }
 
   // fill maps or data types
   protected def collectInformation(): Unit = {
@@ -53,6 +68,10 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
         collectSpecificAnnotation(fn, "GroupedDistinction", collectGroupedDistinction)
         if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
           collectRecursive(fn)
+        if (ScalaMetaUtils.containsOneOfAnnotations(fn.mods, Seq("Lemma", "Axiom", "Goal")))
+          collectMetaVarType(fn)
+      case tr: Defn.Trait =>
+        collectCategoryOfDataType(tr)
       case _ => ()
     }
   }
@@ -193,6 +212,10 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     paramTrait.get._1
   }
 
+  def collectMetaVarType(fn: Defn.Def): Unit =
+    fn.paramss.head.map { param =>
+      typesOfMetaVars += (fn, param.name.value) -> getTraitForLastParam(param)
+    }
 
   def buildBase(): DomainSpecificKnowledge = {
     val transAttachedProps = translateAttachedProperties()
@@ -200,12 +223,20 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val transRecursiveFuncs = translateRecursiveFunctions()
     val transGroupings = translateGrouping()
     val transDistinctions = translateDistinctions()
+    val transMetaVarTypes = translateTypesOfMetaVars()
+    val transExprs = translateCategory(expressions)
+    val transCtxs = translateCategory(contexts)
+    val transTypes = translateCategory(types)
     new DomainSpecificKnowledge {
       override val attachedProperties: Map[(FunctionDef, String), TypingRule] = transAttachedProps
       override val propertiesNeeded: Map[TypingRule, Seq[FunctionEq]] = transNeededProps
       override val recursiveFunctions: Map[FunctionDef, DataType] = transRecursiveFuncs
       override val groupings: Seq[Seq[FunctionEq]] = transGroupings
-      override val distinctionsBasedOnExpressions =  transDistinctions
+      override val distinctionsBasedOnExpressions: Map[FunctionEq, Seq[FunctionExpJudgment]] = transDistinctions
+      override val typesOfMetaVars: Map[(TypingRule, String), DataType] = transMetaVarTypes
+      override val expressions: Seq[DataType] = transExprs
+      override val contexts: Seq[DataType] = transCtxs
+      override val types: Seq[DataType] = transTypes
     }
   }
 
@@ -251,6 +282,25 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       val transCriterias = criterias.map { c => criteriaTranslator.translate(c) }
       functionTranslator.translateCase(name, cas) -> transCriterias
     }.toMap
+  }
+
+  def translateTypesOfMetaVars(): Map[(TypingRule, String), DataType] = {
+    val ensuringFuncTranslator = EnsuringFunctionTranslator(reporter)
+    val adtTranslator = AlgebraicDataTypeTranslator(reporter)
+    typesOfMetaVars.map { case ((fn, name), tr) =>
+      val typingRule = ensuringFuncTranslator.translate(fn)
+      val cases = adts(tr)
+      val dataType = adtTranslator.translate(tr, cases)
+      (typingRule, name) -> dataType
+    }.toMap
+  }
+
+  def translateCategory(traits: Seq[Defn.Trait]): Seq[DataType] = {
+    val adtTranslator = AlgebraicDataTypeTranslator(reporter)
+    traits.map { tr =>
+      val cases = adts(tr)
+      adtTranslator.translate(tr, cases)
+    }
   }
 
   def build(base: DomainSpecificKnowledge): Knowledge

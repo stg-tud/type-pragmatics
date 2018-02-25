@@ -14,4 +14,10 @@ trait DomainSpecificKnowledge {
   def toplevelProperties: Map[(FunctionDef, String), TypingRule] = attachedProperties.filter { case ((fdef, propName), prop) =>
       propertiesNeeded.keys.forall( _ != prop)
   }
+
+  def typesOfMetaVars: Map[(TypingRule, String), DataType]
+
+  def expressions: Seq[DataType]
+  def contexts: Seq[DataType]
+  def types: Seq[DataType]
 }

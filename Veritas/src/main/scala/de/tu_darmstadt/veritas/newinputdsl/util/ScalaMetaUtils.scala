@@ -29,6 +29,11 @@ object ScalaMetaUtils {
     annots.exists { _.init.tpe.toString == annotation }
   }
 
+  def containsOneOfAnnotations(mods: Seq[Mod], annotations: Seq[String]): Boolean = {
+    val annots = collectAnnotations(mods)
+    annots.exists { annot => annotations.contains(annot.init.tpe.toString)}
+  }
+
   def notContainsAnnotation(mods: Seq[Mod], annotation: String): Boolean = {
     val annots = collectAnnotations(mods)
     annots.forall { _.init.tpe.toString != annotation }

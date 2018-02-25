@@ -35,7 +35,7 @@ trait SPLDomainSpecificKnowledgeAnnotations {
   // just point to one of the elements in the grouping or the grouping itself?
   // By checking if a position is already grouped we know that the distinction has to be applied to a subobligation of
   // a structural distinction
-  case class Distinction(criteriaName: String, position: Int) extends scala.annotation.Annotation
+  case class Distinction(criteriaName: String, positions: Int*) extends scala.annotation.Annotation
 
   // TODO how do we make a lemma app in a sub of a distinction?
   // by progress/lemma needed? and determine which criteria fits the function pattern?
