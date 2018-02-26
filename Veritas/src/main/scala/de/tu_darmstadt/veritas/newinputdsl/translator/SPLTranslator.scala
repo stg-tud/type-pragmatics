@@ -53,14 +53,14 @@ class SPLTranslator {
     val adtTranslator = AlgebraicDataTypeTranslator(reporter)
     val translatedDataTypes = adts.map { case (base, cases) => adtTranslator.translate(base, cases) }
     val axioms = collectAxioms(stats)
-    val partialFunctions = collectPartialFunctions(stats).diff(axioms)
-    val functions = collectFunctions(stats).diff(axioms ++ partialFunctions)
+    val lemmas = collectLemmas(stats)
+    val goals = collectGoals(stats)
+    val partialFunctions = collectPartialFunctions(stats).diff(axioms ++ lemmas ++ goals)
+    val functions = collectFunctions(stats).diff(axioms ++ lemmas ++ goals ++ partialFunctions)
     val translatedPartialFunctions = partialFunctions.map { functionTranslator.translate }
     val translatedFunctions = functions.map { functionTranslator.translate }
     val translatedAxioms = axioms.map { ensuringFunctionTranslator.translate }
-    val lemmas = collectLemmas(stats)
     val translatedLemmas = lemmas.map { ensuringFunctionTranslator.translate }
-    val goals = collectGoals(stats)
     val translatedGoals = goals.map { ensuringFunctionTranslator.translate }
     translatedDataTypes.toSeq ++
       Seq(PartialFunctions(translatedPartialFunctions)) ++

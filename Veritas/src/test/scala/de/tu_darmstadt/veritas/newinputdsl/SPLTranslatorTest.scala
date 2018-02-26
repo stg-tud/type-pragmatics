@@ -221,6 +221,7 @@ class SPLTranslatorTest extends FunSuite {
     assert(locals.head ==
       Local(
         Seq(
+          PartialFunctions(Seq()),
           Functions(Seq()),
           Axioms(Seq( TypingRule("non", Seq(), Seq(FunctionExpJudgment(FunctionExpTrue))))),
           Lemmas(Seq(), None),

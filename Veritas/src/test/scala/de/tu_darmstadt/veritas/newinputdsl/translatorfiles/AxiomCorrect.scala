@@ -29,12 +29,12 @@ object AxiomCorrect extends SPLSpecification {
 
   @Axiom
   def orcase(): Unit = {
-  } ensuring (((zero() == zero()) $$ (zero() == succ(zero()))) || (zero() == zero()))
+  } ensuring (((zero() == zero()) & (zero() == succ(zero()))) || (zero() == zero()))
 
   @Lemma
   def metavariables(z: Num, a: Num): Unit = {
     require(true)
-    require(exists((x: Num, y: Num) => (x != y) $$ (a == x)))
+    require(exists((x: Num, y: Num) => (x != y) & (a == x)))
   }  ensuring (forall((x: Num) => succ(x) == z))
 
   @Goal

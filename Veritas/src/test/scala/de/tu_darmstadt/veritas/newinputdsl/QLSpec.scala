@@ -400,6 +400,7 @@ object QLSpec extends SPLSpecification {
   @PropertyAttached("qlProgress")
   @PropertyNeeded("reduceExpProgress", 2, 9)
   @PropertyNeeded("lookupQMapProgress", 4)
+  // maybe optional
   @GroupedDistinction(Seq(0), Seq(1, 2, 3, 4), Seq(5, 6), Seq(7, 8, 9), Seq(10))
   @Distinction("expIsValueCriteria", 2)
   @Distinction("qs1EmptyCriteria", 5)
@@ -573,7 +574,6 @@ object QLSpec extends SPLSpecification {
     require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
   } ensuring MC(atm, qm) |- qcond(exp, q1, q2) :: MC(intersectATM(atm1, atm2), intersectATM(qm1, qm2))
 
-  // TODO undefined functions how?
   def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
 
   @Axiom
@@ -583,7 +583,6 @@ object QLSpec extends SPLSpecification {
   } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
 
   @Property
-  @Goal
   def qlProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap, qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
     require(!isValue(QC(am, qm, q)))
     require(typeAM(am) == atm)

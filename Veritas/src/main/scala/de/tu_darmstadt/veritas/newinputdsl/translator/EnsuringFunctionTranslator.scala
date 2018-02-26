@@ -90,7 +90,7 @@ trait EnsuringFunctionTranslator {
 
   private def translateTypingRuleJudgementSequence(term: Term)(implicit metavars: Seq[String] = Seq()): Seq[TypingRuleJudgment] = {
     term match {
-      case Term.ApplyInfix(lhs, Term.Name("$$"), Nil, rhs::Nil) =>
+      case Term.ApplyInfix(lhs, Term.Name("&"), Nil, rhs::Nil) =>
         translateTypingRuleJudgementSequence(lhs)(metavars) :+ translateTypingRule(rhs)(metavars)
       case _ => Seq(translateTypingRule(term)(metavars))
     }
