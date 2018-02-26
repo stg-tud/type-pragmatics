@@ -50,8 +50,6 @@ trait ToSPLSpecificationPrinter {
     res
   }
 
-  // TODO for every AST needs a function to translate it back. Could be that we need more than one
-  // AST
   def printDataType(dt: DataType): Unit
 
   def printParamList(params: Seq[SortRef]): Unit = {
@@ -204,14 +202,9 @@ trait ToSPLSpecificationPrinter {
     printer.write(")")
   }
 
-  // TypingRules
   def printTypingRule(tr: TypingRule): Unit = {
     printer.write(s"def ${tr.name}(")
     val metaVars: Set[MetaVar] = collectMetaVars(tr)
-    // TODO get typing of metavars
-    // look which functions are passed the meta var
-    // look which type stands on the other side of an equation
-    // We could collect it and save the types in the dsk
     printBindings(metaVars.toSeq, tr)
     printer.write("): Unit = {")
     printer.indent()
@@ -354,6 +347,7 @@ trait DSKToSPLSpecificationPrinter extends ToSPLSpecificationPrinter {
   }
 
   override def printBindings(bindings: Seq[MetaVar], tr: TypingRule): Unit = {
+    // quantifier judgement
     if (tr == null) {
       if (bindings.nonEmpty) {
         bindings.init.foreach { binding =>
