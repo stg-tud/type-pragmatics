@@ -182,6 +182,7 @@ trait ToSPLSpecificationPrinter {
     printFunctionExp(thn)
     printer.unindent()
     printer.newline()
+    printer.write("}")
   }
 
   def printFunctionExpLet(name: String, namedExpr: FunctionExpMeta, in: FunctionExpMeta): Unit = {
