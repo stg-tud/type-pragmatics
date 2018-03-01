@@ -13,8 +13,6 @@ import scala.collection.mutable.ListBuffer
 trait DistinctionDAG[Equation, Criteria, Expression] {
   trait Node
 
-  case object Root extends Node
-
   case class BooleanDistinction(criteria: Criteria, resulting: Expression) extends Node
 
   case class EquationDistinction(eqs: Set[Equation]) extends Node
@@ -22,8 +20,10 @@ trait DistinctionDAG[Equation, Criteria, Expression] {
   case class FunctionCall(name: String, args: Seq[Expression]) extends Node
 
   private val adjacencyList: mutable.Map[Node, Set[Node]] = mutable.Map()
-  // add root to list
-  adjacencyList(Root) = Set()
+
+  def addRoot(node: Node): Unit = {
+    adjacencyList(node) = Set()
+  }
 
   def addChild(parent: Node, child: Node): Unit = {
     if (adjacencyList.contains(parent)) {
@@ -48,6 +48,10 @@ trait DistinctionDAG[Equation, Criteria, Expression] {
   }
 
   def distinctions: Set[Node] = adjacencyList.keys.toSet
+
+  def roots(): Set[Node] = adjacencyList.keySet.filter { node =>
+    adjacencyList.forall { case (_, children) => !children.contains(node) }
+  }.toSet
 
   def leaves: Set[Node] = adjacencyList.filter(_._2.isEmpty).keys.toSet
 
@@ -86,19 +90,18 @@ trait DistinctionDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionDAG[E
     val groupedEquations = groupFunctionEquations(getEquationsOfDefintion(funDef))
     val maxLevel = groupedEquations.map(_._1).max
     val proccesedEquations: ListBuffer[(Int, dag.EquationDistinction)] = ListBuffer()
-    groupedEquations.foreach(println)
 
+    // add root with all function equations
+    val root = dag.EquationDistinction(getEquationsOfDefintion(funDef).toSet)
+    dag.addRoot(root)
+    proccesedEquations += 1 -> root
     // Idea: group is parent of other group if it is a superset of it and has a lower lvl
     def buildChildrenBasedOnPattern(level: Int): Unit = {
       val currentLevelEquations = groupedEquations.filter(_._1 == level)
       currentLevelEquations.foreach { case (lvl, eqs) =>
         val parentCandidates = proccesedEquations.filter(x => eqs.forall(x._2.eqs.contains))
         // direct parent is the smallest superset of the eqs
-        val parent =
-          if (parentCandidates.isEmpty)
-            (1, dag.Root)
-          else
-            parentCandidates.minBy(_._2.eqs.size)
+        val parent = parentCandidates.minBy(_._2.eqs.size)
         val child = dag.EquationDistinction(eqs)
         dag.addChild(parent._2, child)
         proccesedEquations += lvl -> child
@@ -113,7 +116,6 @@ trait DistinctionDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionDAG[E
     val structuralLeaves = leaves.map(_.asInstanceOf[dag.EquationDistinction])
     def buildChildrenBasedOnFunctionExp(node: dag.Node): Unit = {
       val booleanCriterias = getDistinctionByIfExpression(dag.getExpression(node))
-      println(booleanCriterias)
       booleanCriterias.foreach { case (criteria, resultingExp) =>
         val child = dag.BooleanDistinction(criteria, resultingExp)
         dag.addChild(node, child)
