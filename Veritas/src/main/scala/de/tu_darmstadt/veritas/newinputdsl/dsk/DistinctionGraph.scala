@@ -2,7 +2,6 @@ package de.tu_darmstadt.veritas.newinputdsl.dsk
 
 import java.util.NoSuchElementException
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.{SpecEnquirer, VeritasSpecEnquirer}
 import de.tu_darmstadt.veritas.backend.ast.{DataType, Module}
 import de.tu_darmstadt.veritas.backend.ast.function._
 
@@ -11,19 +10,21 @@ import scala.collection.mutable.ListBuffer
 
 // a boolean distinction can only have boolean distinctions as children
 // equation distinctions can have boolean and equation distinctions as children
-trait DistinctionDAG[Equation, Criteria, Expression] {
+trait DistinctionCallDAG[Equation, Criteria, Expression] {
   trait Node
 
   case class BooleanDistinction(criteria: Criteria, resulting: Expression) extends Node
 
   case class EquationDistinction(eqs: Set[Equation]) extends Node
 
-  case class FunctionCall(name: String, args: Seq[Expression]) extends Node
+  case class FunctionCall(name: String) extends Node
 
   private val adjacencyList: mutable.Map[Node, Set[Node]] = mutable.Map()
+  private val _roots = ListBuffer[Node]()
 
   def addRoot(node: Node): Unit = {
     adjacencyList(node) = Set()
+    _roots += node
   }
 
   def addChild(parent: Node, child: Node): Unit = {
@@ -32,7 +33,9 @@ trait DistinctionDAG[Equation, Criteria, Expression] {
       adjacencyList(parent) = children + child
       if (!adjacencyList.contains(child))
         adjacencyList(child) = Set()
-    } else throw new NoSuchElementException(s"$parent was not found")
+    } else {
+      adjacencyList(parent) = Set(child)
+    }
   }
 
   def addChildren(parent: Node, children: Seq[Node]): Unit = {
@@ -48,11 +51,9 @@ trait DistinctionDAG[Equation, Criteria, Expression] {
     }.keys.headOption
   }
 
-  def distinctions: Set[Node] = adjacencyList.keys.toSet
+  def distinctions: Seq[Node] = adjacencyList.flatMap { _._2 }.toSeq
 
-  def roots(): Set[Node] = adjacencyList.keySet.filter { node =>
-    adjacencyList.forall { case (_, children) => !children.contains(node) }
-  }.toSet
+  def roots(): Set[Node] = _roots.toSet
 
   def leaves: Set[Node] = adjacencyList.filter(_._2.isEmpty).keys.toSet
 
@@ -76,18 +77,20 @@ trait DistinctionDAG[Equation, Criteria, Expression] {
   def getExpression(distinction: Node): Expression = distinction match {
     case BooleanDistinction(_, resulting) => resulting
     case EquationDistinction(eqs) if eqs.size == 1 => getRHSOfEquation(eqs.head)
-    case FunctionCall(name, args) => getFunctionCall(name, args)
+    case FunctionCall(name) =>
+      getParent(distinction) match {
+        case Some(parent) => getExpression(parent)
+        case None => throw new IllegalArgumentException("Should not happend")
+      }
     case _ => throw new IllegalArgumentException("Every leave node should be a boolean distinction or a structural distinction with exactly one equation attached.")
   }
 
   protected def getRHSOfEquation(eq: Equation): Expression
-
-  protected def getFunctionCall(name: String, args: Seq[Expression]): Expression
 }
 
-trait DistinctionDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionDAG[Eq, Criteria, Exp]] {
+trait DistinctionCallDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionCallDAG[Eq, Criteria, Exp]] {
 
-  def translate(funDef: FunDef)(dag: Graph): DistinctionDAG[Eq, Criteria, Exp] = {
+  def translate(funDef: FunDef)(dag: Graph): DistinctionCallDAG[Eq, Criteria, Exp] = {
     val groupedEquations = groupFunctionEquations(getEquationsOfDefintion(funDef))
     val maxLevel = groupedEquations.map(_._1).max
     val proccesedEquations: ListBuffer[(Int, dag.EquationDistinction)] = ListBuffer()
@@ -112,30 +115,49 @@ trait DistinctionDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionDAG[E
     }
     buildChildrenBasedOnPattern(2)
 
-    def buildChildrenBasedOnFunctionCalls(node: dag.Node): Unit = {
-      val functionCalls = getFunctionCalls(dag.getExpression(node))
-      val children = functionCalls.map { case (name, args) =>
-        dag.FunctionCall(name, args)
-      }
-      dag.addChildren(node, children)
-      // TODO do we want to create a call graph?
-    }
-
     val leaves = dag.leaves
     // every leave at this stage has to be a structural leave
     val structuralLeaves = leaves.map(_.asInstanceOf[dag.EquationDistinction])
-    def buildChildrenBasedOnFunctionExp(node: dag.Node): Unit = {
-      val booleanCriterias = getDistinctionByIfExpression(dag.getExpression(node))
-      booleanCriterias.foreach { case (criteria, resultingExp) =>
-        val child = dag.BooleanDistinction(criteria, resultingExp)
-        dag.addChild(node, child)
-        buildChildrenBasedOnFunctionCalls(child)
-        buildChildrenBasedOnFunctionExp(child)
+
+    def buildChildrenBasedOnFunctionExp(node: dag.Node, foundBindings: Map[String, Set[String]]): Unit = {
+      // maps from function name to passed varrefs
+      val exp = dag.getExpression(node)
+      val varRefdByFunction: Map[String, Set[String]] = getVarRefWithinFunctionApp(exp)
+      // maps from var name to functions it used to create the binding
+      val bindings: Map[String, Set[String]] = foundBindings ++ getResultBindings(exp)
+      varRefdByFunction.foreach { case (funName, refNames) =>
+        val funCall = dag.FunctionCall(funName)
+        // because function was called in within a let or a the cond of if we link node to funCall
+        dag.addChild(funCall, node)
+
+        bindings.foreach { case (bindingName, funcApps) =>
+          // binding was used in a funApp
+          if (refNames.contains(bindingName)) {
+            funcApps.foreach { funcName =>
+              val child = dag.FunctionCall(funcName)
+              dag.addChild(funCall, child)
+            }
+          }
+        }
+      }
+      val inlinedFunctionApps = getInnerFunctionApplication(exp)
+      inlinedFunctionApps.foreach { case (outer, inner) =>
+        val outerNode = dag.FunctionCall(outer)
+        val innerNode = dag.FunctionCall(inner)
+        dag.addChild(innerNode, outerNode)
+      }
+      // create children based on if condition
+      val conditionalBranches = getDistinctionByIfExpression(dag.getExpression(node))
+      conditionalBranches.foreach { case (condition, branch) =>
+        val branchNode = dag.BooleanDistinction(condition, branch)
+        dag.addChild(node, branchNode)
+        buildChildrenBasedOnFunctionExp(branchNode, bindings)
       }
     }
+
+    //
     structuralLeaves.foreach { leave =>
-      buildChildrenBasedOnFunctionCalls(leave)
-      buildChildrenBasedOnFunctionExp(leave)
+      buildChildrenBasedOnFunctionExp(leave, Map())
     }
     dag
   }
@@ -146,22 +168,22 @@ trait DistinctionDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionDAG[E
 
   protected def getDistinctionByIfExpression(exp: Exp): Map[Criteria, Exp]
 
-  protected def getFunctionCalls(exp: Exp): Seq[(String, Seq[Exp])]
+  protected def getFunctionApplication(exp: Exp): Option[String]
+  protected def getInnerFunctionApplication(exp: Exp): Seq[(String, String)]
+  protected def getVarRefWithinFunctionApp(exp: Exp): Map[String, Set[String]]
+  protected def getResultBindings(exp: Exp): Map[String, Set[String]]
 }
 
 
-case class VeritasDistinctionDAG() extends DistinctionDAG[FunctionEq, FunctionExp, FunctionExpMeta] {
+case class VeritasDistinctionCallDAG() extends DistinctionCallDAG[FunctionEq, FunctionExp, FunctionExpMeta] {
   override protected def getRHSOfEquation(eq: FunctionEq): FunctionExpMeta = eq.right
-
-  override protected def getFunctionCall(name: String, args: Seq[FunctionExpMeta]): FunctionExpMeta =
-    FunctionExpApp(name, args)
 }
 
-class VeritasDistinctionDAGBuilder(spec: Module) extends DistinctionDAGBuilder[FunctionDef, FunctionEq, FunctionExp , FunctionExpMeta, VeritasDistinctionDAG] {
+class VeritasDistinctionCallDAGBuilder(spec: Module) extends DistinctionCallDAGBuilder[FunctionDef, FunctionEq, FunctionExp , FunctionExpMeta, VeritasDistinctionCallDAG] {
 
   private val ctorNames = ListBuffer[String]()
 
-  override def translate(funDef: FunctionDef)(dag: VeritasDistinctionDAG): DistinctionDAG[FunctionEq, FunctionExp, FunctionExpMeta] = {
+  override def translate(funDef: FunctionDef)(dag: VeritasDistinctionCallDAG): DistinctionCallDAG[FunctionEq, FunctionExp, FunctionExpMeta] = {
     spec.defs.foreach {
       case DataType(_, _, ctors) =>
         ctorNames ++= ctors.map(_.name)
@@ -176,7 +198,7 @@ class VeritasDistinctionDAGBuilder(spec: Module) extends DistinctionDAGBuilder[F
 
     // group based on prefixes
     patternStrings.foreach { case (string, eq) =>
-        val prefixes = VeritasDistinctionDAGBuilder.substringByChar(string, '_')
+        val prefixes = VeritasDistinctionCallDAGBuilder.substringByChar(string, '_')
         for ((prefix, i) <- prefixes.zipWithIndex) {
           if (grouped.contains(prefix)) {
             grouped(prefix) = grouped(prefix) + eq
@@ -193,7 +215,7 @@ class VeritasDistinctionDAGBuilder(spec: Module) extends DistinctionDAGBuilder[F
 
     // remove groupings which are more specifc but have the same elements
     val cleanedUpGroupings = grouped.filter { case (prefix, eqs) =>
-        val moreGeneral = VeritasDistinctionDAGBuilder.substringByChar(prefix, '_')
+        val moreGeneral = VeritasDistinctionCallDAGBuilder.substringByChar(prefix, '_')
         moreGeneral.forall { pr2 =>
           val moreGeneralEqs = grouped(pr2)
           moreGeneralEqs != eqs
@@ -211,32 +233,72 @@ class VeritasDistinctionDAGBuilder(spec: Module) extends DistinctionDAGBuilder[F
   // maps from condition to branch
   override protected def getDistinctionByIfExpression(exp: FunctionExpMeta): Map[FunctionExp, FunctionExpMeta] = exp match {
     case FunctionExpIf(cond, thn, els) => Map() + (cond -> thn) + (FunctionExpNot(cond) -> els)
-    case FunctionExpLet(name, namedExpr, in) =>
+    case FunctionExpLet(_, namedExpr, in) =>
       getDistinctionByIfExpression(namedExpr) ++ getDistinctionByIfExpression(in)
     case _ => Map()
   }
 
-  override protected def getFunctionCalls(exp: FunctionExpMeta): Seq[(String, Seq[FunctionExpMeta])] = exp match {
+  // TODO currently only supports sinlge funcapp
+  override protected def getResultBindings(exp: FunctionExpMeta): Map[String, Set[String]] = exp match {
+    case FunctionExpLet(name, FunctionExpApp(funcName, _), in) =>
+      Map() + (name -> Set(funcName)) ++ getResultBindings(in)
+    case _ => Map()
+  }
+
+  // returns a sequence with pairs of functions that are directly passed to a function as an argument
+  override protected def getInnerFunctionApplication(exp: FunctionExpMeta): Seq[(String, String)] = exp match {
     case FunctionExpApp(name, args) =>
-      val funcCall =
-        if (!ctorNames.contains(name)) Seq(name -> args)
-        else Nil
-      funcCall ++ args.flatMap(getFunctionCalls)
-    case FunctionExpIf(cond, _, _) => getFunctionCalls(cond)
-    case FunctionExpLet(_, namedExpr, in) => getFunctionCalls(namedExpr) ++ getFunctionCalls(in)
-    case FunctionExpNot(f) => getFunctionCalls(f)
-    case FunctionExpEq(lhs, rhs) => getFunctionCalls(lhs) ++ getFunctionCalls(rhs)
-    case FunctionExpNeq(lhs, rhs) => getFunctionCalls(lhs) ++ getFunctionCalls(rhs)
-    case FunctionExpAnd(lhs, rhs) => getFunctionCalls(lhs) ++ getFunctionCalls(rhs)
-    case FunctionExpOr(lhs, rhs) => getFunctionCalls(lhs) ++ getFunctionCalls(rhs)
-    case FunctionExpBiImpl(lhs, rhs) => getFunctionCalls(lhs) ++ getFunctionCalls(rhs)
+      args.flatMap(getFunctionApplication).map { (name, _) }
     case _ => Seq()
   }
 
+  override protected def getFunctionApplication(exp: FunctionExpMeta): Option[String] = exp match {
+    case FunctionExpApp(name, args) =>
+      if (!ctorNames.contains(name)) Some(name)
+      else None
+    case _ => None
+  }
+
   override protected def getEquationsOfDefintion(funDef: FunctionDef): Seq[FunctionEq] = funDef.eqn
+
+  override protected def getVarRefWithinFunctionApp(exp: FunctionExpMeta): Map[String, Set[String]] = exp match {
+    case FunctionExpApp(name, args) if !ctorNames.contains(name) =>
+        Map(name -> args.flatMap(getVarRefs).toSet)
+    case FunctionExpIf(cond, _, _) => getVarRefWithinFunctionApp(cond)
+    case FunctionExpLet(_, namedExp, in) =>
+      updateMap(getVarRefWithinFunctionApp(namedExp), getVarRefWithinFunctionApp(in))
+    case FunctionExpNot(f) => getVarRefWithinFunctionApp(f)
+    case FunctionExpEq(lhs, rhs) =>
+      updateMap(getVarRefWithinFunctionApp(lhs), getVarRefWithinFunctionApp(rhs))
+    case FunctionExpNeq(lhs, rhs) =>
+      updateMap(getVarRefWithinFunctionApp(lhs), getVarRefWithinFunctionApp(rhs))
+    case FunctionExpAnd(lhs, rhs) =>
+      updateMap(getVarRefWithinFunctionApp(lhs), getVarRefWithinFunctionApp(rhs))
+    case FunctionExpOr(lhs, rhs) =>
+      updateMap(getVarRefWithinFunctionApp(lhs), getVarRefWithinFunctionApp(rhs))
+    case FunctionExpBiImpl(lhs, rhs) =>
+      updateMap(getVarRefWithinFunctionApp(lhs), getVarRefWithinFunctionApp(rhs))
+    case _ => Map()
+  }
+
+  private def getVarRefs(exp:FunctionExpMeta): Option[String] = exp match {
+    case FunctionExpVar(name) => Some(name)
+    case _ => None
+  }
+
+  private def updateMap[K, V](prev: Map[K, Set[V]], now: Map[K, Set[V]]): Map[K, Set[V]] = {
+    val result = mutable.Map() ++ prev
+    now.foreach { case (key, vals) =>
+      if (result.contains(key))
+        result(key) = result(key) ++ vals
+      else
+        result(key) = vals
+    }
+    Map() ++ result
+  }
 }
 
-object VeritasDistinctionDAGBuilder {
+object VeritasDistinctionCallDAGBuilder {
   def substringByChar(str: String, sign: Char): Seq[String] = {
     var indices = Seq[Int]()
     for { (char, index) <- str.zipWithIndex
