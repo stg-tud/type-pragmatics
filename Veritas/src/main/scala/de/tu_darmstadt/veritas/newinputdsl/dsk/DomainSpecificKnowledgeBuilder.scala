@@ -40,8 +40,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   protected val attachedProperties: MMap[(Defn.Def, String), Defn.Def] = scala.collection.mutable.Map()
   protected val recursiveFunctions: MMap[Defn.Def, Defn.Trait] = scala.collection.mutable.Map()
   protected val propertyNeeded: MMap[Defn.Def, (String, Seq[Case])] = scala.collection.mutable.Map()
-  protected val distinction: MMap[(String, Case), Seq[Defn.Def]] = scala.collection.mutable.Map()
-  protected val groupings: ListBuffer[(String, Seq[Case])] = ListBuffer()
   protected val typesOfMetaVars: MMap[(Defn.Def, String), Defn.Trait] = scala.collection.mutable.Map()
 
   protected val expressions: ListBuffer[Defn.Trait] = ListBuffer()
@@ -62,10 +60,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   protected def collectInformation(): Unit = {
     stats.foreach {
       case fn: Defn.Def =>
-        collectSpecificAnnotation(fn, "Distinction", collectDistinction)
         collectSpecificAnnotation(fn, "PropertyAttached", collectPropertyAttached)
         collectSpecificAnnotation(fn, "PropertyNeeded", collectPropertyNeeded)
-        collectSpecificAnnotation(fn, "GroupedDistinction", collectGroupedDistinction)
         if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
           collectRecursive(fn)
         if (ScalaMetaUtils.containsOneOfAnnotations(fn.mods, Seq("Lemma", "Axiom", "Goal")))
@@ -73,29 +69,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       case tr: Defn.Trait =>
         collectCategoryOfDataType(tr)
       case _ => ()
-    }
-  }
-
-  def collectGroupedDistinction(fn: Defn.Def, annot: Mod.Annot): Unit = {
-    val functionEqGroupings: Seq[Seq[Int]] = collectSequence(annot.init.argss.head)
-    val functionEqs = functionEqGroupings.map { seq =>
-      seq.map { pos =>
-        collectCaseAtPosition(fn, pos)
-      }
-    }
-    groupings ++= functionEqs.map { (fn.name.value, _) }
-  }
-
-  def collectSequence(list: List[Term]): Seq[Seq[Int]] = {
-    if(list.isEmpty)
-      reporter.report("GroupedDistinction has to have at least one sequence.")
-
-    list.map {
-      case Term.Apply(Term.Name("Seq"), args) =>
-        args.map {
-          _.asInstanceOf[Lit.Int].value
-        }
-      case elem => reporter.report("GroupedDistinction needs to get only Seq[Int] passed.", elem.pos.startLine)
     }
   }
 
@@ -107,26 +80,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
         annotationCollector(fn, annot)
       }
     }
-  }
-
-  private def collectDistinction(fn: Defn.Def): Unit = {
-    val annot = collectAnnotation(fn.mods, "Distinction")
-    val functionEqPosition = annot.init.argss.head.head.asInstanceOf[Lit.Int].value
-    val foundCase = collectCaseAtPosition(fn, functionEqPosition)
-    val distinctionCriteriaNames = annot.init.argss.head.tail.map { _.asInstanceOf[Lit.String].value }
-    val distinctionCriteriaDefs = distinctionCriteriaNames.flatMap { collectFunctionDef(_, "DistinctionCriteria") }
-    distinction += (fn.name.value, foundCase) -> distinctionCriteriaDefs
-  }
-
-  private def collectDistinction(fn: Defn.Def, annot: Mod.Annot): Unit = {
-    val criteriaName = annot.init.argss.head.head.asInstanceOf[Lit.String].value
-    val functionEqPosition = annot.init.argss.head.tail.head.asInstanceOf[Lit.Int].value
-    val foundCase = collectCaseAtPosition(fn, functionEqPosition)
-    val distinctionCriteriaDef = collectFunctionDef(criteriaName, "DistinctionCriteria")
-    if (distinctionCriteriaDef.isEmpty)
-      reporter.report(s"The referenced distinction criteria ${criteriaName} was not found.", annot.pos.startLine)
-    val prevCriterias = distinction.getOrElse((fn.name.value, foundCase), Seq())
-    distinction += (fn.name.value, foundCase) -> (prevCriterias.seq :+ distinctionCriteriaDef.get)
   }
 
   def collectAnnotation(mods: Seq[Mod], name: String): Mod.Annot = {
@@ -221,8 +174,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val transAttachedProps = translateAttachedProperties()
     val transNeededProps = translatePropertiesNeeded()
     val transRecursiveFuncs = translateRecursiveFunctions()
-    val transGroupings = translateGrouping()
-    val transDistinctions = translateDistinctions()
     val transMetaVarTypes = translateTypesOfMetaVars()
     val transExprs = translateCategory(expressions)
     val transCtxs = translateCategory(contexts)
@@ -231,8 +182,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       override val attachedProperties: Map[(FunctionDef, String), TypingRule] = transAttachedProps
       override val propertiesNeeded: Map[TypingRule, Seq[FunctionEq]] = transNeededProps
       override val recursiveFunctions: Map[FunctionDef, DataType] = transRecursiveFuncs
-      override val groupings: Seq[Seq[FunctionEq]] = transGroupings
-      override val distinctionsBasedOnExpressions: Map[FunctionEq, Seq[FunctionExpJudgment]] = transDistinctions
       override val typesOfMetaVars: Map[(TypingRule, String), DataType] = transMetaVarTypes
       override val expressions: Seq[DataType] = transExprs
       override val contexts: Seq[DataType] = transCtxs
@@ -265,22 +214,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     recursiveFunctions.map { case (fn, tr) =>
         val cases = adts(tr)
         functionTranslator.translate(fn) -> adtTranslator.translate(tr, cases)
-    }.toMap
-  }
-
-  def translateGrouping(): Seq[Seq[FunctionEq]] = {
-    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
-    groupings.map { case (name, eqs) =>
-      eqs.map { eq => functionTranslator.translateCase(name, eq) }
-    }
-  }
-
-  def translateDistinctions(): Map[FunctionEq, Seq[FunctionExpJudgment]] = {
-    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
-    val criteriaTranslator = DistinctionCriteriaTranslator(reporter)
-    distinction.map { case ((name, cas), criterias) =>
-      val transCriterias = criterias.map { c => criteriaTranslator.translate(c) }
-      functionTranslator.translateCase(name, cas) -> transCriterias
     }.toMap
   }
 

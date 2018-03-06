@@ -74,32 +74,4 @@ class DomainSpecificKnowledgeBuilderTest extends FunSuite {
       builder.build(file)
     }
   }
-
-  test("GroupedDistinction correctly gathered") {
-    val builder = DomainSpecificKnowledgeBuilder()
-    val file = new File(filesDir, "DSKGroupedDistinction.scala")
-
-    val groupings = builder.build(file).groupings
-    val eq1 = FunctionEq("predpred", Seq(FunctionPatApp("zero", Seq())), FunctionExpApp("zero", Seq()))
-    val eq2 = FunctionEq("predpred", Seq(FunctionPatApp("succ", Seq(FunctionPatApp("zero", Seq())))), FunctionExpApp("zero", Seq()))
-    val eq3 = FunctionEq("predpred", Seq(FunctionPatApp("succ", Seq(FunctionPatApp("succ", Seq(FunctionPatVar("n")))))), FunctionExpVar("n"))
-
-    assert(groupings(0)(0) == eq1)
-    assert(groupings(1)(0) == eq2)
-    assert(groupings(1)(1) == eq3)
-    assert(groupings(2)(0) == eq1)
-    assert(groupings(2)(1) == eq3)
-    assert(groupings(3)(0) == eq2)
-    assert(groupings(4)(0) == eq3)
-    assert(groupings(5)(0) == eq1)
-  }
-
-  test("GroupedDistinction has no positions") {
-    val builder = DomainSpecificKnowledgeBuilder()
-    val file = new File(filesDir, "DSKGroupedDistinctionEmpty.scala")
-
-    assertThrows[SPLTranslationError] {
-      builder.build(file)
-    }
-  }
 }
