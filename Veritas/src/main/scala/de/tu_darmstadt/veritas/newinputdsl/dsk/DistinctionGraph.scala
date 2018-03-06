@@ -38,11 +38,7 @@ trait DistinctionCallDAG[Equation, Criteria, Expression] {
     }
   }
 
-  def addChildren(parent: Node, children: Seq[Node]): Unit = {
-    children.foreach { addChild(parent, _) }
-  }
-
-  def getNeighbours(distinction: Node): Seq[Node] =
+  def getOutgoing(distinction: Node): Seq[Node] =
     adjacencyList(distinction).toSeq
 
   def getParent(distinction: Node): Option[Node] = {
@@ -51,9 +47,9 @@ trait DistinctionCallDAG[Equation, Criteria, Expression] {
     }.keys.headOption
   }
 
-  def distinctions: Seq[Node] = adjacencyList.flatMap { _._2 }.toSeq
+  def nodes: Seq[Node] = (adjacencyList.keys.toSeq ++ adjacencyList.flatMap(_._2)).distinct
 
-  def roots(): Set[Node] = _roots.toSet
+  def roots: Set[Node] = _roots.toSet
 
   def leaves: Set[Node] = adjacencyList.filter(_._2.isEmpty).keys.toSet
 
@@ -120,8 +116,18 @@ trait DistinctionCallDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionC
     val structuralLeaves = leaves.map(_.asInstanceOf[dag.EquationDistinction])
 
     def buildChildrenBasedOnFunctionExp(node: dag.Node, foundBindings: Map[String, Set[String]]): Unit = {
-      // maps from function name to passed varrefs
       val exp = dag.getExpression(node)
+      val nestedFunctionApps = getNestedFunctionApplications(exp)
+      nestedFunctionApps.foreach { funcNames =>
+        val outerNode = dag.FunctionCall(funcNames.head)
+        dag.addChild(outerNode, node)
+        if (funcNames.size == 2) {
+          val innerNode = dag.FunctionCall(funcNames(1))
+          dag.addChild(innerNode, outerNode)
+        }
+      }
+
+      // maps from function name to passed varrefs
       val varRefdByFunction: Map[String, Set[String]] = getVarRefWithinFunctionApp(exp)
       // maps from var name to functions it used to create the binding
       val bindings: Map[String, Set[String]] = foundBindings ++ getResultBindings(exp)
@@ -134,17 +140,11 @@ trait DistinctionCallDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionC
           // binding was used in a funApp
           if (refNames.contains(bindingName)) {
             funcApps.foreach { funcName =>
-              val child = dag.FunctionCall(funcName)
-              dag.addChild(funCall, child)
+              val parent = dag.FunctionCall(funcName)
+              dag.addChild(parent, funCall)
             }
           }
         }
-      }
-      val inlinedFunctionApps = getInnerFunctionApplication(exp)
-      inlinedFunctionApps.foreach { case (outer, inner) =>
-        val outerNode = dag.FunctionCall(outer)
-        val innerNode = dag.FunctionCall(inner)
-        dag.addChild(innerNode, outerNode)
       }
       // create children based on if condition
       val conditionalBranches = getDistinctionByIfExpression(dag.getExpression(node))
@@ -169,7 +169,9 @@ trait DistinctionCallDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionC
   protected def getDistinctionByIfExpression(exp: Exp): Map[Criteria, Exp]
 
   protected def getFunctionApplication(exp: Exp): Option[String]
-  protected def getInnerFunctionApplication(exp: Exp): Seq[(String, String)]
+  // list of lists where inner list has one element or two elements
+  // first element is outer function application, second is a possible nested function application
+  protected def getNestedFunctionApplications(exp: Exp): Seq[Seq[String]]
   protected def getVarRefWithinFunctionApp(exp: Exp): Map[String, Set[String]]
   protected def getResultBindings(exp: Exp): Map[String, Set[String]]
 }
@@ -245,10 +247,15 @@ class VeritasDistinctionCallDAGBuilder(spec: Module) extends DistinctionCallDAGB
     case _ => Map()
   }
 
-  // returns a sequence with pairs of functions that are directly passed to a function as an argument
-  override protected def getInnerFunctionApplication(exp: FunctionExpMeta): Seq[(String, String)] = exp match {
+  override protected def getNestedFunctionApplications(exp: FunctionExpMeta): Seq[Seq[String]] = exp match {
     case FunctionExpApp(name, args) =>
-      args.flatMap(getFunctionApplication).map { (name, _) }
+      val inner =
+        if (!ctorNames.contains(name))
+          Seq(Seq(name)) ++ args.flatMap(getFunctionApplication).map { Seq(name, _) }
+        else Seq()
+      inner ++ args.flatMap(getNestedFunctionApplications)
+    case FunctionExpLet(_, named, in) => getNestedFunctionApplications(named) ++ getNestedFunctionApplications(in)
+    case FunctionExpIf(cond, _, _)  => getNestedFunctionApplications(cond)
     case _ => Seq()
   }
 
@@ -262,8 +269,12 @@ class VeritasDistinctionCallDAGBuilder(spec: Module) extends DistinctionCallDAGB
   override protected def getEquationsOfDefintion(funDef: FunctionDef): Seq[FunctionEq] = funDef.eqn
 
   override protected def getVarRefWithinFunctionApp(exp: FunctionExpMeta): Map[String, Set[String]] = exp match {
-    case FunctionExpApp(name, args) if !ctorNames.contains(name) =>
-        Map(name -> args.flatMap(getVarRefs).toSet)
+    case FunctionExpApp(name, args) =>
+      val refs =
+        if (!ctorNames.contains(name))
+          Map(name -> args.flatMap(getVarRefs).toSet)
+        else Map()
+      refs ++ args.flatMap(getVarRefWithinFunctionApp)
     case FunctionExpIf(cond, _, _) => getVarRefWithinFunctionApp(cond)
     case FunctionExpLet(_, namedExp, in) =>
       updateMap(getVarRefWithinFunctionApp(namedExp), getVarRefWithinFunctionApp(in))
