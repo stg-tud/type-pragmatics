@@ -76,7 +76,6 @@ class SPLTranslator {
       case fn: Defn.Def
         // want to ignore properties and criterias that are attached to functions for domain specific knowledge
         if fn.name.value != "typable" && ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") &&
-          ScalaMetaUtils.notContainsAnnotation(fn.mods, "DistinctionCriteria") &&
           ScalaMetaUtils.containsAnnotation(fn.mods, "Partial") =>
         fn
     }
@@ -86,8 +85,7 @@ class SPLTranslator {
       // has no goal, axiom, lemma annotation
       case fn: Defn.Def
         // want to ignore properties and criterias that are attached to functions for domain specific knowledge
-        if fn.name.value != "typable" && ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") &&
-           ScalaMetaUtils.notContainsAnnotation(fn.mods, "DistinctionCriteria") =>
+        if fn.name.value != "typable" && ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") =>
           fn
     }
 
