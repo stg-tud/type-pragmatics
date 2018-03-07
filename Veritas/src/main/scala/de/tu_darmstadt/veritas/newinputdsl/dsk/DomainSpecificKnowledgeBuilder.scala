@@ -8,14 +8,13 @@ import de.tu_darmstadt.veritas.newinputdsl.lang.{SPLDomainSpecificKnowledgeAnnot
 import de.tu_darmstadt.veritas.newinputdsl.translator.{AlgebraicDataTypeTranslator, DistinctionCriteriaTranslator, EnsuringFunctionTranslator, FunctionDefinitionTranslator}
 import de.tu_darmstadt.veritas.newinputdsl.util.{AlgebraicDataTypeCollector, Reporter, ScalaMetaUtils}
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLDomainSpecificKnowledgeAnnotations, Knowledge <: DomainSpecificKnowledge] {
   import scala.meta._
 
   def reporter: Reporter
-
-  type MMap[K, V] = scala.collection.mutable.Map[K, V]
 
   var stats: Seq[Stat] = Seq()
   var adts: Map[Defn.Trait, Seq[Defn.Class]] = Map()
@@ -37,26 +36,16 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     build(base)
   }
 
-  protected val attachedProperties: MMap[(Defn.Def, String), Defn.Def] = scala.collection.mutable.Map()
-  protected val recursiveFunctions: MMap[Defn.Def, Defn.Trait] = scala.collection.mutable.Map()
-  protected val propertyNeeded: MMap[Defn.Def, (String, Seq[Case])] = scala.collection.mutable.Map()
-  protected val typesOfMetaVars: MMap[(Defn.Def, String), Defn.Trait] = scala.collection.mutable.Map()
+  protected val attachedProperties: mutable.Map[(Defn.Def, String), Defn.Def] = mutable.Map()
+  protected val recursiveFunctions: mutable.Map[Defn.Def, Defn.Trait] = mutable.Map()
+  protected val propertyNeeded: mutable.Map[Defn.Def, (String, Seq[Case])] = mutable.Map()
+  protected val typesOfMetaVars: mutable.Map[(Defn.Def, String), Defn.Trait] = mutable.Map()
 
   protected val expressions: ListBuffer[Defn.Trait] = ListBuffer()
   protected val contexts: ListBuffer[Defn.Trait] = ListBuffer()
   protected val types: ListBuffer[Defn.Trait] = ListBuffer()
 
   protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
-
-  protected def collectCategoryOfDataType(tr: Defn.Trait): Unit = {
-    val supertraits = tr.templ.inits.map { _.tpe.toString }
-    if (supertraits.contains("Expression"))
-      expressions += tr
-    if (supertraits.contains("Context"))
-      contexts += tr
-    if (supertraits.contains("Typ"))
-      types += tr
-  }
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -177,6 +166,16 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     fn.paramss.head.map { param =>
       typesOfMetaVars += (fn, param.name.value) -> getTraitForLastParam(param)
     }
+
+  protected def collectCategoryOfDataType(tr: Defn.Trait): Unit = {
+    val supertraits = tr.templ.inits.map { _.tpe.toString }
+    if (supertraits.contains("Expression"))
+      expressions += tr
+    if (supertraits.contains("Context"))
+      contexts += tr
+    if (supertraits.contains("Typ"))
+      types += tr
+  }
 
   def buildBase(): DomainSpecificKnowledge = {
     val transAttachedProps = translateAttachedProperties()
