@@ -183,6 +183,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val transExprs = translateTrait(expressions)
     val transCtxs = translateTrait(contexts)
     val transTypes = translateTrait(types)
+    val transFailableTypes = translateTrait(failableTypes)
     new DomainSpecificKnowledge {
       override val attachedProperties: Map[(FunctionDef, String), TypingRule] = transAttachedProps
       override val propertiesNeeded: Map[TypingRule, Seq[FunctionEq]] = transNeededProps
@@ -191,6 +192,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       override val expressions: Seq[DataType] = transExprs
       override val contexts: Seq[DataType] = transCtxs
       override val types: Seq[DataType] = transTypes
+      override val failableTypes: Seq[DataType] = transFailableTypes
     }
   }
 

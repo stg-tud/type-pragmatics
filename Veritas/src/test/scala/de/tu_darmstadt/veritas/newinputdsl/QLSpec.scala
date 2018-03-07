@@ -92,6 +92,7 @@ object QLSpec extends SPLSpecification {
   case class Num(value: nat) extends Aval
   case class T(value: string) extends Aval
 
+  @FailableType
   trait OptAval extends Expression
   case class noAval() extends OptAval
   case class someAval(value: Aval) extends OptAval
@@ -111,6 +112,7 @@ object QLSpec extends SPLSpecification {
   case class Number() extends AType
   case class Text() extends AType
 
+  @FailableType
   trait OptAType extends Expression
   case class noAType() extends OptAType
   case class someAType(typ: AType) extends OptAType
@@ -199,6 +201,7 @@ object QLSpec extends SPLSpecification {
   case class qmempty() extends QMap
   case class qmbind(qid: QID, l: Label, atype: AType, qml: QMap) extends QMap
 
+  @FailableType
   trait OptQuestion extends Expression
   case class noQuestion() extends OptQuestion
   case class someQuestion(qid: QID, l: Label, atype: AType) extends OptQuestion
@@ -259,6 +262,7 @@ object QLSpec extends SPLSpecification {
     case QC(am, qm, q) => false
   }
 
+  @FailableType
   trait OptQConf extends Expression
   case class noQConf() extends OptQConf
   case class someQConf(qc: QConf) extends OptQConf
@@ -277,6 +281,7 @@ object QLSpec extends SPLSpecification {
     case (QC(am, qm, qs1), qs2) => QC(am, qm, qseq(qs1, qs2))
   }
 
+  @FailableType
   trait OptExp extends Expression
   case class noExp() extends OptExp
   case class someExp(exp: Exp) extends OptExp

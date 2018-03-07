@@ -18,4 +18,8 @@ trait DomainSpecificKnowledge {
   def expressions: Seq[DataType]
   def contexts: Seq[DataType]
   def types: Seq[DataType]
+
+  def failableTypes: Seq[DataType]
+  def isFailableFunction(fun: FunctionDef): Boolean =
+    failableTypes.exists { fun.signature.out.name == _.name }
 }
