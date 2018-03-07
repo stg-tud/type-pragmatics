@@ -25,14 +25,14 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     build(sourceString)
   }
 
-  // TODO we want that properties, equalities etcs (function defs)
-  // are not defined in the language spec
   def build(sourceString: String): Knowledge = {
     val source = sourceString.parse[Source]
     val topLevelObject = ScalaMetaUtils.collectTopLevelObject(source.get)
     stats = topLevelObject.get.templ.stats
     adts = AlgebraicDataTypeCollector().collectADTs(stats)
-    collectInformation()
+    stats.foreach { stat =>
+      collectInformation(stat)
+    }
     val base = buildBase()
     build(base)
   }
@@ -48,7 +48,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
 
   protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
 
-  def collectCategoryOfDataType(tr: Defn.Trait): Unit = {
+  protected def collectCategoryOfDataType(tr: Defn.Trait): Unit = {
     val supertraits = tr.templ.inits.map { _.tpe.toString }
     if (supertraits.contains("Expression"))
       expressions += tr
@@ -58,23 +58,26 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       types += tr
   }
 
+  protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
+    if (f.isDefinedAt(construct))
+      f(construct)
+    supcollect(construct)
+  }
 
-  // fill maps or data types
-  protected def collectInformation(): Unit = {
-    stats.foreach {
-      case fn: Defn.Def =>
-        collectSpecificAnnotation(fn, "PropertyAttached", collectPropertyAttached)
-        collectSpecificAnnotation(fn, "PropertyNeeded", collectPropertyNeeded)
-        if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
-          collectRecursive(fn)
-        if (ScalaMetaUtils.containsOneOfAnnotations(fn.mods, Seq("Lemma", "Axiom", "Goal")))
-          collectMetaVarType(fn)
-      case tr: Defn.Trait =>
-        collectCategoryOfDataType(tr)
-        if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
-          failableTypes += tr
-      case _ => ()
-    }
+  // collect the information needed to build the domain specific knowledge trait
+  protected def collectInformation(stat: Stat): Unit = stat match {
+    case fn: Defn.Def =>
+      collectSpecificAnnotation(fn, "PropertyAttached", collectPropertyAttached)
+      collectSpecificAnnotation(fn, "PropertyNeeded", collectPropertyNeeded)
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
+        collectRecursive(fn)
+      if (ScalaMetaUtils.containsOneOfAnnotations(fn.mods, Seq("Lemma", "Axiom", "Goal")))
+        collectMetaVarType(fn)
+    case tr: Defn.Trait =>
+      collectCategoryOfDataType(tr)
+      if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
+        failableTypes += tr
+    case _ => ()
   }
 
   protected def collectSpecificAnnotation(fn: Defn.Def, annotName: String, annotationCollector: (Defn.Def, Mod.Annot) => Unit): Unit = {
@@ -142,7 +145,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     recursiveFunctions += fn -> adtTrait
   }
 
-  protected def getTraitForLastParam(param: Term.Param): Defn.Trait = {
+  private def getTraitForLastParam(param: Term.Param): Defn.Trait = {
     val paramTrait = adts.filterKeys { key =>
       key.name.value == param.decltpe.get.toString
     }.headOption
@@ -170,7 +173,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     paramTrait.get._1
   }
 
-  def collectMetaVarType(fn: Defn.Def): Unit =
+  private def collectMetaVarType(fn: Defn.Def): Unit =
     fn.paramss.head.map { param =>
       typesOfMetaVars += (fn, param.name.value) -> getTraitForLastParam(param)
     }
