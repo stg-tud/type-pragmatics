@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.newinputdsl.translator
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.newinputdsl.util.{ADTCollector, Reporter, ScalaMetaUtils}
+import de.tu_darmstadt.veritas.newinputdsl.util.{AlgebraicDataTypeCollector, Reporter, ScalaMetaUtils}
 
 import scala.collection.mutable.ListBuffer
 import scala.meta._
@@ -47,7 +47,7 @@ class SPLTranslator {
   }
 
   private def translateStats(stats: Seq[Stat]): Seq[ModuleDef] = {
-    adts = ADTCollector().collectADTs(stats)
+    adts = AlgebraicDataTypeCollector().collectADTs(stats)
     val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     val adtTranslator = AlgebraicDataTypeTranslator(reporter)

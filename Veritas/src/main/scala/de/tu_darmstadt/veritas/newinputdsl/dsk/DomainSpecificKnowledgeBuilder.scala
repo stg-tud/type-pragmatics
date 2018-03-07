@@ -3,10 +3,10 @@ package de.tu_darmstadt.veritas.newinputdsl.dsk
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
-import de.tu_darmstadt.veritas.backend.ast.{DataType, FunctionExpJudgment, TypingRule}
+import de.tu_darmstadt.veritas.backend.ast.{DataType, TypingRule}
 import de.tu_darmstadt.veritas.newinputdsl.lang.{SPLDomainSpecificKnowledgeAnnotations, SPLSpecification}
 import de.tu_darmstadt.veritas.newinputdsl.translator.{AlgebraicDataTypeTranslator, DistinctionCriteriaTranslator, EnsuringFunctionTranslator, FunctionDefinitionTranslator}
-import de.tu_darmstadt.veritas.newinputdsl.util.{ADTCollector, Reporter, ScalaMetaUtils}
+import de.tu_darmstadt.veritas.newinputdsl.util.{AlgebraicDataTypeCollector, Reporter, ScalaMetaUtils}
 
 import scala.collection.mutable.ListBuffer
 
@@ -31,7 +31,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val source = sourceString.parse[Source]
     val topLevelObject = ScalaMetaUtils.collectTopLevelObject(source.get)
     stats = topLevelObject.get.templ.stats
-    adts = ADTCollector().collectADTs(stats)
+    adts = AlgebraicDataTypeCollector().collectADTs(stats)
     collectInformation()
     val base = buildBase()
     build(base)
@@ -46,6 +46,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   protected val contexts: ListBuffer[Defn.Trait] = ListBuffer()
   protected val types: ListBuffer[Defn.Trait] = ListBuffer()
 
+  protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
+
   def collectCategoryOfDataType(tr: Defn.Trait): Unit = {
     val supertraits = tr.templ.inits.map { _.tpe.toString }
     if (supertraits.contains("Expression"))
@@ -55,6 +57,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     if (supertraits.contains("Typ"))
       types += tr
   }
+
 
   // fill maps or data types
   protected def collectInformation(): Unit = {
@@ -68,6 +71,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
           collectMetaVarType(fn)
       case tr: Defn.Trait =>
         collectCategoryOfDataType(tr)
+        if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
+          failableTypes += tr
       case _ => ()
     }
   }
@@ -82,11 +87,11 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     }
   }
 
-  def collectAnnotation(mods: Seq[Mod], name: String): Mod.Annot = {
+  protected def collectAnnotation(mods: Seq[Mod], name: String): Mod.Annot = {
     mods.collect { case annot: Mod.Annot if annot.init.tpe.toString == name => annot}.head
   }
 
-  private def collectCaseAtPosition(fn: Defn.Def, index: Int): Case = {
+  protected def collectCaseAtPosition(fn: Defn.Def, index: Int): Case = {
     fn.body match {
       case Term.Match(_, cases) => cases(index)
       case _ => reporter.report("Top level construct of function has to be a match", fn.body.pos.startLine)
@@ -94,10 +99,10 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   }
 
   private def collectFunctionDef(name: String, annotName: String): Option[Defn.Def] =
-    stats.collect {
+    stats.collectFirst {
       case fn: Defn.Def
         if ScalaMetaUtils.containsAnnotation(fn.mods, annotName) && fn.name.value == name => fn
-    }.headOption
+    }
 
   private def collectPropertyAttached(fn: Defn.Def, annot: Mod.Annot): Unit = {
     val propertyReference = annot.init.argss.head.head.asInstanceOf[Lit.String].value
@@ -112,7 +117,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val propertyName = annot.init.argss.head.head.asInstanceOf[Lit.String].value
     val propertyDef = collectFunctionDef(propertyName, "Property")
     if (propertyDef.isEmpty)
-      reporter.report(s"Property ${propertyName} could not be found", annot.pos.startLine)
+      reporter.report(s"Property $propertyName could not be found", annot.pos.startLine)
     val positions = annot.init.argss.head.tail
     if (positions.isEmpty)
       reporter.report(s"PropertyNeeded of function ${fn.name.value} should have at least one position for case state", annot.pos.startLine)
@@ -137,7 +142,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     recursiveFunctions += fn -> adtTrait
   }
 
-  private def getTraitForLastParam(param: Term.Param): Defn.Trait = {
+  protected def getTraitForLastParam(param: Term.Param): Defn.Trait = {
     val paramTrait = adts.filterKeys { key =>
       key.name.value == param.decltpe.get.toString
     }.headOption
@@ -175,9 +180,9 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val transNeededProps = translatePropertiesNeeded()
     val transRecursiveFuncs = translateRecursiveFunctions()
     val transMetaVarTypes = translateTypesOfMetaVars()
-    val transExprs = translateCategory(expressions)
-    val transCtxs = translateCategory(contexts)
-    val transTypes = translateCategory(types)
+    val transExprs = translateTrait(expressions)
+    val transCtxs = translateTrait(contexts)
+    val transTypes = translateTrait(types)
     new DomainSpecificKnowledge {
       override val attachedProperties: Map[(FunctionDef, String), TypingRule] = transAttachedProps
       override val propertiesNeeded: Map[TypingRule, Seq[FunctionEq]] = transNeededProps
@@ -189,7 +194,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     }
   }
 
-  def translateAttachedProperties(): Map[(FunctionDef, String), TypingRule] = {
+  private def translateAttachedProperties(): Map[(FunctionDef, String), TypingRule] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
 
@@ -198,7 +203,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     }.toMap
   }
 
-  def translatePropertiesNeeded(): Map[TypingRule, Seq[FunctionEq]] = {
+  private def translatePropertiesNeeded(): Map[TypingRule, Seq[FunctionEq]] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     val ensuringFunctionTranslator = EnsuringFunctionTranslator(reporter)
     propertyNeeded.map { case (typing, (fnname, cases)) =>
@@ -208,7 +213,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     }.toMap
   }
 
-  def translateRecursiveFunctions(): Map[FunctionDef, DataType] = {
+  private def translateRecursiveFunctions(): Map[FunctionDef, DataType] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     val adtTranslator = AlgebraicDataTypeTranslator(reporter)
     recursiveFunctions.map { case (fn, tr) =>
@@ -217,7 +222,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     }.toMap
   }
 
-  def translateTypesOfMetaVars(): Map[(TypingRule, String), DataType] = {
+  private def translateTypesOfMetaVars(): Map[(TypingRule, String), DataType] = {
     val ensuringFuncTranslator = EnsuringFunctionTranslator(reporter)
     val adtTranslator = AlgebraicDataTypeTranslator(reporter)
     typesOfMetaVars.map { case ((fn, name), tr) =>
@@ -228,7 +233,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     }.toMap
   }
 
-  def translateCategory(traits: Seq[Defn.Trait]): Seq[DataType] = {
+  protected def translateTrait(traits: Seq[Defn.Trait]): Seq[DataType] = {
     val adtTranslator = AlgebraicDataTypeTranslator(reporter)
     traits.map { tr =>
       val cases = adts(tr)

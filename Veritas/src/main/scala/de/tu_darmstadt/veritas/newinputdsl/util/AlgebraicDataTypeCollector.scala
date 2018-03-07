@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.newinputdsl.util
 
 import scala.meta._
 
-trait ADTCollector {
+trait AlgebraicDataTypeCollector {
   def reporter: Reporter
 
   def collectADTs(parsed: Seq[Stat]): Map[Defn.Trait, Seq[Defn.Class]] = {
@@ -43,8 +43,8 @@ trait ADTCollector {
   }
 }
 
-object ADTCollector {
-  def apply(): ADTCollector = new ADTCollector {
+object AlgebraicDataTypeCollector {
+  def apply(): AlgebraicDataTypeCollector = new AlgebraicDataTypeCollector {
     override def reporter = Reporter()
   }
 }
