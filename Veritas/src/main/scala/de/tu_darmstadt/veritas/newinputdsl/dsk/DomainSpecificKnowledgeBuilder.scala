@@ -4,14 +4,14 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
 import de.tu_darmstadt.veritas.backend.ast.{DataType, TypingRule}
-import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, SPLDomainSpecificKnowledgeAnnotations, SPLSpecification}
+import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, DomainSpecificKnowledgeAnnotations, SPLSpecification}
 import de.tu_darmstadt.veritas.newinputdsl.translator.{AlgebraicDataTypeTranslator, DistinctionCriteriaTranslator, EnsuringFunctionTranslator, FunctionDefinitionTranslator}
 import de.tu_darmstadt.veritas.newinputdsl.util.{AlgebraicDataTypeCollector, Reporter, ScalaMetaUtils}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLDomainSpecificKnowledgeAnnotations, Knowledge <: DomainSpecificKnowledge] {
+trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with DomainSpecificKnowledgeAnnotations, Knowledge <: DomainSpecificKnowledge] {
   import scala.meta._
 
   def reporter: Reporter

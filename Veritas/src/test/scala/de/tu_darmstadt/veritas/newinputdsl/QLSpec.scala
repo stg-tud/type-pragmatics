@@ -1,8 +1,8 @@
 package de.tu_darmstadt.veritas.newinputdsl
 
-import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, SPLSpecification}
 
-object QLSpec extends SPLSpecification {
+object QLSpec extends SPLSpecification with FailableAnnotations {
   override def typable(context: Context, exp: Expression, typ: Typ) = true
   override def typable(exp: Expression, typ: Typ) = true
 
@@ -181,7 +181,7 @@ object QLSpec extends SPLSpecification {
   case class aempty() extends AnsMap
   case class abind(qid: QID, aval: Aval, al: AnsMap) extends AnsMap
 
-  @PropertyAttached("lookupAnsMapProgress")
+  @ProgressProperty("lookupAnsMapProgress")
   @Recursive(1)
   def lookupAnsMap(qid: QID, am: AnsMap): OptAval = (qid, am) match {
     case (qid, aempty()) => noAval()
@@ -226,7 +226,7 @@ object QLSpec extends SPLSpecification {
     case someQuestion(qid, l, at) => at
   }
 
-  @PropertyAttached("lookupQMapProgress")
+  @ProgressProperty("lookupQMapProgress")
   @Recursive(1)
   def lookupQMap(qid: QID, qm: QMap): OptQuestion = (qid, qm) match {
     case (qid, qmempty()) => noQuestion()
@@ -350,9 +350,8 @@ object QLSpec extends SPLSpecification {
     case (op, a) => noExp()
   }
 
-  @PropertyAttached("reduceExpProgress")
+  @ProgressProperty("reduceExpProgress")
   @Recursive(0)
-  @PropertyNeeded("lookupAnsMapProgress", 1)
   def reduceExp(exp: Exp, am: AnsMap): OptExp = (exp, am) match {
     case (constant(av), am) => noExp()
     case (qvar(qid), am) =>
@@ -387,9 +386,7 @@ object QLSpec extends SPLSpecification {
   }
 
   @Recursive(0, 2)
-  @PropertyAttached("qlProgress")
-  @PropertyNeeded("reduceExpProgress", 2, 9)
-  @PropertyNeeded("lookupQMapProgress", 4)
+  @ProgressProperty("reduceProgress")
   def reduce(qc: QConf): OptQConf = qc match {
     case (QC(am, qm, qempty())) => noQConf()
     case (QC(am, qm, qsingle(question(qid, l, t)))) =>
@@ -569,7 +566,7 @@ object QLSpec extends SPLSpecification {
   } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
 
   @Property
-  def qlProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap, qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
+  def reduceProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap, qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
     require(!isValue(QC(am, qm, q)))
     require(typeAM(am) == atm)
     require(typeQM(qm) == qtm)

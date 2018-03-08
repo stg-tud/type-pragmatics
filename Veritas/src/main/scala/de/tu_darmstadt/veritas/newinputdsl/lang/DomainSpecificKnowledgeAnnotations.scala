@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.newinputdsl.lang
 
 import scala.annotation.Annotation
 
-trait SPLDomainSpecificKnowledgeAnnotations {
+trait DomainSpecificKnowledgeAnnotations {
 
   case class Property() extends Annotation
   // a function can have multiple properties and each property gets a name assigned and a function
@@ -20,12 +20,12 @@ trait SPLDomainSpecificKnowledgeAnnotations {
   }
 }
 
-object SPLDomainSpecificKnowledgeAnnotations {
+object DomainSpecificKnowledgeAnnotations {
   val annotationsIngoringFunction: Seq[String] =
     Seq("Property")
 }
 
-trait FailableAnnotations extends SPLDomainSpecificKnowledgeAnnotations {
+trait FailableAnnotations extends DomainSpecificKnowledgeAnnotations {
   case class ProgressProperty(functionName: String) extends Annotation
   case class PreservationProperty(functionName: String) extends Annotation
   // Marks an ADT that can represent a stuck state
