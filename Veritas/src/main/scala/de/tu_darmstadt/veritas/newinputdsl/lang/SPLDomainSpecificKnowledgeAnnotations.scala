@@ -12,18 +12,6 @@ trait SPLDomainSpecificKnowledgeAnnotations {
     require(functionEquationPositions.nonEmpty)
   }
 
-  // Marks an ADT that can represent a stuck state
-  // Every function that returns a failable type can get stuck.
-  // Also every partial function can get stuck
-  // Need progress when we check if failable function has not failed
-  // such a function take one argument of failable and returns a boolean
-  // Need preservation when pass the result of a failable function
-  // to a function that can also fail and we check if it has not failed
-  // TODO how do we synthesize progress and preservation properties?
-  // need to know what it means to be not a value
-  // need to know what it means to be welltyped
-  case class FailableType() extends Annotation
-
   // TODO what happens if reduce semantics takes two arguments that need to be reduced?
   // => One solution would be that designers would be need a tuple adt
   // first position function param pos, second ctor position of function param and so on
@@ -35,4 +23,20 @@ trait SPLDomainSpecificKnowledgeAnnotations {
 object SPLDomainSpecificKnowledgeAnnotations {
   val annotationsIngoringFunction: Seq[String] =
     Seq("Property")
+}
+
+trait FailableAnnotations extends SPLDomainSpecificKnowledgeAnnotations {
+  case class ProgressProperty(functionName: String) extends Annotation
+  case class PreservationProperty(functionName: String) extends Annotation
+  // Marks an ADT that can represent a stuck state
+  // Every function that returns a failable type can get stuck.
+  // Also every partial function can get stuck
+  // Need progress when we check if failable function has not failed
+  // such a function take one argument of failable and returns a boolean
+  // Need preservation when pass the result of a failable function
+  // to a function that can also fail and we check if it has not failed
+  // TODO how do we synthesize progress and preservation properties?
+  // need to know what it means to be not a value
+  // need to know what it means to be welltyped
+  case class FailableType() extends Annotation
 }

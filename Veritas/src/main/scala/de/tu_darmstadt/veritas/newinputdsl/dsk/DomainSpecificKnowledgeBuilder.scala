@@ -4,7 +4,7 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
 import de.tu_darmstadt.veritas.backend.ast.{DataType, TypingRule}
-import de.tu_darmstadt.veritas.newinputdsl.lang.{SPLDomainSpecificKnowledgeAnnotations, SPLSpecification}
+import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, SPLDomainSpecificKnowledgeAnnotations, SPLSpecification}
 import de.tu_darmstadt.veritas.newinputdsl.translator.{AlgebraicDataTypeTranslator, DistinctionCriteriaTranslator, EnsuringFunctionTranslator, FunctionDefinitionTranslator}
 import de.tu_darmstadt.veritas.newinputdsl.util.{AlgebraicDataTypeCollector, Reporter, ScalaMetaUtils}
 
@@ -45,7 +45,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   protected val contexts: ListBuffer[Defn.Trait] = ListBuffer()
   protected val types: ListBuffer[Defn.Trait] = ListBuffer()
 
-  protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -56,52 +55,63 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
   // collect the information needed to build the domain specific knowledge trait
   protected def collectInformation(stat: Stat): Unit = stat match {
     case fn: Defn.Def =>
-      collectSpecificAnnotation(fn, "PropertyAttached", collectPropertyAttached)
-      collectSpecificAnnotation(fn, "PropertyNeeded", collectPropertyNeeded)
+      attachedProperties ++= collectSpecificAnnotation(fn, "PropertyAttached")(collectPropertyAttached)
+      propertyNeeded ++= collectSpecificAnnotation(fn, "PropertyNeeded")(collectPropertyNeeded)
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
         collectRecursive(fn)
       if (ScalaMetaUtils.containsOneOfAnnotations(fn.mods, Seq("Lemma", "Axiom", "Goal")))
         collectMetaVarType(fn)
     case tr: Defn.Trait =>
       collectCategoryOfDataType(tr)
-      if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
-        failableTypes += tr
     case _ => ()
   }
 
-  protected def collectSpecificAnnotation(fn: Defn.Def, annotName: String, annotationCollector: (Defn.Def, Mod.Annot) => Unit): Unit = {
+  protected def collectSpecificAnnotation[K, V](fn: Defn.Def, annotName: String)(mapper: (Defn.Def, Defn.Def, Mod.Annot) => (K, V)): Map[K, V] = {
     if(ScalaMetaUtils.containsAnnotation(fn.mods, annotName)) {
       val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
       val filteredAnnots = annots.filter { _.init.tpe.toString == annotName }
-      filteredAnnots.foreach { annot =>
-        annotationCollector(fn, annot)
-      }
-    }
+      filteredAnnots.map { annot =>
+        collectPropertyLinked(fn, annot, mapper)
+      }.toMap
+    } else Map()
   }
 
   protected def collectAnnotation(mods: Seq[Mod], name: String): Mod.Annot = {
     mods.collect { case annot: Mod.Annot if annot.init.tpe.toString == name => annot}.head
   }
 
-  protected def collectCaseAtPosition(fn: Defn.Def, index: Int): Case = {
-    fn.body match {
-      case Term.Match(_, cases) => cases(index)
-      case _ => reporter.report("Top level construct of function has to be a match", fn.body.pos.startLine)
+  protected def collectPropertyLinked[K, V](fn: Defn.Def, annot: Mod.Annot, mapper: (Defn.Def, Defn.Def, Mod.Annot) => (K, V)): (K, V) = {
+    val propertyReference = annot.init.argss.head.head.asInstanceOf[Lit.String].value
+    collectFunctionDef(propertyReference, "Property") match {
+      case Some(propertyDef) =>
+        mapper(fn, propertyDef, annot)
+      case None => reporter.report("Property reference could not be found", annot.pos.startLine)
     }
   }
 
-  private def collectFunctionDef(name: String, annotName: String): Option[Defn.Def] =
+  private def collectPropertyNeeded(fn: Defn.Def, prop: Defn.Def, annot: Mod.Annot): (Defn.Def, (String, Seq[Case])) = {
+    val positions = annot.init.argss.head.tail
+    if (positions.isEmpty)
+      reporter.report(s"PropertyNeeded of function ${fn.name.value} should have at least one position for case state", annot.pos.startLine)
+    val functionEqPositions = positions.map { _.asInstanceOf[Lit.Int].value }
+    val functionEqs = functionEqPositions.map { pos => collectCaseAtPosition(fn, pos) }
+    prop -> (fn.name.value, functionEqs)
+  }
+
+  private def collectPropertyAttached(fn: Defn.Def, prop: Defn.Def, annot: Mod.Annot): ((Defn.Def, String), Defn.Def) =
+    (fn, prop.name.value) -> prop
+
+
+  protected def collectFunctionDef(name: String, annotName: String): Option[Defn.Def] =
     stats.collectFirst {
       case fn: Defn.Def
         if ScalaMetaUtils.containsAnnotation(fn.mods, annotName) && fn.name.value == name => fn
     }
 
-  private def collectPropertyAttached(fn: Defn.Def, annot: Mod.Annot): Unit = {
-    val propertyReference = annot.init.argss.head.head.asInstanceOf[Lit.String].value
-    collectFunctionDef(propertyReference, "Property") match {
-      case Some(propertyDef) =>
-        attachedProperties += (fn, propertyDef.name.value) -> propertyDef
-      case None => reporter.report("Property reference could not be found", annot.pos.startLine)
+  protected def collectCaseAtPosition(fn: Defn.Def, index: Int): Case = {
+    fn.body match {
+      case Term.Match(_, cases) => cases(index)
+      case _ => reporter.report("Top level construct of function has to be a match", fn.body.pos.startLine)
     }
   }
 
@@ -185,7 +195,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
     val transExprs = translateTrait(expressions)
     val transCtxs = translateTrait(contexts)
     val transTypes = translateTrait(types)
-    val transFailableTypes = translateTrait(failableTypes)
     new DomainSpecificKnowledge {
       override val attachedProperties: Map[(FunctionDef, String), TypingRule] = transAttachedProps
       override val propertiesNeeded: Map[TypingRule, Seq[FunctionEq]] = transNeededProps
@@ -194,7 +203,6 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with SPLD
       override val expressions: Seq[DataType] = transExprs
       override val contexts: Seq[DataType] = transCtxs
       override val types: Seq[DataType] = transTypes
-      override val failableTypes: Seq[DataType] = transFailableTypes
     }
   }
 
@@ -254,4 +262,55 @@ object DomainSpecificKnowledgeBuilder {
       override val reporter = Reporter()
       override def build(base: DomainSpecificKnowledge): DomainSpecificKnowledge = base
     }
+}
+
+trait FailableDomainSpecificKnowledgeBuilder extends DomainSpecificKnowledgeBuilder[SPLSpecification with FailableAnnotations, FailableDomainSpecificKnowledge] {
+  import scala.meta._
+
+  protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
+  protected val progressProperties: mutable.Map[Defn.Def, Defn.Def]
+  protected val preservationProperties: mutable.Map[Defn.Def, Defn.Def]
+
+  override def collectInformation(stat: Stat): Unit =
+    withSuper(stat)(super.collectInformation) {
+      case tr: Defn.Trait =>
+        collectCategoryOfDataType(tr)
+        if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
+          failableTypes += tr
+      case fn: Defn.Def =>
+        collectSpecificAnnotation(fn, "ProgressProperty")(collect)
+        collectSpecificAnnotation(fn, "PreservationPoperty")(collect)
+    }
+
+  private def collect(fn: Defn.Def, prop: Defn.Def, annot: Mod.Annot): (Defn.Def, Defn.Def) = fn -> prop
+
+  override def build(base: DomainSpecificKnowledge): FailableDomainSpecificKnowledge = {
+    val transFailableTypes = translateTrait(failableTypes)
+
+    val transProgressProps = translateProperties(Map() ++ progressProperties)
+    val transPreservationProps = translateProperties(Map() ++ preservationProperties)
+    new FailableDomainSpecificKnowledge {
+      // new information
+      override val failableTypes: Seq[DataType] = transFailableTypes
+      override val preservationProperties: Map[FunctionDef, TypingRule] = transPreservationProps
+      override val progressProperties: Map[FunctionDef, TypingRule] = transProgressProps
+
+      // link from base dsk
+      override val types: Seq[DataType] = base.types
+      override val contexts: Seq[DataType] = base.contexts
+      override val expressions: Seq[DataType] = base.expressions
+      override val propertiesNeeded: Map[TypingRule, Seq[FunctionEq]] = base.propertiesNeeded
+      override val attachedProperties: Map[(FunctionDef, String), TypingRule] = base.attachedProperties
+      override val typesOfMetaVars: Map[(TypingRule, String), DataType] = base.typesOfMetaVars
+      override val recursiveFunctions: Map[FunctionDef, DataType] = base.recursiveFunctions
+    }
+  }
+
+  private def translateProperties(properties: Map[Defn.Def, Defn.Def]): Map[FunctionDef, TypingRule] = {
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    val propertyTranslator = EnsuringFunctionTranslator(reporter)
+    properties.map { case (fn, prop) =>
+        functionTranslator.translate(fn) -> propertyTranslator.translate(prop)
+    }.toMap
+  }
 }

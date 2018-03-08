@@ -19,7 +19,15 @@ trait DomainSpecificKnowledge {
   def contexts: Seq[DataType]
   def types: Seq[DataType]
 
+}
+
+trait FailableDomainSpecificKnowledge extends DomainSpecificKnowledge {
   def failableTypes: Seq[DataType]
   def isFailableFunction(fun: FunctionDef): Boolean =
-    failableTypes.exists { fun.signature.out.name == _.name }
+    failableTypes.exists {
+      fun.signature.out.name == _.name
+    }
+
+  def progressProperties: Map[FunctionDef, TypingRule]
+  def preservationProperties: Map[FunctionDef, TypingRule]
 }
