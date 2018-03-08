@@ -188,6 +188,13 @@ class SPLTranslatorTest extends FunSuite {
             FunctionExpJudgment(FunctionExpEq(zeroExp, FunctionExpApp("succ", Seq(zeroExp))))),
           Seq(FunctionExpJudgment(FunctionExpEq(zeroExp, zeroExp))))))))
 
+    assert(axioms(0).axioms(2) ==
+      TypingRule("multipleconcls", Seq(),
+        Seq(
+          FunctionExpJudgment(FunctionExpEq(zeroExp, zeroExp)),
+          FunctionExpJudgment(FunctionExpEq(zeroExp, FunctionExpApp("succ", Seq(zeroExp)))),
+          FunctionExpJudgment(FunctionExpTrue))))
+
     assert(lemmas(0).lemmas(0) ==
       TypingRule("metavariables",
         Seq(
