@@ -38,7 +38,10 @@ trait FunctionDefinitionTranslator {
     if (params.exists(_.decltpe.isEmpty))
       reporter.report("The parameter definition has no type defined ")
     val sortRefs = params.map { param =>
-      SortRef(param.decltpe.get.toString)
+      if (param.decltpe.get.toString == "Boolean")
+        SortRef("Bool")
+      else
+        SortRef(param.decltpe.get.toString)
     }
     sortRefs
   }
