@@ -557,6 +557,11 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
   } ensuring MC(atm, qm) |- qcond(exp, q1, q2) :: MC(intersectATM(atm1, atm2), intersectATM(qm1, qm2))
 
+  @Axiom
+  def Tqgroup(atm: ATMap, qm: ATMap, q: Questionnaire, atm1: ATMap, qm1: ATMap, gid: GID): Unit = {
+    require(MC(atm, qm) |- q :: MC(atm1, qm1))
+  } ensuring (MC(atm, qm) |- qgroup(gid, q) :: MC(atm1, qm1))
+
   def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
 
   @Axiom
