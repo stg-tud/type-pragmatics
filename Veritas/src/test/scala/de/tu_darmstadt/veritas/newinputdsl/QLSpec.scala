@@ -1,8 +1,8 @@
 package de.tu_darmstadt.veritas.newinputdsl
 
-import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, SPLSpecification}
 
-object QLSpec extends SPLSpecification {
+object QLSpec extends SPLSpecification with FailableAnnotations {
   override def typable(context: Context, exp: Expression, typ: Typ) = true
   override def typable(exp: Expression, typ: Typ) = true
 
@@ -92,6 +92,7 @@ object QLSpec extends SPLSpecification {
   case class Num(value: nat) extends Aval
   case class T(value: string) extends Aval
 
+  @FailableType
   trait OptAval extends Expression
   case class noAval() extends OptAval
   case class someAval(value: Aval) extends OptAval
@@ -111,6 +112,7 @@ object QLSpec extends SPLSpecification {
   case class Number() extends AType
   case class Text() extends AType
 
+  @FailableType
   trait OptAType extends Expression
   case class noAType() extends OptAType
   case class someAType(typ: AType) extends OptAType
@@ -179,7 +181,7 @@ object QLSpec extends SPLSpecification {
   case class aempty() extends AnsMap
   case class abind(qid: QID, aval: Aval, al: AnsMap) extends AnsMap
 
-  @PropertyAttached("lookupAnsMapProgress")
+  @ProgressProperty("lookupAnsMapProgress")
   @Recursive(1)
   def lookupAnsMap(qid: QID, am: AnsMap): OptAval = (qid, am) match {
     case (qid, aempty()) => noAval()
@@ -199,6 +201,7 @@ object QLSpec extends SPLSpecification {
   case class qmempty() extends QMap
   case class qmbind(qid: QID, l: Label, atype: AType, qml: QMap) extends QMap
 
+  @FailableType
   trait OptQuestion extends Expression
   case class noQuestion() extends OptQuestion
   case class someQuestion(qid: QID, l: Label, atype: AType) extends OptQuestion
@@ -223,7 +226,7 @@ object QLSpec extends SPLSpecification {
     case someQuestion(qid, l, at) => at
   }
 
-  @PropertyAttached("lookupQMapProgress")
+  @ProgressProperty("lookupQMapProgress")
   @Recursive(1)
   def lookupQMap(qid: QID, qm: QMap): OptQuestion = (qid, qm) match {
     case (qid, qmempty()) => noQuestion()
@@ -259,6 +262,7 @@ object QLSpec extends SPLSpecification {
     case QC(am, qm, q) => false
   }
 
+  @FailableType
   trait OptQConf extends Expression
   case class noQConf() extends OptQConf
   case class someQConf(qc: QConf) extends OptQConf
@@ -277,6 +281,7 @@ object QLSpec extends SPLSpecification {
     case (QC(am, qm, qs1), qs2) => QC(am, qm, qseq(qs1, qs2))
   }
 
+  @FailableType
   trait OptExp extends Expression
   case class noExp() extends OptExp
   case class someExp(exp: Exp) extends OptExp
@@ -345,15 +350,8 @@ object QLSpec extends SPLSpecification {
     case (op, a) => noExp()
   }
 
-  @DistinctionCriteria
-  def e1e2ExpIsValueCriteria(e1: Exp, e2: Exp): Boolean = expIsValue(e1) && expIsValue(e2)
-
-  @PropertyAttached("reduceExpProgress")
+  @ProgressProperty("reduceExpProgress")
   @Recursive(0)
-  @PropertyNeeded("lookupAnsMapProgress", 1)
-  @Distinction("e1e2ExpIsValueCriteria", 2)
-  @Distinction("expIsValueCriteria", 3)
-  @Distinction("isSomeExpCriteria", 2)
   def reduceExp(exp: Exp, am: AnsMap): OptExp = (exp, am) match {
     case (constant(av), am) => noExp()
     case (qvar(qid), am) =>
@@ -387,23 +385,8 @@ object QLSpec extends SPLSpecification {
       }
   }
 
-  @DistinctionCriteria
-  def expIsValueCriteria(exp: Exp): Boolean = expIsValue(exp)
-
-  @DistinctionCriteria
-  def isSomeExpCriteria(opt: OptExp): Boolean = isSomeExp(opt)
-
-  @DistinctionCriteria
-  def qs1EmptyCriteria(qs1: Questionnaire): Boolean = qs1 == qempty()
-
   @Recursive(0, 2)
-  @PropertyAttached("qlProgress")
-  @PropertyNeeded("reduceExpProgress", 2, 9)
-  @PropertyNeeded("lookupQMapProgress", 4)
-  // maybe optional
-  @GroupedDistinction(Seq(0), Seq(1, 2, 3, 4), Seq(5, 6), Seq(7, 8, 9), Seq(10))
-  @Distinction("expIsValueCriteria", 2)
-  @Distinction("qs1EmptyCriteria", 5)
+  @ProgressProperty("reduceProgress")
   def reduce(qc: QConf): OptQConf = qc match {
     case (QC(am, qm, qempty())) => noQConf()
     case (QC(am, qm, qsingle(question(qid, l, t)))) =>
@@ -574,6 +557,11 @@ object QLSpec extends SPLSpecification {
     require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
   } ensuring MC(atm, qm) |- qcond(exp, q1, q2) :: MC(intersectATM(atm1, atm2), intersectATM(qm1, qm2))
 
+  @Axiom
+  def Tqgroup(atm: ATMap, qm: ATMap, q: Questionnaire, atm1: ATMap, qm1: ATMap, gid: GID): Unit = {
+    require(MC(atm, qm) |- q :: MC(atm1, qm1))
+  } ensuring (MC(atm, qm) |- qgroup(gid, q) :: MC(atm1, qm1))
+
   def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
 
   @Axiom
@@ -583,7 +571,7 @@ object QLSpec extends SPLSpecification {
   } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
 
   @Property
-  def qlProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap, qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
+  def reduceProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap, qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
     require(!isValue(QC(am, qm, q)))
     require(typeAM(am) == atm)
     require(typeQM(qm) == qtm)
@@ -610,6 +598,4 @@ object QLSpec extends SPLSpecification {
     require(lookupATMap(qid, qtm) == someAType(at))
   } ensuring exists((qid0: QID, l0: Label, t0: AType) =>
     lookupQMap(qid, qm) == someQuestion(qid0, l0, t0))
-
-
 }

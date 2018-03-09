@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.newinputdsl.lang
 import scala.annotation.StaticAnnotation
 
 
-trait SPLSpecification extends SPLDomainSpecificKnowledgeAnnotations {
+trait SPLSpecification extends DomainSpecificKnowledgeAnnotations {
   case class Open() extends StaticAnnotation
   case class Different() extends StaticAnnotation
   case class Axiom() extends StaticAnnotation

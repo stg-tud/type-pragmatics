@@ -31,14 +31,21 @@ trait FunctionDefinitionTranslator {
 
   private def translateFunctionSignature(name: Term.Name, params: Seq[Term.Param], returnType: Type): FunctionSig = {
     val sortRefs = correctParamList(params)
-    FunctionSig(name.value, sortRefs, SortRef(returnType.toString()))
+    FunctionSig(name.value, sortRefs, translateType(returnType))
   }
+
+  private def translateType(typ: Type): SortRef =
+    if (typ.toString == "Boolean")
+      SortRef("Bool")
+    else
+      SortRef(typ.toString)
+
 
   private def correctParamList(params: Seq[Term.Param]): Seq[SortRef] = {
     if (params.exists(_.decltpe.isEmpty))
       reporter.report("The parameter definition has no type defined ")
     val sortRefs = params.map { param =>
-      SortRef(param.decltpe.get.toString)
+      translateType(param.decltpe.get)
     }
     sortRefs
   }
