@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.newinputdsl
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
+import de.tu_darmstadt.veritas.newinputdsl.translator.{SPLTranslationError, SPLTranslator}
 
 object QLDefsInputLangTest {
   def main(args: Array[String]) {
