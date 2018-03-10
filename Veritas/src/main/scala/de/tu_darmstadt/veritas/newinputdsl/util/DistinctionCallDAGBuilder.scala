@@ -7,10 +7,10 @@ trait DistinctionCallDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionC
   def translate(funDef: FunDef)(dag: Graph): DistinctionCallDAG[Eq, Criteria, Exp] = {
     val groupedEquations = groupFunctionEquations(getEquationsOfDefintion(funDef))
     val maxLevel = groupedEquations.map(_._1).max
-    val proccesedEquations: ListBuffer[(Int, dag.EquationDistinction)] = ListBuffer()
+    val proccesedEquations: ListBuffer[(Int, dag.StructuralDistinction)] = ListBuffer()
 
     // add root with all function equations
-    val root = dag.EquationDistinction(getEquationsOfDefintion(funDef).toSet)
+    val root = dag.StructuralDistinction(getEquationsOfDefintion(funDef).toSet)
     dag.addRoot(root)
     proccesedEquations += 1 -> root
     // Idea: group is parent of other group if it is a superset of it and has a lower lvl
@@ -20,7 +20,7 @@ trait DistinctionCallDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionC
         val parentCandidates = proccesedEquations.filter(x => eqs.forall(x._2.eqs.contains))
         // direct parent is the smallest superset of the eqs
         val parent = parentCandidates.minBy(_._2.eqs.size)
-        val child = dag.EquationDistinction(eqs)
+        val child = dag.StructuralDistinction(eqs)
         dag.addChild(parent._2, child)
         proccesedEquations += lvl -> child
       }
@@ -31,7 +31,7 @@ trait DistinctionCallDAGBuilder[FunDef, Eq, Criteria, Exp, Graph <: DistinctionC
 
     val leaves = dag.leaves
     // every leave at this stage has to be a structural leave
-    val structuralLeaves = leaves.map(_.asInstanceOf[dag.EquationDistinction])
+    val structuralLeaves = leaves.map(_.asInstanceOf[dag.StructuralDistinction])
 
     def buildChildrenBasedOnFunctionExp(node: dag.Node, foundBindings: Map[String, Set[String]]): Unit = {
       val exp = dag.getExpression(node)

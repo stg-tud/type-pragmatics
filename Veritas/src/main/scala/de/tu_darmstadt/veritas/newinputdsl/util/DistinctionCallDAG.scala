@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.newinputdsl.util
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-// equation distinctions can have boolean and equation distinctions as children
+// structural distinctions can have boolean and structural distinctions as children
 // a boolean distinction can only have boolean distinctions as children
 // for a function call it is possible to have every type of nodes as children
 trait DistinctionCallDAG[Equation, Criteria, Expression] {
@@ -11,7 +11,7 @@ trait DistinctionCallDAG[Equation, Criteria, Expression] {
 
   case class BooleanDistinction(criteria: Criteria, resulting: Expression) extends Node
 
-  case class EquationDistinction(eqs: Set[Equation]) extends Node
+  case class StructuralDistinction(eqs: Set[Equation]) extends Node
 
   case class FunctionCall(name: String) extends Node
 
@@ -50,16 +50,16 @@ trait DistinctionCallDAG[Equation, Criteria, Expression] {
   def leaves: Set[Node] = adjacencyList.filter(_._2.isEmpty).keys.toSet
 
   def getEquations(distinction: Node): Set[Equation] = distinction match {
-    case structural: EquationDistinction => structural.eqs
+    case structural: StructuralDistinction => structural.eqs
     case BooleanDistinction(_, _) =>
       getParent(distinction) match {
-        case Some(EquationDistinction(equation)) => equation
+        case Some(StructuralDistinction(equation)) => equation
         case Some(parent) => getEquations(parent)
         case None => Set()// should not happen
       }
     case FunctionCall(_) =>
       getParent(distinction) match {
-        case Some(EquationDistinction(equation)) => equation
+        case Some(StructuralDistinction(equation)) => equation
         case Some(parent) => getEquations(parent)
         case None => Set()// should not happen
       }
@@ -68,7 +68,7 @@ trait DistinctionCallDAG[Equation, Criteria, Expression] {
 
   def getExpression(distinction: Node): Expression = distinction match {
     case BooleanDistinction(_, resulting) => resulting
-    case EquationDistinction(eqs) if eqs.size == 1 => getRHSOfEquation(eqs.head)
+    case StructuralDistinction(eqs) if eqs.size == 1 => getRHSOfEquation(eqs.head)
     case FunctionCall(_) =>
       getParent(distinction) match {
         case Some(parent) => getExpression(parent)
