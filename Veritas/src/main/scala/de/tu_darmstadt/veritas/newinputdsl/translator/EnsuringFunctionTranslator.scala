@@ -54,7 +54,7 @@ trait EnsuringFunctionTranslator {
   }
 
   private def translateTypingRule(term: Term)(implicit metaVars: Seq[String] = Seq()): TypingRuleJudgment = {
-    val funTranslator = FunctionTranslator(metaVars)
+    val funTranslator = FunctionExpressionTranslator(metaVars)
     term match {
       case Lit.Boolean(true) => FunctionExpJudgment(FunctionExpTrue)
       case Lit.Boolean(false) => FunctionExpJudgment(FunctionExpFalse)

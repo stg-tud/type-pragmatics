@@ -52,7 +52,7 @@ trait FunctionDefinitionTranslator {
 
   def translateCase(funName: String, cas: Case): FunctionEq = {
     val patterns = translateCasePattern(cas.pat)
-    val funTranslator = FunctionTranslator(Seq())
+    val funTranslator = FunctionExpressionTranslator(Seq())
     val body = funTranslator.translateExp(cas.body)
     FunctionEq(funName, patterns, body)
   }

@@ -18,7 +18,7 @@ trait DistinctionCriteriaTranslator {
     if (fn.tparams.nonEmpty)
       reporter.report(s"A function definition does not allow type parameters (${fn.name.value})", fn.pos.startLine)
     val metaBindings = fn.paramss.headOption.getOrElse(Nil).map { _.name.value }
-    val functionTranslator = FunctionTranslator(metaBindings)
+    val functionTranslator = FunctionExpressionTranslator(metaBindings)
     val functionBody = functionTranslator.translateExp(fn.body)
     FunctionExpJudgment(functionBody)
   }
