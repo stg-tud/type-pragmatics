@@ -3,10 +3,6 @@ package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
 import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object FunctionCorrect extends SPLSpecification {
-  override def typable(context: FunctionCorrect.Context, exp: FunctionCorrect.Expression, typ: FunctionCorrect.Typ) = true
-
-  override def typable(exp: FunctionCorrect.Expression, typ: FunctionCorrect.Typ) = true
-
   trait Num extends Expression
   case class zero() extends Num
   case class succ(n: Num) extends Num

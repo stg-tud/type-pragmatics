@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.newinputdsl.lang
 
+import de.tu_darmstadt.veritas.newinputdsl.typechecker.TypeChecker
+
 import scala.annotation.StaticAnnotation
 
 
@@ -66,6 +68,12 @@ trait SPLSpecification extends DomainSpecificKnowledgeAnnotations {
 
   implicit def toBoolean(binding: _ExprTypBinding): Boolean = typable(binding.binding._1, binding.binding._2)
 
-  def typable(context: Context, exp: Expression, typ: Typ): Boolean
-  def typable(exp: Expression, typ: Typ): Boolean
+  // typechecking
+  private var _typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Typ] = ???
+  def typechecker_=(typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Typ]): Unit = {
+    _typechecker = typechecker
+  }
+
+  final def typable(context: Context, exp: Expression, typ: Typ): Boolean = _typechecker.typable(context, exp, typ)
+  final def typable(exp: Expression, typ: Typ): Boolean = _typechecker.typable(exp, typ)
 }
