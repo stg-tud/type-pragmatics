@@ -3,10 +3,6 @@ package de.tu_darmstadt.veritas.newinputdsl.dskbuilderfiles
 import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object DSKGroupedDistinctionEmpty extends SPLSpecification {
-  override def typable(context: Context, exp: Expression, typ: Typ) = true
-
-  override def typable(exp: Expression, typ: Typ) = true
-
   trait Num extends Expression
   case class zero() extends Num
   case class succ(n: Num) extends Num

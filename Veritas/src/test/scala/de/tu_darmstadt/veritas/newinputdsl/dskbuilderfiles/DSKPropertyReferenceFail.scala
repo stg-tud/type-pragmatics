@@ -3,10 +3,6 @@ package de.tu_darmstadt.veritas.newinputdsl.dskbuilderfiles
 import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object DSKPropertyReferenceFail extends SPLSpecification {
-  override def typable(context: DSKPropertyReferenceFail.Context, exp: DSKPropertyReferenceFail.Expression, typ: DSKPropertyReferenceFail.Typ) = true
-
-  override def typable(exp: DSKPropertyReferenceFail.Expression, typ: DSKPropertyReferenceFail.Typ) = true
-
   trait Num extends Expression
   case class zero() extends Num
   case class succ(n: Num) extends Num

@@ -1,6 +1,5 @@
 package de.tu_darmstadt.veritas.newinputdsl.typechecker
 
-import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 trait TypeCheckingAlgorithmGenerator[Spec <: SPLSpecification,
@@ -8,7 +7,7 @@ trait TypeCheckingAlgorithmGenerator[Spec <: SPLSpecification,
   Expression <: Spec#Expression,
   Type <: Spec#Typ] {
 
-  def generate(specification: Spec): TypeChecker[Context, Expression, Type]
+  def generate(specification: Spec): TypeChecker[Spec, Context, Expression, Type]
 }
 
 trait TypeChecker[Spec <: SPLSpecification,
