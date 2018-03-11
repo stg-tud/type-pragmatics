@@ -1,8 +1,9 @@
 package de.tu_darmstadt.veritas.newinputdsl
 
-import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
+import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, SPLSpecification}
 
-object QLSpec extends SPLSpecification {
+object QLSpec extends SPLSpecification with FailableAnnotations {
+
   // BasicTypes
   trait YN extends Expression
   case class yes() extends YN
