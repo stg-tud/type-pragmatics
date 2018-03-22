@@ -140,25 +140,25 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case (atcons(atype, atlr), atl) => atcons(atype, append(atlr, atl))
   }
 
-  trait BinOp extends Expression
-  case class addop() extends BinOp
-  case class subop() extends BinOp
-  case class mulop() extends BinOp
-  case class divop() extends BinOp
-  case class eqop() extends BinOp
-  case class gtop() extends BinOp
-  case class ltop() extends BinOp
-  case class andop() extends BinOp
-  case class orop() extends BinOp
+  trait BinOpT extends Expression
+  case class addop() extends BinOpT
+  case class subop() extends BinOpT
+  case class mulop() extends BinOpT
+  case class divop() extends BinOpT
+  case class eqop() extends BinOpT
+  case class gtop() extends BinOpT
+  case class ltop() extends BinOpT
+  case class andop() extends BinOpT
+  case class orop() extends BinOpT
 
-  trait UnOp extends Expression
-  case class notop() extends UnOp
+  trait UnOpT extends Expression
+  case class notop() extends UnOpT
 
   trait Exp extends Expression
   case class constant(aval: Aval) extends Exp
   case class qvar(qid: QID) extends Exp
-  case class binop(e1: Exp, op: BinOp, e2: Exp) extends Exp
-  case class unop(op: UnOp, e: Exp) extends Exp
+  case class binop(e1: Exp, op: BinOpT, e2: Exp) extends Exp
+  case class unop(op: UnOpT, e: Exp) extends Exp
 
   trait Entry extends Expression
   case class question(qid: QID, l: Label, at: AType) extends Entry
@@ -316,7 +316,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case (l, Text()) => T(askText(l))
   }
 
-  def evalBinOp(op: BinOp, av1: Aval, av2: Aval): OptExp = (op, av1, av2) match {
+  def evalBinOp(op: BinOpT, av1: Aval, av2: Aval): OptExp = (op, av1, av2) match {
     case (addop(), Num(n1), Num(n2)) => someExp(constant(Num(plus(n1, n2))))
     case (subop(), Num(n1), Num(n2)) => someExp(constant(Num(minus(n1, n2))))
     case (mulop(), Num(n1), Num(n2)) => someExp(constant(Num(multiply(n1, n2))))
@@ -343,7 +343,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case (op, a1, a2) => noExp()
   }
 
-  def evalUnOp(op: UnOp, av: Aval): OptExp = (op, av) match {
+  def evalUnOp(op: UnOpT, av: Aval): OptExp = (op, av) match {
     case (notop(), B(b)) => someExp(constant(B(not(b))))
     case (op, a) => noExp()
   }
@@ -423,7 +423,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
 
   // QLTypeSystem
 
-  trait ATMap extends Context with Typ
+  trait ATMap extends Context with Type
   case class atmempty() extends ATMap
   case class atmbind(qid: QID, at: AType, atml: ATMap) extends ATMap
 
@@ -451,10 +451,10 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
         atm1atm2
   }
 
-  trait MapConf extends Context with Typ
+  trait MapConf extends Context with Type
   case class MC(atm: ATMap, qtm: ATMap) extends MapConf
 
-  trait OptMapConf extends Context with Typ
+  trait OptMapConf extends Context with Type
   case class noMapConf() extends OptMapConf
   case class someMapConf(mc: MapConf) extends OptMapConf
 
@@ -478,7 +478,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case qmbind(qid, l, at, qmr) => atmbind(qid, at, typeQM(qmr))
   }
 
-  def checkBinOp(op: BinOp, at1: AType, at2: AType): OptAType = (op, at1, at2) match {
+  def checkBinOp(op: BinOpT, at1: AType, at2: AType): OptAType = (op, at1, at2) match {
     case (addop(), Number(),  Number()) => someAType(Number())
     case (subop(), Number(),  Number()) => someAType(Number())
     case (mulop(), Number(),  Number()) => someAType(Number())
@@ -493,7 +493,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case (op, t1, t2) => noAType()
   }
 
-  def checkUnOp(op: UnOp, at: AType): OptAType = (op, at) match {
+  def checkUnOp(op: UnOpT, at: AType): OptAType = (op, at) match {
     case (notop(), YesNo()) => someAType(YesNo())
     case (op, a) => noAType()
   }
@@ -559,6 +559,14 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
   def Tqgroup(atm: ATMap, qm: ATMap, q: Questionnaire, atm1: ATMap, qm1: ATMap, gid: GID): Unit = {
     require(MC(atm, qm) |- q :: MC(atm1, qm1))
   } ensuring (MC(atm, qm) |- qgroup(gid, q) :: MC(atm1, qm1))
+
+  def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
+
+  @Axiom
+  def TqcCheck(am: AnsMap, atm1: ATMap, atm0: ATMap, qm0: ATMap, qm: QMap, q: Questionnaire, atm2: ATMap, qm2: ATMap): Unit = {
+    require(typeAM(am) == atm1)
+    require(MC(appendATMap(atm0, atm1), appendATMap(qm0, typeQM(qm))) |- q :: MC(atm2 ,qm2))
+  } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
 
   def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
 
