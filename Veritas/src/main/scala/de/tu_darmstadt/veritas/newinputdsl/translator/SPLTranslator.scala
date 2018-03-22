@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.newinputdsl.util.{AlgebraicDataTypeCollector, Rep
 import scala.collection.mutable.ListBuffer
 import scala.meta._
 
-class SPLTranslator {
+class SPLTranslator(dskAnnotationsToExclude: Seq[String] = Seq("Property")) {
   val reporter = Reporter()
 
   var adts: Map[Defn.Trait, Seq[Defn.Class]] = Map()
@@ -75,7 +75,7 @@ class SPLTranslator {
       // has no goal, axiom, lemma annotation
       case fn: Defn.Def
         // want to ignore properties and criterias that are attached to functions for domain specific knowledge
-        if fn.name.value != "typable" && ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") &&
+        if fn.name.value != "typable" && ScalaMetaUtils.notContainsOneAnnotation(fn.mods, dskAnnotationsToExclude) &&
           ScalaMetaUtils.containsAnnotation(fn.mods, "Partial") =>
         fn
     }
@@ -85,7 +85,8 @@ class SPLTranslator {
       // has no goal, axiom, lemma annotation
       case fn: Defn.Def
         // want to ignore properties and criterias that are attached to functions for domain specific knowledge
-        if fn.name.value != "typable" && ScalaMetaUtils.notContainsAnnotation(fn.mods, "Property") =>
+        if fn.name.value != "typable" &&
+          ScalaMetaUtils.notContainsOneAnnotation(fn.mods, dskAnnotationsToExclude) =>
           fn
     }
 

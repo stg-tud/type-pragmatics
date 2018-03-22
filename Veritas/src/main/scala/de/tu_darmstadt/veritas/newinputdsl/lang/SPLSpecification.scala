@@ -48,15 +48,15 @@ trait SPLSpecification extends DomainSpecificKnowledgeAnnotations {
   // Therefore we can can determine automatically which params belong to the expression domain
   trait Expression
   trait Context
-  trait Typ
+  trait Type
 
   // implicits for easier notation
   // Context |- Expression :: Typ or Expression :: Typ
   implicit class _Expression(expr: Expression) {
-    def :: (typ: Typ): Boolean = typable(expr, typ)
+    def :: (typ: Type): Boolean = typable(expr, typ)
   }
 
-  implicit class _Typ(typ: Typ) {
+  implicit class _Typ(typ: Type) {
     def :: (expr: Expression): _ExprTypBinding = _ExprTypBinding((expr, typ))
   }
 
@@ -64,16 +64,16 @@ trait SPLSpecification extends DomainSpecificKnowledgeAnnotations {
     def |- (binding: _ExprTypBinding): Boolean = typable(context, binding.binding._1, binding.binding._2)
   }
 
-  implicit class _ExprTypBinding(val binding: (Expression, Typ))
+  implicit class _ExprTypBinding(val binding: (Expression, Type))
 
   implicit def toBoolean(binding: _ExprTypBinding): Boolean = typable(binding.binding._1, binding.binding._2)
 
   // typechecking
-  private var _typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Typ] = ???
-  def typechecker_=(typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Typ]): Unit = {
+  private var _typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Type] = _
+  def typechecker_=(typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Type]): Unit = {
     _typechecker = typechecker
   }
 
-  final def typable(context: Context, exp: Expression, typ: Typ): Boolean = _typechecker.typable(context, exp, typ)
-  final def typable(exp: Expression, typ: Typ): Boolean = _typechecker.typable(exp, typ)
+  final def typable(context: Context, exp: Expression, typ: Type): Boolean = _typechecker.typable(context, exp, typ)
+  final def typable(exp: Expression, typ: Type): Boolean = _typechecker.typable(exp, typ)
 }

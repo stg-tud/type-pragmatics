@@ -10,7 +10,7 @@ object AxiomCorrect extends SPLSpecification {
   trait C extends Context
   case class cempty() extends C
 
-  trait T extends Typ
+  trait T extends Type
   case class atyp() extends T
 
   @Axiom

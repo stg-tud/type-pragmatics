@@ -55,8 +55,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with Doma
   // collect the information needed to build the domain specific knowledge trait
   protected def collectInformation(stat: Stat): Unit = stat match {
     case fn: Defn.Def =>
-      attachedProperties ++= collectSpecificAnnotation(fn, "PropertyAttached")(collectPropertyAttached)
-      propertyNeeded ++= collectSpecificAnnotation(fn, "PropertyNeeded")(collectPropertyNeeded)
+      attachedProperties ++= collectLinkingAnnotation(fn, "PropertyAttached")(collectPropertyAttached)
+      propertyNeeded ++= collectLinkingAnnotation(fn, "PropertyNeeded")(collectPropertyNeeded)
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
         collectRecursive(fn)
       if (ScalaMetaUtils.containsOneOfAnnotations(fn.mods, Seq("Lemma", "Axiom", "Goal")))
@@ -66,7 +66,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: SPLSpecification with Doma
     case _ => ()
   }
 
-  protected def collectSpecificAnnotation[K, V](fn: Defn.Def, annotName: String)(mapper: (Defn.Def, Defn.Def, Mod.Annot) => (K, V)): Map[K, V] = {
+  protected def collectLinkingAnnotation[K, V](fn: Defn.Def, annotName: String)(mapper: (Defn.Def, Defn.Def, Mod.Annot) => (K, V)): Map[K, V] = {
     if(ScalaMetaUtils.containsAnnotation(fn.mods, annotName)) {
       val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
       val filteredAnnots = annots.filter { _.init.tpe.toString == annotName }
@@ -278,8 +278,8 @@ trait FailableDomainSpecificKnowledgeBuilder extends DomainSpecificKnowledgeBuil
         if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
           failableTypes += tr
       case fn: Defn.Def =>
-        collectSpecificAnnotation(fn, "ProgressProperty")(collect)
-        collectSpecificAnnotation(fn, "PreservationPoperty")(collect)
+        collectLinkingAnnotation(fn, "ProgressProperty")(collect)
+        collectLinkingAnnotation(fn, "PreservationPoperty")(collect)
     }
 
   private def collect(fn: Defn.Def, prop: Defn.Def, annot: Mod.Annot): (Defn.Def, Defn.Def) = fn -> prop

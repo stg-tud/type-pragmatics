@@ -69,11 +69,7 @@ trait DistinctionCallDAG[Equation, Criteria, Expression] {
   def getExpression(distinction: Node): Expression = distinction match {
     case BooleanDistinction(_, resulting) => resulting
     case StructuralDistinction(eqs) if eqs.size == 1 => getRHSOfEquation(eqs.head)
-    case FunctionCall(_) =>
-      getParent(distinction) match {
-        case Some(parent) => getExpression(parent)
-        case None => throw new IllegalArgumentException("Should not happend")
-      }
+    case FunctionCall(_) => throw new IllegalArgumentException("A function application does not represent a expression")
     case _ => throw new IllegalArgumentException("Every leave node should be a boolean distinction or a structural distinction with exactly one equation attached.")
   }
 

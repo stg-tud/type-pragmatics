@@ -22,7 +22,7 @@ case class FunctionExpressionTranslator(metavars: Seq[String]) {
     case Term.ApplyUnary(name, expr) =>
       if (name.value == "!")
         FunctionExpNot(translateExp(expr))
-      else Reporter().report("This unary operator is not supported", term.pos.startLine)
+      else Reporter().report(s"The unary operator ${name.value} is not supported", term.pos.startLine)
     case Term.ApplyInfix(lhs, name, Nil, Seq(rhs)) => translateApplyInfix(lhs, name, rhs)
     case Term.Name(name) => FunctionExpVar(name)
     case _ => throw new IllegalArgumentException("")

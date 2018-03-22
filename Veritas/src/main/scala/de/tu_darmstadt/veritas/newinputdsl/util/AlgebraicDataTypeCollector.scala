@@ -6,9 +6,9 @@ trait AlgebraicDataTypeCollector {
   def reporter: Reporter
 
   def collectADTs(parsed: Seq[Stat]): Map[Defn.Trait, Seq[Defn.Class]] = {
-    val caseClasses = collectCaseClasses(parsed)
     val traits = collectBaseTraits(parsed)
-    val illegalCaseClasses = findIllegalCaseClasses(parsed)
+    val caseClasses = collectCaseClasses(parsed)
+    val illegalCaseClasses = findIllegalCaseClasses(traits, caseClasses)
     if (illegalCaseClasses)
       reporter.report("A case class has no base trait or does not inherit from a trait that was defined with the object")
     traits.map { tr =>
@@ -29,13 +29,11 @@ trait AlgebraicDataTypeCollector {
   }
 
   // check if a case class has no defined superclass or a superclass is not a within the object defined trait
-  private def findIllegalCaseClasses(parsed: Seq[Stat]): Boolean = {
-    val baseTraits = collectBaseTraits(parsed)
-    val caseClasses = collectCaseClasses(parsed)
+  private def findIllegalCaseClasses(traits: Seq[Defn.Trait], caseClasses: Seq[Defn.Class]): Boolean = {
 
     val noSuperClass = caseClasses.exists { _.templ.inits.isEmpty }
     val noBaseTraitSuperClass = caseClasses.exists { cc =>
-      val baseNames = baseTraits.map { _.name.value }
+      val baseNames = traits.map { _.name.value }
       cc.templ.inits.exists{ n => !baseNames.contains(n.tpe.toString)}
     }
 

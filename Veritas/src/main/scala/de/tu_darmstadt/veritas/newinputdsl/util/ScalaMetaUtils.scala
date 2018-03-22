@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.newinputdsl.util
 
+import de.tu_darmstadt.veritas.newinputdsl.translator.SPLTranslationError
+
 import scala.meta._
 
 object ScalaMetaUtils {
@@ -37,5 +39,20 @@ object ScalaMetaUtils {
   def notContainsAnnotation(mods: Seq[Mod], annotation: String): Boolean = {
     val annots = collectAnnotations(mods)
     annots.forall { _.init.tpe.toString != annotation }
+  }
+
+  def notContainsOneAnnotation(mods: Seq[Mod], annotations: Seq[String]): Boolean = {
+    val annots = collectAnnotations(mods)
+    annots.forall { annot => !annotations.contains(annot.init.tpe.toString) }
+  }
+
+  // Converts string into a Term if possible
+  def getTerm(expString: String): Term = {
+    val parsed = expString.parse[Term]
+    parsed.toEither match {
+      case Left(_) =>
+        throw SPLTranslationError(s"Could not parse the $expString into a Scalameta node of type Term")
+      case Right(term) => term
+    }
   }
 }
