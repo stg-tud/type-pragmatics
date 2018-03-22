@@ -20,6 +20,7 @@ object GenerateVeritas {
 
   def compilePropTermToVeritas(t: Term): TypingRuleJudgment = t match {
     case t: App => compileJudgToVeritas(t.toJudg)
+    case _ => throw new MatchError()
   }
 
   def compileJudgToVeritas(judg: Judg): TypingRuleJudgment = judg.sym match {

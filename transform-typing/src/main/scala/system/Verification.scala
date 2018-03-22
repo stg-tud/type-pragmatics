@@ -122,7 +122,7 @@ object Verification {
     if (summaries.size == 1 && summaries.head._2.size == 1) {
       val result = summaries.head._2.head._2.proverResult
       if (result.status == Proved)
-        println(s"SUCCESS $name")
+        println(s"SUCCESS $name\n\n")
       else if (result.status.isInstanceOf[Inconclusive] && result.details.toList.exists(_.contains("differs from tool time"))) {
         println(s"SUSPICIOUS TIMING: REPEATING VERIFICATION ATTEMPT")
         try {runner.run()}
@@ -138,11 +138,11 @@ object Verification {
         summaries = runner.summary.getFileSummaries
       }
       else
-        println(s"FAILURE $name")
+        println(s"FAILURE $name\n\n")
       ProverResult(file, result.status, result.timeSeconds, result.details)
     }
     else {
-      println(s"ERROR $name")
+      println(s"ERROR $name\n\n")
       ProverResult(file, Inconclusive("ERROR"), None, null)
     }
   }

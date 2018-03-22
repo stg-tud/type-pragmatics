@@ -48,6 +48,7 @@ object GenerateTFF {
 
   def compilePropTerm(t: Term): FofUnitary = t match {
     case t: App => compileJudg(t.toJudg)
+    case _ => throw new MatchError()
   }
 
   def compileJudg(judg: Judg): FofUnitary = judg.sym match {
@@ -131,7 +132,7 @@ object GenerateTFF {
         compileSymbolDeclaration(freshSym) +: freshIsNotin.map(compileRuleDecl(_))
       case sym if sym.isNotin =>
         Seq(compileSymbolDeclaration(sym))
-      case sym if sym.isEq || sym.isNeq || sym.name == "OR" || sym.name == "AND" || sym.isExists =>
+      case sym if sym.isEq || sym.isNeq || sym.name == "OR" || sym.name == "AND" || sym.name == "NOT" || sym.isExists =>
         // ignore isEq and isNeq since they translate to TFF-native `=` and `!=`
         None
 //      case sym => Seq(compileSymbolDeclaration(sym))

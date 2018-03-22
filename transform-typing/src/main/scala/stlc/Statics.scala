@@ -162,7 +162,7 @@ object Statics {
   val Typed_strengthening = rule(Lemma("Typed-strengthening",
     Judg(Typed, "C"~Ctx, "e"~Exp, "T"~Typ),
     // if ----------------
-    Judg(notin(Exp), "x"~Name, "e"~Exp),
+    Judg(notin(Ctx), "x"~Name, "C"~Ctx),
     Judg(Typed, bind("C"~Ctx, "x"~Name, "Tx"~Typ), "e"~Exp, "T"~Typ)
   ))
 }
