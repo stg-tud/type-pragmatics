@@ -568,14 +568,6 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     require(MC(appendATMap(atm0, atm1), appendATMap(qm0, typeQM(qm))) |- q :: MC(atm2 ,qm2))
   } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
 
-  def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
-
-  @Axiom
-  def TqcCheck(am: AnsMap, atm1: ATMap, atm0: ATMap, qm0: ATMap, qm: QMap, q: Questionnaire, atm2: ATMap, qm2: ATMap): Unit = {
-    require(typeAM(am) == atm1)
-    require(MC(appendATMap(atm0, atm1), appendATMap(qm0, typeQM(qm))) |- q :: MC(atm2 ,qm2))
-  } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
-
   @Property
   def reduceProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap, qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
     require(!isValue(QC(am, qm, q)))
