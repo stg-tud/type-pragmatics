@@ -50,7 +50,7 @@ object Verification {
     lazy val asTFF: Seq[TffAnnotated] = {
       var tff: Seq[TffAnnotated] = GenerateTFF.compileLanguage(lang)
       if (trans.isDefined)
-        tff ++= GenerateTFF.compileTransformation(trans.get, false)
+        tff ++= GenerateTFF.compileTransformation(trans.get, lang, false)
       tff ++= opaques.map(GenerateTFF.compileSymbolDeclaration(_))
       tff ++= axioms.map(GenerateTFF.compileRuleDecl(_))
 

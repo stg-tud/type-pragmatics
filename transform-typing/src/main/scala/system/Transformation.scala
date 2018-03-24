@@ -19,10 +19,10 @@ abstract class Transformation(val lang: Language) {
   final lazy val contractedTerm = contract._1.contractedTerm(contract._2)
 
 
-  lazy val undeclaredSymbols = {
+  lazy val undeclaredSymbols: Set[Symbol] = {
     val lsyms = rules.foldLeft(Set[Symbol]())((set, c) => set ++ c._1.symbols)
     val rsyms = rewrites.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
-    val otherTransSyms = lang.transs.map(t => t.contractedSym).toSet
+    val otherTransSyms = lang.transs.flatMap(t => t.undeclaredSymbols + t.contractedSym).toSet
     (lsyms++rsyms).diff(lang.syms.toSet).diff(lang.undeclaredSymbols).diff(otherTransSyms) - contractedSym
   }
 

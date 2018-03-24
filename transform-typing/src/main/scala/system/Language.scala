@@ -36,7 +36,7 @@ case class Language(name: String, sorts: Seq[_ <: ISort], syms: Seq[Symbol], rul
     syms.diff(constrs)
   }
 
-  val undeclaredSymbols: Set[Symbol] = {
+  lazy val undeclaredSymbols: Set[Symbol] = {
     val rsyms = rules.foldLeft(Set[Symbol]())((set, r) => set ++ r.symbols)
     val transSyms = transs.map(t => t.contractedSym).toSet
     val transUndeclared = transs.flatMap(_.undeclaredSymbols).toSet

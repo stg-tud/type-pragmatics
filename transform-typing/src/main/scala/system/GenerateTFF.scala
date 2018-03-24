@@ -152,13 +152,13 @@ object GenerateTFF {
     val groupedRules = lang.rules.filter(!_.isLemma).groupBy(_.conclusion.sym)
     val inversionRules = groupedRules.flatMap(r => compileInversionRule(r._1, r._2, toTFF))
 
-    val transs = lang.transs.flatMap(compileTransformation(_))
+    val transs = lang.transs.flatMap(compileTransformation(_, lang))
 
     types ++ open ++ closed ++ funs ++ implicits ++ rules ++ inversionRules ++ transs
   }
 
-  def compileTransformation(trans: Transformation, withContract: Boolean = true): Seq[TffAnnotated] = {
-    val implicits = compileImplicitSymbols(trans.undeclaredSymbols)
+  def compileTransformation(trans: Transformation, lang: Language, withContract: Boolean = true): Seq[TffAnnotated] = {
+    val implicits = compileImplicitSymbols(trans.undeclaredSymbols.diff(lang.undeclaredSymbols))
     val syms = Seq(compileSymbolDeclaration(trans.contractedSym))
     val contractLemmas = if (withContract) trans.rules.keys.map(compileRuleDecl(_)) else Seq()
     val rewrites = compileRewrites(trans.rewrites)
