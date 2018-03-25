@@ -22,7 +22,6 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
     new TypeChecker[Spec, Context, Expression, Typ] {
       val translator = new SPLTranslator()
       val module: Module = translator.translate(sourceString)
-      println(ScalaMetaUtils.getObjectPath(sourceString))
       // collect information needed based on the translated Veritas AST
       adts = module.defs.collect { case dt: DataType => dt }
       // if we have no typing rules (axioms) we should fail because there is no type system designed
