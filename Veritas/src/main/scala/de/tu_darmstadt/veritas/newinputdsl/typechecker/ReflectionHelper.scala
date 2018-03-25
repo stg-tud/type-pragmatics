@@ -10,19 +10,19 @@ import scala.reflect.api.Universe
 
 object ReflectionHelper {
   // TODO how do we handle underspecified data types? Should this be even possible?
-  def execute(spec: SPLSpecification, exprString: String): Any = {
-    val specPath = spec.getClass.getName
+  def execute(specPath: String, exprString: String): Any = {
     val specTypeTag = createTypeTagFromString(specPath)
     val mirror = runtimeMirror(this.getClass.getClassLoader)
     val (name, args) = extractNameAndArgs(exprString)
     val argsInstances = args.map { arg =>
-      execute(spec, arg)
+      execute(specPath, arg)
     }
 
     val symbol = specTypeTag.tpe.decl(ru.TermName(name))
     if (symbol.isMethod) {
       val function = symbol.asMethod
-      val instanceMirror = mirror.reflect(spec)
+      val specObject = getObjectByPath(specPath)
+      val instanceMirror = mirror.reflect(specObject)
       val functionMirror = instanceMirror.reflectMethod(function)
       functionMirror(argsInstances: _*)
     } else {
@@ -34,7 +34,6 @@ object ReflectionHelper {
     }
   }
 
-
   private def extractNameAndArgs(str: String): (String, Seq[String]) = {
     // assume we only use function applications
     val index = str.indexOf("(")
@@ -43,6 +42,12 @@ object ReflectionHelper {
     val ctorName = str.substring(0, index)
     val strInsideParens = str.substring(index + 1, str.length - 1)
     (ctorName, getTopLevelArgs(strInsideParens))
+  }
+
+  private def getObjectByPath(path: String): AnyRef = {
+    val mirror = runtimeMirror(getClass.getClassLoader)
+    val module = mirror.staticModule(path)
+    mirror.reflectModule(module).instance.asInstanceOf[AnyRef]
   }
 
   private def getTopLevelArgs(str: String): Seq[String] = {

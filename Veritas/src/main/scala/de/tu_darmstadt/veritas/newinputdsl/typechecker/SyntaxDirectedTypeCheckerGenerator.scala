@@ -15,14 +15,14 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
 
   var typingRules: Seq[TypingRule] = _
   var adts: Seq[DataType] = _
-  var spec: Spec = _
+  var specPath: String = _
 
-  // TODO somehow get the spec from string without passing the spec
-  override def generate(spec: Spec, sourceString: String): TypeChecker[Spec, Context, Expression, Typ] = {
-    this.spec = spec
+  override def generate(sourceString: String): TypeChecker[Spec, Context, Expression, Typ] = {
+    this.specPath = ScalaMetaUtils.getObjectPath(sourceString)
     new TypeChecker[Spec, Context, Expression, Typ] {
       val translator = new SPLTranslator()
       val module: Module = translator.translate(sourceString)
+      println(ScalaMetaUtils.getObjectPath(sourceString))
       // collect information needed based on the translated Veritas AST
       adts = module.defs.collect { case dt: DataType => dt }
       // if we have no typing rules (axioms) we should fail because there is no type system designed
@@ -62,7 +62,7 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
         // otherwise we fail
         ruleJudgment match {
           case fexp: FunctionExpJudgment =>
-            checkFunctionExp(fexp.f)(spec).asInstanceOf[Boolean]
+            checkFunctionExp(fexp.f).asInstanceOf[Boolean]
           case _ => false
         }
     }
@@ -96,9 +96,9 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
     } else None
   }
 
-  def checkFunctionExp(f: FunctionExpMeta)(implicit spec: SPLSpecification): Any = f match {
+  def checkFunctionExp(f: FunctionExpMeta): Any = f match {
     case app: FunctionExpApp =>
-      ReflectionHelper.execute(spec, app.toString())
+      ReflectionHelper.execute(this.specPath, app.toString())
     case FunctionExpNot(inner) =>
       !checkFunctionExp(inner).asInstanceOf[Boolean]
     case FunctionExpAnd(l, r) =>

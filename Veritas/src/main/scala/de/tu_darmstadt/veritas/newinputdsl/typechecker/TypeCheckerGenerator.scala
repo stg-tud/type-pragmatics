@@ -7,5 +7,5 @@ trait TypeCheckerGenerator[Spec <: SPLSpecification,
     Expression <: Spec#Expression,
     Typ <: Spec#Type] {
 
-  def generate(spec: Spec, sourceString: String): TypeChecker[Spec, Context, Expression, Typ]
+  def generate(sourceString: String): TypeChecker[Spec, Context, Expression, Typ]
 }
