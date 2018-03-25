@@ -11,22 +11,25 @@ import scala.reflect.api.Universe
 object ReflectionHelper {
   // TODO how do we handle underspecified data types? Should this be even possible?
   def execute(specPath: String, exprString: String): Any = {
-    val specTypeTag = createTypeTagFromString(specPath)
+    val prepSpecPath =
+      if (specPath.endsWith("$")) specPath
+      else specPath + "$"
+    val specTypeTag = createTypeTagFromString(prepSpecPath)
     val mirror = runtimeMirror(this.getClass.getClassLoader)
     val (name, args) = extractNameAndArgs(exprString)
     val argsInstances = args.map { arg =>
-      execute(specPath, arg)
+      execute(prepSpecPath, arg)
     }
 
     val symbol = specTypeTag.tpe.decl(ru.TermName(name))
     if (symbol.isMethod) {
       val function = symbol.asMethod
-      val specObject = getObjectByPath(specPath)
+      val specObject = getObjectByPath(prepSpecPath)
       val instanceMirror = mirror.reflect(specObject)
       val functionMirror = instanceMirror.reflectMethod(function)
       functionMirror(argsInstances: _*)
     } else {
-      val ctorTypeTag = createTypeTagFromString(s"$specPath$name")
+      val ctorTypeTag = createTypeTagFromString(s"$prepSpecPath$name")
       val ctor = ctorTypeTag.tpe.decl(ru.termNames.CONSTRUCTOR).asMethod
       val classMirror = mirror.reflectClass(ctorTypeTag.tpe.typeSymbol.asClass)
       val ctorMirror = classMirror.reflectConstructor(ctor)

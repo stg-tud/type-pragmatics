@@ -15,7 +15,7 @@ trait MetaVarMatcher {
         if (contextMatches.nonEmpty && expMatches.nonEmpty && typeMatches.nonEmpty) {
           val firstMerge = mergeMaps(contextMatches.get, expMatches.get)
           if (firstMerge.nonEmpty)
-            mergeMaps(firstMerge.get, expMatches.get)
+            mergeMaps(firstMerge.get, typeMatches.get)
           else None
         } else None
       case (bottom: TypingJudgmentSimple, top: TypingJudgmentSimple)  =>
