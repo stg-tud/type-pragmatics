@@ -70,6 +70,7 @@ trait SPLSpecification extends DomainSpecificKnowledgeAnnotations {
 
   // typechecking
   private var _typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Type] = _
+  def typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Type] = _typechecker
   def typechecker_=(typechecker: TypeChecker[this.type, this.Context, this.Expression, this.Type]): Unit = {
     _typechecker = typechecker
   }
