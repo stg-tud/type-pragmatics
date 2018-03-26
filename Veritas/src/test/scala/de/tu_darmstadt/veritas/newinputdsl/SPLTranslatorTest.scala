@@ -106,6 +106,25 @@ class SPLTranslatorTest extends FunSuite {
           ))))
     assert(fns.funcs(3) ==
       FunctionDef(
+        FunctionSig("wildcard", Seq(SortRef("Num"), SortRef("Num")), SortRef("Num")),
+        Seq(
+          FunctionEq("wildcard", Seq(zeroPat, FunctionPatVar("wildcardName0")),
+            FunctionExpIf(
+              FunctionExpOr(
+                FunctionExpAnd(
+                  FunctionExpEq(FunctionExpVar("b"), zeroExp),
+                  FunctionExpEq(FunctionExpVar("b"), FunctionExpVar("b"))),
+                FunctionExpNeq(FunctionExpVar("a"), zeroExp)),
+              zeroExp,
+              FunctionExpApp("succ", Seq(FunctionExpVar("b")))
+            )),
+          FunctionEq("wildcard",
+            Seq(
+              FunctionPatVar("wildcardName0"),
+              FunctionPatApp("succ", Seq(FunctionPatVar("wildcardName1")))),
+            zeroExp))))
+    assert(fns.funcs(4) ==
+      FunctionDef(
         FunctionSig("singlelet", Seq(SortRef("Num"), SortRef("YN")), SortRef("YN")),
         Seq(
           FunctionEq("singlelet", Seq(zeroPat, FunctionPatApp("yes", Seq())),
@@ -116,7 +135,7 @@ class SPLTranslatorTest extends FunSuite {
                   FunctionExpEq(FunctionExpVar("x"), zeroExp)),
                   FunctionExpApp("yes", Seq()),
                   FunctionExpApp("no", Seq())))))))
-    assert(fns.funcs(4) ==
+    assert(fns.funcs(5) ==
       FunctionDef(
         FunctionSig("multiplelets", Seq(SortRef("Num"), SortRef("YN")), SortRef("YN")),
         Seq(

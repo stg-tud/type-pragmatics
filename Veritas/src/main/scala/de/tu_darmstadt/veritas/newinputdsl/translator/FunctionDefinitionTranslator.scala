@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.newinputdsl.translator
 
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function._
+import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.newinputdsl.util.Reporter
 
 import scala.meta._
@@ -58,6 +59,7 @@ trait FunctionDefinitionTranslator {
   }
 
   private def translateCasePattern(pat: Pat): Seq[FunctionPattern] = {
+    implicit val wildcardNames: FreshNames = new FreshNames()
     pat match {
       case Pat.Extract(term, pattern) =>
         if (!onlySelfDefinedCotrsUsed(term.toString))
@@ -66,6 +68,7 @@ trait FunctionDefinitionTranslator {
         Seq(FunctionPatApp(term.toString, args))
       case Pat.Tuple(pattern) => pattern.map { translateInnerCasePattern }
       case Pat.Var(name) => Seq(FunctionPatVar(name.value))
+      case Pat.Wildcard() => Seq(FunctionPatVar(wildcardNames.freshName(FunctionDefinitionTranslator.reservedVarNameInPattern)))
       case _ => reporter.report("Other pattern than tuple, application or variable is used", pat.pos.startLine)
     }
   }
@@ -76,20 +79,29 @@ trait FunctionDefinitionTranslator {
     }
   }
 
-  private def translateInnerCasePattern(pat: Pat): FunctionPattern = {
+  private def translateInnerCasePattern(pat: Pat)(implicit wildcardNames: FreshNames): FunctionPattern = {
     pat match {
       case Pat.Extract(term, pattern) =>
         val args = pattern.map { translateInnerCasePattern }
         if (!onlySelfDefinedCotrsUsed(term.toString))
           reporter.report("Only constructors of case classes defined within the object are allowed", pat.pos.startLine)
         FunctionPatApp(term.toString, args)
-      case Pat.Var(name) => FunctionPatVar(name.value)
+      case Pat.Var(name) if name.value != FunctionDefinitionTranslator.reservedVarNameInPattern =>
+        FunctionPatVar(name.value)
+      case Pat.Var(name) =>
+        reporter.report(
+          s"The reserved name ${FunctionDefinitionTranslator.reservedVarNameInPattern}[0-9]+ was used within pattern",
+          pat.pos.startLine)
+      case Pat.Wildcard() =>
+        FunctionPatVar(wildcardNames.freshName(FunctionDefinitionTranslator.reservedVarNameInPattern))
       case _ => reporter.report("Other pattern than application or variable is used", pat.pos.startLine)
     }
   }
 }
 
 object FunctionDefinitionTranslator {
+  // TODO anything better?
+  val reservedVarNameInPattern = "wildcardName"
   def apply(r: Reporter, a: Map[Defn.Trait, Seq[Defn.Class]]): FunctionDefinitionTranslator = {
     new FunctionDefinitionTranslator {
       override val reporter: Reporter = r

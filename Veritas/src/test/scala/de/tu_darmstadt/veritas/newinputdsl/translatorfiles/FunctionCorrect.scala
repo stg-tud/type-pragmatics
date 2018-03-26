@@ -24,6 +24,11 @@ object FunctionCorrect extends SPLSpecification {
     case (a, succ(n)) => succ(plus(a, n))
   }
 
+  def wildcard(a: Num, b: Num): Num = (a, b) match {
+    case (zero(), _) => if (b == zero() && b == b || a != zero()) zero() else succ(b)
+    case (_, succ(_)) => zero()
+  }
+
   sealed trait YN extends Expression
   case class yes() extends YN
   case class no() extends YN
