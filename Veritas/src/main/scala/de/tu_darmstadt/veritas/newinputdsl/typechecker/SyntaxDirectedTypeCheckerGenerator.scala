@@ -57,11 +57,11 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
         val premsBuilt = typingRule.premises.map { canBeBuilt }
         premsBuilt.forall { res => res }
       case None =>
-        // if no matching typing rule could be found and is an functionexp we will execute it
+        // if no matching typing rule could be found and it is a functionexp we will execute it
         // otherwise we fail
         ruleJudgment match {
           case fexp: FunctionExpJudgment =>
-            checkFunctionExp(fexp.f).asInstanceOf[Boolean]
+            checkFunctionExp(fexp.f)(Map()).asInstanceOf[Boolean]
           case _ => false
         }
     }
@@ -83,7 +83,7 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
   // typing rules can not have any function applications inside of typing judgments only ctor applications
   // otherwise we need to create an inverse for every function and not every function has an inverse
   def rewriteTypingRule(bottom: TypingRuleJudgment, tr: TypingRule): Option[TypingRule] = {
-    // get referenced metavars in top and the matching constructs in bottom
+    // get referenced metavars in bottom and the matching constructs in top
     // rewrite tr by replacing metavars with matching constructs
     val matcher = new MetaVarMatcher {}
     val matchingVars = matcher.matchingMetaVars(bottom, tr.consequences.head)
@@ -95,9 +95,9 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
     } else None
   }
 
-  def checkFunctionExp(f: FunctionExpMeta): Any = f match {
+  def checkFunctionExp(f: FunctionExpMeta)(implicit substs: Map[String, Any]): Any = f match {
     case app: FunctionExpApp =>
-      ReflectionHelper.execute(this.specPath, app.toString())
+      ReflectionHelper.execute(specPath, app.toString())
     case FunctionExpNot(inner) =>
       !checkFunctionExp(inner).asInstanceOf[Boolean]
     case FunctionExpAnd(l, r) =>
@@ -124,9 +124,12 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
       val executedCond = checkFunctionExp(cond).asInstanceOf[Boolean]
       if (executedCond) checkFunctionExp(thn)
       else checkFunctionExp(els)
-    // TODO let
+    case FunctionExpLet(name, named, in) =>
+      val evalNamed = checkFunctionExp(named)
+      checkFunctionExp(in)(substs + (name -> evalNamed))
     case FunctionExpTrue => true
     case FunctionExpFalse => false
+    case FunctionExpVar(name) => substs(name)
     case FunctionMeta(MetaVar(name)) =>
       throw new IllegalArgumentException("Function expression should not contain any metavariables")
   }
