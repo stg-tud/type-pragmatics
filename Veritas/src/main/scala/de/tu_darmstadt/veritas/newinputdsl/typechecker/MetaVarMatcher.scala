@@ -8,22 +8,15 @@ trait MetaVarMatcher {
     (bottom, top) match {
       case (bottom: FunctionExpJudgment, top: FunctionExpJudgment) =>
         matchingMetaVars(bottom.f, top.f)
-      case (bottom: TypingJudgment, top: TypingJudgment)  =>
+      case (bottom: TypingJudgment, top: TypingJudgment) =>
         val contextMatches = matchingMetaVars(bottom.f1, top.f1)
         val expMatches = matchingMetaVars(bottom.f2, top.f2)
         val typeMatches = matchingMetaVars(bottom.f3, top.f3)
-        if (contextMatches.nonEmpty && expMatches.nonEmpty && typeMatches.nonEmpty) {
-          val firstMerge = mergeMaps(contextMatches.get, expMatches.get)
-          if (firstMerge.nonEmpty)
-            mergeMaps(firstMerge.get, typeMatches.get)
-          else None
-        } else None
-      case (bottom: TypingJudgmentSimple, top: TypingJudgmentSimple)  =>
+        mergeMaps(contextMatches, expMatches, typeMatches)
+      case (bottom: TypingJudgmentSimple, top: TypingJudgmentSimple) =>
         val expMatches = matchingMetaVars(bottom.f1, top.f1)
         val typeMatches = matchingMetaVars(bottom.f2, top.f2)
-        if (expMatches.nonEmpty && typeMatches.nonEmpty)
-          mergeMaps(expMatches.get, typeMatches.get)
-        else None
+        mergeMaps(expMatches, typeMatches)
       // TODO how are these handled? are they even supported? because we cannot execute them
       // case (bottom: ForallJudgment, top: ForallJudgment)  =>
       // case (bottom: ExistsJudgment, top: ExistsJudgment)  =>
@@ -71,9 +64,7 @@ trait MetaVarMatcher {
   private def matchingMetaVarsForBinary(bl: FunctionExpMeta, br: FunctionExpMeta, tl: FunctionExpMeta, tr: FunctionExpMeta): Option[Map[FunctionMeta, FunctionExpMeta]] = {
     val left = matchingMetaVars(bl, tl)
     val right = matchingMetaVars(br, tr)
-    if (left.nonEmpty && right.nonEmpty) {
-      mergeMaps(left.get, right.get)
-    } else None
+    mergeMaps(left, right)
   }
 
   // if both map the same meta var to different exp map exp are not equal
@@ -86,5 +77,12 @@ trait MetaVarMatcher {
     if (mapsCompatible)
       Some(l ++ r)
     else None
+  }
+
+  private def mergeMaps(maps: Option[Map[FunctionMeta, FunctionExpMeta]]*): Option[Map[FunctionMeta, FunctionExpMeta]] = {
+    maps.foldLeft[Option[Map[FunctionMeta, FunctionExpMeta]]](Some(Map())) { (result, map) =>
+        if(result.isEmpty || map.isEmpty) None
+        else mergeMaps(result.get, map.get)
+    }
   }
 }
