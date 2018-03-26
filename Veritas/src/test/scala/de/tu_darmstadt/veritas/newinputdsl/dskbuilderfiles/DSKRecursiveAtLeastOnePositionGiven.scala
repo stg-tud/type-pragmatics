@@ -3,13 +3,13 @@ package de.tu_darmstadt.veritas.newinputdsl.dskbuilderfiles
 import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object DSKRecursiveAtLeastOnePositionGiven extends SPLSpecification {
-  trait enclosing extends Expression
+  sealed trait enclosing extends Expression
   case class outer(inner: inner) extends enclosing
 
-  trait value extends Expression
+  sealed trait value extends Expression
   case class valuebind() extends value
 
-  trait inner extends Expression
+  sealed trait inner extends Expression
   case class cons(x: value, inner: inner) extends inner
   case class nil() extends inner
 

@@ -3,14 +3,14 @@ package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
 import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object AxiomCorrect extends SPLSpecification {
-  trait Num extends Expression
+  sealed trait Num extends Expression
   case class zero() extends Num
   case class succ(n: Num) extends Num
 
-  trait C extends Context
+  sealed trait C extends Context
   case class cempty() extends C
 
-  trait T extends Type
+  sealed trait T extends Type
   case class atyp() extends T
 
   @Axiom

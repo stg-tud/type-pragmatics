@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, SPLSpecifi
 object QLSpec extends SPLSpecification with FailableAnnotations {
 
   // BasicTypes
-  trait YN extends Expression
+  sealed trait YN extends Expression
   case class yes() extends YN
   case class no() extends YN
 
@@ -24,7 +24,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case no() => yes()
   }
 
-  trait nat extends Expression
+  sealed trait nat extends Expression
   case class zero() extends nat
   case class succ(n: nat) extends nat
 
@@ -68,30 +68,29 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
         zero()
   }
 
-  @Open
   trait char extends Expression
 
-  trait string extends Expression
+  sealed trait string extends Expression
   case class sempty() extends string
   case class scons(c: char, tail: string) extends string
 
   // QLSyntax
-  @Open
-  trait QID extends Expression
+  // @Open
+  sealed trait QID extends Expression
+  case class someID(nat: nat) extends QID
 
-  @Open
   trait GID extends Expression
 
-  @Open
-  trait Label extends Expression
+  sealed trait Label extends Expression
+  case class someLabel(nat: nat) extends Label
 
-  trait Aval extends Expression
+  sealed trait Aval extends Expression
   case class B(value: YN) extends Aval
   case class Num(value: nat) extends Aval
   case class T(value: string) extends Aval
 
   @FailableType
-  trait OptAval extends Expression
+  sealed trait OptAval extends Expression
   case class noAval() extends OptAval
   case class someAval(value: Aval) extends OptAval
 
@@ -105,13 +104,13 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case someAval(aval) => aval
   }
 
-  trait AType extends Expression
+  sealed trait AType extends Expression
   case class YesNo() extends AType
   case class Number() extends AType
   case class Text() extends AType
 
   @FailableType
-  trait OptAType extends Expression
+  sealed trait OptAType extends Expression
   case class noAType() extends OptAType
   case class someAType(typ: AType) extends OptAType
 
@@ -131,7 +130,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case T(s) => Text()
   }
 
-  trait ATList extends Expression
+  sealed trait ATList extends Expression
   case class atempty() extends ATList
   case class atcons(atype: AType, rem: ATList) extends ATList
 
@@ -140,7 +139,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case (atcons(atype, atlr), atl) => atcons(atype, append(atlr, atl))
   }
 
-  trait BinOpT extends Expression
+  sealed trait BinOpT extends Expression
   case class addop() extends BinOpT
   case class subop() extends BinOpT
   case class mulop() extends BinOpT
@@ -151,22 +150,22 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
   case class andop() extends BinOpT
   case class orop() extends BinOpT
 
-  trait UnOpT extends Expression
+  sealed trait UnOpT extends Expression
   case class notop() extends UnOpT
 
-  trait Exp extends Expression
+  sealed trait Exp extends Expression
   case class constant(aval: Aval) extends Exp
   case class qvar(qid: QID) extends Exp
   case class binop(e1: Exp, op: BinOpT, e2: Exp) extends Exp
   case class unop(op: UnOpT, e: Exp) extends Exp
 
-  trait Entry extends Expression
+  sealed trait Entry extends Expression
   case class question(qid: QID, l: Label, at: AType) extends Entry
   case class value(qid: QID, at: AType, exp: Exp) extends Entry
   case class defquestion(qid: QID, l: Label, at: AType) extends Entry
   case class ask(qid: QID) extends Entry
 
-  trait Questionnaire extends Expression
+  sealed trait Questionnaire extends Expression
   case class qempty() extends Questionnaire
   case class qsingle(entry: Entry) extends Questionnaire
   case class qseq(qs1: Questionnaire, qs2: Questionnaire) extends Questionnaire
@@ -175,7 +174,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
 
   // QLSemanticsData
 
-  trait AnsMap extends Expression
+  sealed trait AnsMap extends Expression
   case class aempty() extends AnsMap
   case class abind(qid: QID, aval: Aval, al: AnsMap) extends AnsMap
 
@@ -195,12 +194,12 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
     case (abind(qid, av, am), aml) => abind(qid, av, appendAnsMap(am, aml))
   }
 
-  trait QMap extends Expression
+  sealed trait QMap extends Expression
   case class qmempty() extends QMap
   case class qmbind(qid: QID, l: Label, atype: AType, qml: QMap) extends QMap
 
   @FailableType
-  trait OptQuestion extends Expression
+  sealed trait OptQuestion extends Expression
   case class noQuestion() extends OptQuestion
   case class someQuestion(qid: QID, l: Label, atype: AType) extends OptQuestion
 
@@ -261,7 +260,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
   }
 
   @FailableType
-  trait OptQConf extends Expression
+  sealed trait OptQConf extends Expression
   case class noQConf() extends OptQConf
   case class someQConf(qc: QConf) extends OptQConf
 
@@ -280,7 +279,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
   }
 
   @FailableType
-  trait OptExp extends Expression
+  sealed trait OptExp extends Expression
   case class noExp() extends OptExp
   case class someExp(exp: Exp) extends OptExp
 
@@ -423,7 +422,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
 
   // QLTypeSystem
 
-  trait ATMap extends Context with Type
+  sealed trait ATMap extends Context with Type
   case class atmempty() extends ATMap
   case class atmbind(qid: QID, at: AType, atml: ATMap) extends ATMap
 
@@ -451,7 +450,7 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
         atm1atm2
   }
 
-  trait MapConf extends Context with Type
+  sealed trait MapConf extends Context with Type
   case class MC(atm: ATMap, qtm: ATMap) extends MapConf
 
   trait OptMapConf extends Context with Type

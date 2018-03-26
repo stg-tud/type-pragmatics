@@ -23,9 +23,8 @@ trait AlgebraicDataTypeTranslator {
 
   private def checkBaseTraitSuperType(supertypes: Seq[String]): Boolean = supertypes.forall(!_.contains(SPLTranslator.predefTraits))
 
-  private def isOpen(tr: Defn.Trait): Boolean = {
-    ScalaMetaUtils.containsAnnotation(tr.mods, "Open")
-  }
+  private def isOpen(tr: Defn.Trait): Boolean =
+    tr.mods.collectFirst { case mod: Mod.Sealed => mod }.isEmpty
 
   private def translateCaseClass(cas: Defn.Class): DataTypeConstructor = {
     val name = cas.name.value

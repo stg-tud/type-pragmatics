@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.newinputdsl.translatorfiles
 import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
 
 object FunctionCorrect extends SPLSpecification {
-  trait Num extends Expression
+  sealed trait Num extends Expression
   case class zero() extends Num
   case class succ(n: Num) extends Num
 
@@ -24,7 +24,7 @@ object FunctionCorrect extends SPLSpecification {
     case (a, succ(n)) => succ(plus(a, n))
   }
 
-  trait YN extends Expression
+  sealed trait YN extends Expression
   case class yes() extends YN
   case class no() extends YN
 

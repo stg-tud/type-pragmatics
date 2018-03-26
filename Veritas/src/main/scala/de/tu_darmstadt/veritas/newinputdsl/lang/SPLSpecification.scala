@@ -6,7 +6,6 @@ import scala.annotation.StaticAnnotation
 
 
 trait SPLSpecification extends DomainSpecificKnowledgeAnnotations {
-  case class Open() extends StaticAnnotation
   case class Different() extends StaticAnnotation
   case class Axiom() extends StaticAnnotation
   case class Lemma() extends StaticAnnotation
