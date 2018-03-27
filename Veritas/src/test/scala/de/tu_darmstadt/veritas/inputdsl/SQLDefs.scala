@@ -29,7 +29,7 @@ object SQLDefs {
 
   val FType = open data 'FType
 
-  // type of a table (table schema) - list of CType
+  // type of a table (table schema)
   val TType = data('TType) of
     'ttempty | 'ttcons ('Name, 'FType, 'TType) // type of a single column (pair Name, FType)
 
