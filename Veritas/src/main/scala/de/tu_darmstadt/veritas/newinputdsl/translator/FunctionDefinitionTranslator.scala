@@ -35,12 +35,19 @@ trait FunctionDefinitionTranslator {
     FunctionSig(name.value, sortRefs, translateType(returnType))
   }
 
-  private def translateType(typ: Type): SortRef =
-    if (typ.toString == "Boolean")
+  private def translateType(typ: Type): SortRef = {
+    if (onlySelfDefinedCotrsUsed(typ.toString))
+      reporter.report("The type was not defined in the specification and is not Boolean", typ.pos.startLine)
+    else if (typ.toString == "Boolean")
       SortRef("Bool")
     else
       SortRef(typ.toString)
+  }
 
+  private def onlySelfDefinedTypesUsed(name: String): Boolean = {
+    val isADT = adts.exists { case (typ, _) => typ.name.value == name }
+    isADT || name == "Boolean"
+  }
 
   private def correctParamList(params: Seq[Term.Param]): Seq[SortRef] = {
     if (params.exists(_.decltpe.isEmpty))
@@ -53,7 +60,7 @@ trait FunctionDefinitionTranslator {
 
   def translateCase(funName: String, cas: Case): FunctionEq = {
     val patterns = translateCasePattern(cas.pat)
-    val funTranslator = FunctionExpressionTranslator(Seq())
+    val funTranslator = new FunctionExpressionTranslator(Seq())
     val body = funTranslator.translateExp(cas.body)
     FunctionEq(funName, patterns, body)
   }
