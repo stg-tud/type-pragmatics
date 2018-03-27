@@ -5,7 +5,7 @@ import java.io.File
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionEq}
 import de.tu_darmstadt.veritas.backend.ast.{DataType, TypingRule}
 import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, DomainSpecificKnowledgeAnnotations, SPLSpecification}
-import de.tu_darmstadt.veritas.newinputdsl.translator.{AlgebraicDataTypeTranslator, DistinctionCriteriaTranslator, EnsuringFunctionTranslator, FunctionDefinitionTranslator}
+import de.tu_darmstadt.veritas.newinputdsl.translator.{AlgebraicDataTypeTranslator, EnsuringFunctionTranslator, FunctionDefinitionTranslator}
 import de.tu_darmstadt.veritas.newinputdsl.util.{AlgebraicDataTypeCollector, Reporter, ScalaMetaUtils}
 
 import scala.collection.mutable
