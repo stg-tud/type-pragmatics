@@ -19,7 +19,6 @@ object SQLDefsInputDSLTest {
     SQLDefs.TypeSystem.prettyPrint(outputPrettyPrinter)
     SQLDefs.TypeSystemInv.prettyPrint(outputPrettyPrinter)
     SQLDefs.SoundnessAuxDefs.prettyPrint(outputPrettyPrinter)
-    SQLDefs.Progress.prettyPrint(outputPrettyPrinter)
     outputPrettyPrinter.close()
   }
 

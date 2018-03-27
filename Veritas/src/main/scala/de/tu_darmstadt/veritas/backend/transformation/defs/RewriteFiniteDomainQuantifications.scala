@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.backend.transformation.defs
 
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefs
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.ast.DataTypeConstructor
@@ -31,7 +31,7 @@ import de.tu_darmstadt.veritas.backend.ast.function.FunctionMeta
  * forall x: T. phi ---> Conjunction over all constructors i: forall yi. x = ci(yi) => phi
  * exists x: T. phi ---> Disjunction over all constructors i: exists yi. x = ci(yi) & phi
  */
-object RewriteFiniteDomainQuantifications extends ModuleTransformation with CollectTypes {
+object RewriteFiniteDomainQuantifications extends ModuleTransformation with CollectTypesDefs {
 
   // contains types which were already checked to have a finite domain
   private var finiteTypeCache: Set[SortRef] = Set()

@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.backend.transformation
 
-import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypes
+import de.tu_darmstadt.veritas.backend.transformation.collect.CollectTypesDefs
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.ast.Axioms
 import de.tu_darmstadt.veritas.backend.ast.DataTypeConstructor
@@ -31,7 +31,7 @@ import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpVar
  *
  * inserts ground guards requirements for existentially quantified variables in some goals
  */
-object GenerateGroundGuards extends ModuleTransformation with CollectTypes {
+object GenerateGroundGuards extends ModuleTransformation with CollectTypesDefs {
   def groundName(typ: String) = s"groundGuard$typ"
   
   override def transModuleDefs(mdef: ModuleDef): Seq[ModuleDef] = 

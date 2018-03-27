@@ -43,7 +43,7 @@ object Configuration {
   //  }
 
   object FinalEncoding extends ConfigOption {
-    val BareFOF, GuardedFOF, TFF, FOOL = Value
+    val BareFOF, GuardedFOF, TFF, FOOL, SMTLib = Value
   }
 
   object Problem extends ConfigOption {

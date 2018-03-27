@@ -1,223 +1,190 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import quiver._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.Evidence.{AnyEvidenceChecker, EvidenceChecker}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.Tactic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, VerifierStatus}
 
-class ProofGraph[S, P] {
+import scala.collection.mutable
 
-  //idea: other parts of the program should not be able to freely manipulate the internal graph
-  //(mostly, because this could yield inconsistent verification stati)
-  protected val graph: InternalProofGraph[S, P] = mkGraph(Seq(), Seq())
 
-  //all valid proof graphs have to be acyclic
-  // Why comment this? Does it not work?
-//  require(!graph.hasLoop)
+trait EdgeLabel extends Serializable {
+  def desc: String
+  def propagateInfoList: Seq[PropagatableInfo]
+}
 
-  /**
-    * Return the ProofStep associated with the given nodename
-    * @param nodename
-    * @return Is empty if there is no node with nodename otherwise it returns the ProofStep
-    */
-  def find(nodename: String): Option[ProofStep[S, P]] = graph.label(nodename)
+trait PropagatableInfo {
+  type P
+  def propagateInfo(): P
+}
 
-  /**
-    * add a new node to the proof graph
-    * if necessary: Outdate the verification status of the node and of all parents up to the root!
-    * @param node
-    * @param edges
-    * @return the new, updated proof graph
-    */
-  def addNode(node: ProofNode[S, P], edges: Seq[VerificationEdge]): ProofGraph[S, P] = {
-    val updatedGraph = graph.addNode(node).addEdges(edges)
-    val transitiveParents = getParentPaths(node, updatedGraph)
-    ProofGraph(makeNodesOutdated(transitiveParents, updatedGraph).graph)
+trait GenProofStep[Spec, Goal] {
+  def tactic: Tactic[Spec, Goal]
+}
+
+trait GenObligation[Spec, Goal] {
+  def spec: Spec
+  def goal: Goal
+}
+trait ObligationProducer[Spec, Goal, Obligation] {
+  def newObligation(spec: Spec, goal: Goal): Obligation
+//  def findOrCreateNewObligation(spec: Spec, goal: Goal): Obligation
+//  def findOrStoreNewObligation(name: String, spec: Spec, goal: Goal): Obligation
+}
+
+trait GenStepResult[Spec, Goal] {
+  def status: VerifierStatus[Spec, Goal]
+  def evidence: Option[Evidence]
+  def errorMsg: Option[String]
+}
+trait StepResultProducer[Spec, Goal, StepResult <: GenStepResult[Spec, Goal]] {
+  def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult
+}
+//case class GenStepResultImpl[S, P](status: VerifierStatus[S, P], evidence: Option[Evidence], errorMsg: Option[String]) extends GenStepResult[S, P]
+
+
+/** operations for querying proof graphs (no changes possible):
+  * - sequence of root proof obligations
+  * - navigating from obligations to used proof step to required subobligations
+  * - navigating from subobligations to requiring proof steps to targeted obligation
+  * - retrieving step result if any and checking whether a step was successfully verified
+  * - checking whether an obligation was successfully verified
+  */
+trait IProofGraph[Spec, Goal] {
+  type ProofStep <: GenProofStep[Spec, Goal]
+  type Obligation <: GenObligation[Spec, Goal]
+  type StepResult <: GenStepResult[Spec, Goal]
+
+  val obligationProducer: ObligationProducer[Spec, Goal, Obligation]
+  def newObligation(spec: Spec, goal: Goal): Obligation =
+    obligationProducer.newObligation(spec, goal)
+
+  val stepResultProducer: StepResultProducer[Spec, Goal, StepResult]
+  def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult =
+    stepResultProducer.newStepResult(status, evidence, errorMsg)
+
+  def storedObligations: Map[String, Obligation]
+  def findObligation(name: String): Option[Obligation]
+
+  /** Yields proof step if any */
+  def appliedStep(obl: Obligation): Option[ProofStep]
+  /** Yields required subobligations */
+  def requiredObls(step: ProofStep): Iterable[(Obligation, EdgeLabel)]
+
+  /** Yields proof steps that require the given obligation */
+  def requiringSteps(obl: Obligation): Iterable[(ProofStep, EdgeLabel)]
+  /** Yields the obligation the proof step was applied to */
+  def targetedObl(step: ProofStep): Obligation
+
+  def verifiedBy(step: ProofStep): Option[StepResult]
+
+  def isStepVerified(step: ProofStep): Boolean = verifiedBy(step) match {
+    case None => false
+    case Some(result) if !result.status.isVerified => false
+    case Some(result) if result.evidence.isDefined => lookupEvidenceChecker(result.evidence.get.getClass)(result.evidence.get)
+    case Some(result) => defaultEvidencenChecker(null)
   }
 
-  //TODO: add a method that allows for replacing an entire subgraph with a different subgraph
-
-  /**
-    * collect the transitive hull of parents for a node
-    * @param node
-    * @return
-    */
-  private def getParentPaths(
-      node: ProofNode[S, P],
-      g: InternalProofGraph[S, P] = graph): Vector[(ProofEdgeLabel, ProofNode[S, P])] = {
-    val context = g.context(node.vertex)
-    if (context.inEdges.isEmpty)
-      return Vector.empty
-    val parentPaths = context.inEdges.map { in =>
-      val context = g.context(in.from)
-      (in.label, LNode(context.vertex, context.label))
-    }
-    parentPaths ++ parentPaths.flatMap { path => getParentPaths(path._2) }
-  }
-
-  /**
-    * mark all proof steps as outdated which are contained in nodes
-    * @param nodes
-    * @return
-    */
-  private def makeNodesOutdated(
-                                 nodes: Vector[(ProofEdgeLabel, ProofNode[S, P])],
-                                 g: InternalProofGraph[S, P] = graph): ProofGraph[S, P] = {
-    val outdatedGraph = nodes.foldLeft(g) { case (newGraph, (edgeinfo, node)) =>
-        val outdatedStep = node.label.makeOutdated(ProofGraph(newGraph))
-        val outdatedNode = LNode(node.vertex, outdatedStep)
-        newGraph.updateNode(outdatedNode)
-    }
-    ProofGraph(outdatedGraph)
-  }
-
-  /**
-    * remove a node from the proof graph
-    * if necessary: Outdate the verification status of the node and of all parents up to the root!
-    * @param node
-    * @return
-    */
-  def removeNode(node: ProofNode[S, P]): ProofGraph[S, P] = {
-    val transitiveParents = getParentPaths(node)
-    val resultGraph = makeNodesOutdated(transitiveParents).graph.removeNode(node.vertex)
-    ProofGraph(resultGraph)
-  }
-
-  /**
-    * change the strategy of a particular verification edge
-    * @param edge
-    * @param newEdgeLabel
-    * @return
-    */
-  def updateEdge(edge: VerificationEdge, newEdgeLabel: ProofEdgeLabel): ProofGraph[S, P] = {
-    val updatedEdge = LEdge(edge.from, edge.to, newEdgeLabel)
-    val updatedGraph = graph.updateEdge(updatedEdge)
-    val originNode = LNode(edge.from, updatedGraph.label(edge.from).get)
-    val transitiveParents = getParentPaths(originNode, updatedGraph)
-    makeNodesOutdated(transitiveParents, updatedGraph)
-  }
-
-  /**
-    * removes the edge from the graph
-    * @param edge
-    * @return
-    */
-  def removeEdge(edge: VerificationEdge): ProofGraph[S, P] = {
-    ProofGraph(graph.removeLEdge(edge))
+  //TODO are two methods necessary here?
+  def isOblVerified(obl: Obligation): Boolean = computeIsGoalVerified(obl)
+  def computeIsGoalVerified(obl: Obligation): Boolean = appliedStep(obl) match {
+    case None =>  false
+    case Some(step) =>
+      if (isStepVerified(step))
+        step.tactic.allRequiredOblsVerified(this)(obl, requiredObls(step))
+      else
+        false
   }
 
   /**
-    * Add a new edge to the graph if the source or the target of the edge does not exist return the previous graph
-    * @param edge
-    * @return
+    * Proof graphs support dependency injection for registering evidence checkers.
+    * If no checker is registered for a given evidence class, the proof graph defaults to @link{defaultEvidencenChecker}.
     */
-  def addEdge(edge: VerificationEdge): ProofGraph[S, P] = {
-   ProofGraph(graph.safeAddEdge(edge))
-  }
-
-  /**
-    * using a given verifier, verify a given node (assume that every node name is unique for now...)
-    * if the node is a leaf, just attempt to verify the node directly via the Solve strategy
-    * otherwise, call verifier once for each group of edges that have the same verification strategy as label,
-    * passing the corresponding children as assumptions/hypotheses to the verifier
-    * @param verifier
-    * @param nodename
-    * @return updated proof graph, where verification status is correctly propagated along the entire graph
-    */
-  def verifySingle(verifier: Verifier[S, P], nodename: String): ProofGraph[S, P] = {
-    val updatedNode = verifyNode(verifier, nodename)
-    updateNode(nodename, updatedNode.label)
-  }
-
-  private def verifyNode(verifier: Verifier[S, P], nodename: String): ProofNode[S, P] = {
-    val focusedGraph = graph.context(nodename)
-    val step = focusedGraph.label
-    val isLeaf = focusedGraph.outEdges.isEmpty
-    val updatedStep =
-      if (isLeaf) {
-        step.verify(verifier)
-      } else {
-        val assumptions = getSubgoalsWithEdges(nodename).map { sg => (sg._1, sg._2.label)}
-        step.verify(verifier, assumptions)
-      }
-    LNode(nodename, updatedStep)
-  }
-
-  private def getSubgoalsWithEdges(nodename: String, g: InternalProofGraph[S, P] = graph): Vector[(ProofEdgeLabel, ProofNode[S, P])] = {
-    val context = g.context(nodename)
-    val edges = context.outEdges
-    edges.map { e =>
-      (e.label, LNode(e.to, g.context(e.to).label))
-    }
-  }
-
-  private def updateNode(nodename: String, newStep: ProofStep[S, P], g: InternalProofGraph[S, P] = graph): ProofGraph[S, P] = {
-    val newNode = LNode(nodename, newStep)
-    val updatedGraph = g.updateNode(newNode)
-    ProofGraph(updatedGraph)
-  }
-
-  def computeFullyVerified(nodename: String): Boolean = {
-    val step = graph.context(nodename).label
-    val subgoals = getSubgoalsWithEdges(nodename, graph)
-    if (subgoals.isEmpty)
-      return step.fullyVerified(Seq())
-    val fullyVerifiedStati = subgoals.map {sg => (sg._1, computeFullyVerified(sg._2.vertex))}
-    step.fullyVerified(fullyVerifiedStati.toSeq)
-  }
-
-  /**
-    * //TODO modify this implementation: take usedEdges from best verification configuration into account for determining which node to call!
-    * //also, verifyAll could be lazy: if there is already a finished verification status, don't recompute!
-    * try to verify the entire tree
-    * @param verifier
-    * @return updated proof graph, where verification status is correctly propagated along the entire graph
-    */
-  def verifyAll(verifier: Verifier[S, P]): ProofGraph[S, P] = {
-    val nodes = graph.nodes
-    val verifiedGraph = nodes.foldLeft(graph) { case (g, nodename) =>
-        ProofGraph(g).verifySingle(verifier, nodename).graph
-    }
-    ProofGraph(verifiedGraph)
-  }
-
-  def verifyAllPar(verifier: Verifier[S, P]): ProofGraph[S, P] = {
-    val contexts = graph.contexts.par
-    val verifiedContexts = contexts.map { context =>
-      val updatedNode = verifyNode(verifier, context.vertex)
-      Context(context.inAdj, updatedNode.vertex, updatedNode.label, context.outAdj)
-    }
-    val verifiedGraph =
-      verifiedContexts.seq.foldLeft(empty[String, ProofStep[S, P], ProofEdgeLabel]) {
-        case (result, context) => result & context
-      }
-    ProofGraph(verifiedGraph)
-  }
+  def defaultEvidencenChecker: AnyEvidenceChecker
+  def lookupEvidenceChecker(evClass: Class[_ <: Evidence]): AnyEvidenceChecker
 
 
-  //TODO add functions for "pretty printing" the graph: simple ones that construct a string,
-  // maybe functions that pretty print single nodes, etc.
-  // - if possible, a function that generates a graph via graphviz (maybe it is possible to specify different colors
-  //for different verification stati...? etc.
+  /* traversals */
 
-
+  // TODO what traversals do we need/want to offer?
+  //currently, standard traversals are in the ProofGraphTraversals trait
 
 }
 
-object ProofGraph {
+/** operations for modifying proof graphs:
+ * - add or remove root obligations
+ * - apply or unapply a tactic to an obligation, yielding a proof step and subobligations
+ * - setting or unsetting the result of validating a proof step
+ */
+trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
+
+  /** Stores an obligation under the given name.
+    * @return obligation previously stored under the same name, if any
+    */
+  def storeObligation(name: String, obl: Obligation): Option[Obligation]
+  /** Removes obligation from the stored obligations. The obligation will remain in
+    * the graph if it is currently required by other obligations, but it will not be
+    * accessible via `findObligation` or `storedObligations`.
+    */
+  def storeNewObligation(name: String, spec: Spec, goal: Goal): Obligation = {
+    val obl = newObligation(spec, goal)
+    storeObligation(name, obl)
+    obl
+  }
+  def unstoreObligation(obl: Obligation)
+
+  // TODO add error possibility (applying a tactic could fail)
+  def applyTactic(obl: Obligation, tactic: Tactic[Spec, Goal]): ProofStep
+  def unapplyTactic(obl: Obligation)
+
+  def setVerifiedBy(step: ProofStep, result: StepResult)
+  def unsetVerifiedBy(step: ProofStep)
+
+  def verifyProofStep(step: ProofStep, verifier: Verifier[Spec, Goal], pathforlogs: Option[String] = None): StepResult = {
+    val oblToProve = targetedObl(step)
+    val result = step.tactic.verifyStep(oblToProve, requiringSteps(oblToProve) map (_._2),
+      requiredObls(step) map (p => (p._2, p._1)), verifier, stepResultProducer, pathforlogs)
+    setVerifiedBy(step, result)
+    result
+  }
+
 
   /**
-    * public constructor
+    * Proof graphs support dependency injection for registering evidence checkers.
+    * If no checker is registered for a given evidence class, the proof graph defaults to @link{defaultEvidencenChecker}.
     */
-  def apply[S, P](nodelist: Seq[ProofNode[S, P]], edgelist: Seq[VerificationEdge] = Seq()): ProofGraph[S, P] =
-    new ProofGraph[S, P] {
-      override val graph = safeMkGraph(nodelist, edgelist) //ignores dangling edges
-    }
-
-  /**
-    * private constructor for directly generating a new ProofGraph instance without having to reconstruct the graph
-    */
-  private def apply[S, P](newgraph: InternalProofGraph[S, P]): ProofGraph[S, P] =
-    new ProofGraph[S, P] {
-      override val graph = newgraph
-    }
-
+  private val evidenceCheckers: mutable.Map[Class[_ <: Evidence], AnyEvidenceChecker] = mutable.Map()
+  var defaultEvidencenChecker: AnyEvidenceChecker = Evidence.trusting //TODO rethink default!
+  override def lookupEvidenceChecker(evClass: Class[_ <: Evidence]): AnyEvidenceChecker =
+    evidenceCheckers.getOrElse(evClass, defaultEvidencenChecker)
+  def registerEvidenceChecker[Ev <: Evidence](evClass: Class[Ev], checker: EvidenceChecker[Ev]) =
+    evidenceCheckers += evClass -> checker.asInstanceOf[AnyEvidenceChecker]
 }
 
+object Versioned {
+  val HEAD: VID = 0l
+  type VID = Long
+}
+trait Versioned {
+  import Versioned.VID
+  type Obligation
+
+  /**
+    * - If obl exists in HEAD and obl exists in vid:
+    *     Restores proof step of obl and performs recursive checkout of required subobligations.
+    *     Note that obl is identical (same spec, same goal) in both HEAD and vid, hence all requiring steps remain valid.
+    * - If obl exists in HEAD but does not exist in vid:
+    *     Deletes obl.
+    * - If obl does not exist in HEAD but does exist in vid:
+    *     Nothing happens unless this occurs as part of a recursive checkout, in which case we introduce obl.
+    * - If obl does not exist in HEAD and does not exist in vid:
+    *     Nothing happens.
+    */
+  def checkoutObl(obl: Obligation, vid: VID)
+
+  /**
+    * If name exists in HEAD and name exists in vid but findObligation(name)@HEAD != findObligation(name)@vid:
+    *     Throws exception since the checkout could potentially invalidate requiring steps.
+    * In all other cases: use checkoutObl
+    */
+  def checkoutStoredObl(name: String, vid: VID)
+}
