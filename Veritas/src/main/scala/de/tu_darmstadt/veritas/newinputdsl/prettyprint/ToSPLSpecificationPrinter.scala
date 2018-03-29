@@ -299,6 +299,9 @@ trait ToSPLSpecificationPrinter {
 
 trait SimpleToSPLSpecificationPrinter extends ToSPLSpecificationPrinter {
   def printDataType(dt: DataType): Unit = {
+    if (!dt.open) {
+      printer.write("sealed ")
+    }
     printer.writeln(s"trait ${dt.name} extends ???")
     for (ctor <- dt.constrs) {
       printer.write(s"case class ${ctor.name}(")
@@ -331,6 +334,9 @@ trait DSKToSPLSpecificationPrinter extends ToSPLSpecificationPrinter {
     if(domainSpecificKnowledge.types.contains(dt))
       supertypes = supertypes :+ "Type"
 
+    if (!dt.open) {
+      printer.write("sealed ")
+    }
     printer.write(s"trait ${dt.name}")
     if (supertypes.nonEmpty) {
       printer.write(s" extends ${supertypes.head}")
