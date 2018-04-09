@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.newinputdsl.util.Reporter
 
 import scala.meta._
 
-case class FunctionExpressionTranslator(metavars: Seq[String]) {
+class FunctionExpressionTranslator(metavars: Seq[String]) {
 
   def translateExpMeta(term: Term): FunctionExpMeta = term match {
     case Term.Name(name) if metavars.contains(name) => FunctionMeta(MetaVar(name))

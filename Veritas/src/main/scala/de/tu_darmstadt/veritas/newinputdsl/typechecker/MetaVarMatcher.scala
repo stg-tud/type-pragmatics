@@ -1,9 +1,10 @@
 package de.tu_darmstadt.veritas.newinputdsl.typechecker
 
-import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, TypingJudgment, TypingJudgmentSimple, TypingRuleJudgment}
+import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 
 trait MetaVarMatcher {
+
   def matchingMetaVars(bottom: TypingRuleJudgment, top: TypingRuleJudgment): Option[Map[FunctionMeta, FunctionExpMeta]] =
     (bottom, top) match {
       case (bottom: FunctionExpJudgment, top: FunctionExpJudgment) =>
@@ -18,8 +19,12 @@ trait MetaVarMatcher {
         val typeMatches = matchingMetaVars(bottom.f2, top.f2)
         mergeMaps(expMatches, typeMatches)
       // TODO how are these handled? are they even supported? because we cannot execute them
-      // case (bottom: ForallJudgment, top: ForallJudgment)  =>
-      // case (bottom: ExistsJudgment, top: ExistsJudgment)  =>
+      case (bottom: ForallJudgment, top: ForallJudgment) =>
+        // need to check that types of quantified vars are the same
+        // exclude found metavars when building map
+        val matchingVars = bottom.jdglst.zip(top.jdglst).map { case (b, t) => matchingMetaVars(b, t) }
+        mergeMaps(matchingVars: _*)
+      // case (bottom: ExistsJudgment, top: ExistsJudgment) =>
       case _ => None
     }
 

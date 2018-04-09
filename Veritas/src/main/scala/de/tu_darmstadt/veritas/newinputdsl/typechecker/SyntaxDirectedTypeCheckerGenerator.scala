@@ -31,7 +31,7 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
 
       override def typable(context: Context, exp: Expression, typ: Typ): Boolean = {
         // variable should be metavar free
-        val funExpTranslator = FunctionExpressionTranslator(Seq())
+        val funExpTranslator = RegisteredTermFunctionExpressionTranslator()
         // because we get case classes passed we get a string representation
         val veritasContext = funExpTranslator.translateExp(getTerm(context.toString))
         val veritasExp = funExpTranslator.translateExp(getTerm(exp.toString))
@@ -41,7 +41,7 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
       }
 
       override def typable(exp: Expression, typ: Typ): Boolean = {
-        val funExpTranslator = FunctionExpressionTranslator(Seq())
+        val funExpTranslator = RegisteredTermFunctionExpressionTranslator()
         // because we get case classes passed we get a string representation
         val veritasExp = funExpTranslator.translateExp(getTerm(exp.toString))
         val veritasTyp = funExpTranslator.translateExp(getTerm(typ.toString))
@@ -61,7 +61,7 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
         // otherwise we fail
         ruleJudgment match {
           case fexp: FunctionExpJudgment =>
-            checkFunctionExp(fexp.f)(Map()).asInstanceOf[Boolean]
+            ReflectionHelper.executeFunctionExp(fexp.f)(specPath, Map()).asInstanceOf[Boolean]
           case _ => false
         }
     }
@@ -93,44 +93,5 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
       val rewrittenCons = tr.consequences.map { substituter.transTypingRuleJudgment }
       Some(TypingRule(tr.name, rewrittenPrems, rewrittenCons))
     } else None
-  }
-
-  def checkFunctionExp(f: FunctionExpMeta)(implicit substs: Map[String, Any]): Any = f match {
-    case app: FunctionExpApp =>
-      ReflectionHelper.execute(specPath, app.toString())
-    case FunctionExpNot(inner) =>
-      !checkFunctionExp(inner).asInstanceOf[Boolean]
-    case FunctionExpAnd(l, r) =>
-      val executedLeft = checkFunctionExp(l).asInstanceOf[Boolean]
-      val executedRight = checkFunctionExp(r).asInstanceOf[Boolean]
-      executedLeft && executedRight
-    case FunctionExpOr(l, r) =>
-      val executedLeft = checkFunctionExp(l).asInstanceOf[Boolean]
-      val executedRight = checkFunctionExp(r).asInstanceOf[Boolean]
-      executedLeft || executedRight
-    case FunctionExpBiImpl(l, r) =>
-      val executedLeft = checkFunctionExp(l).asInstanceOf[Boolean]
-      val executedRight = checkFunctionExp(r).asInstanceOf[Boolean]
-      (executedLeft && executedRight) || (!executedLeft && !executedRight)
-    case FunctionExpEq(l, r) =>
-      val executedLeft = checkFunctionExp(l)
-      val executedRight = checkFunctionExp(r)
-      executedLeft == executedRight
-    case FunctionExpNeq(l, r) =>
-      val executedLeft = checkFunctionExp(l)
-      val executedRight = checkFunctionExp(r)
-      executedLeft != executedRight
-    case FunctionExpIf(cond, thn, els) =>
-      val executedCond = checkFunctionExp(cond).asInstanceOf[Boolean]
-      if (executedCond) checkFunctionExp(thn)
-      else checkFunctionExp(els)
-    case FunctionExpLet(name, named, in) =>
-      val evalNamed = checkFunctionExp(named)
-      checkFunctionExp(in)(substs + (name -> evalNamed))
-    case FunctionExpTrue => true
-    case FunctionExpFalse => false
-    case FunctionExpVar(name) => substs(name)
-    case FunctionMeta(MetaVar(name)) =>
-      throw new IllegalArgumentException("Function expression should not contain any metavariables")
   }
 }
