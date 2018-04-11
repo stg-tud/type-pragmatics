@@ -28,7 +28,9 @@ object ReflectionHelper {
       val stripped = app.functionName.replaceFirst("ODTRef_", "")
       openTermMap(stripped)
     case app: FunctionExpApp =>
-      ReflectionHelper.execute(specPath, app.toString())
+      // execute args first
+      val executedArgs = app.args.map { executeFunctionExp }
+      ReflectionHelper.execute(specPath, app.functionName, executedArgs)
     case FunctionExpNot(inner) =>
       !executeFunctionExp(inner).asInstanceOf[Boolean]
     case FunctionExpAnd(l, r) =>
@@ -76,31 +78,34 @@ object ReflectionHelper {
     openTermMap.contains(unwrapped)
   }
 
-  def execute(specPath: String, exprString: String): Any = {
+  def execute(specPath: String, functionName: String, args: Seq[Any]): Any = {
     val prepSpecPath =
       if (specPath.endsWith("$")) specPath
       else specPath + "$"
     val specTypeTag = createTypeTagFromString(prepSpecPath)
     val mirror = runtimeMirror(this.getClass.getClassLoader)
-    val (name, args) = extractNameAndArgs(exprString)
-    val argsInstances = args.map { arg =>
-      execute(specPath, arg)
-    }
-
-    val symbol = specTypeTag.tpe.decl(ru.TermName(name))
+    val symbol = specTypeTag.tpe.decl(ru.TermName(functionName))
     if (symbol.isMethod) {
       val function = symbol.asMethod
       val specObject = getObjectByPath(prepSpecPath)
       val instanceMirror = mirror.reflect(specObject)
       val functionMirror = instanceMirror.reflectMethod(function)
-      functionMirror(argsInstances: _*)
+      functionMirror(args: _*)
     } else {
-      val ctorTypeTag = createTypeTagFromString(s"$prepSpecPath$name")
+      val ctorTypeTag = createTypeTagFromString(s"$prepSpecPath$functionName")
       val ctor = ctorTypeTag.tpe.decl(ru.termNames.CONSTRUCTOR).asMethod
       val classMirror = mirror.reflectClass(ctorTypeTag.tpe.typeSymbol.asClass)
       val ctorMirror = classMirror.reflectConstructor(ctor)
-      ctorMirror(argsInstances: _*)
+      ctorMirror(args: _*)
     }
+  }
+
+  def execute(specPath: String, exprString: String): Any = {
+    val (name, args) = extractNameAndArgs(exprString)
+    val argsInstances = args.map { arg =>
+      execute(specPath, arg)
+    }
+    execute(specPath, name, argsInstances)
   }
 
   private def extractNameAndArgs(str: String): (String, Seq[String]) = {

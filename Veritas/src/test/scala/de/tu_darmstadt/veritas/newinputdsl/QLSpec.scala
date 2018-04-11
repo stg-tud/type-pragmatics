@@ -76,13 +76,11 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
 
   // QLSyntax
   // @Open
-  sealed trait QID extends Expression
-  case class someID(nat: nat) extends QID
+  trait QID extends Expression
 
   trait GID extends Expression
 
-  sealed trait Label extends Expression
-  case class someLabel(nat: nat) extends Label
+  trait Label extends Expression
 
   sealed trait Aval extends Expression
   case class B(value: YN) extends Aval
