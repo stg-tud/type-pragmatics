@@ -116,8 +116,18 @@ class QLSoundnessProofGraph(file: File) {
     ), fullQLspec, specenq)
   val binopProgressReduceExpPS = g.applyTactic(progressReduceExpInductionCases(2)._1, binopProgressReduceExpDistinction)
   val binopProgressReduceExpCases = g.requiredObls(binopProgressReduceExpPS).toSeq
-  val binopProgressReduceExpSomeExpPS = g.applyTactic(binopProgressReduceExpCases.head._1, Solve[VeritasConstruct, VeritasFormula])
-  val binopProgressReduceExpNoExpPS = g.applyTactic(binopProgressReduceExpCases.last._1, Solve[VeritasConstruct, VeritasFormula])
+  val binopProgressReduceExpIsValuePS = g.applyTactic(binopProgressReduceExpCases.head._1, Solve[VeritasConstruct, VeritasFormula])
+
+  val binopProgressReduceExpNoValueDistinction = BooleanCaseDistinction(FunctionExpApp("isSomeExp", Seq(FunctionExpApp("reduceExp",
+    Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds(2)).head), FunctionMeta(MetaVar("am")))))),
+    fullQLspec, specenq)
+
+  val binopProgressReduceExpNoValuePS = g.applyTactic(binopProgressReduceExpCases.last._1, binopProgressReduceExpNoValueDistinction)
+  val binopProgressReduceExpNoValueCases = g.requiredObls(binopProgressReduceExpNoValuePS)
+  val binopProgressReduceExpNoValueCasesPS = binopProgressReduceExpNoValueCases.map { case (obl, info) =>
+    g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
+  }
+
 
   val unopProgressReduceExpDistinction = BooleanCaseDistinction(
     FunctionExpApp("expIsValue",
@@ -142,17 +152,18 @@ class QLSoundnessProofGraph(file: File) {
   val qcondObl = rootInduction.selectCase(casenames(3), rootsubobs)
 
   val expOfQcond = getIntroducedMetaVars(matchingConds(3)).head
-  val qcondCaseDisitinction = CaseDistinction[VeritasConstruct, VeritasFormula](Seq(
-    Seq(FunctionExpJudgment(FunctionExpEq(FunctionMeta(expOfQcond), FunctionExpApp("constant", Seq(FunctionExpApp("B", Seq(FunctionExpApp("yes", Seq())))))))),
-    Seq(FunctionExpJudgment(FunctionExpEq(FunctionMeta(expOfQcond), FunctionExpApp("constant", Seq(FunctionExpApp("B", Seq(FunctionExpApp("no", Seq())))))))),
-    Seq(FunctionExpJudgment(FunctionExpNeq(FunctionMeta(expOfQcond), FunctionExpApp("constant", Seq(FunctionExpApp("B", Seq(FunctionMeta(MetaVar("vYN0")))))))))
-  ), fullQLspec, specenq)
-
-  val qcondPS = g.applyTactic(qcondObl, qcondCaseDisitinction)
+  val qcondCaseDistinction = EqualityCaseDistinction[VeritasConstruct, VeritasFormula](
+    FunctionMeta(expOfQcond), FunctionExpApp("constant", Seq(FunctionExpApp("B", Seq(FunctionMeta(MetaVar("b")))))),
+    fullQLspec, specenq)
+  val qcondPS = g.applyTactic(qcondObl, qcondCaseDistinction)
   val qcondCases = g.requiredObls(qcondPS).toSeq
-  val qcondBooleanCasesPS = qcondCases.init.map { case (obl, _) =>
-      g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
+  val qcondBooleanCaseDistinction = StructuralCaseDistinction(MetaVar("b"), fullQLspec, specenq)
+  val qcondBooleanCaseDistinctionPS = g.applyTactic(qcondCases.head._1, qcondBooleanCaseDistinction)
+  val qcondBooleanCases = g.requiredObls(qcondBooleanCaseDistinctionPS)
+  val qcondBooleanCasesPS = qcondBooleanCases.map { case (obl, _) =>
+    g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
   }
+
   val qcondNonBooleanPS = g.applyTactic(qcondCases.last._1, progressReduceExpLemmaApplication)
 
   //apply simply Solve-tactic to qgroup base case
@@ -194,6 +205,7 @@ class QLSoundnessProofGraph(file: File) {
 
     // println(g.verifyProofStep(expIsValueTruePS, simpleVampire4_1_120).status.isVerified)
     //// println(g.verifyProofStep(expIsValueFalsePS, simpleVampire4_1_120).status)
+    println(g.verifyProofStep(binopProgressReduceExpIsValuePS, simpleVampire4_1_120).status)
 
     //// println(g.verifyProofStep(progressReduceExpInductionPS, simpleVampire4_1_120).status)
     // println(g.verifyProofStep(qvarPS, simpleVampire4_1_120).status.isVerified)
@@ -203,7 +215,7 @@ class QLSoundnessProofGraph(file: File) {
     // }
     // println(g.verifyProofStep(constantProgressReduceExpPS, simpleVampire4_1_120).status.isVerified)
     // println(g.verifyProofStep(binopProgressReduceExpPS, simpleVampire4_1_120).status.isVerified)
-    println(g.verifyProofStep(binopProgressReduceExpSomeExpPS, simpleVampire4_1_120).status)
+    // println(g.verifyProofStep(binopProgressReduceExpSomeExpPS, simpleVampire4_1_120).status)
     // println(g.verifyProofStep(binopProgressReduceExpNoExpPS, simpleVampire4_1_120).status.isVerified)
     // println(g.verifyProofStep(unopProgressReduceExpDisitinctionPS, simpleVampire4_1_120).status.isVerified)
     // unopProgressReduceExpCasesPS.foreach { ps =>
