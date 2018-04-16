@@ -1,10 +1,11 @@
 package de.tu_darmstadt.veritas.newinputdsl.typechecker
 
-import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpMeta, FunctionMeta}
 import de.tu_darmstadt.veritas.newinputdsl.lang.SPLSpecification
-import de.tu_darmstadt.veritas.newinputdsl.translator.{FunctionExpressionTranslator, SPLTranslationError, SPLTranslator}
+import de.tu_darmstadt.veritas.newinputdsl.translator.{SPLTranslationError, SPLTranslator}
 import de.tu_darmstadt.veritas.newinputdsl.util.ScalaMetaUtils
+
 
 trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
     Context <: Spec#Context,
@@ -29,6 +30,7 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
 
       val getTerm: String => Term = ScalaMetaUtils.getTerm
 
+
       override def typable(context: Context, exp: Expression, typ: Typ): Boolean = {
         // variable should be metavar free
         val funExpTranslator = RegisteredTermFunctionExpressionTranslator()
@@ -37,7 +39,36 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
         val veritasExp = funExpTranslator.translateExp(getTerm(exp.toString))
         val veritasTyp = funExpTranslator.translateExp(getTerm(typ.toString))
         val typingJudgment = TypingJudgment(veritasContext, veritasExp, veritasTyp)
-        canBeBuilt(typingJudgment)
+        // check that typingJudgement does not contain any metas
+        if (!DoesNotContainMetaVars.check(typingJudgment)) {
+          throw new IllegalArgumentException("The typing judgment contains metavariables")
+        }
+        // built tree
+        val constraintBuilder = new ConstraintBuilder { }
+        val tree = deriveTree(typingJudgment)(constraintBuilder)
+        // built constrains
+        // solve constrains
+        // substitue solution
+        // check if tree is valid
+        if (tree.nonEmpty) {
+          val constraints = constraintBuilder.constraints
+          val solution = NonRecursiveConstraintSolver.solve(constraints)(specPath)
+          // TODO need to check that constraintset has no contradiction?
+          if (solution.nonEmpty) {
+            val subster = MetaVarSubstitution(solution.get)
+            val x = new MetaVarCollection {}
+            constraints.foreach(x.transFunctionExpMeta)
+            val freeMetaVars = x.metaVars
+            val backsubstituion = constraints.map {subster.transFunctionExpMeta}
+            // see if any equations still contain metavars
+            // execute the other side of the eq where no meta is contained and on the other side is a meta var
+            // => metavar = result of other side
+            val constraintsConsistent = backsubstituion.forall { exp => ReflectionHelper.executeFunctionExp(exp)(specPath, Map()).asInstanceOf[Boolean]}
+            if (constraintsConsistent)
+              tree.get.substitue(solution.get).check(specPath)
+            else false
+          } else false
+        } else false
       }
 
       override def typable(exp: Expression, typ: Typ): Boolean = {
@@ -46,52 +77,40 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
         val veritasExp = funExpTranslator.translateExp(getTerm(exp.toString))
         val veritasTyp = funExpTranslator.translateExp(getTerm(typ.toString))
         val typingJudgment = TypingJudgmentSimple(veritasExp, veritasTyp)
-        canBeBuilt(typingJudgment)
+        false
+        // canBeBuilt(typingJudgment)
       }
     }
   }
 
-  def canBeBuilt(ruleJudgment: TypingRuleJudgment): Boolean = {
-    getMatchingTypingRule(ruleJudgment) match {
+
+  def deriveTree(ruleJudgment: TypingRuleJudgment)(implicit constraintBuilder: ConstraintBuilder): Option[DerivationTree] = {
+    ruleJudgment match {
+      case fexp: FunctionExpJudgment =>
+        return Some(FunctionJudgmentNode(fexp))
+      case _ =>
+    }
+    // TODO adept method in such a way that we can set tj with functionapps in type
+    // and collect constraint
+    val matchingRule = getMatchingTypingRule(ruleJudgment)
+    matchingRule match {
       case Some(typingRule) =>
-        val premsBuilt = typingRule.premises.map { canBeBuilt }
-        premsBuilt.forall { res => res }
-      case None =>
-        // if no matching typing rule could be found and it is a functionexp we will execute it
-        // otherwise we fail
-        ruleJudgment match {
-          case fexp: FunctionExpJudgment =>
-            ReflectionHelper.executeFunctionExp(fexp.f)(specPath, Map()).asInstanceOf[Boolean]
-          case _ => false
-        }
+        val premsTrees = typingRule.premises.map { deriveTree }
+          if (premsTrees.forall(_.nonEmpty))
+            Some(TypingRuleJudgmentNode(ruleJudgment, premsTrees.flatten.toSet))
+          else None
+      case None => None
     }
   }
 
-  def getMatchingTypingRule(trj: TypingRuleJudgment): Option[TypingRule] = {
-    val matcher = new MetaVarMatcher {}
+  def getMatchingTypingRule(trj: TypingRuleJudgment)(implicit constraintBuilder: ConstraintBuilder): Option[TypingRule] = {
     val matchingTypingRules = typingRules.filter { tr =>
-      matcher.matchingMetaVars(trj, tr.consequences.head).nonEmpty
+      ExpressionStructureChecker.check(trj, tr.consequences.head)
     }
-    if (matchingTypingRules.size > 1)
+    if (matchingTypingRules.size > 1 )
       throw SPLTranslationError("Could find more than one matching typing rule. This type system is not syntax-directed.")
     else if (matchingTypingRules.nonEmpty)
-      rewriteTypingRule(trj, matchingTypingRules.head)
+      constraintBuilder.build(trj, matchingTypingRules.head)
     else None
-  }
-
-  // TODO Somehow i need to reverse a function app inside a conc to match it to other rule judgment
-  // typing rules can not have any function applications inside of typing judgments only ctor applications
-  // otherwise we need to create an inverse for every function and not every function has an inverse
-  def rewriteTypingRule(bottom: TypingRuleJudgment, tr: TypingRule): Option[TypingRule] = {
-    // get referenced metavars in bottom and the matching constructs in top
-    // rewrite tr by replacing metavars with matching constructs
-    val matcher = new MetaVarMatcher {}
-    val matchingVars = matcher.matchingMetaVars(bottom, tr.consequences.head)
-    if (matchingVars.nonEmpty) {
-      val substituter = MetaVarSubstitution(matchingVars.get)
-      val rewrittenPrems = tr.premises.map { substituter.transTypingRuleJudgment }
-      val rewrittenCons = tr.consequences.map { substituter.transTypingRuleJudgment }
-      Some(TypingRule(tr.name, rewrittenPrems, rewrittenCons))
-    } else None
   }
 }

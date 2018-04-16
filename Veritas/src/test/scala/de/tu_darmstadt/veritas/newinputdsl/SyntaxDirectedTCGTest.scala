@@ -13,8 +13,6 @@ class SyntaxDirectedTCGTest extends FunSuite {
   private val generator = new SyntaxDirectedTypeCheckerGenerator[QLSpec.type, QLSpec.Context, QLSpec.Expression, QLSpec.Type] {}
   private val typechecker = generator.generate(qlSpecString)
 
-
-
   trait WrappedStrinRep {
     override def toString: String = "\"" + super.toString + "\""
   }
@@ -80,5 +78,53 @@ class SyntaxDirectedTCGTest extends FunSuite {
       MC(atmempty(), atmempty()),
       qsingle(defquestion(qid1, label1, YesNo())),
       MC(atmempty(), atmbind(qid1, YesNo(), atmempty()))))
+  }
+
+  test("qcond in qseq") {
+    assert(typechecker.typable(
+      MC(atmempty(), atmempty()),
+      qseq(
+        qempty(),
+        qcond(constant(B(no())),
+          qempty(),
+          qempty())),
+      MC(atmempty(), atmempty())))
+  }
+
+  test("qseq in qseq") {
+    assert(typechecker.typable(
+      MC(atmempty(), atmempty()),
+      qseq(qempty(), qseq(qempty(), qempty())),
+      MC(atmempty(), atmempty())))
+  }
+
+  test("qseq in qcond") {
+    assert(typechecker.typable(
+      MC(atmempty(), atmempty()),
+      qcond(
+        constant(B(yes())),
+        qseq(qempty(), qempty()),
+        qempty()),
+      MC(atmempty(), atmempty())))
+  }
+
+  test("qcond in qcond") {
+    assert(typechecker.typable(
+      MC(atmempty(), atmempty()),
+      qcond(
+        constant(B(yes())),
+        qcond(
+          constant(B(yes())),
+          qempty(),
+          qempty()),
+        qempty()),
+      MC(atmempty(), atmempty())))
+  }
+
+  test("ask in qseq") {
+    assert(typechecker.typable(
+      MC(atmempty(), atmbind(qid1, YesNo(), atmempty())),
+      qseq(qempty(), qsingle(ask(qid1))),
+      MC(atmbind(qid1, YesNo(), atmempty()), atmempty())))
   }
 }

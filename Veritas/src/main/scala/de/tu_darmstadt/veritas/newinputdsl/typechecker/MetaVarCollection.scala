@@ -3,14 +3,17 @@ package de.tu_darmstadt.veritas.newinputdsl.typechecker
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExp, FunctionExpMeta, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 
-case class MetaVarSubstitution(substituions: Map[FunctionMeta, FunctionExpMeta]) extends ModuleTransformation {
+import scala.collection.mutable
+
+trait MetaVarCollection extends ModuleTransformation {
+  def metaVars: Set[FunctionMeta] = Set() ++ _metaVars
+  private[this] val _metaVars = mutable.Set[FunctionMeta]()
+
   override def transFunctionExpMeta(f: FunctionExpMeta): FunctionExpMeta =
     f match {
       case meta: FunctionMeta =>
-        if (substituions.contains(meta))
-          substituions(meta)
-        else
-          meta
+        _metaVars += meta
+        meta
       case funExp: FunctionExp => super.transFunctionExp(funExp)
       case _ => throw new IllegalArgumentException("should never happen")
     }

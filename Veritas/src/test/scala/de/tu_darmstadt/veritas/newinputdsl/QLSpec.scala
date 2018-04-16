@@ -514,8 +514,8 @@ object QLSpec extends SPLSpecification with FailableAnnotations {
   }
 
   @Axiom
-  def Tqempty(mc: MapConf): Unit = {
-  } ensuring mc |- qempty() :: MC(atmempty(), atmempty())
+  def Tqempty(atm: ATMap, qm: ATMap): Unit = {
+  } ensuring MC(atm, qm) |- qempty() :: MC(atmempty(), atmempty())
 
   @Axiom
   def Tquestion(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType): Unit = {
