@@ -14,9 +14,10 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
 
   import scala.meta._
 
-  var typingRules: Seq[TypingRule] = _
-  var adts: Seq[DataType] = _
-  var specPath: String = _
+  private var typingRules: Seq[TypingRule] = _
+  private var adts: Seq[DataType] = _
+  private var ctorNames: Seq[String] = _
+  private var specPath: String = _
 
   override def generate(sourceString: String): TypeChecker[Spec, Context, Expression, Typ] = {
     this.specPath = ScalaMetaUtils.getObjectPath(sourceString)
@@ -25,6 +26,7 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
       val module: Module = translator.translate(sourceString)
       // collect information needed based on the translated Veritas AST
       adts = module.defs.collect { case dt: DataType => dt }
+      ctorNames = adts.flatMap { _.constrs.map(_.name) }
       // if we have no typing rules (axioms) we should fail because there is no type system designed
       typingRules = module.defs.collectFirst { case axs: Axioms => axs.axioms }.get
 
@@ -39,36 +41,7 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
         val veritasExp = funExpTranslator.translateExp(getTerm(exp.toString))
         val veritasTyp = funExpTranslator.translateExp(getTerm(typ.toString))
         val typingJudgment = TypingJudgment(veritasContext, veritasExp, veritasTyp)
-        // check that typingJudgement does not contain any metas
-        if (!DoesNotContainMetaVars.check(typingJudgment)) {
-          throw new IllegalArgumentException("The typing judgment contains metavariables")
-        }
-        // built tree
-        val constraintBuilder = new ConstraintBuilder { }
-        val tree = deriveTree(typingJudgment)(constraintBuilder)
-        // built constrains
-        // solve constrains
-        // substitue solution
-        // check if tree is valid
-        if (tree.nonEmpty) {
-          val constraints = constraintBuilder.constraints
-          val solution = NonRecursiveConstraintSolver.solve(constraints)(specPath)
-          // TODO need to check that constraintset has no contradiction?
-          if (solution.nonEmpty) {
-            val subster = MetaVarSubstitution(solution.get)
-            val x = new MetaVarCollection {}
-            constraints.foreach(x.transFunctionExpMeta)
-            val freeMetaVars = x.metaVars
-            val backsubstituion = constraints.map {subster.transFunctionExpMeta}
-            // see if any equations still contain metavars
-            // execute the other side of the eq where no meta is contained and on the other side is a meta var
-            // => metavar = result of other side
-            val constraintsConsistent = backsubstituion.forall { exp => ReflectionHelper.executeFunctionExp(exp)(specPath, Map()).asInstanceOf[Boolean]}
-            if (constraintsConsistent)
-              tree.get.substitue(solution.get).check(specPath)
-            else false
-          } else false
-        } else false
+        check(typingJudgment)
       }
 
       override def typable(exp: Expression, typ: Typ): Boolean = {
@@ -77,12 +50,38 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
         val veritasExp = funExpTranslator.translateExp(getTerm(exp.toString))
         val veritasTyp = funExpTranslator.translateExp(getTerm(typ.toString))
         val typingJudgment = TypingJudgmentSimple(veritasExp, veritasTyp)
-        false
-        // canBeBuilt(typingJudgment)
+        check(typingJudgment)
       }
     }
   }
 
+  def check(trj: TypingRuleJudgment): Boolean = {
+    // check that typingJudgement does not contain any metas
+    if (!DoesNotContainMetaVars.check(trj)) {
+      throw new IllegalArgumentException("The typing judgment contains metavariables")
+    }
+    // built tree
+    val constraintBuilder = new ConstraintBuilder { }
+    val tree = deriveTree(trj)(constraintBuilder)
+    if (tree.nonEmpty) {
+      val constraints = constraintBuilder.constraints
+      // solve constraint set
+      val solution = NonRecursiveConstraintSolver(ctorNames).solve(constraints)(specPath)
+      if (solution.nonEmpty) {
+        // check solution and constraint set are consistent
+        val metaVarsSubstituter = MetaVarSubstitution(solution.get)
+        val backsubstituion = constraints.map {metaVarsSubstituter.transFunctionExpMeta}
+        val constraintsConsistent = backsubstituion.forall { exp => ReflectionHelper.executeFunctionExp(exp)(specPath, Map()).asInstanceOf[Boolean]}
+        if (constraintsConsistent) {
+          // subsitute solution
+          val solutionTree = tree.get.substitue(solution.get)
+          // check tree
+          return solutionTree.check(specPath)
+        }
+      }
+    }
+    false
+  }
 
   def deriveTree(ruleJudgment: TypingRuleJudgment)(implicit constraintBuilder: ConstraintBuilder): Option[DerivationTree] = {
     ruleJudgment match {
@@ -90,8 +89,6 @@ trait SyntaxDirectedTypeCheckerGenerator[Spec <: SPLSpecification,
         return Some(FunctionJudgmentNode(fexp))
       case _ =>
     }
-    // TODO adept method in such a way that we can set tj with functionapps in type
-    // and collect constraint
     val matchingRule = getMatchingTypingRule(ruleJudgment)
     matchingRule match {
       case Some(typingRule) =>

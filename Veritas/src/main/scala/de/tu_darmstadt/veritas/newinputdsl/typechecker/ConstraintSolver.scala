@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.newinputdsl.typechecker
 
 import de.tu_darmstadt.veritas.backend.ast.function._
+import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.newinputdsl.util.ScalaMetaUtils
 
 trait ConstraintSolver {
@@ -28,7 +29,7 @@ trait ConstraintSolver {
 }
 
 // Can not solve recursive constraints (f(x,y) == x)
-object NonRecursiveConstraintSolver extends ConstraintSolver {
+case class NonRecursiveConstraintSolver(ctorNames: Seq[String]) extends ConstraintSolver {
   def solve(constraints: Set[FunctionExpMeta])(implicit specPath: String): Option[Map[FunctionMeta, FunctionExpMeta]] =
     solve(constraints, Map())(specPath)
 
@@ -67,12 +68,18 @@ object NonRecursiveConstraintSolver extends ConstraintSolver {
       val result = ReflectionHelper.executeFunctionExp(exp)(specPath, Map())
       val registeredTermFunctionExpressionTranslator = RegisteredTermFunctionExpressionTranslator()
       val veritasResult = registeredTermFunctionExpressionTranslator.translateExp(ScalaMetaUtils.getTerm(exp.toString))
-      ConstraintUtil.removeCommonFunctionApplications(meta, veritasResult).collect {
+      Map(meta -> veritasResult)
+    case FunctionExpEq(app: FunctionExpApp, exp: FunctionExpMeta) =>
+      val result = ReflectionHelper.executeFunctionExp(exp)(specPath, Map())
+      val registeredTermFunctionExpressionTranslator = RegisteredTermFunctionExpressionTranslator()
+      val veritasResult = registeredTermFunctionExpressionTranslator.translateExp(ScalaMetaUtils.getTerm(result.toString))
+      ConstraintUtil.removeCommonFunctionApplications(app, veritasResult).collect {
         case (key: FunctionMeta, value: FunctionExpMeta) => (key, value)
       }.toMap
     case _ => Map()
   }
 
+  // Only allow ctor apps on the side with meta vars
   private def getSolvableConstraints(constraints: Set[FunctionExpMeta]): Set[FunctionExpMeta] =
     constraints.collect {
       case FunctionExpEq(meta: FunctionMeta, exp: FunctionExpMeta) if DoesNotContainMetaVars.check(exp) =>
@@ -80,10 +87,12 @@ object NonRecursiveConstraintSolver extends ConstraintSolver {
       case FunctionExpEq(exp: FunctionExpMeta, meta: FunctionMeta) if DoesNotContainMetaVars.check(exp) =>
         FunctionExpEq(meta, exp)
       case FunctionExpEq(lhs: FunctionExp, rhs: FunctionExp)
-        if DoesNotContainMetaVars.check(lhs) && !DoesNotContainMetaVars.check(rhs) =>
+        if DoesNotContainMetaVars.check(lhs) && !DoesNotContainMetaVars.check(rhs) &&
+          OnlyContainsCtorApplications.check(rhs)(ctorNames) =>
         FunctionExpEq(rhs, lhs)
       case FunctionExpEq(lhs: FunctionExp, rhs: FunctionExp)
-        if !DoesNotContainMetaVars.check(lhs) && DoesNotContainMetaVars.check(rhs) =>
+        if !DoesNotContainMetaVars.check(lhs) && DoesNotContainMetaVars.check(rhs) &&
+          OnlyContainsCtorApplications.check(lhs)(ctorNames) =>
         FunctionExpEq(lhs, rhs)
     }
 
@@ -103,3 +112,29 @@ object NonRecursiveConstraintSolver extends ConstraintSolver {
     DoesNotContainMetaVars.check(value)
   }
 }
+
+trait OnlyContainsCtorApplications extends ModuleTransformation {
+  def ctorNames: Seq[String]
+  def containsOnlyCtorApplications: Boolean = _containsOnlyCtorApplications
+  private[this] var _containsOnlyCtorApplications = true
+
+  override def transFunctionExp(f: FunctionExp): FunctionExp =
+    withSuper(super.transFunctionExp(f)) {
+      case FunctionExpApp(name, args) =>
+        if (!ctorNames.contains(name)) {
+          _containsOnlyCtorApplications = false
+          FunctionExpApp(name, args)
+        } else FunctionExpApp(name, args.map(transFunctionExpMeta))
+    }
+}
+
+object OnlyContainsCtorApplications {
+  def check(f: FunctionExpMeta)(names: Seq[String]): Boolean = {
+    val checker = new OnlyContainsCtorApplications {
+      val ctorNames: Seq[String] = names
+    }
+    checker.transFunctionExpMeta(f)
+    checker.containsOnlyCtorApplications
+  }
+}
+
