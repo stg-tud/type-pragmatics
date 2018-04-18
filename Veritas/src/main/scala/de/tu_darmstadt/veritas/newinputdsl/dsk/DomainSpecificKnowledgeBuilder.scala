@@ -268,8 +268,8 @@ trait FailableDomainSpecificKnowledgeBuilder extends DomainSpecificKnowledgeBuil
   import scala.meta._
 
   protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
-  protected val progressProperties: mutable.Map[Defn.Def, Defn.Def]
-  protected val preservationProperties: mutable.Map[Defn.Def, Defn.Def]
+  protected val progressProperties: mutable.Map[Defn.Def, Defn.Def] = mutable.Map()
+  protected val preservationProperties: mutable.Map[Defn.Def, Defn.Def] = mutable.Map()
 
   override def collectInformation(stat: Stat): Unit =
     withSuper(stat)(super.collectInformation) {
@@ -278,8 +278,8 @@ trait FailableDomainSpecificKnowledgeBuilder extends DomainSpecificKnowledgeBuil
         if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
           failableTypes += tr
       case fn: Defn.Def =>
-        collectLinkingAnnotation(fn, "ProgressProperty")(collect)
-        collectLinkingAnnotation(fn, "PreservationPoperty")(collect)
+        progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
+        preservationProperties ++= collectLinkingAnnotation(fn, "PreservationPoperty")(collect)
     }
 
   private def collect(fn: Defn.Def, prop: Defn.Def, annot: Mod.Annot): (Defn.Def, Defn.Def) = fn -> prop

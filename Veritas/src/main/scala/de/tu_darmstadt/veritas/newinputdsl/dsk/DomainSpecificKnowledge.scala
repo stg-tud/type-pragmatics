@@ -36,7 +36,6 @@ trait FailableDomainSpecificKnowledge extends DomainSpecificKnowledge {
       returnsBool && hasOnlyFailableTypeParam
     }
 
-
   def progressProperties: Map[FunctionDef, TypingRule]
   def preservationProperties: Map[FunctionDef, TypingRule]
 }
