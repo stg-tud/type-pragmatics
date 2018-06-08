@@ -1,8 +1,8 @@
-package de.tu_darmstadt.veritas.newinputdsl
+package de.tu_darmstadt.veritas.scalaspl
 
-import de.tu_darmstadt.veritas.newinputdsl.lang.{FailableAnnotations, SPLSpecification}
+import de.tu_darmstadt.veritas.scalaspl.lang.{FailableAnnotations, ScalaSPLSpecification}
 
-object SQLSpec extends SPLSpecification with FailableAnnotations {
+object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
 
   // name of attributes and tables
   trait Name extends Expression
