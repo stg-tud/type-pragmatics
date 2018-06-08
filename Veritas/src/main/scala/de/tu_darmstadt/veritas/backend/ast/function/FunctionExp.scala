@@ -151,7 +151,11 @@ final case class FunctionExpApp(functionName: String, args: Seq[FunctionExpMeta]
     writer.write(")")
   }
 
-  override def toString() = s"${functionName}(${args.mkString(",")})"
+  override def toString() =
+    if (functionName.startsWith("ODTRef_") && args.isEmpty) {
+      "\"" + functionName.replace("ODTRef_", "") + "\""
+    } else s"${functionName}(${args.mkString(",")})"
+
 }
 
 final case class FunctionMeta(metavar: MetaVar) extends FunctionExpMeta with SimplePrettyPrintable {
