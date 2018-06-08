@@ -3,44 +3,12 @@ package de.tu_darmstadt.veritas.scalaspl
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.scalaspl.dsk.{DomainSpecificKnowledgeBuilder, FailableDomainSpecificKnowledgeBuilder}
+import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslationError
 import org.scalatest.FunSuite
 
 class DomainSpecificKnowledgeBuilderTest extends FunSuite {
   val filesDir = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/dskbuilderfiles")
-  test("Property Attached correctly gathered") {
-    val builder = DomainSpecificKnowledgeBuilder()
-    val file = new File(filesDir, "DSKProperty.scala")
-
-    val dsk = builder.build(file)
-    assert(dsk.attachedProperties.toSeq.head._1._1.signature.name == "plus")
-    assert(dsk.attachedProperties.toSeq.head._1._2 == "falseProperty")
-
-    assert(dsk.attachedProperties.toSeq(1)._1._1.signature.name == "predpred")
-    assert(dsk.attachedProperties.toSeq(1)._1._2 == "trueProperty")
-
-    assert(dsk.attachedProperties.toSeq(2)._1._1.signature.name == "plus")
-    assert(dsk.attachedProperties.toSeq(2)._1._2 == "trueProperty")
-  }
-
-  test("Property Attached reference should fail") {
-    val builder = DomainSpecificKnowledgeBuilder()
-    val file = new File(filesDir, "DSKPropertyReferenceFail.scala")
-
-    assertThrows[ScalaSPLTranslationError] {
-      builder.build(file)
-    }
-  }
-
-  test("Property Attached reference is not ensuring function") {
-    val builder = DomainSpecificKnowledgeBuilder()
-    val file = new File(filesDir, "DSKPropertyReferencedNotEnsuring.scala")
-
-    assertThrows[ScalaSPLTranslationError] {
-      builder.build(file)
-    }
-  }
 
   test("Recursive correctly gathered") {
     val builder = DomainSpecificKnowledgeBuilder()
@@ -76,7 +44,7 @@ class DomainSpecificKnowledgeBuilderTest extends FunSuite {
   }
 
   test("QLSpec dsk") {
-    val builder = FailableDomainSpecificKnowledgeBuilder()
+    val builder = DomainSpecificKnowledgeBuilder()
     val file = new File(filesDir, "../QLSpec.scala")
     val dsk = builder.build(file)
     println(dsk.failableTypes)
