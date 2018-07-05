@@ -1,8 +1,8 @@
 package de.tu_darmstadt.veritas.scalaspl
 
-import de.tu_darmstadt.veritas.scalaspl.lang.{FailableAnnotations, ScalaSPLSpecification}
+import de.tu_darmstadt.veritas.scalaspl.lang.ScalaSPLSpecification
 
-object QLSpec extends ScalaSPLSpecification with FailableAnnotations {
+object QLSpec extends ScalaSPLSpecification {
 
   // BasicTypes
   sealed trait YN extends Expression
