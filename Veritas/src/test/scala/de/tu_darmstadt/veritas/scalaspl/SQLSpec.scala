@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.scalaspl
 
 import de.tu_darmstadt.veritas.scalaspl.lang.{FailableAnnotations, ScalaSPLSpecification}
+import javax.xml.ws.RequestWrapper
 
 object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
 
@@ -74,7 +75,7 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
   // (but semantics should be possible to define in a sensible way without that requirement...)
   def matchingAttrL(tt: TType, attrl: AttrL): Boolean = (tt, attrl) match {
     case (ttempty(), aempty()) => true
-    case (ttcons(a1, f, ttr), acons(a2, al)) => (a1 == a2) && matchingAttrL(ttr, al)
+    case (ttcons(a1, _, ttr), acons(a2, al)) => (a1 == a2) && matchingAttrL(ttr, al)
     case (_, _) => false
   }
 
@@ -85,7 +86,7 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
   }
 
   def welltypedRawtable(tt: TType, rt: RawTable): Boolean = (tt, rt) match {
-    case (tt1, tempty()) => true
+    case (_, tempty()) => true
     case (tt1, tcons(r, t1)) => welltypedRow(tt1, r) && welltypedRawtable(tt1, t1)
   }
 
@@ -118,7 +119,7 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
-    case tcons(rcons(f, r), rt1) => tcons(r, dropFirstColRaw(rt1))
+    case tcons(rcons(_, r), rt1) => tcons(r, dropFirstColRaw(rt1))
   }
 
   sealed trait OptRawTable
@@ -165,8 +166,8 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
   }
 
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
-    case (tempty(), rt2r) => tempty()
-    case (rtr1, tempty()) => tempty()
+    case (tempty(), _) => tempty()
+    case (_, tempty()) => tempty()
     case (tcons(r1, tempty()), rtr2) =>
       if (rowIn(r1, rtr2))
         tcons(r1, tempty())
@@ -180,7 +181,7 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
   }
 
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
-    case (rempty, rt2r) => tempty()
+    case (rempty(), _) => tempty()
     case (rt1r, tempty()) => rt1r
     case (tcons(r1, tempty()), rtr2) =>
       if (!rowIn(r1, rtr2))
@@ -230,6 +231,7 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
 
   case class bindContext(n: Name, tt: TType, ttr: TTContext) extends TTContext
 
+
   sealed trait OptTType
 
   case class noTType() extends OptTType
@@ -247,15 +249,195 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
   }
 
   def lookupContext(n: Name, ttc: TTContext): OptTType = (n, ttc) match {
-    case (tn, emptyContext()) => noTType()
+    case (_, emptyContext()) => noTType()
     case (tn, bindContext(tm, tt, ttcr)) =>
       if (tn == tm)
         someTType(tt)
       else lookupContext(tn, ttcr)
   }
 
+  sealed trait Exp
+
+  case class constant(v: Val) extends Exp
+
+  case class lookup(n: Name) extends Exp
+
+  //predicates for where clauses of queries
+  sealed trait Pred
+
+  case class ptrue() extends Pred
+
+  case class and(p1: Pred, p2: Pred) extends Pred
+
+  case class not(p: Pred) extends Pred
+
+  case class eq(e1: Exp, e2: Exp) extends Exp
+
+  case class gt(e1: Exp, e2: Exp) extends Exp
+
+  case class lt(e1: Exp, e2: Exp) extends Exp
+
+  // Query syntax
+  sealed trait Select
+
+  case class all() extends Select
+
+  case class list(attrL: AttrL) extends Select
 
 
+  sealed trait Query
+
+  case class tvalue(t: Table) extends Query
+
+  case class selectFromWhere(s: Select, name: Name, pred: Pred) extends Query
+
+  case class Union(q1: Query, q2: Query) extends Query
+
+  case class Intersection(q1: Query, q2: Query) extends Query
+
+  case class Difference(q1: Query, q2: Query) extends Query
+
+  def isValue(q: Query): Boolean = q match {
+    case tvalue(_) => true
+    case selectFromWhere(_, _, _) => false
+    case Union(_, _) => false
+    case Intersection(_, _) => false
+    case Difference(_, _) => false
+  }
+
+
+  //functions for semantics of SQL
+  sealed trait OptQuery
+
+  case class noQuery() extends OptQuery
+
+  case class someQuery(q: Query) extends OptQuery
+
+  def isSomeQuery(oq: OptQuery): Boolean = oq match {
+    case noQuery() => false
+    case someQuery(_) => true
+  }
+
+  @Partial
+  def getQuery(oq: OptQuery): Query = oq match {
+    case someQuery(q) => q
+  }
+
+  def findCol(n: Name, attrL: AttrL, rt: RawTable): OptRawTable = (n, attrL, rt) match {
+    case (a, aempty(), _) => noRawTable()
+    case (a, acons(a2, al), rtr) =>
+      if (a == a2)
+        someRawTable(projectFirstRaw(rtr))
+      else
+        findCol(a, al, dropFirstColRaw(rtr))
+  }
+
+  // for projection base case: projecting on an empty attribute list must yield a
+  // table with as many empty rows as the rowcount of the given table
+  def projectEmptyCol(rt: RawTable): RawTable = rt match {
+    case tempty() => tempty()
+    case tcons(_, t) => tcons(rempty(), projectEmptyCol(t))
+  }
+
+  // arguments: select-list table-list table-rows
+  def projectCols(al1: AttrL, al2: AttrL, rt: RawTable): OptRawTable = (al1, al2, rt) match {
+    case (aempty(), _, rtr) => someRawTable(projectEmptyCol(rtr))
+    case (acons(a, alr), al, rtr) =>
+      val col = findCol(a, al, rtr)
+      val rest = projectCols(alr, al, rtr)
+      if (isSomeRawTable(col) && isSomeRawTable(rest))
+        someRawTable(attachColToFrontRaw(getRawTable(col), getRawTable(rest)))
+      else
+        noRawTable()
+  }
+
+  def projectTable(s: Select, t: Table): OptTable = (s, t) match {
+    case (all(), table(al, rt)) => someTable(table(al, rt))
+    case (list(alr), table(al, rt)) =>
+      val projected = projectCols(alr, al, rt)
+      if (isSomeRawTable(projected))
+        someTable(table(alr, getRawTable(projected)))
+      else
+        noTable()
+  }
+
+  sealed trait OptVal
+
+  case class noVal() extends OptVal
+
+  case class someVal(v: Val) extends OptVal
+
+  def isSomeVal(ov: OptVal): Boolean = ov match {
+    case noVal() => false
+    case someVal(_) => true
+  }
+
+  @Partial
+  def getVal(ov: OptVal): Val = ov match {
+    case someVal(v) => v
+  }
+
+  def evalExpRow(e: Exp, attrL: AttrL, row: Row): OptVal = (e, attrL, row) match {
+    case (constant(v), _, _) => someVal(v)
+    case (lookup(a), acons(a2, al), rcons(v, r)) =>
+      if (a == a2)
+        someVal(v)
+      else
+        evalExpRow(lookup(a), al, r)
+    case (_, _, _) => noVal()
+  }
+
+  // returns true iff predicate succeeds on row
+  // returns false if predicate evaluates to false or if predicate evaluation fails
+  def filterSingleRow(p: Pred, attrL: AttrL, row: Row): Boolean = (p, attrL, row) match {
+    case (ptrue(), _, _) => true
+    case (and(p1, p2), al, r) => filterSingleRow(p1, al, r) && filterSingleRow(p2, al, r)
+    case (not(pr), al, r) => !filterSingleRow(pr, al, r)
+    case (eq(e1, e2), al, r) =>
+      val v1 = evalExpRow(e1, al, r)
+      val v2 = evalExpRow(e2, al, r)
+      isSomeVal(v1) && isSomeVal(v2) && getVal(v1) == getVal(v2)
+    case (gt(e1, e2), al, r) =>
+      val v1 = evalExpRow(e1, al, r)
+      val v2 = evalExpRow(e2, al, r)
+      isSomeVal(v1) && isSomeVal(v2) && greaterThan(getVal(v1), getVal(v2))
+    case (lt(e1, e2), al, r) =>
+      val v1 = evalExpRow(e1, al, r)
+      val v2 = evalExpRow(e2, al, r)
+      isSomeVal(v1) && isSomeVal(v2) && lessThan(getVal(v1), getVal(v2))
+  }
+
+  // filter rows that satisfy pred
+  def filterRows(rt: RawTable, attrL: AttrL, pred: Pred): RawTable = (rt, attrL, pred) match {
+    case (tempty(), _, _) => tempty()
+    case (tcons(r, rtr), al, p) =>
+      val rts = filterRows(rtr, al, p)
+      if (filterSingleRow(p, al, r))
+        tcons(r, rts)
+      else
+        rts
+  }
+
+  def filterTable(t: Table, pred: Pred): Table = (t, pred) match {
+    case (table(al, rt), p) => table(al, filterRows(rt, al, p))
+  }
+
+  def reduce(query: Query, tst: TStore): OptQuery = (query, tst) match {
+    case (tvalue(_), _) => noQuery()
+    case (selectFromWhere(sel, name, pred), ts) =>
+      val maybeTable = lookupStore(name, ts)
+      if (isSomeTable(maybeTable)) {
+        val filtered = filterTable(getTable(maybeTable), pred)
+        val maybeSelected = projectTable(sel, filtered)
+        if (isSomeTable(maybeSelected))
+          someQuery(tvalue(getTable(maybeSelected)))
+        else noQuery()
+      }
+      else
+        noQuery()
+    //TODO
+
+  }
 
 
 }
