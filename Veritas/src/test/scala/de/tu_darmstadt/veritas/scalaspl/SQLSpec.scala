@@ -1,9 +1,8 @@
 package de.tu_darmstadt.veritas.scalaspl
 
-import de.tu_darmstadt.veritas.scalaspl.lang.{FailableAnnotations, ScalaSPLSpecification}
-import javax.xml.ws.RequestWrapper
+import de.tu_darmstadt.veritas.scalaspl.lang.ScalaSPLSpecification
 
-object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
+object SQLSpec extends ScalaSPLSpecification {
 
   // name of attributes and tables
   trait Name extends Expression
@@ -181,7 +180,7 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
   }
 
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
-    case (rempty(), _) => tempty()
+    case (tempty(), _) => tempty()
     case (rt1r, tempty()) => rt1r
     case (tcons(r1, tempty()), rtr2) =>
       if (!rowIn(r1, rtr2))
@@ -215,7 +214,7 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
 
   case class emptyStore() extends TStore
 
-  case class bindStore(n: Name, t: Table, rst: TStore)
+  case class bindStore(n: Name, t: Table, rst: TStore) extends TStore
 
   def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
     case (_, emptyStore()) => noTable()
@@ -271,11 +270,11 @@ object SQLSpec extends ScalaSPLSpecification with FailableAnnotations {
 
   case class not(p: Pred) extends Pred
 
-  case class eq(e1: Exp, e2: Exp) extends Exp
+  case class eq(e1: Exp, e2: Exp) extends Pred
 
-  case class gt(e1: Exp, e2: Exp) extends Exp
+  case class gt(e1: Exp, e2: Exp) extends Pred
 
-  case class lt(e1: Exp, e2: Exp) extends Exp
+  case class lt(e1: Exp, e2: Exp) extends Pred
 
   // Query syntax
   sealed trait Select
