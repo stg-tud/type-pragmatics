@@ -9,7 +9,7 @@ object QLDefsInputLangTest {
   def main(args: Array[String]) {
     val translator = new ScalaSPLTranslator()
 
-    val file = new File("src/test/scala/de/tu_darmstadt/veritas/newinputdsl/QLSpec.scala")
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/QLSpec.scala")
 
     try {
       val translated = translator.translate(file)
