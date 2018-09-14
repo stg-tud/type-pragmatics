@@ -603,5 +603,81 @@ object SQLSpec extends ScalaSPLSpecification {
     case (_, _) => false
   }
 
+  //PROGRESS
+  @Property
+  def reduceProgress(ts: TStore, ttc: TTContext, q: Query): Unit = {
+    require(storeContextConsistent(ts, ttc))
+    require(!isValue(q))
+    require(exists((tt1: TType) => ttc |- q :: tt1))
+  } ensuring exists((qr: Query) => reduce(q, ts) == someQuery(qr))
+
+  // auxiliary lemmas for progress proof
+  @Property
+  def successfulLookup(ttc: TTContext, ts: TStore, ref: Name, tt: TType): Unit = {
+    require(storeContextConsistent(ts, ttc))
+    require(lookupContext(ref, ttc) == someTType(tt))
+  } ensuring exists((t: Table) => lookupStore(ref, ts) == someTable(t))
+
+  @Property
+  def welltypedLookup(ttc: TTContext, ts: TStore, ref: Name, tt: TType, t: Table): Unit = {
+    require(storeContextConsistent(ts, ttc))
+    require(lookupContext(ref, ttc) == someTType(tt))
+    require(lookupStore(ref, ts) == someTable(t))
+  } ensuring welltypedtable(tt, t)
+
+  @Property
+  def filterPreservesType(tt: TType, t: Table, p: Pred): Unit = {
+    require(welltypedtable(tt, t))
+  } ensuring welltypedtable(tt, filterTable(t, p))
+
+  @Property
+  def projectTableProgress(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectType(s, tt) == someTType(tt2))
+  } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
+
+  @Property
+  def filterRowsPreservesTable(tt: TType, rt: RawTable, al: AttrL, p: Pred): Unit = {
+    require(welltypedRawtable(tt, rt))
+  } ensuring(welltypedRawtable(tt, filterRows(rt, al, p)))
+
+  @Property
+  def projectColsProgress(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType): Unit = {
+    require(welltypedtable(tt, table(al, rt)))
+    require(projectType(list(al2), tt) == someTType(tt2))
+  } ensuring exists((rt2: RawTable) => projectCols(al2, al, rt) == someRawTable(rt2))
+
+  @Property
+  def projectTypeImpliesFindCol(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType, n: Name): Unit = {
+    require(welltypedtable(tt, table(al, rt)))
+    require(projectTypeAttrL(al2, tt) == someTType(tt2))
+    attrIn(n, al2)
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+
+  @Property
+  def findColTypeImpliesfindCol(tt: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
+    require(welltypedtable(tt, table(al, rt)))
+    require(findColType(n, tt) == someFType(ft))
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+
+  @Property
+  def projectTypeAttrLImpliesfindAllColType(al: AttrL, tt: TType, tt2: TType, n: Name): Unit = {
+    require(projectTypeAttrL(al, tt) == someTType(tt2))
+    require(attrIn(n, al))
+  } ensuring exists((ft: FType) => findColType(n, tt) == someFType(ft))
+
+  @Property
+  def dropFirstColRawPreservesWelltypedRaw(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable): Unit = {
+    require(tt == ttcons(n, ft, ttr))
+    require(welltypedRawtable(tt, rt))
+  } ensuring(welltypedRawtable(ttr, dropFirstColRaw(rt)))
+
+  //PRESERVATION
+  @Property
+  def reducePreservation(ttc: TTContext, ts: TStore, q: Query, qr: Query, tt: TType): Unit = {
+    require(storeContextConsistent(ts, ttc))
+    require(ttc |- q :: tt)
+    require(reduce(q, ts) == someQuery(qr))
+  } ensuring(ttc |- qr :: tt)
 
 }
