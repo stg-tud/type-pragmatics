@@ -224,7 +224,7 @@ object SQLSpec extends ScalaSPLSpecification {
       else lookupStore(n1, tsr)
   }
 
-  sealed trait TTContext
+  sealed trait TTContext extends Context
 
   case class emptyContext() extends TTContext
 
@@ -255,14 +255,14 @@ object SQLSpec extends ScalaSPLSpecification {
       else lookupContext(tn, ttcr)
   }
 
-  sealed trait Exp
+  sealed trait Exp extends Expression
 
   case class constant(v: Val) extends Exp
 
   case class lookup(n: Name) extends Exp
 
   //predicates for where clauses of queries
-  sealed trait Pred
+  sealed trait Pred extends Expression
 
   case class ptrue() extends Pred
 
@@ -277,14 +277,14 @@ object SQLSpec extends ScalaSPLSpecification {
   case class lt(e1: Exp, e2: Exp) extends Pred
 
   // Query syntax
-  sealed trait Select
+  sealed trait Select extends Expression
 
   case class all() extends Select
 
   case class list(attrL: AttrL) extends Select
 
 
-  sealed trait Query
+  sealed trait Query extends Expression
 
   case class tvalue(t: Table) extends Query
 
@@ -434,8 +434,173 @@ object SQLSpec extends ScalaSPLSpecification {
       }
       else
         noQuery()
-    //TODO
+    case (Union(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =>
+      someQuery(tvalue(table(al1, rawUnion(rt1, rt2))))
+    case (Union(tvalue(t), q2), ts) =>
+      val q2reduce = reduce(q2, ts)
+      if (isSomeQuery(q2reduce))
+        someQuery(Union(tvalue(t), getQuery(q2reduce)))
+      else
+        noQuery()
+    case (Union(q1, q2), ts) =>
+      val q1reduce = reduce(q1, ts)
+      if (isSomeQuery(q1reduce))
+        someQuery(Union(getQuery(q1reduce), q2))
+      else
+        noQuery()
+    case (Intersection(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =>
+      someQuery(tvalue(table(al1, rawIntersection(rt1, rt2))))
+    case (Intersection(tvalue(t), q2), ts) =>
+      val q2reduce = reduce(q2, ts)
+      if (isSomeQuery(q2reduce))
+        someQuery(Intersection(tvalue(t), getQuery(q2reduce)))
+      else
+        noQuery()
+    case (Intersection(q1, q2), ts) =>
+      val q1reduce = reduce(q1, ts)
+      if (isSomeQuery(q1reduce))
+        someQuery(Intersection(getQuery(q1reduce), q2))
+      else
+        noQuery()
+    case (Difference(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =>
+      someQuery(tvalue(table(al1, rawDifference(rt1, rt2))))
+    case (Difference(tvalue(t), q2), ts) =>
+      val q2reduce = reduce(q2, ts)
+      if (isSomeQuery(q2reduce))
+        someQuery(Difference(tvalue(t), getQuery(q2reduce)))
+      else
+        noQuery()
+    case (Difference(q1, q2), ts) =>
+      val q1reduce = reduce(q1, ts)
+      if (isSomeQuery(q1reduce))
+        someQuery(Difference(getQuery(q1reduce), q2))
+      else
+        noQuery()
+  }
 
+  sealed trait OptFType
+
+  case class noFType() extends OptFType
+
+  case class someFType(ft: FType) extends OptFType
+
+  def isSomeFType(oft: OptFType): Boolean = oft match {
+    case noFType() => false
+    case someFType(a) => true
+  }
+
+  @Partial
+  def getFType(oft: OptFType): FType = oft match {
+    case someFType(a) => a
+  }
+
+  def findColType(n: Name, tt: TType): OptFType = (n, tt) match {
+    case (an, ttempty()) => noFType()
+    case (an, ttcons(a, ft, ttr)) =>
+      if (an == a)
+        someFType(ft)
+      else
+        findColType(an, ttr)
+  }
+
+  def projectTypeAttrL(attrl: AttrL, tt: TType): OptTType = (attrl, tt) match {
+    case (aempty(), tt1) => someTType(ttempty())
+    case (acons(a, alr), tt1) =>
+      val ft = findColType(a, tt1)
+      val tprest = projectTypeAttrL(alr, tt1)
+      if (isSomeFType(ft) && isSomeTType(tprest))
+        someTType(ttcons(a, getFType(ft), getTType(tprest)))
+      else
+        noTType()
+  }
+
+  def projectType(sel: Select, tt: TType): OptTType = (sel, tt) match {
+    case (all(), tt1) => someTType(tt1)
+    case (list(al), tt1) => projectTypeAttrL(al, tt1)
+  }
+
+  def typeOfExp(e: Exp, tt: TType): OptFType = (e, tt) match {
+    case (constant(fv), tt1) => someFType(fieldType(fv))
+    case (lookup(a), ttempty()) => noFType()
+    case (lookup(a), ttcons(a2, ft, ttr)) =>
+      if (a == a2)
+        someFType(ft)
+      else
+        typeOfExp(lookup(a), ttr)
+  }
+
+
+  def tcheckPred(pred: Pred, tType: TType): Boolean = (pred, tType) match {
+    case (ptrue(), tt) => true
+    case (and(p1, p2), tt) => tcheckPred(p1, tt) && tcheckPred(p2, tt)
+    case (not(p), tt) => tcheckPred(p, tt)
+    case (eq(e1, e2), tt) =>
+      val t1 = typeOfExp(e1, tt)
+      val t2 = typeOfExp(e2, tt)
+      isSomeFType(t1) && isSomeFType(t2) && (getFType(t1) == getFType(t2))
+    case (gt(e1, e2), tt) =>
+      val t1 = typeOfExp(e1, tt)
+      val t2 = typeOfExp(e2, tt)
+      isSomeFType(t1) && isSomeFType(t2) && (getFType(t1) == getFType(t2))
+    case (lt(e1, e2), tt) =>
+      val t1 = typeOfExp(e1, tt)
+      val t2 = typeOfExp(e2, tt)
+      isSomeFType(t1) && isSomeFType(t2) && (getFType(t1) == getFType(t2))
+  }
+
+  //axioms on behavior of table type context
+  @Axiom
+  def TTTContextDublicate(x: Name, y: Name, Tx: TType, Ty: TType, C: TTContext, e: Query, T: TType): Unit = {
+    require(x == y)
+    require(bindContext(x, Tx, bindContext(y, Ty, C)) |- e :: T)
+  } ensuring (bindContext(x, Tx, C) |- e :: T)
+
+  @Axiom
+  def TTTContextSwap(x: Name, y: Name, Tx: TType, Ty: TType, C: TTContext, e: Query, T: TType): Unit = {
+    require(x != y)
+    require(bindContext(x, Tx, bindContext(y, Ty, C)) |- e :: T)
+  } ensuring(bindContext(y, Ty, bindContext(x, Tx, C)) |- e :: T)
+
+  @Axiom
+  def Ttvalue(tt: TType, al: AttrL, rt: RawTable, TTC: TTContext, TT: TType): Unit = {
+    require(welltypedtable(tt, table(al, rt)))
+  } ensuring(TTC |- tvalue(table(al, rt)) :: TT)
+
+  @Axiom
+  def TSelectFromWhere(tn: Name, TTC: TTContext, TT: TType, p: Pred, sel: Select, TTr: TType): Unit = {
+    require(lookupContext(tn, TTC) == someTType(TT))
+    require(tcheckPred(p, TT))
+    require(projectType(sel, TT) == someTType(TTr))
+  } ensuring(TTC |- selectFromWhere(sel, tn, p) :: TTr)
+
+  @Axiom
+  def TUnion(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- q1 :: TT)
+    require(TTC |- q2 :: TT)
+  } ensuring(TTC |- Union(q1, q2) :: TT)
+
+  @Axiom
+  def TIntersection(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- q1 :: TT)
+    require(TTC |- q2 :: TT)
+  } ensuring(TTC |- Intersection(q1, q2) :: TT)
+
+  @Axiom
+  def TDifference(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- q1 :: TT)
+    require(TTC |- q2 :: TT)
+  } ensuring(TTC |- Difference(q1, q2) :: TT)
+
+  // type inversion axiom needed or not?
+
+  // determines whether a given TTContext is consistent with a given TStore
+  // and whether the table in the store is well-typed with regard to the table type in the context
+  // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
+  def storeContextConsistent(ts: TStore, ttc: TTContext): Boolean = (ts, ttc) match {
+    case (emptyStore(), emptyContext()) => true
+    case (bindStore(tn1, t, tsr), bindContext(tn2, tt, ttcr)) =>
+      tn1 == tn2 && welltypedtable(tt, t) && storeContextConsistent(tsr, ttcr)
+    case (_, _) => false
   }
 
 
