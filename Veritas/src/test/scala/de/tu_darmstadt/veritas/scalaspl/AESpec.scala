@@ -1,6 +1,5 @@
 package de.tu_darmstadt.veritas.scalaspl
 
-import com.oracle.webservices.internal.api.message.PropertySet.Property
 import de.tu_darmstadt.veritas.scalaspl.lang.ScalaSPLSpecification
 
 object AESpec extends ScalaSPLSpecification {
