@@ -2,6 +2,8 @@ package de.tu_darmstadt.veritas.scalaspl
 
 import de.tu_darmstadt.veritas.scalaspl.lang.ScalaSPLSpecification
 
+
+// specification of typed arithmetic expressions as given in Pierce, TAPL, Chapters 3 and 8
 object AESpec extends ScalaSPLSpecification {
 
   //simple Boolean and arithmetic expressions
@@ -41,6 +43,7 @@ object AESpec extends ScalaSPLSpecification {
   }
 
   //reduction semantics for simple Boolean and arithmetic terms
+  @ProgressProperty("Progress")
   def reduce(t: Term): OptTerm = t match {
     case Ifelse(True(), t2, t3) => someTerm(t2)
     case Ifelse(False(), t2, t3) => someTerm(t3)
@@ -111,17 +114,18 @@ object AESpec extends ScalaSPLSpecification {
     require(t1 :: Nat())
   } ensuring(Iszero(t1) :: B())
 
+
+  // steps for soundness proof (progress and preservation) for typed arithmetic expressions as given in Pierce, TAPL, Chapter 8
   @Property
   def Progress(t1: Term, T: Ty): Unit = {
     require(t1 :: T)
     require(!isValue(t1))
-  } ensuring exists( (t2: Term) => reduce(t1) == t2)
+  } ensuring exists( (t2: OptTerm) => reduce(t1) == t2)
 
   @Property
   def Preservation(t1: Term, T: Ty, t2: Term): Unit = {
     require(t1 :: T)
     require(reduce(t1) == someTerm(t2))
   } ensuring(t2 :: T)
-
 
 }

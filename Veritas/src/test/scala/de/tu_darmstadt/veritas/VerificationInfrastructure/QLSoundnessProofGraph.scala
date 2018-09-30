@@ -20,10 +20,10 @@ class QLSoundnessProofGraph(file: File) {
 
   def getCases(metaVar: MetaVar, goal: VeritasFormula): Seq[VeritasConstruct] = {
     val goalBody = specenq.getQuantifiedBody(goal)
-    val ivCases = specenq.getCases(metaVar, goalBody) map { ic =>
+    val ivCases = specenq.getCases(metaVar, goalBody) map { case (n, ic) =>
       specenq.assignCaseVariables(ic, goalBody)
     }
-    ivCases
+    ivCases.toSeq
   }
 
   def getIntroducedMetaVars(expression: VeritasConstruct): Seq[MetaVar] = {

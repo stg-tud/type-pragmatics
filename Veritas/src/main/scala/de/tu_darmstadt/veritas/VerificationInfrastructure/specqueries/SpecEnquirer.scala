@@ -47,7 +47,8 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
   def getArguments(functioncall: Defs): Seq[Defs]
 
   // for a variable of type closed ADT, extract the different cases (variable v is typed as in the given term)
-  def getCases(v: Defs, term: Defs): Seq[Defs]
+  // return map of ADT name + the corresponding term for the case
+  def getCases(v: Defs, term: Defs): Map[String, Defs]
 
   //from a named ADT case, extract the recursive arguments (may be empty if there are none)
   //assume unique constructors!

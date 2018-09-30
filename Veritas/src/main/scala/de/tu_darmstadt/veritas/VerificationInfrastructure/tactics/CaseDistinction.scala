@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
 
 
-case class CaseDistinction[Defs, Formulae <: Defs](cases: Seq[Seq[Formulae]], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formulae]], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -25,15 +25,15 @@ case class CaseDistinction[Defs, Formulae <: Defs](cases: Seq[Seq[Formulae]], sp
     // with regard to the remaining variables in the goal (no unwanted name clashes!)
 
     val case_subgoals: Seq[Formulae] =
-      cases map { c => {
+      (cases map { case (n, c) => {
         //simply add each goal to the premises
         val added_premises = c ++ prems
         //reassemble goal and attach name
-        val casename = "-case" + cases.indexOf(c)
+        val casename = "-case-" + n
         makeNamedGoal(makeForallQuantifyFreeVariables(
           makeImplication(added_premises, concs)), getFormulaName(goal) ++ casename)
       }
-      }
+      }).toSeq
 
     val propagatedInfo: Seq[PropagatableInfo] = obtainPropagatableInfo(obllabels)
 
@@ -87,8 +87,8 @@ case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs, spec
     val goalbody = getQuantifiedBody(goal)
     if (isApplicable(goal)) {
       //make sure that variable names of cases do not clash with variables names in goal
-      val dist_cases_defs_renamed = getCases(distvar, goalbody) map (c => assignCaseVariables(c, goalbody))
-      val dist_cases = dist_cases_defs_renamed map (dc => Seq(makeEquation(distvar, dc)))
+      val dist_cases_defs_renamed = getCases(distvar, goalbody) map { case (n, c) => (n, assignCaseVariables(c, goalbody)) }
+      val dist_cases = dist_cases_defs_renamed map {case (n, dc) => (n, Seq(makeEquation(distvar, dc))) }
       CaseDistinction[Defs, Formulae](dist_cases, spec, queryspec)(obl, obllabels, produce)
     } else
       Seq() //TODO throw an exception that explains why the tactic failed
@@ -115,7 +115,8 @@ case class EqualityCaseDistinction[Defs, Formulae <: Defs](lhs: Defs, rhs: Defs,
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
 
-    val dist_cases = Seq(Seq(makeEquation(lhs, rhs)), Seq(makeInequation(lhs, rhs)))
+    //TODO better names for equations?
+    val dist_cases = Map(("Eq-true" -> Seq(makeEquation(lhs, rhs))), ("Eq-false" -> Seq(makeInequation(lhs, rhs))))
     CaseDistinction[Defs, Formulae](dist_cases, spec, queryspec)(obl, obllabels, produce)
   }
 
@@ -141,7 +142,8 @@ case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Defs, spec: Defs
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
 
-    val dist_cases = Seq(Seq(makeTypingFunctionExpression(body)), Seq(makeNegation(body)))
+    //TODO better names for equations?
+    val dist_cases = Map(("Pred-True" -> Seq(makeTypingFunctionExpression(body))), ("Pred-False" -> Seq(makeNegation(body))))
     CaseDistinction[Defs, Formulae](dist_cases, spec, queryspec)(obl, obllabels, produce)
   }
 

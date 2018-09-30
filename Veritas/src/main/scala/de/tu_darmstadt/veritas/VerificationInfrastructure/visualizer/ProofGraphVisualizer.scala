@@ -32,7 +32,7 @@ trait ProofGraphVisualizer[Output, Spec, Goal] {
         // TODO: how should the subobligation be named?
         val obligationVisited = obligations.find(_._2.goal == subobl.goal).nonEmpty
         if (!obligationVisited)
-          collect("sub", subobl)
+          collect(subobl.problemName, subobl)
       }
     }
   }

@@ -24,9 +24,11 @@ trait GenProofStep[Spec, Goal] {
 trait GenObligation[Spec, Goal] {
   def spec: Spec
   def goal: Goal
+  def problemName: String
 }
 trait ObligationProducer[Spec, Goal, Obligation] {
   def newObligation(spec: Spec, goal: Goal): Obligation
+  def newObligation(spec: Spec, goal: Goal, name: String): Obligation
 //  def findOrCreateNewObligation(spec: Spec, goal: Goal): Obligation
 //  def findOrStoreNewObligation(name: String, spec: Spec, goal: Goal): Obligation
 }

@@ -59,7 +59,7 @@ class SQLSoundnessProofGraph(file: File) {
   // Case distinctions for Union, Intersection, Difference cases
   // construct the case predicates:
 
-  def makeSetCasePreds(fv1name: String, fv2name: String): Seq[Seq[TypingRuleJudgment]] = {
+  def makeSetCasePreds(fv1name: String, fv2name: String): Map[String, Seq[TypingRuleJudgment]] = {
     import FunctionDSL._
     import SymTreeDSL._
     import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
@@ -69,7 +69,9 @@ class SQLSoundnessProofGraph(file: File) {
     val case2pred: Seq[TypingRuleJudgment] = (~(Symbol(fv1name)) === 'tvalue (~'t1)) & (forall(~'t2) | (~(Symbol(fv2name)) ~= 'tvalue (~'t2)))
     val case3pred: Seq[TypingRuleJudgment] = Seq(forall(~'t1) | (~(Symbol(fv1name)) ~= 'tvalue (~'t1)))
 
-    Seq(case1pred, case2pred, case3pred)
+    Map(("Both-Tvalues" -> case1pred),
+      ("First-Tvalue-Second-not-Tvalue" -> case2pred),
+      ("First-not-Tvalue" -> case3pred))
   }
 
   def makeSetCaseDistinction(fv1name: String, fv2name: String): CaseDistinction[VeritasConstruct, VeritasFormula] =

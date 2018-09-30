@@ -127,10 +127,10 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
   }
 
 
-  class Obligation(val id: EntityId, val spec: Spec, val goal: Goal) extends GenObligation[Spec, Goal] with EntityObj {
+  class Obligation(val id: EntityId, val spec: Spec, val goal: Goal, val problemName: String) extends GenObligation[Spec, Goal] with EntityObj {
     def this(id: EntityId, entity: Entity) =
       this(id, safeRead[Spec](entity.getLink(lOblSpec), pSpecContent),
-        safeRead[Goal](entity, pOblGoal))
+        safeRead[Goal](entity, pOblGoal), safeRead[String](entity, pProblemName))
 
 
     def this(id: EntityId, txn: StoreTransaction) = this(id, txn.getEntity(id))
@@ -154,12 +154,16 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
 
   object obligationProducer extends ObligationProducer[Spec, Goal, Obligation] {
     override def newObligation(spec: Spec, goal: Goal): Obligation =
-      transaction[Obligation](txn => newObligationST(txn, spec, goal))
+      newObligation(spec, goal, "GeneratedObligation")
 
-    def newObligationST(txn: StoreTransaction, specObj: Spec, goalObj: Goal): Obligation = {
+    override def newObligation(spec: Spec, goal: Goal, name: String): Obligation =
+      transaction[Obligation](txn => newObligationST(txn, spec, goal, name))
+
+    def newObligationST(txn: StoreTransaction, specObj: Spec, goalObj: Goal, problemName: String): Obligation = {
       // TODO maybe improve performance through index Spec->Entity, but maybe Xodus does that already or this is not performance-critical anyways
       val ordered_specObj = makeOrdered(specObj)
       val ordered_goalObj = makeOrdered(goalObj)
+      val ordered_problemName = makeOrdered(problemName)
 
       val existing = txn.find(TSpec, pSpecContent, ordered_specObj).asScala
       val spec = existing.headOption.getOrElse {
@@ -168,7 +172,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
         spec
       }
 
-      // find exisiting obl or create a new one
+      // find existing obl or create a new one
       val existingObls = txn.find(TObligation, pOblGoal, ordered_goalObj).asScala
       val withSpecLinked = existingObls.find { entity =>
         val spec = safeRead[Spec](entity.getLink(lOblSpec), pSpecContent)
@@ -177,10 +181,11 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
       val obl = withSpecLinked.headOption.getOrElse {
         val obl = txn.newEntity(TObligation)
         obl.setProperty(pOblGoal, ordered_goalObj)
+        obl.setProperty(pProblemName, ordered_problemName)
         obl.setLink(lOblSpec, spec)
         obl
       }
-      new Obligation(obl.getId, specObj, goalObj)
+      new Obligation(obl.getId, specObj, goalObj, problemName)
     }
   }
 
@@ -460,6 +465,7 @@ object ProofGraphXodus {
 
   val TObligation = "OBLIGATION"
   val pOblGoal = "goal"
+  val pProblemName = "problemName"
   val lOblSpec = "spec"
   val lOblAppliedStep = "appliedStep"
   val lOblRequiringEdges = "requiringEdges"

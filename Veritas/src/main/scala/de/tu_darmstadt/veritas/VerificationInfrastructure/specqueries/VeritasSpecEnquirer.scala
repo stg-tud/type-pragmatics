@@ -209,18 +209,19 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   }
 
   // for a variable of type closed ADT, extract the different cases (variable v is typed as in the given term)
-  override def getCases(v: VeritasConstruct, term: VeritasConstruct): Seq[VeritasConstruct] = v match {
+  override def getCases(v: VeritasConstruct, term: VeritasConstruct): Map[String, VeritasConstruct] = v match {
     case mv@MetaVar(_) => {
       term match {
         case f: VeritasFormula => {
           val varmap = getAllVarTypes(f)
           val vartype = varmap(mv) //this could fail if the given variable does not appear in the given term!
-          tdcollector.dataTypes(vartype.name)._2
+          val constructors = tdcollector.dataTypes(vartype.name)._2
+          (for (c <- constructors) yield (c.name, c)).toMap
         }
         case _ => sys.error("VeritasSpecEnquirer currently not able to infer variable types from VeritasFormula")
       }
     }
-    case _ => Seq() //alternatively, throw error or warning here?
+    case _ => Map() //alternatively, throw error or warning here?
   }
 
   //from a named ADT case, extract the recursive arguments (may be empty if there are none)
