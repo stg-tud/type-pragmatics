@@ -18,13 +18,13 @@ object AESpec extends ScalaSPLSpecification {
 
   def isNV(t: Term): Boolean = t match {
     case Zero() => true
-    case Succ(nv) => isNV(t)
+    case Succ(nv) => isNV(nv)
     case _ => false
   }
 
   def isValue(t: Term): Boolean = t match {
     case True() => true
-    case False() => false
+    case False() => true
     case t1 => isNV(t1)
   }
 
@@ -120,7 +120,7 @@ object AESpec extends ScalaSPLSpecification {
   def Progress(t1: Term, T: Ty): Unit = {
     require(t1 :: T)
     require(!isValue(t1))
-  } ensuring exists( (t2: OptTerm) => reduce(t1) == t2)
+  } ensuring exists( (t2: Term) => reduce(t1) == someTerm(t2))
 
   @Property
   def Preservation(t1: Term, T: Ty, t2: Term): Unit = {
