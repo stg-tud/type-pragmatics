@@ -35,7 +35,7 @@ class SQLSoundnessProofGraph(file: File) {
     indtac.enumerateCases(subobls)
   }
 
-  // mutual function: apply Solve tactic to all sub-obligations of a given obligation and return the resulting proof steps
+  // mutable function: apply Solve tactic to all sub-obligations of a given obligation and return the resulting proof steps
   def applySolveToAllSub(obl: g.Obligation): Seq[g.ProofStep] = {
     g.appliedStep(obl) match {
       case Some(ps) => {
