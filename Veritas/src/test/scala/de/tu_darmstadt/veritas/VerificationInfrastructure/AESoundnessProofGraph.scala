@@ -73,16 +73,27 @@ class AESoundnessProofGraph(storefile: File) {
 
   val simpleVampire4_1 = new TPTPVampireVerifier(5)
   val simpleVampire4_1_20 = new TPTPVampireVerifier(20)
+  val simpleVampire4_1_120 = new TPTPVampireVerifier(120)
 
-  val stepresults = for (ps <- steps) yield g.verifyProofStep(ps, simpleVampire4_1)
+  val trivial_obls = Seq(rootobl_edge_map("ProgressTrue"), rootobl_edge_map("ProgressFalse"), rootobl_edge_map("ProgressZero")) map (_._1)
+  val stepresultstrivial = for (obl <- trivial_obls) yield {
+    val step = g.appliedStep(obl).get
+    g.verifyProofStep(step, simpleVampire4_1)
+  }
+
+  val succ_obl = rootobl_edge_map("ProgressSucc")._1
+  val succstep = g.appliedStep(succ_obl).get
+  val stepresultsucc = g.verifyProofStep(succstep, simpleVampire4_1_120, Some("AE-Inconclusive/Succ"))
+
+  val stepresults = stepresultstrivial :+ stepresultsucc
 
   // print some results for debugging
-//  for (sr <- stepresults) sr.status match {
-//    case Finished(Proved(ATPResultDetails(_,_, Some(proof), Some(lemmas),_)), _) =>
-//      println("Proof: " +  proof)
-//      println("Used lemmas: " + lemmas)
-//    case s => println(s)
-//  }
+  for (sr <- stepresults) sr.status match {
+    case Finished(Proved(ATPResultDetails(_,_, Some(proof), Some(lemmas),_)), _) =>
+      println("Proof: " +  proof)
+      println("Used lemmas: " + lemmas)
+    case s => println(s)
+  }
 
 
 
