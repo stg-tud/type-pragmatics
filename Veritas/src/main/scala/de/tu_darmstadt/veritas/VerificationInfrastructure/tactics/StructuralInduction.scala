@@ -83,7 +83,7 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
       }
 
       //recursive arguments of named case terms have to become fixed variables
-      val fixed_Vars: Seq[Seq[Defs]] = (iv_cases map (named_ic => getRecArgsADT(named_ic._2))).toSeq
+      val fixed_Vars: Map[String, Seq[Defs]] = iv_cases map { case (n, named_ic) => (n, getRecArgsADT(named_ic)) }
 
 
       // form induction subgoals (add equations as premises to the original goal)
@@ -94,21 +94,23 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
           val added_premises = makeEquation(inductionvar, named_ic) +: prems
           //reassemble goal and attach name
           val casename = getFormulaName(goal) + n
-          casename -> makeNamedGoal(
+          n -> makeNamedGoal(
             makeForallQuantifyFreeVariables(makeImplication(added_premises, concs),
               Seq()), casename)
         }
         }
 
+      val zipped_fv_ihs: Map[String, (Seq[Defs], Formulae)] =
+        (for (k <- fixed_Vars.keys) yield {k -> (fixed_Vars(k), induction_subgoals(k))}).toMap
 
       // create edge labels: induction hypotheses (all variables universally quantified) + fixed variables!
       val propagatedInfo: Seq[PropagatableInfo] = obtainPropagatableInfo(obllabels)
 
-      val final_ihs: Map[String, StructInductCase[Defs, Formulae]] =
-        (for ((fvs, (n, ic)) <- fixed_Vars zip induction_subgoals) yield {
+      val finalinductioncases: Map[String, (Formulae, StructInductCase[Defs, Formulae])] =
+        (for ((n, (fvs, ic)) <- zipped_fv_ihs) yield {
           val casename = getFormulaName(ic)
           if (fvs.isEmpty)
-            n -> StructInductCase[Defs, Formulae](casename, Seq(), Seq(), propagatedInfo)
+            casename -> (ic, StructInductCase[Defs, Formulae](casename, Seq(), Seq(), propagatedInfo))
           else {
             val added_premises_ih = for (fv <- fvs) yield makeEquation(inductionvar, fv)
             val ihs = for (ihprem <- added_premises_ih) yield {
@@ -116,11 +118,9 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
               InductionHypothesis(makeNamedAxiom(makeForall(getUniversallyQuantifiedVars(goal).toSeq,
                 makeImplication(ihprem +: prems, concs)), ihname))
             }
-            n -> StructInductCase[Defs, Formulae](casename, fvs map (fv => FixedVar(fv)), ihs, propagatedInfo)
+            casename -> (ic, StructInductCase[Defs, Formulae](casename, fvs map (fv => FixedVar(fv)), ihs, propagatedInfo))
           }
         }).toMap
-
-      val finalinductioncases: Map[String, (Formulae, StructInductCase[Defs, Formulae])] = for ((n, f) <- induction_subgoals) yield n -> (f, final_ihs(n))
 
       //modify the proof graph: create new obligations, return pairs of obligations and edges
       for ((n, (sobl, edge)) <- finalinductioncases) yield {
