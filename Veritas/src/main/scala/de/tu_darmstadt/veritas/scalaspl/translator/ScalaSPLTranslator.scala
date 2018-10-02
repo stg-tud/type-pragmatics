@@ -57,14 +57,14 @@ class ScalaSPLTranslator(dskAnnotationsToExclude: Seq[String] = Seq("Property"))
     val goals = collectGoals(stats)
     val partialFunctions = collectPartialFunctions(stats).diff(axioms ++ lemmas ++ goals)
     val functions = collectFunctions(stats).diff(axioms ++ lemmas ++ goals ++ partialFunctions)
-    val translatedPartialFunctions = partialFunctions.map { functionTranslator.translate }
-    val translatedFunctions = functions.map { functionTranslator.translate }
+    val translatedPartialFunctions = partialFunctions.map { d => PartialFunctions(Seq(functionTranslator.translate(d))) }
+    val translatedFunctions = functions.map { d => Functions(Seq(functionTranslator.translate(d))) }
     val translatedAxioms = axioms.map { ensuringFunctionTranslator.translate }
     val translatedLemmas = lemmas.map { ensuringFunctionTranslator.translate }
     val translatedGoals = goals.map { ensuringFunctionTranslator.translate }
     translatedDataTypes.toSeq ++
-      Seq(PartialFunctions(translatedPartialFunctions)) ++
-      Seq(Functions(translatedFunctions)) ++
+      translatedPartialFunctions ++
+      translatedFunctions ++
       Seq(Axioms(translatedAxioms)) ++
       Seq(Lemmas(translatedLemmas, None)) ++
       Seq(Goals(translatedGoals, None))
