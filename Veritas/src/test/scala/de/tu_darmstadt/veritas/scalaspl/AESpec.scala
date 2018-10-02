@@ -75,6 +75,7 @@ object AESpec extends ScalaSPLSpecification {
         someTerm(Iszero(getTerm(ot2)))
       else
         noTerm()
+    case _ => noTerm()
   }
 
   //types (Bool and Nat)
