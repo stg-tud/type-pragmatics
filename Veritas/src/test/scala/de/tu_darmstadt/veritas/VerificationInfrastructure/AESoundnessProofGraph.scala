@@ -3,17 +3,24 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{Solve, StructuralInduction}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{CaseDistinction, Solve, StructuralInduction}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
+import de.tu_darmstadt.veritas.inputdsl.{FunctionDSL, SymTreeDSL}
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
+import de.tu_darmstadt.veritas.scalaspl.typechecker.FunctionJudgmentNode
 
 
 class AESoundnessProofGraph(storefile: File) {
+
+  import FunctionDSL._
+  import SymTreeDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
+
 
   val sourcefile = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/AESpec.scala")
   val fullAESpec: Module = new ScalaSPLTranslator().translate(sourcefile)
@@ -99,6 +106,15 @@ class AESoundnessProofGraph(storefile: File) {
 
   //retrieve Ifelse-case
   val ifcase_obl = rootobl_edge_map("ProgressIfelse")._1
+
+  //code below does not compile like this, work in progress
+  //val ifcase1pred: Seq[TypingJudgment] = ast.FunctionExpJudgment(~'vTerm0 === 'true)
+
+  //val ifcasetactic = CaseDistinction[VeritasConstruct, VeritasFormula](Map(
+  //  "Truecase" -> Seq[TypingJudgment](~'vTerm0 === 'true),
+  //  "Falsecase" -> Seq[TypingJudgment](~'vTerm0 === 'false),
+  //  "Othercase" -> Seq[TypingJudgment]((~'vTerm0 ~= 'true) & ('vTerm0 ~= 'false))), fullAESpec, specenq)
+  //val ifcasedistinction = g.applyTactic(ifcase_obl, ifcasetactic)
 
   def checkConsistency(): Unit = {
     val vampireProver = VampireTPTP("4.1", 120)
