@@ -29,7 +29,6 @@ trait ProofGraphVisualizer[Output, Spec, Goal] {
       val edges = graph.requiredObls(ps.get).toSeq
       fromProofstep += (ps.get -> edges)
       for ((subobl, edgeLabel) <- edges) {
-        // TODO: how should the subobligation be named?
         val obligationVisited = obligations.find(_._2.goal == subobl.goal).nonEmpty
         if (!obligationVisited)
           collect(subobl.problemName, subobl)
