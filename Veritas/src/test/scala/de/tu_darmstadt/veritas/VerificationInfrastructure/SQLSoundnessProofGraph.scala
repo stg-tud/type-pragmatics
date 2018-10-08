@@ -50,7 +50,7 @@ class SQLSoundnessProofGraph(file: File) {
   val rootobl = g.findObligation("SQL progress").get
   val rootobl_edge_map = applyInductionGetCases(rootobl, MetaVar("q"))
 
-  val rootcasenames = rootobl_edge_map.keys.toSeq.sortWith(_ < _)
+  val rootcasenames = rootobl_edge_map.keys.toSeq.sortWith(_ > _)
 
   //apply simply Solve-tactic to t-value base case
   val tvaluecaseobl = rootobl_edge_map(rootcasenames(0))._1
