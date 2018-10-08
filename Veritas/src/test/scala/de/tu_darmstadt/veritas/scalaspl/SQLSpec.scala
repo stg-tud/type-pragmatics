@@ -166,6 +166,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   //projects a raw table to its first column
   //returns a raw table with exactly one column or tempty
+  @Dynamic
   def projectFirstRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), projectFirstRaw(rt1))
@@ -174,6 +175,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   //drops the first column of a raw table
   //returns a raw table with one column less than before or tempty
+  @Dynamic
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
@@ -212,6 +214,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //definition: union removes duplicate rows
   //(but only between the two tables, not within a table!)
   //preserves row order of the two original raw tables
+  @Dynamic
   def rawUnion(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), rt2r) => rt2r
     case (rt1r, tempty()) => rt1r
@@ -223,6 +226,7 @@ object SQLSpec extends ScalaSPLSpecification {
         urt1rt2
   }
 
+  @Dynamic
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (_, tempty()) => tempty()
@@ -238,6 +242,7 @@ object SQLSpec extends ScalaSPLSpecification {
       else irt1rt2
   }
 
+  @Dynamic
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (rt1r, tempty()) => rt1r
@@ -553,6 +558,7 @@ object SQLSpec extends ScalaSPLSpecification {
     case someFType(a) => a
   }
 
+  @Static
   def findColType(n: Name, tt: TType): OptFType = (n, tt) match {
     case (an, ttempty()) => noFType()
     case (an, ttcons(a, ft, ttr)) =>
@@ -562,6 +568,7 @@ object SQLSpec extends ScalaSPLSpecification {
         findColType(an, ttr)
   }
 
+  @Static
   def projectTypeAttrL(attrl: AttrL, tt: TType): OptTType = (attrl, tt) match {
     case (aempty(), tt1) => someTType(ttempty())
     case (acons(a, alr), tt1) =>
@@ -573,6 +580,7 @@ object SQLSpec extends ScalaSPLSpecification {
         noTType()
   }
 
+  @Static
   def projectType(sel: Select, tt: TType): OptTType = (sel, tt) match {
     case (all(), tt1) => someTType(tt1)
     case (list(al), tt1) => projectTypeAttrL(al, tt1)
