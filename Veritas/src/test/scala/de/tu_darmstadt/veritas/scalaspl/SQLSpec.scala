@@ -821,19 +821,23 @@ object SQLSpec extends ScalaSPLSpecification {
     require(onlyNonemptyRows(rt))
   } ensuring onlyRowsWithDecrementedLength(dropFirstColRaw(rt), rt)
 
+  @Property
   def findColYieldsSingleColumn(a: Name, al: AttrL, rt: RawTable): Unit = {
     require(isSomeRawTable(findCol(a, al, rt)))
     require(onlyRowsMatchingAttrLength(rt, al))
   } ensuring onlyRowsWithSingleColumn(getRawTable(findCol(a, al, rt)))
 
+  @Property
   def projectEmptyColPreservesRowCount(rt: RawTable): Unit = {
   } ensuring rawTablesSameLength(rt, projectEmptyCol(rt))
 
+  @Property
   def projectColsPreservesRowCount(al1: AttrL, al2: AttrL, rt: RawTable): Unit = {
     require(isSomeRawTable(projectCols(al1, al2, rt)))
     require(onlyRowsMatchingAttrLength(rt, al2))
   } ensuring rawTablesSameLength(rt, getRawTable(projectCols(al1, al2, rt)))
 
+  @Property
   def projectColsWelltypedWithSelectType(al: AttrL, t: Table, tt: TType): Unit = {
     require(welltypedtable(tt, t))
     require(isSomeTType(projectTypeAttrL(al, tt)))
@@ -841,6 +845,7 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedRawtable(getTType(projectTypeAttrL(al, tt)),
                                getRawTable(projectCols(al, getAttrL(t), getRaw(t))))
 
+  @Property
   def projectTableWelltypedWithSelectType(sel: Select, t: Table, tt: TType): Unit = {
     require(welltypedtable(tt, t))
     require(isSomeTType(projectType(sel, tt)))
