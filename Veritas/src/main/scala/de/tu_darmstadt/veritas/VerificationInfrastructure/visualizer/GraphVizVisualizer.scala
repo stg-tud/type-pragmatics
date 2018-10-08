@@ -21,7 +21,7 @@ class GraphVizVisualizer[Spec, Goal](override val graph: ProofGraph[Spec, Goal])
   }
 
   override def encodeObligation(obl: graph.Obligation): Unit = {
-    val oblColor = colorObl(obl)
+    val oblColor = if (fromObligation.contains(obl)) colorObl(obl) else "grey"
     val oblVisual = cleanLabel(labelObligation(obl))
     val style = Seq(oblShape, s"color=$oblColor", s"label=$oblVisual")//, "style=filled")
     encodeNode(oblPrefix + normalizeHashCode(obl.hashCode).toString, style)

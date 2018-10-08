@@ -56,7 +56,8 @@ object AEDefs {
       ('reduce('iszero('t1)) := ((let ('ot2) := 'reduce('ot2)) in
         (iff ('isSomeTerm('ot2))
           th 'someTerm('iszero('getTerm('ot2)))
-          els 'noTerm)))
+          els 'noTerm))) |
+      ('reduce('t) := 'noTerm)
 
   //types (Bool and Nat)
   val types = data('Ty) of 'B | 'Nat
@@ -65,11 +66,11 @@ object AEDefs {
   //typing rules
   val Ttrue = axiom(
     ===>("T-true")(
-    'true :: ~'B))
+    'true :: 'B))
 
   val Tfalse = axiom(
     ===>("T-false")(
-      'false :: ~'B
+      'false :: 'B
     ))
 
   val Tif = axiom(
@@ -102,14 +103,14 @@ object AEDefs {
     ((~'t1 :: ~'T) &
       (!('isValue(~'t1)))
       ).===>("Progress")(
-      (exists(~'t1) | ('reduce(~'t1) === ~'t2)
+      exists(~'t2) | ('reduce(~'t1) === 'someTerm(~'t2)
     )))
 
   val preservation = goal(
     ((~'t1 :: ~'T) &
       ('reduce('t1) === 'someTerm('t2))
       ).===>("Preservation")(
-      (~'t2 :: ~'T)
+      ~'t2 :: ~'T
     ))
 
 
