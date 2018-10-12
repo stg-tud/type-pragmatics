@@ -711,7 +711,7 @@ object SQLSpec extends ScalaSPLSpecification {
     require(storeContextConsistent(ts, ttc))
     require(lookupContext(ref, ttc) == someTType(tt))
     require(lookupStore(ref, ts) == someTable(t))
-  } ensuring welltypedtable(tt, t)
+  } ensuring welltypedtable(tt, t) // TODO: may this be a preservation lemma?
 
   @Property
   def filterPreservesType(tt: TType, t: Table, p: Pred): Unit = {

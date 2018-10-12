@@ -22,7 +22,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     Problem -> Problem.All))
 
   //for inferring types of functions and datatypes
-  private val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
+  protected val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
 
   //when inferring meta variables of a typing rule, prepare the rule so that meta vars can be inferred
   //requires removing any FunctionExpVar constructs and translating typing judgments to functions/predicates

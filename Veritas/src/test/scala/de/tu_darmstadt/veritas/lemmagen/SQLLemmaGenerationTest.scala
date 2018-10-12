@@ -2,6 +2,8 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import java.io.{File, PrintWriter}
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.LemmaGenSpecEnquirer
+import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
@@ -13,6 +15,8 @@ class SQLLemmaGenerationTest extends FunSuite {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
     val module = new ScalaSPLTranslator().translate(file)
     val dsk = DomainSpecificKnowledgeBuilder().build(file)
+
+    val enquirer = new LemmaGenSpecEnquirer(module, dsk)
 
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
 
@@ -42,16 +46,22 @@ class SQLLemmaGenerationTest extends FunSuite {
     outputPrettyPrinter.flush()
 
     val lookupContextDef = dsk.staticFunctions.find(_.signature.name == "lookupContext").get
-    val argTypes = lookupContextDef.signature.in.head
 
-    def getPredicatesInvolving(name: String): Set[FunctionDef] = {
-      dsk.predicates.filter(f => f.signature.in.exists(_.name == name))
-    }
-
-    for(argtype <- lookupContextDef.signature.in) {
+    for(argtype <- Seq("Table", "TTContext", "TStore", "Name").map(SortRef(_))) {
       println(s"predicates involving $argtype:")
-      println(getPredicatesInvolving(argtype.name).map(_.signature.name))
+      println(enquirer.retrievePredicates(argtype).map(_.signature.name))
+      println(s"producers of $argtype:")
+      println(enquirer.retrieveProducers(argtype).map(_.signature.name))
+      println(s"transformers of $argtype:")
+      println(enquirer.retrieveTransformers(argtype).map(_.signature.name))
+      println()
     }
-    outputPrettyPrinter.flush()
+
+    // print producers of failable types
+    for(failable <- dsk.failableTypes) {
+      val ref = SortRef(failable.name)
+      println(s"producers of ${failable.name}:")
+      println(enquirer.retrieveProducers(ref).map(_.signature.name))
+    }
   }
 }
