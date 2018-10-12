@@ -40,5 +40,18 @@ class SQLLemmaGenerationTest extends FunSuite {
       outputPrettyPrinter.newline()
     }
     outputPrettyPrinter.flush()
+
+    val lookupContextDef = dsk.staticFunctions.find(_.signature.name == "lookupContext").get
+    val argTypes = lookupContextDef.signature.in.head
+
+    def getPredicatesInvolving(name: String): Set[FunctionDef] = {
+      dsk.predicates.filter(f => f.signature.in.exists(_.name == name))
+    }
+
+    for(argtype <- lookupContextDef.signature.in) {
+      println(s"predicates involving $argtype:")
+      println(getPredicatesInvolving(argtype.name).map(_.signature.name))
+    }
+    outputPrettyPrinter.flush()
   }
 }
