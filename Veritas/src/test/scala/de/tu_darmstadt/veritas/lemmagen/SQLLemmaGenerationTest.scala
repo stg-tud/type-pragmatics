@@ -10,15 +10,11 @@ import org.scalatest.FunSuite
 
 class SQLLemmaGenerationTest extends FunSuite {
   test("Read @Static and @Dynamic annotations from SQLSpec") {
-    val translator = new ScalaSPLTranslator()
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
-
-    val module = translator.translate(file)
-    val builder = DomainSpecificKnowledgeBuilder()
+    val module = new ScalaSPLTranslator().translate(file)
+    val dsk = DomainSpecificKnowledgeBuilder().build(file)
 
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-
-    val dsk = builder.build(file)
 
     def prettyPrintFunctions(funcs: Set[FunctionDef]): Unit = {
       outputPrettyPrinter.indent()
@@ -33,5 +29,16 @@ class SQLLemmaGenerationTest extends FunSuite {
     println()
     println(s"${dsk.dynamicFunctions.size} dynamic functions:")
     prettyPrintFunctions(dsk.dynamicFunctions)
+    println()
+    println(s"${dsk.predicates.size} predicates:")
+    prettyPrintFunctions(dsk.predicates)
+    println()
+    println(s"${dsk.failableTypes.size} failable types:")
+    println()
+    for(ft <- dsk.failableTypes) {
+      ft.prettyPrint(outputPrettyPrinter)
+      outputPrettyPrinter.newline()
+    }
+    outputPrettyPrinter.flush()
   }
 }

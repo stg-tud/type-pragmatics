@@ -137,17 +137,20 @@ object SQLSpec extends ScalaSPLSpecification {
     case (_, _) => false
   }
 
+  @Predicate
   def welltypedRow(tType: TType, row: Row): Boolean = (tType, row) match {
     case (ttempty(), rempty()) => true
     case (ttcons(_, ft, tt), rcons(v, r)) => fieldType(v) == ft && welltypedRow(tt, r)
     case (_, _) => false
   }
 
+  @Predicate
   def welltypedRawtable(tt: TType, rt: RawTable): Boolean = (tt, rt) match {
     case (_, tempty()) => true
     case (tt1, tcons(r, t1)) => welltypedRow(tt1, r) && welltypedRawtable(tt1, t1)
   }
 
+  @Predicate
   def welltypedtable(tt: TType, t: Table): Boolean = (tt, t) match {
     case (tt1, table(al, t1)) => matchingAttrL(tt1, al) && welltypedRawtable(tt1, t1)
   }
@@ -182,6 +185,7 @@ object SQLSpec extends ScalaSPLSpecification {
     case tcons(rcons(_, r), rt1) => tcons(r, dropFirstColRaw(rt1))
   }
 
+  @FailableType
   sealed trait OptRawTable
 
   case class noRawTable() extends OptRawTable
@@ -204,6 +208,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //assumes that both tables have the same row count!
   //include empty brackets after tempty such that the parser does not report an error
   //is treated exactly like tempty for fof-generation
+  @Dynamic
   def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
@@ -257,6 +262,7 @@ object SQLSpec extends ScalaSPLSpecification {
       else drt1rt2
   }
 
+  @FailableType
   sealed trait OptTable
 
   case class noTable() extends OptTable
@@ -280,6 +286,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   case class bindStore(n: Name, t: Table, rst: TStore) extends TStore
 
+  @Dynamic
   def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
     case (_, emptyStore()) => noTable()
     case (n1, bindStore(m, t, tsr)) =>
@@ -295,6 +302,7 @@ object SQLSpec extends ScalaSPLSpecification {
   case class bindContext(n: Name, tt: TType, ttr: TTContext) extends TTContext
 
 
+  @FailableType
   sealed trait OptTType
 
   case class noTType() extends OptTType
@@ -311,6 +319,7 @@ object SQLSpec extends ScalaSPLSpecification {
     case someTType(tt) => tt
   }
 
+  @Static
   def lookupContext(n: Name, ttc: TTContext): OptTType = (n, ttc) match {
     case (_, emptyContext()) => noTType()
     case (tn, bindContext(tm, tt, ttcr)) =>
@@ -370,6 +379,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
 
   //functions for semantics of SQL
+  @FailableType
   sealed trait OptQuery
 
   case class noQuery() extends OptQuery
@@ -386,6 +396,7 @@ object SQLSpec extends ScalaSPLSpecification {
     case someQuery(q) => q
   }
 
+  @Dynamic
   def findCol(n: Name, attrL: AttrL, rt: RawTable): OptRawTable = (n, attrL, rt) match {
     case (a, aempty(), _) => noRawTable()
     case (a, acons(a2, al), rtr) =>
@@ -397,12 +408,14 @@ object SQLSpec extends ScalaSPLSpecification {
 
   // for projection base case: projecting on an empty attribute list must yield a
   // table with as many empty rows as the rowcount of the given table
+  @Dynamic
   def projectEmptyCol(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(_, t) => tcons(rempty(), projectEmptyCol(t))
   }
 
   // arguments: select-list table-list table-rows
+  @Dynamic
   def projectCols(al1: AttrL, al2: AttrL, rt: RawTable): OptRawTable = (al1, al2, rt) match {
     case (aempty(), _, rtr) => someRawTable(projectEmptyCol(rtr))
     case (acons(a, alr), al, rtr) =>
@@ -414,6 +427,7 @@ object SQLSpec extends ScalaSPLSpecification {
         noRawTable()
   }
 
+  @Dynamic
   def projectTable(s: Select, t: Table): OptTable = (s, t) match {
     case (all(), table(al, rt)) => someTable(table(al, rt))
     case (list(alr), table(al, rt)) =>
@@ -440,6 +454,7 @@ object SQLSpec extends ScalaSPLSpecification {
     case someVal(v) => v
   }
 
+  @Dynamic
   def evalExpRow(e: Exp, attrL: AttrL, row: Row): OptVal = (e, attrL, row) match {
     case (constant(v), _, _) => someVal(v)
     case (lookup(a), acons(a2, al), rcons(v, r)) =>
@@ -452,6 +467,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   // returns true iff predicate succeeds on row
   // returns false if predicate evaluates to false or if predicate evaluation fails
+  @Dynamic
   def filterSingleRow(p: Pred, attrL: AttrL, row: Row): Boolean = (p, attrL, row) match {
     case (ptrue(), _, _) => true
     case (and(p1, p2), al, r) => filterSingleRow(p1, al, r) && filterSingleRow(p2, al, r)
@@ -471,6 +487,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   // filter rows that satisfy pred
+  @Dynamic
   def filterRows(rt: RawTable, attrL: AttrL, pred: Pred): RawTable = (rt, attrL, pred) match {
     case (tempty(), _, _) => tempty()
     case (tcons(r, rtr), al, p) =>
@@ -481,10 +498,12 @@ object SQLSpec extends ScalaSPLSpecification {
         rts
   }
 
+  @Dynamic
   def filterTable(t: Table, pred: Pred): Table = (t, pred) match {
     case (table(al, rt), p) => table(al, filterRows(rt, al, p))
   }
 
+  @Dynamic
   def reduce(query: Query, tst: TStore): OptQuery = (query, tst) match {
     case (tvalue(_), _) => noQuery()
     case (selectFromWhere(sel, name, pred), ts) =>
@@ -586,6 +605,7 @@ object SQLSpec extends ScalaSPLSpecification {
     case (list(al), tt1) => projectTypeAttrL(al, tt1)
   }
 
+  @Static
   def typeOfExp(e: Exp, tt: TType): OptFType = (e, tt) match {
     case (constant(fv), tt1) => someFType(fieldType(fv))
     case (lookup(a), ttempty()) => noFType()
@@ -663,6 +683,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // determines whether a given TTContext is consistent with a given TStore
   // and whether the table in the store is well-typed with regard to the table type in the context
   // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
+  @Predicate
   def storeContextConsistent(ts: TStore, ttc: TTContext): Boolean = (ts, ttc) match {
     case (emptyStore(), emptyContext()) => true
     case (bindStore(tn1, t, tsr), bindContext(tn2, tt, ttcr)) =>

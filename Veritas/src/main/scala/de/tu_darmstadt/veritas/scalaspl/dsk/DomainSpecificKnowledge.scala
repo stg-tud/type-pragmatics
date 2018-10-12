@@ -11,6 +11,7 @@ trait DomainSpecificKnowledge {
 
   def staticFunctions: Set[FunctionDef]
   def dynamicFunctions: Set[FunctionDef]
+  def predicates: Set[FunctionDef]
 
   def lookupByFunName[T](mp: Map[FunctionDef, T], funname: String): Iterable[T] = {
     val allkeys: Iterable[FunctionDef] = mp.keys.filter { fd: FunctionDef => fd match {
