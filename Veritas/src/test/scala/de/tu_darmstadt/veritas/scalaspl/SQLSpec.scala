@@ -43,10 +43,6 @@ object SQLSpec extends ScalaSPLSpecification {
 
   case class ttcons(n: Name, ft: FType, tt: TType) extends TType
 
-  def getFirstName(tt: TType): Name = tt match {
-    case ttcons(n, _, _) => n
-  }
-
   def appendTTypes(tt1: TType, tt2: TType): TType = (tt1, tt2) match {
     case (ttempty(), tt) => tt
     case (ttcons(name, ft, tttail1), tt) => ttcons(name, ft, appendTTypes(tttail1, tt))
