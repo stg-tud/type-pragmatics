@@ -53,7 +53,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
         collectRecursive(fn)
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
-      preservationProperties ++= collectLinkingAnnotation(fn, "PreservationPoperty")(collect)
+      preservationProperties ++= collectLinkingAnnotation(fn, "PreservationProperty")(collect)
     case tr: Defn.Trait =>
       if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
         failableTypes += tr
