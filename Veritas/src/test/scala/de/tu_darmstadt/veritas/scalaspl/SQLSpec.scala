@@ -43,10 +43,6 @@ object SQLSpec extends ScalaSPLSpecification {
 
   case class ttcons(n: Name, ft: FType, tt: TType) extends TType
 
-  def getFirstName(tt: TType): Name = tt match {
-    case ttcons(n, _, _) => n
-  }
-
   def appendTTypes(tt1: TType, tt2: TType): TType = (tt1, tt2) match {
     case (ttempty(), tt) => tt
     case (ttcons(name, ft, tttail1), tt) => ttcons(name, ft, appendTTypes(tttail1, tt))
@@ -170,6 +166,8 @@ object SQLSpec extends ScalaSPLSpecification {
   //projects a raw table to its first column
   //returns a raw table with exactly one column or tempty
   @Dynamic
+  @PreservationProperty("projectFirstRawPreservesWelltypedRaw")
+  // TODO: maybe also projectFirstRawPreservesRowCount?
   def projectFirstRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), projectFirstRaw(rt1))
@@ -179,6 +177,8 @@ object SQLSpec extends ScalaSPLSpecification {
   //drops the first column of a raw table
   //returns a raw table with one column less than before or tempty
   @Dynamic
+  @PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
+  // TODO: maybe also dropFirstColRawPreservesRowCount?
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
@@ -209,7 +209,9 @@ object SQLSpec extends ScalaSPLSpecification {
   //include empty brackets after tempty such that the parser does not report an error
   //is treated exactly like tempty for fof-generation
   @Dynamic
-  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
+  @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
+  // TODO: Maybe also attachColToFrontRawPreservesRowCount?
+ def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
     case (_, _) => tcons(rempty(), tempty())
@@ -220,6 +222,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //(but only between the two tables, not within a table!)
   //preserves row order of the two original raw tables
   @Dynamic
+  @PreservationProperty("rawUnionPreservesWellTypedRaw")
   def rawUnion(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), rt2r) => rt2r
     case (rt1r, tempty()) => rt1r
@@ -232,6 +235,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @PreservationProperty("rawIntersectionPreservesWellTypedRaw")
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (_, tempty()) => tempty()
@@ -248,6 +252,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @PreservationProperty("rawDifferencePreservesWellTypedRaw")
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (rt1r, tempty()) => rt1r
@@ -287,6 +292,8 @@ object SQLSpec extends ScalaSPLSpecification {
   case class bindStore(n: Name, t: Table, rst: TStore) extends TStore
 
   @Dynamic
+  @ProgressProperty("successfulLookup")
+  @PreservationProperty("welltypedLookup")
   def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
     case (_, emptyStore()) => noTable()
     case (n1, bindStore(m, t, tsr)) =>
@@ -397,6 +404,10 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @ProgressProperty("findColTypeImpliesfindCol")
+  // TODO: maybe also projectTypeImpliesFindCol?
+  @PreservationProperty("projectTypeFindCol")
+  // TODO: maybe also findColPreservesRowCount?
   def findCol(n: Name, attrL: AttrL, rt: RawTable): OptRawTable = (n, attrL, rt) match {
     case (a, aempty(), _) => noRawTable()
     case (a, acons(a2, al), rtr) =>
@@ -409,6 +420,8 @@ object SQLSpec extends ScalaSPLSpecification {
   // for projection base case: projecting on an empty attribute list must yield a
   // table with as many empty rows as the rowcount of the given table
   @Dynamic
+  @PreservationProperty("welltypedEmptyProjection")
+  // TODO: maybe also projectEmptyColPreservesRowCount?
   def projectEmptyCol(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(_, t) => tcons(rempty(), projectEmptyCol(t))
@@ -416,6 +429,9 @@ object SQLSpec extends ScalaSPLSpecification {
 
   // arguments: select-list table-list table-rows
   @Dynamic
+  @ProgressProperty("projectColsProgress")
+  @PreservationProperty("projectColsWelltypedWithSelectType")
+  // TODO: Maybe also projectColsPreservesRowCount?
   def projectCols(al1: AttrL, al2: AttrL, rt: RawTable): OptRawTable = (al1, al2, rt) match {
     case (aempty(), _, rtr) => someRawTable(projectEmptyCol(rtr))
     case (acons(a, alr), al, rtr) =>
@@ -428,6 +444,8 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @ProgressProperty("projectTableProgress")
+  @PreservationProperty("projectTableWelltypedWithSelectType")
   def projectTable(s: Select, t: Table): OptTable = (s, t) match {
     case (all(), table(al, rt)) => someTable(table(al, rt))
     case (list(alr), table(al, rt)) =>
@@ -488,6 +506,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   // filter rows that satisfy pred
   @Dynamic
+  @PreservationProperty("filterRowsPreservesTable")
   def filterRows(rt: RawTable, attrL: AttrL, pred: Pred): RawTable = (rt, attrL, pred) match {
     case (tempty(), _, _) => tempty()
     case (tcons(r, rtr), al, p) =>
@@ -499,6 +518,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @PreservationProperty("filterPreservesType")
   def filterTable(t: Table, pred: Pred): Table = (t, pred) match {
     case (table(al, rt), p) => table(al, filterRows(rt, al, p))
   }
