@@ -43,11 +43,6 @@ object SQLSpec extends ScalaSPLSpecification {
 
   case class ttcons(n: Name, ft: FType, tt: TType) extends TType
 
-  def appendTTypes(tt1: TType, tt2: TType): TType = (tt1, tt2) match {
-    case (ttempty(), tt) => tt
-    case (ttcons(name, ft, tttail1), tt) => ttcons(name, ft, appendTTypes(tttail1, tt))
-  }
-
   // Value for a field (underspecified)
   trait Val extends Expression
 
@@ -839,7 +834,7 @@ object SQLSpec extends ScalaSPLSpecification {
     require(rawTableLength(rt1) == rawTableLength(rt2))
     require(welltypedRawtable(tt1, rt1))
     require(welltypedRawtable(tt1, rt2))
-  } ensuring welltypedRawtable(appendTTypes(tt1, tt2), attachColToFrontRaw(rt1, rt2)) ensuring // TODO: how to wrap this?
+  } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), attachColToFrontRaw(rt1, rt2)) ensuring // TODO: how to wrap this?
     rawTableLength(rt1) == rawTableLength(attachColToFrontRaw(rt1, rt2)) // TODO: isn't this the lemma below?
 
   @Property
