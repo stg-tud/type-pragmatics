@@ -11,15 +11,11 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.inputdsl.{FunctionDSL, SymTreeDSL}
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
-import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
-import de.tu_darmstadt.veritas.scalaspl.typechecker.FunctionJudgmentNode
+import de.tu_darmstadt.veritas.scalaspl.translator.{FunctionExpressionTranslator, ScalaSPLTranslator}
+import de.tu_darmstadt.veritas.scalaspl.util.ScalaMetaUtils
 
 
 class AESoundnessProofGraph(storefile: File) {
-
-  import FunctionDSL._
-  import SymTreeDSL._
-  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
 
 
   val sourcefile = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/AESpec.scala")
@@ -82,6 +78,13 @@ class AESoundnessProofGraph(storefile: File) {
   val simpleVampire4_1_20 = new TPTPVampireVerifier(20)
   val simpleVampire4_1_120 = new TPTPVampireVerifier(120)
 
+  val smtlibVampire = new SMTLibVerifier {
+    override def prover: Prover[SMTLibFormat] = VampireZ3(5)
+
+    /** Textual description that should be unique (used for ordering verifiers) */
+    override val desc: String = "SMTLib-Vampire verifier"
+  }
+
   val trivial_obls = Seq(rootobl_edge_map("ProgressTrue"), rootobl_edge_map("ProgressFalse"), rootobl_edge_map("ProgressZero")) map (_._1)
   val stepresultstrivial = for (obl <- trivial_obls) yield {
     val step = g.appliedStep(obl).get
@@ -90,7 +93,7 @@ class AESoundnessProofGraph(storefile: File) {
 
   val succ_obl = rootobl_edge_map("ProgressSucc")._1
   val succstep = g.appliedStep(succ_obl).get
-  val stepresultsucc = g.verifyProofStep(succstep, simpleVampire4_1_120, Some("AE-Inconclusive/Succ"))
+  val stepresultsucc = g.verifyProofStep(succstep, simpleVampire4_1, Some("AE-Inconclusive/Succ"))
 
   val stepresults = stepresultstrivial :+ stepresultsucc
 
@@ -108,13 +111,22 @@ class AESoundnessProofGraph(storefile: File) {
   val ifcase_obl = rootobl_edge_map("ProgressIfelse")._1
 
   //code below does not compile like this, work in progress
-  //val ifcase1pred: Seq[TypingJudgment] = ast.FunctionExpJudgment(~'vTerm0 === 'true)
+  // pass metavar names
+  val funExpTranslator = new FunctionExpressionTranslator(Seq("vTerm0"))
 
-  //val ifcasetactic = CaseDistinction[VeritasConstruct, VeritasFormula](Map(
-  //  "Truecase" -> Seq[TypingJudgment](~'vTerm0 === 'true),
-  //  "Falsecase" -> Seq[TypingJudgment](~'vTerm0 === 'false),
-  //  "Othercase" -> Seq[TypingJudgment]((~'vTerm0 ~= 'true) & ('vTerm0 ~= 'false))), fullAESpec, specenq)
-  //val ifcasedistinction = g.applyTactic(ifcase_obl, ifcasetactic)
+  def translateFunExp(str: String): TypingRuleJudgment = {
+    val term = ScalaMetaUtils.getTerm(str)
+    val exp = funExpTranslator.translateExp(term)
+    FunctionExpJudgment(exp)
+  }
+
+
+  val ifcasetactic = CaseDistinction[VeritasConstruct, VeritasFormula](Map(
+    "Truecase" -> Seq[TypingRuleJudgment](translateFunExp("vTerm0 == true")),
+    "Falsecase" -> Seq[TypingRuleJudgment](translateFunExp("vTerm0 == false")),
+    "Othercase" -> Seq[TypingRuleJudgment](translateFunExp("(vTerm0 != true) && (vTerm0 != false)"))), fullAESpec, specenq)
+  val ifcasedistinction = g.applyTactic(ifcase_obl, ifcasetactic)
+
 
   def checkConsistency(): Unit = {
     val vampireProver = VampireTPTP("4.1", 120)
