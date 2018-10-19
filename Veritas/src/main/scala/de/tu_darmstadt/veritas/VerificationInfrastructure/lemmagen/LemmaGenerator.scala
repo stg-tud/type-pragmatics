@@ -24,14 +24,10 @@ class LemmaGenerator(specFile: File) {
     meta
   }
 
-  def evolveProgressLemma(lemma: Lemma): Unit = {
-
-  }
-
   def buildSuccessLemma(function: FunctionDef): Lemma = {
     val arguments = function.signature.in.map(ref => (generateMetaVar(ref), ref))
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.signature.out)
-    val successVar = generateMetaVar(function.signature.out)
+    val successVar = generateMetaVar(successConstructor.in.head)
     val invocationExp = FunctionExpApp(function.signature.name, arguments.map {
       case (name, typ) => FunctionMeta(name)
     })
@@ -58,7 +54,7 @@ class LemmaGenerator(specFile: File) {
 
   def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Lemma = {
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.signature.out)
-    val successVar = generateMetaVar(function.signature.out)
+    val successVar = generateMetaVar(successConstructor.in.head)
     val (boundTypes, unboundTypes) = function.signature.in.partition(baseLemma.boundTypes.contains(_))
     val newMetaVars = unboundTypes.map(generateMetaVar) :+ successVar
     var lemma = baseLemma.bind(newMetaVars:_*)
@@ -77,14 +73,21 @@ class LemmaGenerator(specFile: File) {
     val dynamicFunction = dsk.dynamicFunctions.find(_.signature.name == dynamicFunctionName).get
     // the function's return type must be failable
     var lemma = buildSuccessLemma(dynamicFunction)
+    lemma
+  }
+
+  def evolveProgressLemma(lemma: Lemma): Iterable[Lemma] = {
     // build a map of predicates and producers of "in types"
     val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
     val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
     val failableProducers = producers.filter(defn => enquirer.isFailableType(defn.signature.out))
     // we just have to find matching premises
     // find predicates that involve any of the given types
-    println(predicates.map(_.signature.name))
-    println(failableProducers.map(_.signature.name))
-    selectSuccessPredicate(selectPredicate(lemma, predicates.head), failableProducers.head)
+    val lemmas = mutable.HashSet.empty[Lemma]
+    for(fn <- predicates)
+      lemmas += selectPredicate(lemma, fn)
+    for(fn <- failableProducers if dsk.staticFunctions.contains(fn))
+      lemmas += selectSuccessPredicate(lemma, fn)
+    lemmas
   }
 }

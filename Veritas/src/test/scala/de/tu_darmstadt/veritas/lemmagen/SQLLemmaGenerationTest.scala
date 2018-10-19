@@ -18,14 +18,23 @@ class SQLLemmaGenerationTest extends FunSuite {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
     val generator = new LemmaGenerator(file)
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-
-    val lemma = generator.generateProgressLemma("projectTable")
-    //lemma.rule.prettyPrint(outputPrettyPrinter)
     val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
       override val printer: PrettyPrintWriter = outputPrettyPrinter
     }
-    lemmaPrettyPrinter.printTypingRule(lemma.rule)
-    outputPrettyPrinter.flush()
+
+    var lemmas = Set(generator.generateProgressLemma("projectTable"))
+    for(i <- 1 to 3) {
+      println(s"Generation ${i}:")
+      println("================")
+      println()
+      for(lemma <- lemmas) {
+        lemmaPrettyPrinter.printTypingRule(lemma.rule)
+        outputPrettyPrinter.flush()
+        println()
+      }
+      lemmas = lemmas.flatMap(lemma => generator.evolveProgressLemma(lemma)).toSet
+
+    }
   }
 
   test("Read @Static and @Dynamic annotations from SQLSpec") {
