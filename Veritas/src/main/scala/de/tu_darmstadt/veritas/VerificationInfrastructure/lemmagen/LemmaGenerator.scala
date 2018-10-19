@@ -56,6 +56,23 @@ class LemmaGenerator(specFile: File) {
     lemma.withPremise(invocationExp)
   }
 
+  def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Lemma = {
+    val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.signature.out)
+    val successVar = generateMetaVar(function.signature.out)
+    val (boundTypes, unboundTypes) = function.signature.in.partition(baseLemma.boundTypes.contains(_))
+    val newMetaVars = unboundTypes.map(generateMetaVar) :+ successVar
+    var lemma = baseLemma.bind(newMetaVars:_*)
+    // collect vars of suitable type for invocation TODO: there might be choices here
+    val arguments = function.signature.in.map(typ => lemma.bindings.find(_._2 == typ).get._1)
+    val invocationExp = FunctionExpApp(
+      function.signature.name,
+      arguments.map(v => FunctionMeta(v))
+    )
+    val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
+    val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
+    lemma.withPremise(equality)
+  }
+
   def generateProgressLemma(dynamicFunctionName: String): Lemma = {
     val dynamicFunction = dsk.dynamicFunctions.find(_.signature.name == dynamicFunctionName).get
     // the function's return type must be failable
@@ -68,6 +85,6 @@ class LemmaGenerator(specFile: File) {
     // find predicates that involve any of the given types
     println(predicates.map(_.signature.name))
     println(failableProducers.map(_.signature.name))
-    selectPredicate(lemma, predicates.head)
+    selectSuccessPredicate(selectPredicate(lemma, predicates.head), failableProducers.head)
   }
 }
