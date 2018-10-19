@@ -31,6 +31,8 @@ class LemmaGenSpecEnquirer(spec: VeritasConstruct, dsk: DomainSpecificKnowledge)
     functions.filter(involvingTyp contains _.signature.out)
   }
 
+  def isFailableType(typ: SortRef): Boolean = dsk.failableTypes.exists(_.name == typ.name)
+
   /** Return the constructors of a failable type. Assumes there are exactly two constructors, one
     * without parameters (= fail), another with one parameter. Fail otherwise.
     */

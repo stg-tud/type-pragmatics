@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import java.io.{File, PrintWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.LemmaGenSpecEnquirer
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{LemmaGenSpecEnquirer, LemmaGenerator}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -14,6 +14,20 @@ import org.scalatest.FunSuite
 import scala.meta._
 
 class SQLLemmaGenerationTest extends FunSuite {
+  test("Generate interesting progress lemmas") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+    val generator = new LemmaGenerator(file)
+    val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
+
+    val lemma = generator.generateProgressLemma("projectTable")
+    //lemma.rule.prettyPrint(outputPrettyPrinter)
+    val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
+      override val printer: PrettyPrintWriter = outputPrettyPrinter
+    }
+    lemmaPrettyPrinter.printTypingRule(lemma.rule)
+    outputPrettyPrinter.flush()
+  }
+
   test("Read @Static and @Dynamic annotations from SQLSpec") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
     val module = new ScalaSPLTranslator().translate(file)
