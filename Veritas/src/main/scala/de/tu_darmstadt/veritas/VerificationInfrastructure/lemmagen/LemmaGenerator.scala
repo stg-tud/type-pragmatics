@@ -64,7 +64,10 @@ class LemmaGenerator(specFile: File) {
         arguments.map(v => FunctionMeta(v))
       )
     )
-    lemma.withPremise(invocationExp)
+    if(lemma.rule.premises contains invocationExp)
+      lemma
+    else
+      lemma.withPremise(invocationExp)
   }
 
   def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Lemma = {
@@ -81,7 +84,10 @@ class LemmaGenerator(specFile: File) {
     )
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
     val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
-    lemma.withPremise(equality)
+    if(lemma.rule.premises contains equality)
+      lemma
+    else
+      lemma.withPremise(equality)
   }
 
   def generateProgressLemma(dynamicFunctionName: String): Lemma = {
