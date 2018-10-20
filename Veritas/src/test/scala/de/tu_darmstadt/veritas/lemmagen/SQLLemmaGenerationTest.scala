@@ -22,18 +22,11 @@ class SQLLemmaGenerationTest extends FunSuite {
       override val printer: PrettyPrintWriter = outputPrettyPrinter
     }
 
-    var lemmas = Set(generator.generateProgressLemma("projectTable"))
-    for(i <- 1 to 3) {
-      println(s"Generation ${i}:")
-      println("================")
+    var lemmas = generator.generateProgressLemmas("projectTable")
+    for(lemma <- lemmas.take(100)) {
+      lemmaPrettyPrinter.printTypingRule(lemma.rule)
+      outputPrettyPrinter.flush()
       println()
-      for(lemma <- lemmas) {
-        lemmaPrettyPrinter.printTypingRule(lemma.rule)
-        outputPrettyPrinter.flush()
-        println()
-      }
-      lemmas = lemmas.flatMap(lemma => generator.evolveProgressLemma(lemma)).toSet
-
     }
   }
 

@@ -111,4 +111,14 @@ class LemmaGenerator(specFile: File) {
       lemmas += selectSuccessPredicate(lemma, fn)
     lemmas
   }
+
+  def evolveProgressLemmas(lemmas: Stream[Lemma]): Stream[Lemma] = {
+    val evolved = lemmas.flatMap(evolveProgressLemma)
+    evolved #::: evolveProgressLemmas(evolved)
+  }
+
+  def generateProgressLemmas(dynamicFunctionName: String): Stream[Lemma] = {
+    val base = generateProgressLemma(dynamicFunctionName)
+    base #:: evolveProgressLemmas(Stream(base))
+  }
 }
