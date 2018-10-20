@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
 import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef, TypingRule, TypingRuleJudgment}
+import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 class Lemma(val bindings: Map[MetaVar, SortRef], val rule: TypingRule) {
   def boundTypes: Set[SortRef] = bindings.values.toSet

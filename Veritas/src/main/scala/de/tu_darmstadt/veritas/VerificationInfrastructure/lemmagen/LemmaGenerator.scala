@@ -5,6 +5,7 @@ import java.io.File
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
+import de.tu_darmstadt.veritas.backend.util.{FreeVariables, FreshNames}
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
 
@@ -14,12 +15,23 @@ class LemmaGenerator(specFile: File) {
   private val spec = new ScalaSPLTranslator().translate(specFile)
   private val dsk = DomainSpecificKnowledgeBuilder().build(specFile)
   private val enquirer = new LemmaGenSpecEnquirer(spec, dsk)
+  private val fresh = new FreshNames
 
-  private var ctr = 0
+
+  def getVariablePrefix(typ: SortRef): String = {
+    // get upper-cased prefix of type name
+    val prefix = typ.name.takeWhile(_.isUpper)
+    if(prefix.isEmpty) {
+      "v"
+    } else {
+      prefix.toLowerCase
+    }
+  }
 
   def generateMetaVar(typ: SortRef): MetaVar = {
-    val meta = MetaVar(s"x$ctr")
-    ctr += 1
+    val prefix = getVariablePrefix(typ)
+    var argname = fresh.freshName(prefix)
+    val meta = MetaVar(argname)
     meta.typ = Some(Sort(typ.name))
     meta
   }
@@ -39,8 +51,11 @@ class LemmaGenerator(specFile: File) {
 
   def selectPredicate(baseLemma: Lemma, predicate: FunctionDef): Lemma = {
     val (boundTypes, unboundTypes) = predicate.signature.in.partition(baseLemma.boundTypes.contains(_))
-    val newMetaVars = unboundTypes.map(generateMetaVar)
-    var lemma = baseLemma.bind(newMetaVars:_*)
+    var lemma = baseLemma
+    for(unboundType <- unboundTypes) {
+      val newMetaVar = generateMetaVar(unboundType)
+      lemma = lemma.bind(newMetaVar)
+    }
     // collect vars of suitable type for invocation TODO: there might be choices here
     val arguments = predicate.signature.in.map(typ => lemma.bindings.find(_._2 == typ).get._1)
     val invocationExp = FunctionExpJudgment(
