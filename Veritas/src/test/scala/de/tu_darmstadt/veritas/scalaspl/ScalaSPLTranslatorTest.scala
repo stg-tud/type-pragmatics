@@ -64,16 +64,16 @@ class ScalaSPLTranslatorTest extends FunSuite {
     val translator = new ScalaSPLTranslator
     val file = new File(filesDir, "FunctionCorrect.scala")
     val module = translator.translate(file)
-    val fns = module.defs.collect { case f: Functions => f}.head
+    val fns = module.defs.collect { case f: Functions => f}
     val zeroPat = FunctionPatApp("zero", Seq())
-    assert(fns.funcs(0) ==
+    assert(fns(0).funcs.head ==
       FunctionDef(
         FunctionSig("pred", Seq(SortRef("Num")), SortRef("Num")),
         Seq(
           FunctionEq("pred", Seq(zeroPat), zeroExp),
           FunctionEq("pred", Seq(FunctionPatApp("succ", Seq(FunctionPatVar("n")))), FunctionExpVar("n"))
         )))
-    assert(fns.funcs(1) ==
+    assert(fns(1).funcs.head ==
       FunctionDef(
         FunctionSig("predpred", Seq(SortRef("Num")), SortRef("Num")),
         Seq(
@@ -81,7 +81,7 @@ class ScalaSPLTranslatorTest extends FunSuite {
           FunctionEq("predpred", Seq(FunctionPatApp("succ", Seq(zeroPat))), zeroExp),
           FunctionEq("predpred", Seq(FunctionPatApp("succ", Seq(FunctionPatApp("succ", Seq(FunctionPatVar("n")))))), FunctionExpVar("n"))
         )))
-    assert(fns.funcs(2) ==
+    assert(fns(2).funcs.head ==
       FunctionDef(
         FunctionSig("plus", Seq(SortRef("Num"), SortRef("Num")), SortRef("Num")),
         Seq(
@@ -104,7 +104,7 @@ class ScalaSPLTranslatorTest extends FunSuite {
                 FunctionExpApp("plus",
                   Seq(FunctionExpVar("a"), FunctionExpVar("n")))))
           ))))
-    assert(fns.funcs(3) ==
+    assert(fns(3).funcs.head ==
       FunctionDef(
         FunctionSig("wildcard", Seq(SortRef("Num"), SortRef("Num")), SortRef("Num")),
         Seq(
@@ -123,7 +123,7 @@ class ScalaSPLTranslatorTest extends FunSuite {
               FunctionPatVar("wildcardName0"),
               FunctionPatApp("succ", Seq(FunctionPatVar("wildcardName1")))),
             zeroExp))))
-    assert(fns.funcs(4) ==
+    assert(fns(4).funcs.head ==
       FunctionDef(
         FunctionSig("singlelet", Seq(SortRef("Num"), SortRef("YN")), SortRef("YN")),
         Seq(
@@ -135,7 +135,7 @@ class ScalaSPLTranslatorTest extends FunSuite {
                   FunctionExpEq(FunctionExpVar("x"), zeroExp)),
                   FunctionExpApp("yes", Seq()),
                   FunctionExpApp("no", Seq())))))))
-    assert(fns.funcs(5) ==
+    assert(fns(5).funcs.head ==
       FunctionDef(
         FunctionSig("multiplelets", Seq(SortRef("Num"), SortRef("YN")), SortRef("YN")),
         Seq(
@@ -247,8 +247,6 @@ class ScalaSPLTranslatorTest extends FunSuite {
     assert(locals.head ==
       Local(
         Seq(
-          PartialFunctions(Seq()),
-          Functions(Seq()),
           Axioms(Seq( TypingRule("non", Seq(), Seq(FunctionExpJudgment(FunctionExpTrue))))),
           Lemmas(Seq(), None),
           Goals(Seq(), None),
