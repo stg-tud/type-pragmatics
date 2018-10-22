@@ -20,14 +20,14 @@ object ToySpec extends ScalaSPLSpecification {
   }
 
   sealed trait Value extends Expression
-  case class vnat(n: Nat) extends Value
-  case class vtrue() extends Value
-  case class vfalse() extends Value
+  case class VNat(n: Nat) extends Value
+  case class VTrue() extends Value
+  case class VFalse() extends Value
 
   sealed trait Expr extends Expression
-  case class evalue(v: Value) extends Expr
-  case class eplus(left: Expr, right: Expr) extends Expr
-  case class egt(left: Expr, right: Expr) extends Expr
+  case class EValue(v: Value) extends Expr
+  case class EPlus(left: Expr, right: Expr) extends Expr
+  case class EGreaterThan(left: Expr, right: Expr) extends Expr
 
   sealed trait OptExpr extends Expression
   case class noExpr() extends OptExpr
@@ -48,75 +48,75 @@ object ToySpec extends ScalaSPLSpecification {
   case class TNat() extends EType
 
   def isValue(e: Expr): Boolean = e match {
-    case evalue(_) => true
-    case eplus(_, _) => false
-    case egt(_, _) => false
+    case EValue(_) => true
+    case EPlus(_, _) => false
+    case EGreaterThan(_, _) => false
   }
 
   @ProgressProperty("Progress")
   def reduce(e: Expr): OptExpr = e match {
-    case evalue(vnat(_)) =>
+    case EValue(VNat(_)) =>
       noExpr()
-    case evalue(vtrue()) =>
+    case EValue(VTrue()) =>
       noExpr()
-    case evalue(vfalse()) =>
+    case EValue(VFalse()) =>
       noExpr()
-    case eplus(evalue(vnat(leftN)), evalue(vnat(rightN))) =>
-      someExpr(evalue(vnat(add(leftN, rightN))))
-    case eplus(evalue(vnat(leftN)), rightExp) =>
+    case EPlus(EValue(VNat(leftN)), EValue(VNat(rightN))) =>
+      someExpr(EValue(VNat(add(leftN, rightN))))
+    case EPlus(EValue(VNat(leftN)), rightExp) =>
       val rightResult = reduce(rightExp)
       if(isSomeExpr(rightResult))
-        someExpr(eplus(evalue(vnat(leftN)), getExpr(rightResult)))
+        someExpr(EPlus(EValue(VNat(leftN)), getExpr(rightResult)))
       else
         noExpr()
-    case eplus(leftExp, rightExp) =>
+    case EPlus(leftExp, rightExp) =>
       val leftResult = reduce(leftExp)
       if(isSomeExpr(leftResult))
-        someExpr(eplus(getExpr(leftResult), rightExp))
+        someExpr(EPlus(getExpr(leftResult), rightExp))
       else
         noExpr()
-    case egt(evalue(vnat(leftN)), evalue(vnat(rightN))) =>
+    case EGreaterThan(EValue(VNat(leftN)), EValue(VNat(rightN))) =>
       if(gt(leftN, rightN))
-        someExpr(evalue(vtrue()))
+        someExpr(EValue(VTrue()))
       else
-        someExpr(evalue(vfalse()))
-    case egt(evalue(vnat(leftN)), rightExp) =>
+        someExpr(EValue(VFalse()))
+    case EGreaterThan(EValue(VNat(leftN)), rightExp) =>
       val rightResult = reduce(rightExp)
       if(isSomeExpr(rightResult))
-        someExpr(egt(evalue(vnat(leftN)), getExpr(rightResult)))
+        someExpr(EGreaterThan(EValue(VNat(leftN)), getExpr(rightResult)))
       else
         noExpr()
-    case egt(leftExp, rightExp) =>
+    case EGreaterThan(leftExp, rightExp) =>
       val leftResult = reduce(leftExp)
       if(isSomeExpr(leftResult))
-        someExpr(egt(getExpr(leftResult), rightExp))
+        someExpr(EGreaterThan(getExpr(leftResult), rightExp))
       else
         noExpr()
   }
 
   @Axiom
   def TTrue(): Unit = {
-  } ensuring (evalue(vtrue()) :: TBool())
+  } ensuring (EValue(VTrue()) :: TBool())
 
   @Axiom
   def TFalse(): Unit = {
-  } ensuring (evalue(vfalse()) :: TBool())
+  } ensuring (EValue(VFalse()) :: TBool())
 
   @Axiom
   def TNatural(x: Nat): Unit = {
-  } ensuring (evalue(vnat(x)) :: TNat())
+  } ensuring (EValue(VNat(x)) :: TNat())
 
   @Axiom
   def TPlus(left: Expr, right: Expr): Unit = {
     require(left :: TNat())
     require(right :: TNat())
-  } ensuring (eplus(left, right) :: TNat())
+  } ensuring (EPlus(left, right) :: TNat())
 
   @Axiom
   def TGreater(left: Expr, right: Expr): Unit = {
     require(left :: TNat())
     require(right :: TNat())
-  } ensuring (egt(left, right) :: TBool())
+  } ensuring (EGreaterThan(left, right) :: TBool())
 
   @Property
   def Progress(e1: Expr, T: EType): Unit = {

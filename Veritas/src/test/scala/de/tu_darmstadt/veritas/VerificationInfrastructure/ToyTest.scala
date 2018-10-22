@@ -4,7 +4,7 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.ConstructAESoundnessGraph.{file, pg, recursivedelete}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
-import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.Solve
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{Solve, StructuralInduction}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{ATPResultDetails, Finished, Proved, TPTPVampireVerifier}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
 import de.tu_darmstadt.veritas.backend.ast._
@@ -29,15 +29,15 @@ class ToyTest extends FunSuite {
         succ(makeNat(n - 1))
     }
 
-    def en(n: Int) = evalue(vnat(makeNat(n)))
+    def en(n: Int) = EValue(VNat(makeNat(n)))
 
-    val e = egt(
-      eplus(
+    val e = EGreaterThan(
+      EPlus(
         en(4),
         en(5)
       ),
       //evalue(vbool(True()))
-      eplus(
+      EPlus(
         en(1),
         en(3)
       )
@@ -87,7 +87,14 @@ class ToyTest extends FunSuite {
         }
         case None => Seq()
       }
+    }
 
+    //apply structural induction on a given induction var to a given obligation and retrieve all resulting obligations
+    def applyInductionGetCases(obl: g.Obligation, indvar: MetaVar): Map[String, (g.Obligation, EdgeLabel)] = {
+      val indtac = StructuralInduction(indvar, spec, specenq)
+      val ps = g.applyTactic(obl, indtac)
+      val subobls = g.requiredObls(ps)
+      indtac.enumerateCases(subobls)
     }
 
     def addSolveTacticToAllLeaves(): Unit = {
@@ -97,25 +104,28 @@ class ToyTest extends FunSuite {
       }
     }
 
-    //val steps = applySolveToAllSub(rootobl)
-    addSolveTacticToAllLeaves()
+    val rootobl_edge_map = applyInductionGetCases(rootobl, MetaVar("e1"))
+
+    val steps = applySolveToAllSub(rootobl)
+    //addSolveTacticToAllLeaves()
 
     val simpleVampire4_1 = new TPTPVampireVerifier(5)
     val simpleVampire4_1_20 = new TPTPVampireVerifier(20)
     val simpleVampire4_1_120 = new TPTPVampireVerifier(120)
 
-    //val trivial_obls = Seq(rootobl_edge_map("ProgressTrue"), rootobl_edge_map("ProgressFalse"), rootobl_edge_map("ProgressZero")) map (_._1)
-    val trivial_obls = Seq(rootobl)
+    val trivial_obls = Seq("ProgressEValue", "ProgressEPlus", "ProgressEGreaterThan")
+      .map(rootobl_edge_map(_)._1)
+    //val trivial_obls = Seq(rootobl)
     val stepresultstrivial = for (obl <- trivial_obls) yield {
       val step = g.appliedStep(obl).get
-      g.verifyProofStep(step, simpleVampire4_1_120)
+      g.verifyProofStep(step, simpleVampire4_1_20)
     }
 
     //visualize proof graph
     def visualizeGraph(filename: String) {
       val graphfile = new File(filename)
       if (file.exists()) recursivedelete(file)
-      Dot(g, graphfile)
+      Dot(g, graphfile, "pdf")
     }
 
     val stepresults = stepresultstrivial //:+ stepresultsucc
@@ -128,6 +138,6 @@ class ToyTest extends FunSuite {
       case s => println(s)
     }
 
-    visualizeGraph("toy_soundness.png")
+    visualizeGraph("toy_soundness.pdf")
   }
 }
