@@ -116,7 +116,7 @@ object ToySpec extends ScalaSPLSpecification {
   def TGreater(left: Expr, right: Expr): Unit = {
     require(left :: TNat())
     require(right :: TNat())
-  } ensuring (egt(left, right) :: TNat())
+  } ensuring (egt(left, right) :: TBool())
 
   @Property
   def Progress(e1: Expr, T: EType): Unit = {
