@@ -22,12 +22,19 @@ class SQLLemmaGenerationTest extends FunSuite {
       override val printer: PrettyPrintWriter = outputPrettyPrinter
     }
 
-    var lemmas = generator.generateProgressLemmas("projectTable")
-    for(lemma <- lemmas.take(100)) {
-      lemmaPrettyPrinter.printTypingRule(lemma.rule)
-      outputPrettyPrinter.flush()
-      println()
+    def generateAndPrint(name: String): Unit = {
+      var lemmas = generator.generateProgressLemmas(name)
+      for(lemma <- lemmas.take(100)) {
+        lemmaPrettyPrinter.printTypingRule(lemma.rule)
+        outputPrettyPrinter.flush()
+        println()
+      }
+      println("-------------------------")
     }
+
+    generateAndPrint("projectTable")
+    generateAndPrint("projectCols")
+    generateAndPrint("lookupStore")
   }
 
   test("Read @Static and @Dynamic annotations from SQLSpec") {

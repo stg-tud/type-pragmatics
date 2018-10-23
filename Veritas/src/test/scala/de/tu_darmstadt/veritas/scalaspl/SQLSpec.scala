@@ -122,6 +122,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // check whether a table corresponds to a given type (functional notation)
   // does not yet check for whether the table type contains only unique attribute names!!
   // (but semantics should be possible to define in a sensible way without that requirement...)
+  @Predicate
   def matchingAttrL(tt: TType, attrl: AttrL): Boolean = (tt, attrl) match {
     case (ttempty(), aempty()) => true
     case (ttcons(a1, _, ttr), acons(a2, al)) => (a1 == a2) && matchingAttrL(ttr, al)

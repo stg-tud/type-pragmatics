@@ -102,12 +102,16 @@ class LemmaGenerator(specFile: File) {
     val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
     val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
     val failableProducers = producers.filter(defn => enquirer.isFailableType(defn.signature.out))
+    val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
+    val failableTransformers = transformers.filter(defn => enquirer.isFailableType(defn.signature.out))
     // we just have to find matching premises
     // find predicates that involve any of the given types
     val lemmas = mutable.HashSet.empty[Lemma]
     for(fn <- predicates)
       lemmas += selectPredicate(lemma, fn)
     for(fn <- failableProducers if dsk.staticFunctions.contains(fn))
+      lemmas += selectSuccessPredicate(lemma, fn)
+    for(fn <- failableTransformers if dsk.staticFunctions.contains(fn))
       lemmas += selectSuccessPredicate(lemma, fn)
     lemmas
   }
