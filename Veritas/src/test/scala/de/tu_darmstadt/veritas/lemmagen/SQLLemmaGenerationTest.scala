@@ -21,13 +21,17 @@ class SQLLemmaGenerationTest extends FunSuite {
     val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
       override val printer: PrettyPrintWriter = outputPrettyPrinter
     }
+    val dsk = DomainSpecificKnowledgeBuilder().build(file)
 
     def generateAndPrint(name: String): Unit = {
+      val expected = dsk.lookupByFunName(dsk.progressProperties, name).head
       var lemmas = generator.generateProgressLemmas(name)
       for(lemma <- lemmas.take(100)) {
+      if (EquivalenceHeuristics.mightBeEquivalent(lemma.rule, expected)) {
         lemmaPrettyPrinter.printTypingRule(lemma.rule)
         outputPrettyPrinter.flush()
         println()
+      }
       }
       println("-------------------------")
     }

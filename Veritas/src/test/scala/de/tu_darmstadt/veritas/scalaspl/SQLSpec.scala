@@ -747,8 +747,11 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Property
   def projectColsProgress(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType): Unit = {
-    require(welltypedtable(tt, table(al, rt)))
-    require(projectType(list(al2), tt) == someTType(tt2))
+    //require(welltypedtable(tt, table(al, rt))) NOTE: expanded this to the following two lines:
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt, al))
+    //require(projectType(list(al2), tt) == someTType(tt2)) NOTE: expanded this to:
+    require(projectTypeAttrL(al2, tt) == someTType(tt2))
   } ensuring exists((rt2: RawTable) => projectCols(al2, al, rt) == someRawTable(rt2))
 
   /* NOTE: Comparing to the corresponding Dafny lemma, we have moved the universal quantification
