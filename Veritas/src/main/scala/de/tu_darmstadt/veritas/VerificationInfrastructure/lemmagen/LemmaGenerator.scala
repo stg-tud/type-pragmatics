@@ -12,9 +12,11 @@ import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
 import scala.collection.mutable
 
 class LemmaGenerator(specFile: File) {
+  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
+
   private val spec = new ScalaSPLTranslator().translate(specFile)
   private val dsk = DomainSpecificKnowledgeBuilder().build(specFile)
-  private val enquirer = new LemmaGenSpecEnquirer(spec, dsk)
+  implicit private val enquirer = new LemmaGenSpecEnquirer(spec, dsk)
   private val fresh = new FreshNames
 
 
@@ -37,30 +39,30 @@ class LemmaGenerator(specFile: File) {
   }
 
   def buildSuccessLemma(function: FunctionDef): Lemma = {
-    val arguments = function.signature.in.map(ref => (generateMetaVar(ref), ref))
-    val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.signature.out)
+    val arguments = function.inTypes.map(ref => (generateMetaVar(ref), ref))
+    val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
     val successVar = generateMetaVar(successConstructor.in.head)
-    val invocationExp = FunctionExpApp(function.signature.name, arguments.map {
+    val invocationExp = FunctionExpApp(function.name, arguments.map {
       case (name, typ) => FunctionMeta(name)
     })
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
     val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
     val exists = ExistsJudgment(Seq(successVar), Seq(equality))
-    new Lemma(arguments.toMap, TypingRule(s"${function.signature.name}Progress", Seq(), Seq(exists)))
+    new Lemma(arguments.toMap, TypingRule(s"${function.name}Progress", Seq(), Seq(exists)))
   }
 
   def selectPredicate(baseLemma: Lemma, predicate: FunctionDef): Lemma = {
-    val (boundTypes, unboundTypes) = predicate.signature.in.partition(baseLemma.boundTypes.contains(_))
+    val (boundTypes, unboundTypes) = predicate.inTypes.partition(baseLemma.boundTypes.contains(_))
     var lemma = baseLemma
     for(unboundType <- unboundTypes) {
       val newMetaVar = generateMetaVar(unboundType)
       lemma = lemma.bind(newMetaVar)
     }
     // collect vars of suitable type for invocation TODO: there might be choices here
-    val arguments = predicate.signature.in.map(typ => lemma.bindings.find(_._2 == typ).get._1)
+    val arguments = predicate.inTypes.map(typ => lemma.bindings.find(_._2 == typ).get._1)
     val invocationExp = FunctionExpJudgment(
       FunctionExpApp(
-        predicate.signature.name,
+        predicate.name,
         arguments.map(v => FunctionMeta(v))
       )
     )
@@ -71,15 +73,15 @@ class LemmaGenerator(specFile: File) {
   }
 
   def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Lemma = {
-    val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.signature.out)
+    val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
     val successVar = generateMetaVar(successConstructor.in.head)
-    val (boundTypes, unboundTypes) = function.signature.in.partition(baseLemma.boundTypes.contains(_))
+    val (boundTypes, unboundTypes) = function.inTypes.partition(baseLemma.boundTypes.contains(_))
     val newMetaVars = unboundTypes.map(generateMetaVar) :+ successVar
     var lemma = baseLemma.bind(newMetaVars:_*)
     // collect vars of suitable type for invocation TODO: there might be choices here
-    val arguments = function.signature.in.map(typ => lemma.bindings.find(_._2 == typ).get._1)
+    val arguments = function.inTypes.map(typ => lemma.bindings.find(_._2 == typ).get._1)
     val invocationExp = FunctionExpApp(
-      function.signature.name,
+      function.name,
       arguments.map(v => FunctionMeta(v))
     )
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
@@ -91,7 +93,7 @@ class LemmaGenerator(specFile: File) {
   }
 
   def generateProgressLemma(dynamicFunctionName: String): Lemma = {
-    val dynamicFunction = dsk.dynamicFunctions.find(_.signature.name == dynamicFunctionName).get
+    val dynamicFunction = dsk.dynamicFunctions.find(_.name == dynamicFunctionName).get
     // the function's return type must be failable
     var lemma = buildSuccessLemma(dynamicFunction)
     lemma
@@ -101,17 +103,17 @@ class LemmaGenerator(specFile: File) {
     // build a map of predicates and producers of "in types"
     val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
     val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
-    val failableProducers = producers.filter(defn => enquirer.isFailableType(defn.signature.out))
+    val failableProducers = producers.filter(_.isFailable)
     val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
-    val failableTransformers = transformers.filter(defn => enquirer.isFailableType(defn.signature.out))
+    val failableTransformers = transformers.filter(_.isFailable)
     // we just have to find matching premises
     // find predicates that involve any of the given types
     val lemmas = mutable.HashSet.empty[Lemma]
     for(fn <- predicates)
       lemmas += selectPredicate(lemma, fn)
-    for(fn <- failableProducers if dsk.staticFunctions.contains(fn))
+    for(fn <- failableProducers if fn.isStatic)
       lemmas += selectSuccessPredicate(lemma, fn)
-    for(fn <- failableTransformers if dsk.staticFunctions.contains(fn))
+    for(fn <- failableTransformers if fn.isStatic)
       lemmas += selectSuccessPredicate(lemma, fn)
     lemmas
   }

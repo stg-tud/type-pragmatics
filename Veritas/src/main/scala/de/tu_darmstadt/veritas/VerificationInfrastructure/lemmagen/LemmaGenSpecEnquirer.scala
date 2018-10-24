@@ -11,6 +11,9 @@ class LemmaGenSpecEnquirer(spec: VeritasConstruct, dsk: DomainSpecificKnowledge)
   def predicates: Set[FunctionDef] = dsk.predicates
   def dataTypes = tdcollector.dataTypes
 
+  def staticFunctions: Set[FunctionDef] = dsk.staticFunctions
+  def dynamicFunctions: Set[FunctionDef] = dsk.dynamicFunctions
+
   def getDataTypesInvolving(typ: SortRef): Seq[SortRef] = {
     tdcollector.dataTypes
       .filter({ case (_, (_, constructors)) => constructors.exists(_.in.contains(typ)) })
