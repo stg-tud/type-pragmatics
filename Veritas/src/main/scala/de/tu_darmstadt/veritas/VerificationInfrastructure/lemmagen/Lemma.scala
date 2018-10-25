@@ -32,7 +32,7 @@ object FreshVariables {
     var newBindings = bindings
     var metaVars = Seq[(MetaVar, SortRef)]()
     for(typ <- types) {
-      val mv = freshMetaVar(bindings, typ)
+      val mv = freshMetaVar(newBindings, typ)
       metaVars = metaVars :+ (mv, typ)
       newBindings = newBindings + (mv -> typ)
     }
