@@ -4,8 +4,7 @@ import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
-import de.tu_darmstadt.veritas.backend.util.{FreeVariables, FreshNames}
+import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
 
@@ -17,86 +16,65 @@ class LemmaGenerator(specFile: File) {
   private val spec = new ScalaSPLTranslator().translate(specFile)
   private val dsk = DomainSpecificKnowledgeBuilder().build(specFile)
   implicit private val enquirer = new LemmaGenSpecEnquirer(spec, dsk)
-  private val fresh = new FreshNames
 
-
-  def getVariablePrefix(typ: SortRef): String = {
-    // get upper-cased prefix of type name
-    val prefix = typ.name.takeWhile(_.isUpper)
-    if(prefix.isEmpty) {
-      "v"
-    } else {
-      prefix.toLowerCase
-    }
-  }
-
-  def generateMetaVar(typ: SortRef): MetaVar = {
-    val prefix = getVariablePrefix(typ)
-    var argname = fresh.freshName(prefix)
-    val meta = MetaVar(argname)
-    meta.typ = Some(Sort(typ.name))
-    meta
-  }
 
   def buildSuccessLemma(function: FunctionDef): Lemma = {
-    val arguments = function.inTypes.map(ref => (generateMetaVar(ref), ref))
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
-    val successVar = generateMetaVar(successConstructor.in.head)
+    val successName = FreshVariables.freshName(Map.empty, prefix = "success") // TODO: this is only to avoid name clashes
+    val successVar = MetaVar(successName)
+    successVar.typ = Some(TypeInference.Sort(successConstructor.in.head.name))
+    val arguments = FreshVariables.freshMetaVars(Map.empty, function.inTypes)
     val invocationExp = FunctionExpApp(function.name, arguments.map {
-      case (name, typ) => FunctionMeta(name)
+      case (metaVar, typ) => FunctionMeta(metaVar)
     })
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
     val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
     val exists = ExistsJudgment(Seq(successVar), Seq(equality))
-    new Lemma(arguments.toMap, TypingRule(s"${function.name}Progress", Seq(), Seq(exists)))
+    new Lemma(
+      arguments.toMap,
+      TypingRule(s"${function.name}Progress", Seq(), Seq(exists)))
   }
 
   def selectPredicate(baseLemma: Lemma, predicate: FunctionDef): Lemma = {
     val (boundTypes, unboundTypes) = predicate.inTypes.partition(baseLemma.boundTypes.contains(_))
-    var lemma = baseLemma
-    for(unboundType <- unboundTypes) {
-      val newMetaVar = generateMetaVar(unboundType)
-      lemma = lemma.bind(newMetaVar)
-    }
+    val builder = new LemmaBuilder(baseLemma)
+    builder.bindTypes(unboundTypes)
     // collect vars of suitable type for invocation TODO: there might be choices here
-    val arguments = predicate.inTypes.map(typ => lemma.bindings.find(_._2 == typ).get._1)
+    val arguments = predicate.inTypes.map(typ => builder.bindings.find(_._2 == typ).get._1)
     val invocationExp = FunctionExpJudgment(
       FunctionExpApp(
         predicate.name,
         arguments.map(v => FunctionMeta(v))
       )
     )
-    if(lemma.rule.premises contains invocationExp)
-      lemma
-    else
-      lemma.withPremise(invocationExp)
+    if(!builder.rule.premises.contains(invocationExp))
+      builder.addPremise(invocationExp)
+    builder.build()
   }
 
   def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Lemma = {
+    val builder = new LemmaBuilder(baseLemma)
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
-    val successVar = generateMetaVar(successConstructor.in.head)
+    val successVar = builder.bindType(successConstructor.in.head)
     val (boundTypes, unboundTypes) = function.inTypes.partition(baseLemma.boundTypes.contains(_))
-    val newMetaVars = unboundTypes.map(generateMetaVar) :+ successVar
-    var lemma = baseLemma.bind(newMetaVars:_*)
+    builder.bindTypes(unboundTypes)
     // collect vars of suitable type for invocation TODO: there might be choices here
-    val arguments = function.inTypes.map(typ => lemma.bindings.find(_._2 == typ).get._1)
+    val arguments = function.inTypes.map(typ => builder.bindings.find(_._2 == typ).get._1)
     val invocationExp = FunctionExpApp(
       function.name,
       arguments.map(v => FunctionMeta(v))
     )
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
     val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
-    if(lemma.rule.premises contains equality)
-      lemma
-    else
-      lemma.withPremise(equality)
+    if(!builder.rule.premises.contains(equality))
+      builder.addPremise(equality)
+    builder.build()
   }
 
   def generateProgressLemma(dynamicFunctionName: String): Lemma = {
     val dynamicFunction = dsk.dynamicFunctions.find(_.name == dynamicFunctionName).get
     // the function's return type must be failable
-    var lemma = buildSuccessLemma(dynamicFunction)
-    lemma
+    buildSuccessLemma(dynamicFunction)
   }
 
   def evolveProgressLemma(lemma: Lemma): Iterable[Lemma] = {
