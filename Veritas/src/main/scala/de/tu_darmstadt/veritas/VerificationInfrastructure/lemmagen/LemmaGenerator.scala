@@ -17,6 +17,13 @@ class LemmaGenerator(specFile: File) {
   private val dsk = DomainSpecificKnowledgeBuilder().build(specFile)
   implicit private val enquirer = new LemmaGenSpecEnquirer(spec, dsk)
 
+  def constructAllChoices[T](choices: Seq[Seq[T]]): Seq[Seq[T]] = choices match {
+    case currentChoices :: remainingChoices =>
+      val constructedRemainingChoices: Seq[Seq[T]] = constructAllChoices(remainingChoices)
+      for(currentChoice <- currentChoices; remainingChoice <- constructedRemainingChoices)
+          yield currentChoice +: remainingChoice
+    case Nil => Seq(Seq())
+  }
 
   def buildSuccessLemma(function: FunctionDef): Lemma = {
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
@@ -35,40 +42,54 @@ class LemmaGenerator(specFile: File) {
       TypingRule(s"${function.name}Progress", Seq(), Seq(exists)))
   }
 
-  def selectPredicate(baseLemma: Lemma, predicate: FunctionDef): Lemma = {
+  def selectPredicate(baseLemma: Lemma, predicate: FunctionDef): Seq[Lemma] = {
     val (boundTypes, unboundTypes) = predicate.inTypes.partition(baseLemma.boundTypes.contains(_))
     val builder = new LemmaBuilder(baseLemma)
     builder.bindTypes(unboundTypes)
-    // collect vars of suitable type for invocation TODO: there might be choices here
-    val arguments = predicate.inTypes.map(typ => builder.bindings.find(_._2 == typ).get._1)
-    val invocationExp = FunctionExpJudgment(
-      FunctionExpApp(
-        predicate.name,
-        arguments.map(v => FunctionMeta(v))
+    // collect vars of suitable type for invocation
+    val possibleArguments = predicate.inTypes.map(builder.bindingsOfType)
+    val possibleChoices = constructAllChoices(possibleArguments)
+    var lemmas = Seq[Lemma]()
+    for(arguments <- possibleChoices) {
+      val localBuilder = builder.copy()
+      val invocationExp = FunctionExpJudgment(
+        FunctionExpApp(
+          predicate.name,
+          arguments.map(v => FunctionMeta(v))
+        )
       )
-    )
-    if(!builder.rule.premises.contains(invocationExp))
-      builder.addPremise(invocationExp)
-    builder.build()
+      if (!localBuilder.rule.premises.contains(invocationExp)) {
+        localBuilder.addPremise(invocationExp)
+        lemmas :+= localBuilder.build()
+      }
+    }
+    lemmas
   }
 
-  def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Lemma = {
+  def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Seq[Lemma] = {
     val builder = new LemmaBuilder(baseLemma)
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
     val successVar = builder.bindType(successConstructor.in.head)
     val (boundTypes, unboundTypes) = function.inTypes.partition(baseLemma.boundTypes.contains(_))
     builder.bindTypes(unboundTypes)
-    // collect vars of suitable type for invocation TODO: there might be choices here
-    val arguments = function.inTypes.map(typ => builder.bindings.find(_._2 == typ).get._1)
-    val invocationExp = FunctionExpApp(
-      function.name,
-      arguments.map(v => FunctionMeta(v))
-    )
-    val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
-    val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
-    if(!builder.rule.premises.contains(equality))
-      builder.addPremise(equality)
-    builder.build()
+    // collect vars of suitable type for invocation
+    val possibleArguments = function.inTypes.map(builder.bindingsOfType)
+    val possibleChoices = constructAllChoices(possibleArguments)
+    var lemmas = Seq[Lemma]()
+    for(arguments <- possibleChoices) {
+      val localBuilder = builder.copy()
+      val invocationExp = FunctionExpApp(
+        function.name,
+        arguments.map(v => FunctionMeta(v))
+      )
+      val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
+      val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
+      if (!localBuilder.rule.premises.contains(equality)) {
+        localBuilder.addPremise(equality)
+        lemmas :+= localBuilder.build()
+      }
+    }
+    lemmas
   }
 
   def generateProgressLemma(dynamicFunctionName: String): Lemma = {
@@ -88,11 +109,11 @@ class LemmaGenerator(specFile: File) {
     // find predicates that involve any of the given types
     val lemmas = mutable.HashSet.empty[Lemma]
     for(fn <- predicates)
-      lemmas += selectPredicate(lemma, fn)
+      lemmas ++= selectPredicate(lemma, fn)
     for(fn <- failableProducers if fn.isStatic)
-      lemmas += selectSuccessPredicate(lemma, fn)
+      lemmas ++= selectSuccessPredicate(lemma, fn)
     for(fn <- failableTransformers if fn.isStatic)
-      lemmas += selectSuccessPredicate(lemma, fn)
+      lemmas ++= selectSuccessPredicate(lemma, fn)
     lemmas
   }
 

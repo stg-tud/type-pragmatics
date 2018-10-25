@@ -42,6 +42,9 @@ object FreshVariables {
 
 class Lemma(val bindings: Map[MetaVar, SortRef], val rule: TypingRule) {
   def boundTypes: Set[SortRef] = bindings.values.toSet
+  def bindingsOfType(typ: SortRef): Seq[MetaVar] = {
+    bindings.collect { case (metaVar, metaVarType) if typ == metaVarType => metaVar }.toSeq
+  }
 
   def bind(variable: MetaVar): Lemma = {
     if(bindings contains variable) {
@@ -65,6 +68,7 @@ class LemmaBuilder(baseLemma: Lemma) {
   def bindings = lemma.bindings
   def rule = lemma.rule
   def boundTypes = lemma.boundTypes
+  def bindingsOfType(typ: SortRef) = lemma.bindingsOfType(typ)
 
   def addPremise(premise: TypingRuleJudgment): Unit = {
     lemma = lemma.withPremise(premise)
@@ -85,4 +89,5 @@ class LemmaBuilder(baseLemma: Lemma) {
   }
 
   def build() = lemma
+  def copy(): LemmaBuilder = new LemmaBuilder(build())
 }
