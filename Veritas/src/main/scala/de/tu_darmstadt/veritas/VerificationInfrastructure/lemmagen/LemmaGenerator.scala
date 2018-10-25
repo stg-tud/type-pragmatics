@@ -68,13 +68,15 @@ class LemmaGenerator(specFile: File) {
 
   def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Seq[Lemma] = {
     val builder = new LemmaBuilder(baseLemma)
-    val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
-    val successVar = builder.bindType(successConstructor.in.head)
     val (boundTypes, unboundTypes) = function.inTypes.partition(baseLemma.boundTypes.contains(_))
     builder.bindTypes(unboundTypes)
     // collect vars of suitable type for invocation
     val possibleArguments = function.inTypes.map(builder.bindingsOfType)
     val possibleChoices = constructAllChoices(possibleArguments)
+    // bind success var *after* having constructed all choices for arguments, because
+    // we don't want the success variable to appear as an argument here
+    val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
+    val successVar = builder.bindType(successConstructor.in.head)
     var lemmas = Seq[Lemma]()
     for(arguments <- possibleChoices) {
       val localBuilder = builder.copy()
