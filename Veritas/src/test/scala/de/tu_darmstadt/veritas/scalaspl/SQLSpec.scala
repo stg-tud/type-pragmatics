@@ -652,7 +652,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   //axioms on behavior of table type context
   @Axiom
-  def TTTContextDublicate(x: Name, y: Name, Tx: TType, Ty: TType, C: TTContext, e: Query, T: TType): Unit = {
+  def TTTContextDuplicate(x: Name, y: Name, Tx: TType, Ty: TType, C: TTContext, e: Query, T: TType): Unit = {
     require(x == y)
     require(bindContext(x, Tx, bindContext(y, Ty, C)) |- e :: T)
   } ensuring (bindContext(x, Tx, C) |- e :: T)
@@ -664,8 +664,8 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring(bindContext(y, Ty, bindContext(x, Tx, C)) |- e :: T)
 
   @Axiom
-  def Ttvalue(tt: TType, al: AttrL, rt: RawTable, TTC: TTContext, TT: TType): Unit = {
-    require(welltypedtable(tt, table(al, rt)))
+  def Ttvalue(al: AttrL, rt: RawTable, TTC: TTContext, TT: TType): Unit = {
+    require(welltypedtable(TT, table(al, rt)))
   } ensuring(TTC |- tvalue(table(al, rt)) :: TT)
 
   @Axiom
