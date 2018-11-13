@@ -124,11 +124,13 @@ object SQLSpec extends ScalaSPLSpecification {
 
   //some auxiliary functions on raw tables (all not knowing anything about table types!)
   //the functions are intended to be used with well-typed tables!!
+  @Predicate
   def attrIn(n: Name, al: AttrL): Boolean = (n, al) match {
     case (_, aempty()) => false
     case (n1, acons(m, al1)) => (n1 == m) || attrIn(n1, al1)
   }
 
+  @Predicate
   def rowIn(r: Row, rt: RawTable): Boolean = (r, rt) match {
     case (_, tempty()) => false
     case (r1, tcons(r2, rt2)) => (r1 == r2) || rowIn(r1, rt2)
@@ -427,6 +429,7 @@ object SQLSpec extends ScalaSPLSpecification {
         noTable()
   }
 
+  @FailableType
   sealed trait OptVal
 
   case class noVal() extends OptVal
@@ -552,6 +555,7 @@ object SQLSpec extends ScalaSPLSpecification {
         noQuery()
   }
 
+  @FailableType
   sealed trait OptFType
 
   case class noFType() extends OptFType
@@ -682,6 +686,7 @@ object SQLSpec extends ScalaSPLSpecification {
     case (_, _) => false
   }
 
+  // LEMMAS BEGIN
   //PROGRESS
   @Property
   def reduceProgress(ts: TStore, ttc: TTContext, q: Query): Unit = {
@@ -870,5 +875,5 @@ object SQLSpec extends ScalaSPLSpecification {
     require(ttc |- q :: tt)
     require(reduce(q, ts) == someQuery(qr))
   } ensuring(ttc |- qr :: tt)
-
+  // LEMMAS END
 }

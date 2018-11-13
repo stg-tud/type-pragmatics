@@ -26,7 +26,7 @@ class SQLLemmaGenerationTest extends FunSuite {
     def generateAndPrint(name: String): Unit = {
       val expected = dsk.lookupByFunName(dsk.progressProperties, name).head
       var lemmas = generator.generateProgressLemmas(name)
-      for(lemma <- lemmas.take(2000)) {
+      for(lemma <- lemmas.take(1000)) {
         if (EquivalenceHeuristics.mightBeEquivalent(lemma.rule, expected)) {
         //if(lemma.rule.premises == expected.premises) {
           lemmaPrettyPrinter.printTypingRule(lemma.rule)
@@ -37,9 +37,9 @@ class SQLLemmaGenerationTest extends FunSuite {
       println("-------------------------")
     }
 
-    generateAndPrint("projectTable")
-    generateAndPrint("projectCols")
-    generateAndPrint("lookupStore")
+    //generateAndPrint("projectTable")
+    //generateAndPrint("projectCols")
+    generateAndPrint("findCol")
   }
 
   test("Read @Static and @Dynamic annotations from SQLSpec") {
