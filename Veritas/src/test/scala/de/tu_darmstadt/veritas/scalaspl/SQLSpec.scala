@@ -827,11 +827,11 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedRawtable(tt2, rt2)
 
   @Property
-  def projectTableWelltypedWithSelectType(sel: Select, t: Table, tt: TType, tt2: TType): Unit = {
+  def projectTableWelltypedWithSelectType(sel: Select, t: Table, t2: Table, tt: TType, tt2: TType): Unit = {
     require(welltypedtable(tt, t))
     require(projectType(sel, tt) == someTType(tt2))
-  } ensuring exists((t2: Table) => projectTable(sel, t) == someTable(t2)) ensuring welltypedtable(
-    tt2, getTable(projectTable(sel, t))) // TODO: how to wrap this?
+    require(projectTable(sel, t) == someTable(t2))
+  } ensuring welltypedtable(tt2, t2)
 
   @Property
   def reducePreservation(ttc: TTContext, ts: TStore, q: Query, qr: Query, tt: TType): Unit = {
