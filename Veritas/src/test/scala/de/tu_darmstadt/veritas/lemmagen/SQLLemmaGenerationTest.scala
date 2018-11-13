@@ -42,6 +42,18 @@ class SQLLemmaGenerationTest extends FunSuite {
     generateAndPrint("findCol")
   }
 
+  test("Generate interesting preservation lemma") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+    val generator = new LemmaGenerator(file)
+    val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
+    val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
+      override val printer: PrettyPrintWriter = outputPrettyPrinter
+    }
+    val dsk = DomainSpecificKnowledgeBuilder().build(file)
+
+    generator.generatePreservationLemmas("rawUnion")
+  }
+
   test("Read @Static and @Dynamic annotations from SQLSpec") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
     val module = new ScalaSPLTranslator().translate(file)

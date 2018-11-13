@@ -42,6 +42,45 @@ class LemmaGenerator(specFile: File) {
       TypingRule(s"${function.name}Progress", Seq(), Seq(exists)))
   }
 
+  def buildPredicatePreservationLemmas(producer: FunctionDef, predicate: FunctionDef): Seq[Lemma] = {
+    // build lemmas that postulate that ``predicate`` holds for the result of ``producer``
+    // might have multiple choices because ``predicate`` might have multiple arguments of compatible type
+    val predicateArgs = FreshVariables.freshMetaVars(Map.empty, predicate.inTypes)
+    val invocationExp = FunctionExpApp(predicate.name, predicateArgs.map {
+      case (metaVar, typ) => FunctionMeta(metaVar)
+    })
+    val judgment = FunctionExpJudgment(invocationExp)
+    // we now have the conclusion, we just need to choose the input argument accordingly
+    val baseLemma = new Lemma(
+      predicateArgs.toMap,
+      TypingRule(s"${producer.name}${predicate.name}Preservation", Seq(), Seq(judgment))
+    )
+    val builder = new LemmaBuilder(baseLemma)
+    builder.bindTypes(producer.inTypes)
+    // could be empty if the predicate and producer do not share any argument types
+    val possibleArguments = producer.inTypes.map(builder.bindingsOfType)
+    val possibleChoices = constructAllChoices(possibleArguments)
+    var lemmas = Seq[Lemma]()
+    for(mv <- builder.bindingsOfType(producer.outType)) {
+      for (arguments <- possibleChoices) {
+        val localBuilder = builder.copy()
+        val left = FunctionMeta(mv)
+        val right = FunctionExpApp(producer.name, arguments.map(v => FunctionMeta(v)))
+        val premise = enquirer.makeEquation(left, right).asInstanceOf[FunctionExpJudgment]
+        localBuilder.addPremise(premise)
+        lemmas :+= localBuilder.build()
+      }
+    }
+    lemmas
+  }
+
+  def generatePreservationLemmas(dynamicFunctionName: String): Seq[Lemma] = {
+    val dynamicFunction = dsk.dynamicFunctions.find(_.name == dynamicFunctionName).get
+    // select all possible static predicates
+    val predicates = enquirer.retrievePredicates(dynamicFunction.outType)
+    predicates.flatMap(buildPredicatePreservationLemmas(dynamicFunction, _)).toSeq
+  }
+
   def selectPredicate(baseLemma: Lemma, predicate: FunctionDef): Seq[Lemma] = {
     val (boundTypes, unboundTypes) = predicate.inTypes.partition(baseLemma.boundTypes.contains(_))
     val builder = new LemmaBuilder(baseLemma)
@@ -127,5 +166,11 @@ class LemmaGenerator(specFile: File) {
   def generateProgressLemmas(dynamicFunctionName: String): Stream[Lemma] = {
     val base = generateProgressLemma(dynamicFunctionName)
     base #:: evolveProgressLemmas(Stream(base))
+  }
+
+  def evolvePreservationLemma(lemma: Lemma): Iterable[Lemma] = {
+    // STATIC(exp) (+ DYNAMIC(exp')) => STATIC(exp')
+    // get staitic
+    Seq()
   }
 }
