@@ -44,37 +44,41 @@ class LemmaGenerator(specFile: File) {
 
   def buildPredicatePreservationLemmas(producer: FunctionDef, predicate: FunctionDef): Seq[Lemma] = {
     // build lemmas that postulate that ``predicate`` holds for the result of ``producer``
+    // ``producer`` may be failable
     // might have multiple choices because ``predicate`` might have multiple arguments of compatible type
     val producerArgs = FreshVariables.freshMetaVars(Map.empty, producer.inTypes)
     val producerInvocation = FunctionExpApp(producer.name, producerArgs.map(v => FunctionMeta(v._1)))
+    val productType = producer.successfulOutType
     val productHoles = predicate.inTypes.view.zipWithIndex.collect {
-      case (typ, idx) if typ == producer.outType => idx
+      case (typ, idx) if typ == productType => idx
     }
     var baseLemmas = Seq[Lemma]()
     for(hole <- productHoles) {
       val predicateArgs = FreshVariables.freshMetaVars(producerArgs.toMap, predicate.inTypes)
-      val invocationExp = FunctionExpApp(predicate.name, predicateArgs.view.zipWithIndex.map {
-        case ((metaVar, typ), idx) =>
-          if(idx == hole)
-            producerInvocation
-          else
-            FunctionMeta(metaVar)
+      val invocationExp = FunctionExpApp(predicate.name, predicateArgs.map {
+        case (metaVar, typ) => FunctionMeta(metaVar)
       })
       val judgment = FunctionExpJudgment(invocationExp)
-      // we now have the conclusion, we just need to choose the input argument accordingly
       val baseLemma = new Lemma(
         predicateArgs.toMap,
-        TypingRule(s"${producer.name}${predicate.name}Preservation${hole}", Seq(), Seq(judgment))
+        TypingRule(s"${producer.name}${predicate.name}Preservation$hole", Seq(), Seq(judgment))
       )
-      baseLemmas :+= baseLemma
+      // we now have the conclusion, we just need to choose the input argument accordingly
+      var right: FunctionExpMeta = FunctionMeta(predicateArgs(hole)._1)
+      if(producer.isFailable) {
+        val constructor = enquirer.retrieveFailableConstructors(producer.outType)._2
+        right = FunctionExpApp(constructor.name, Seq(right))
+      }
+      val equality = enquirer.makeEquation(producerInvocation, right).asInstanceOf[FunctionExpJudgment]
+      baseLemmas :+= baseLemma.withPremise(equality)
     }
     baseLemmas
   }
 
-  def generatePreservationLemmas(dynamicFunctionName: String): Seq[Lemma] = {
+  def generateBasePreservationLemmas(dynamicFunctionName: String): Seq[Lemma] = {
     val dynamicFunction = dsk.dynamicFunctions.find(_.name == dynamicFunctionName).get
     // select all possible static predicates
-    val predicates = enquirer.retrievePredicates(dynamicFunction.outType)
+    val predicates = enquirer.retrievePredicates(dynamicFunction.successfulOutType)
     predicates.flatMap(buildPredicatePreservationLemmas(dynamicFunction, _)).toSeq
   }
 
@@ -167,7 +171,31 @@ class LemmaGenerator(specFile: File) {
 
   def evolvePreservationLemma(lemma: Lemma): Iterable[Lemma] = {
     // STATIC(exp) (+ DYNAMIC(exp')) => STATIC(exp')
-    // get staitic
-    Seq()
+    val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
+    val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
+    val failableProducers = producers.filter(_.isFailable)
+    val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
+    val failableTransformers = transformers.filter(_.isFailable)
+    // we just have to find matching premises
+    // find predicates that involve any of the given types
+    val lemmas = mutable.HashSet.empty[Lemma]
+    for(fn <- predicates)
+      lemmas ++= selectPredicate(lemma, fn)
+    for(fn <- failableProducers)
+      lemmas ++= selectSuccessPredicate(lemma, fn)
+    for(fn <- failableTransformers)
+      lemmas ++= selectSuccessPredicate(lemma, fn)
+    lemmas
   }
+
+  def evolvePreservationLemmas(lemmas: Stream[Lemma]): Stream[Lemma] = {
+    val evolved = lemmas.flatMap(evolvePreservationLemma)
+    evolved #::: evolvePreservationLemmas(evolved)
+  }
+
+  def generatePreservationLemmas(dynamicFunctionName: String): Stream[Lemma] = {
+    val base = generateBasePreservationLemmas(dynamicFunctionName)
+    base.toStream #::: evolvePreservationLemmas(base.toStream)
+  }
+
 }

@@ -130,7 +130,7 @@ object SQLSpec extends ScalaSPLSpecification {
     case (n1, acons(m, al1)) => (n1 == m) || attrIn(n1, al1)
   }
 
-  @Predicate
+  //@Predicate
   def rowIn(r: Row, rt: RawTable): Boolean = (r, rt) match {
     case (_, tempty()) => false
     case (r1, tcons(r2, rt2)) => (r1 == r2) || rowIn(r1, rt2)
@@ -768,10 +768,11 @@ object SQLSpec extends ScalaSPLSpecification {
 
   // union, intersection, difference preserve well-typedness of raw tables
   @Property
-  def rawUnionPreservesWellTypedRaw(rt1: RawTable, rt2: RawTable, tt: TType): Unit = {
+  def rawUnionPreservesWellTypedRaw(rt1: RawTable, rt2: RawTable, result: RawTable, tt: TType): Unit = {
     require(welltypedRawtable(tt, rt1))
     require(welltypedRawtable(tt, rt2))
-  } ensuring welltypedRawtable(tt, rawUnion(rt1, rt2))
+    require(rawUnion(rt1, rt2) == result)
+  } ensuring welltypedRawtable(tt, result)
 
   @Property
   def rawIntersectionPreservesWellTypedRaw(rt1: RawTable, rt2: RawTable, tt: TType): Unit = {
