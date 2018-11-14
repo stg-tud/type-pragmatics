@@ -710,9 +710,10 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedtable(tt, t) // TODO: may this be a preservation lemma?
 
   @Property
-  def filterPreservesType(tt: TType, t: Table, p: Pred): Unit = {
+  def filterPreservesType(tt: TType, t: Table, result: Table, p: Pred): Unit = {
     require(welltypedtable(tt, t))
-  } ensuring welltypedtable(tt, filterTable(t, p))
+    require(filterTable(t, p) == result)
+  } ensuring welltypedtable(tt, result)
 
   @Property
   def projectTableProgress(tt: TType, t: Table, s: Select, tt2: TType): Unit = {

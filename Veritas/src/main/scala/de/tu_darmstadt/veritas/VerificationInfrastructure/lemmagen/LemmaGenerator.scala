@@ -60,7 +60,7 @@ class LemmaGenerator(specFile: File) {
       })
       val judgment = FunctionExpJudgment(invocationExp)
       val baseLemma = new Lemma(
-        predicateArgs.toMap,
+        predicateArgs.toMap ++ producerArgs.toMap,
         TypingRule(s"${producer.name}${predicate.name}Preservation$hole", Seq(), Seq(judgment))
       )
       // we now have the conclusion, we just need to choose the input argument accordingly
@@ -79,7 +79,13 @@ class LemmaGenerator(specFile: File) {
     val dynamicFunction = dsk.dynamicFunctions.find(_.name == dynamicFunctionName).get
     // select all possible static predicates
     val predicates = enquirer.retrievePredicates(dynamicFunction.successfulOutType)
-    predicates.flatMap(buildPredicatePreservationLemmas(dynamicFunction, _)).toSeq
+    val lemmas = mutable.HashSet.empty[Lemma]
+    for(predicate <- predicates) {
+      val baseLemmas = buildPredicatePreservationLemmas(dynamicFunction, predicate)
+      lemmas ++= baseLemmas
+      lemmas ++= baseLemmas.flatMap(selectPredicate(_, predicate))
+    }
+    lemmas.toSeq
   }
 
   def selectPredicate(baseLemma: Lemma, predicate: FunctionDef): Seq[Lemma] = {

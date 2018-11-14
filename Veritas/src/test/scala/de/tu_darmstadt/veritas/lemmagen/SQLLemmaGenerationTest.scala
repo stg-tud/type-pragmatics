@@ -55,18 +55,18 @@ class SQLLemmaGenerationTest extends FunSuite {
       val expected = dsk.lookupByFunName(dsk.preservationProperties, name).head
       var lemmas = generator.generatePreservationLemmas(name)
       for(lemma <- lemmas.take(1000)) {
-        //if (EquivalenceHeuristics.mightBeEquivalent(lemma.rule, expected)) {
+        if (EquivalenceHeuristics.mightBeEquivalent(lemma.rule, expected)) {
           //if(lemma.rule.premises == expected.premises) {
           lemmaPrettyPrinter.printTypingRule(lemma.rule)
           outputPrettyPrinter.flush()
           println()
-        //}
+        }
       }
       println("-------------------------")
     }
 
-    generateAndPrint("projectCols")
-    //generateAndPrint("rawUnion")
+    //generateAndPrint("projectCols")
+    generateAndPrint("filterTable")
   }
 
   test("Read @Static and @Dynamic annotations from SQLSpec") {
