@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import java.io.{File, PrintWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{LemmaGenSpecEnquirer, LemmaGenerator}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{AlphaEquivalence, LemmaGenSpecEnquirer, LemmaGenerator}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -27,7 +27,7 @@ class SQLLemmaGenerationTest extends FunSuite {
       val expected = dsk.lookupByFunName(dsk.progressProperties, name).head
       var lemmas = generator.generateProgressLemmas(name)
       for(lemma <- lemmas.take(1000)) {
-        if (EquivalenceHeuristics.mightBeEquivalent(lemma.rule, expected)) {
+        if (AlphaEquivalence.isEquivalent(expected, lemma.rule)) {
         //if(lemma.rule.premises == expected.premises) {
           lemmaPrettyPrinter.printTypingRule(lemma.rule)
           outputPrettyPrinter.flush()
@@ -37,8 +37,8 @@ class SQLLemmaGenerationTest extends FunSuite {
       println("-------------------------")
     }
 
-    //generateAndPrint("projectTable")
-    //generateAndPrint("projectCols")
+    generateAndPrint("projectTable")
+    generateAndPrint("projectCols")
     generateAndPrint("findCol")
   }
 
@@ -55,7 +55,7 @@ class SQLLemmaGenerationTest extends FunSuite {
       val expected = dsk.lookupByFunName(dsk.preservationProperties, name).head
       var lemmas = generator.generatePreservationLemmas(name)
       for(lemma <- lemmas.take(1000)) {
-        if (EquivalenceHeuristics.mightBeEquivalent(lemma.rule, expected)) {
+        if (AlphaEquivalence.isEquivalent(expected, lemma.rule)) {
           //if(lemma.rule.premises == expected.premises) {
           lemmaPrettyPrinter.printTypingRule(lemma.rule)
           outputPrettyPrinter.flush()
@@ -65,8 +65,8 @@ class SQLLemmaGenerationTest extends FunSuite {
       println("-------------------------")
     }
 
-    //generateAndPrint("projectCols")
-    generateAndPrint("filterTable")
+    generateAndPrint("projectCols")
+    //generateAndPrint("filterTable")
   }
 
   test("Read @Static and @Dynamic annotations from SQLSpec") {
