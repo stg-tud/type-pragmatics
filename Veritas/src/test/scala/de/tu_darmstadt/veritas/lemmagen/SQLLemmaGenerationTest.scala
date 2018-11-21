@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import java.io.{File, PrintWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{AlphaEquivalence, LemmaGenSpecEnquirer, LemmaGenerator}
-import de.tu_darmstadt.veritas.backend.ast.SortRef
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{AlphaEquivalence, Lemma, LemmaGenSpecEnquirer, LemmaGenerator}
+import de.tu_darmstadt.veritas.backend.ast.{SortRef, TypingRule}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
@@ -14,59 +14,41 @@ import org.scalatest.FunSuite
 import scala.meta._
 
 class SQLLemmaGenerationTest extends FunSuite {
-  test("Generate interesting progress lemmas") {
-    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
-    val generator = new LemmaGenerator(file)
-    val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-    val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
-      override val printer: PrettyPrintWriter = outputPrettyPrinter
-    }
-    val dsk = DomainSpecificKnowledgeBuilder().build(file)
-
-    def generateAndPrint(name: String): Unit = {
-      val expected = dsk.lookupByFunName(dsk.progressProperties, name).head
-      var lemmas = generator.generateProgressLemmas(name)
-      for(lemma <- lemmas.take(1000)) {
-        if (AlphaEquivalence.isEquivalent(expected, lemma.rule)) {
-        //if(lemma.rule.premises == expected.premises) {
-          lemmaPrettyPrinter.printTypingRule(lemma.rule)
-          outputPrettyPrinter.flush()
-          println()
-        }
-      }
-      println("-------------------------")
-    }
-
-    generateAndPrint("projectTable")
-    generateAndPrint("projectCols")
-    generateAndPrint("findCol")
+  val MaximumLemmas = 1000
+  val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+  val dsk = DomainSpecificKnowledgeBuilder().build(file)
+  val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
+  val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
+    override val printer: PrettyPrintWriter = outputPrettyPrinter
   }
 
-  test("Generate interesting preservation lemma") {
-    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
-    val generator = new LemmaGenerator(file)
-    val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-    val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
-      override val printer: PrettyPrintWriter = outputPrettyPrinter
+  def testLemmaGenerator(stream: Stream[Lemma], expected: TypingRule): Unit = {
+    val generatedLemmas: Seq[Lemma] = stream.take(MaximumLemmas)
+    val equivalentLemmas = generatedLemmas.filter(lemma => AlphaEquivalence.isEquivalent(expected, lemma.rule))
+    println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${generatedLemmas.length}")
+    println()
+    for(lemma <- equivalentLemmas) {
+      lemmaPrettyPrinter.printTypingRule(lemma.rule)
+      outputPrettyPrinter.flush()
+      println()
     }
-    val dsk = DomainSpecificKnowledgeBuilder().build(file)
+    assert(equivalentLemmas.nonEmpty)
+  }
 
-    def generateAndPrint(name: String): Unit = {
-      val expected = dsk.lookupByFunName(dsk.preservationProperties, name).head
-      var lemmas = generator.generatePreservationLemmas(name)
-      for(lemma <- lemmas.take(1000)) {
-        if (AlphaEquivalence.isEquivalent(expected, lemma.rule)) {
-          //if(lemma.rule.premises == expected.premises) {
-          lemmaPrettyPrinter.printTypingRule(lemma.rule)
-          outputPrettyPrinter.flush()
-          println()
-        }
-      }
-      println("-------------------------")
+  dsk.progressProperties.foreach {
+    case (function, expected) => test(s"Generate progress property for ${function.signature.name}") {
+      val generator = new LemmaGenerator(file)
+      val lemmas = generator.generateProgressLemmas(function.signature.name)
+      testLemmaGenerator(lemmas, expected)
     }
+  }
 
-    generateAndPrint("projectCols")
-    //generateAndPrint("filterTable")
+  dsk.preservationProperties.foreach {
+    case (function, expected) => test(s"Generate preservation property for ${function.signature.name}") {
+      val generator = new LemmaGenerator(file)
+      val lemmas = generator.generateProgressLemmas(function.signature.name)
+      testLemmaGenerator(lemmas, expected)
+    }
   }
 
   test("Read @Static and @Dynamic annotations from SQLSpec") {

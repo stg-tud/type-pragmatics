@@ -118,7 +118,6 @@ object AlphaEquivalence {
       ))
     } catch {
       case a: RenamingError => {
-        println(a)
         None
       }
     }
