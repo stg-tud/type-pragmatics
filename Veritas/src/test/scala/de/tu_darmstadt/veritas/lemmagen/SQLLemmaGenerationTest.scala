@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.lemmagen
 
-import java.io.{File, PrintWriter}
+import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{AlphaEquivalence, Lemma, LemmaGenSpecEnquirer, LemmaGenerator}
 import de.tu_darmstadt.veritas.backend.ast.{SortRef, TypingRule}
@@ -22,7 +22,32 @@ class SQLLemmaGenerationTest extends FunSuite {
     override val printer: PrettyPrintWriter = outputPrettyPrinter
   }
 
-  def testLemmaGenerator(stream: Stream[Lemma], expected: TypingRule): Unit = {
+  def recursivedelete(file: File) {
+    if (file.isDirectory)
+      Option(file.listFiles).map(_.toList).getOrElse(Nil).foreach(recursivedelete(_))
+    file.delete
+  }
+
+  val generatedDirectory = new File("generated-lemmas")
+  if(generatedDirectory.exists()) recursivedelete(generatedDirectory)
+  generatedDirectory.mkdirs()
+
+  def writeLemmasToFile(lemmas: Seq[Lemma], file: File): Unit = {
+    println(s"Writing ${lemmas.length} lemmas to ${file} ...")
+    val writer = new FileWriter(file)
+    val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
+      override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
+    }
+    for((lemma, idx) <- lemmas.zipWithIndex) {
+      writer.write(s"Lemma #$idx:\n")
+      writer.write("--------------\n")
+      lemmaWriter.printTypingRule(lemma.rule)
+      writer.write("\n\n")
+      writer.flush()
+    }
+  }
+
+  def testLemmaGenerator(name: String, stream: Stream[Lemma], expected: TypingRule): Unit = {
     val generatedLemmas: Seq[Lemma] = stream.take(MaximumLemmas)
     val equivalentLemmas = generatedLemmas.filter(lemma => AlphaEquivalence.isEquivalent(expected, lemma.rule))
     println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${generatedLemmas.length}")
@@ -32,6 +57,9 @@ class SQLLemmaGenerationTest extends FunSuite {
       outputPrettyPrinter.flush()
       println()
     }
+    writeLemmasToFile(generatedLemmas, new File(generatedDirectory, s"$name-generated.txt"))
+    if(equivalentLemmas.nonEmpty)
+      writeLemmasToFile(equivalentLemmas, new File(generatedDirectory, s"$name-equivalent.txt"))
     assert(equivalentLemmas.nonEmpty)
   }
 
@@ -39,7 +67,7 @@ class SQLLemmaGenerationTest extends FunSuite {
     case (function, expected) => test(s"Generate progress property for ${function.signature.name}") {
       val generator = new LemmaGenerator(file)
       val lemmas = generator.generateProgressLemmas(function.signature.name)
-      testLemmaGenerator(lemmas, expected)
+      testLemmaGenerator(function.signature.name, lemmas, expected)
     }
   }
 
@@ -47,7 +75,7 @@ class SQLLemmaGenerationTest extends FunSuite {
     case (function, expected) => test(s"Generate preservation property for ${function.signature.name}") {
       val generator = new LemmaGenerator(file)
       val lemmas = generator.generatePreservationLemmas(function.signature.name)
-      testLemmaGenerator(lemmas, expected)
+      testLemmaGenerator(function.signature.name, lemmas, expected)
     }
   }
 
