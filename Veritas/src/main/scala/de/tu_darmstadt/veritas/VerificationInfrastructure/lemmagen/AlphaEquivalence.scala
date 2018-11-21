@@ -20,31 +20,16 @@ object AlphaEquivalence {
     }
   }
 
-  private class VariableRenamer(ref: TypingRule, rule: TypingRule) extends ModuleTransformation with Serializable {
+  private class FindRenaming {
     var renaming: mutable.HashMap[MetaVar, MetaVar] = new mutable.HashMap()
 
-    def apply(): Map[MetaVar, MetaVar] = {
-      transTypingRules(rule)
-      renaming.toMap
-    }
-
-    override def transMetaVars(m: MetaVar): Seq[MetaVar] = {
-      Seq(m)
-    }
-
-    override def transMetaVar(m: MetaVar): MetaVar = {
-      val refChoices = walkPathInRef().filter(_.isInstanceOf[MetaVar]).toSet
-      if(refChoices.size > 1) {
-        throw RenamingError("more than one choice for reference rule traversal") // TODO
-      } else if(refChoices.isEmpty) {
-        throw RenamingError("could not traverse reference rule")
-      } else {
-        val choice = refChoices.head
-        if(!choice.isInstanceOf[MetaVar])
-          throw RenamingError(s"$choice is not a MetaVariable")
-        tryRename(m, choice.asInstanceOf[MetaVar])
-        m
+    def visit(ref: VeritasConstruct, rule: VeritasConstruct): Unit = {
+      if(ref.isInstanceOf[MetaVar] != rule.isInstanceOf[MetaVar])
+        throw RenamingError(s"Got one MetaVar, one non-MetaVar: $ref, $rule")
+      if(ref.isInstanceOf[MetaVar]) {
+        tryRename(rule.asInstanceOf[MetaVar], ref.asInstanceOf[MetaVar])
       }
+      visitChildren(ref, rule)
     }
 
     def tryRename(from: MetaVar, to: MetaVar): Unit = {
@@ -53,28 +38,26 @@ object AlphaEquivalence {
       renaming += (from -> to)
     }
 
-    def walkPathInRef(): Seq[VeritasConstruct] = {
-      walkInRef(path.reverse, ref, rule)
-    }
-
-    def walkInRef(path: Seq[VeritasConstruct],
-                  refPosition: VeritasConstruct,
-                  rulePosition: VeritasConstruct): Seq[VeritasConstruct] = path match {
-      case Nil => Seq(refPosition)
-      case hd :: tl => {
-        // get the position of ``hd`` in rule positions's children
-        val indices = rulePosition.children.zipWithIndex.flatMap {
-          case (ch, idx1) => ch.zipWithIndex.collect {
-            case (child, idx2) if child == hd => (idx1, idx2)
-          }
-        }
-        indices.flatMap {
-          case (idx1, idx2) => {
-            val newRefPosition = refPosition.children(idx1)(idx2)
-            walkInRef(tl, newRefPosition, hd)
+    def visitChildren(ref: VeritasConstruct, rule: VeritasConstruct): Unit = {
+      if(ref.children.length != rule.children.length)
+        throw RenamingError(s"Incompatible shapes: $ref, $rule")
+      (ref.children zip rule.children).foreach {
+        case (refGroup, ruleGroup) => {
+          if(refGroup.length != ruleGroup.length)
+            throw RenamingError(s"Incompatible shapes: $refGroup, $ruleGroup")
+          (refGroup zip ruleGroup).foreach {
+            case (refChild, ruleChild) => visit(refChild, ruleChild)
           }
         }
       }
+    }
+  }
+
+  private object FindRenaming {
+    def apply(ref: VeritasConstruct, rule: VeritasConstruct): Map[MetaVar, MetaVar] = {
+      val find = new FindRenaming
+      find.visit(ref, rule)
+      find.renaming.toMap
     }
   }
 
@@ -120,9 +103,8 @@ object AlphaEquivalence {
   }
 
   def renameVariables(ref: TypingRule, rule: TypingRule): Option[TypingRule] = {
-    var renamer = new VariableRenamer(ref, rule)
     try {
-      val renaming = renamer()
+      val renaming = FindRenaming(ref, rule)
       println(s"using renaming: $renaming")
       Some(TypingRule(rule.name,
         rule.premises.map(replaceMetaVars(_, renaming).asInstanceOf[TypingRuleJudgment]),
