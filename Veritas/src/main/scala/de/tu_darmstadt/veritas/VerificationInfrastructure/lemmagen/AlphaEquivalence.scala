@@ -10,13 +10,26 @@ import scala.collection.mutable
 object AlphaEquivalence {
   val bottom = MetaVar("x")
 
-  private class JudgmentTraverser extends ModuleTransformation with Serializable {
-    def apply(vc: TypingRule): Seq[TypingRule] = {
-      transTypingRules(vc)
+  private class VariableRenamer(renaming: MetaVar => MetaVar) extends ModuleTransformation with Serializable {
+     def apply(vc: TypingRuleJudgment): TypingRuleJudgment = {
+      transTypingRuleJudgments(vc) match {
+        case Seq(result) => result
+        case _ => throw BackendError(s"Multiple results!")
+      }
     }
 
-    def apply(vc: TypingRuleJudgment): Seq[TypingRuleJudgment] = {
-      transTypingRuleJudgments(vc)
+    override def transMetaVars(m: MetaVar): Seq[MetaVar] = {
+      Seq(renaming(m))
+    }
+
+    override def transMetaVar(m: MetaVar): MetaVar = {
+      renaming(m)
+    }
+  }
+
+  private object VariableRenamer {
+    def apply(vc: TypingRuleJudgment, renaming: MetaVar => MetaVar): TypingRuleJudgment = {
+      new VariableRenamer(renaming)(vc)
     }
   }
 
@@ -24,10 +37,18 @@ object AlphaEquivalence {
     var renaming: mutable.HashMap[MetaVar, MetaVar] = new mutable.HashMap()
 
     def visit(ref: VeritasConstruct, rule: VeritasConstruct): Unit = {
+      // check that the shapes are equal
       if(ref.isInstanceOf[MetaVar] != rule.isInstanceOf[MetaVar])
         throw RenamingError(s"Got one MetaVar, one non-MetaVar: $ref, $rule")
-      if(ref.isInstanceOf[MetaVar]) {
-        tryRename(rule.asInstanceOf[MetaVar], ref.asInstanceOf[MetaVar])
+      ref match {
+        case MetaVar(_) => tryRename(rule.asInstanceOf[MetaVar], ref.asInstanceOf[MetaVar])
+        case ExistsJudgment(varlist, _) =>
+          if(varlist.exists(renaming contains _))
+            throw RenamingError("Variable shadowing in ExistsJudgment is unsupported")
+        case ForallJudgment(varlist, _) =>
+          if(varlist.exists(renaming contains _))
+            throw RenamingError("Variable shadowing in ForallJudgment is unsupported")
+        case _ =>
       }
       visitChildren(ref, rule)
     }
@@ -63,22 +84,8 @@ object AlphaEquivalence {
 
   case class RenamingError(msg: String) extends BackendError("Renaming failed. " + msg)
 
-
-  def replaceMetaVars[T](judgment: TypingRuleJudgment, renaming: MetaVar => MetaVar): VeritasConstruct = {
-    val replacer = new JudgmentTraverser {
-      override def transMetaVars(m: MetaVar): Seq[MetaVar] = {
-        Seq(renaming(m))
-      }
-
-      override def transMetaVar(m: MetaVar): MetaVar = {
-        renaming(m)
-      }
-    }
-    replacer(judgment).head
-  }
-
   def replaceVarsWithBottom(judgments: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
-    judgments.map(replaceMetaVars(_, x => bottom)).asInstanceOf[Seq[TypingRuleJudgment]]
+    judgments.map(VariableRenamer(_, x => bottom))
   }
 
   def reorderTypingJudments(ref: Seq[TypingRuleJudgment], rule: Seq[TypingRuleJudgment]): Option[Seq[TypingRuleJudgment]] = {
@@ -105,10 +112,9 @@ object AlphaEquivalence {
   def renameVariables(ref: TypingRule, rule: TypingRule): Option[TypingRule] = {
     try {
       val renaming = FindRenaming(ref, rule)
-      println(s"using renaming: $renaming")
       Some(TypingRule(rule.name,
-        rule.premises.map(replaceMetaVars(_, renaming).asInstanceOf[TypingRuleJudgment]),
-        rule.consequences.map(replaceMetaVars(_, renaming).asInstanceOf[TypingRuleJudgment])
+        rule.premises.map(VariableRenamer(_, renaming)),
+        rule.consequences.map(VariableRenamer(_, renaming))
       ))
     } catch {
       case a: RenamingError => {
