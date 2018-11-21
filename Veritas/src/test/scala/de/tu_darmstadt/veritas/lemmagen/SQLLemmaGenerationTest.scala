@@ -32,13 +32,13 @@ class SQLLemmaGenerationTest extends FunSuite {
   if(generatedDirectory.exists()) recursivedelete(generatedDirectory)
   generatedDirectory.mkdirs()
 
-  def writeLemmasToFile(lemmas: Seq[Lemma], file: File): Unit = {
+  def writeLemmasToFile(lemmas: Seq[(Lemma, Int)], file: File): Unit = {
     println(s"Writing ${lemmas.length} lemmas to ${file} ...")
     val writer = new FileWriter(file)
     val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
-    for((lemma, idx) <- lemmas.zipWithIndex) {
+    for((lemma, idx) <- lemmas) {
       writer.write(s"Lemma #$idx:\n")
       writer.write("--------------\n")
       lemmaWriter.printTypingRule(lemma.rule)
@@ -48,11 +48,11 @@ class SQLLemmaGenerationTest extends FunSuite {
   }
 
   def testLemmaGenerator(name: String, stream: Stream[Lemma], expected: TypingRule): Unit = {
-    val generatedLemmas: Seq[Lemma] = stream.take(MaximumLemmas)
-    val equivalentLemmas = generatedLemmas.filter(lemma => AlphaEquivalence.isEquivalent(expected, lemma.rule))
+    val generatedLemmas: Seq[(Lemma, Int)] = stream.take(MaximumLemmas).zipWithIndex
+    val equivalentLemmas = generatedLemmas.filter(entry => AlphaEquivalence.isEquivalent(expected, entry._1.rule))
     println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${generatedLemmas.length}")
     println()
-    for(lemma <- equivalentLemmas) {
+    for((lemma, idx) <- equivalentLemmas) {
       lemmaPrettyPrinter.printTypingRule(lemma.rule)
       outputPrettyPrinter.flush()
       println()
@@ -62,6 +62,12 @@ class SQLLemmaGenerationTest extends FunSuite {
       writeLemmasToFile(equivalentLemmas, new File(generatedDirectory, s"$name-equivalent.txt"))
     assert(equivalentLemmas.nonEmpty)
   }
+
+  (dsk.progressProperties.values ++ dsk.preservationProperties.values).foreach(rule => {
+    test(s"Test AlphaEquivalence of ${rule.name} with ${rule.name}") {
+      assert(AlphaEquivalence.isEquivalent(rule, rule))
+    }
+  })
 
   dsk.progressProperties.foreach {
     case (function, expected) => test(s"Generate progress property for ${function.signature.name}") {

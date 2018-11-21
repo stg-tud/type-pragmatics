@@ -88,16 +88,26 @@ class LemmaGenerator(specFile: File) {
     lemmas.toSeq
   }
 
+  def freshOf(typ: SortRef): MetaVar = {
+    var mv = MetaVar("FRESH")
+    mv.typ = Some(TypeInference.Sort(typ.name))
+    mv
+  }
+
   def selectPredicate(baseLemma: Lemma, predicate: FunctionDef): Seq[Lemma] = {
     val (boundTypes, unboundTypes) = predicate.inTypes.partition(baseLemma.boundTypes.contains(_))
     val builder = new LemmaBuilder(baseLemma)
     builder.bindTypes(unboundTypes)
     // collect vars of suitable type for invocation
-    val possibleArguments = predicate.inTypes.map(builder.bindingsOfType)
+    val possibleArguments = predicate.inTypes.map(typ => freshOf(typ) +: builder.bindingsOfType(typ))
     val possibleChoices = constructAllChoices(possibleArguments)
     var lemmas = Seq[Lemma]()
-    for(arguments <- possibleChoices) {
+    for(oldArguments <- possibleChoices) {
       val localBuilder = builder.copy()
+      val arguments = oldArguments.map {
+        case mv@MetaVar("FRESH") => localBuilder.bindType(mv.sortType)
+        case other => other
+      }
       val invocationExp = FunctionExpJudgment(
         FunctionExpApp(
           predicate.name,

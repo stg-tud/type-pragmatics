@@ -93,7 +93,12 @@ object AlphaEquivalence {
     val rule_bottom = replaceVarsWithBottom(rule)
     if(ref_bottom.toSet == rule_bottom.toSet
       && ref_bottom.length == rule_bottom.length) {
-      Some(ref_bottom.map(rule_bottom.indexOf(_)).map(rule))
+      val remainingRule_bottom: mutable.ListBuffer[Option[TypingRuleJudgment]] = mutable.ListBuffer(rule_bottom.map(Some(_)):_*)
+      Some(ref_bottom.map(judgment_bottom => {
+        val idx = remainingRule_bottom.indexOf(Some(judgment_bottom))
+        remainingRule_bottom.update(idx, None)
+        rule(idx)
+      }))
     } else {
       None
     }
