@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.util.BackendError
 
 import scala.collection.mutable
 
-object AlphaEquivalence {
+object LemmaEquivalence {
   val bottom = MetaVar("x")
 
   private class VariableRenamer(renaming: MetaVar => MetaVar) extends ModuleTransformation with Serializable {

@@ -776,16 +776,18 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedRawtable(tt, result)
 
   @Property
-  def rawIntersectionPreservesWellTypedRaw(rt1: RawTable, rt2: RawTable, tt: TType): Unit = {
+  def rawIntersectionPreservesWellTypedRaw(rt1: RawTable, rt2: RawTable, result: RawTable, tt: TType): Unit = {
     require(welltypedRawtable(tt, rt1))
     require(welltypedRawtable(tt, rt2))
-  } ensuring welltypedRawtable(tt, rawIntersection(rt1, rt2))
+    require(rawIntersection(rt1, rt2) == result)
+  } ensuring welltypedRawtable(tt, result)
 
   @Property
-  def rawDifferencePreservesWellTypedRaw(rt1: RawTable, rt2: RawTable, tt: TType): Unit = {
+  def rawDifferencePreservesWellTypedRaw(rt1: RawTable, rt2: RawTable, result: RawTable, tt: TType): Unit = {
     require(welltypedRawtable(tt, rt1))
     require(welltypedRawtable(tt, rt2))
-  } ensuring welltypedRawtable(tt, rawDifference(rt1, rt2))
+    require(rawDifference(rt1, rt2) == result)
+  } ensuring welltypedRawtable(tt, result)
 
   @Property
   def projectTypeAttrLMatchesProjectTableAttrL(al: AttrL, tt: TType, tt2: TType, t: Table, t2: Table): Unit = {
