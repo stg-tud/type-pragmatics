@@ -46,7 +46,7 @@ class SQLLemmaGenerationTest extends FunSuite {
   dsk.preservationProperties.foreach {
     case (function, expected) => test(s"Generate preservation property for ${function.signature.name}") {
       val generator = new LemmaGenerator(file)
-      val lemmas = generator.generateProgressLemmas(function.signature.name)
+      val lemmas = generator.generatePreservationLemmas(function.signature.name)
       testLemmaGenerator(lemmas, expected)
     }
   }
