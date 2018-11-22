@@ -41,17 +41,40 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
   }
 
   override def generateBase(): Seq[Lemma] = {
-    // select all possible static predicates
+    // select all possible static predicates on the successful out type of the function
     val predicates = enquirer.retrievePredicates(producer.successfulOutType)
     val lemmas = new mutable.MutableList[Lemma]()
     for(predicate <- predicates) {
       val baseLemmas = buildPredicatePreservationLemmas(predicate)
       lemmas ++= baseLemmas
-      lemmas ++= baseLemmas.flatMap(lemma => {
-        val refinements = selectPredicate(lemma, predicate)
-        refinements.flatMap(_.refine(problem, lemma))
-      })
+      // in most cases, the exact same predicate appears in the premises again for other values
+      lemmas ++= baseLemmas.flatMap(lemma =>
+        refine(lemma, selectPredicate(lemma, predicate))
+      )
     }
+    // in many cases, failable producers for all other arguments of the consequent predicate appear in the premises
+    // TODO: this does not help for projectCols because we select
+    // projectTypeAttrL(al, tt) == someTType(tt)
+    /*for(lemma <- lemmas.clone()) {
+      lemma.consequences.head match {
+        case FunctionExpJudgment(FunctionExpApp(_, args)) =>
+          val otherArguments = args.collect {
+            case FunctionMeta(mv) if mv.sortType != producer.successfulOutType => mv
+          }
+          // find failable producers for these arguments
+          val allFailableProducers = otherArguments.collect {
+            case mv => (mv, enquirer.retrieveProducers(mv.sortType).filter(_.isFailable))
+          }
+          // select them
+          for((mv, failableProducers) <- allFailableProducers;
+              failableProducer <- failableProducers) {
+            lemmas ++= refine(lemma, selectSuccessPredicate(lemma, failableProducer,
+              freshSuccessVar = false, additionalSuccessVars = Set(mv)))
+            println()
+          }
+        case _ =>
+      }
+    }*/
     lemmas
   }
 
@@ -69,7 +92,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
       val additionalSuccessVars = lemma
         .bindingsOfType(fn.successfulOutType)
         .intersect(FreeVariables.freeVariables(lemma.consequences))
-      refinements ++= selectSuccessPredicate(lemma, fn, additionalSuccessVars)
+      refinements ++= selectSuccessPredicate(lemma, fn, additionalSuccessVars = additionalSuccessVars)
     }
     for(fn <- transformers if fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)

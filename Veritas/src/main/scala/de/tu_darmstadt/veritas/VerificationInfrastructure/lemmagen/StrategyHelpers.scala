@@ -14,14 +14,21 @@ trait StrategyHelpers {
     assignments.map(assignment => Refinement.Predicate(predicate, wrapMetaVars(assignment)))
   }
 
+  def refine(lemma: Lemma, refinement: Seq[Refinement]): Seq[Lemma] = {
+    refinement.flatMap(_.refine(problem, lemma))
+  }
+
   def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
+                             freshSuccessVar: Boolean = true,
                              additionalSuccessVars: Set[MetaVar] = Set()): Seq[Refinement] = {
     val assignments = generateAssignments(lemma, function.inTypes)
     assignments.flatMap(assignment => {
-      var freshSuccessVar = FreshVariables.freshMetaVar(
-        lemma.freeVariables ++ assignment.toSet,
-        function.successfulOutType)
-      (additionalSuccessVars + freshSuccessVar).map(successVar =>
+      var successVars = additionalSuccessVars
+      if(freshSuccessVar)
+        successVars += FreshVariables.freshMetaVar(
+          lemma.freeVariables ++ assignment.toSet,
+          function.successfulOutType)
+      successVars.map(successVar =>
         Refinement.SuccessPredicate(function, wrapMetaVars(assignment), successVar)
       )
     })
