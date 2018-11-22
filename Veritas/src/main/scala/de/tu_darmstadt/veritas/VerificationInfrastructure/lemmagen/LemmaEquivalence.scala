@@ -57,6 +57,8 @@ object LemmaEquivalence {
       if(renaming.contains(from) && renaming(from) != to)
         throw RenamingError(s"$from already renamed to ${renaming(from)} instead of $to")
       renaming += (from -> to)
+      if(renaming.size != renaming.values.size)
+        throw RenamingError("can only use bijective renamings")
     }
 
     def visitChildren(ref: VeritasConstruct, rule: VeritasConstruct): Unit = {
@@ -83,34 +85,37 @@ object LemmaEquivalence {
   }
 
   case class RenamingError(msg: String) extends BackendError("Renaming failed. " + msg)
+  case class ReorderingError(msg: String) extends BackendError("Reordering failed. " + msg)
 
   def replaceVarsWithBottom(judgments: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
     judgments.map(VariableRenamer(_, x => bottom))
   }
 
-  def reorderTypingJudments(ref: Seq[TypingRuleJudgment], rule: Seq[TypingRuleJudgment]): Option[Seq[TypingRuleJudgment]] = {
+  def reorderTypingJudments(ref: Seq[TypingRuleJudgment], rule: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
     val ref_bottom = replaceVarsWithBottom(ref)
     val rule_bottom = replaceVarsWithBottom(rule)
     if(ref_bottom.toSet == rule_bottom.toSet
       && ref_bottom.length == rule_bottom.length) {
       val remainingRule_bottom: mutable.ListBuffer[Option[TypingRuleJudgment]] = mutable.ListBuffer(rule_bottom.map(Some(_)):_*)
-      Some(ref_bottom.map(judgment_bottom => {
+      ref_bottom.map(judgment_bottom => {
         val idx = remainingRule_bottom.indexOf(Some(judgment_bottom))
+        if(idx == -1)
+          throw ReorderingError("Same bottom premises, but incompatible shapes")
         remainingRule_bottom.update(idx, None)
         rule(idx)
-      }))
+      })
     } else {
-      None
+      throw ReorderingError("Incompatible shapes")
     }
   }
 
   def reorderTypingRule(ref: TypingRule, rule: TypingRule): Option[TypingRule] = {
-    reorderTypingJudments(ref.premises, rule.premises) match {
-      case Some(newPremises) => reorderTypingJudments(ref.consequences, rule.consequences) match {
-        case Some(newConsequences) => Some(TypingRule(rule.name, newPremises, newConsequences))
-        case None => None
-      }
-      case None => None
+    try {
+      val newPremises = reorderTypingJudments(ref.premises, rule.premises)
+      val newConsequences = reorderTypingJudments(ref.consequences, rule.consequences)
+      Some(TypingRule(rule.name, newPremises, newConsequences))
+    } catch {
+      case _: ReorderingError => None
     }
   }
 
@@ -122,9 +127,7 @@ object LemmaEquivalence {
         rule.consequences.map(VariableRenamer(_, renaming))
       ))
     } catch {
-      case a: RenamingError => {
-        None
-      }
+      case _: RenamingError => None
     }
   }
 

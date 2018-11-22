@@ -14,7 +14,7 @@ import org.scalatest.FunSuite
 import scala.meta._
 
 class SQLLemmaGenerationTest extends FunSuite {
-  val MaximumLemmas = 10000
+  val MaxPremises = 4
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
   val dsk = DomainSpecificKnowledgeBuilder().build(file)
   val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
@@ -40,6 +40,7 @@ class SQLLemmaGenerationTest extends FunSuite {
     }
     for((lemma, idx) <- lemmas) {
       writer.write(s"Lemma #$idx:\n")
+      writer.write(s"${lemma.rule.premises.length} premises\n")
       writer.write("--------------\n")
       lemmaWriter.printTypingRule(lemma.rule)
       writer.write("\n\n")
@@ -47,8 +48,8 @@ class SQLLemmaGenerationTest extends FunSuite {
     }
   }
 
-  def testLemmaGenerator(lemmaKind: String, name: String, stream: Stream[Lemma], expected: TypingRule): Unit = {
-    val generatedLemmas: Seq[(Lemma, Int)] = stream.take(MaximumLemmas).zipWithIndex
+  def testLemmaGenerator(lemmaKind: String, name: String, lemmas: Seq[Lemma], expected: TypingRule): Unit = {
+    val generatedLemmas: Seq[(Lemma, Int)] = lemmas.zipWithIndex
     val equivalentLemmas = generatedLemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry._1.rule))
     println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${generatedLemmas.length}")
     println()
@@ -65,7 +66,7 @@ class SQLLemmaGenerationTest extends FunSuite {
 
   dsk.progressProperties.foreach {
     case (function, expected) => test(s"Generate progress property for ${function.signature.name}") {
-      val generator = new LemmaGenerator(file)
+      val generator = new LemmaGenerator(file, MaxPremises)
       val lemmas = generator.generateProgressLemmas(function.signature.name)
       testLemmaGenerator("progress", function.signature.name, lemmas, expected)
     }
@@ -73,7 +74,7 @@ class SQLLemmaGenerationTest extends FunSuite {
 
   dsk.preservationProperties.foreach {
     case (function, expected) => test(s"Generate preservation property for ${function.signature.name}") {
-      val generator = new LemmaGenerator(file)
+      val generator = new LemmaGenerator(file, MaxPremises)
       val lemmas = generator.generatePreservationLemmas(function.signature.name)
       testLemmaGenerator("preservation", function.signature.name, lemmas, expected)
     }

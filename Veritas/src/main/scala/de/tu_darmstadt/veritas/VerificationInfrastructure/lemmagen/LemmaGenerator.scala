@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
 import java.io.File
 
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
@@ -10,12 +10,71 @@ import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
 
 import scala.collection.mutable
 
-class LemmaGenerator(specFile: File) {
+case class LemmaShape(premises: Set[TypingRuleJudgment], consequences: Set[TypingRuleJudgment])
+
+
+class ShapedPool(parent: Option[ShapedPool]) {
+  protected val pool: mutable.Map[LemmaShape, mutable.Set[Lemma]] =
+    new mutable.HashMap[LemmaShape, mutable.Set[Lemma]]()
+
+  def add(lemmas: Seq[Lemma]): ShapedPool = {
+    lemmas.foreach(lemma => {
+      val shape = makeShape(lemma)
+      add(lemma, shape)
+    })
+    this
+  }
+
+  def add(lemma: Lemma, shape: LemmaShape): Unit = {
+    if(!pool.contains(shape))
+      pool(shape) = new mutable.HashSet[Lemma]()
+    if(!pool(shape).exists(poolLemma => LemmaEquivalence.isEquivalent(poolLemma.rule, lemma.rule))) {
+      pool(shape) += lemma
+    }
+  }
+
+  def add(lemma: Lemma): ShapedPool = {
+    add(Seq(lemma))
+  }
+
+  def add(other: ShapedPool): ShapedPool = {
+    other.pool.foreach({
+      case (shape, lemmas) => lemmas.foreach(add(_, shape))
+    })
+    this
+  }
+
+  def hasEquivalent(lemma: Lemma): Boolean = {
+    val shape = makeShape(lemma)
+    val hasLocal = pool(shape).exists(poolLemma => LemmaEquivalence.isEquivalent(poolLemma.rule, lemma.rule))
+    if(hasLocal)
+      true
+    else if(parent.isDefined)
+      parent.get.hasEquivalent(lemma)
+    else
+      false
+  }
+
+  def makeShape(lemma: Lemma): LemmaShape = {
+    LemmaShape(
+      LemmaEquivalence.replaceVarsWithBottom(lemma.rule.premises).toSet,
+      LemmaEquivalence.replaceVarsWithBottom(lemma.rule.consequences).toSet
+    )
+  }
+
+  def lemmas: Seq[Lemma] = pool.flatMap(_._2).toSeq
+  def isEmpty: Boolean = pool.forall(_._2.isEmpty)
+}
+
+class LemmaGenerator(specFile: File, maxPremises: Int) {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
 
   private val spec = new ScalaSPLTranslator().translate(specFile)
   private val dsk = DomainSpecificKnowledgeBuilder().build(specFile)
   implicit private val enquirer = new LemmaGenSpecEnquirer(spec, dsk)
+
+  private val pool = new ShapedPool(None)
+  private var currentGeneration = new ShapedPool(Some(pool))
 
   def constructAllChoices[T](choices: Seq[Seq[T]]): Seq[Seq[T]] = choices match {
     case currentChoices :: remainingChoices =>
@@ -99,7 +158,7 @@ class LemmaGenerator(specFile: File) {
     val builder = new LemmaBuilder(baseLemma)
     builder.bindTypes(unboundTypes)
     // collect vars of suitable type for invocation
-    val possibleArguments = predicate.inTypes.map(typ => freshOf(typ) +: builder.bindingsOfType(typ))
+    val possibleArguments = predicate.inTypes.map(typ =>/* freshOf(typ) +: */ builder.bindingsOfType(typ))
     val possibleChoices = constructAllChoices(possibleArguments)
     var lemmas = Seq[Lemma]()
     for(oldArguments <- possibleChoices) {
@@ -143,8 +202,13 @@ class LemmaGenerator(specFile: File) {
       val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
       val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
       if (!localBuilder.rule.premises.contains(equality)) {
-        localBuilder.addPremise(equality)
-        lemmas :+= localBuilder.build()
+        val leftSides = localBuilder.rule.premises.collect {
+          case (FunctionExpJudgment(FunctionExpEq(left, _))) => left
+        }
+        if(!leftSides.contains(invocationExp)) {
+          localBuilder.addPremise(equality)
+          lemmas :+= localBuilder.build()
+        }
       }
     }
     lemmas
@@ -156,7 +220,7 @@ class LemmaGenerator(specFile: File) {
     buildSuccessLemma(dynamicFunction)
   }
 
-  def evolveProgressLemma(lemma: Lemma): Iterable[Lemma] = {
+  def evolveProgressLemma(lemma: Lemma) = {
     // build a map of predicates and producers of "in types"
     val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
     val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
@@ -165,27 +229,30 @@ class LemmaGenerator(specFile: File) {
     val failableTransformers = transformers.filter(_.isFailable)
     // we just have to find matching premises
     // find predicates that involve any of the given types
-    val lemmas = mutable.HashSet.empty[Lemma]
     for(fn <- predicates)
-      lemmas ++= selectPredicate(lemma, fn)
+      addChecked(selectPredicate(lemma, fn))
     for(fn <- failableProducers if fn.isStatic)
-      lemmas ++= selectSuccessPredicate(lemma, fn)
+      addChecked(selectSuccessPredicate(lemma, fn))
     for(fn <- failableTransformers if fn.isStatic)
-      lemmas ++= selectSuccessPredicate(lemma, fn)
-    lemmas
+      addChecked(selectSuccessPredicate(lemma, fn))
   }
 
-  def evolveProgressLemmas(lemmas: Stream[Lemma]): Stream[Lemma] = {
-    val evolved = lemmas.flatMap(evolveProgressLemma)
-    evolved #::: evolveProgressLemmas(evolved)
+  def addChecked(lemmas: Seq[Lemma]): Unit = {
+    currentGeneration.add(lemmas.filter(_.rule.premises.length <= maxPremises))
   }
 
-  def generateProgressLemmas(dynamicFunctionName: String): Stream[Lemma] = {
-    val base = generateProgressLemma(dynamicFunctionName)
-    base #:: evolveProgressLemmas(Stream(base))
+  def generateProgressLemmas(dynamicFunctionName: String): Seq[Lemma] = {
+    currentGeneration.add(Seq(generateProgressLemma(dynamicFunctionName)))
+    while(!currentGeneration.isEmpty) {
+      pool.add(currentGeneration)
+      val currentLemmas = currentGeneration.lemmas
+      currentGeneration = new ShapedPool(Some(pool))
+      currentLemmas.foreach(evolveProgressLemma)
+    }
+    pool.lemmas
   }
 
-  def evolvePreservationLemma(lemma: Lemma): Iterable[Lemma] = {
+  def evolvePreservationLemma(lemma: Lemma): Unit = {
     // STATIC(exp) (+ DYNAMIC(exp')) => STATIC(exp')
     val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
     val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
@@ -194,24 +261,22 @@ class LemmaGenerator(specFile: File) {
     val failableTransformers = transformers.filter(_.isFailable)
     // we just have to find matching premises
     // find predicates that involve any of the given types
-    val lemmas = mutable.HashSet.empty[Lemma]
     for(fn <- predicates)
-      lemmas ++= selectPredicate(lemma, fn)
+      addChecked(selectPredicate(lemma, fn))
     for(fn <- failableProducers)
-      lemmas ++= selectSuccessPredicate(lemma, fn)
+      addChecked(selectSuccessPredicate(lemma, fn))
     for(fn <- failableTransformers)
-      lemmas ++= selectSuccessPredicate(lemma, fn)
-    lemmas
+      addChecked(selectSuccessPredicate(lemma, fn))
   }
 
-  def evolvePreservationLemmas(lemmas: Stream[Lemma]): Stream[Lemma] = {
-    val evolved = lemmas.flatMap(evolvePreservationLemma)
-    evolved #::: evolvePreservationLemmas(evolved)
+  def generatePreservationLemmas(dynamicFunctionName: String): Seq[Lemma] = {
+    currentGeneration.add(generateBasePreservationLemmas(dynamicFunctionName))
+    while(!currentGeneration.isEmpty) {
+      pool.add(currentGeneration)
+      val currentLemmas = currentGeneration.lemmas
+      currentGeneration = new ShapedPool(Some(pool))
+      currentLemmas.foreach(evolvePreservationLemma)
+    }
+    pool.lemmas
   }
-
-  def generatePreservationLemmas(dynamicFunctionName: String): Stream[Lemma] = {
-    val base = generateBasePreservationLemmas(dynamicFunctionName)
-    base.toStream #::: evolvePreservationLemmas(base.toStream)
-  }
-
 }
