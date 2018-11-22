@@ -65,7 +65,7 @@ class SQLLemmaGenerationTest extends FunSuite {
   }
 
   dsk.progressProperties.foreach {
-    case (function, expected) => test(s"Generate progress property for ${function.signature.name}") {
+    case (function, expected) => test(s"Progress ${function.signature.name}") {
       val generator = new LemmaGenerator(file, MaxPremises)
       val lemmas = generator.generateProgressLemmas(function.signature.name)
       testLemmaGenerator("progress", function.signature.name, lemmas, expected)
@@ -73,7 +73,7 @@ class SQLLemmaGenerationTest extends FunSuite {
   }
 
   dsk.preservationProperties.foreach {
-    case (function, expected) => test(s"Generate preservation property for ${function.signature.name}") {
+    case (function, expected) => test(s"Preservation ${function.signature.name}") {
       val generator = new LemmaGenerator(file, MaxPremises)
       val lemmas = generator.generatePreservationLemmas(function.signature.name)
       testLemmaGenerator("preservation", function.signature.name, lemmas, expected)

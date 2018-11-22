@@ -40,6 +40,9 @@ object FreshVariables {
   }
 }
 
+case class LemmaShape(premises: Set[TypingRuleJudgment], consequences: Set[TypingRuleJudgment])
+
+
 class Lemma(val bindings: Map[MetaVar, SortRef], val rule: TypingRule) {
   def boundTypes: Set[SortRef] = bindings.values.toSet
   def bindingsOfType(typ: SortRef): Seq[MetaVar] = {
@@ -60,6 +63,13 @@ class Lemma(val bindings: Map[MetaVar, SortRef], val rule: TypingRule) {
       bindings,
       TypingRule(rule.name, premise +: rule.premises, rule.consequences)
     )
+
+  def shape(): LemmaShape = {
+    LemmaShape(
+      LemmaEquivalence.replaceVarsWithBottom(rule.premises).toSet,
+      LemmaEquivalence.replaceVarsWithBottom(rule.consequences).toSet
+    )
+  }
 }
 
 class LemmaBuilder(baseLemma: Lemma) {
