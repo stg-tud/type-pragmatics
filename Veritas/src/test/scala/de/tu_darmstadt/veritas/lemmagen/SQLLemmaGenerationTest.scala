@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{LemmaEquivalence, Lemma, LemmaGenSpecEnquirer, LemmaGenerator}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.backend.ast.{SortRef, TypingRule}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -16,11 +16,12 @@ import scala.meta._
 class SQLLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
-  val dsk = DomainSpecificKnowledgeBuilder().build(file)
   val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
   val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
     override val printer: PrettyPrintWriter = outputPrettyPrinter
   }
+  val problem = new Problem(file)
+  val dsk = problem.dsk
 
   def recursivedelete(file: File) {
     if (file.isDirectory)
@@ -40,9 +41,9 @@ class SQLLemmaGenerationTest extends FunSuite {
     }
     for((lemma, idx) <- lemmas) {
       writer.write(s"Lemma #$idx:\n")
-      writer.write(s"${lemma.rule.premises.length} premises\n")
+      writer.write(s"${lemma.premises.length} premises\n")
       writer.write("--------------\n")
-      lemmaWriter.printTypingRule(lemma.rule)
+      lemmaWriter.printTypingRule(lemma)
       writer.write("\n\n")
       writer.flush()
     }
@@ -50,11 +51,11 @@ class SQLLemmaGenerationTest extends FunSuite {
 
   def testLemmaGenerator(lemmaKind: String, name: String, lemmas: Seq[Lemma], expected: TypingRule): Unit = {
     val generatedLemmas: Seq[(Lemma, Int)] = lemmas.zipWithIndex
-    val equivalentLemmas = generatedLemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry._1.rule))
+    val equivalentLemmas = generatedLemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry._1))
     println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${generatedLemmas.length}")
     println()
     for((lemma, idx) <- equivalentLemmas) {
-      lemmaPrettyPrinter.printTypingRule(lemma.rule)
+      lemmaPrettyPrinter.printTypingRule(lemma)
       outputPrettyPrinter.flush()
       println()
     }
@@ -66,13 +67,14 @@ class SQLLemmaGenerationTest extends FunSuite {
 
   dsk.progressProperties.foreach {
     case (function, expected) => test(s"Progress ${function.signature.name}") {
-      val generator = new LemmaGenerator(file, MaxPremises)
-      val lemmas = generator.generateProgressLemmas(function.signature.name)
+      val strategy = new ProgressStrategy(problem, function)
+      val generator = new LemmaGenerator(problem, strategy)
+      val lemmas = generator.generate()
       testLemmaGenerator("progress", function.signature.name, lemmas, expected)
     }
   }
 
-  dsk.preservationProperties.foreach {
+  /*dsk.preservationProperties.foreach {
     case (function, expected) => test(s"Preservation ${function.signature.name}") {
       val generator = new LemmaGenerator(file, MaxPremises)
       val lemmas = generator.generatePreservationLemmas(function.signature.name)
@@ -170,5 +172,5 @@ class SQLLemmaGenerationTest extends FunSuite {
          $projectTableName(..$projectTableArgs) == $constructorName($resultName))"""
     val rule = q"""def myRule(..$projectTableParams): Unit = { } ensuring $conclusion"""
     println(rule)
-  }
+  }*/
 }

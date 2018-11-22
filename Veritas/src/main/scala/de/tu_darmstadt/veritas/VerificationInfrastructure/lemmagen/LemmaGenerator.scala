@@ -10,40 +10,11 @@ import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
 
 import scala.collection.mutable
 
-
-
-class ShapedPool() {
-  protected val pool: mutable.Map[LemmaShape, mutable.Set[Lemma]] =
-    new mutable.HashMap[LemmaShape, mutable.Set[Lemma]]()
-
-  def add(lemma: Lemma): Boolean = {
-    val shape = lemma.shape()
-    if(!pool.contains(shape))
-      pool(shape) = new mutable.HashSet[Lemma]()
-    val lemmaSet = pool(shape)
-    if(!lemmaSet.contains(lemma)
-      && !lemmaSet.exists(poolLemma => LemmaEquivalence.isEquivalent(poolLemma.rule, lemma.rule))) {
-      lemmaSet += lemma
-      true
-    } else {
-      false
-    }
-  }
-
-  def lemmas: Seq[Lemma] = pool.valuesIterator.flatten.toSeq
-}
-
-class LemmaGenerator(specFile: File, maxPremises: Int) {
-  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
-
+class LemmaGenerator(problem: Problem, strategy: RefinementStrategy) {
   type LemmaGeneration = mutable.MutableList[Lemma]
 
-  private val spec = new ScalaSPLTranslator().translate(specFile)
-  private val dsk = DomainSpecificKnowledgeBuilder().build(specFile)
-  implicit private val enquirer = new LemmaGenSpecEnquirer(spec, dsk)
-
   private val pool = new ShapedPool()
-
+/*
   def constructAllChoices[T](choices: Seq[Seq[T]]): Seq[Seq[T]] = choices match {
     case currentChoices :: remainingChoices =>
       val constructedRemainingChoices: Seq[Seq[T]] = constructAllChoices(remainingChoices)
@@ -196,14 +167,7 @@ class LemmaGenerator(specFile: File, maxPremises: Int) {
       addChecked(generation, selectSuccessPredicate(lemma, fn))
   }
 
-  def addChecked(generation: LemmaGeneration, lemmas: Seq[Lemma]): Unit = {
-    lemmas
-      .withFilter(_.rule.premises.length <= maxPremises)
-      .foreach(lemma => {
-        if(pool.add(lemma))
-          generation += lemma
-      })
-  }
+
 
   def generateProgressLemmas(dynamicFunctionName: String): Seq[Lemma] = {
     var generation = new mutable.MutableList[Lemma]()
@@ -239,6 +203,29 @@ class LemmaGenerator(specFile: File, maxPremises: Int) {
     while(generation.nonEmpty) {
       val nextGeneration = new mutable.MutableList[Lemma]()
       generation.foreach(evolvePreservationLemma(nextGeneration, _))
+      generation = nextGeneration
+    }
+    pool.lemmas
+  }*/
+
+  def addChecked(generation: LemmaGeneration, lemma: Lemma): Unit = {
+    if(lemma.premises.length <= 4) { // TODO!!
+      if(pool.add(lemma))
+        generation += lemma
+    }
+  }
+
+  def generate(): Seq[Lemma] = {
+    var generation = new mutable.MutableList[Lemma]()
+    generation ++= strategy.generateBase() // TODO: Do we need to add them to the pool?
+    while(generation.nonEmpty) {
+      val nextGeneration = new mutable.MutableList[Lemma]()
+      generation.foreach(lemma => {
+        strategy.expand(lemma).foreach(refinement => {
+          val result = refinement.refine(problem, lemma)
+          addChecked(nextGeneration, result)
+        })
+      })
       generation = nextGeneration
     }
     pool.lemmas
