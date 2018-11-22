@@ -139,6 +139,7 @@ class LemmaGenerator(specFile: File, maxPremises: Int) {
     lemmas
   }
 
+  // TODO: This always selects a fresh variable for the success!
   def selectSuccessPredicate(baseLemma: Lemma, function: FunctionDef): Seq[Lemma] = {
     val builder = new LemmaBuilder(baseLemma)
     val (boundTypes, unboundTypes) = function.inTypes.partition(baseLemma.boundTypes.contains(_))
