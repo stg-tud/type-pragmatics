@@ -2,10 +2,11 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
-import de.tu_darmstadt.veritas.backend.ast.{DataTypeConstructor, SortRef, VeritasConstruct}
+import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledge
 
-class LemmaGenSpecEnquirer(spec: VeritasConstruct, dsk: DomainSpecificKnowledge) extends VeritasSpecEnquirer(spec) {
+class LemmaGenSpecEnquirer(spec: Module, dsk: DomainSpecificKnowledge) extends VeritasSpecEnquirer(spec) {
   /** Return SortRefs to all data types that have at least one constructor involving typ */
   def functions: Set[FunctionDef] = dsk.staticFunctions ++ dsk.dynamicFunctions
   def predicates: Set[FunctionDef] = dsk.predicates

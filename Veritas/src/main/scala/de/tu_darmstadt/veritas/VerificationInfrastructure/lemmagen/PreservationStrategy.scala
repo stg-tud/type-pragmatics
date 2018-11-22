@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
 import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
@@ -63,8 +64,13 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val refinements = new mutable.MutableList[Refinement]()
     for(predicate <- predicates)
       refinements ++= selectPredicate(lemma, predicate)
-    for(fn <- producers if fn.isFailable)
-      refinements ++= selectSuccessPredicate(lemma, fn)
+    for(fn <- producers if fn.isFailable) {
+      // allow to use success vars of matching type, but only if they are used in the consequences!
+      val additionalSuccessVars = lemma
+        .bindingsOfType(fn.successfulOutType)
+        .intersect(FreeVariables.freeVariables(lemma.consequences))
+      refinements ++= selectSuccessPredicate(lemma, fn, additionalSuccessVars)
+    }
     for(fn <- transformers if fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)
     refinements

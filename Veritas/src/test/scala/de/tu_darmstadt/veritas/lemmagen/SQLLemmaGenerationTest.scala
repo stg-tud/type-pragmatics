@@ -59,7 +59,7 @@ class SQLLemmaGenerationTest extends FunSuite {
       writeLemmasToFile(equivalentLemmas, new File(generatedDirectory, s"$lemmaKind-$name-equivalent.txt"))
     assert(equivalentLemmas.nonEmpty)
   }
-/*
+
   dsk.progressProperties.foreach {
     case (function, expected) => test(s"Progress ${function.signature.name}") {
       val strategy = new ProgressStrategy(problem, function)
@@ -68,7 +68,7 @@ class SQLLemmaGenerationTest extends FunSuite {
       testLemmaGenerator("progress", function.signature.name, lemmas, expected)
     }
   }
-*/
+
   dsk.preservationProperties.foreach {
     case (function, expected) => test(s"Preservation ${function.signature.name}") {
       val strategy = new PreservationStrategy(problem, function)
