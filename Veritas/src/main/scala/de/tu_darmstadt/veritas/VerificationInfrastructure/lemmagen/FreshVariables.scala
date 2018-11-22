@@ -28,14 +28,12 @@ object FreshVariables {
     mv
   }
 
-  def freshMetaVars(freeVariables: Set[MetaVar], types: Seq[SortRef]): Seq[(MetaVar, SortRef)] = {
+  def freshMetaVars(freeVariables: Set[MetaVar], types: Seq[SortRef]): Seq[MetaVar] = {
     var newFreeVariables = freeVariables
-    var metaVars = Seq[(MetaVar, SortRef)]()
-    for(typ <- types) {
+    types.map(typ => {
       val mv = freshMetaVar(newFreeVariables, typ)
-      metaVars = metaVars :+ (mv, typ)
       newFreeVariables += mv
-    }
-    metaVars
-}
+      mv
+    })
+  }
 }

@@ -2,26 +2,20 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionMeta}
-import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 
 import scala.collection.mutable
 
 class ProgressStrategy(override val problem: Problem, function: FunctionDef)
   extends RefinementStrategy with StrategyHelpers {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
-  import Assignments._
 
   implicit private val enquirer = problem.enquirer
 
   override def generateBase(): Seq[Lemma] = {
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
-    val successName = FreshVariables.freshName(Set(), prefix = "success") // TODO: this is only to avoid name clashes
-    val successVar = MetaVar(successName)
-    successVar.typ = Some(TypeInference.Sort(successConstructor.in.head.name))
-    val arguments = FreshVariables.freshMetaVars(Set(), function.inTypes)
-    val invocationExp = FunctionExpApp(function.name, arguments.map {
-      case (metaVar, typ) => FunctionMeta(metaVar)
-    })
+    val successVar = FreshVariables.freshMetaVar(Set(), function.successfulOutType)
+    val arguments = FreshVariables.freshMetaVars(Set(successVar), function.inTypes)
+    val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(arguments))
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
     val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
     val exists = ExistsJudgment(Seq(successVar), Seq(equality))

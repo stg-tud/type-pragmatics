@@ -9,30 +9,28 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
   extends RefinementStrategy with StrategyHelpers {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
 
-  implicit private val enquirer = problem.enquirer
+  implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
     // build lemmas that postulate that ``predicate`` holds for the result of ``producer``
     // ``producer`` may be failable
     // might have multiple choices because ``predicate`` might have multiple arguments of compatible type
     val producerArgs = FreshVariables.freshMetaVars(Set(), producer.inTypes)
-    val producerInvocation = FunctionExpApp(producer.name, producerArgs.map(v => FunctionMeta(v._1)))
+    val producerInvocation = FunctionExpApp(producer.name, Assignments.wrapMetaVars(producerArgs))
     val productType = producer.successfulOutType
     val productHoles = predicate.inTypes.view.zipWithIndex.collect {
       case (typ, idx) if typ == productType => idx
     }
     var baseLemmas = Seq[Lemma]()
     for(hole <- productHoles) {
-      val predicateArgs = FreshVariables.freshMetaVars(producerArgs.map(_._1).toSet, predicate.inTypes)
-      val invocationExp = FunctionExpApp(predicate.name, predicateArgs.map {
-        case (metaVar, typ) => FunctionMeta(metaVar)
-      })
+      val predicateArgs = FreshVariables.freshMetaVars(producerArgs.toSet, predicate.inTypes)
+      val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
       val judgment = FunctionExpJudgment(invocationExp)
       val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation$hole", Seq(), Seq(judgment))
       // we now have the conclusion, we just need to choose the input argument accordingly
-      var right: FunctionExpMeta = FunctionMeta(predicateArgs(hole)._1)
+      var right: FunctionExpMeta = FunctionMeta(predicateArgs(hole))
       if(producer.isFailable) {
-        val constructor = enquirer.retrieveFailableConstructors(producer.outType)._2
+        val (_, constructor) = enquirer.retrieveFailableConstructors(producer.outType)
         right = FunctionExpApp(constructor.name, Seq(right))
       }
       val equality = enquirer.makeEquation(producerInvocation, right).asInstanceOf[FunctionExpJudgment]
