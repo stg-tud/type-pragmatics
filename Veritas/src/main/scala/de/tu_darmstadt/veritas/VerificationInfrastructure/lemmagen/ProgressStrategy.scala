@@ -1,18 +1,17 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
-import java.io.File
-
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
-import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
 
 import scala.collection.mutable
 
-class ProgressStrategy(problem: Problem, function: FunctionDef) extends RefinementStrategy {
-  implicit private val enquirer = problem.enquirer
+class ProgressStrategy(override val problem: Problem, function: FunctionDef)
+  extends RefinementStrategy with StrategyHelpers {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
+  import Assignments._
+
+  implicit private val enquirer = problem.enquirer
 
   override def generateBase(): Seq[Lemma] = {
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
@@ -38,44 +37,12 @@ class ProgressStrategy(problem: Problem, function: FunctionDef) extends Refineme
     val failableTransformers = transformers.filter(_.isFailable)
     // we just have to find matching premises
     val refinements = new mutable.MutableList[Refinement]()
-    predicates.foreach(fn => {
-      val assignments = generateAssignments(lemma, fn.inTypes)
-      refinements ++= assignments.map(assignment => Refinement.Predicate(fn, wrapMetaVars(assignment)))
-    })
-    (failableProducers ++ failableTransformers).collect({
-      case fn if fn.isStatic => {
-        val assignments = generateAssignments(lemma, fn.inTypes)
-        refinements ++= assignments.map(assignment => {
-          val successVar = FreshVariables.freshMetaVar(lemma.freeVariables ++ assignment.toSet, fn.successfulOutType)
-          Refinement.SuccessPredicate(fn, wrapMetaVars(assignment), successVar)
-        })
-      }
-    })
+    for(predicate <- predicates)
+      refinements ++= selectPredicate(lemma, predicate)
+    for(fn <- failableProducers if fn.isStatic)
+      refinements ++= selectSuccessPredicate(lemma, fn)
+    for(fn <- failableTransformers if fn.isStatic)
+      refinements ++= selectSuccessPredicate(lemma, fn)
     refinements
   }
-
-  def constructAllChoices[T](choices: Seq[Seq[T]]): Seq[Seq[T]] = choices match {
-    case currentChoices :: remainingChoices =>
-      val constructedRemainingChoices: Seq[Seq[T]] = constructAllChoices(remainingChoices)
-      for(currentChoice <- currentChoices; remainingChoice <- constructedRemainingChoices)
-        yield currentChoice +: remainingChoice
-    case Nil => Seq(Seq())
-  }
-
-  def generateAssignments(lemma: Lemma, types: Seq[SortRef],
-                          prefix: Seq[MetaVar] = Seq()): Seq[Seq[MetaVar]] = types match {
-    case Nil => Seq(prefix)
-    case head :: tail =>
-      // use bound if there are variables of that type. TODO
-      val choices = lemma.bindingsOfType(head).toSeq
-      if(choices.isEmpty) {
-        // bind a new variable
-        val mv = FreshVariables.freshMetaVar(lemma.freeVariables ++ prefix.toSet, head)
-        generateAssignments(lemma, tail, prefix :+ mv)
-      } else {
-        choices.flatMap(mv => generateAssignments(lemma, tail, prefix :+ mv))
-      }
-  }
-
-  def wrapMetaVars(seq: Seq[MetaVar]): Seq[FunctionExpMeta] = seq.map(mv => FunctionMeta(mv))
 }

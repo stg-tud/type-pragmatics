@@ -1,17 +1,12 @@
 package de.tu_darmstadt.veritas.lemmagen
 
-import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
+import java.io.{File, FileWriter, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.backend.ast.{SortRef, TypingRule}
-import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
-import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
 import org.scalatest.FunSuite
-
-import scala.meta._
 
 class SQLLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
@@ -68,21 +63,22 @@ class SQLLemmaGenerationTest extends FunSuite {
   dsk.progressProperties.foreach {
     case (function, expected) => test(s"Progress ${function.signature.name}") {
       val strategy = new ProgressStrategy(problem, function)
-      val generator = new LemmaGenerator(problem, strategy)
+      val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
       val lemmas = generator.generate()
       testLemmaGenerator("progress", function.signature.name, lemmas, expected)
     }
   }
 
-  /*dsk.preservationProperties.foreach {
+  dsk.preservationProperties.foreach {
     case (function, expected) => test(s"Preservation ${function.signature.name}") {
-      val generator = new LemmaGenerator(file, MaxPremises)
-      val lemmas = generator.generatePreservationLemmas(function.signature.name)
+      val strategy = new PreservationStrategy(problem, function)
+      val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
+      val lemmas = generator.generate()
       testLemmaGenerator("preservation", function.signature.name, lemmas, expected)
     }
   }
 
-  test("Read @Static and @Dynamic annotations from SQLSpec") {
+  /*test("Read @Static and @Dynamic annotations from SQLSpec") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
     val module = new ScalaSPLTranslator().translate(file)
     val dsk = DomainSpecificKnowledgeBuilder().build(file)

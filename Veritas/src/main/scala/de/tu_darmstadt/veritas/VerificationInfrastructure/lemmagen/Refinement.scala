@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Assignments.{generateAssignments, wrapMetaVars}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar}
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
@@ -39,4 +40,6 @@ object Refinement {
       }
     }
   }
+
+
 }
