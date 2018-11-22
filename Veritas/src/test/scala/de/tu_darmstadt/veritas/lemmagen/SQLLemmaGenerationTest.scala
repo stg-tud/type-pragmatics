@@ -10,6 +10,11 @@ import org.scalatest.FunSuite
 
 class SQLLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
+  val ExcludeProperties = Seq(
+    "projectColsWelltypedWithSelectType",
+    "projectColsProgress"
+  )
+
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
   val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
   val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
@@ -35,11 +40,16 @@ class SQLLemmaGenerationTest extends FunSuite {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
     for((lemma, idx) <- lemmas) {
-      writer.write(s"Lemma #$idx:\n")
+      writer.write(s"BEGIN Lemma #$idx:\n")
       writer.write(s"${lemma.premises.length} premises\n")
       writer.write("--------------\n")
       lemmaWriter.printTypingRule(lemma)
-      writer.write("\n\n")
+      writer.write("\n")
+      writer.write("Refinements:\n")
+      for(refinement <- lemma.refinements) {
+        writer.write("  " + refinement + "\n")
+      }
+      writer.write("END\n")
       writer.flush()
     }
   }
@@ -62,6 +72,8 @@ class SQLLemmaGenerationTest extends FunSuite {
 
   dsk.progressProperties.foreach {
     case (function, expected) => test(s"Progress ${function.signature.name}") {
+      if(ExcludeProperties contains expected.name)
+        fail("excluded in ExcludeProperties")
       val strategy = new ProgressStrategy(problem, function)
       val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
       val lemmas = generator.generate()
@@ -71,6 +83,8 @@ class SQLLemmaGenerationTest extends FunSuite {
 
   dsk.preservationProperties.foreach {
     case (function, expected) => test(s"Preservation ${function.signature.name}") {
+      if(ExcludeProperties contains expected.name)
+        fail("excluded in ExcludeProperties")
       val strategy = new PreservationStrategy(problem, function)
       val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
       val lemmas = generator.generate()

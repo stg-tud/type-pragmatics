@@ -6,7 +6,10 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
 case class LemmaShape(premises: Set[TypingRuleJudgment], consequences: Set[TypingRuleJudgment])
 
 
-class Lemma(name: String, premises: Seq[TypingRuleJudgment], consequences: Seq[TypingRuleJudgment])
+class Lemma(name: String,
+            premises: Seq[TypingRuleJudgment],
+            consequences: Seq[TypingRuleJudgment],
+            val refinements: Seq[Refinement] = Seq())
   extends TypingRule(name, premises, consequences) {
 
   lazy val freeVariables: Set[MetaVar] = {
@@ -16,8 +19,12 @@ class Lemma(name: String, premises: Seq[TypingRuleJudgment], consequences: Seq[T
   def boundTypes: Set[SortRef] = bindings.values.toSet
   def bindingsOfType(typ: SortRef): Set[MetaVar] = freeVariables.filter(_.sortType == typ).toSet
 
+  def addPremise(refinement: Refinement, premise: TypingRuleJudgment): Lemma = {
+    new Lemma(name, premises :+ premise, consequences, refinements :+ refinement)
+  }
+
   def addPremise(premise: TypingRuleJudgment): Lemma = {
-    new Lemma(name, premises :+ premise, consequences)
+    new Lemma(name, premises :+ premise, consequences, refinements)
   }
 
   def shape(): LemmaShape = {

@@ -19,7 +19,7 @@ object Refinement {
       )
       val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(result)))
       val equality = problem.enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
-      if(lemma.premises.contains(equality)) {
+      if(lemma.premises.contains(equality) || lemma.consequences.contains(equality)) {
         None
       } else {
         val leftSides = lemma.premises.collect {
@@ -28,22 +28,26 @@ object Refinement {
         if(leftSides.contains(invocationExp)) {
           None
         } else {
-          Some(lemma.addPremise(equality))
+          Some(lemma.addPremise(this, equality))
         }
       }
     }
+
+    override def toString: String = s"SuccessPredicate(${function.signature.name}, $arguments, $result)"
   }
 
   case class Predicate(predicate: FunctionDef,
                        arguments: Seq[FunctionExpMeta]) extends Refinement {
     def refine(problem: Problem, lemma: Lemma): Option[Lemma] = {
       val invocationExp = FunctionExpJudgment(FunctionExpApp(predicate.signature.name, arguments))
-      if(lemma.premises.contains(invocationExp)) {
+      if(lemma.premises.contains(invocationExp) || lemma.consequences.contains(invocationExp)) {
         None
       } else {
-        Some(lemma.addPremise(invocationExp))
+        Some(lemma.addPremise(this, invocationExp))
       }
     }
+
+    override def toString: String = s"Predicate(${predicate.signature.name}, $arguments)"
   }
 
 

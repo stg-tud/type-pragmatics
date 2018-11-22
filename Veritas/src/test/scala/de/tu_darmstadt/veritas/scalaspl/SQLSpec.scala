@@ -722,9 +722,10 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
 
   @Property
-  def filterRowsPreservesTable(tt: TType, rt: RawTable, al: AttrL, p: Pred): Unit = {
+  def filterRowsPreservesTable(tt: TType, rt: RawTable, rt2: RawTable, al: AttrL, p: Pred): Unit = {
     require(welltypedRawtable(tt, rt))
-  } ensuring(welltypedRawtable(tt, filterRows(rt, al, p)))
+    require(filterRows(rt, al, p) == rt2)
+  } ensuring welltypedRawtable(tt, rt2)
 
   @Property
   def projectColsProgress(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType): Unit = {
