@@ -69,7 +69,7 @@ class SQLLemmaGenerationTest extends FunSuite {
     }
   }
 */
-  dsk.preservationProperties.filter(_._1.signature.name == "rawUnion").foreach {
+  dsk.preservationProperties.foreach {
     case (function, expected) => test(s"Preservation ${function.signature.name}") {
       val strategy = new PreservationStrategy(problem, function)
       val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)

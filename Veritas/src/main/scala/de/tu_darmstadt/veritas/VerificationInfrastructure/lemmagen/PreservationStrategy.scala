@@ -48,7 +48,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
       lemmas ++= baseLemmas
       lemmas ++= baseLemmas.flatMap(lemma => {
         val refinements = selectPredicate(lemma, predicate)
-        refinements.map(_.refine(problem, lemma))
+        refinements.flatMap(_.refine(problem, lemma))
       })
     }
     lemmas
@@ -58,16 +58,14 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     // build a map of predicates and producers of "in types"
     val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
     val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
-    val failableProducers = producers.filter(_.isFailable)
     val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
-    val failableTransformers = transformers.filter(_.isFailable)
     // we just have to find matching premises
     val refinements = new mutable.MutableList[Refinement]()
     for(predicate <- predicates)
       refinements ++= selectPredicate(lemma, predicate)
-    for(fn <- failableProducers)
+    for(fn <- producers if fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)
-    for(fn <- failableTransformers)
+    for(fn <- transformers if fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)
     refinements
   }

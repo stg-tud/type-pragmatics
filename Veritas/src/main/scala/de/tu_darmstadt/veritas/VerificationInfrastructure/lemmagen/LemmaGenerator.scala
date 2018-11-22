@@ -19,8 +19,9 @@ class LemmaGenerator(problem: Problem, strategy: RefinementStrategy) {
       val nextGeneration = new LemmaGeneration()
       generation.foreach(lemma => {
         strategy.expand(lemma).foreach(refinement => {
-          val result = refinement.refine(problem, lemma)
-          addChecked(nextGeneration, result)
+          refinement.refine(problem, lemma).foreach(
+            addChecked(nextGeneration, _)
+          )
         })
       })
       generation = nextGeneration

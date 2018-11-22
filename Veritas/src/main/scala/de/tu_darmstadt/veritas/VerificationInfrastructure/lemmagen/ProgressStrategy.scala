@@ -26,16 +26,14 @@ class ProgressStrategy(override val problem: Problem, function: FunctionDef)
     // build a map of predicates and producers of "in types"
     val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
     val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
-    val failableProducers = producers.filter(_.isFailable)
     val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
-    val failableTransformers = transformers.filter(_.isFailable)
     // we just have to find matching premises
     val refinements = new mutable.MutableList[Refinement]()
     for(predicate <- predicates)
       refinements ++= selectPredicate(lemma, predicate)
-    for(fn <- failableProducers if fn.isStatic)
+    for(fn <- producers if fn.isStatic && fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)
-    for(fn <- failableTransformers if fn.isStatic)
+    for(fn <- transformers if fn.isStatic && fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)
     refinements
   }

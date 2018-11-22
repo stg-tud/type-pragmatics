@@ -9,13 +9,14 @@ object Assignments {
     case Nil => Seq(prefix)
     case head :: tail =>
       // use bound if there are variables of that type. TODO
-      val choices = lemma.bindingsOfType(head).toSeq
+      val prefixChoices: Set[MetaVar] = prefix.filter(_.sortType == head).toSet
+      val choices: Set[MetaVar] = prefixChoices ++ lemma.bindingsOfType(head)
       if(choices.isEmpty) {
         // bind a new variable
         val mv = FreshVariables.freshMetaVar(lemma.freeVariables ++ prefix.toSet, head)
         generateAssignments(lemma, tail, prefix :+ mv)
       } else {
-        choices.flatMap(mv => generateAssignments(lemma, tail, prefix :+ mv))
+        choices.flatMap(mv => generateAssignments(lemma, tail, prefix :+ mv)).toSeq
       }
   }
 
