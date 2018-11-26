@@ -181,6 +181,14 @@ object SQLSpec extends ScalaSPLSpecification {
     case someRawTable(rt) => rt
   }
 
+  /*@Predicate
+  @Dynamic
+  def sameLength(rt1: RawTable, rt2: RawTable): Boolean = (rt1, rt2) match {
+    case (tempty(), tempty()) => true
+    case (tcons(_, tll), tcons(_, tlr)) => sameLength(tll, tlr)
+    case (_, _) => false
+  }*/
+
   //attaches a raw table with one column to the front of another raw table
   //returns a raw table with one column more, possibly not a welltyped one
   //(if the row counts of the input arguments differ)

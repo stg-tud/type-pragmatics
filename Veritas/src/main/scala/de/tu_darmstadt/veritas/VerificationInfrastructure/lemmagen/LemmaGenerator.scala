@@ -24,6 +24,7 @@ class LemmaGenerator(problem: Problem, strategy: RefinementStrategy) {
           )
         })
       })
+      println(s"next generation: ${nextGeneration.length} lemmas")
       generation = nextGeneration
     }
     pool.lemmas
