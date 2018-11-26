@@ -11,8 +11,15 @@ import org.scalatest.FunSuite
 
 class SQLLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
-  val ExcludeFunctions = Seq(
-   // "projectCols"
+  val ExcludeProperties = Seq(
+    "projectColsProgress",
+    // incompatible schemas:
+    "welltypedEmptyProjection",
+    "projectFirstRawPreservesWelltypedRaw",
+    "findColPreservesWelltypedRaw",
+    "attachColToFrontRawPreservesWellTypedRaw",
+    "dropFirstColRawPreservesWelltypedRaw",
+    "attachColToFrontRawPreservesRowCount"
   )
 
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
@@ -96,8 +103,8 @@ class SQLLemmaGenerationTest extends FunSuite {
             generator.generate()
           }
           test(s"$kind ${expected.name}") {
-            if (ExcludeFunctions contains function.signature.name)
-              fail("excluded in ExcludeProperties")
+            if (ExcludeProperties contains expected.name)
+              cancel("excluded in ExcludeProperties")
 
             testLemmaGenerator(kind, function.signature.name, lemmas, expected)
           }

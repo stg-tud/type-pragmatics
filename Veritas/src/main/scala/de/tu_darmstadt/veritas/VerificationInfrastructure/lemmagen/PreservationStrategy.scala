@@ -44,10 +44,10 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     // select all possible static predicates on the successful out type of the function
     val predicates = enquirer.retrievePredicates(producer.successfulOutType)
     val lemmas = new mutable.MutableList[Lemma]()
-    for(predicate <- predicates) {
+    for(predicate <- predicates if predicate.isStatic) {
       val baseLemmas = buildPredicatePreservationLemmas(predicate)
-      lemmas ++= baseLemmas
-      // in most cases, the exact same predicate appears in the premises again for other values
+      //lemmas ++= baseLemmas
+      // we just assume that the exact same predicate appears in the premises again for other values
       lemmas ++= baseLemmas.flatMap(lemma =>
         refine(lemma, selectPredicate(lemma, predicate))
       )

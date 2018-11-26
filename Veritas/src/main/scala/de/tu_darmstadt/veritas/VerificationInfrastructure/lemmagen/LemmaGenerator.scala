@@ -14,7 +14,7 @@ class LemmaGenerator(problem: Problem, strategy: RefinementStrategy) {
 
   def generate(): Seq[Lemma] = {
     var generation = new LemmaGeneration()
-    generation ++= strategy.generateBase() // TODO: Do we need to add them to the pool?
+    strategy.generateBase().foreach(addChecked(generation, _))
     while(generation.nonEmpty) {
       val nextGeneration = new LemmaGeneration()
       generation.foreach(lemma => {
