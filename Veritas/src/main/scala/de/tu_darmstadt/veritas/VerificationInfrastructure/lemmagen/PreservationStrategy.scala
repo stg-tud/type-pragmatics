@@ -46,7 +46,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val lemmas = new mutable.MutableList[Lemma]()
     for(predicate <- predicates if predicate.isStatic) {
       val baseLemmas = buildPredicatePreservationLemmas(predicate)
-      //lemmas ++= baseLemmas
+      lemmas ++= baseLemmas
       // we just assume that the exact same predicate appears in the premises again for other values
       lemmas ++= baseLemmas.flatMap(lemma =>
         refine(lemma, selectPredicate(lemma, predicate))

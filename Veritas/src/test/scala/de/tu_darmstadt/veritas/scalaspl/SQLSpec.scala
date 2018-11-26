@@ -65,11 +65,6 @@ object SQLSpec extends ScalaSPLSpecification {
 
   case class tcons(r: Row, rt: RawTable) extends RawTable
 
-  def rawTableLength(rt: RawTable): nat = rt match {
-    case tempty() => zero()
-    case tcons(_, rttail) => succ(rawTableLength(rttail))
-  }
-
   // full table with "header" (attribute list)
   sealed trait Table extends Expression
 
@@ -181,13 +176,13 @@ object SQLSpec extends ScalaSPLSpecification {
     case someRawTable(rt) => rt
   }
 
-  /*@Predicate
+  @Predicate
   @Dynamic
   def sameLength(rt1: RawTable, rt2: RawTable): Boolean = (rt1, rt2) match {
     case (tempty(), tempty()) => true
     case (tcons(_, tll), tcons(_, tlr)) => sameLength(tll, tlr)
     case (_, _) => false
-  }*/
+  }
 
   //attaches a raw table with one column to the front of another raw table
   //returns a raw table with one column more, possibly not a welltyped one
@@ -836,7 +831,7 @@ object SQLSpec extends ScalaSPLSpecification {
                                                rt1: RawTable, rt2: RawTable, rt3: RawTable): Unit = {
     // |tt1| == 1
     require(tt1 == ttcons(name1, ft1, ttempty()))
-    require(rawTableLength(rt1) == rawTableLength(rt2))
+    require(sameLength(rt1, rt2))
     require(welltypedRawtable(tt1, rt1))
     require(welltypedRawtable(tt1, rt2))
     require(attachColToFrontRaw(rt1, rt2) == rt3)
@@ -847,29 +842,29 @@ object SQLSpec extends ScalaSPLSpecification {
                                            rt1: RawTable, rt2: RawTable, rt3: RawTable): Unit = {
     require(tt1 == ttcons(a, ct, ttempty()))
     require(welltypedRawtable(tt1, rt1))
-    require(rawTableLength(rt1) == rawTableLength(rt2))
+    require(sameLength(rt1, rt2))
     require(attachColToFrontRaw(rt1, rt2) == rt3)
-  } ensuring rawTableLength(rt1) == rawTableLength(rt3)
+  } ensuring sameLength(rt1, rt3)
 
   @Property
   def projectFirstRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
     require(projectFirstRaw(rt) == rt2)
-  } ensuring rawTableLength(rt) == rawTableLength(rt2)
+  } ensuring sameLength(rt, rt2)
 
   @Property
   def dropFirstColRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
     require(dropFirstColRaw(rt) == rt2)
-  } ensuring rawTableLength(rt) == rawTableLength(rt2)
+  } ensuring sameLength(rt, rt2)
 
   @Property
   def findColPreservesRowCount(a: Name, al: AttrL, rt: RawTable, rt2: RawTable): Unit = {
     require(findCol(a, al, rt) == someRawTable(rt2))
-  } ensuring rawTableLength(rt) == rawTableLength(rt2)
+  } ensuring sameLength(rt, rt2)
 
   @Property
   def projectEmptyColPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
     require(projectEmptyCol(rt) == rt2)
-  } ensuring rawTableLength(rt) == rawTableLength(rt2)
+  } ensuring sameLength(rt, rt2)
 
   @Property
   def projectColsPreservesRowCount(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {
@@ -877,7 +872,7 @@ object SQLSpec extends ScalaSPLSpecification {
     require(projectCols(al1, al2, rt) == someRawTable(rt2))
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al2))
-  } ensuring rawTableLength(rt) == rawTableLength(rt2)
+  } ensuring sameLength(rt, rt2)
 
   @Property
   def projectColsWelltypedWithSelectType(al: AttrL, tal: AttrL, rt: RawTable, rt2: RawTable, tt: TType, tt2: TType): Unit = {
