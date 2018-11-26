@@ -98,6 +98,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // does not yet check for whether the table type contains only unique attribute names!!
   // (but semantics should be possible to define in a sensible way without that requirement...)
   @Predicate
+  @Static
   def matchingAttrL(tt: TType, attrl: AttrL): Boolean = (tt, attrl) match {
     case (ttempty(), aempty()) => true
     case (ttcons(a1, _, ttr), acons(a2, al)) => (a1 == a2) && matchingAttrL(ttr, al)
@@ -105,6 +106,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Predicate
+  @Static
   def welltypedRow(tType: TType, row: Row): Boolean = (tType, row) match {
     case (ttempty(), rempty()) => true
     case (ttcons(_, ft, tt), rcons(v, r)) => fieldType(v) == ft && welltypedRow(tt, r)
@@ -112,12 +114,14 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Predicate
+  @Static
   def welltypedRawtable(tt: TType, rt: RawTable): Boolean = (tt, rt) match {
     case (_, tempty()) => true
     case (tt1, tcons(r, t1)) => welltypedRow(tt1, r) && welltypedRawtable(tt1, t1)
   }
 
   @Predicate
+  @Static
   def welltypedtable(tt: TType, t: Table): Boolean = (tt, t) match {
     case (tt1, table(al, t1)) => matchingAttrL(tt1, al) && welltypedRawtable(tt1, t1)
   }
@@ -125,12 +129,14 @@ object SQLSpec extends ScalaSPLSpecification {
   //some auxiliary functions on raw tables (all not knowing anything about table types!)
   //the functions are intended to be used with well-typed tables!!
   @Predicate
+  @Dynamic
   def attrIn(n: Name, al: AttrL): Boolean = (n, al) match {
     case (_, aempty()) => false
     case (n1, acons(m, al1)) => (n1 == m) || attrIn(n1, al1)
   }
 
-  //@Predicate
+  @Predicate
+  @Dynamic
   def rowIn(r: Row, rt: RawTable): Boolean = (r, rt) match {
     case (_, tempty()) => false
     case (r1, tcons(r2, rt2)) => (r1 == r2) || rowIn(r1, rt2)
@@ -679,6 +685,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // and whether the table in the store is well-typed with regard to the table type in the context
   // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
   @Predicate
+  @Static
   def storeContextConsistent(ts: TStore, ttc: TTContext): Boolean = (ts, ttc) match {
     case (emptyStore(), emptyContext()) => true
     case (bindStore(tn1, t, tsr), bindContext(tn2, tt, ttcr)) =>

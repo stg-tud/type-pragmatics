@@ -29,7 +29,7 @@ class ProgressStrategy(override val problem: Problem, function: FunctionDef)
     val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
     // we just have to find matching premises
     val refinements = new mutable.MutableList[Refinement]()
-    for(predicate <- predicates)
+    for(predicate <- predicates if predicate.isStatic)
       refinements ++= selectPredicate(lemma, predicate)
     for(fn <- producers if fn.isStatic && fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)

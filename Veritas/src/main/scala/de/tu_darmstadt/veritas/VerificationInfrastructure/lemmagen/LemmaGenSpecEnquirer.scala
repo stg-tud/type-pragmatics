@@ -8,7 +8,7 @@ import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledge
 
 class LemmaGenSpecEnquirer(spec: Module, dsk: DomainSpecificKnowledge) extends VeritasSpecEnquirer(spec) {
   /** Return SortRefs to all data types that have at least one constructor involving typ */
-  def functions: Set[FunctionDef] = dsk.staticFunctions ++ dsk.dynamicFunctions
+  def functions: Set[FunctionDef] = (dsk.staticFunctions ++ dsk.dynamicFunctions).diff(predicates)
   def predicates: Set[FunctionDef] = dsk.predicates
   def dataTypes = tdcollector.dataTypes
 
