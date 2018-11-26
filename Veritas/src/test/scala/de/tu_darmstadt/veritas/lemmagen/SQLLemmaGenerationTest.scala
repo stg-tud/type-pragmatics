@@ -96,12 +96,12 @@ class SQLLemmaGenerationTest extends FunSuite {
                     (builder: (Problem, FunctionDef) => RefinementStrategy): Unit = {
     properties.foreach {
       case (function, expectedLemmas) =>
+        val strategy = builder(problem, function)
+        val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
+        lazy val lemmas = {
+          generator.generate()
+        }
         expectedLemmas.foreach(expected => {
-          val strategy = builder(problem, function)
-          val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
-          lazy val lemmas = {
-            generator.generate()
-          }
           test(s"$kind ${expected.name}") {
             if (ExcludeProperties contains expected.name)
               cancel("excluded in ExcludeProperties")

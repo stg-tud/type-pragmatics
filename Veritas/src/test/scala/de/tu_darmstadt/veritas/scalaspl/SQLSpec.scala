@@ -130,8 +130,8 @@ object SQLSpec extends ScalaSPLSpecification {
     case (n1, acons(m, al1)) => (n1 == m) || attrIn(n1, al1)
   }
 
-  @Predicate
-  @Dynamic
+  //@Predicate
+  //@Dynamic
   def rowIn(r: Row, rt: RawTable): Boolean = (r, rt) match {
     case (_, tempty()) => false
     case (r1, tcons(r2, rt2)) => (r1 == r2) || rowIn(r1, rt2)
