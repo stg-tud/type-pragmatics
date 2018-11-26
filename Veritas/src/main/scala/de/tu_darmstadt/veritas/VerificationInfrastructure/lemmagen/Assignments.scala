@@ -11,14 +11,8 @@ object Assignments {
       // use bound if there are variables of that type. TODO
       // TODO: sometimes we need fresh variables even though we have matching bound variables, e.g. projectCols preservation
       val prefixChoices: Set[MetaVar] = prefix.filter(_.sortType == head).toSet
-      val choices: Set[MetaVar] = prefixChoices ++ lemma.bindingsOfType(head)
-      if(choices.isEmpty) {
-        // bind a new variable
-        val mv = FreshVariables.freshMetaVar(lemma.freeVariables ++ prefix.toSet, head)
-        generateAssignments(lemma, tail, prefix :+ mv)
-      } else {
-        choices.flatMap(mv => generateAssignments(lemma, tail, prefix :+ mv)).toSeq
-      }
+      val choices: Set[MetaVar] = prefixChoices ++ lemma.bindingsOfType(head) + FreshVariables.freshMetaVar(lemma.freeVariables ++ prefix.toSet, head)
+      choices.flatMap(mv => generateAssignments(lemma, tail, prefix :+ mv)).toSeq
   }
 
   def wrapMetaVars(seq: Seq[MetaVar]): Seq[FunctionExpMeta] = seq.map(mv => FunctionMeta(mv))

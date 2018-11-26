@@ -17,6 +17,10 @@ object Query {
         outType
     }
 
+    def filterArguments(p: SortRef => Boolean): Seq[Int] = inTypes.zipWithIndex.collect {
+      case (sort, index) if p(sort) => index
+    }
+
     def isDynamic: Boolean = enquirer.dynamicFunctions.contains(fctn)
     def isStatic: Boolean = enquirer.staticFunctions.contains(fctn)
     def isFailable: Boolean = enquirer.isFailableType(outType)

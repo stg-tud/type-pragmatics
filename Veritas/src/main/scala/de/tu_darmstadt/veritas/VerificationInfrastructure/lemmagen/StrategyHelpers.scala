@@ -20,7 +20,7 @@ trait StrategyHelpers {
 
   def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
                              freshSuccessVar: Boolean = true,
-                             additionalSuccessVars: Set[MetaVar] = Set()): Seq[Refinement] = {
+                             additionalSuccessVars: Set[MetaVar] = Set()): Seq[Refinement.SuccessPredicate] = {
     val assignments = generateAssignments(lemma, function.inTypes)
     assignments.flatMap(assignment => {
       var successVars = additionalSuccessVars

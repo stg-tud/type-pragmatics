@@ -10,7 +10,7 @@ import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificatio
 import org.scalatest.FunSuite
 
 class SQLLemmaGenerationTest extends FunSuite {
-  val MaxPremises = 2
+  val MaxPremises = 3
   val ExcludeProperties = Seq(
     "projectColsProgress",
     // incompatible schemas:
