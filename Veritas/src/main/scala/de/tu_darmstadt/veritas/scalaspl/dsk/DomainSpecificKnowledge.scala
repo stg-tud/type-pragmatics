@@ -9,6 +9,7 @@ trait DomainSpecificKnowledge {
   def progressProperties: Map[FunctionDef, Set[TypingRule]]
   def preservationProperties: Map[FunctionDef, Set[TypingRule]]
 
+  def properties: Set[TypingRule]
   def staticFunctions: Set[FunctionDef]
   def dynamicFunctions: Set[FunctionDef]
   def predicates: Set[FunctionDef]

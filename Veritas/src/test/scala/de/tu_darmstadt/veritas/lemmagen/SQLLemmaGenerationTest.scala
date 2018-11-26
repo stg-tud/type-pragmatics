@@ -75,6 +75,18 @@ class SQLLemmaGenerationTest extends FunSuite {
     }
   }
 
+  test("All @Property-annotated lemmas belong to a function") {
+    val propertiesWithAnnotation = dsk.progressProperties.toSeq ++ dsk.preservationProperties.toSeq
+    dsk.properties.foreach {
+      prop =>
+        val functions = propertiesWithAnnotation.collect {
+          case (fn, fnProperties) if fnProperties.contains(prop) => fn
+        }
+        assert(functions.nonEmpty, s"${prop.name} has no function")
+    }
+  }
+
+
   dsk.progressProperties.foreach {
     case (function, expected) => test(s"Progress ${function.signature.name}") {
       if(ExcludeFunctions contains function.signature.name)

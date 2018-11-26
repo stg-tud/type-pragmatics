@@ -140,7 +140,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //returns a raw table with exactly one column or tempty
   @Dynamic
   @PreservationProperty("projectFirstRawPreservesWelltypedRaw")
-  // TODO: maybe also projectFirstRawPreservesRowCount?
+  @PreservationProperty("projectFirstRawPreservesRowCount")
   def projectFirstRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), projectFirstRaw(rt1))
@@ -151,7 +151,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //returns a raw table with one column less than before or tempty
   @Dynamic
   @PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
-  // TODO: maybe also dropFirstColRawPreservesRowCount?
+  @PreservationProperty("dropFirstColRawPreservesRowCount")
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
@@ -183,7 +183,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //is treated exactly like tempty for fof-generation
   @Dynamic
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
-  // TODO: Maybe also attachColToFrontRawPreservesRowCount?
+  @PreservationProperty("attachColToFrontRawPreservesRowCount")
  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
@@ -394,7 +394,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // table with as many empty rows as the rowcount of the given table
   @Dynamic
   @PreservationProperty("welltypedEmptyProjection")
-  // TODO: maybe also projectEmptyColPreservesRowCount?
+  @PreservationProperty("projectEmptyColPreservesRowCount")
   def projectEmptyCol(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(_, t) => tcons(rempty(), projectEmptyCol(t))
@@ -818,29 +818,33 @@ object SQLSpec extends ScalaSPLSpecification {
   @Property
   def attachColToFrontRawPreservesWellTypedRaw(tt1: TType, name1: Name, ft1: FType,
                                                tt2: TType,
-                                               rt1: RawTable, rt2: RawTable): Unit = {
+                                               rt1: RawTable, rt2: RawTable, rt3: RawTable): Unit = {
     // |tt1| == 1
     require(tt1 == ttcons(name1, ft1, ttempty()))
     require(rawTableLength(rt1) == rawTableLength(rt2))
     require(welltypedRawtable(tt1, rt1))
     require(welltypedRawtable(tt1, rt2))
-  } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), attachColToFrontRaw(rt1, rt2))
+    require(attachColToFrontRaw(rt1, rt2) == rt3)
+  } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), rt3)
 
   @Property
   def attachColToFrontRawPreservesRowCount(tt1: TType, a: Name, ct: FType,
-                                           rt1: RawTable, rt2: RawTable): Unit = {
+                                           rt1: RawTable, rt2: RawTable, rt3: RawTable): Unit = {
     require(tt1 == ttcons(a, ct, ttempty()))
     require(welltypedRawtable(tt1, rt1))
     require(rawTableLength(rt1) == rawTableLength(rt2))
-  } ensuring rawTableLength(rt1) == rawTableLength(attachColToFrontRaw(rt1, rt2))
+    require(attachColToFrontRaw(rt1, rt2) == rt3)
+  } ensuring rawTableLength(rt1) == rawTableLength(rt3)
 
   @Property
-  def projectFirstRawPreservesRowCount(rt: RawTable): Unit = {
-  } ensuring rawTableLength(rt) == rawTableLength(projectFirstRaw(rt))
+  def projectFirstRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
+    require(projectFirstRaw(rt) == rt2)
+  } ensuring rawTableLength(rt) == rawTableLength(rt2)
 
   @Property
-  def dropFirstColRawPreservesRowCount(rt: RawTable): Unit = {
-  } ensuring rawTableLength(rt) == rawTableLength(dropFirstColRaw(rt))
+  def dropFirstColRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
+    require(dropFirstColRaw(rt) == rt2)
+  } ensuring rawTableLength(rt) == rawTableLength(rt2)
 
   @Property
   def findColPreservesRowCount(a: Name, al: AttrL, rt: RawTable, rt2: RawTable): Unit = {
@@ -848,8 +852,9 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring rawTableLength(rt) == rawTableLength(rt2)
 
   @Property
-  def projectEmptyColPreservesRowCount(rt: RawTable): Unit = {
-  } ensuring rawTableLength(rt) == rawTableLength(projectEmptyCol(rt))
+  def projectEmptyColPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
+    require(projectEmptyCol(rt) == rt2)
+  } ensuring rawTableLength(rt) == rawTableLength(rt2)
 
   @Property
   def projectColsPreservesRowCount(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {

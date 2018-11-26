@@ -43,6 +43,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
   protected val staticFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val predicateFunctions: mutable.Set[Defn.Def] = mutable.Set()
+  protected val properties: mutable.Set[Defn.Def] = mutable.Set()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -61,6 +62,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
         staticFunctions += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Predicate"))
         predicateFunctions += fn
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Property"))
+        properties += fn
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
       preservationProperties ++= collectLinkingAnnotation(fn, "PreservationProperty")(collect)
     case tr: Defn.Trait =>
@@ -172,6 +175,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
     val transStaticFuncs = translateFunctions(staticFunctions.toSet)
     val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
     val transPredicates = translateFunctions(predicateFunctions.toSet)
+    // TODO: This can be removed once we are sure we have linked all properties
+    val transProperties = translateProperty(properties.toSet)
     new DomainSpecificKnowledge {
       override val recursiveFunctions: Map[FunctionDef, DataType] = transRecursiveFuncs
       override val failableTypes: Seq[DataType] = transFailableTypes
@@ -180,6 +185,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
       override val staticFunctions: Set[FunctionDef] = transStaticFuncs
       override val dynamicFunctions: Set[FunctionDef] = transDynamicFuncs
       override val predicates: Set[FunctionDef] = transPredicates
+      override val properties: Set[TypingRule] = transProperties
     }
   }
 
@@ -195,6 +201,11 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
   private def translateFunctions(definitions: Set[Defn.Def]): Set[FunctionDef] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     definitions.map(functionTranslator.translate)
+  }
+
+  private def translateProperty(property: Set[Defn.Def]): Set[TypingRule] = {
+    val propertyTranslator = EnsuringFunctionTranslator(reporter)
+    property.map(propertyTranslator.translate)
   }
 
   private def translateProperties(properties: Seq[(Defn.Def, Defn.Def)]): Map[FunctionDef, Set[TypingRule]] = {
