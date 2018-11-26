@@ -10,9 +10,8 @@ import org.scalatest.FunSuite
 
 class SQLLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
-  val ExcludeProperties = Seq(
-    "projectColsWelltypedWithSelectType",
-    "projectColsProgress"
+  val ExcludeFunctions = Seq(
+    "projectCols"
   )
 
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
@@ -54,25 +53,31 @@ class SQLLemmaGenerationTest extends FunSuite {
     }
   }
 
-  def testLemmaGenerator(lemmaKind: String, name: String, lemmas: Seq[Lemma], expected: TypingRule): Unit = {
+  def testLemmaGenerator(lemmaKind: String, name: String, lemmas: Seq[Lemma], expectedLemmas: Set[TypingRule]): Unit = {
     val generatedLemmas: Seq[(Lemma, Int)] = lemmas.zipWithIndex
-    val equivalentLemmas = generatedLemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry._1))
-    println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${generatedLemmas.length}")
-    println()
-    for((lemma, idx) <- equivalentLemmas) {
-      lemmaPrettyPrinter.printTypingRule(lemma)
-      outputPrettyPrinter.flush()
+    val equivalentLemmas = expectedLemmas.map(expected =>
+      expected -> generatedLemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry._1))
+    ).toMap
+    for(expected <- expectedLemmas) {
+      println(s"Equivalent to ${expected.name}: ${equivalentLemmas(expected).length} out of ${generatedLemmas.length}")
       println()
+      for ((lemma, idx) <- equivalentLemmas(expected)) {
+        lemmaPrettyPrinter.printTypingRule(lemma)
+        outputPrettyPrinter.flush()
+        println()
+      }
     }
     writeLemmasToFile(generatedLemmas, new File(generatedDirectory, s"$lemmaKind-$name-generated.txt"))
     if(equivalentLemmas.nonEmpty)
-      writeLemmasToFile(equivalentLemmas, new File(generatedDirectory, s"$lemmaKind-$name-equivalent.txt"))
-    assert(equivalentLemmas.nonEmpty)
+      writeLemmasToFile(equivalentLemmas.values.flatten.toSeq, new File(generatedDirectory, s"$lemmaKind-$name-equivalent.txt"))
+    equivalentLemmas.foreach {
+      case (expected, lemmas) => assert(lemmas.nonEmpty)
+    }
   }
 
   dsk.progressProperties.foreach {
     case (function, expected) => test(s"Progress ${function.signature.name}") {
-      if(ExcludeProperties contains expected.name)
+      if(ExcludeFunctions contains function.signature.name)
         fail("excluded in ExcludeProperties")
       val strategy = new ProgressStrategy(problem, function)
       val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
@@ -83,7 +88,7 @@ class SQLLemmaGenerationTest extends FunSuite {
 
   dsk.preservationProperties.foreach {
     case (function, expected) => test(s"Preservation ${function.signature.name}") {
-      if(ExcludeProperties contains expected.name)
+      if(ExcludeFunctions contains function.signature.name)
         fail("excluded in ExcludeProperties")
       val strategy = new PreservationStrategy(problem, function)
       val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)

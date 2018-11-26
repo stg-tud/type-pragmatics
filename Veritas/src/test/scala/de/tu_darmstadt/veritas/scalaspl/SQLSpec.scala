@@ -378,9 +378,9 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("findColTypeImpliesfindCol")
-  // TODO: maybe also projectTypeImpliesFindCol?
+  @ProgressProperty("projectTypeImpliesFindCol")
   @PreservationProperty("findColPreservesWelltypedRaw")
-  // TODO: maybe also findColPreservesRowCount?
+  @PreservationProperty("findColPreservesRowCount")
   def findCol(n: Name, attrL: AttrL, rt: RawTable): OptRawTable = (n, attrL, rt) match {
     case (a, aempty(), _) => noRawTable()
     case (a, acons(a2, al), rtr) =>
@@ -404,7 +404,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @ProgressProperty("projectColsProgress")
   @PreservationProperty("projectColsWelltypedWithSelectType")
-  // TODO: Maybe also projectColsPreservesRowCount?
+  @PreservationProperty("projectColsPreservesRowCount")
   def projectCols(al1: AttrL, al2: AttrL, rt: RawTable): OptRawTable = (al1, al2, rt) match {
     case (aempty(), _, rtr) => someRawTable(projectEmptyCol(rtr))
     case (acons(a, alr), al, rtr) =>
@@ -742,7 +742,7 @@ object SQLSpec extends ScalaSPLSpecification {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al))
     require(projectTypeAttrL(al2, tt) == someTType(tt2))
-    attrIn(n, al2)
+    require(attrIn(n, al2))
   } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
 
   @Property

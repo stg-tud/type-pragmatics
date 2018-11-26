@@ -19,7 +19,7 @@ class LemmaEquivalenceTest extends FunSuite {
     val projectTableProgress = dsk.lookupByFunName(dsk.progressProperties, "projectTable")
   }*/
 
-  (dsk.progressProperties.values ++ dsk.preservationProperties.values).foreach(rule => {
+  (dsk.progressProperties.values.flatten ++ dsk.preservationProperties.values.flatten).foreach(rule => {
     test(s"Self-equivalence of ${rule.name}") {
       assert(LemmaEquivalence.isEquivalent(rule, rule))
     }
