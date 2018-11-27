@@ -14,6 +14,11 @@ trait StrategyHelpers {
     assignments.map(assignment => Refinement.Predicate(predicate, wrapMetaVars(assignment)))
   }
 
+  def selectPredicate(lemma: Lemma, predicate: FunctionDef, placements: Seq[Placement]): Seq[Refinement] = {
+    val assignments = Assignments.placeVariables(lemma, placements)
+    assignments.map(assignment => Refinement.Predicate(predicate, wrapMetaVars(assignment)))
+  }
+
   def refine(lemma: Lemma, refinement: Seq[Refinement]): Seq[Lemma] = {
     refinement.flatMap(_.refine(problem, lemma))
   }

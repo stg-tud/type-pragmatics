@@ -16,6 +16,7 @@ object Assignments {
   case class Fixed(mv: MetaVar) extends Placement()
   case class Prefer(`try`: Placement, `else`: Placement) extends Placement()
   case class Union(of: Set[Placement]) extends Placement()
+  case class Exclude(base: Placement, without: Placement) extends Placement()
 
   def generatePlacementChoice(lemma: Lemma, placement: Placement,
                               prefix: Seq[MetaVar], bound: Set[MetaVar]): Set[MetaVar] = placement match {
@@ -29,6 +30,7 @@ object Assignments {
       else
         tryChoices
     case Union(of) => of.flatMap(generatePlacementChoice(lemma, _, prefix, bound))
+    case Exclude(base, without) => generatePlacementChoice(lemma, base, prefix, bound) -- generatePlacementChoice(lemma, without, prefix, bound)
   }
 
   def placeVariables(lemma: Lemma, placements: Seq[Placement],

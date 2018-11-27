@@ -64,8 +64,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
   }
 
   def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
-    val producerArgs = FreshVariables.freshMetaVars(Set(), producer.inTypes)
-    val predicateArgs = FreshVariables.freshMetaVars(producerArgs.toSet, predicate.inTypes)
+    val predicateArgs = FreshVariables.freshMetaVars(Set(), predicate.inTypes)
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation", Seq(), Seq(judgment))
@@ -92,10 +91,17 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val successVarPlacement = Assignments.Union(matchingPredicateArgs.map(Assignments.Fixed(_)).toSet)
     val baseLemmas = refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsPlacements, successVarPlacement,
       matchingPredicateArgs.toSet
-    ))
-    baseLemmas.flatMap(lemma =>
-      refine(lemma, selectPredicate(lemma, predicate))
-    )
+    ).filterNot(r => r.arguments contains FunctionMeta(r.result)))
+    val l = baseLemmas.flatMap(lemma => {
+      val a = predicateArgs.map {
+        case mv if mv.sortType == producer.successfulOutType => Assignments.Exclude(
+          Assignments.Union(Set(Assignments.Bound(producer.successfulOutType), Assignments.Fresh(producer.successfulOutType))),
+          Assignments.Fixed(mv))
+        case x => Assignments.Union(Set(Assignments.Bound(x.sortType), Assignments.Fresh(x.sortType)))
+      }
+      refine(lemma, selectPredicate(lemma, predicate, a))
+    })
+    l
   }
 
   override def generateBase(): Seq[Lemma] = {
