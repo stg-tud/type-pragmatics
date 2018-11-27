@@ -4,12 +4,12 @@ import java.io.{File, FileWriter, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
-import de.tu_darmstadt.veritas.backend.ast.{SortRef, TypingRule}
+import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 import org.scalatest.FunSuite
 
-class SQLLemmaGenerationTest extends FunSuite {
+class SQLNaiveLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
   val ExcludeProperties = Seq(
     // incompatible schemas:
@@ -111,6 +111,6 @@ class SQLLemmaGenerationTest extends FunSuite {
     }
   }
 
-  //testProperties("progress", dsk.progressProperties)((problem, fn) => new ProgressStrategy(problem, fn))
-  testProperties("preservation", dsk.preservationProperties)((problem, fn) => new PreservationStrategy(problem, fn))
+  testProperties("progress", dsk.progressProperties)((problem, fn) => new naive.ProgressStrategy(problem, fn))
+  testProperties("preservation", dsk.preservationProperties)((problem, fn) => new naive.PreservationStrategy(problem, fn))
 }
