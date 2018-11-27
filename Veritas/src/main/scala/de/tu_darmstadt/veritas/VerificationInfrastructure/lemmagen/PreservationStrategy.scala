@@ -74,7 +74,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
         val refinements = selectSuccessPredicate(lemma, producer,
           freshSuccessVar = false,
           additionalSuccessVars = lemma.bindingsOfType(producer.successfulOutType))
-          .filterNot(r => r.arguments contains r.result)
+          .filterNot(r => r.arguments contains FunctionMeta(r.result)) // TODO: not nice at all
         refine(lemma, refinements)
       })
     }
@@ -112,7 +112,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
         case _ =>
       }
     }*/
-    lemmas
+    lemmas.filter(l => l.bindingsOfType(producer.successfulOutType).size == inputReductionIndices.size + 1)
   }
 
   override def expand(lemma: Lemma): Seq[Refinement] = {
@@ -122,16 +122,16 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
     // we just have to find matching premises
     val refinements = new mutable.MutableList[Refinement]()
-    for(predicate <- predicates)
+    for(predicate <- predicates if predicate.isStatic)
       refinements ++= selectPredicate(lemma, predicate)
-    for(fn <- producers if fn.isFailable) {
+    for(fn <- producers if fn.isFailable && fn.isStatic && fn != producer) {
       // allow to use success vars of matching type, but only if they are used in the consequences!
       val additionalSuccessVars = lemma
         .bindingsOfType(fn.successfulOutType)
         .intersect(FreeVariables.freeVariables(lemma.consequences))
       refinements ++= selectSuccessPredicate(lemma, fn, additionalSuccessVars = additionalSuccessVars)
     }
-    for(fn <- transformers if fn.isFailable)
+    for(fn <- transformers if fn.isFailable && fn.isStatic && fn != producer)
       refinements ++= selectSuccessPredicate(lemma, fn)
     refinements
   }

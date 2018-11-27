@@ -12,13 +12,16 @@ object Refinement {
                               arguments: Seq[FunctionExpMeta],
                               result: MetaVar) extends Refinement {
     def refine(problem: Problem, lemma: Lemma): Option[Lemma] = {
-      val (_, successConstructor) = problem.enquirer.retrieveFailableConstructors(function.signature.out)
       val invocationExp = FunctionExpApp(
         function.signature.name,
         arguments
       )
-      val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(result)))
-      val equality = problem.enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
+      var right: FunctionExpMeta = FunctionMeta(result)
+      if(problem.enquirer.isFailableType(function.signature.out)) {
+        val (_, successConstructor) = problem.enquirer.retrieveFailableConstructors(function.signature.out)
+        right = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(result)))
+      }
+      val equality = problem.enquirer.makeEquation(invocationExp, right).asInstanceOf[FunctionExpJudgment]
       if(lemma.premises.contains(equality) || lemma.consequences.contains(equality)) {
         None
       } else {

@@ -10,7 +10,7 @@ import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificatio
 import org.scalatest.FunSuite
 
 class SQLLemmaGenerationTest extends FunSuite {
-  val MaxPremises = 3
+  val MaxPremises = 4
   val ExcludeProperties = Seq(
     "projectColsProgress",
     // incompatible schemas:
@@ -112,6 +112,6 @@ class SQLLemmaGenerationTest extends FunSuite {
     }
   }
 
-  testProperties("progress", dsk.progressProperties)((problem, fn) => new ProgressStrategy(problem, fn))
+  //testProperties("progress", dsk.progressProperties)((problem, fn) => new ProgressStrategy(problem, fn))
   testProperties("preservation", dsk.preservationProperties)((problem, fn) => new PreservationStrategy(problem, fn))
 }

@@ -57,7 +57,7 @@ object LemmaEquivalence {
       if(renaming.contains(from) && renaming(from) != to)
         throw RenamingError(s"$from already renamed to ${renaming(from)} instead of $to")
       renaming += (from -> to)
-      if(renaming.size != renaming.values.size)
+      if(renaming.size != renaming.values.toSet.size)
         throw RenamingError("can only use bijective renamings")
     }
 
