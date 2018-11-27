@@ -12,12 +12,12 @@ trait StrategyHelpers {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
 
   def selectPredicate(lemma: Lemma, predicate: FunctionDef): Seq[Refinement] = {
-    val assignments = Assignments.generateSimple(lemma, predicate.signature.in)
+    val assignments = Assignments.generateSimple(predicate.signature.in, lemma)
     assignments.map(assignment => Refinement.Predicate(predicate, wrapMetaVars(assignment)))
   }
 
   def selectPredicate(lemma: Lemma, predicate: FunctionDef, constraints: Seq[Constraint]): Seq[Refinement] = {
-    val assignments = Assignments.generate(lemma, constraints)
+    val assignments = Assignments.generate(constraints, lemma)
     assignments.map(assignment => Refinement.Predicate(predicate, wrapMetaVars(assignment)))
   }
 
@@ -28,7 +28,7 @@ trait StrategyHelpers {
   def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
                              freshSuccessVar: Boolean = true,
                              additionalSuccessVars: Set[MetaVar] = Set()): Seq[Refinement.SuccessPredicate] = {
-    val assignments = Assignments.generateSimple(lemma, function.signature.in)
+    val assignments = Assignments.generateSimple(function.signature.in, lemma)
     assignments.flatMap(assignment => {
       var successVars = additionalSuccessVars
       if(freshSuccessVar)
@@ -44,7 +44,7 @@ trait StrategyHelpers {
   def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
                              constraints: Seq[Constraint], successVarConstraint: Constraint): Seq[Refinement.SuccessPredicate] = {
     val query = successVarConstraint +: constraints
-    Assignments.generate(lemma, query).map {
+    Assignments.generate(query, lemma).map {
       case successVar :: arguments => Refinement.SuccessPredicate(function, wrapMetaVars(arguments), successVar)
     }
   }

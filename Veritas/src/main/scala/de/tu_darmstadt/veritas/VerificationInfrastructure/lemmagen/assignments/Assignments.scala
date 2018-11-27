@@ -31,14 +31,26 @@ object Assignments {
     }
   }
 
-  def generate(lemma: Lemma, constraints: Seq[Constraint]): Seq[Seq[MetaVar]] = {
-    generateAbstractAssignments(constraints, lemma.boundVariables)
-      .map(generateConcreteAssignment(_, lemma.boundVariables))
+  def generate(constraints: Seq[Constraint], lemma: Lemma): Seq[Seq[MetaVar]] = {
+    generate(constraints, lemma.boundVariables)
+  }
+
+  def generate(constraints: Seq[Constraint], boundVariables: Set[MetaVar] = Set()): Seq[Seq[MetaVar]] = {
+    generateAbstractAssignments(constraints, boundVariables)
+      .map(generateConcreteAssignment(_, boundVariables))
   }
 
   def wrapMetaVars(seq: Seq[MetaVar]): Seq[FunctionExpMeta] = seq.map(mv => FunctionMeta(mv))
 
-  def generateSimple(lemma: Lemma, types: Seq[SortRef]): Seq[Seq[MetaVar]] = {
-    generate(lemma, Constraint.preferBound(types))
+  def generateSimple(types: Seq[SortRef], lemma: Lemma): Seq[Seq[MetaVar]] = {
+    generateSimple(types, lemma.boundVariables)
+  }
+
+  def generateSimple(types: Seq[SortRef], boundVariables: Set[MetaVar] = Set()): Seq[Seq[MetaVar]] = {
+    generate(Constraint.preferBound(types), boundVariables)
+  }
+
+  def generateSimpleSingle(types: Seq[SortRef]): Seq[MetaVar] = {
+    generateSimple(types).head
   }
 }

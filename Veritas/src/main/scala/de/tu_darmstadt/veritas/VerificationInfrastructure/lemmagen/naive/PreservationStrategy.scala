@@ -14,55 +14,21 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
 
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
-  /*def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
-    // build lemmas that postulate that ``predicate`` holds for the result of ``producer``
-    // ``producer`` may be failable
-    // might have multiple choices because ``predicate`` might have multiple arguments of compatible type
-    val producerArgs = FreshVariables.freshMetaVars(Set(), producer.inTypes)
-    val producerInvocation = FunctionExpApp(producer.name, Assignments.wrapMetaVars(producerArgs))
-    val productType = producer.successfulOutType
-    val productHoles = predicate.inTypes.view.zipWithIndex.collect {
-      case (typ, idx) if typ == productType => idx
-    }
-    var baseLemmas = Seq[Lemma]()
-    for(hole <- productHoles) {
-      val predicateArgs = FreshVariables.freshMetaVars(producerArgs.toSet, predicate.inTypes)
-      val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
-      val judgment = FunctionExpJudgment(invocationExp)
-      val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation$hole", Seq(), Seq(judgment))
-      // we now have the conclusion, we just need to choose the input argument accordingly
-      var right: FunctionExpMeta = FunctionMeta(predicateArgs(hole))
-      if(producer.isFailable) {
-        val (_, constructor) = enquirer.retrieveFailableConstructors(producer.outType)
-        right = FunctionExpApp(constructor.name, Seq(right))
-      }
-      val equality = enquirer.makeEquation(producerInvocation, right).asInstanceOf[FunctionExpJudgment]
-      baseLemmas :+= baseLemma.addPremise(equality)
-    }
-    baseLemmas
-  }*/
-
   def buildReductionPredicateLemmas(predicate: FunctionDef): Seq[Lemma] = {
-    // build lemmas that postulate that ``predicate`` holds for the result of ``producer``
-    // ``producer`` may be failable
-    // might have multiple choices because ``predicate`` might have multiple arguments of compatible type
-    val predicateArgs = FreshVariables.freshMetaVars(Set(), predicate.inTypes)
+    // build preservation lemma that postules that ``predicate`` holds for
+    // the original term and for the reduction step
+    val predicateArgs = Assignments.generateSimpleSingle(predicate.inTypes)
+    val Seq(termVar, reducedTermVar) = predicateArgs
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation", Seq(), Seq(judgment))
     // we now have the conclusion, we just need to choose the input argument accordingly
-    /*var right: FunctionExpMeta = FunctionMeta(predicateArgs(hole))
-    if(producer.isFailable) {
-      val (_, constructor) = enquirer.retrieveFailableConstructors(producer.outType)
-      right = FunctionExpApp(constructor.name, Seq(right))
-    }
-    //val equality = enquirer.makeEquation(producerInvocation, right).asInstanceOf[FunctionExpJudgment]
-    */
     val termIndex = producer.inTypes.indexOf(producer.successfulOutType)
-    val producerArgumentsConstraints =
-      Constraint.freshOrBound(producer.inTypes).updated(termIndex, Constraint.Fixed(predicateArgs(0)))
-    val successVarPlacement = Constraint.Fixed(predicateArgs(1))
-    refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarPlacement))
+    val producerArgumentsConstraints = Constraint.freshOrBound(producer.inTypes)
+        .updated(termIndex, Constraint.Fixed(termVar))
+    val successVarPlacement = Constraint.Fixed(reducedTermVar)
+    val refinements = selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarPlacement)
+    refine(baseLemma, refinements)
   }
 
   def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
@@ -109,16 +75,16 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     // find all argument positions which take successful output type
     // generate 2 types of preservation lemmas:
     val lemmas = new mutable.MutableList[Lemma]()
-    if(producer.inTypes.count(_ == producer.successfulOutType) == 1) {
+    val outType = producer.successfulOutType
+    if(producer.inTypes.count(_ == outType) == 1) {
       val predicates = enquirer
         .retrievePredicates(producer.successfulOutType)
-        .filter(_.inTypes.length == 2)
-        .filter(predicate => predicate.inTypes.count(_ == producer.successfulOutType) == 2)
+        .filter(_.inTypes == Seq(outType, outType))
       predicates.foreach(predicate => {
         lemmas ++= buildReductionPredicateLemmas(predicate)
       })
     }
-    val predicates = enquirer.retrievePredicates(producer.successfulOutType)
+    val predicates = enquirer.retrievePredicates(outType)
     predicates.foreach({
       lemmas ++= buildPredicatePreservationLemmas(_)
     })

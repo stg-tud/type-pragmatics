@@ -15,8 +15,7 @@ class ProgressStrategy(override val problem: Problem, function: FunctionDef)
 
   override def generateBase(): Seq[Lemma] = {
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
-    val successVar = FreshVariables.freshMetaVar(Set(), function.successfulOutType)
-    val arguments = FreshVariables.freshMetaVars(Set(successVar), function.inTypes)
+    val successVar :: arguments = Assignments.generateSimpleSingle(function.successfulOutType +: function.inTypes)
     val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(arguments))
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
     val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
