@@ -36,24 +36,6 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation", Seq(), Seq(judgment))
-
-    /*val productHoles = predicate.inTypes.view.zipWithIndex.collect {
-      case (typ, idx) if typ == productType => idx
-    }
-    var baseLemmas = Seq[Lemma]()
-    for(hole <- productHoles) {
-
-      val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation$hole", Seq(), Seq(judgment))
-      // we now have the conclusion, we just need to choose the input argument accordingly
-      var right: FunctionExpMeta = FunctionMeta(predicateArgs(hole))
-      if(producer.isFailable) {
-        val (_, constructor) = enquirer.retrieveFailableConstructors(producer.outType)
-        right = FunctionExpApp(constructor.name, Seq(right))
-      }
-      val equality = enquirer.makeEquation(producerInvocation, right).asInstanceOf[FunctionExpJudgment]
-      baseLemmas :+= baseLemma.addPremise(equality)
-
-    }*/
     val producerArgumentsConstraints = Constraint.freshOrBound(producer.inTypes)
     var matchingPredicateArgs = predicateArgs.filter(_.sortType == producer.successfulOutType)
     val successVarPlacement = Constraint.Union(matchingPredicateArgs.map(Constraint.Fixed(_)).toSet)
@@ -101,11 +83,11 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     for(predicate <- predicates if predicate.isStatic)
       refinements ++= selectPredicate(lemma, predicate)
     for(fn <- producers if fn.isFailable && fn.isStatic && fn != producer) {
-      // allow to use success vars of matching type, but only if they are used in the consequences!
-      val additionalSuccessVars = lemma
-        .bindingsOfType(fn.successfulOutType)
-        .intersect(FreeVariables.freeVariables(lemma.consequences))
-      refinements ++= selectSuccessPredicate(lemma, fn, additionalSuccessVars = additionalSuccessVars)
+      // allow to use bound success vars
+      refinements ++= selectSuccessPredicate(lemma, fn,
+        Constraint.preferBound(fn.inTypes),
+        Constraint.freshOrBound(fn.successfulOutType)
+      )
     }
     for(fn <- transformers if fn.isFailable && fn.isStatic && fn != producer)
       refinements ++= selectSuccessPredicate(lemma, fn)

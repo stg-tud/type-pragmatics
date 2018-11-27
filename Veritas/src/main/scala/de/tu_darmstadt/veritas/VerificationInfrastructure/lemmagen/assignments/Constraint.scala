@@ -11,10 +11,14 @@ object Constraint {
   case class Union(of: Set[Constraint]) extends Constraint
   case class Exclude(base: Constraint, without: Constraint) extends Constraint
 
-  def fresh(types: Seq[SortRef]): Seq[Constraint] = types.map(Fresh)
+  def fresh(types: Seq[SortRef]): Seq[Constraint] = types.map(fresh)
+  def fresh(typ: SortRef): Constraint = Fresh(typ)
+
   def bound(types: Seq[SortRef]): Seq[Constraint] = types.map(Bound)
-  def freshOrBound(types: Seq[SortRef]): Seq[Constraint] = types.map(typ => Union(Set(Bound(typ), Fresh(typ))))
-  def preferBound(types: Seq[SortRef]): Seq[Constraint] = types.map(typ =>
-    Prefer(Bound(typ), Fresh(typ))
-  )
+
+  def freshOrBound(typ: SortRef): Constraint = Union(Set(Bound(typ), Fresh(typ)))
+  def freshOrBound(types: Seq[SortRef]): Seq[Constraint] = types.map(freshOrBound)
+
+  def preferBound(typ: SortRef): Constraint = Prefer(Bound(typ), Fresh(typ))
+  def preferBound(types: Seq[SortRef]): Seq[Constraint] = types.map(preferBound)
 }

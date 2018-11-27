@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Assignments
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Assignments.wrapMetaVars
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Constraint.Constraint
 import de.tu_darmstadt.veritas.backend.ast.MetaVar
@@ -25,20 +25,10 @@ trait StrategyHelpers {
     refinement.flatMap(_.refine(problem, lemma))
   }
 
-  def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
-                             freshSuccessVar: Boolean = true,
-                             additionalSuccessVars: Set[MetaVar] = Set()): Seq[Refinement.SuccessPredicate] = {
-    val assignments = Assignments.generateSimple(function.signature.in, lemma)
-    assignments.flatMap(assignment => {
-      var successVars = additionalSuccessVars
-      if(freshSuccessVar)
-        successVars += FreshVariables.freshMetaVar(
-          lemma.boundVariables ++ assignment.toSet,
-          function.successfulOutType)
-      successVars.map(successVar =>
-        Refinement.SuccessPredicate(function, wrapMetaVars(assignment), successVar)
-      )
-    })
+  def selectSuccessPredicate(lemma: Lemma, function: FunctionDef): Seq[Refinement.SuccessPredicate] = {
+    selectSuccessPredicate(lemma, function,
+      Constraint.preferBound(function.inTypes),
+      Constraint.fresh(function.successfulOutType))
   }
 
   def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
