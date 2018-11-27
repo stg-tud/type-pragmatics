@@ -53,11 +53,6 @@ object SQLSpec extends ScalaSPLSpecification {
 
   case class rcons(v: Val, r: Row) extends Row
 
-  def rowLength(r: Row): nat = r match {
-    case rempty() => zero()
-    case rcons(_, rtail) => succ(rowLength(rtail))
-  }
-
   // table matrix (list of rows), without "header" (attribute list)
   sealed trait RawTable extends Expression
 
