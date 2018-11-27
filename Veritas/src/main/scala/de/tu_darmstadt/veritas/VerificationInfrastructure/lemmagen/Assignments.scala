@@ -4,18 +4,48 @@ import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpMeta, FunctionMeta}
 
 object Assignments {
-  def generateAssignments(lemma: Lemma, types: Seq[SortRef],
-                          prefix: Seq[MetaVar] = Seq()): Seq[Seq[MetaVar]] = types match {
-    case Nil => Seq(prefix)
-    case head :: tail =>
-      // use bound if there are variables of that type. TODO
-      // TODO: sometimes we need fresh variables even though we have matching bound variables, e.g. projectCols preservation
-      val prefixChoices: Set[MetaVar] = prefix.filter(_.sortType == head).toSet
-      var choices: Set[MetaVar] = prefixChoices ++ lemma.bindingsOfType(head)
-      if(choices.isEmpty)
-        choices += FreshVariables.freshMetaVar(lemma.freeVariables ++ prefix.toSet, head)
-      choices.flatMap(mv => generateAssignments(lemma, tail, prefix :+ mv)).toSeq
+  def generateAssignments(lemma: Lemma, types: Seq[SortRef]): Seq[Seq[MetaVar]] = {
+    placeVariables(lemma, preferBoundPlacements(types))
   }
 
   def wrapMetaVars(seq: Seq[MetaVar]): Seq[FunctionExpMeta] = seq.map(mv => FunctionMeta(mv))
+
+  sealed trait Placement
+  case class Bound(typ: SortRef) extends Placement()
+  case class Fresh(typ: SortRef) extends Placement()
+  case class Fixed(mv: MetaVar) extends Placement()
+  case class Prefer(`try`: Placement, `else`: Placement) extends Placement()
+  case class Union(of: Set[Placement]) extends Placement()
+
+  def generatePlacementChoice(lemma: Lemma, placement: Placement,
+                              prefix: Seq[MetaVar], bound: Set[MetaVar]): Set[MetaVar] = placement match {
+    case Fresh(typ) => Set(FreshVariables.freshMetaVar(lemma.freeVariables ++ prefix.toSet, typ))
+    case Fixed(mv) => Set(mv)
+    case Bound(typ) => lemma.bindingsOfType(typ) ++ prefix.filter(_.sortType == typ) ++ bound
+    case Prefer(tryPlacement, elsePlacement) =>
+      val tryChoices = generatePlacementChoice(lemma, tryPlacement, prefix, bound)
+      if(tryChoices.isEmpty)
+        generatePlacementChoice(lemma, elsePlacement, prefix, bound)
+      else
+        tryChoices
+    case Union(of) => of.flatMap(generatePlacementChoice(lemma, _, prefix, bound))
+  }
+
+  def placeVariables(lemma: Lemma, placements: Seq[Placement],
+                     prefix: Seq[MetaVar] = Seq(),
+                     bound: Set[MetaVar] = Set()): Seq[Seq[MetaVar]] = placements match {
+    case Nil => Seq(prefix)
+    case head :: tail =>
+      // use bound if there are variables of that type.
+      val choice = generatePlacementChoice(lemma, head, prefix, bound)
+      choice.flatMap(mv => placeVariables(lemma, tail, prefix :+ mv, bound)).toSeq
+      // TODO: Fresh may bind variables that are fixed somewhere
+  }
+
+  def freshPlacements(types: Seq[SortRef]): Seq[Placement] = types.map(Fresh)
+  def boundPlacements(types: Seq[SortRef]): Seq[Placement] = types.map(Bound)
+  def freshOrBoundPlacements(types: Seq[SortRef]): Seq[Placement] = types.map(typ => Union(Set(Bound(typ), Fresh(typ))))
+  def preferBoundPlacements(types: Seq[SortRef]): Seq[Placement] = types.map(typ =>
+    Prefer(Bound(typ), Fresh(typ))
+  )
 }

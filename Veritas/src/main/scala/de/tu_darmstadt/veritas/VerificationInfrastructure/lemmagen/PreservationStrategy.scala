@@ -40,7 +40,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     baseLemmas
   }*/
 
-  def buildPredicatePreservationLemmas(predicate: FunctionDef): Lemma = {
+  def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
     // build lemmas that postulate that ``predicate`` holds for the result of ``producer``
     // ``producer`` may be failable
     // might have multiple choices because ``predicate`` might have multiple arguments of compatible type
@@ -56,27 +56,40 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     }
     //val equality = enquirer.makeEquation(producerInvocation, right).asInstanceOf[FunctionExpJudgment]
     */
-    baseLemma
+    val termIndex = producer.inTypes.indexOf(producer.successfulOutType)
+    val producerArgumentsPlacements =
+      Assignments.freshOrBoundPlacements(producer.inTypes).updated(termIndex, Assignments.Fixed(predicateArgs(0)))
+    val successVarPlacement = Assignments.Fixed(predicateArgs(1))
+    refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsPlacements, successVarPlacement))
   }
 
   override def generateBase(): Seq[Lemma] = {
     // find all argument positions which take successful output type
-    val inputReductionIndices = producer.filterArguments(_ == producer.successfulOutType)
     // generate 2 types of preservation lemmas:
     val lemmas = new mutable.MutableList[Lemma]()
-    if(inputReductionIndices.nonEmpty) {
-      // (1) find predicates which take |inputReductionIndices| + 1 arguments of type successfuLOutType
+    if(producer.inTypes.count(_ == producer.successfulOutType) == 1) {
       val predicates = enquirer
         .retrievePredicates(producer.successfulOutType)
-        .filter(predicate => predicate.inTypes.count(_ == producer.successfulOutType) == inputReductionIndices.length + 1)
-      val baseLemmas = predicates.map(buildPredicatePreservationLemmas)
+        .filter(_.inTypes.length == 2)
+        .filter(predicate => predicate.inTypes.count(_ == producer.successfulOutType) == 2)
+      predicates.foreach(predicate => {
+        lemmas ++= buildPredicatePreservationLemmas(predicate)
+        /*println(baseLemma)
+        val operandsIndices = predicate.filterArguments(_ == producer.successfulOutType)
+        val placements = Assignments.freshPlacements(predicate.inTypes)
+            .updated(operandsIndices(0), Assignments.Fixed(baseLemma.consequences(0).)
+        predicate.inTypes.map {
+          case producer.successfulOutType =>
+        }*/
+      })
+      /*
       lemmas ++= baseLemmas.flatMap(lemma => {
         val refinements = selectSuccessPredicate(lemma, producer,
           freshSuccessVar = false,
           additionalSuccessVars = lemma.bindingsOfType(producer.successfulOutType))
           .filterNot(r => r.arguments contains FunctionMeta(r.result)) // TODO: not nice at all
         refine(lemma, refinements)
-      })
+      })*/
     }
     //val predicates = enquirer.retrievePredicates(producer.successfulOutType)
     /*
@@ -112,7 +125,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
         case _ =>
       }
     }*/
-    lemmas.filter(l => l.bindingsOfType(producer.successfulOutType).size == inputReductionIndices.size + 1)
+    lemmas
   }
 
   override def expand(lemma: Lemma): Seq[Refinement] = {
