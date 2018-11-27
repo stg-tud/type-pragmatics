@@ -1,6 +1,8 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Assignments.{Placement, generateAssignments, wrapMetaVars}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Assignments
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Assignments.wrapMetaVars
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Constraint.Constraint
 import de.tu_darmstadt.veritas.backend.ast.MetaVar
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
@@ -10,12 +12,12 @@ trait StrategyHelpers {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
 
   def selectPredicate(lemma: Lemma, predicate: FunctionDef): Seq[Refinement] = {
-    val assignments = generateAssignments(lemma, predicate.signature.in)
+    val assignments = Assignments.generateSimple(lemma, predicate.signature.in)
     assignments.map(assignment => Refinement.Predicate(predicate, wrapMetaVars(assignment)))
   }
 
-  def selectPredicate(lemma: Lemma, predicate: FunctionDef, placements: Seq[Placement]): Seq[Refinement] = {
-    val assignments = Assignments.placeVariables(lemma, placements)
+  def selectPredicate(lemma: Lemma, predicate: FunctionDef, constraints: Seq[Constraint]): Seq[Refinement] = {
+    val assignments = Assignments.generate(lemma, constraints)
     assignments.map(assignment => Refinement.Predicate(predicate, wrapMetaVars(assignment)))
   }
 
@@ -26,12 +28,12 @@ trait StrategyHelpers {
   def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
                              freshSuccessVar: Boolean = true,
                              additionalSuccessVars: Set[MetaVar] = Set()): Seq[Refinement.SuccessPredicate] = {
-    val assignments = generateAssignments(lemma, function.inTypes)
+    val assignments = Assignments.generateSimple(lemma, function.signature.in)
     assignments.flatMap(assignment => {
       var successVars = additionalSuccessVars
       if(freshSuccessVar)
         successVars += FreshVariables.freshMetaVar(
-          lemma.freeVariables ++ assignment.toSet,
+          lemma.boundVariables ++ assignment.toSet,
           function.successfulOutType)
       successVars.map(successVar =>
         Refinement.SuccessPredicate(function, wrapMetaVars(assignment), successVar)
@@ -40,14 +42,10 @@ trait StrategyHelpers {
   }
 
   def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
-                             placements: Seq[Placement], successVar: Placement,
-                             bound: Set[MetaVar]): Seq[Refinement.SuccessPredicate] = {
-    val argumentAssignments = Assignments.placeVariables(lemma, placements, bound = bound)
-    argumentAssignments.flatMap(assignment => {
-      val successVars = Assignments.generatePlacementChoice(lemma, successVar, Seq(), assignment.toSet ++ bound)
-      successVars.map(successVar =>
-        Refinement.SuccessPredicate(function, wrapMetaVars(assignment), successVar)
-      )
-    })
+                             constraints: Seq[Constraint], successVarConstraint: Constraint): Seq[Refinement.SuccessPredicate] = {
+    val query = successVarConstraint +: constraints
+    Assignments.generate(lemma, query).map {
+      case successVar :: arguments => Refinement.SuccessPredicate(function, wrapMetaVars(arguments), successVar)
+    }
   }
 }

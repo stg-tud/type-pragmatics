@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar}
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
@@ -57,10 +58,10 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     //val equality = enquirer.makeEquation(producerInvocation, right).asInstanceOf[FunctionExpJudgment]
     */
     val termIndex = producer.inTypes.indexOf(producer.successfulOutType)
-    val producerArgumentsPlacements =
-      Assignments.freshOrBoundPlacements(producer.inTypes).updated(termIndex, Assignments.Fixed(predicateArgs(0)))
-    val successVarPlacement = Assignments.Fixed(predicateArgs(1))
-    refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsPlacements, successVarPlacement, Set()))
+    val producerArgumentsConstraints =
+      Constraint.freshOrBound(producer.inTypes).updated(termIndex, Constraint.Fixed(predicateArgs(0)))
+    val successVarPlacement = Constraint.Fixed(predicateArgs(1))
+    refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarPlacement))
   }
 
   def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
@@ -86,18 +87,17 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
       baseLemmas :+= baseLemma.addPremise(equality)
 
     }*/
-    val producerArgumentsPlacements = Assignments.freshOrBoundPlacements(producer.inTypes)
+    val producerArgumentsConstraints = Constraint.freshOrBound(producer.inTypes)
     var matchingPredicateArgs = predicateArgs.filter(_.sortType == producer.successfulOutType)
-    val successVarPlacement = Assignments.Union(matchingPredicateArgs.map(Assignments.Fixed(_)).toSet)
-    val baseLemmas = refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsPlacements, successVarPlacement,
-      matchingPredicateArgs.toSet
-    ).filterNot(r => r.arguments contains FunctionMeta(r.result)))
+    val successVarPlacement = Constraint.Union(matchingPredicateArgs.map(Constraint.Fixed(_)).toSet)
+    val baseLemmas = refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarPlacement)
+      .filterNot(r => r.arguments contains FunctionMeta(r.result)))
     val l = baseLemmas.flatMap(lemma => {
       val a = predicateArgs.map {
-        case mv if mv.sortType == producer.successfulOutType => Assignments.Exclude(
-          Assignments.Union(Set(Assignments.Bound(producer.successfulOutType), Assignments.Fresh(producer.successfulOutType))),
-          Assignments.Fixed(mv))
-        case x => Assignments.Union(Set(Assignments.Bound(x.sortType), Assignments.Fresh(x.sortType)))
+        case mv if mv.sortType == producer.successfulOutType => Constraint.Exclude(
+          Constraint.Union(Set(Constraint.Bound(producer.successfulOutType), Constraint.Bound(producer.successfulOutType))),
+          Constraint.Fixed(mv))
+        case x => Constraint.Union(Set(Constraint.Bound(x.sortType), Constraint.Fresh(x.sortType)))
       }
       refine(lemma, selectPredicate(lemma, predicate, a))
     })

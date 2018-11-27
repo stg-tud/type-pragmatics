@@ -12,12 +12,12 @@ class Lemma(name: String,
             val refinements: Seq[Refinement] = Seq())
   extends TypingRule(name, premises, consequences) {
 
-  lazy val freeVariables: Set[MetaVar] = {
+  lazy val boundVariables: Set[MetaVar] = {
     FreeVariables.freeVariables(premises ++ consequences)
   }
-  def bindings: Map[MetaVar, SortRef] = freeVariables.map(mv => (mv, mv.sortType)).toMap
+  def bindings: Map[MetaVar, SortRef] = boundVariables.map(mv => (mv, mv.sortType)).toMap
   def boundTypes: Set[SortRef] = bindings.values.toSet
-  def bindingsOfType(typ: SortRef): Set[MetaVar] = freeVariables.filter(_.sortType == typ).toSet
+  def bindingsOfType(typ: SortRef): Set[MetaVar] = boundVariables.filter(_.sortType == typ).toSet
 
   def addPremise(refinement: Refinement, premise: TypingRuleJudgment): Lemma = {
     new Lemma(name, premises :+ premise, consequences, refinements :+ refinement)
