@@ -4,7 +4,6 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.backend.ast.FunctionExpJudgment
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionMeta}
-import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
@@ -32,25 +31,26 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
   }
 
   def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
+    val outType = producer.successfulOutType
     val predicateArgs = FreshVariables.freshMetaVars(Set(), predicate.inTypes)
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation", Seq(), Seq(judgment))
     val producerArgumentsConstraints = Constraint.freshOrBound(producer.inTypes)
-    var matchingPredicateArgs = predicateArgs.filter(_.sortType == producer.successfulOutType)
-    val successVarPlacement = Constraint.Union(matchingPredicateArgs.map(Constraint.Fixed(_)).toSet)
-    val baseLemmas = refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarPlacement)
+    var matchingPredicateArgs = predicateArgs.filter(_.sortType == outType)
+    val successVarConstraint = Constraint.Union(matchingPredicateArgs.map(Constraint.Fixed).toSet)
+    val baseLemmas = refine(baseLemma,
+      selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarConstraint)
       .filterNot(r => r.arguments contains FunctionMeta(r.result)))
-    val l = baseLemmas.flatMap(lemma => {
-      val a = predicateArgs.map {
-        case mv if mv.sortType == producer.successfulOutType => Constraint.Exclude(
-          Constraint.Union(Set(Constraint.Bound(producer.successfulOutType), Constraint.Fresh(producer.successfulOutType))),
-          Constraint.Fixed(mv))
-        case x => Constraint.Union(Set(Constraint.Bound(x.sortType), Constraint.Fresh(x.sortType)))
+    val evolvedLemmas = baseLemmas.flatMap(lemma => {
+      var constraints = predicateArgs.map {
+        case mv if mv.sortType == outType =>
+          Constraint.freshOrBound(mv.sortType).exclude(Constraint.fixed(mv))
+        case mv => Constraint.freshOrBound(mv.sortType)
       }
-      refine(lemma, selectPredicate(lemma, predicate, a))
+      refine(lemma, selectPredicate(lemma, predicate, constraints))
     })
-    l ++ baseLemmas
+    baseLemmas ++ evolvedLemmas
   }
 
   override def generateBase(): Seq[Lemma] = {
