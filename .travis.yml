@@ -1,0 +1,9 @@
+language: scala
+scala:
+    - 2.11.8
+branches:
+    only:
+        - ma
+before_script: cd Veritas
+script:
+    - sbt 'test-only *SQLNaiveLemmaGenerationTest'
