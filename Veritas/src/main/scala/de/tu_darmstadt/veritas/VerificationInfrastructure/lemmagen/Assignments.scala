@@ -21,7 +21,7 @@ object Assignments {
                               prefix: Seq[MetaVar], bound: Set[MetaVar]): Set[MetaVar] = placement match {
     case Fresh(typ) => Set(FreshVariables.freshMetaVar(lemma.freeVariables ++ prefix.toSet, typ))
     case Fixed(mv) => Set(mv)
-    case Bound(typ) => lemma.bindingsOfType(typ) ++ prefix.filter(_.sortType == typ) ++ bound
+    case Bound(typ) => lemma.bindingsOfType(typ) ++ (prefix ++ bound).filter(_.sortType == typ)
     case Prefer(tryPlacement, elsePlacement) =>
       val tryChoices = generatePlacementChoice(lemma, tryPlacement, prefix, bound)
       if(tryChoices.isEmpty)

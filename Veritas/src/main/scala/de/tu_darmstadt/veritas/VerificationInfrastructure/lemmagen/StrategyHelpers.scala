@@ -35,10 +35,11 @@ trait StrategyHelpers {
   }
 
   def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
-                             placements: Seq[Placement], successVar: Placement): Seq[Refinement.SuccessPredicate] = {
-    val argumentAssignments = Assignments.placeVariables(lemma, placements)
+                             placements: Seq[Placement], successVar: Placement,
+                             bound: Set[MetaVar]): Seq[Refinement.SuccessPredicate] = {
+    val argumentAssignments = Assignments.placeVariables(lemma, placements, bound = bound)
     argumentAssignments.flatMap(assignment => {
-      val successVars = Assignments.generatePlacementChoice(lemma, successVar, Seq(), assignment.toSet)
+      val successVars = Assignments.generatePlacementChoice(lemma, successVar, Seq(), assignment.toSet ++ bound)
       successVars.map(successVar =>
         Refinement.SuccessPredicate(function, wrapMetaVars(assignment), successVar)
       )

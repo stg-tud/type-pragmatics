@@ -13,6 +13,7 @@ class SQLLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
   val ExcludeProperties = Seq(
     "projectColsProgress",
+    "projectColsWelltypedWithSelectType",
     // incompatible schemas:
     "welltypedEmptyProjection",
     "projectFirstRawPreservesWelltypedRaw",

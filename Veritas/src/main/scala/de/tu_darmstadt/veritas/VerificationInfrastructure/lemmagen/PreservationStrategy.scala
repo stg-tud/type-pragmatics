@@ -40,7 +40,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     baseLemmas
   }*/
 
-  def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
+  def buildReductionPredicateLemmas(predicate: FunctionDef): Seq[Lemma] = {
     // build lemmas that postulate that ``predicate`` holds for the result of ``producer``
     // ``producer`` may be failable
     // might have multiple choices because ``predicate`` might have multiple arguments of compatible type
@@ -60,7 +60,42 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val producerArgumentsPlacements =
       Assignments.freshOrBoundPlacements(producer.inTypes).updated(termIndex, Assignments.Fixed(predicateArgs(0)))
     val successVarPlacement = Assignments.Fixed(predicateArgs(1))
-    refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsPlacements, successVarPlacement))
+    refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsPlacements, successVarPlacement, Set()))
+  }
+
+  def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
+    val producerArgs = FreshVariables.freshMetaVars(Set(), producer.inTypes)
+    val predicateArgs = FreshVariables.freshMetaVars(producerArgs.toSet, predicate.inTypes)
+    val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
+    val judgment = FunctionExpJudgment(invocationExp)
+    val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation", Seq(), Seq(judgment))
+
+    /*val productHoles = predicate.inTypes.view.zipWithIndex.collect {
+      case (typ, idx) if typ == productType => idx
+    }
+    var baseLemmas = Seq[Lemma]()
+    for(hole <- productHoles) {
+
+      val baseLemma = new Lemma(s"${producer.name}${predicate.name}Preservation$hole", Seq(), Seq(judgment))
+      // we now have the conclusion, we just need to choose the input argument accordingly
+      var right: FunctionExpMeta = FunctionMeta(predicateArgs(hole))
+      if(producer.isFailable) {
+        val (_, constructor) = enquirer.retrieveFailableConstructors(producer.outType)
+        right = FunctionExpApp(constructor.name, Seq(right))
+      }
+      val equality = enquirer.makeEquation(producerInvocation, right).asInstanceOf[FunctionExpJudgment]
+      baseLemmas :+= baseLemma.addPremise(equality)
+
+    }*/
+    val producerArgumentsPlacements = Assignments.freshOrBoundPlacements(producer.inTypes)
+    var matchingPredicateArgs = predicateArgs.filter(_.sortType == producer.successfulOutType)
+    val successVarPlacement = Assignments.Union(matchingPredicateArgs.map(Assignments.Fixed(_)).toSet)
+    val baseLemmas = refine(baseLemma, selectSuccessPredicate(baseLemma, producer, producerArgumentsPlacements, successVarPlacement,
+      matchingPredicateArgs.toSet
+    ))
+    baseLemmas.flatMap(lemma =>
+      refine(lemma, selectPredicate(lemma, predicate))
+    )
   }
 
   override def generateBase(): Seq[Lemma] = {
@@ -73,58 +108,13 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
         .filter(_.inTypes.length == 2)
         .filter(predicate => predicate.inTypes.count(_ == producer.successfulOutType) == 2)
       predicates.foreach(predicate => {
-        lemmas ++= buildPredicatePreservationLemmas(predicate)
-        /*println(baseLemma)
-        val operandsIndices = predicate.filterArguments(_ == producer.successfulOutType)
-        val placements = Assignments.freshPlacements(predicate.inTypes)
-            .updated(operandsIndices(0), Assignments.Fixed(baseLemma.consequences(0).)
-        predicate.inTypes.map {
-          case producer.successfulOutType =>
-        }*/
+        lemmas ++= buildReductionPredicateLemmas(predicate)
       })
-      /*
-      lemmas ++= baseLemmas.flatMap(lemma => {
-        val refinements = selectSuccessPredicate(lemma, producer,
-          freshSuccessVar = false,
-          additionalSuccessVars = lemma.bindingsOfType(producer.successfulOutType))
-          .filterNot(r => r.arguments contains FunctionMeta(r.result)) // TODO: not nice at all
-        refine(lemma, refinements)
-      })*/
     }
-    //val predicates = enquirer.retrievePredicates(producer.successfulOutType)
-    /*
-    for(predicate <- predicates if predicate.isStatic) {
-      val baseLemmas = buildPredicatePreservationLemmas(predicate)
-      //lemmas ++= baseLemmas
-      // we just assume that the exact same predicate appears in the premises again for other values
-      lemmas ++= baseLemmas.flatMap(lemma =>
-        refine(lemma, selectPredicate(lemma, predicate))
-      )
-    }*/
-    // select all
-    // in many cases, failable producers for all other arguments of the consequent predicate appear in the premises
-    // TODO: this does not help for projectCols because we select
-    // projectTypeAttrL(al, tt) == someTType(tt)
-    /*for(lemma <- lemmas.clone()) {
-      lemma.consequences.head match {
-        case FunctionExpJudgment(FunctionExpApp(_, args)) =>
-          val otherArguments = args.collect {
-            case FunctionMeta(mv) if mv.sortType != producer.successfulOutType => mv
-          }
-          // find failable producers for these arguments
-          val allFailableProducers = otherArguments.collect {
-            case mv => (mv, enquirer.retrieveProducers(mv.sortType).filter(_.isFailable))
-          }
-          // select them
-          for((mv, failableProducers) <- allFailableProducers;
-              failableProducer <- failableProducers) {
-            lemmas ++= refine(lemma, selectSuccessPredicate(lemma, failableProducer,
-              freshSuccessVar = false, additionalSuccessVars = Set(mv)))
-            println()
-          }
-        case _ =>
-      }
-    }*/
+    val predicates = enquirer.retrievePredicates(producer.successfulOutType)
+    predicates.foreach({
+      lemmas ++= buildPredicatePreservationLemmas(_)
+    })
     lemmas
   }
 
