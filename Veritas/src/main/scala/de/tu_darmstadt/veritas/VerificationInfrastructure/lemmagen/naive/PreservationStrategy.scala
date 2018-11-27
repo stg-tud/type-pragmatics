@@ -96,13 +96,13 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val l = baseLemmas.flatMap(lemma => {
       val a = predicateArgs.map {
         case mv if mv.sortType == producer.successfulOutType => Constraint.Exclude(
-          Constraint.Union(Set(Constraint.Bound(producer.successfulOutType), Constraint.Bound(producer.successfulOutType))),
+          Constraint.Union(Set(Constraint.Bound(producer.successfulOutType), Constraint.Fresh(producer.successfulOutType))),
           Constraint.Fixed(mv))
         case x => Constraint.Union(Set(Constraint.Bound(x.sortType), Constraint.Fresh(x.sortType)))
       }
       refine(lemma, selectPredicate(lemma, predicate, a))
     })
-    l
+    l ++ baseLemmas
   }
 
   override def generateBase(): Seq[Lemma] = {
