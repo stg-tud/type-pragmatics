@@ -7,4 +7,5 @@ branches:
 before_script: cd Veritas
 script:
     - sbt 'test-only *SQLNaiveLemmaGenerationTest'
-
+notifications:
+    email: false
