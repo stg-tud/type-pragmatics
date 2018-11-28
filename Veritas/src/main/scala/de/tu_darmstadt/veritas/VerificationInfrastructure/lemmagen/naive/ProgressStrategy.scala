@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 class ProgressStrategy(override val problem: Problem, function: FunctionDef)
   extends RefinementStrategy with StrategyHelpers {
-  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
+  import Query._
 
   implicit private val enquirer = problem.enquirer
 
@@ -25,9 +25,9 @@ class ProgressStrategy(override val problem: Problem, function: FunctionDef)
 
   override def expand(lemma: Lemma): Seq[Refinement] = {
     // build a map of predicates and producers of "in types"
-    val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
-    val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
-    val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
+    val predicates = enquirer.retrievePredicates(lemma.boundTypes)
+    val producers = enquirer.retrieveProducers(lemma.boundTypes)
+    val transformers = enquirer.retrieveTransformers(lemma.boundTypes)
     // we just have to find matching premises
     val refinements = new mutable.MutableList[Refinement]()
     for(predicate <- predicates if predicate.isStatic)

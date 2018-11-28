@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
   extends RefinementStrategy with StrategyHelpers {
-  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
+  import Query._
 
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
@@ -48,7 +48,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
           Constraint.freshOrBound(mv.sortType).exclude(Constraint.fixed(mv))
         case mv => Constraint.freshOrBound(mv.sortType)
       }*/
-      val constraints = Constraint.freshOrBound(predicate.inTypes) // TODO: we could exclude ``mv`` from being chosen for ``outType`` here
+      val constraints = Constraint.freshOrBound(predicate.inTypes) // TODO: we could exclude ``mv`` from being chosen for ``outType`` herelemma
       refine(lemma, selectPredicate(lemma, predicate, constraints))
     })
     baseLemmas ++ evolvedLemmas
@@ -61,13 +61,13 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val outType = producer.successfulOutType
     if(producer.inTypes.count(_ == outType) == 1) {
       val predicates = enquirer
-        .retrievePredicates(producer.successfulOutType)
+        .retrievePredicates(Set(producer.successfulOutType))
         .filter(_.inTypes == Seq(outType, outType))
       predicates.foreach(predicate => {
         lemmas ++= buildReductionPredicateLemmas(predicate)
       })
     }
-    val predicates = enquirer.retrievePredicates(outType)
+    val predicates = enquirer.retrievePredicates(Set(outType))
     predicates.foreach({
       lemmas ++= buildPredicatePreservationLemmas(_)
     })
@@ -76,9 +76,9 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
 
   override def expand(lemma: Lemma): Seq[Refinement] = {
     // build a map of predicates and producers of "in types"
-    val predicates = lemma.boundTypes.flatMap(enquirer.retrievePredicates)
-    val producers = lemma.boundTypes.flatMap(enquirer.retrieveProducers)
-    val transformers = lemma.boundTypes.flatMap(enquirer.retrieveTransformers)
+    val predicates = enquirer.retrievePredicates(lemma.boundTypes)
+    val producers = enquirer.retrieveProducers(lemma.boundTypes)
+    val transformers = enquirer.retrieveTransformers(lemma.boundTypes)
     // we just have to find matching premises
     val refinements = new mutable.MutableList[Refinement]()
     for(predicate <- predicates if predicate.isStatic)

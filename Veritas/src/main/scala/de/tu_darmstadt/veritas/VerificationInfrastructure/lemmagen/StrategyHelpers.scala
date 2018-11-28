@@ -9,7 +9,7 @@ import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 trait StrategyHelpers {
   val problem: Problem
   private implicit val enquirer: LemmaGenSpecEnquirer = problem.enquirer
-  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries.Query._
+  import Query._
 
   def selectPredicate(lemma: Lemma, predicate: FunctionDef): Seq[Refinement] = {
     val assignments = Assignments.generateSimple(predicate.signature.in, lemma)

@@ -1,6 +1,5 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.LemmaGenSpecEnquirer
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
