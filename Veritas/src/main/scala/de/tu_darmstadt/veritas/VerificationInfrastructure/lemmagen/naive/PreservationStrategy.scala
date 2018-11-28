@@ -43,11 +43,12 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
       selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarConstraint)
       .filterNot(r => r.arguments contains FunctionMeta(r.result)))
     val evolvedLemmas = baseLemmas.flatMap(lemma => {
-      var constraints = predicateArgs.map {
+      /*var constraints = predicateArgs.map {
         case mv if mv.sortType == outType =>
           Constraint.freshOrBound(mv.sortType).exclude(Constraint.fixed(mv))
         case mv => Constraint.freshOrBound(mv.sortType)
-      }
+      }*/
+      val constraints = Constraint.freshOrBound(predicate.inTypes) // TODO: we could exclude ``mv`` from being chosen for ``outType`` here
       refine(lemma, selectPredicate(lemma, predicate, constraints))
     })
     baseLemmas ++ evolvedLemmas
