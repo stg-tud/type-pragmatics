@@ -32,8 +32,8 @@ class ProgressStrategy(override val problem: Problem, function: FunctionDef)
     val refinements = new mutable.MutableList[Refinement]()
     for(predicate <- predicates if predicate.isStatic)
       refinements ++= selectPredicate(lemma, predicate)
-    for(fn <- producers if fn.isStatic && fn.isFailable)
-      refinements ++= selectSuccessPredicate(lemma, fn)
+    /*for(fn <- producers if fn.isStatic && fn.isFailable)
+      refinements ++= selectSuccessPredicate(lemma, fn)*/ // TODO: Apparently we do not need this
     for(fn <- transformers if fn.isStatic && fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)
     refinements

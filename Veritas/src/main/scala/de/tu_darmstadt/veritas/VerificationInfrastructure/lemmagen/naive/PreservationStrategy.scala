@@ -90,8 +90,8 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
         Constraint.freshOrBound(fn.successfulOutType)
       )
     }
-    for(fn <- transformers if fn.isFailable && fn.isStatic && fn != producer)
-      refinements ++= selectSuccessPredicate(lemma, fn)
+    /*for(fn <- transformers if fn.isFailable && fn.isStatic && fn != producer)
+      refinements ++= selectSuccessPredicate(lemma, fn)*/ // TODO: Apparently we do not need this
     refinements
   }
 }
