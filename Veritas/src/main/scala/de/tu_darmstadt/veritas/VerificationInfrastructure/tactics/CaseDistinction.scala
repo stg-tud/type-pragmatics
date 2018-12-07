@@ -41,7 +41,7 @@ case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formul
       CaseDistinctionCase(getFormulaName(cs), propagatedInfo)
 
     for ((caseobl, edge) <- case_subgoals zip edgelabels) yield {
-      val newobl = produce.newObligation(spec, caseobl)
+      val newobl = produce.newObligation(spec, caseobl, edge.casename)
       (newobl, edge)
     }
   }

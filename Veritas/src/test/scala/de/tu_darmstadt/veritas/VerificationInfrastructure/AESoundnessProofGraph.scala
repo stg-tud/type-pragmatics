@@ -127,6 +127,9 @@ class AESoundnessProofGraph(storefile: File) {
     "Othercase" -> Seq[TypingRuleJudgment](translateFunExp("(vTerm0 != True()) && (vTerm0 != False())"))), fullAESpec, specenq)
   val ifcasedistinction = g.applyTactic(ifcase_obl, ifcasetactic)
 
+  val casestep = g.appliedStep(ifcase_obl).get
+  g.verifyProofStep(casestep, simpleVampire4_1_20)
+
 
   def checkConsistency(): Unit = {
     val vampireProver = VampireTPTP("4.1", 120)
