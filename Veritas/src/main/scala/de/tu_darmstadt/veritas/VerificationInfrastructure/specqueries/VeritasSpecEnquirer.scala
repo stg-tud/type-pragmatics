@@ -22,7 +22,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     Problem -> Problem.All))
 
   //for inferring types of functions and datatypes
-  private val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
+  protected val tdcollector: CollectTypesDefs = new CollectTypesDefsClass with Serializable
 
   //when inferring meta variables of a typing rule, prepare the rule so that meta vars can be inferred
   //requires removing any FunctionExpVar constructs and translating typing judgments to functions/predicates
@@ -209,18 +209,19 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   }
 
   // for a variable of type closed ADT, extract the different cases (variable v is typed as in the given term)
-  override def getCases(v: VeritasConstruct, term: VeritasConstruct): Seq[VeritasConstruct] = v match {
+  override def getCases(v: VeritasConstruct, term: VeritasConstruct): Map[String, VeritasConstruct] = v match {
     case mv@MetaVar(_) => {
       term match {
         case f: VeritasFormula => {
           val varmap = getAllVarTypes(f)
           val vartype = varmap(mv) //this could fail if the given variable does not appear in the given term!
-          tdcollector.dataTypes(vartype.name)._2
+          val constructors = tdcollector.dataTypes(vartype.name)._2
+          (for (c <- constructors) yield (c.name, c)).toMap
         }
         case _ => sys.error("VeritasSpecEnquirer currently not able to infer variable types from VeritasFormula")
       }
     }
-    case _ => Seq() //alternatively, throw error or warning here?
+    case _ => Map() //alternatively, throw error or warning here?
   }
 
   //from a named ADT case, extract the recursive arguments (may be empty if there are none)
@@ -373,6 +374,26 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case (l: FunctionExpMeta, r: MetaVar) => FunctionExpJudgment(FunctionExpEq(l, FunctionMeta(r)))
       case (l: FunctionExpMeta, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpEq(l, r))
       case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an equation.")
+    }
+
+  override def makeInequation(left: VeritasConstruct, right: VeritasConstruct): VeritasFormula =
+    (left, right) match {
+      case (l: MetaVar, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpNeq(FunctionMeta(l), r))
+      case (l: FunctionExpMeta, r: MetaVar) => FunctionExpJudgment(FunctionExpNeq(l, FunctionMeta(r)))
+      case (l: FunctionExpMeta, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpNeq(l, r))
+      case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an inequation.")
+    }
+
+  def makeNegation(body: VeritasConstruct): VeritasFormula =
+    body match {
+      case exp: FunctionExp => FunctionExpJudgment(FunctionExpNot(exp))
+      case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a negation.")
+    }
+
+  def makeTypingFunctionExpression(body: VeritasConstruct): VeritasFormula =
+    body match {
+      case exp: FunctionExp => FunctionExpJudgment(exp)
+      case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a function expression.")
     }
 
   //expects an unnamed formula or a named one and attaches or overwrites the new name, always creating a typing rule

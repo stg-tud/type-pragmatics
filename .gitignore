@@ -105,3 +105,6 @@ Veritas/*.dot
 /Veritas/SQLProgressProof-manualsteps
 /Veritas/SQLProgressProof-allsteps
 /Veritas/SQLProgressProof-allsteps-inconclusive
+/Veritas/QLSoundnessProofGraph-store
+/Veritas/QLProgressProof-allsteps-inconclusive
+/Veritas/AE-Inconclusive

@@ -47,7 +47,8 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
   def getArguments(functioncall: Defs): Seq[Defs]
 
   // for a variable of type closed ADT, extract the different cases (variable v is typed as in the given term)
-  def getCases(v: Defs, term: Defs): Seq[Defs]
+  // return map of ADT name + the corresponding term for the case
+  def getCases(v: Defs, term: Defs): Map[String, Defs]
 
   //from a named ADT case, extract the recursive arguments (may be empty if there are none)
   //assume unique constructors!
@@ -96,6 +97,12 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
   def makeImplication(prems: Seq[Formulae], concs: Seq[Formulae]): Formulae
 
   def makeEquation(left: Defs, right: Defs): Formulae
+
+  def makeInequation(left: Defs, right: Defs): Formulae
+
+  def makeNegation(body: Defs): Formulae
+
+  def makeTypingFunctionExpression(body: Defs): Formulae
 
   //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
   def makeNamedGoal(f: Formulae, name: String): Formulae
