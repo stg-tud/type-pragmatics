@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.inputdsl
 
 import de.tu_darmstadt.veritas.backend.ast._
 
-object QLDefs {
+object QLDefsSpec {
 
   import DataTypeDSL._
   import FunctionDSL._
@@ -328,6 +328,18 @@ object QLDefs {
 
   val QLSemantics = Module("QLSemantics", Seq(Resolved(BasicTypes), Resolved(QLSyntax), Resolved(QLSemanticsData)),
     Seq(askYesNo, askNumber, askString, getAnswer, evalBinOp, evalUnOp, reduceExp, reduce))
+}
+
+
+object QLDefsTypeSystem {
+
+  import QLDefsSpec._
+
+  import DataTypeDSL._
+  import FunctionDSL._
+  import SymTreeDSL._
+  import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
 
   //QLTypeSystem.stl
 
@@ -335,82 +347,82 @@ object QLDefs {
 
   val lookupATMap = function('lookupATMap.>>('QID, 'ATMap) -> 'OptAType) where
     ('lookupATMap ('qid, 'atmempty) := 'noAType) |
-    ('lookupATMap ('qid1, 'atmbind ('qid2, 'at, 'tm)) :=
-      (iff ('qid1 === 'qid2)
-        th 'someAType ('at)
-        els 'lookupATMap ('qid1, 'tm)))
+      ('lookupATMap ('qid1, 'atmbind ('qid2, 'at, 'tm)) :=
+        (iff('qid1 === 'qid2)
+          th 'someAType ('at)
+          els 'lookupATMap ('qid1, 'tm)))
 
   val appendATMap = function('appendATMap.>>('ATMap, 'ATMap) -> 'ATMap) where
     ('appendATMap ('atmempty, 'atm) := 'atm) |
-    ('appendATMap ('atmbind ('qid, 'at, 'atm), 'atml) := 'atmbind ('qid, 'at, 'appendATMap ('atm, 'atml)))
+      ('appendATMap ('atmbind ('qid, 'at, 'atm), 'atml) := 'atmbind ('qid, 'at, 'appendATMap ('atm, 'atml)))
 
   val MapConf = data('MapConf) of 'MC ('ATMap, 'ATMap)
 
   val intersectATM = function('intersectATM.>>('ATMap, 'ATMap) -> 'ATMap) where
     ('intersectATM ('atmempty, 'atm2) := 'atmempty) |
-    ('intersectATM ('atm1, 'atmempty) := 'atmempty) |
-    ('intersectATM ('atmbind ('qid, 'at, 'atm1), 'atm2) :=
-      ((let('atm1atm2) := 'intersectATM ('atm1, 'atm2)) in
-        ((let('lAT) := 'lookupATMap ('qid, 'atm2)) in
-          (iff ('isSomeAType ('lAT) && ('getAType ('lAT) === 'at))
-            th 'atmbind ('qid, 'at, 'atm1atm2)
-            els 'atm1atm2))))
+      ('intersectATM ('atm1, 'atmempty) := 'atmempty) |
+      ('intersectATM ('atmbind ('qid, 'at, 'atm1), 'atm2) :=
+        ((let('atm1atm2) := 'intersectATM ('atm1, 'atm2)) in
+          ((let('lAT) := 'lookupATMap ('qid, 'atm2)) in
+            (iff('isSomeAType ('lAT) && ('getAType ('lAT) === 'at))
+              th 'atmbind ('qid, 'at, 'atm1atm2)
+              els 'atm1atm2))))
 
   val OptMapConf = data('OptMapConf) of 'noMapConf | 'someMapConf ('MapConf)
 
   val isSomeMapConf = function('isSomeMapConf.>>('OptMapConf) -> 'Bool) where
     ('isSomeMapConf ('noMapConf) := false) |
-    ('isSomeMapConf ('someMapConf ('mc)) := true)
+      ('isSomeMapConf ('someMapConf ('mc)) := true)
 
   val getMapConf = partial(function('getMapConf.>>('OptMapConf) -> 'MapConf) where
     ('getMapConf ('someMapConf ('mc)) := 'mc))
 
   val typeAM = function('typeAM.>>('AnsMap) -> 'ATMap) where
     ('typeAM ('aempty) := 'atmempty) |
-    ('typeAM ('abind ('qid, 'av, 'am)) := 'atmbind ('qid, 'typeOf ('av), 'typeAM ('am)))
+      ('typeAM ('abind ('qid, 'av, 'am)) := 'atmbind ('qid, 'typeOf ('av), 'typeAM ('am)))
 
   val typeQM = function('typeQM.>>('QMap) -> 'ATMap) where
     ('typeQM ('qmempty) := 'atmempty) |
-    ('typeQM ('qmbind ('qid, 'l, 'at, 'qm)) := 'atmbind ('qid, 'at, 'typeQM ('qm)))
+      ('typeQM ('qmbind ('qid, 'l, 'at, 'qm)) := 'atmbind ('qid, 'at, 'typeQM ('qm)))
 
   val checkBinOp = function('checkBinOp.>>('BinOp, 'AType, 'AType) -> 'OptAType) where
     ('checkBinOp ('addop, 'Number, 'Number) := 'someAType ('Number)) |
-    ('checkBinOp ('subop, 'Number, 'Number) := 'someAType ('Number)) |
-    ('checkBinOp ('mulop, 'Number, 'Number) := 'someAType ('Number)) |
-    ('checkBinOp ('divop, 'Number, 'Number) := 'someAType ('Number)) |
-    ('checkBinOp ('gtop, 'Number, 'Number) := 'someAType ('YesNo)) |
-    ('checkBinOp ('ltop, 'Number, 'Number) := 'someAType ('YesNo)) |
-    ('checkBinOp ('andop, 'YesNo, 'YesNo) := 'someAType ('YesNo)) |
-    ('checkBinOp ('orop, 'YesNo, 'YesNo) := 'someAType ('YesNo)) |
-    ('checkBinOp ('eqop, 'Number, 'Number) := 'someAType ('YesNo)) |
-    ('checkBinOp ('eqop, 'YesNo, 'YesNo) := 'someAType ('YesNo)) |
-    ('checkBinOp ('eqop, 'Text, 'Text) := 'someAType ('YesNo)) |
-    ('checkBinOp ('op, 't1, 't2) := 'noAType)
+      ('checkBinOp ('subop, 'Number, 'Number) := 'someAType ('Number)) |
+      ('checkBinOp ('mulop, 'Number, 'Number) := 'someAType ('Number)) |
+      ('checkBinOp ('divop, 'Number, 'Number) := 'someAType ('Number)) |
+      ('checkBinOp ('gtop, 'Number, 'Number) := 'someAType ('YesNo)) |
+      ('checkBinOp ('ltop, 'Number, 'Number) := 'someAType ('YesNo)) |
+      ('checkBinOp ('andop, 'YesNo, 'YesNo) := 'someAType ('YesNo)) |
+      ('checkBinOp ('orop, 'YesNo, 'YesNo) := 'someAType ('YesNo)) |
+      ('checkBinOp ('eqop, 'Number, 'Number) := 'someAType ('YesNo)) |
+      ('checkBinOp ('eqop, 'YesNo, 'YesNo) := 'someAType ('YesNo)) |
+      ('checkBinOp ('eqop, 'Text, 'Text) := 'someAType ('YesNo)) |
+      ('checkBinOp ('op, 't1, 't2) := 'noAType)
 
   val checkUnOp = function('checkUnOp.>>('UnOp, 'AType) -> 'OptAType) where
     ('checkUnOp ('notop, 'YesNo) := 'someAType ('YesNo)) |
-    ('checkUnOp ('op, 't) := 'noAType)
+      ('checkUnOp ('op, 't) := 'noAType)
 
   val echeck = function('echeck.>>('ATMap, 'Exp) -> 'OptAType) where
     ('echeck ('tm, 'constant ('B ('n))) := 'someAType ('YesNo)) |
-    ('echeck ('tm, 'constant ('Num ('n))) := 'someAType ('Number)) |
-    ('echeck ('tm, 'constant ('T ('n))) := 'someAType ('Text)) |
-    ('echeck ('tm, 'qvar ('qid)) := 'lookupATMap ('qid, 'tm)) |
-    ('echeck ('tm, 'binop ('e1, 'op, 'e2)) :=
-      ((let('t1) := 'echeck ('tm, 'e1)) in
-      ((let('t2) := 'echeck ('tm, 'e2)) in
-        (iff (('isSomeAType ('t1) && 'isSomeAType ('t2)))
-          th 'checkBinOp ('op, 'getAType ('t1), 'getAType ('t2))
-          els 'noAType)))) |
-    ('echeck ('tm, 'unop ('op, 'e)) :=
-      ((let('t) := 'echeck ('tm, 'e)) in
-        (iff ('isSomeAType ('t))
-          th 'checkUnOp ('op, 'getAType ('t))
-          els 'noAType)))
+      ('echeck ('tm, 'constant ('Num ('n))) := 'someAType ('Number)) |
+      ('echeck ('tm, 'constant ('T ('n))) := 'someAType ('Text)) |
+      ('echeck ('tm, 'qvar ('qid)) := 'lookupATMap ('qid, 'tm)) |
+      ('echeck ('tm, 'binop ('e1, 'op, 'e2)) :=
+        ((let('t1) := 'echeck ('tm, 'e1)) in
+          ((let('t2) := 'echeck ('tm, 'e2)) in
+            (iff(('isSomeAType ('t1) && 'isSomeAType ('t2)))
+              th 'checkBinOp ('op, 'getAType ('t1), 'getAType ('t2))
+              els 'noAType)))) |
+      ('echeck ('tm, 'unop ('op, 'e)) :=
+        ((let('t) := 'echeck ('tm, 'e)) in
+          (iff('isSomeAType ('t))
+            th 'checkUnOp ('op, 'getAType ('t))
+            els 'noAType)))
 
   val Tqempty = axiom(
     ===>("T-qempty")(
-      ~'MC |- 'qempty() :: 'MC ('atmempty, 'atmempty)))
+      ~'MC |- 'qempty () :: 'MC ('atmempty, 'atmempty)))
 
   val Tquestion = axiom(
     ('lookupATMap (~'qid, ~'atm) === 'noAType
@@ -421,7 +433,7 @@ object QLDefs {
     (('lookupATMap (~'qid, ~'atm) === 'noAType) &
       ('echeck (~'atm, ~'exp) === 'someAType (~'at))
       ).===>("T-value")(
-        'MC (~'atm, ~'qm) |- 'qsingle ('value (~'qid, ~'at, ~'exp)) :: 'MC ('atmbind (~'qid, ~'at, 'atmempty), 'atmempty)))
+      'MC (~'atm, ~'qm) |- 'qsingle ('value (~'qid, ~'at, ~'exp)) :: 'MC ('atmbind (~'qid, ~'at, 'atmempty), 'atmempty)))
 
   val Tdefquestion = axiom(
     ('lookupATMap (~'qid, ~'qm) === 'noAType
@@ -433,7 +445,7 @@ object QLDefs {
     (('lookupATMap (~'qid, ~'qm) === 'someAType (~'at)) &
       ('lookupATMap (~'qid, ~'atm) === 'noAType)
       ).===>("T-ask")(
-     'MC (~'atm, ~'qm) |- 'qsingle ('ask (~'qid)) :: 'MC ('atmbind (~'qid, ~'at, 'atmempty), 'atmempty)))
+      'MC (~'atm, ~'qm) |- 'qsingle ('ask (~'qid)) :: 'MC ('atmbind (~'qid, ~'at, 'atmempty), 'atmempty)))
 
   val Tqseq = axiom(
     (('MC (~'atm, ~'qm) |- ~'q1 :: 'MC (~'atm1, ~'qm1)) &
@@ -469,55 +481,55 @@ object QLDefs {
   val Tinvgeneral = axiom(
     (~'mc1 |- ~'q :: ~'mc2
       ).===>("T-inv-general")(
-       exists(~'atm1, ~'qm1, ~'atm2, ~'qm2) |
-         (~'mc1 === 'MC (~'atm1, ~'qm1)) &
-           (~'mc2 === 'MC (~'atm2, ~'qm2))))
+      exists(~'atm1, ~'qm1, ~'atm2, ~'qm2) |
+        (~'mc1 === 'MC (~'atm1, ~'qm1)) &
+          (~'mc2 === 'MC (~'atm2, ~'qm2))))
 
   val Tinv = axiom(
     ('MC (~'atm1, ~'qm1) |- ~'q :: 'MC (~'atm2, ~'qm2)
-    ).===>("T-inv")(
-     OR(
-       =>>(~'q === 'qempty & ~'atm2 === 'atmempty & ~'qm2 === 'atmempty) |
-       =>>(exists(~'qid, ~'l, ~'at) |
-         (~'q === 'qsingle ('question (~'qid, ~'l, ~'at))) &
-         (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
-         (~'qm2 === 'atmempty) &
-         ('lookupATMap (~'qid, ~'atm1) === 'noAType)) |
-       =>>(exists(~'qid, ~'at, ~'exp) |
-         (~'q === 'qsingle ('value (~'qid, ~'at, ~'exp))) &
-         (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
-         (~'qm2 === 'atmempty) &
-         ('lookupATMap (~'qid, ~'atm1) === 'noAType) &
-         ('echeck (~'atm1, ~'exp) === 'someAType (~'at))) |
-       =>>(exists(~'qid, ~'l, ~'at) |
-         (~'q === 'qsingle ('defquestion (~'qid, ~'l, ~'at))) &
-         (~'atm2 === 'atmempty) &
-         (~'qm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
-         ('lookupATMap (~'qid, ~'qm1) === 'noAType)) |
-       =>>(exists(~'qid, ~'at) |
-         (~'q === 'qsingle ('ask (~'qid))) &
-         (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
-         (~'qm2 === 'atmempty) &
-         ('lookupATMap (~'qid, ~'qm1) === 'someAType (~'at)) &
-         ('lookupATMap (~'qid, ~'atm1) === 'noAType)) |
-       =>>(exists(~'q1, ~'q2, ~'atmq1, ~'atmq2, ~'qmq1, ~'qmq2) |
-         (~'q === 'qseq (~'q1, ~'q2)) &
-         (~'atm2 === 'appendATMap (~'atmq1, ~'atmq2)) &
-         (~'qm2 === 'appendATMap (~'qmq1, ~'qmq2)) &
-         ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1)) &
-         ('MC ('appendATMap (~'atm1, ~'atmq1), 'appendATMap (~'qm1, ~'qmq1)) |- ~'q2 :: 'MC (~'atmq2, ~'qmq2))) |
-       =>>(exists(~'exp, ~'q1, ~'q2, ~'atmq1, ~'atmq2, ~'qmq1, ~'qmq2) |
-         (~'q === 'qcond (~'exp, ~'q1, ~'q2)) &
-         (~'atm2 === 'intersectATM (~'atmq1, ~'atmq2)) &
-         (~'qm2 === 'intersectATM (~'qmq1, ~'qmq2)) &
-         ('echeck (~'atm1, ~'exp) === 'someAType ('YesNo)) &
-         ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1)) &
-         ('MC (~'atm1, ~'qm1) |- ~'q2 :: 'MC (~'atmq2, ~'qmq2))) |
-       =>>(exists(~'gid, ~'q1, ~'atmq1, ~'qmq1) |
-         (~'q === 'qgroup (~'gid, ~'q1)) &
-         (~'atm2 === ~'atmq1) &
-         (~'qm2 === ~'qmq1) &
-         ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1))))))
+      ).===>("T-inv")(
+      OR(
+        =>>(~'q === 'qempty & ~'atm2 === 'atmempty & ~'qm2 === 'atmempty) |
+          =>>(exists(~'qid, ~'l, ~'at) |
+            (~'q === 'qsingle ('question (~'qid, ~'l, ~'at))) &
+              (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
+              (~'qm2 === 'atmempty) &
+              ('lookupATMap (~'qid, ~'atm1) === 'noAType)) |
+          =>>(exists(~'qid, ~'at, ~'exp) |
+            (~'q === 'qsingle ('value (~'qid, ~'at, ~'exp))) &
+              (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
+              (~'qm2 === 'atmempty) &
+              ('lookupATMap (~'qid, ~'atm1) === 'noAType) &
+              ('echeck (~'atm1, ~'exp) === 'someAType (~'at))) |
+          =>>(exists(~'qid, ~'l, ~'at) |
+            (~'q === 'qsingle ('defquestion (~'qid, ~'l, ~'at))) &
+              (~'atm2 === 'atmempty) &
+              (~'qm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
+              ('lookupATMap (~'qid, ~'qm1) === 'noAType)) |
+          =>>(exists(~'qid, ~'at) |
+            (~'q === 'qsingle ('ask (~'qid))) &
+              (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
+              (~'qm2 === 'atmempty) &
+              ('lookupATMap (~'qid, ~'qm1) === 'someAType (~'at)) &
+              ('lookupATMap (~'qid, ~'atm1) === 'noAType)) |
+          =>>(exists(~'q1, ~'q2, ~'atmq1, ~'atmq2, ~'qmq1, ~'qmq2) |
+            (~'q === 'qseq (~'q1, ~'q2)) &
+              (~'atm2 === 'appendATMap (~'atmq1, ~'atmq2)) &
+              (~'qm2 === 'appendATMap (~'qmq1, ~'qmq2)) &
+              ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1)) &
+              ('MC ('appendATMap (~'atm1, ~'atmq1), 'appendATMap (~'qm1, ~'qmq1)) |- ~'q2 :: 'MC (~'atmq2, ~'qmq2))) |
+          =>>(exists(~'exp, ~'q1, ~'q2, ~'atmq1, ~'atmq2, ~'qmq1, ~'qmq2) |
+            (~'q === 'qcond (~'exp, ~'q1, ~'q2)) &
+              (~'atm2 === 'intersectATM (~'atmq1, ~'atmq2)) &
+              (~'qm2 === 'intersectATM (~'qmq1, ~'qmq2)) &
+              ('echeck (~'atm1, ~'exp) === 'someAType ('YesNo)) &
+              ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1)) &
+              ('MC (~'atm1, ~'qm1) |- ~'q2 :: 'MC (~'atmq2, ~'qmq2))) |
+          =>>(exists(~'gid, ~'q1, ~'atmq1, ~'qmq1) |
+            (~'q === 'qgroup (~'gid, ~'q1)) &
+              (~'atm2 === ~'atmq1) &
+              (~'qm2 === ~'qmq1) &
+              ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1))))))
 
   val Tinvqempty = lemma(
     ((~'q === 'qempty) &
@@ -531,25 +543,25 @@ object QLDefs {
       ('MC (~'atm1, ~'qm1) |- ~'q :: 'MC (~'atm2, ~'qm2))
       ).===>("T-inv-qsingle-question")(
       (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
-      (~'qm2 === 'atmempty) &
-      ('lookupATMap (~'qid, ~'atm1) === 'noAType)))
+        (~'qm2 === 'atmempty) &
+        ('lookupATMap (~'qid, ~'atm1) === 'noAType)))
 
   val Tinvqsinglevalue = lemma(
     ((~'q === 'qsingle ('value (~'qid, ~'at, ~'exp))) &
       ('MC (~'atm1, ~'qm1) |- ~'q :: 'MC (~'atm2, ~'qm2))
       ).===>("T-inv-qsingle-value")(
       (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
-      (~'qm2 === 'atmempty) &
-      ('lookupATMap (~'qid, ~'atm1) === 'noAType) &
-      ('echeck (~'atm1, ~'exp) === 'someAType (~'at))))
+        (~'qm2 === 'atmempty) &
+        ('lookupATMap (~'qid, ~'atm1) === 'noAType) &
+        ('echeck (~'atm1, ~'exp) === 'someAType (~'at))))
 
   val Tinvqsingledefquestion = lemma(
     ((~'q === 'qsingle ('defquestion (~'qid, ~'l, ~'at))) &
       ('MC (~'atm1, ~'qm1) |- ~'q :: 'MC (~'atm2, ~'qm2))
       ).===>("T-inv-qsingle-defquestion")(
       (~'atm2 === 'atmempty) &
-      (~'qm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
-      ('lookupATMap (~'qid, ~'qm1) === 'noAType)))
+        (~'qm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
+        ('lookupATMap (~'qid, ~'qm1) === 'noAType)))
 
   val Tinvqsingleask = lemma(
     ((~'q === 'qsingle ('ask (~'qid))) &
@@ -557,9 +569,9 @@ object QLDefs {
       ).===>("T-inv-qsingle-ask")(
       (exists(~'at) |
         (~'atm2 === 'atmbind (~'qid, ~'at, 'atmempty)) &
-        (~'qm2 === 'atmempty) &
+          (~'qm2 === 'atmempty) &
           ('lookupATMap (~'qid, ~'qm1) === 'someAType (~'at)) &
-            ('lookupATMap (~'qid, ~'atm1) === 'noAType))))
+          ('lookupATMap (~'qid, ~'atm1) === 'noAType))))
 
   val Tinvqseq = lemma(
     ((~'q === 'qseq (~'q1, ~'q2)) &
@@ -567,20 +579,20 @@ object QLDefs {
       ).===>("T-inv-qseq")(
       (exists(~'atmq1, ~'atmq2, ~'qmq1, ~'qmq2) |
         (~'atm2 === 'appendATMap (~'atmq1, ~'atmq2)) &
-        (~'qm2 === 'appendATMap (~'qmq1, ~'qmq2)) &
-        ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1)) &
-        ('MC ('appendATMap (~'atm1, ~'atmq1), 'appendATMap (~'qm1, ~'qmq1)) |- ~'q2 :: 'MC (~'atmq2, ~'qmq2)))))
+          (~'qm2 === 'appendATMap (~'qmq1, ~'qmq2)) &
+          ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1)) &
+          ('MC ('appendATMap (~'atm1, ~'atmq1), 'appendATMap (~'qm1, ~'qmq1)) |- ~'q2 :: 'MC (~'atmq2, ~'qmq2)))))
 
   val Tinvqcond = lemma(
     ((~'q === 'qcond (~'exp, ~'q1, ~'q2)) &
-    ('MC (~'atm1, ~'qm1) |- ~'q :: 'MC (~'atm2, ~'qm2))
-    ).===>("T-inv-qcond")(
+      ('MC (~'atm1, ~'qm1) |- ~'q :: 'MC (~'atm2, ~'qm2))
+      ).===>("T-inv-qcond")(
       (exists(~'atmq1, ~'atmq2, ~'qmq1, ~'qmq2) |
         (~'atm2 === 'intersectATM (~'atmq1, ~'atmq2)) &
-        (~'qm2 === 'intersectATM (~'qmq1, ~'qmq2)) &
-        ('echeck (~'atm1, ~'exp) === 'someAType ('YesNo)) &
-        ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1)) &
-        ('MC (~'atm1, ~'qm1) |- ~'q2 :: 'MC (~'atmq2, ~'qmq2)))))
+          (~'qm2 === 'intersectATM (~'qmq1, ~'qmq2)) &
+          ('echeck (~'atm1, ~'exp) === 'someAType ('YesNo)) &
+          ('MC (~'atm1, ~'qm1) |- ~'q1 :: 'MC (~'atmq1, ~'qmq1)) &
+          ('MC (~'atm1, ~'qm1) |- ~'q2 :: 'MC (~'atmq2, ~'qmq2)))))
 
   val Tinvqgroup = lemma(
     ((~'q === 'qgroup (~'gid, ~'q1)) &
@@ -593,11 +605,25 @@ object QLDefs {
       ).===>("T-inv-qcCheck")(
       (exists(~'atm1, ~'atm2, ~'qm2) |
         ('typeAM (~'am) === ~'atm1) &
-        ('MC ('appendATMap (~'atm0, ~'atm1), 'appendATMap (~'qm0, 'typeQM (~'qm))) |- ~'q :: 'MC (~'atm2, ~'qm2)) &
+          ('MC ('appendATMap (~'atm0, ~'atm1), 'appendATMap (~'qm0, 'typeQM (~'qm))) |- ~'q :: 'MC (~'atm2, ~'qm2)) &
           (~'atm === 'appendATMap (~'atm1, ~'atm2)))))
 
   val QLTypeSystemInv = Module("QLTypeSystemInv", Seq(Resolved(BasicTypes), Resolved(QLSyntax), Resolved(QLSemanticsData), Resolved(QLSemantics), Resolved(QLTypeSystem)),
     Seq(Tinvgeneral, Tinv, Tinvqempty, Tinvqsinglequestion, Tinvqsinglevalue, Tinvqsingledefquestion, Tinvqsingleask, Tinvqseq, Tinvqcond, Tinvqgroup, TinvqcCheck))
+}
+
+
+
+object QLDefsTestGoals {
+
+  import DataTypeDSL._
+  import FunctionDSL._
+  import SymTreeDSL._
+  import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
+  import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
+
+  import QLDefsSpec._
+  import QLDefsTypeSystem._
 
   val counterexample1: Goals = goal(
     (~'atm === 'atmbind (~'qid1, ~'t, 'atmempty)
