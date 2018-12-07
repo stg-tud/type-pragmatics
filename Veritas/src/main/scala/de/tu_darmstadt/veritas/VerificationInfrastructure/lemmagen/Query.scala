@@ -1,6 +1,5 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.queries
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.LemmaGenSpecEnquirer
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
@@ -15,6 +14,10 @@ object Query {
         enquirer.retrieveFailableConstructors(outType)._2.in.head
       else
         outType
+    }
+
+    def filterArguments(p: SortRef => Boolean): Seq[Int] = inTypes.zipWithIndex.collect {
+      case (sort, index) if p(sort) => index
     }
 
     def isDynamic: Boolean = enquirer.dynamicFunctions.contains(fctn)

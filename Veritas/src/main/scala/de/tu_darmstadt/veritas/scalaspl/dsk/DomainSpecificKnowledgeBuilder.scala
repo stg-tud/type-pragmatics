@@ -38,11 +38,12 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
 
   protected val recursiveFunctions: mutable.Map[Defn.Def, Defn.Trait] = mutable.Map()
   protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
-  protected val progressProperties: mutable.Map[Defn.Def, Defn.Def] = mutable.Map()
-  protected val preservationProperties: mutable.Map[Defn.Def, Defn.Def] = mutable.Map()
+  protected val progressProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
+  protected val preservationProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
   protected val staticFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val predicateFunctions: mutable.Set[Defn.Def] = mutable.Set()
+  protected val properties: mutable.Set[Defn.Def] = mutable.Set()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -61,6 +62,8 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
         staticFunctions += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Predicate"))
         predicateFunctions += fn
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Property"))
+        properties += fn
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
       preservationProperties ++= collectLinkingAnnotation(fn, "PreservationProperty")(collect)
     case tr: Defn.Trait =>
@@ -71,14 +74,14 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
 
   private def collect(fn: Defn.Def, prop: Defn.Def, annot: Mod.Annot): (Defn.Def, Defn.Def) = fn -> prop
 
-  protected def collectLinkingAnnotation[K, V](fn: Defn.Def, annotName: String)(mapper: (Defn.Def, Defn.Def, Mod.Annot) => (K, V)): Map[K, V] = {
+  protected def collectLinkingAnnotation[K, V](fn: Defn.Def, annotName: String)(mapper: (Defn.Def, Defn.Def, Mod.Annot) => (K, V)): Seq[(K, V)] = {
     if(ScalaMetaUtils.containsAnnotation(fn.mods, annotName)) {
       val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
       val filteredAnnots = annots.filter { _.init.tpe.toString == annotName }
       filteredAnnots.map { annot =>
         collectPropertyLinked(fn, annot, mapper)
-      }.toMap
-    } else Map()
+      }
+    } else Seq()
   }
 
   protected def collectAnnotation(mods: Seq[Mod], name: String): Mod.Annot = {
@@ -167,19 +170,22 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
   def buildBase(): DomainSpecificKnowledge = {
     val transRecursiveFuncs = translateRecursiveFunctions()
     val transFailableTypes = translateTrait(failableTypes)
-    val transProgressProps = translateProperties(Map() ++ progressProperties)
-    val transPreservationProps = translateProperties(Map() ++ preservationProperties)
+    val transProgressProps = translateProperties(progressProperties)
+    val transPreservationProps = translateProperties(preservationProperties)
     val transStaticFuncs = translateFunctions(staticFunctions.toSet)
     val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
     val transPredicates = translateFunctions(predicateFunctions.toSet)
+    // TODO: This can be removed once we are sure we have linked all properties
+    val transProperties = translateProperty(properties.toSet)
     new DomainSpecificKnowledge {
       override val recursiveFunctions: Map[FunctionDef, DataType] = transRecursiveFuncs
       override val failableTypes: Seq[DataType] = transFailableTypes
-      override val preservationProperties: Map[FunctionDef, TypingRule] = transPreservationProps
-      override val progressProperties: Map[FunctionDef, TypingRule] = transProgressProps
+      override val preservationProperties: Map[FunctionDef, Set[TypingRule]] = transPreservationProps
+      override val progressProperties: Map[FunctionDef, Set[TypingRule]] = transProgressProps
       override val staticFunctions: Set[FunctionDef] = transStaticFuncs
       override val dynamicFunctions: Set[FunctionDef] = transDynamicFuncs
       override val predicates: Set[FunctionDef] = transPredicates
+      override val properties: Set[TypingRule] = transProperties
     }
   }
 
@@ -197,12 +203,20 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
     definitions.map(functionTranslator.translate)
   }
 
-  private def translateProperties(properties: Map[Defn.Def, Defn.Def]): Map[FunctionDef, TypingRule] = {
+  private def translateProperty(property: Set[Defn.Def]): Set[TypingRule] = {
+    val propertyTranslator = EnsuringFunctionTranslator(reporter)
+    property.map(propertyTranslator.translate)
+  }
+
+  private def translateProperties(properties: Seq[(Defn.Def, Defn.Def)]): Map[FunctionDef, Set[TypingRule]] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     val propertyTranslator = EnsuringFunctionTranslator(reporter)
-    properties.map { case (fn, prop) =>
-      functionTranslator.translate(fn) -> propertyTranslator.translate(prop)
-    }.toMap
+    val propertyMap = new mutable.HashMap[FunctionDef, mutable.Set[TypingRule]]
+      with mutable.MultiMap[FunctionDef, TypingRule]
+    properties.foreach {
+      case (fn, prop) => propertyMap.addBinding(functionTranslator.translate(fn), propertyTranslator.translate(prop))
+    }
+    propertyMap.mapValues(_.toSet).toMap
   }
 
   protected def translateTrait(traits: Seq[Defn.Trait]): Seq[DataType] = {
