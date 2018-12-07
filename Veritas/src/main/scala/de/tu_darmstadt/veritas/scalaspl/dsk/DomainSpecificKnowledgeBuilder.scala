@@ -40,6 +40,9 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
   protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
   protected val progressProperties: mutable.Map[Defn.Def, Defn.Def] = mutable.Map()
   protected val preservationProperties: mutable.Map[Defn.Def, Defn.Def] = mutable.Map()
+  protected val staticFunctions: mutable.Set[Defn.Def] = mutable.Set()
+  protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
+  protected val predicateFunctions: mutable.Set[Defn.Def] = mutable.Set()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -52,8 +55,14 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
     case fn: Defn.Def =>
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
         collectRecursive(fn)
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Dynamic"))
+        dynamicFunctions += fn
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Static"))
+        staticFunctions += fn
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Predicate"))
+        predicateFunctions += fn
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
-      preservationProperties ++= collectLinkingAnnotation(fn, "PreservationPoperty")(collect)
+      preservationProperties ++= collectLinkingAnnotation(fn, "PreservationProperty")(collect)
     case tr: Defn.Trait =>
       if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
         failableTypes += tr
@@ -160,11 +169,17 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
     val transFailableTypes = translateTrait(failableTypes)
     val transProgressProps = translateProperties(Map() ++ progressProperties)
     val transPreservationProps = translateProperties(Map() ++ preservationProperties)
+    val transStaticFuncs = translateFunctions(staticFunctions.toSet)
+    val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
+    val transPredicates = translateFunctions(predicateFunctions.toSet)
     new DomainSpecificKnowledge {
       override val recursiveFunctions: Map[FunctionDef, DataType] = transRecursiveFuncs
       override val failableTypes: Seq[DataType] = transFailableTypes
       override val preservationProperties: Map[FunctionDef, TypingRule] = transPreservationProps
       override val progressProperties: Map[FunctionDef, TypingRule] = transProgressProps
+      override val staticFunctions: Set[FunctionDef] = transStaticFuncs
+      override val dynamicFunctions: Set[FunctionDef] = transDynamicFuncs
+      override val predicates: Set[FunctionDef] = transPredicates
     }
   }
 
@@ -175,6 +190,11 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
         val cases = adts(tr)
         functionTranslator.translate(fn) -> adtTranslator.translate(tr, cases)
     }.toMap
+  }
+
+  private def translateFunctions(definitions: Set[Defn.Def]): Set[FunctionDef] = {
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    definitions.map(functionTranslator.translate)
   }
 
   private def translateProperties(properties: Map[Defn.Def, Defn.Def]): Map[FunctionDef, TypingRule] = {

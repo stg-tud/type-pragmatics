@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.scalaspl.prettyprint
 
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledge
 
@@ -310,14 +311,19 @@ trait SimpleToScalaSPLSpecificationPrinter extends ToScalaSPLSpecificationPrinte
     }
   }
 
+  def getBindingType(binding: MetaVar): String = binding.typ match {
+    case Some(Sort(name)) => name
+    case _ => "Any"
+  }
+
   override def printBindings(bindings: Seq[MetaVar], tr: TypingRule): Unit = {
     if (bindings.nonEmpty) {
       bindings.init.foreach { binding =>
         printer.write(binding.name)
-        printer.write(": Any, ")
+        printer.write(s": ${getBindingType(binding)}, ")
       }
       printer.write(bindings.last.name)
-      printer.write(": Any")
+      printer.write(s": ${getBindingType(bindings.last)}")
     }
   }
 }

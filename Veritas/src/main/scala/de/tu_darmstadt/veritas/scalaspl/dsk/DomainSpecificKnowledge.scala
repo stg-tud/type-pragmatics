@@ -9,6 +9,10 @@ trait DomainSpecificKnowledge {
   def progressProperties: Map[FunctionDef, TypingRule]
   def preservationProperties: Map[FunctionDef, TypingRule]
 
+  def staticFunctions: Set[FunctionDef]
+  def dynamicFunctions: Set[FunctionDef]
+  def predicates: Set[FunctionDef]
+
   def lookupByFunName[T](mp: Map[FunctionDef, T], funname: String): Iterable[T] = {
     val allkeys: Iterable[FunctionDef] = mp.keys.filter { fd: FunctionDef => fd match {
       case FunctionDef(FunctionSig(name, _, _), _) => name == funname

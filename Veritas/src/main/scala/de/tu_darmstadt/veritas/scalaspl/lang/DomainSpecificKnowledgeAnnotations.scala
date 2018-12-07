@@ -15,6 +15,10 @@ trait DomainSpecificKnowledgeAnnotations {
   case class Recursive(positions: Int*) extends Annotation {
     require(positions.nonEmpty)
   }
+
+  case class Static() extends Annotation
+  case class Dynamic() extends Annotation
+  case class Predicate() extends Annotation
 }
 
 object DomainSpecificKnowledgeAnnotations {
