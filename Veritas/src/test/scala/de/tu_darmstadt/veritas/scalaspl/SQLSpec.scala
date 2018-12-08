@@ -118,12 +118,6 @@ object SQLSpec extends ScalaSPLSpecification {
 
   //some auxiliary functions on raw tables (all not knowing anything about table types!)
   //the functions are intended to be used with well-typed tables!!
-  @Predicate
-  @Dynamic
-  def attrIn(n: Name, al: AttrL): Boolean = (n, al) match {
-    case (_, aempty()) => false
-    case (n1, acons(m, al1)) => (n1 == m) || attrIn(n1, al1)
-  }
 
   //@Predicate
   //@Dynamic
@@ -423,6 +417,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @ProgressProperty("projectTableProgress")
   @PreservationProperty("projectTableWelltypedWithSelectType")
+  @PreservationProperty("projectTypeAttrLMatchesProjectTableAttrL")
   def projectTable(s: Select, t: Table): OptTable = (s, t) match {
     case (all(), table(al, rt)) => someTable(table(al, rt))
     case (list(alr), table(al, rt)) =>

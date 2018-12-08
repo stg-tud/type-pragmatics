@@ -18,7 +18,9 @@ class SQLNaiveLemmaGenerationTest extends FunSuite {
     "findColPreservesWelltypedRaw",
     "attachColToFrontRawPreservesWellTypedRaw",
     "dropFirstColRawPreservesWelltypedRaw",
-    "attachColToFrontRawPreservesRowCount"
+    "attachColToFrontRawPreservesRowCount",
+    "projectTypeImpliesFindCol",
+    "projectTypeAttrLMatchesProjectTableAttrL"
   )
 
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
