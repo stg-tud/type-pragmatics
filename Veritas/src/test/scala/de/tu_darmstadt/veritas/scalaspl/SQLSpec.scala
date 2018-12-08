@@ -733,21 +733,18 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedRawtable(tt, rt2)
 
   @Property
-  def projectColsProgress(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType): Unit = {
+  def projectColsProgress(tt: TType, alt: AttrL, rt: RawTable, al: AttrL, tt2: TType): Unit = {
     require(welltypedRawtable(tt, rt))
-    require(matchingAttrL(tt, al))
+    require(matchingAttrL(tt, alt))
     //require(projectType(list(al2), tt) == someTType(tt2)) NOTE: expanded this to:
-    require(projectTypeAttrL(al2, tt) == someTType(tt2))
-  } ensuring exists((rt2: RawTable) => projectCols(al2, al, rt) == someRawTable(rt2))
+    require(projectTypeAttrL(al, tt) == someTType(tt2))
+  } ensuring exists((rt2: RawTable) => projectCols(al, alt, rt) == someRawTable(rt2))
 
-  /* NOTE: Comparing to the corresponding Dafny lemma, we have moved the universal quantification
-         from the conclusion to the premise. */
   @Property
   def projectTypeImpliesFindCol(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType, n: Name): Unit = {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al))
-    require(projectTypeAttrL(al2, tt) == someTType(tt2))
-    require(attrIn(n, al2))
+    require(projectTypeAttrL(acons(n, al2), tt) == someTType(tt2))
   } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
 
   @Property
@@ -756,14 +753,6 @@ object SQLSpec extends ScalaSPLSpecification {
     require(matchingAttrL(tt, al))
     require(findColType(n, tt) == someFType(ft))
   } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
-
-  /* NOTE: Comparing to the corresponding Dafny lemma, we have moved the universal quantification
-           from the conclusion to the premise. */
-  @Property
-  def projectTypeAttrLImpliesfindAllColType(al: AttrL, tt: TType, tt2: TType, n: Name): Unit = {
-    require(projectTypeAttrL(al, tt) == someTType(tt2))
-    require(attrIn(n, al))
-  } ensuring exists((ft: FType) => findColType(n, tt) == someFType(ft))
 
   @Property
   def dropFirstColRawPreservesWelltypedRaw(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable): Unit = {
@@ -797,7 +786,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Property
   def projectTypeAttrLMatchesProjectTableAttrL(al: AttrL, tt: TType, tt2: TType, t: Table, t2: Table): Unit = {
-    require(welltypedtable(tt, t))
+    require(matchingAttrL(tt, getAttrL(t)))
     require(projectTypeAttrL(al, tt) == someTType(tt2))
     require(projectTable(list(al), t) == someTable(t2))
   } ensuring matchingAttrL(tt2, getAttrL(t2))
