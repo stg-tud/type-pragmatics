@@ -11,7 +11,7 @@ import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
   */
 class ApplySingle(t: Tactic[EmptySpec, SudokuField]) extends Strategy[EmptySpec, SudokuField] {
   override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField])
-                        (obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] = {
+                        (obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField] = {
     val ps = pg.applyTactic(obl, t)
     pg
   }

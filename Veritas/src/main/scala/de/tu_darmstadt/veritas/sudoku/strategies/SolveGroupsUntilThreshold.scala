@@ -13,7 +13,7 @@ class SolveGroupsUntilThreshold(emptycellsthreshold: Int, groupuntil: Int) exten
   val nakedGroups = (for (i <- 2 to groupuntil) yield i -> new NakedGroup(i)).toMap
 
   override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField])
-                        (obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] = {
+                        (obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField] = {
     val emptycells = (obl.goal.filterCells(obl.goal.indexedcells, c => c.value == 0)).size
     println(emptycells)
     if (emptycells < emptycellsthreshold) {

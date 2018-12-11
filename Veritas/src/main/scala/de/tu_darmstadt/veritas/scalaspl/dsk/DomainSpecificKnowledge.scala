@@ -20,4 +20,12 @@ trait DomainSpecificKnowledge {
     }}
     allkeys.flatMap(mp)
   }
+
+  def lookupByFunName(fs: Set[FunctionDef], funname: String): Option[FunctionDef] = {
+    fs find (fd => fd.signature.name == funname)
+  }
+
+  def lookupTRByName(ts: Set[TypingRule], trname: String): Option[TypingRule] = {
+    ts find (tr => tr.name == trname)
+  }
 }
