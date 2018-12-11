@@ -10,12 +10,12 @@ object QLDefsInputDSLTest {
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
     outputPrettyPrinter.writeln()
     outputPrettyPrinter.writeln("Here are the test modules:")
-    QLDefs.BasicTypes.prettyPrint(outputPrettyPrinter)
-    QLDefs.QLSyntax.prettyPrint(outputPrettyPrinter)
-    QLDefs.QLSemanticsData.prettyPrint(outputPrettyPrinter)
-    QLDefs.QLSemantics.prettyPrint(outputPrettyPrinter)
-    QLDefs.QLTypeSystem.prettyPrint(outputPrettyPrinter)
-    QLDefs.QLTypeSystemInv.prettyPrint(outputPrettyPrinter)
+    QLDefsSpec.BasicTypes.prettyPrint(outputPrettyPrinter)
+    QLDefsSpec.QLSyntax.prettyPrint(outputPrettyPrinter)
+    QLDefsSpec.QLSemanticsData.prettyPrint(outputPrettyPrinter)
+    QLDefsSpec.QLSemantics.prettyPrint(outputPrettyPrinter)
+    QLDefsTypeSystem.QLTypeSystem.prettyPrint(outputPrettyPrinter)
+    QLDefsTypeSystem.QLTypeSystemInv.prettyPrint(outputPrettyPrinter)
     outputPrettyPrinter.close()
   }
 

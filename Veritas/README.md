@@ -2,29 +2,24 @@
 
 ## Short Description ##
 
-Veritas is a (still very young) prototype for (semi-)automatically proving type soundness using first-order theorem proving as support. It currently allows for specifying the syntax and semantics of very simple programming languages (such as the simply-typed lambda calculus (STLC)), type systems for this language, and proof goals and axioms, via using AST classes. The current version includes a compiler family which allows for translating such language specifications and proof goals on it into TPTP, using different compilation strategies (see "Exploration of Language Specifications by Compilation to First-Order Logic" by Sylvia Grewe, Sebastian Erdweg, Michael Raulf, and Mira Mezini. In: Principles and Practice of Declarative Programming (PPDP). ACM, 2016). 
-
-##NOTE: Under construction##
-
-Note that we are currently restructuring Veritas to a stand-alone SBT library which one can use independent of Spoofax, on which the previous version of Veritas heavily relied. Currently, the Veritas project can already be used independent of Spoofax - but using it is not very comfortable (specifying languages by using AST classes, calling Vampire manually on the resulting files etc.). We are currently working on improving the usability of the standalone SBT library.
-
-Meanwhile, the former Spoofax part of Veritas remains functional (with an old Spoofax version, 1.5!) and provides some better usability (see folder VeritasSpoofax for setup instructions).
-
-The old version of Veritas, where the Scala and the Veritas-Spoofax project were still completely integrated with each other is available on the master branch under Tag "PreRestructuing" (including setup instructions). Note that the old version relied on an outdated Spoofax version (1.5).
-
+Veritas is a (still very young) prototype for (semi-)automatically proving type soundness using first-order theorem proving as support. It currently allows for specifying the syntax and semantics of simple typed DSL, and proof goals and axioms, via using AST classes or a subset of Scala. The current version includes a compiler family which allows for translating such language specifications and proof goals on it into TPTP, using different compilation strategies (see "Exploration of Language Specifications by Compilation to First-Order Logic" by Sylvia Grewe, Sebastian Erdweg, Michael Raulf, and Mira Mezini. In: Principles and Practice of Declarative Programming (PPDP). ACM, 2016).
+The current version also allows for structuring proofs via proof graphs (see "System Description: An Infrastructure for Combining Domain Knowledge with Automated Theorem Provers." by Sylvia Grewe, Sebastian Erdweg, André Pacak, and Mira Mezini. In : Proceedings of International Symposium on Principles and Practice of Declarative Programming (PPDP). 2018).
 
 ## How to install Veritas (standalone) ##
 
 You need:
 
-1. Java 7 or higher
-2. Installation of SBT and Scala
-3. (optional) your favorite IDE for Scala
-4. (optional) your favorite automated theorem prover that understands TPTP, if you would like to prove something, e.g. Vampire (This is currently not required for setting up the Veritas SBT part, but will probably soon be.)
+1. Java 8
+2. Installation of SBT (0.13) and Scala (2.12.8)
+3. (optional) your favorite IDE for Scala - recommended: JetBrains IntelliJ, with Scala plugin
+4. (optional) your favorite automated theorem prover that understands TPTP, if you would like to prove something. Current examples and tests mostly use Vampire 4.1 / 4.0, which you need to run these examples. Binaries can be found here: https://vprover.github.io/download.html and here: http://www.cse.chalmers.se/~simrob/tools.html
+The binary should be accessible via your PATH.
 
-Some optional steps to try with the project:
 
-1. Build the project using SBT or your favorite IDE.
-2. Run "sbt assembly" to produce a standalone .jar of the project (currently not particularly useful in itself, only when using Veritas with VeritasSpoofax).
-3. Run the tests in test/scala, via your IDE or via "sbt test" (not all of them might work).
-4. Using for example Scala REPL (or Ammonite, a more advanced REPL), create a language specification using the case classes from the Veritas package, as in some of the tests in test/scala. Your top-level-node should be a "Module". On your Module, you can call transformation steps (see package transformation). For example, you can pass your module to the "MainTrans" object together with a configuration that specifies the compilation strategy. This transformation will apply the necessary basic transformation steps to transform a Veritas module into one or more core modules. On the core module(s), you can apply TypingTrans.finalEncoding to transform the core module into a TPTP file, which you can then pretty-print. See case class EncodingComparison for the first basic steps, and Backend.scala, writeFile for how to pretty-print.
+Some first steps to try with the current version of the project:
+
+1. Build the project using SBT or your favorite IDE or by running "sbt compile" in the project folder. This will produce a couple of warnings, but should not produce any errors. You may attempt to run some of the tests in the test folder, but not all of them will always be working (some tests test certain proof states rather than code functionality, which may vary depending on the prover binaries).
+2. Create your own language specification using a subset of Scala. Examples to look at are "test/scala/scalaspl/AESpec.scala", "test/scala/scalaspl/SQLSpec.scala", and "test/scala/scalaspl/QLSpec.scala".
+3. Use the proof graph API to manually construct a proof graph and to trigger verification of proof steps via external provers for proving properties of your specification (may require installing more external provers). (Executable) example file that shows how one can do this: "test/scala/VerificationInfrastructure/AESoundnessProofGraph.scala"
+Executing this file will generate a .png file in the Veritas folder that visualizes the proof graph with the (intermediate) verification state.
+
