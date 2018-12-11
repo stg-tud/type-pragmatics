@@ -10,7 +10,8 @@ object QLSoundnessProofSteps {
   import de.tu_darmstadt.veritas.inputdsl.TypingRuleDSL._
   import de.tu_darmstadt.veritas.inputdsl.ProofDSL._
 
-  import de.tu_darmstadt.veritas.inputdsl.QLDefs._
+  import de.tu_darmstadt.veritas.inputdsl.QLDefsSpec._
+  import de.tu_darmstadt.veritas.inputdsl.QLDefsTypeSystem._
 
   val fullQLspec: Module = Module("QLspec", Seq(),
     BasicTypes.defs ++ QLSyntax.defs ++ QLSemanticsData.defs ++ QLSemantics.defs ++ QLTypeSystem.defs)// ++ QLTypeSystemInv.defs)
