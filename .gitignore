@@ -108,3 +108,4 @@ Veritas/*.dot
 /Veritas/QLSoundnessProofGraph-store
 /Veritas/QLProgressProof-allsteps-inconclusive
 /Veritas/AE-Inconclusive
+/Veritas/AESoundnessGeneratedProofGraph-store
