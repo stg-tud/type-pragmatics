@@ -7,5 +7,5 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGrap
   * inspecting the result) and returns the new graph
   */
 trait Strategy[Spec, Goal] {
-  def applyToPG(pg: ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal])(obl: pg.Obligation): ProofGraph[Spec, Goal]
+  def applyToPG(pg: ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal])(obl: pg.Obligation): ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal]
 }
