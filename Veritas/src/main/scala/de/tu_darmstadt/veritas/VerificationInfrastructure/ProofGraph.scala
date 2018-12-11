@@ -57,8 +57,8 @@ trait IProofGraph[Spec, Goal] {
   type StepResult <: GenStepResult[Spec, Goal]
 
   val obligationProducer: ObligationProducer[Spec, Goal, Obligation]
-  def newObligation(spec: Spec, goal: Goal): Obligation =
-    obligationProducer.newObligation(spec, goal)
+  def newObligation(spec: Spec, goal: Goal, name: String = "GeneratedObligation"): Obligation =
+    obligationProducer.newObligation(spec, goal, name)
 
   val stepResultProducer: StepResultProducer[Spec, Goal, StepResult]
   def newStepResult(status: VerifierStatus[Spec, Goal], evidence: Option[Evidence], errorMsg: Option[String]): StepResult =
