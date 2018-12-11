@@ -10,11 +10,11 @@ object QLGoalsInputDSLTest {
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
     outputPrettyPrinter.writeln()
     outputPrettyPrinter.writeln("Here are the test modules:")
-    QLDefs.CounterExamples.prettyPrint(outputPrettyPrinter)
-    QLDefs.Executions.prettyPrint(outputPrettyPrinter)
-    QLDefs.Proofs.prettyPrint(outputPrettyPrinter)
-    QLDefs.Syntheses.prettyPrint(outputPrettyPrinter)
-    QLDefs.Tests.prettyPrint(outputPrettyPrinter)
+    QLDefsTestGoals.CounterExamples.prettyPrint(outputPrettyPrinter)
+    QLDefsTestGoals.Executions.prettyPrint(outputPrettyPrinter)
+    QLDefsTestGoals.Proofs.prettyPrint(outputPrettyPrinter)
+    QLDefsTestGoals.Syntheses.prettyPrint(outputPrettyPrinter)
+    QLDefsTestGoals.Tests.prettyPrint(outputPrettyPrinter)
     outputPrettyPrinter.close()
   }
 }
