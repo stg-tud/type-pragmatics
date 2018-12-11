@@ -28,6 +28,7 @@ object AESpec extends ScalaSPLSpecification {
     case t1 => isNV(t1)
   }
 
+  @FailableType
   sealed trait OptTerm
   case class noTerm() extends OptTerm
   case class someTerm(t: Term) extends OptTerm
@@ -44,6 +45,9 @@ object AESpec extends ScalaSPLSpecification {
 
   //reduction semantics for simple Boolean and arithmetic terms
   @ProgressProperty("Progress")
+  @PreservationProperty("Preservation")
+  @Recursive(0)
+  @Dynamic
   def reduce(t: Term): OptTerm = t match {
     case Ifelse(True(), t2, t3) => someTerm(t2)
     case Ifelse(False(), t2, t3) => someTerm(t3)
