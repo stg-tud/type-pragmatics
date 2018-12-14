@@ -152,10 +152,13 @@ object Statics {
       "T"~Typ),
     // if ----------------
     Judg(Typed,
-      bind(bind(
-        "C"~Ctx,
-        "x"~Name, "Tx"~Typ),
-        "x"~Name, "Tx"~Typ),
+      bind(
+        bind(
+          "C"~Ctx,
+          "x"~Name,
+          "T?"~Typ),
+        "x"~Name,
+        "Tx"~Typ),
       "e"~Exp,
       "T"~Typ)
   ))
