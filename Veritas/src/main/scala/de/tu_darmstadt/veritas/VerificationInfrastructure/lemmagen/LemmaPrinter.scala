@@ -83,28 +83,29 @@ trait LemmaPrinter {
   }
 
   def printTypingRule(tr: TypingRule): Unit = {
-    printer.writeln("\\begin{align*}")
-    printer.write(s"\\inferrule[${tr.name}]{")
+    printer.writeln("\\begin{prooftree}")
     /*val metaVars: Set[MetaVar] = collectMetaVars(tr)
     printBindings(metaVars.toSeq, tr)
     printer.write("): Unit = {")*/
-    printer.indent()
+    printer.writeln("\\alwaysNoLine")
     if(tr.premises.nonEmpty) {
-      tr.premises.init.foreach { pr =>
+      printer.write("\\AxiomC{$")
+      printTypingRuleJudgement(tr.premises.head)
+      printer.writeln("$}")
+      tr.premises.tail.foreach { pr =>
+        printer.write("\\UnaryInfC{$")
         printTypingRuleJudgement(pr)
-        printer.writeln(raw"\\\\")
+        printer.writeln("$}")
       }
-      printTypingRuleJudgement(tr.premises.last)
+    } else {
+      printer.write("\\AxiomC{}")
     }
-    printer.unindent()
-    printer.writeln("}{")
-    tr.consequences.init.foreach { cons =>
-      printTypingRuleJudgement(cons)
-      printer.write(raw"\\\\")
-    }
-    printTypingRuleJudgement(tr.consequences.last)
-    printer.writeln("}")
-    printer.writeln("\\end{align*}")
+    printer.writeln("\\alwaysSingleLine")
+    printer.write("\\UnaryInfC{$")
+    require(tr.consequences.length == 1) // TODO
+    printTypingRuleJudgement(tr.consequences.head)
+    printer.writeln("$}")
+    printer.writeln("\\end{prooftree}")
   }
 
   def printTypingRuleJudgement(trj: TypingRuleJudgment): Unit = trj match {
