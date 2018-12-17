@@ -75,6 +75,8 @@ class ProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, pathToS
     val preservationObligation: g.Obligation = g.newObligation(SPLSpec, Goals(Seq(preservation_tr), None), "Preservation")
     g.storeObligation("Preservation", preservationObligation)
 
+    //TODO call further strategies for proof graph generation
+
     g
   }
 
