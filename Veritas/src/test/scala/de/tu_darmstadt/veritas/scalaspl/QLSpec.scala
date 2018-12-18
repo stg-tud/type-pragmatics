@@ -382,6 +382,7 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Recursive(0, 2)
   @ProgressProperty("reduceProgress")
+  @Dynamic
   def reduce(qc: QConf): OptQConf = qc match {
     case (QC(_, _, qempty())) => noQConf()
     case (QC(am, qm, qsingle(question(qid, l, t)))) =>
