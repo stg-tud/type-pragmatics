@@ -26,7 +26,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     val producerArgumentsConstraints = Constraint.freshOrBound(producer.inTypes)
         .updated(termIndex, Constraint.Fixed(termVar))
     val successVarPlacement = Constraint.Fixed(reducedTermVar)
-    val refinements = selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarPlacement)
+    val refinements = selectSuccessfulApplication(baseLemma, producer, producerArgumentsConstraints, successVarPlacement)
     refine(baseLemma, refinements)
   }
 
@@ -40,7 +40,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
     var matchingPredicateArgs = predicateArgs.filter(_.sortType == outType)
     val successVarConstraint = Constraint.Union(matchingPredicateArgs.map(Constraint.Fixed).toSet)
     val baseLemmas = refine(baseLemma,
-      selectSuccessPredicate(baseLemma, producer, producerArgumentsConstraints, successVarConstraint)
+      selectSuccessfulApplication(baseLemma, producer, producerArgumentsConstraints, successVarConstraint)
       .filterNot(r => r.arguments contains FunctionMeta(r.result)))
     val evolvedLemmas = baseLemmas.flatMap(lemma => {
       /*var constraints = predicateArgs.map {
@@ -85,7 +85,7 @@ class PreservationStrategy(override val problem: Problem, producer: FunctionDef)
       refinements ++= selectPredicate(lemma, predicate)
     for(fn <- producers if fn.isFailable && fn.isStatic && fn != producer) {
       // allow to use bound success vars
-      refinements ++= selectSuccessPredicate(lemma, fn,
+      refinements ++= selectSuccessfulApplication(lemma, fn,
         Constraint.preferBound(fn.inTypes),
         Constraint.freshOrBound(fn.successfulOutType)
       )

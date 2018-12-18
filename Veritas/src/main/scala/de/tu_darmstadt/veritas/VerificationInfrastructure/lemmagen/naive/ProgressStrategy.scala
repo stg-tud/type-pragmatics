@@ -35,7 +35,7 @@ class ProgressStrategy(override val problem: Problem, function: FunctionDef)
     /*for(fn <- producers if fn.isStatic && fn.isFailable)
       refinements ++= selectSuccessPredicate(lemma, fn)*/ // TODO: Apparently we do not need this
     for(fn <- transformers if fn.isStatic && fn.isFailable)
-      refinements ++= selectSuccessPredicate(lemma, fn)
+      refinements ++= selectSuccessfulApplication(lemma, fn)
     refinements
   }
 }

@@ -8,9 +8,9 @@ trait Refinement {
 }
 
 object Refinement {
-  case class SuccessPredicate(function: FunctionDef,
-                              arguments: Seq[FunctionExpMeta],
-                              result: MetaVar) extends Refinement {
+  case class SuccessfulApplication(function: FunctionDef,
+                                   arguments: Seq[FunctionExpMeta],
+                                   result: MetaVar) extends Refinement {
     def refine(problem: Problem, lemma: Lemma): Option[Lemma] = {
       val invocationExp = FunctionExpApp(
         function.signature.name,
@@ -36,7 +36,7 @@ object Refinement {
       }
     }
 
-    override def toString: String = s"SuccessPredicate(${function.signature.name}, $arguments, $result)"
+    override def toString: String = s"SuccessfulApplication(${function.signature.name}, $arguments, $result)"
   }
 
   case class Predicate(predicate: FunctionDef,
