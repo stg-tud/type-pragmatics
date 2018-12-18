@@ -183,10 +183,10 @@ trait SimpleLemmaPrinter extends LemmaPrinter {
     if (bindings.nonEmpty) {
       bindings.init.foreach { binding =>
         printer.write(translateVariableName(binding.name))
-        printer.write(s": ${getBindingType(binding)}, ")
+        printer.write(s"\\colon ${getBindingType(binding)}, ")
       }
       printer.write(translateVariableName(bindings.last.name))
-      printer.write(s": ${getBindingType(bindings.last)}")
+      printer.write(s"\\colon ${getBindingType(bindings.last)}")
     }
   }
 }
