@@ -93,7 +93,7 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
     case _ => None
   }
 
-  override protected def getEquationsOfDefintion(funDef: FunctionDef): Seq[FunctionEq] = funDef.eqn
+  override protected def getEquationsOfDefinition(funDef: FunctionDef): Seq[FunctionEq] = funDef.eqn
 
   override protected def getVarRefWithinFunctionApp(exp: FunctionExpMeta): Map[String, Set[String]] = exp match {
     case FunctionExpApp(name, args) =>

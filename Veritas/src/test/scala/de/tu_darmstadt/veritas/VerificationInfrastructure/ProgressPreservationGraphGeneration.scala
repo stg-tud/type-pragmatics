@@ -13,5 +13,17 @@ object ProgressPreservationGraphGeneration extends App {
   ppstrat.visualizeGraph("GeneratedAESoundness.png")
 
   ppstrat.printAllObligations()
-  //ppstrat.printGoalWithName("Preservation")
+  ppstrat.printGoalWithName("Preservation")
+
+//  val qlsource = "src/test/scala/de/tu_darmstadt/veritas/scalaspl/QLSpec.scala"
+//  val qlstore =  "QLSoundnessGeneratedProofGraph-store"
+//
+//  val ppstrat_ql = new ProgressPreservationTopLevelStrategy(qlsource, qlstore)
+//
+//  val pg_gen_gl = ppstrat_ql.generateGraph()
+//
+//  ppstrat_ql.visualizeGraph("GeneratedQLSoundness.png")
+//
+//  ppstrat_ql.printAllObligations()
+
 }
