@@ -66,14 +66,19 @@ class ProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, pathToS
     //construct augmented call graph from reduce function on
     val acg = new VeritasAugmentedCallGraphBuilder(SPLSpec).translate(reducefun)(VeritasAugmentedCallGraph())
 
+    //for debugging: visualize ACG
+    acg.visualizeACG(new File("acg_reduce.png"))
+
     //add root progress/preservation obligations to graph
     val progress_tr: TypingRule = dsk.lookupByFunName(dsk.progressProperties, "reduce").head
     val progressObligation: g.Obligation = g.newObligation(SPLSpec, Goals(Seq(progress_tr), None), "Progress")
     g.storeObligation("Progress", progressObligation)
 
-    val preservation_tr: TypingRule = dsk.lookupByFunName(dsk.preservationProperties, "reduce").head
-    val preservationObligation: g.Obligation = g.newObligation(SPLSpec, Goals(Seq(preservation_tr), None), "Preservation")
-    g.storeObligation("Preservation", preservationObligation)
+    //val preservation_tr: TypingRule = dsk.lookupByFunName(dsk.preservationProperties, "reduce").head
+    //val preservationObligation: g.Obligation = g.newObligation(SPLSpec, Goals(Seq(preservation_tr), None), "Preservation")
+    //g.storeObligation("Preservation", preservationObligation)
+
+    //TODO call further strategies for proof graph generation
 
     g
   }

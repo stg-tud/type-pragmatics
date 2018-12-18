@@ -29,6 +29,6 @@ object Dot {
     // dot -T<fileformat> <pathtodotfile> -o<outputpath>
     val exitCode = s"dot -T$ext ${dotFile.getAbsolutePath} -o${outputPath.getAbsolutePath}".!
     if (exitCode != 0)
-      throw new RuntimeException("Graph could not be visualized. This could be caused by the non-existance of the dot command.")
+      throw new RuntimeException("Graph could not be visualized. This could be caused by the non-existence of the dot command.")
   }
 }

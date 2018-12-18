@@ -5,24 +5,24 @@ import scala.collection.mutable.ListBuffer
 trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCallGraph[Eq, Criteria, Exp]] {
 
   def translate(funDef: FunDef)(dag: Graph): AugmentedCallGraph[Eq, Criteria, Exp] = {
-    val groupedEquations = groupFunctionEquations(getEquationsOfDefintion(funDef))
+    val groupedEquations = groupFunctionEquations(getEquationsOfDefinition(funDef))
     val maxLevel = groupedEquations.map(_._1).max
-    val proccesedEquations: ListBuffer[(Int, dag.StructuralDistinction)] = ListBuffer()
+    val processedEquations: ListBuffer[(Int, dag.StructuralDistinction)] = ListBuffer()
 
     // add root with all function equations
-    val root = dag.StructuralDistinction(getEquationsOfDefintion(funDef).toSet)
+    val root = dag.StructuralDistinction(getEquationsOfDefinition(funDef).toSet)
     dag.addRoot(root)
-    proccesedEquations += 1 -> root
+    processedEquations += 1 -> root
     // Idea: group is parent of other group if it is a superset of it and has a lower lvl
     def buildChildrenBasedOnPattern(level: Int): Unit = {
       val currentLevelEquations = groupedEquations.filter(_._1 == level)
       currentLevelEquations.foreach { case (lvl, eqs) =>
-        val parentCandidates = proccesedEquations.filter(x => eqs.forall(x._2.eqs.contains))
+        val parentCandidates = processedEquations.filter(x => eqs.forall(x._2.eqs.contains))
         // direct parent is the smallest superset of the eqs
         val parent = parentCandidates.minBy(_._2.eqs.size)
         val child = dag.StructuralDistinction(eqs)
         dag.addChild(parent._2, child)
-        proccesedEquations += lvl -> child
+        processedEquations += lvl -> child
       }
       if (level < maxLevel)
         buildChildrenBasedOnPattern(level + 1)
@@ -80,7 +80,7 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
     dag
   }
 
-  protected def getEquationsOfDefintion(funDef: FunDef): Seq[Eq]
+  protected def getEquationsOfDefinition(funDef: FunDef): Seq[Eq]
 
   protected def groupFunctionEquations(eqs: Seq[Eq], positionToWatch: Int = 0): Seq[(Int, Set[Eq])]
 
