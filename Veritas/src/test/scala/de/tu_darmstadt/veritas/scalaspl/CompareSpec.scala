@@ -31,18 +31,18 @@ object CompareSpec extends ScalaSPLSpecification {
   case class Plus(left: Term, right: Term) extends Term
   case class GreaterThan(left: Term, right: Term) extends Term
 
-  sealed trait OptExpr extends Expression
-  case class noExpr() extends OptExpr
-  case class someExpr(e: Term) extends OptExpr
+  sealed trait OptTerm extends Expression
+  case class noTerm() extends OptTerm
+  case class someTerm(e: Term) extends OptTerm
 
-  def isSomeExpr(e: OptExpr): Boolean = e match {
-    case noExpr() => false
-    case someExpr(_) => true
+  def isSomeTerm(e: OptTerm): Boolean = e match {
+    case noTerm() => false
+    case someTerm(_) => true
   }
 
   @Partial
-  def getExpr(e: OptExpr): Term = e match {
-    case someExpr(ee) => ee
+  def getTerm(e: OptTerm): Term = e match {
+    case someTerm(ee) => ee
   }
 
   sealed trait EType extends Type
@@ -58,44 +58,44 @@ object CompareSpec extends ScalaSPLSpecification {
   }
 
   @ProgressProperty("Progress")
-  def reduce(e: Term): OptExpr = e match {
+  def reduce(e: Term): OptTerm = e match {
     case Number(_) =>
-      noExpr()
+      noTerm()
     case True() =>
-      noExpr()
+      noTerm()
     case False() =>
-      noExpr()
+      noTerm()
     case Plus(Number(leftN), Number(rightN)) =>
-      someExpr(Number(add(leftN, rightN)))
+      someTerm(Number(add(leftN, rightN)))
     case Plus(Number(leftN), rightExp) =>
       val rightResult = reduce(rightExp)
-      if(isSomeExpr(rightResult))
-        someExpr(Plus(Number(leftN), getExpr(rightResult)))
+      if(isSomeTerm(rightResult))
+        someTerm(Plus(Number(leftN), getTerm(rightResult)))
       else
-        noExpr()
+        noTerm()
     case Plus(leftExp, rightExp) =>
       val leftResult = reduce(leftExp)
-      if(isSomeExpr(leftResult))
-        someExpr(Plus(getExpr(leftResult), rightExp))
+      if(isSomeTerm(leftResult))
+        someTerm(Plus(getTerm(leftResult), rightExp))
       else
-        noExpr()
+        noTerm()
     case GreaterThan(Number(leftN), Number(rightN)) =>
       if(gt(leftN, rightN))
-        someExpr(True())
+        someTerm(True())
       else
-        someExpr(False())
+        someTerm(False())
     case GreaterThan(Number(leftN), rightExp) =>
       val rightResult = reduce(rightExp)
-      if(isSomeExpr(rightResult))
-        someExpr(GreaterThan(Number(leftN), getExpr(rightResult)))
+      if(isSomeTerm(rightResult))
+        someTerm(GreaterThan(Number(leftN), getTerm(rightResult)))
       else
-        noExpr()
+        noTerm()
     case GreaterThan(leftExp, rightExp) =>
       val leftResult = reduce(leftExp)
-      if(isSomeExpr(leftResult))
-        someExpr(GreaterThan(getExpr(leftResult), rightExp))
+      if(isSomeTerm(leftResult))
+        someTerm(GreaterThan(getTerm(leftResult), rightExp))
       else
-        noExpr()
+        noTerm()
   }
 
   @Axiom
@@ -126,11 +126,11 @@ object CompareSpec extends ScalaSPLSpecification {
   def Progress(e1: Term, T: EType): Unit = {
     require(e1 :: T)
     require(!isValue(e1))
-  } ensuring exists((e2: Term) => reduce(e1) == someExpr(e2))
+  } ensuring exists((e2: Term) => reduce(e1) == someTerm(e2))
 
   @Property
   def Preservation(e1: Term, e2: Term, T: EType): Unit = {
     require(e1 :: T)
-    require(reduce(e1) == someExpr(e2))
+    require(reduce(e1) == someTerm(e2))
   } ensuring (e2 :: T)
 }
