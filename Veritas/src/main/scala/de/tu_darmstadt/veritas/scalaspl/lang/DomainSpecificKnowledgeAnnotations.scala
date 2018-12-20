@@ -18,7 +18,6 @@ trait DomainSpecificKnowledgeAnnotations {
 
   case class Static() extends Annotation
   case class Dynamic() extends Annotation
-  case class Predicate() extends Annotation
 }
 
 object DomainSpecificKnowledgeAnnotations {

@@ -87,7 +87,6 @@ object SQLSpec extends ScalaSPLSpecification {
   // check whether a table corresponds to a given type (functional notation)
   // does not yet check for whether the table type contains only unique attribute names!!
   // (but semantics should be possible to define in a sensible way without that requirement...)
-  @Predicate
   @Static
   def matchingAttrL(tt: TType, attrl: AttrL): Boolean = (tt, attrl) match {
     case (ttempty(), aempty()) => true
@@ -95,7 +94,6 @@ object SQLSpec extends ScalaSPLSpecification {
     case (_, _) => false
   }
 
-  @Predicate
   @Static
   def welltypedRow(tType: TType, row: Row): Boolean = (tType, row) match {
     case (ttempty(), rempty()) => true
@@ -103,14 +101,12 @@ object SQLSpec extends ScalaSPLSpecification {
     case (_, _) => false
   }
 
-  @Predicate
   @Static
   def welltypedRawtable(tt: TType, rt: RawTable): Boolean = (tt, rt) match {
     case (_, tempty()) => true
     case (tt1, tcons(r, t1)) => welltypedRow(tt1, r) && welltypedRawtable(tt1, t1)
   }
 
-  @Predicate
   @Static
   def welltypedtable(tt: TType, t: Table): Boolean = (tt, t) match {
     case (tt1, table(al, t1)) => matchingAttrL(tt1, al) && welltypedRawtable(tt1, t1)
@@ -161,7 +157,6 @@ object SQLSpec extends ScalaSPLSpecification {
     case someRawTable(rt) => rt
   }
 
-  @Predicate
   @Dynamic
   def sameLength(rt1: RawTable, rt2: RawTable): Boolean = (rt1, rt2) match {
     case (tempty(), tempty()) => true
@@ -652,7 +647,6 @@ object SQLSpec extends ScalaSPLSpecification {
   // determines whether a given TTContext is consistent with a given TStore
   // and whether the table in the store is well-typed with regard to the table type in the context
   // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
-  @Predicate
   @Static
   def storeContextConsistent(ts: TStore, ttc: TTContext): Boolean = (ts, ttc) match {
     case (emptyStore(), emptyContext()) => true

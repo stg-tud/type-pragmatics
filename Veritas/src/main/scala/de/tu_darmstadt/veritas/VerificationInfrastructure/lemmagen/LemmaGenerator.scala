@@ -8,14 +8,14 @@ class LemmaGenerator(problem: Problem, strategy: RefinementStrategy) {
   protected val pool = new ShapedPool()
 
   def addChecked(generation: LemmaGeneration, lemma: Lemma): Unit = {
-    if(pool.add(lemma))
+    if (pool.add(lemma))
       generation += lemma
   }
 
   def generate(): Seq[Lemma] = {
     var generation = new LemmaGeneration()
     strategy.generateBase().foreach(addChecked(generation, _))
-    while(generation.nonEmpty) {
+    while (generation.nonEmpty) {
       val nextGeneration = new LemmaGeneration()
       generation.foreach(lemma => {
         strategy.expand(lemma).foreach(refinement => {
