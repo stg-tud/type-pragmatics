@@ -64,7 +64,7 @@ class ProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, pathToS
     }
 
     //construct augmented call graph from reduce function on
-    val acg = new VeritasAugmentedCallGraphBuilder(SPLSpec).translate(reducefun)(VeritasAugmentedCallGraph())
+    val acg = new VeritasAugmentedCallGraphBuilder(SPLSpec).translate(reducefun)(VeritasAugmentedCallGraph(reducefun.signature.name))
 
     //for debugging: visualize ACG
     acg.visualizeACG(new File("acg_reduce.png"))

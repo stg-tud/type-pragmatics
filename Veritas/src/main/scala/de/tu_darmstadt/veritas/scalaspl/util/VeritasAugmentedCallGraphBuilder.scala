@@ -10,7 +10,7 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
 
   private val ctorNames = ListBuffer[String]()
 
-  override def translate(funDef: FunctionDef)(dag: VeritasAugmentedCallGraph): AugmentedCallGraph[FunctionEq, FunctionExp, FunctionExpMeta] = {
+  override def translate(funDef: FunctionDef, distargpos: Int = 0)(dag: VeritasAugmentedCallGraph): AugmentedCallGraph[FunctionEq, FunctionExp, FunctionExpMeta] = {
     spec.defs.foreach {
       case DataType(_, _, ctors) =>
         ctorNames ++= ctors.map(_.name)
@@ -19,37 +19,37 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
     super.translate(funDef)(dag)
   }
 
-  protected def groupFunctionEquations(eqs: Seq[FunctionEq], positionToWatch: Int = 0): Seq[(Int, Set[FunctionEq])] = {
-    val patternStrings = eqs.map { eq => (createStringFromPattern(eq.patterns(positionToWatch)), eq)}.sortBy(_._1)
-    val grouped = mutable.Map[String, Set[FunctionEq]]()
-
-    // group based on prefixes
-    patternStrings.foreach { case (string, eq) =>
-      val prefixes = substringByChar(string, '_')
-      prefixes.foreach { prefix =>
-        if (grouped.contains(prefix)) {
-          grouped(prefix) = grouped(prefix) + eq
-        } else {
-          grouped(prefix) = Set(eq)
-        }
-      }
-    }
-
-    patternStrings.foreach { case (prefix, eq) =>
-      if (!grouped.contains(prefix))
-        grouped(prefix) = Set(eq)
-    }
-
-    // remove groupings which are more specifc but have the same elements
-    val cleanedUpGroupings = grouped.filter { case (prefix, eqn) =>
-      val moreGeneral = substringByChar(prefix, '_')
-      moreGeneral.forall { pr2 =>
-        val moreGeneralEqs = grouped(pr2)
-        moreGeneralEqs != eqn
-      }
-    }
-    cleanedUpGroupings.toSeq.sortBy(_._1).map(x => (x._1.split("_").length, x._2))
-  }
+//  protected def groupFunctionEquations(eqs: Seq[FunctionEq], positionToWatch: Int = 0): Seq[(Int, Seq[FunctionEq])] = {
+//    val patternStrings = eqs.map { eq => (createStringFromPattern(eq.patterns(positionToWatch)), eq)}.sortBy(_._1)
+//    val grouped = mutable.Map[String, Seq[FunctionEq]]()
+//
+//    // group based on prefixes
+//    patternStrings.foreach { case (string, eq) =>
+//      val prefixes = substringByChar(string, '_')
+//      prefixes.foreach { prefix =>
+//        if (grouped.contains(prefix)) {
+//          grouped(prefix) = grouped(prefix) :+ eq
+//        } else {
+//          grouped(prefix) = Seq(eq)
+//        }
+//      }
+//    }
+//
+//    patternStrings.foreach { case (prefix, eq) =>
+//      if (!grouped.contains(prefix))
+//        grouped(prefix) = Seq(eq)
+//    }
+//
+//    // remove groupings which are more specifc but have the same elements
+//    val cleanedUpGroupings = grouped.filter { case (prefix, eqn) =>
+//      val moreGeneral = substringByChar(prefix, '_')
+//      moreGeneral.forall { pr2 =>
+//        val moreGeneralEqs = grouped(pr2)
+//        moreGeneralEqs != eqn
+//      }
+//    }
+//    cleanedUpGroupings.toSeq.sortBy(_._1).map(x => (x._1.split("_").length, x._2))
+//  }
 
   private def substringByChar(str: String, sign: Char): Seq[String] =
     str.zipWithIndex.filter { _ == sign}.map { case (_, index) => str.substring(0, index) }
@@ -92,6 +92,12 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
       else None
     case _ => None
   }
+
+  override protected def makeGenericFunctionCall(fundef: FunctionDef): FunctionExpMeta = ???
+
+  override protected def makeArgExpWithDistPos(eqs: Seq[(Int, FunctionEq)], distarg_pos: Seq[Int]): (Option[Int], FunctionExpMeta) = ???
+
+  override protected def makeGroupsForPos(eqs_to_group: Seq[(Int, FunctionEq)], poslist: Seq[Int]): Seq[Seq[(Int, FunctionEq)]] = ???
 
   override protected def getEquationsOfDefinition(funDef: FunctionDef): Seq[FunctionEq] = funDef.eqn
 
