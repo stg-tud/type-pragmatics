@@ -30,7 +30,7 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
         dag.addChild(parent, child)
         processedEquations += level -> child
         if (g.length > 1) { //only refine further if the group still contains more than one function equation
-          val new_distargpos_list = distargpos_list :+ distargpos_for_group.get
+          val new_distargpos_list = distargpos_list :+ distargpos_for_group.get //failures here should not be possible for correct graphs
           refineStructuralDistinctionLevel(child, new_distargpos_list, level + 1)
         }
       }
