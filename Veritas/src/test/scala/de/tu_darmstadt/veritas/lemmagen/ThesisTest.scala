@@ -2,7 +2,8 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import java.io.{File, PrintWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Problem, SimpleLemmaPrinter}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.ProgressStrategy
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import org.scalatest.FunSuite
@@ -20,7 +21,26 @@ class ThesisTest extends FunSuite {
       problem.enquirer.getAllVarTypes(prop) // needed so that quantified variables have the right type
       lemmaPrettyPrinter.printTypingRule(prop)
     }
-    problem.enquirer
+    outputPrettyPrinter.flush()
+  }
+
+  test("progress strategy") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
+    val problem = new Problem(file)
+
+    val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
+    val lemmaPrettyPrinter = new SimpleLemmaPrinter {
+      override val printer: PrettyPrintWriter = outputPrettyPrinter
+    }
+
+    val projectTable = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "projectTable").get
+    val strat = new ProgressStrategy(problem, projectTable)
+
+    val base = strat.generateBase()
+    strat.generateBase().foreach{ l =>
+      lemmaPrettyPrinter.printTypingRule(l)
+      println()
+    }
     outputPrettyPrinter.flush()
   }
 }
