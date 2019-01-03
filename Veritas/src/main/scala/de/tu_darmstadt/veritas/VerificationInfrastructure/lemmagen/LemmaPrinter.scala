@@ -36,11 +36,12 @@ trait LemmaPrinter {
 
   def translateVariableName(str: String): String = {
     val (anything, numbers) = str.span(!_.isDigit)
-    if(numbers.nonEmpty && (numbers forall Character.isDigit)) {
+    val inner = if(numbers.nonEmpty && (numbers forall Character.isDigit)) {
       anything + "_" + numbers
     } else {
       str
     }
+    s"\\I{$inner}"
   }
 
   def printFunctionExp(exp: FunctionExp): Unit = exp match {
