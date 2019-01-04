@@ -26,14 +26,11 @@ class ProgressStrategy(override val problem: Problem, function: FunctionDef)
   override def expand(lemma: Lemma): Seq[Refinement] = {
     // build a map of predicates and producers of "in types"
     val predicates = enquirer.retrievePredicates(lemma.boundTypes)
-    val producers = enquirer.retrieveProducers(lemma.boundTypes)
     val transformers = enquirer.retrieveTransformers(lemma.boundTypes)
     // we just have to find matching premises
     val refinements = new mutable.MutableList[Refinement]()
     for(predicate <- predicates if predicate.isStatic)
       refinements ++= selectPredicate(lemma, predicate)
-    /*for(fn <- producers if fn.isStatic && fn.isFailable)
-      refinements ++= selectSuccessPredicate(lemma, fn)*/ // TODO: Apparently we do not need this
     for(fn <- transformers if fn.isStatic && fn.isFailable)
       refinements ++= selectSuccessfulApplication(lemma, fn)
     refinements
