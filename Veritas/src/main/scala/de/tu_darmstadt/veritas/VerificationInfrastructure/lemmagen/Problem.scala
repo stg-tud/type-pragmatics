@@ -10,12 +10,4 @@ class Problem(specFile: File) {
   val spec = new ScalaSPLTranslator().translate(specFile)
   val dsk = DomainSpecificKnowledgeBuilder().build(specFile)
   val enquirer = new LemmaGenSpecEnquirer(spec, dsk)
-
-  def preservationFunctions: Set[FunctionDef] = {
-    enquirer.dynamicFunctions
-  }
-
-  def progressFunctions: Set[FunctionDef] = {
-    enquirer.dynamicFunctions.filter(fn => enquirer.isFailableType(fn.signature.out))
-  }
 }

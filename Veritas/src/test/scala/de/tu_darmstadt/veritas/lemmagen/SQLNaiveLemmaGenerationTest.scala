@@ -120,10 +120,12 @@ class SQLNaiveLemmaGenerationTest extends FunSuite {
     }
   }
 
+  val progressFunctions = problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out))
+  val preservationFunctions = problem.enquirer.dynamicFunctions
   testProperties("progress",
     dsk.progressProperties,
-    problem.progressFunctions)((problem, fn) => new naive.ProgressStrategy(problem, fn))
+    progressFunctions)((problem, fn) => new naive.ProgressStrategy(problem, fn))
   testProperties("preservation",
     dsk.preservationProperties,
-    problem.preservationFunctions)((problem, fn) => new naive.PreservationStrategy(problem, fn))
+    preservationFunctions)((problem, fn) => new naive.PreservationStrategy(problem, fn))
 }
