@@ -17,7 +17,7 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
 
   trait Node
 
-  //for uniqueness: also save the number of the function equation in which the distinction appears (starting from 0)
+  //for uniqueness of nodes: also save the number of the function equation in which the distinction appears (starting from 0)
   //as well as the inner nesting level (in case of nested ifs); first level is 0
   case class BooleanDistinction(funeq_num: Int, inner_nesting_level: Int, criteria: Criteria, resulting: Expression) extends Node
 
@@ -29,7 +29,7 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
   case class StructuralDistinction(arg_pos: Option[Int], arg_exp: Expression, numbered_eqs: Seq[(Int, Equation)]) extends Node
 
   //also save the index number of the top-level equation (for controlling purposes, and to be really sure to preserve the correct order)
-  //for uniqueness: also save the number of the function equation in which the distinction appears (starting from 0)
+  //for uniqueness of nodes: also save the number of the function equation in which the distinction appears (starting from 0)
   //as well as the inner nesting level (in case of nested ifs); first level is 0
   case class FunctionCall(funeq_num: Int, inner_nesting_level: Int, name: String) extends Node
 

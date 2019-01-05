@@ -12,25 +12,23 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
     val root_argexp = makeGenericFunctionCall(funDef)
     val numbered_eqs = for (eq <- funeqs) yield (funeqs.indexOf(eq), eq)
 
-    //save processed equations together with tree level (initialize)
-    val processedEquations: ListBuffer[(Int, dag.StructuralDistinction)] = ListBuffer()
-
     // add root with all function equations
     val root = dag.StructuralDistinction(Some(distargpos), root_argexp, numbered_eqs)
     dag.addRoot(root)
-    processedEquations += 1 -> root
 
     //inner recursive function: add structural distinction node level to graph
     def refineStructuralDistinctionLevel(parent: dag.StructuralDistinction, distargpos_list: Seq[Int], level: Int): Unit = {
       val eqs_to_group = parent.numbered_eqs
       val groups_for_next_level = makeGroupsForPos(eqs_to_group, distargpos_list)
       for (g <- groups_for_next_level) {
-        val (distargpos_for_group, argexp_for_group) = makeArgExpWithDistPos(g, distargpos_list)
+        val (distargpos_for_group, new_distargpos_list, argexp_for_group) = makeArgExpWithDistPos(g, parent.arg_exp, distargpos_list)
         val child = dag.StructuralDistinction(distargpos_for_group, argexp_for_group, g)
         dag.addChild(parent, child)
-        processedEquations += level -> child
         if (g.length > 1) { //only refine further if the group still contains more than one function equation
-          val new_distargpos_list = distargpos_list :+ distargpos_for_group.get //failures here should not be possible for correct graphs
+          val c_distargpos_for_group = distargpos_for_group match {
+            case Some(i) => i
+            case None => sys.error("Expected a further equation distinction for this group, but was not discovered by algorithm.")
+          }
           refineStructuralDistinctionLevel(child, new_distargpos_list, level + 1)
         }
       }
@@ -38,46 +36,23 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
 
     refineStructuralDistinctionLevel(root, Seq(distargpos), 2)
 
-    //will return the complete grouping of function equations according to structural distinction pattern,
-    //indicating the tree level of each group (level 1 is root level)
-    //val groupedEquations = groupFunctionEquations(numbered_eqs)
-
-    //val maxLevel = groupedEquations.keys.max
-
-
-//    def buildStructuralDistinctionChildren(level: Int): Unit = {
-//      val currentLevelEquations = groupedEquations(level)
-//
-//      val child = dag.StructuralDistinction(???,???,currentLevelEquations)
-//
-//
-//
-//
-//      currentLevelEquations.foreach { case (index, eq) =>
-//        val parentCandidates = processedEquations.filter(x => eqs.forall(x._2.eqs.contains))
-//        // direct parent is the smallest superset of the eqs
-//        val parent = parentCandidates.minBy(_._2.eqs.size)
-//        val child = dag.StructuralDistinction(eqs)
-//        dag.addChild(parent._2, child)
-//        processedEquations += level -> child
-//      }
-//      if (level < maxLevel)
-//        buildStructuralDistinctionChildren(level + 1)
-//    }
-//    buildStructuralDistinctionChildren(2)
-
     val leaves = dag.leaves
     // every leaf at this stage has to be a structural leaf
     val structuralLeaves = leaves.map(_.asInstanceOf[dag.StructuralDistinction])
 
-    def buildChildrenBasedOnFunctionExp(node: dag.Node, foundBindings: Map[String, Set[String]]): Unit = {
+    def buildChildrenBasedOnFunctionExp(node: dag.Node, foundBindings: Map[String, Set[String]], nestinglevel: Int): Unit = {
       val exp = dag.getExpression(node)
+      val eqnum_in_node = node match {
+        case dag.StructuralDistinction(_, _, eqs) => eqs.head._1
+        case dag.BooleanDistinction(num, _, _, _) => num
+        case dag.FunctionCall(num, _, _) => num
+      }
       val nestedFunctionApps = getNestedFunctionApplications(exp)
       nestedFunctionApps.foreach { funcNames =>
-        val outerNode = dag.FunctionCall(???, ???, funcNames.head)
+        val outerNode = dag.FunctionCall(eqnum_in_node, nestinglevel, funcNames.head)
         dag.addChild(outerNode, node)
         if (funcNames.lengthCompare(2) == 0) {
-          val innerNode = dag.FunctionCall(???, ???, funcNames(1))
+          val innerNode = dag.FunctionCall(eqnum_in_node, nestinglevel, funcNames(1))
           dag.addChild(innerNode, outerNode)
         }
       }
@@ -87,7 +62,7 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
       // maps from var name to functions it used to create the binding
       val bindings: Map[String, Set[String]] = foundBindings ++ getResultBindings(exp)
       varRefdByFunction.foreach { case (funName, refNames) =>
-        val funCall = dag.FunctionCall(???, ???, funName)
+        val funCall = dag.FunctionCall(eqnum_in_node, nestinglevel, funName)
         // because function was called in within a let or a the cond of if we link node to funCall
         dag.addChild(funCall, node)
 
@@ -95,7 +70,7 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
           // binding was used in a funApp
           if (refNames.contains(bindingName)) {
             funcApps.foreach { funcName =>
-              val parent = dag.FunctionCall(???, ???, funcName)
+              val parent = dag.FunctionCall(eqnum_in_node, nestinglevel, funcName)
               dag.addChild(parent, funCall)
             }
           }
@@ -104,15 +79,15 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
       // create children based on if condition
       val conditionalBranches = getDistinctionByIfExpression(dag.getExpression(node))
       conditionalBranches.foreach { case (condition, branch) =>
-        val branchNode = dag.BooleanDistinction(???, ???, condition, branch)
+        val branchNode = dag.BooleanDistinction(eqnum_in_node, nestinglevel, condition, branch)
         dag.addChild(node, branchNode)
-        buildChildrenBasedOnFunctionExp(branchNode, bindings)
+        buildChildrenBasedOnFunctionExp(branchNode, bindings, nestinglevel + 1)
       }
     }
 
     //
     structuralLeaves.foreach { leave =>
-      buildChildrenBasedOnFunctionExp(leave, Map())
+      buildChildrenBasedOnFunctionExp(leave, Map(), 0)
     }
     dag
   }
@@ -122,10 +97,12 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
   // given a list of equations and an argument position,
   // create a common argument expression for the given position, together with the single argument position in which the
   // expressions in the group will be distinguished further (if possible)
-  // e.g. a group with the single entry (3, Succ(t1)) creates (None, Succ(t1))
+  // e.g. a group with the single entry (3, Succ(t1)) creates (None, poslist, Succ(t1))
   // a group with three entries [(0, Ifelse(True(), t2, t3)), (1, Ifelse(False(), t2, t3)), (2, Ifelse(t1, t2, t3))]
-  // creates (Some(0), Ifelse(t, t2, t3)) where t is a generated fresh variable name
-  protected def makeArgExpWithDistPos(eqs: Seq[(Int, Eq)], distarg_pos: Seq[Int]): (Option[Int], Exp)
+  // creates (Some(0), poslist, Ifelse(t, t2, t3)) where t is a generated fresh variable name
+  // and where poslist is the total new position indication of the distinguishing argument position within the given function equation
+  // (may change due to backtracking)
+  protected def makeArgExpWithDistPos(eqs: Seq[(Int, Eq)], parent_argexp: Exp, distarg_pos: Seq[Int]): (Option[Int], Seq[Int], Exp)
 
   protected def getEquationsOfDefinition(funDef: FunDef): Seq[Eq]
 
