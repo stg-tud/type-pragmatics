@@ -24,6 +24,22 @@ class ThesisTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
+  test("lemma oracle") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
+    val problem = new Problem(file)
+
+    problem.dsk.properties.foreach { lemma =>
+      if(lemma.name.startsWith("somewhatWrong")) {
+        val s = Oracle.invoke(problem, lemma) match {
+          case Oracle.Inconclusive() => "inconclusive"
+          case Oracle.ProvablyTrue() => "lemma is provably TRUE"
+          case Oracle.ProvablyFalse() => "lemma is provably FALSE"
+        }
+        println(lemma.name, s)
+      }
+    }
+  }
+
   test("static functions") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
     val problem = new Problem(file)

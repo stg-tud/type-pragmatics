@@ -675,4 +675,43 @@ object SQLSpec extends ScalaSPLSpecification {
   def projectFirstRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
     require(projectFirstRaw(rt) == rt2)
   } ensuring sameLength(rt, rt2)
+
+  @Property
+  def somewhatWrong1(tt: TType, t: Table, result: Table, p: Pred): Unit = {
+    //require(welltypedtable(tt, t))
+    require(filterTable(t, p) == result)
+  } ensuring welltypedtable(tt, result)
+
+  @Property
+  def somewhatWrong2(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+    //require(projectType(s, tt) == someTType(tt2))
+  } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
+
+  @Property
+  def somewhatWrong3(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    //require(welltypedtable(tt, t))
+    require(projectType(s, tt) == someTType(tt2))
+  } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
+
+  @Property
+  def somewhatWrong4(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {
+    //require(projectTypeAttrL(al1, tt) == someTType(tt2))
+    require(projectCols(al1, al2, rt) == someRawTable(rt2))
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt, al2))
+  } ensuring sameLength(rt, rt2)
+
+  @Property
+  def somewhatWrong5(tt1: TType, name1: Name, ft1: FType,
+                                               tt2: TType,
+                                               rt1: RawTable, rt2: RawTable, rt3: RawTable): Unit = {
+    // |tt1| == 1
+    //require(tt1 == ttcons(name1, ft1, ttempty()))
+    require(sameLength(rt1, rt2))
+    require(welltypedRawtable(tt1, rt1))
+    require(welltypedRawtable(tt1, rt2))
+    require(attachColToFrontRaw(rt1, rt2) == rt3)
+  } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), rt3)
+
 }
