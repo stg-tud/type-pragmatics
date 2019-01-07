@@ -24,6 +24,18 @@ class ThesisTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
+  test("static functions") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+    val problem = new Problem(file)
+    println(problem.dsk.staticFunctions.map(f => s"\\C{${f.signature.name}}").mkString(", "))
+  }
+
+  test("dynamic functions") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+    val problem = new Problem(file)
+    println(problem.dsk.dynamicFunctions.map(f => s"\\C{${f.signature.name}}").mkString(", "))
+  }
+
   test("progress strategy") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
     val problem = new Problem(file)

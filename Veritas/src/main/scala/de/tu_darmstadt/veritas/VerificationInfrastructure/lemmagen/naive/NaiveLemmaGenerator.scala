@@ -7,11 +7,11 @@ import scala.collection.mutable
 
 class NaiveLemmaGenerator(problem: Problem, maxPremises: Int = 4) {
   def preservationFunctions: Set[FunctionDef] = {
-    Set(problem.enquirer.dynamicFunctions.head)
+    problem.enquirer.dynamicFunctions.filterNot(fn => fn.signature.out.name == "Bool")
   }
 
   def progressFunctions: Set[FunctionDef] = {
-    Set(problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out)).head)
+    problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out))
   }
 
   def generateWithStrategy(strategy: RefinementStrategy): Set[Lemma] = {
