@@ -13,28 +13,24 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
     val numbered_eqs = for (eq <- funeqs) yield (funeqs.indexOf(eq), eq)
 
     // add root with all function equations
-    val root = dag.StructuralDistinction(Some(distargpos), root_argexp, numbered_eqs)
+    val root = dag.StructuralDistinction(Some(Seq(distargpos)), root_argexp, numbered_eqs)
     dag.addRoot(root)
 
     //inner recursive function: add structural distinction node level to graph
-    def refineStructuralDistinctionLevel(parent: dag.StructuralDistinction, distargpos_list: Seq[Int], level: Int): Unit = {
+    def refineStructuralDistinctionLevel(parent: dag.StructuralDistinction, argexp_list: Seq[Exp], distargpos_list: Seq[Int], level: Int): Unit = {
       val eqs_to_group = parent.numbered_eqs
       val groups_for_next_level = makeGroupsForPos(eqs_to_group, distargpos_list)
       for (g <- groups_for_next_level) {
-        val (distargpos_for_group, new_distargpos_list, argexp_for_group) = makeArgExpWithDistPos(g, parent.arg_exp, distargpos_list)
-        val child = dag.StructuralDistinction(distargpos_for_group, argexp_for_group, g)
+        val (new_distargpos_list, argexp_for_group) = makeArgExpWithDistPos(g, argexp_list, distargpos_list)
+        val child = dag.StructuralDistinction(new_distargpos_list, argexp_for_group, g)
         dag.addChild(parent, child)
         if (g.length > 1) { //only refine further if the group still contains more than one function equation
-          val c_distargpos_for_group = distargpos_for_group match {
-            case Some(i) => i
-            case None => sys.error("Expected a further equation distinction for this group, but was not discovered by algorithm.")
-          }
-          refineStructuralDistinctionLevel(child, new_distargpos_list, level + 1)
+          refineStructuralDistinctionLevel(child, argexp_list :+ argexp_for_group, new_distargpos_list.get, level + 1)
         }
       }
     }
 
-    refineStructuralDistinctionLevel(root, Seq(distargpos), 2)
+    refineStructuralDistinctionLevel(root, Seq(root_argexp), Seq(distargpos), 2)
 
     val leaves = dag.leaves
     // every leaf at this stage has to be a structural leaf
@@ -95,14 +91,12 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
   protected def makeGenericFunctionCall(fundef: FunDef): Exp
 
   // given a list of equations and an argument position,
-  // create a common argument expression for the given position, together with the single argument position in which the
+  // create a common argument expression for the given position, together with the total argument position list in which the
   // expressions in the group will be distinguished further (if possible)
-  // e.g. a group with the single entry (3, Succ(t1)) creates (None, poslist, Succ(t1))
+  // e.g. a group with the single entry (3, Succ(t1)) creates (None, Succ(t1))
   // a group with three entries [(0, Ifelse(True(), t2, t3)), (1, Ifelse(False(), t2, t3)), (2, Ifelse(t1, t2, t3))]
-  // creates (Some(0), poslist, Ifelse(t, t2, t3)) where t is a generated fresh variable name
-  // and where poslist is the total new position indication of the distinguishing argument position within the given function equation
-  // (may change due to backtracking)
-  protected def makeArgExpWithDistPos(eqs: Seq[(Int, Eq)], parent_argexp: Exp, distarg_pos: Seq[Int]): (Option[Int], Seq[Int], Exp)
+  // creates (Some([0]), Ifelse(t, t2, t3)) where t is a generated fresh variable name
+  protected def makeArgExpWithDistPos(eqs: Seq[(Int, Eq)], argexp_list: Seq[Exp], distarg_pos: Seq[Int]): (Option[Seq[Int]], Exp)
 
   protected def getEquationsOfDefinition(funDef: FunDef): Seq[Eq]
 

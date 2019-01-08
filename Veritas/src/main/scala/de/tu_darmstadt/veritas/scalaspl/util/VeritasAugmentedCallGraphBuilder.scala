@@ -29,17 +29,6 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
     super.translate(funDef)(dag)
   }
 
-  private def substringByChar(str: String, sign: Char): Seq[String] =
-    str.zipWithIndex.filter {
-      _ == sign
-    }.map { case (_, index) => str.substring(0, index) }
-
-  protected def createStringFromPattern(pattern: FunctionPattern): String = pattern match {
-    case FunctionPatApp(name, args) =>
-      name + "_" + args.map(createStringFromPattern).mkString("%")
-    case FunctionPatVar(name) => name
-  }
-
   override protected def getDistinctionByIfExpression(exp: FunctionExpMeta): Map[FunctionExp, FunctionExpMeta] = exp match {
     case FunctionExpIf(cond, thn, els) => Map() + (cond -> thn) + (FunctionExpNot(cond) -> els)
     case FunctionExpLet(_, namedExpr, in) =>
@@ -83,8 +72,9 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
       }
     }
 
-  //internal helper function
-  private def getVarExpAtDistarg_pos(arg: FunctionExpMeta, distarg_pos: Seq[Int]): FunctionMeta = {
+  //internal helper function: given a list of argument expressions (from all node ancestors) and a position list,
+  //retrieve the correct variable name for the designated position
+  private def getVarExpAtDistarg_pos(arglist: Seq[FunctionExpMeta], distarg_pos: Seq[Int]): FunctionMeta = {
 
     def retrieveArgList(exp: FunctionExpMeta): Seq[FunctionExpMeta] =
       exp match {
@@ -93,16 +83,13 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
         case a => Seq(a)
       }
 
-    var currarglist = retrieveArgList(arg)
-    var currdistpos = distarg_pos
-    while (currdistpos.nonEmpty && currarglist.length > 1) {
-      currarglist = retrieveArgList(currarglist(currdistpos.head))
-      currdistpos = currdistpos.tail
-    }
+    //length of distarg_pos determines how far we have to look for a variable within arglist (is this really always true?)
+    val varlist = for (i <- distarg_pos.indices) yield retrieveArgList(arglist(i))(distarg_pos(i))
+    val res = varlist.last
 
-    currarglist.head match {
-      case fm@FunctionMeta(MetaVar(_)) => fm
-      case _ => sys.error(s"left-hand side variable name could not be found - ill-constructed parent argument expression? $arg")
+    res match {
+      case fm@FunctionMeta(_) => fm
+      case _ => sys.error(s"Variable name from $arglist at $distarg_pos could not be retrieved.")
     }
 
   }
@@ -167,79 +154,87 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
 
 
   // given a list of equations and an argument position,
-  // create a common argument expression for the given position, together with the single argument position in which the
+  // create a common argument expression for the given position, together with the total argument position list in which the
   // expressions in the group will be distinguished further (if possible)
-  // e.g. a group with the single entry (3, Succ(t1)) creates (None, poslist, Succ(t1))
+  // e.g. a group with the single entry (3, Succ(t1)) creates (None, Succ(t1))
   // a group with three entries [(0, Ifelse(True(), t2, t3)), (1, Ifelse(False(), t2, t3)), (2, Ifelse(t1, t2, t3))]
-  // creates (Some(0), poslist, Ifelse(t, t2, t3)) where t is a generated fresh variable name
-  // and where poslist is the total new position indication of the distinguishing argument position within the given function equation
-  // (may change due to backtracking)
-  override protected def makeArgExpWithDistPos(eqs: Seq[(Int, FunctionEq)], parent_argexp: FunctionExpMeta, distarg_pos: Seq[Int]): (Option[Int], Seq[Int], FunctionExpMeta) = {
+  // creates (Some([0]), Ifelse(t, t2, t3)) where t is a generated fresh variable name
+  override protected def makeArgExpWithDistPos(eqs: Seq[(Int, FunctionEq)], argexp_list: Seq[FunctionExpMeta], distarg_pos: Seq[Int]): (Option[Seq[Int]], FunctionExpMeta) = {
     //common argument expression should be an equation; retrieve variable for lhs from parent_argexp
     //for groups with just one element, we can immediately return the result
     if (eqs.length == 1) {
       val pat = getFunctionPatternAtPos(eqs.head._2, distarg_pos)
-      val lhvarname = getVarExpAtDistarg_pos(parent_argexp, distarg_pos)
-      (None, distarg_pos, FunctionExpEq(lhvarname, makeFunctionExpFromPat(pat.get)))
+      val lhvarname = getVarExpAtDistarg_pos(argexp_list, distarg_pos)
+      (None, FunctionExpEq(lhvarname, makeFunctionExpFromPat(pat.get)))
     } else {
-      var considered_distarg_pos = distarg_pos
-      var next_dist_pos: Option[Int] = None
-      var total_dist_pos: Seq[Int] = Seq()
-      var common_exp: FunctionExpMeta = FunctionExpApp("PLACEHOLDER", Seq())
+      var considered_distarg_pos = distarg_pos //starting point for positions to still consider
+      var next_dist_pos: Option[Int] = None // next position for distinguishing within the current argument list (to be discovered)
+      var total_dist_pos: Option[Seq[Int]] = None //total position list for the result (to be discovered)
+      var common_exp: FunctionExpMeta = argexp_list.last //without any refinement of the grouping, the common expression of the group stays the one from the parent
       //if the current distarg_pos list does not reveal any position for distinguishing, we may have to backtrack, hence the while loop
-      while (considered_distarg_pos.nonEmpty || next_dist_pos.isEmpty) {
+      //we have to terminate if we either find a valid position for distinguishing the arguments or if we run out of valid positions
+      while (next_dist_pos.isEmpty && considered_distarg_pos.nonEmpty) {
         //we assume a valid position list (considered_distarg_pos) at this point
         val patlist: Seq[(Int, FunctionPattern)] = for ((i, eq) <- eqs) yield {
           (i, getFunctionPatternAtPos(eq, considered_distarg_pos).get)
         }
 
         val groups = groupFunctionPatterns(patlist)
-        //TODO: analyze groups correctly here
 
-        val pats = (for (eq <- eqs) yield getFunctionPatternAtPos(eq._2, considered_distarg_pos)).flatten
+        if (groups.length == 1) {
+          // if there is only one group, it has to be a group with the same function application
 
-        // first grouping step for pats: distinguish
+          val pats = patlist map (_._2)
 
-        //the function patterns within a group at the position designated by distarg_pos all have to be FunctionPatApps with the same name!
-        val funnames = (for (p <- pats) yield p match {
-          case FunctionPatApp(functionName, _) => functionName
-        }).distinct
-        if (funnames.length == 1) {
-          //expected case for wellformed group consisting only of application patterns
-          val funname = funnames.head
+          //the function patterns within a group at the position designated by distarg_pos all have to be FunctionPatApps with the same name!
+          val funnames = (for (p <- pats) yield p match {
+            case FunctionPatApp(functionName, _) => functionName
+          }).distinct
+          if (funnames.length == 1) {
+            //expected case for wellformed group consisting only of application patterns
+            val funname = funnames.head
 
-          //group the single arguments within the FunctionPatApp with the same name by position
-          val listofargs = for (p <- pats) yield p match {
-            case FunctionPatApp(_, args) => args
+            //group the single arguments within the FunctionPatApp with the same name by position
+            val listofargs = for (p <- pats) yield p match {
+              case FunctionPatApp(_, args) => args
+            }
+
+            val arggroups = for (i <- listofargs.head.indices) yield listofargs map (la => la(i))
+
+            val ind_cand = arggroups.indexWhere(distPosYesNo)
+            next_dist_pos = if (ind_cand >= 0) Some(ind_cand) else None
+            total_dist_pos = next_dist_pos match {
+              case Some(p) => Some(considered_distarg_pos :+ p)
+              case None => None
+            }
+
+            //create a common argument expression (equation) for the group
+            val lhvarname = getVarExpAtDistarg_pos(argexp_list, considered_distarg_pos)
+
+            val rhs = if (constructors.isDefinedAt(funname)) {
+              val varnames = FreshVariables.freshMetaVars(Set(lhvarname.metavar), constructors(funname).in)
+              FunctionExpApp(funname, varnames map (v => FunctionMeta(v)))
+            }
+            else {
+              val varnames = FreshVariables.freshMetaVars(Set(lhvarname.metavar), funcSigs(funname).in)
+              FunctionExpApp(funname, varnames map (v => FunctionMeta(v)))
+            }
+
+
+            common_exp = FunctionExpEq(lhvarname, rhs)
+          } else {
+            sys.error(s"Could not detect a common pattern for group $eqs at argument position $considered_distarg_pos")
           }
-
-          val arggroups = for (i <- listofargs.head.indices) yield listofargs map (la => la(i))
-
-          val ind_cand = arggroups.indexWhere(distPosYesNo)
-          next_dist_pos = if (ind_cand >= 0) Some(ind_cand) else None
-          total_dist_pos = next_dist_pos match {
-            case Some(p) => considered_distarg_pos :+ p
-            case None => considered_distarg_pos
-          }
-
-          //create a common argument expression (equation) for the group
-          val rhs = if (constructors.isDefinedAt(funname)) {
-            val varnames = FreshVariables.freshMetaVars(Set(), constructors(funname).in)
-            FunctionExpApp(funname, varnames map (v => FunctionMeta(v)))
-          }
-          else {
-            val varnames = FreshVariables.freshMetaVars(Set(), funcSigs(funname).in)
-            FunctionExpApp(funname, varnames map (v => FunctionMeta(v)))
-          }
-
-          val lhvarname = getVarExpAtDistarg_pos(parent_argexp, considered_distarg_pos)
-          common_exp = FunctionExpEq(lhvarname, rhs)
+          considered_distarg_pos = retrieveNextPatternPos(eqs, considered_distarg_pos)
         } else {
-          sys.error(s"Could not detect a common pattern for group $eqs at argument position $considered_distarg_pos")
+          //if there is more than one group in the argument list, then the current position is the one by which we have to distinguish next
+          next_dist_pos = Some(considered_distarg_pos.last)
+          total_dist_pos = Some(considered_distarg_pos)
+
+          //correct common expression was computed in a previous iteration
         }
-        considered_distarg_pos = retrieveNextPatternPos(eqs, considered_distarg_pos)
       }
-      (next_dist_pos, total_dist_pos, common_exp)
+      (total_dist_pos, common_exp)
     }
   }
 
