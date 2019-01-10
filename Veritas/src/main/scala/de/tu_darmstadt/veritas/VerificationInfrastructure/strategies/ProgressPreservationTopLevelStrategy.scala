@@ -3,8 +3,10 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.LemmaApplication
 import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
-import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
@@ -74,11 +76,19 @@ class ProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, pathToS
     val progressObligation: g.Obligation = g.newObligation(SPLSpec, Goals(Seq(progress_tr), None), "Progress")
     g.storeObligation("Progress", progressObligation)
 
-    //val preservation_tr: TypingRule = dsk.lookupByFunName(dsk.preservationProperties, "reduce").head
-    //val preservationObligation: g.Obligation = g.newObligation(SPLSpec, Goals(Seq(preservation_tr), None), "Preservation")
-    //g.storeObligation("Preservation", preservationObligation)
+    val preservation_tr: TypingRule = dsk.lookupByFunName(dsk.preservationProperties, "reduce").head
+    val preservationObligation: g.Obligation = g.newObligation(SPLSpec, Goals(Seq(preservation_tr), None), "Preservation")
+    g.storeObligation("Preservation", preservationObligation)
 
     //TODO call further strategies for proof graph generation
+    ProgressPreservationBasicLoop(dsk, acg).applyToPG(g)(progressObligation)
+    ProgressPreservationBasicLoop(dsk, acg).applyToPG(g)(preservationObligation)
+
+    val speceng = new VeritasSpecEnquirer(SPLSpec)
+    val testlemma: TypingRule = TypingRule("lem", Seq(), Seq(FunctionExpJudgment(FunctionExpApp("F", Seq()))))
+    val lemmaApplication = LemmaApplication(Seq(testlemma), SPLSpec, speceng)
+    g.applyTactic(progressObligation, lemmaApplication)
+    g.applyTactic(preservationObligation, lemmaApplication)
 
     g
   }
