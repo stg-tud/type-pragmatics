@@ -36,7 +36,8 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
     // every leaf at this stage has to be a structural leaf
     val structuralLeaves = leaves.map(_.asInstanceOf[dag.StructuralDistinction])
 
-    def buildChildrenBasedOnFunctionExp(node: dag.Node, foundBindings: Map[String, Set[String]], nestinglevel: Int): Unit = {
+    //foundBindings: map from var name to functions used to create the binding and the nesting level where the binding appeared
+    def buildChildrenBasedOnFunctionExp(node: dag.Node, foundBindings: Map[String, Set[(String, Int)]], nestinglevel: Int): Unit = {
       val exp = dag.getExpression(node)
       val eqnum_in_node = node match {
         case dag.StructuralDistinction(_, _, eqs) => eqs.head._1
@@ -48,6 +49,7 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
         val outerNode = dag.FunctionCall(eqnum_in_node, nestinglevel, funcNames.head)
         dag.addChild(outerNode, node)
         if (funcNames.lengthCompare(2) == 0) {
+          //potentially trying to add nodes twice here!
           val innerNode = dag.FunctionCall(eqnum_in_node, nestinglevel, funcNames(1))
           dag.addChild(innerNode, outerNode)
         }
@@ -56,17 +58,18 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
       // maps from function name to passed varrefs
       val varRefdByFunction: Map[String, Set[String]] = getVarRefWithinFunctionApp(exp)
       // maps from var name to functions it used to create the binding
-      val bindings: Map[String, Set[String]] = foundBindings ++ getResultBindings(exp)
+      val bindings: Map[String, Set[(String, Int)]] = foundBindings ++ getResultBindings(exp, nestinglevel)
       varRefdByFunction.foreach { case (funName, refNames) =>
         val funCall = dag.FunctionCall(eqnum_in_node, nestinglevel, funName)
         // because function was called in within a let or a the cond of if we link node to funCall
         dag.addChild(funCall, node)
 
         bindings.foreach { case (bindingName, funcApps) =>
-          // binding was used in a funApp
+          // binding was used in a funApp - create nodes for binding with the nesting level saved together with the binding
+          // if the node is already present, an edge will be added
           if (refNames.contains(bindingName)) {
-            funcApps.foreach { funcName =>
-              val parent = dag.FunctionCall(eqnum_in_node, nestinglevel, funcName)
+            funcApps.foreach { case (funcName, nest_lvl) =>
+              val parent = dag.FunctionCall(eqnum_in_node, nest_lvl, funcName)
               dag.addChild(parent, funCall)
             }
           }
@@ -82,8 +85,8 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
     }
 
     //
-    structuralLeaves.foreach { leave =>
-      buildChildrenBasedOnFunctionExp(leave, Map(), 0)
+    structuralLeaves.foreach { leaf =>
+      buildChildrenBasedOnFunctionExp(leaf, Map(), 0)
     }
     dag
   }
@@ -113,5 +116,5 @@ trait AugmentedCallGraphBuilder[FunDef, Eq, Criteria, Exp, Graph <: AugmentedCal
   // first element is outer function application, second is a possible nested function application
   protected def getNestedFunctionApplications(exp: Exp): Seq[Seq[String]]
   protected def getVarRefWithinFunctionApp(exp: Exp): Map[String, Set[String]]
-  protected def getResultBindings(exp: Exp): Map[String, Set[String]]
+  protected def getResultBindings(exp: Exp, nestinglevel: Int): Map[String, Set[(String, Int)]]
 }

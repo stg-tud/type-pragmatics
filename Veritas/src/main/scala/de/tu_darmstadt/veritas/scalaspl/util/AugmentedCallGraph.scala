@@ -47,7 +47,7 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
       if (adjacencyList(parent).contains(child))
       //for debugging purposes
       {
-        println(s"Warning: Trying to add a second edge from $parent to $child")
+        //println(s"Warning: Trying to add a second edge from $parent to $child")
       }
       else {
         val children = adjacencyList(parent)

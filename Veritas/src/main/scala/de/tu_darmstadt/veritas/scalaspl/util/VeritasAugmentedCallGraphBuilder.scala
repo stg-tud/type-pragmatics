@@ -36,10 +36,10 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
     case _ => Map()
   }
 
-  // TODO currently only supports sinlge funcapp
-  override protected def getResultBindings(exp: FunctionExpMeta): Map[String, Set[String]] = exp match {
+  // TODO currently only supports sinlge funcapp - there might be a lot of cases missing here, some bindings might not be detected correctly!
+  override protected def getResultBindings(exp: FunctionExpMeta, nestinglevel: Int): Map[String, Set[(String, Int)]] = exp match {
     case FunctionExpLet(name, FunctionExpApp(funcName, _), in) =>
-      Map() + (name -> Set(funcName)) ++ getResultBindings(in)
+      Map() + (name -> Set((funcName, nestinglevel))) ++ getResultBindings(in, nestinglevel)
     case _ => Map()
   }
 
