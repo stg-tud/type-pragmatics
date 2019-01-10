@@ -225,7 +225,10 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
           } else {
             sys.error(s"Could not detect a common pattern for group $eqs at argument position $considered_distarg_pos")
           }
-          considered_distarg_pos = retrieveNextPatternPos(eqs, considered_distarg_pos)
+
+          //compute the next valid argument position for checking if no position for distinguishing has been found yet
+          if (next_dist_pos.isEmpty)
+            considered_distarg_pos = retrieveNextPatternPos(eqs, considered_distarg_pos)
         } else {
           //if there is more than one group in the argument list, then the current position is the one by which we have to distinguish next
           next_dist_pos = Some(considered_distarg_pos.last)
