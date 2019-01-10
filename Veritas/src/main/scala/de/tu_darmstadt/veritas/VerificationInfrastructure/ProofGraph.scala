@@ -123,16 +123,18 @@ trait ProofGraph[Spec, Goal] extends IProofGraph[Spec, Goal] {
     * @return obligation previously stored under the same name, if any
     */
   def storeObligation(name: String, obl: Obligation): Option[Obligation]
+
   /** Removes obligation from the stored obligations. The obligation will remain in
     * the graph if it is currently required by other obligations, but it will not be
     * accessible via `findObligation` or `storedObligations`.
     */
+  def unstoreObligation(obl: Obligation)
+
   def storeNewObligation(name: String, spec: Spec, goal: Goal): Obligation = {
     val obl = newObligation(spec, goal)
     storeObligation(name, obl)
     obl
   }
-  def unstoreObligation(obl: Obligation)
 
   // TODO add error possibility (applying a tactic could fail)
   def applyTactic(obl: Obligation, tactic: Tactic[Spec, Goal]): ProofStep
