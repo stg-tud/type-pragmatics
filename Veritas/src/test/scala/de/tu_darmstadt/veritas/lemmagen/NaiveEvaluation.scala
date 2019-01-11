@@ -67,23 +67,58 @@ object NaiveEvaluation {
     )
   }
 
-  def generateEvaluationTableLine(function: FunctionDef, lemmas: Set[Lemma], equivalent: Set[Lemma]): String = {
+  def generateGeneratedLine(function: FunctionDef, lemmas: Set[Lemma]): String = {
     val generatedProgress = lemmas.filter(_.name.endsWith("Progress"))
     val generatedPreservation = lemmas.filter(_.name.endsWith("Preservation"))
     require(generatedProgress ++ generatedPreservation == lemmas)
+    //val equivalentProgress = equivalent intersect generatedProgress
+    //val equivalentPreservation = equivalent intersect generatedPreservation
+    s"""${formatFunctionName(function)} &
+    | ${generatedProgress.size} &
+    | ${generatedPreservation.size} &
+    | ${lemmas.size} \\\\""".stripMargin
+  }
+
+  def generateEquivalentLine(function: FunctionDef, lemmas: Set[Lemma], equivalent: Set[Lemma]): String = {
+    val generatedProgress = lemmas.filter(_.name.endsWith("Progress"))
+    val generatedPreservation = lemmas.filter(_.name.endsWith("Preservation"))
+    val expectedProgress = problem.dsk.lookupByFunName(
+      problem.dsk.progressProperties,
+      function.signature.name).toSet
+    val expectedPreservation = problem.dsk.lookupByFunName(
+      problem.dsk.preservationProperties,
+      function.signature.name).toSet
+    require(generatedProgress ++ generatedPreservation == lemmas)
     val equivalentProgress = equivalent intersect generatedProgress
     val equivalentPreservation = equivalent intersect generatedPreservation
+    val Precision = "%1.4f"
+
+    def percentage(a: Integer, b: Integer): String = {
+      if(b == 0) {
+        "-"
+      } else {
+        Precision.format(a.toDouble / b.toDouble)
+      }
+    }
+    /*
+     ${equivalentProgress.size + equivalentPreservation.size} & ${expectedProgress.size + expectedPreservation.size}
+     ${percentage(equivalentProgress.size, expectedProgress.size)} &
+ ${percentage(equivalentPreservation.size, expectedPreservation.size)} &
+ ${percentage((equivalentProgress.size + equivalentPreservation.size), (expectedProgress.size + expectedPreservation.size))} &
+     */
+    /*
+        s"""${formatFunctionName(function)} &
+       | ${equivalentProgress.size} & ${expectedProgress.size} &
+       | ${equivalentPreservation.size} & ${expectedPreservation.size} \\\\""".stripMargin
+     */
     s"""${formatFunctionName(function)} &
-       | ${generatedProgress.size} &
-       | ${generatedPreservation.size} &
-       | ${lemmas.size} &
-       | ${equivalentProgress.size} &
-       | ${equivalentPreservation.size} &
-       | ${equivalentProgress.size + equivalentPreservation.size} \\\\""".stripMargin
+       | ${equivalentProgress.size} / ${expectedProgress.size} &
+       | ${equivalentPreservation.size} / ${expectedPreservation.size} \\\\""".stripMargin
   }
 
   def evaluate(result: Map[FunctionDef, Set[Lemma]]): Unit = {
     val countLines = new mutable.ListBuffer[String]()
+    val equivalentLines = new mutable.ListBuffer[String]()
     val successLines = new mutable.ListBuffer[String]()
     sortFunctions(result.keys.toSeq).foreach { function =>
       val lemmas = result(function)
@@ -99,7 +134,8 @@ object NaiveEvaluation {
         )
       )
       printLemmas(new File(Directory, s"equivalent-$name.txt"), equivalentLemmas)
-      countLines += generateEvaluationTableLine(function, lemmas, equivalentLemmas)
+      countLines += generateGeneratedLine(function, lemmas)
+      equivalentLines += generateEquivalentLine(function, lemmas, equivalentLemmas)
 
       val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
       var firstIteration = true
@@ -115,6 +151,7 @@ object NaiveEvaluation {
       }
     }
     printToFile(new File(Directory, "naive-counts-table.tex"), countLines.mkString("\n"))
+    printToFile(new File(Directory, "naive-equivalent-table.tex"), equivalentLines.mkString("\n"))
     printToFile(new File(Directory, "naive-success-table.tex"), successLines.mkString("\n"))
     writeDynamicFunctions()
     writeStaticFunctions()

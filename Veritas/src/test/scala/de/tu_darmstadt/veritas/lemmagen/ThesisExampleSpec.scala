@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.lemmagen
 
+import de.tu_darmstadt.veritas.scalaspl.SQLSpec.rawIntersection
 import de.tu_darmstadt.veritas.scalaspl.lang.ScalaSPLSpecification
 
 object SQLSpec extends ScalaSPLSpecification {
@@ -714,4 +715,8 @@ object SQLSpec extends ScalaSPLSpecification {
     require(attachColToFrontRaw(rt1, rt2) == rt3)
   } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), rt3)
 
+  @Property
+  def somewhatWrong6(rt1: RawTable, rt2: RawTable, result: RawTable): Unit = {
+    require(rawIntersection(rt1, rt2) == result)
+  } ensuring sameLength(rt1, rt2)
 }

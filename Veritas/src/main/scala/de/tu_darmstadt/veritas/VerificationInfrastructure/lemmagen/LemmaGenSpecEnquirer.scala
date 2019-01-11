@@ -29,7 +29,7 @@ class LemmaGenSpecEnquirer(spec: Module, dsk: DomainSpecificKnowledge) extends V
 
   /** Return all static and dynamic functions that take any of `types` */
   def retrieveTransformers(types: Set[SortRef]): Set[FunctionDef] =
-    types.flatMap(typ => functions.filter(_.signature.in.contains(typ)))
+    types.flatMap(typ => functions.filter(_.signature.in.contains(typ))).filterNot(_.signature.out.name == "Bool")
 
   /**
     * Return all static and dynamic functions that produce any type involving

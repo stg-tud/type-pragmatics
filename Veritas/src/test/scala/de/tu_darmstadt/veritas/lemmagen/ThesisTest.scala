@@ -4,6 +4,8 @@ import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.ProgressStrategy
+import de.tu_darmstadt.veritas.backend.ast.SortRef
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import org.scalatest.FunSuite
@@ -70,5 +72,21 @@ class ThesisTest extends FunSuite {
       println()
     }
     outputPrettyPrinter.flush()
+  }
+
+  def formatFunctionName(f: FunctionDef): String = {
+    s"\\C{${f.signature.name}}"
+  }
+
+  test("auxiliary functions") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
+    val problem = new Problem(file)
+
+    def sorts(s: Set[String]): Set[SortRef] = s.map(l => SortRef(l))
+
+    println(problem.enquirer.retrievePredicates(sorts(Set("Table", "RawTable"))).map(_.signature.name))
+    println(problem.enquirer.retrieveTransformers(sorts(Set("Table"))).map(_.signature.name))
+    println(problem.enquirer.retrieveProducers(sorts(Set("Table"))).map(_.signature.name))
+
   }
 }
