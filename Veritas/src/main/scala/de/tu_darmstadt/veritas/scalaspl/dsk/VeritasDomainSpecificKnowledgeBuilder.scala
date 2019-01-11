@@ -11,7 +11,7 @@ import de.tu_darmstadt.veritas.scalaspl.util.{AlgebraicDataTypeCollector, Report
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with DomainSpecificKnowledgeAnnotations, Knowledge <: DomainSpecificKnowledge] {
+trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with DomainSpecificKnowledgeAnnotations, Knowledge <: VeritasDomainSpecificKnowledge] {
   import scala.meta._
 
   def reporter: Reporter
@@ -167,7 +167,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
     paramTrait.get._1
   }
 
-  def buildBase(): DomainSpecificKnowledge = {
+  def buildBase(): VeritasDomainSpecificKnowledge = {
     val transRecursiveFuncs = translateRecursiveFunctions()
     val transFailableTypes = translateTrait(failableTypes)
     val transProgressProps = translateProperties(progressProperties)
@@ -177,7 +177,7 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
     val transPredicates = translateFunctions(predicateFunctions.toSet)
     // TODO: This can be removed once we are sure we have linked all properties
     val transProperties = translateProperty(properties.toSet)
-    new DomainSpecificKnowledge {
+    new VeritasDomainSpecificKnowledge {
       override val recursiveFunctions: Map[FunctionDef, DataType] = transRecursiveFuncs
       override val failableTypes: Seq[DataType] = transFailableTypes
       override val preservationProperties: Map[FunctionDef, Set[TypingRule]] = transPreservationProps
@@ -227,13 +227,13 @@ trait DomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecification with
     }
   }
 
-  def build(base: DomainSpecificKnowledge): Knowledge
+  def build(base: VeritasDomainSpecificKnowledge): Knowledge
 }
 
-object DomainSpecificKnowledgeBuilder {
-  def apply(): DomainSpecificKnowledgeBuilder[ScalaSPLSpecification, DomainSpecificKnowledge] =
-    new DomainSpecificKnowledgeBuilder[ScalaSPLSpecification, DomainSpecificKnowledge] {
+object VeritasDomainSpecificKnowledgeBuilder {
+  def apply(): VeritasDomainSpecificKnowledgeBuilder[ScalaSPLSpecification, VeritasDomainSpecificKnowledge] =
+    new VeritasDomainSpecificKnowledgeBuilder[ScalaSPLSpecification, VeritasDomainSpecificKnowledge] {
       override val reporter = Reporter()
-      override def build(base: DomainSpecificKnowledge): DomainSpecificKnowledge = base
+      override def build(base: VeritasDomainSpecificKnowledge): VeritasDomainSpecificKnowledge = base
     }
 }

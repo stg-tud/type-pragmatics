@@ -9,7 +9,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.inputdsl.{FunctionDSL, SymTreeDSL}
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
+import de.tu_darmstadt.veritas.scalaspl.dsk.VeritasDomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 import de.tu_darmstadt.veritas.scalaspl.translator.{FunctionExpressionTranslator, ScalaSPLTranslator}
 import de.tu_darmstadt.veritas.scalaspl.util.ScalaMetaUtils
@@ -22,7 +22,7 @@ class AESoundnessProofGraph(storefile: File) {
   val fullAESpec: Module = new ScalaSPLTranslator().translate(sourcefile)
 
   //collect domain-specific knowledge
-  val builder = DomainSpecificKnowledgeBuilder()
+  val builder = VeritasDomainSpecificKnowledgeBuilder()
   val dsk = builder.build(sourcefile)
 
   val g: ProofGraphXodus[VeritasConstruct, VeritasFormula] with ProofGraphTraversals[VeritasConstruct, VeritasFormula] =
