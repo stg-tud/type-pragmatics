@@ -34,6 +34,9 @@ class VeritasProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, 
 
 
   override def getGoalsFromFunName(fn: String): Set[VeritasFormula] = {
+    //TODO: implement this function so that may work with different lemma selection strategies
+
+    //this is currently implemented so that it only works with functions which have BOTH a progress and a preservation property attached (e.g. top-level reduce)
     val tr_progress: TypingRule = dsk.lookupByFunName(dsk.progressProperties, fn).head
     val tr_preservation: TypingRule = dsk.lookupByFunName(dsk.preservationProperties, fn).head
     Set(Goals(Seq(tr_progress), None), Goals(Seq(tr_preservation), None))
