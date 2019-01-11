@@ -13,7 +13,7 @@ object ProgressPreservationGraphGeneration extends App {
   ppstrat.visualizeGraph("GeneratedAESoundness.png")
 
   ppstrat.printAllObligations()
-  ppstrat.printGoalWithName("Preservation")
+  //ppstrat.printGoalWithName("Preservation")
 
 //  val qlsource = "src/test/scala/de/tu_darmstadt/veritas/scalaspl/QLSpec.scala"
 //  val qlstore =  "QLSoundnessGeneratedProofGraph-store"

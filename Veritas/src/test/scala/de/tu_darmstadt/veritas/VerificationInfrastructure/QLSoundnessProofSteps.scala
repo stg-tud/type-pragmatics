@@ -23,7 +23,7 @@ object QLSoundnessProofSteps {
       ('MC(~'atm, ~'qtm) |- ~'q :: 'MC(~'atm2, ~'qtm2))
     ).===>("QL-Progress")(
       exists(~'am0, ~'qm0, ~'q0) |
-        'reduce('QC(~'am, ~'qm, ~'q)) === 'someQConf('QC(~'am0, ~'qm0, ~'q0)))
+        'reduce(~'q, ~'am, ~'qm) === 'someQConf('QC(~'am0, ~'qm0, ~'q0)))
   )
 
   val ReduceExpProgress = lemma(

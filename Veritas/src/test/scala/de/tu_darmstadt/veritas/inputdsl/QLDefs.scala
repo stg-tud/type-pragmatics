@@ -290,41 +290,41 @@ object QLDefsSpec {
             th 'someExp ('unop ('op, 'getExp ('eOpt)))
             els 'noExp))))
 
-  val reduce = function('reduce.>>('QConf) -> 'OptQConf) where
-    ('reduce ('QC ('am, 'qm, 'qempty)) := 'noQConf) |
-    ('reduce ('QC ('am, 'qm, 'qsingle ('question ('qid, 'l, 't)))) :=
+  val reduce = function('reduce.>>('Questionnaire, 'AnsMap, 'QMap) -> 'OptQConf) where
+    ('reduce ('qempty, 'am, 'qm) := 'noQConf) |
+    ('reduce ('qsingle ('question ('qid, 'l, 't)), 'am, 'qm) :=
       ((let('av) := 'getAnswer ('l, 't)) in
         'someQConf ('QC ('abind ('qid, 'av, 'am), 'qm, 'qempty)))) |
-    ('reduce ('QC ('am, 'qm, 'qsingle ('value ('qid, 't, 'e)))) :=
+    ('reduce ('qsingle ('value ('qid, 't, 'e)), 'am, 'qm) :=
       (iff ('expIsValue ('e))
         th 'someQConf ('QC ('abind ('qid, 'getExpValue ('e), 'am), 'qm, 'qempty))
         els ((let('eOpt) := 'reduceExp ('e, 'am)) in
         (iff ('isSomeExp ('eOpt))
           th 'someQConf ('QC ('am, 'qm, 'qsingle ('value ('qid, 't, 'getExp ('eOpt)))))
           els 'noQConf)))) |
-    ('reduce ('QC ('am, 'qm, 'qsingle ('defquestion ('qid, 'l, 't)))) :=
+    ('reduce ('qsingle ('defquestion ('qid, 'l, 't)), 'am, 'qm) :=
       'someQConf ('QC ('am, 'qmbind ('qid, 'l, 't, 'qm), 'qempty))) |
-    ('reduce ('QC ('am, 'qm, 'qsingle ('ask ('qid)))) :=
+    ('reduce ('qsingle ('ask ('qid)), 'am, 'qm) :=
       ((let('qOpt) := 'lookupQMap ('qid, 'qm)) in
         (iff ('isSomeQuestion ('qOpt))
           th 'someQConf ('QC ('am, 'qm, 'qsingle ('question ('qid, 'getQuestionLabel ('qOpt), 'getQuestionAType ('qOpt)))))
           els 'noQConf))) |
-    ('reduce ('QC ('am, 'qm, 'qseq ('qempty, 'qs2))) := 'someQConf ('QC ('am, 'qm, 'qs2))) |
-    ('reduce ('QC ('am, 'qm, 'qseq ('qs1, 'qs2))) :=
+    ('reduce ('qseq ('qempty, 'qs2), 'am, 'qm) := 'someQConf ('QC ('am, 'qm, 'qs2))) |
+    ('reduce ('qseq ('qs1, 'qs2), 'am, 'qm) :=
       ((let('qcOpt) := 'reduce('QC ('am, 'qm, 'qs1))) in
         (iff ('isSomeQC ('qcOpt))
           th 'someQConf ('qcappend ('getQC ('qcOpt), 'qs2))
           els 'noQConf))) |
-    ('reduce ('QC ('am, 'qm, 'qcond ('constant ('B ('yes)), 'qs1, 'qs2))) :=
+    ('reduce ('qcond ('constant ('B ('yes)), 'qs1, 'qs2), 'am, 'qm) :=
       'someQConf ('QC ('am, 'qm, 'qs1))) |
-    ('reduce ('QC ('am, 'qm, 'qcond ('constant ('B ('no)), 'qs1, 'qs2))) :=
+    ('reduce ('qcond ('constant ('B ('no)), 'qs1, 'qs2), 'am, 'qm) :=
       'someQConf ('QC ('am, 'qm, 'qs2))) |
-    ('reduce ('QC ('am, 'qm, 'qcond ('e, 'qs1, 'qs2))) :=
+    ('reduce ('qcond ('e, 'qs1, 'qs2), 'am, 'qm) :=
       ((let('eOpt) := 'reduceExp ('e, 'am)) in
         (iff ('isSomeExp ('eOpt))
           th 'someQConf ('QC ('am , 'qm, 'qcond ('getExp ('eOpt), 'qs1, 'qs2)))
           els 'noQConf))) |
-    ('reduce ('QC ('am, 'qm, 'qgroup ('gid, 'qs))) := 'someQConf ('QC ('am, 'qm, 'qs)))
+    ('reduce ('qgroup ('gid, 'qs), 'am, 'qm) := 'someQConf ('QC ('am, 'qm, 'qs)))
 
   val QLSemantics = Module("QLSemantics", Seq(Resolved(BasicTypes), Resolved(QLSyntax), Resolved(QLSemanticsData)),
     Seq(askYesNo, askNumber, askString, getAnswer, evalBinOp, evalUnOp, reduceExp, reduce))
@@ -639,7 +639,7 @@ object QLDefsTestGoals {
     ((~'q === 'qsingle ('value (~'qid1, 'Number, 'qvar (~'qid2)))) &
       (~'am1 === 'abind (~'qid2, 'Num ('zero), 'aempty))
       ).===>("counterexample-3")(
-      (exists(~'am2) | ('reduce ('QC (~'am1, ~'qm, ~'q)) ~= 'reduce ('QC (~'am2, ~'qm, ~'q))))))
+      (exists(~'am2) | ('reduce (~'q, ~'am1, ~'qm) ~= 'reduce (~'q, ~'am2, ~'qm)))))
 
   val counterexample4: Goals = goal(
     ((~'exp === 'binop ('qvar (~'qid1), 'mulop, 'qvar (~'qid2))) &
@@ -652,13 +652,13 @@ object QLDefsTestGoals {
       ).===>("counterexample-5")(
       (exists(~'am) |
         ('lookupAnsMap (~'qid1, ~'am) ~= 'noAval) &
-          ('reduce ('QC (~'am, 'qmempty, ~'q1)) ~= 'noQConf))))
+          ('reduce (~'q1, ~'am, 'qmempty) ~= 'noQConf))))
 
   val counterexample6: Goals = goal(
     ((~'q === 'qsingle ('ask (~'qid)))
       ).===>("counterexample-6")(
       (exists(~'qm) |
-        ('reduce ('QC ('aempty, ~'qm, ~'q)) ~= 'noQConf))))
+        ('reduce (~'q, 'aempty, ~'qm) ~= 'noQConf))))
 
   val counterexample7: Goals = goal(
     ===>("counterexample-7")(
@@ -674,7 +674,7 @@ object QLDefsTestGoals {
     ((~'q === 'qsingle ('ask (~'qid)))
       ).===>("counterexample-9")(
       (exists(~'qm1, ~'qm2) |
-        ('reduce ('QC ('aempty, ~'qm1, ~'q)) ~= 'reduce ('QC ('aempty, ~'qm2, ~'q))))))
+        ('reduce (~'q, 'aempty, ~'qm1) ~= 'reduce (~'q, 'aempty, ~'qm2)))))
 
   val counterexample10: Goals = goal(
     ===>("counterexample-10")(
@@ -695,7 +695,7 @@ object QLDefsTestGoals {
         (~'qm === 'qmempty)
       ).===>("execution-1")(
       (exists(~'result) |
-        'reduce ('QC (~'am, ~'qm, ~'singleq)) === ~'result))))
+        'reduce (~'singleq, ~'am, ~'qm) === ~'result))))
 
   val execution2: Goals = goal(
      ===>("execution-2")(
@@ -736,7 +736,7 @@ object QLDefsTestGoals {
         (~'q === 'qsingle ('ask ('qid2)))
         ).===>("execution-6")(
         (exists(~'result) |
-          'reduce ('QC (~'am, ~'qm, ~'q)) === ~'result))))
+          'reduce (~'q, ~'am, ~'qm) === ~'result))))
 
   val execution7: Local = local(
     differentconsts(
@@ -750,7 +750,7 @@ object QLDefsTestGoals {
         (~'q === 'qcond ('constant ('B ('yes)), ~'q1, ~'q2))
         ).===>("execution-7")(
         (exists(~'result) |
-          'reduce ('QC ('aempty, 'qmempty, ~'q)) === ~'result))))
+          'reduce (~'q, 'aempty, 'qmempty) === ~'result))))
 
   val execution8: Goals = goal(
     ((~'e1 === 'constant ('B ('no))) &
@@ -797,25 +797,25 @@ object QLDefsTestGoals {
 
   val proof2: Goals = goal(
     ((~'q === 'qsingle ('question (~'qid, ~'l, ~'t))) &
-      ('reduce ('QC (~'am1, ~'qm1, ~'q)) === 'someQConf ('QC (~'am2, ~'qm2, 'qempty)))
+      ('reduce (~'q, ~'am1, ~'qm1) === 'someQConf ('QC (~'am2, ~'qm2, 'qempty)))
       ).===>("proof-2")(
       ('isSomeAval ('lookupAnsMap (~'qid, ~'am2))) &
         ('typeOf ('getAval ('lookupAnsMap (~'qid, ~'am2))) === ~'t)))
 
   val proof3: Goals = goal(
     ((~'dq === 'qsingle ('defquestion (~'qid, ~'l, ~'t))) &
-      ('reduce ('QC (~'am, ~'qm, ~'dq)) === 'someQConf ('QC (~'am1, ~'qm1, ~'eq))) &
+      ('reduce (~'dq, ~'am, ~'qm) === 'someQConf ('QC (~'am1, ~'qm1, ~'eq))) &
       (~'aq === 'qsingle ('ask (~'qid)))
       ).===>("proof-3")(
-      'isSomeQC ('reduce ('QC (~'am1, ~'qm1, ~'aq)))))
+      'isSomeQC ('reduce (~'aq, ~'am1, ~'qm1))))
 
   val proof4: Goals = goal(
     ((~'q === 'qsingle ('question (~'qid1, ~'l, 'Number))) &
-      ('reduce ('QC (~'am1, ~'qm1, ~'q)) === 'someQConf ('QC (~'am2, ~'qm2, 'qempty))) &
+      ('reduce (~'q, ~'am1, ~'qm1) === 'someQConf ('QC (~'am2, ~'qm2, 'qempty))) &
       (~'exp === 'binop ('qvar (~'qid1), 'addop, 'constant ('Num ('succ ('zero))))) &
       (~'qexp === 'qsingle ('value (~'qid2, 'Number, ~'exp)))
       ).===>("proof-4")(
-      'isSomeQC ('reduce ('QC (~'am2, ~'qm2, ~'qexp)))))
+      'isSomeQC ('reduce (~'qexp, ~'am2, ~'qm2))))
 
   val proof5: Goals = goal(
     ((~'q1 === 'qsingle ('question (~'qid1, ~'l1, ~'t1))) &
@@ -837,7 +837,7 @@ object QLDefsTestGoals {
     ((~'q1 === 'qsingle ('question (~'qid1, ~'l1, ~'t1))) &
       (~'menv === 'MC ('atmempty, 'atmempty)) &
       (~'menv |- ~'q1 :: 'MC (~'atm, ~'qm)) &
-      ('reduce ('QC ('aempty, 'qmempty, ~'q1)) === 'someQConf (~'qc))
+      ('reduce (~'q1, 'aempty, 'qmempty) === 'someQConf (~'qc))
       ).===>("proof-7")(
       'qcCheck (~'menv, ~'qc, ~'atm)))
 
@@ -872,8 +872,8 @@ object QLDefsTestGoals {
 
   val synthesis1: Goals = goal(
     ===>("synthesis-1")(
-      (exists(~'qc) |
-        'reduce (~'qc) === 'noQConf)))
+      (exists(~'q, ~'am, ~'qm) |
+        'reduce (~'q, ~'am, ~'qm) === 'noQConf)))
 
   val synthesis2: Goals = goal(
     ===>("synthesis-2")(
@@ -894,7 +894,7 @@ object QLDefsTestGoals {
     goal(
       ===>("synthesis-4")(
         (exists(~'q) |
-          ('reduce ('QC ('am, 'qm, ~'q)) === 'someQConf ('QC ('am, 'qm, 'sq)))))))
+          ('reduce (~'q, 'am, 'qm) === 'someQConf ('QC ('am, 'qm, 'sq)))))))
 
   val synthesis5: Goals = goal(
     ===>("synthesis-5")(
@@ -932,8 +932,8 @@ object QLDefsTestGoals {
       ((~'e === 'binop ('constant ('Num ('zero)), 'addop, 'constant ('Num ('succ ('zero))))) &
         (~'qcres === 'someQConf ('QC ('am, 'qm, 'qsingle ('value ('qid, 'Number, ~'e)))))
         ).===>("synthesis-8")(
-        (exists(~'qc) |
-          ('reduce (~'qc) === ~'qcres)))))
+        (exists(~'q, ~'am, ~'qm) |
+          ('reduce (~'q, ~'am, ~'qm) === ~'qcres)))))
 
   val synthesis9: Goals = goal(
     ===>("synthesis-9")(
@@ -973,7 +973,7 @@ object QLDefsTestGoals {
         (~'qm === 'qmbind ('qid1, 'l, 'YesNo, 'qmempty)) &
         (~'q === 'qsingle ('question ('qid1, 'l, 'YesNo)))
         ).===>("test-3")(
-        ('reduce ('QC (~'am, ~'qm, 'qsingle ('ask ('qid1)))) === 'someQConf ('QC (~'am, ~'qm, ~'q))))))
+        ('reduce ('qsingle ('ask ('qid1)), ~'am, ~'qm) === 'someQConf ('QC (~'am, ~'qm, ~'q))))))
 
   val test4: Local = local(
     differentconsts(
@@ -985,7 +985,7 @@ object QLDefsTestGoals {
         (~'qm === 'qmbind ('qid1, 'l, 'YesNo, 'qmempty)) &
         (~'q === 'qsingle ('question ('qid1, 'l, 'YesNo)))
         ).===>("test-4")(
-        ('reduce ('QC (~'am, ~'qm, 'qsingle ('ask ('qid2)))) === 'noQConf))))
+        ('reduce ('qsingle ('ask ('qid2)), ~'am, ~'qm) === 'noQConf))))
 
   val test5: Goals = goal(
     (~'am === 'abind (~'qid, 'B ('yes), 'aempty)
@@ -1016,7 +1016,7 @@ object QLDefsTestGoals {
       ((~'q === 'qsingle ('defquestion ('qid, 'l, 'Text))) &
         (~'nqm === 'qmbind ('qid, 'l, 'Text, ~'qm))
         ).===>("test-8")(
-        ('reduce ('QC (~'am, ~'qm, ~'q)) === 'someQConf ('QC (~'am, ~'nqm, 'qempty))))))
+        ('reduce (~'q, ~'am, ~'qm) === 'someQConf ('QC (~'am, ~'nqm, 'qempty))))))
 
   val test9: Local = local(
     differentconsts(

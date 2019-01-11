@@ -380,15 +380,15 @@ object QLSpec extends ScalaSPLSpecification {
       }
   }
 
-  @Recursive(0, 2)
+  @Recursive(0)
   @ProgressProperty("reduceProgress")
   @Dynamic
-  def reduce(qc: QConf): OptQConf = qc match {
-    case (QC(_, _, qempty())) => noQConf()
-    case (QC(am, qm, qsingle(question(qid, l, t)))) =>
+  def reduce(q: Questionnaire, ama: AnsMap, qma: QMap): OptQConf = (q, ama, qma) match {
+    case (qempty(), _, _) => noQConf()
+    case (qsingle(question(qid, l, t)), am, qm) =>
       val av = getAnswer(l, t)
       someQConf(QC(abind(qid, av, am), qm, qempty()))
-    case (QC(am, qm, qsingle(value(qid, t, e)))) =>
+    case (qsingle(value(qid, t, e)), am, qm) =>
       if (expIsValue(e))
         someQConf(QC(abind(qid, getExpValue(e), am), qm, qempty()))
       else {
@@ -397,29 +397,29 @@ object QLSpec extends ScalaSPLSpecification {
           someQConf(QC(am, qm, qsingle(value(qid, t, getExp(eOpt)))))
         else noQConf()
       }
-    case (QC(am, qm, qsingle(defquestion(qid, l, t)))) =>
+    case (qsingle(defquestion(qid, l, t)), am, qm) =>
       someQConf(QC(am, qmbind(qid, l, t, qm), qempty()))
-    case (QC(am, qm, qsingle(ask(qid)))) =>
+    case (qsingle(ask(qid)), am, qm) =>
       val qOpt = lookupQMap(qid, qm)
       if (isSomeQuestion(qOpt))
         someQConf(QC(am, qm, qsingle(question(qid,
           getQuestionLabel(qOpt),
           getQuestionAType(qOpt)))))
       else noQConf()
-    case (QC(am, qm, qseq(qempty(), qs))) => someQConf(QC(am, qm, qs))
-    case (QC(am, qm, qseq(qs1, qs2))) =>
-      val qcOpt = reduce(QC(am, qm, qs1))
+    case (qseq(qempty(), qs), am, qm) => someQConf(QC(am, qm, qs))
+    case (qseq(qs1, qs2), am, qm) =>
+      val qcOpt = reduce(qs1, am, qm)
       if (isSomeQC(qcOpt))
         someQConf(qcappend(getQC(qcOpt), qs2))
       else noQConf()
-    case (QC(am, qm, qcond(constant(B(yes())), qs1, qs2))) => someQConf(QC(am, qm, qs1))
-    case (QC(am, qm, qcond(constant(B(no())), qs1, qs2))) => someQConf(QC(am, qm, qs2))
-    case (QC(am, qm, qcond(e, qs1, qs2))) =>
+    case (qcond(constant(B(yes())), qs1, qs2), am, qm) => someQConf(QC(am, qm, qs1))
+    case (qcond(constant(B(no())), qs1, qs2), am, qm) => someQConf(QC(am, qm, qs2))
+    case (qcond(e, qs1, qs2), am, qm) =>
       val eOpt = reduceExp(e, am)
       if (isSomeExp(eOpt))
         someQConf(QC(am, qm, qcond(getExp(eOpt), qs1, qs2)))
       else noQConf()
-    case (QC(am, qm, qgroup(_, qs))) => someQConf(QC(am, qm, qs))
+    case (qgroup(_, qs), am, qm) => someQConf(QC(am, qm, qs))
   }
 
   // QLTypeSystem
@@ -580,7 +580,7 @@ object QLSpec extends ScalaSPLSpecification {
     require(typeQM(qm) == qtm)
     require(MC(atm, qtm) |- q :: MC(atm2, qtm2))
   } ensuring exists((am0: AnsMap, qm0: QMap, q0: Questionnaire) =>
-    reduce(QC(am, qm, q)) == someQConf(QC(am0, qm0, q0)))
+    reduce(q, am, qm) == someQConf(QC(am0, qm0, q0)))
 
   @Property
   def reduceExpProgress(exp: Exp, am: AnsMap, atm: ATMap, at: AType): Unit = {
@@ -601,4 +601,8 @@ object QLSpec extends ScalaSPLSpecification {
     require(lookupATMap(qid, qtm) == someAType(at))
   } ensuring exists((qid0: QID, l0: Label, t0: AType) =>
     lookupQMap(qid, qm) == someQuestion(qid0, l0, t0))
+
+
+
+  //TODO: add preservation property
 }

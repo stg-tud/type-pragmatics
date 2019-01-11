@@ -178,7 +178,7 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
         val spec = safeRead[Spec](entity.getLink(lOblSpec), pSpecContent)
         spec == specObj
       }
-      val obl = withSpecLinked.headOption.getOrElse {
+      val obl = withSpecLinked.getOrElse {
         val obl = txn.newEntity(TObligation)
         obl.setProperty(pOblGoal, ordered_goalObj)
         obl.setProperty(pProblemName, ordered_problemName)
@@ -293,12 +293,12 @@ class ProofGraphXodus[Spec, Goal](dbDir: File) extends ProofGraph[Spec, Goal] {
         Seq()
 
       var retainedEdges = Set[(Obligation, EdgeLabel)]()
-      val newOrRetainedEdges = requiredObjs map { case (obl, label) =>
-        val found = oldRequiredObjs.find(old => old._2 == label && old._1.goal == obl.goal && old._1.spec == obl.spec)
+      val newOrRetainedEdges = requiredObjs map { case (o, label) =>
+        val found = oldRequiredObjs.find(old => old._2 == label && old._1.goal == o.goal && old._1.spec == o.spec)
         found match {
-          case None => (obl, label)
+          case None => (o, label)
           case Some(old) =>
-            gcObl(obl.entity(txn))
+            gcObl(o.entity(txn))
             retainedEdges += old
             old
         }

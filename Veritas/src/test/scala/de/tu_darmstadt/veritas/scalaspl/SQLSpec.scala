@@ -491,6 +491,9 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @ProgressProperty("Progress")
+  @PreservationProperty("Preservation")
+  @Recursive(0)
   def reduce(query: Query, tst: TStore): OptQuery = (query, tst) match {
     case (tvalue(_), _) => noQuery()
     case (selectFromWhere(sel, name, pred), ts) =>
@@ -504,8 +507,8 @@ object SQLSpec extends ScalaSPLSpecification {
       }
       else
         noQuery()
-    case (Union(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =>
-      someQuery(tvalue(table(al1, rawUnion(rt1, rt2))))
+    case (Union(tvalue(t1), tvalue(t2)), ts) =>
+      someQuery(tvalue(table(getAttrL(t1), rawUnion(getRaw(t1), getRaw(t2)))))
     case (Union(tvalue(t), q2), ts) =>
       val q2reduce = reduce(q2, ts)
       if (isSomeQuery(q2reduce))
@@ -518,8 +521,8 @@ object SQLSpec extends ScalaSPLSpecification {
         someQuery(Union(getQuery(q1reduce), q2))
       else
         noQuery()
-    case (Intersection(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =>
-      someQuery(tvalue(table(al1, rawIntersection(rt1, rt2))))
+    case (Intersection(tvalue(t1), tvalue(t2)), ts) =>
+      someQuery(tvalue(table(getAttrL(t1), rawIntersection(getRaw(t1), getRaw(t2)))))
     case (Intersection(tvalue(t), q2), ts) =>
       val q2reduce = reduce(q2, ts)
       if (isSomeQuery(q2reduce))
@@ -532,8 +535,8 @@ object SQLSpec extends ScalaSPLSpecification {
         someQuery(Intersection(getQuery(q1reduce), q2))
       else
         noQuery()
-    case (Difference(tvalue(table(al1, rt1)), tvalue(table(al2, rt2))), ts) =>
-      someQuery(tvalue(table(al1, rawDifference(rt1, rt2))))
+    case (Difference(tvalue(t1), tvalue(t2)), ts) =>
+      someQuery(tvalue(table(getAttrL(t1), rawDifference(getRaw(t1), getRaw(t2)))))
     case (Difference(tvalue(t), q2), ts) =>
       val q2reduce = reduce(q2, ts)
       if (isSomeQuery(q2reduce))
@@ -682,7 +685,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // LEMMAS BEGIN
   //PROGRESS
   @Property
-  def reduceProgress(ts: TStore, ttc: TTContext, q: Query): Unit = {
+  def Progress(ts: TStore, ttc: TTContext, q: Query): Unit = {
     require(storeContextConsistent(ts, ttc))
     require(!isValue(q))
     require(exists((tt1: TType) => ttc |- q :: tt1))
@@ -862,7 +865,7 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedtable(tt2, t2)
 
   @Property
-  def reducePreservation(ttc: TTContext, ts: TStore, q: Query, qr: Query, tt: TType): Unit = {
+  def Preservation(ttc: TTContext, ts: TStore, q: Query, qr: Query, tt: TType): Unit = {
     require(storeContextConsistent(ts, ttc))
     require(ttc |- q :: tt)
     require(reduce(q, ts) == someQuery(qr))
