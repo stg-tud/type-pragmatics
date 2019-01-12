@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
-import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar}
+import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, VeritasConstruct}
 import de.tu_darmstadt.veritas.backend.ast.function._
 
 trait Refinement {
@@ -53,5 +53,12 @@ object Refinement {
     override def toString: String = s"Predicate(${predicate.signature.name}, $arguments)"
   }
 
+  case class Equation(left: FunctionExpMeta, right: FunctionExpMeta) extends Refinement {
+    def refine(problem: Problem, lemma: Lemma): Option[Lemma] = {
+      // TODO: could undefine it for some things
+      val equation = problem.enquirer.makeEquation(left, right).asInstanceOf[FunctionExpJudgment]
+      Some(lemma.addPremise(this, equation))
+    }
+  }
 
 }

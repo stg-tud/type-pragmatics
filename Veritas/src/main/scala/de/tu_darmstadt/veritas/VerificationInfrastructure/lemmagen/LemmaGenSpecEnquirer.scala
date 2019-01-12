@@ -53,4 +53,9 @@ class LemmaGenSpecEnquirer(spec: Module, dsk: VeritasDomainSpecificKnowledge) ex
       sys.error(s"assumed two constructors for failable type ${typ}")
     (constructors.find(_.in.isEmpty).get, constructors.find(_.in.length == 1).get)
   }
+
+  /** Retrieve a named axiom */
+  def retrieveAxiom(name: String): Option[TypingRule] = spec.defs.collect {
+    case Axioms(axioms) => axioms
+  }.flatten.find(_.name == name)
 }

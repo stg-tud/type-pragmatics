@@ -677,7 +677,7 @@ object SQLSpec extends ScalaSPLSpecification {
     require(projectFirstRaw(rt) == rt2)
   } ensuring sameLength(rt, rt2)
 
-  @Property
+  /*@Property
   def somewhatWrong1(tt: TType, t: Table, result: Table, p: Pred): Unit = {
     //require(welltypedtable(tt, t))
     require(filterTable(t, p) == result)
@@ -719,4 +719,58 @@ object SQLSpec extends ScalaSPLSpecification {
   def somewhatWrong6(rt1: RawTable, rt2: RawTable, result: RawTable): Unit = {
     require(rawIntersection(rt1, rt2) == result)
   } ensuring sameLength(rt1, rt2)
+
+  @Property
+  def somewhatWrong7(ttc: TTContext, ts: TStore, ref: Name, tt: TType): Unit = {
+    require(storeContextConsistent(ts, ttc))
+    require(lookupContext(ref, ttc) == someTType(tt))
+  } ensuring exists((t: Table) => lookupStore(ref, ts) == someTable(t))*/
+
+  @Property
+  def somewhatWrong1(tt: TType, tt1: TType, tt2: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt1, al))
+    require(findColType(n, tt2) == someFType(ft))
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+
+  @Property
+  def somewhatWrong2(tt: TType, tt1: TType, tt2: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt1, al))
+    require(findColType(n, tt2) == someFType(ft))
+    require(tt == ttcons(n, ft, ttempty()))
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+
+  @Property
+  def somewhatWrong3(tt: TType, tt1: TType, tt2: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt1, al))
+    require(findColType(n, tt2) == someFType(ft))
+    require(tt == tt2)
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+
+  @Property
+  def somewhatWrong4(tt: TType, tt1: TType, tt2: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt1, al))
+    require(findColType(n, tt2) == someFType(ft))
+    require(tt == tt2)
+    require(tt == tt1)
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+
+  @Property
+  def somewhatWrong5(tt: TType, tt1: TType, tt2: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt1, al))
+    require(findColType(n, tt2) == someFType(ft))
+    require(tt == ttcons(n, ft, tt1))
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+
+  @Property
+  def somewhatWrong6(tt: TType, tt1: TType, tt2: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt1, al))
+    require(findColType(n, tt2) == someFType(ft))
+    require(tt == ttcons(n, ft, tt2))
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
 }

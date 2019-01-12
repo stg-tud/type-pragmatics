@@ -30,16 +30,11 @@ class ThesisTest extends FunSuite {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
     val problem = new Problem(file)
 
-    problem.dsk.properties.foreach { lemma =>
-      if(lemma.name.startsWith("somewhatWrong")) {
-        val s = Oracle.invoke(problem, lemma) match {
-          case Oracle.Inconclusive() => "inconclusive"
-          case Oracle.ProvablyTrue() => "lemma is provably TRUE"
-          case Oracle.ProvablyFalse() => "lemma is provably FALSE"
-        }
-        println(lemma.name, s)
-      }
-    }
+    var swLemmas = problem.dsk.properties.filter(_.name.startsWith("somewhatWrong"))
+    var run = true
+
+    swLemmas = Oracle.pruneProvablyFalseLemmas(problem, swLemmas)
+    println(s"remaining: ${swLemmas.map(_.name)}")
   }
 
   test("static functions") {
