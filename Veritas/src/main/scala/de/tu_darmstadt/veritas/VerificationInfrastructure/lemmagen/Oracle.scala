@@ -52,13 +52,11 @@ object Oracle {
     remainingLemmas ++= lemmas
     var run = true
     while (run && remainingLemmas.nonEmpty) {
-      println(s"${remainingLemmas.size} remaining ...")
       Oracle.invoke(problem, remainingLemmas.toSet) match {
         case Oracle.Inconclusive() => run = false
         case Oracle.ProvablyFalse(Some(usedLemmas)) =>
           val usedRemainingLemmas = remainingLemmas.filter(lemma => usedLemmas.contains(lemma.name) || usedLemmas.contains(s"'${lemma.name}'"))
           if (usedRemainingLemmas.isEmpty) {
-            println(usedLemmas)
             sys.error("inconsistent spec") // TODO
           } else if (usedRemainingLemmas.size == 1) {
             remainingLemmas.remove(usedRemainingLemmas.head)

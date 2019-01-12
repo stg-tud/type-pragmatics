@@ -35,3 +35,8 @@ class Lemma(name: String,
     )
   }
 }
+
+object Lemma {
+  def fromTypingRule(tr: TypingRule, refinements: Seq[Refinement] = Seq()): Lemma =
+    new Lemma(tr.name, tr.premises, tr.consequences, refinements)
+}

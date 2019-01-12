@@ -27,7 +27,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
     val fn = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "findCol").get
     val generator = new ProgressGenerator(problem, fn)
     val base = generator.generateBase().head
-    val lemmas = rename(generator.constrainConsequenceVariables(base))
+    val lemmas = generator.constrainConsequenceVariables(base)
     for (lemma <- lemmas) {
       lemmaPrettyPrinter.printTypingRule(lemma)
       outputPrettyPrinter.flush()

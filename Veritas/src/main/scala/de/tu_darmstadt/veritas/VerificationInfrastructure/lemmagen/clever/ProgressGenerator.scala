@@ -63,11 +63,12 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     val boundTypes = lemma.boundTypes
     boundTypes.flatMap(boundType => {
       val bindings = lemma.bindingsOfType(boundType)
-      val possibleEquations = bindings.subsets.filter(_.size >= 2)
+      val possibleEquations = bindings.subsets.filter(_.size >= 2).map(_.toList)
       possibleEquations.map(equalVars => {
         var refinedLemma = lemma
-        for (List(left, right) <- equalVars.toList.sliding(2)) {
-          val refinement = Refinement.Equation(FunctionMeta(left), FunctionMeta(right))
+        val left = equalVars.head
+        for (right <- equalVars.tail) {
+          val refinement = Refinement.Equation(left, FunctionMeta(right))
           refinedLemma = refinement.refine(problem, refinedLemma).getOrElse(refinedLemma)
         }
         refinedLemma
