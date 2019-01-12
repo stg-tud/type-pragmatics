@@ -60,25 +60,26 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
   }
 
   def addEquations(lemma: Lemma): Set[Lemma] = {
-    val pool = new mutable.HashSet[Lemma]()
-    pool += lemma
+    var pool = Set(lemma)
     val boundTypes = lemma.boundTypes
     boundTypes.foreach(boundType => {
       val bindings = lemma.bindingsOfType(boundType)
-      val possibleEquations = bindings.subsets.filter(_.size >= 2).map(_.toList)
-      val additions = possibleEquations.flatMap(equalVars => {
-        pool.map { lemma =>
-          var refinedLemma = lemma
-          val left = equalVars.head
-          for (right <- equalVars.tail) {
-            val refinement = Refinement.Equation(left, FunctionMeta(right))
-            refinedLemma = refinement.refine(problem, refinedLemma).getOrElse(refinedLemma)
+      val possibleEquations = bindings.subsets.filter(_.size >= 2)
+      if(possibleEquations.nonEmpty) {
+        val nextGeneration = possibleEquations.flatMap(equalVars => {
+          pool.map { lemma =>
+            var refinedLemma = lemma
+            val left = equalVars.head
+            for (right <- equalVars.tail) {
+              val refinement = Refinement.Equation(left, FunctionMeta(right))
+              refinedLemma = refinement.refine(problem, refinedLemma).getOrElse(refinedLemma)
+            }
+            refinedLemma
           }
-          refinedLemma
-        }
-      })
-      pool ++= additions
+        }).toSet
+        pool = nextGeneration
+      }
     })
-    pool.toSet
+    pool
   }
 }

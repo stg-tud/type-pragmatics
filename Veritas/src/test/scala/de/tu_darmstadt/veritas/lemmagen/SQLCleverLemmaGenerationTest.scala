@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import java.io.{File, PrintWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Oracle, Problem}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Oracle, Problem, ShapedPool}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.ProgressGenerator
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.ProgressStrategy
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -35,14 +35,19 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
     }
     println("prune ...")
 
+    val pool = new ShapedPool()
+
     for (lemma <- lemmas) {
       val eqs = rename(generator.addEquations(lemma))
       val pruned = Oracle.pruneProvablyFalseLemmas(problem, eqs)
       for (lemma <- pruned) {
-        lemmaPrettyPrinter.printTypingRule(lemma)
-        outputPrettyPrinter.flush()
-        println()
+        pool.add(lemma)
       }
+    }
+    for(lemma <- pool.lemmas) {
+      lemmaPrettyPrinter.printTypingRule(lemma)
+      outputPrettyPrinter.flush()
+      println()
     }
   }
 }
