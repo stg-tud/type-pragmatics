@@ -1,14 +1,12 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionEq, FunctionExp, FunctionExpMeta}
-import de.tu_darmstadt.veritas.backend.ast.{VeritasConstruct, VeritasFormula}
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledge
 import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
 
 /**
-  * specialized strategy that works on Veritas ASTs (SPL) and receives domain-specific knowledge
+  * specialized strategy that receives domain-specific knowledge
   * (DomainSpecificKnowledge, AugmentedCallGraph...) for specifications
   */
-abstract class DomainSpecificStrategy(dsk: DomainSpecificKnowledge, acg: AugmentedCallGraph[FunctionEq, FunctionExp, FunctionExpMeta]) extends Strategy[VeritasConstruct, VeritasFormula] {
-
+trait DomainSpecificStrategy[Spec, Goal, Type, FDef, Prop, Equation, Criteria, Expression] extends Strategy[Spec, Goal] {
+  val dsk: DomainSpecificKnowledge[Type, FDef, Prop]
+  val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression]
 }

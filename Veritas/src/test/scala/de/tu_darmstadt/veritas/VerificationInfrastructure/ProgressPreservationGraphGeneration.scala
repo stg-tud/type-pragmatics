@@ -1,14 +1,14 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.ProgressPreservationTopLevelStrategy
+import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.VeritasProgressPreservationTopLevelStrategy
 
 object ProgressPreservationGraphGeneration extends App {
   val aesource = "src/test/scala/de/tu_darmstadt/veritas/scalaspl/AESpec.scala"
   val aestore =  "AESoundnessGeneratedProofGraph-store"
 
-  val ppstrat = new ProgressPreservationTopLevelStrategy(aesource, aestore)
+  val ppstrat = new VeritasProgressPreservationTopLevelStrategy(aesource, aestore)
 
-  val pg_gen = ppstrat.generateGraph()
+  val pg_gen = ppstrat.generateFullGraph()
 
   ppstrat.visualizeGraph("GeneratedAESoundness.png")
 

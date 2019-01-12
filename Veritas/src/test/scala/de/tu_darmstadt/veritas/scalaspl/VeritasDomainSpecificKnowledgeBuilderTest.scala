@@ -3,15 +3,15 @@ package de.tu_darmstadt.veritas.scalaspl
 import java.io.File
 
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
+import de.tu_darmstadt.veritas.scalaspl.dsk.VeritasDomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslationError
 import org.scalatest.FunSuite
 
-class DomainSpecificKnowledgeBuilderTest extends FunSuite {
+class VeritasDomainSpecificKnowledgeBuilderTest extends FunSuite {
   val filesDir = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/dskbuilderfiles")
 
   test("Recursive correctly gathered") {
-    val builder = DomainSpecificKnowledgeBuilder()
+    val builder = VeritasDomainSpecificKnowledgeBuilder()
     val file = new File(filesDir, "DSKRecursive.scala")
     val dsk = builder.build(file)
 
@@ -26,7 +26,7 @@ class DomainSpecificKnowledgeBuilderTest extends FunSuite {
   }
 
   test("Recursive inner adt has two ctors") {
-    val builder = DomainSpecificKnowledgeBuilder()
+    val builder = VeritasDomainSpecificKnowledgeBuilder()
     val file = new File(filesDir, "DSKRecursiveInnerHasMoreThanOneCtor.scala")
 
     assertThrows[ScalaSPLTranslationError] {
@@ -35,7 +35,7 @@ class DomainSpecificKnowledgeBuilderTest extends FunSuite {
   }
 
   test("Recursive has at least one position given") {
-    val builder = DomainSpecificKnowledgeBuilder()
+    val builder = VeritasDomainSpecificKnowledgeBuilder()
     val file = new File(filesDir, "DSKRecursiveAtLeastOnePositionGiven.scala")
 
     assertThrows[ScalaSPLTranslationError] {
@@ -44,7 +44,7 @@ class DomainSpecificKnowledgeBuilderTest extends FunSuite {
   }
 
   test("QLSpec dsk") {
-    val builder = DomainSpecificKnowledgeBuilder()
+    val builder = VeritasDomainSpecificKnowledgeBuilder()
     val file = new File(filesDir, "../QLSpec.scala")
     val dsk = builder.build(file)
     println(dsk.failableTypes)

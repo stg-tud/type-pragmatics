@@ -4,9 +4,9 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpe
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.transformation.ModuleTransformation
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledge
+import de.tu_darmstadt.veritas.scalaspl.dsk.VeritasDomainSpecificKnowledge
 
-class LemmaGenSpecEnquirer(spec: Module, dsk: DomainSpecificKnowledge) extends VeritasSpecEnquirer(spec) {
+class LemmaGenSpecEnquirer(spec: Module, dsk: VeritasDomainSpecificKnowledge) extends VeritasSpecEnquirer(spec) {
   /** Return SortRefs to all data types that have at least one constructor involving typ */
   def functions: Set[FunctionDef] = dsk.staticFunctions ++ dsk.dynamicFunctions
   def predicates: Set[FunctionDef] = functions.filter(_.signature.out.name == "Bool")

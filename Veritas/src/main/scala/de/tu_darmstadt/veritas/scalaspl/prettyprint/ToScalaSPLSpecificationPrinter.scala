@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledge
+import de.tu_darmstadt.veritas.scalaspl.dsk.VeritasDomainSpecificKnowledge
 
 // TODO what about dsk Annotations? Generics to support them?
 trait ToScalaSPLSpecificationPrinter {

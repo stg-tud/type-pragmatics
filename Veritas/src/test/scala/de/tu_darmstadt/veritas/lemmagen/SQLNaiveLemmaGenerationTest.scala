@@ -12,6 +12,8 @@ import org.scalatest.FunSuite
 class SQLNaiveLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
   val ExcludeProperties = Seq(
+    "Progress",
+    "Preservation",
     // incompatible schemas:
     "welltypedEmptyProjection",
     "projectFirstRawPreservesWelltypedRaw",
