@@ -808,7 +808,7 @@ object SQLSpec extends ScalaSPLSpecification {
     require(tt1 == ttcons(name1, ft1, ttempty()))
     require(sameLength(rt1, rt2))
     require(welltypedRawtable(tt1, rt1))
-    require(welltypedRawtable(tt1, rt2))
+    require(welltypedRawtable(tt2, rt2))
     require(attachColToFrontRaw(rt1, rt2) == rt3)
   } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), rt3)
 
