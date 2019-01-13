@@ -68,13 +68,19 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
       val nextGeneration = possibleEquations.flatMap(equalVars => {
         pool.map { lemma =>
           if(equalVars.size >= 2) {
-            var refinedLemma = lemma
-            val left = equalVars.head
-            for (right <- equalVars.tail) {
-              val refinement = Refinement.Equation(left, FunctionMeta(right))
-              refinedLemma = refinement.refine(problem, refinedLemma).getOrElse(refinedLemma)
+            // filter equation in which all variables are from the consequence
+            var consequenceVars = enquirer.getUniversallyQuantifiedVars(lemma.consequences.head).asInstanceOf[Set[MetaVar]]
+            if(equalVars == consequenceVars.filter(_.sortType == boundType)) {
+              lemma
+            } else {
+              var refinedLemma = lemma
+              val left = equalVars.head
+              for (right <- equalVars.tail) {
+                val refinement = Refinement.Equation(left, FunctionMeta(right))
+                refinedLemma = refinement.refine(problem, refinedLemma).getOrElse(refinedLemma)
+              }
+              refinedLemma
             }
-            refinedLemma
           } else {
             lemma
           }
