@@ -773,4 +773,11 @@ object SQLSpec extends ScalaSPLSpecification {
     require(findColType(n, tt2) == someFType(ft))
     require(tt == ttcons(n, ft, tt2))
   } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+
+  @Property
+  def somewhatWrong7(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType, n: Name): Unit = {
+    require(welltypedRawtable(tt, rt))
+    require(matchingAttrL(tt, al))
+    require(projectTypeAttrL(al2, tt) == someTType(tt2))
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
 }

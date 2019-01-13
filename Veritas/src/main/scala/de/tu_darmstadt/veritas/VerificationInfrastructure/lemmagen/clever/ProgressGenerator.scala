@@ -64,10 +64,10 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     val boundTypes = lemma.boundTypes
     boundTypes.foreach(boundType => {
       val bindings = lemma.bindingsOfType(boundType)
-      val possibleEquations = bindings.subsets.filter(_.size >= 2)
-      if(possibleEquations.nonEmpty) {
-        val nextGeneration = possibleEquations.flatMap(equalVars => {
-          pool.map { lemma =>
+      val possibleEquations = bindings.subsets
+      val nextGeneration = possibleEquations.flatMap(equalVars => {
+        pool.map { lemma =>
+          if(equalVars.size >= 2) {
             var refinedLemma = lemma
             val left = equalVars.head
             for (right <- equalVars.tail) {
@@ -75,10 +75,12 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
               refinedLemma = refinement.refine(problem, refinedLemma).getOrElse(refinedLemma)
             }
             refinedLemma
+          } else {
+            lemma
           }
-        }).toSet
-        pool = nextGeneration
-      }
+        }
+      }).toSet
+      pool = nextGeneration
     })
     pool
   }
