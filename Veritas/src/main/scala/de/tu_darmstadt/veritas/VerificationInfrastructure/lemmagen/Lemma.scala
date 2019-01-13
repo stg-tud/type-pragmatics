@@ -34,6 +34,9 @@ class Lemma(name: String,
       LemmaEquivalence.replaceVarsWithBottom(consequences).toSet
     )
   }
+
+  def rename(newName: String): Lemma =
+    new Lemma(newName, premises, consequences, refinements)
 }
 
 object Lemma {

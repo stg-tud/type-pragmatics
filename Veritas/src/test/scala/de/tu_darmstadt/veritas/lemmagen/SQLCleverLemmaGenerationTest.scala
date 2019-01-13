@@ -19,8 +19,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
   }
 
   def rename(lemmas: Set[Lemma]): Set[Lemma] = {
-    (for((l, i) <- lemmas.toSeq.zipWithIndex)
-      yield new Lemma(s"Lemma$i", l.premises, l.consequences)).toSet
+    (for((l, i) <- lemmas.toSeq.zipWithIndex) yield l.rename(s"Lemma$i")).toSet
   }
 
   Seq("findCol", "lookupStore", "projectTable", "projectCols").foreach { name =>
@@ -48,6 +47,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
       for(lemma <- pool.lemmas) {
         lemmaPrettyPrinter.printTypingRule(lemma)
         outputPrettyPrinter.flush()
+        println(lemma.refinements)
         println()
       }
 
