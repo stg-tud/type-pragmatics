@@ -20,7 +20,7 @@ object Choice {
       else
         generate(secondary, bound)
     case Union(of) => of.flatMap(generate(_, bound))
-    case Exclude(base, without) => generate(base, bound) -- generate(without, bound)
+    //case Exclude(base, without) => generate(base, bound) -- generate(without, bound)
   }
 
   def extractVariableChoices(choices: Seq[Choice]): Seq[MetaVar] = choices.collect {

@@ -42,7 +42,6 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   protected val preservationProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
   protected val staticFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
-  protected val predicateFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val properties: mutable.Set[Defn.Def] = mutable.Set()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
@@ -60,8 +59,6 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
         dynamicFunctions += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Static"))
         staticFunctions += fn
-      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Predicate"))
-        predicateFunctions += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Property"))
         properties += fn
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
@@ -174,7 +171,6 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     val transPreservationProps = translateProperties(preservationProperties)
     val transStaticFuncs = translateFunctions(staticFunctions.toSet)
     val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
-    val transPredicates = translateFunctions(predicateFunctions.toSet)
     // TODO: This can be removed once we are sure we have linked all properties
     val transProperties = translateProperty(properties.toSet)
     new VeritasDomainSpecificKnowledge {
@@ -184,7 +180,6 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
       override val progressProperties: Map[FunctionDef, Set[TypingRule]] = transProgressProps
       override val staticFunctions: Set[FunctionDef] = transStaticFuncs
       override val dynamicFunctions: Set[FunctionDef] = transDynamicFuncs
-      override val predicates: Set[FunctionDef] = transPredicates
       override val properties: Set[TypingRule] = transProperties
     }
   }

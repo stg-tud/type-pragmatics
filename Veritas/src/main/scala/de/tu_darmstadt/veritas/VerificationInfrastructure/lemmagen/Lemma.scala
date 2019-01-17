@@ -11,6 +11,7 @@ class Lemma(name: String,
             consequences: Seq[TypingRuleJudgment],
             val refinements: Seq[Refinement] = Seq())
   extends TypingRule(name, premises, consequences) {
+  require(consequences.length == 1, "only lemmas with a single consequence are supported")
 
   lazy val boundVariables: Set[MetaVar] = {
     FreeVariables.freeVariables(premises ++ consequences)
@@ -33,4 +34,9 @@ class Lemma(name: String,
       LemmaEquivalence.replaceVarsWithBottom(consequences).toSet
     )
   }
+}
+
+object Lemma {
+  def fromTypingRule(tr: TypingRule, refinements: Seq[Refinement] = Seq()): Lemma =
+    new Lemma(tr.name, tr.premises, tr.consequences, refinements)
 }

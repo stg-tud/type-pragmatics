@@ -62,10 +62,10 @@ object LemmaEquivalence {
         // we have already decided to rename -- this would mean variable shadowing, which
         // we do not support.
         case ExistsJudgment(varlist, _) =>
-          if(varlist.exists(renaming contains _))
+          if(renaming.exists(varlist contains _._2))
             throw RenamingError("Variable shadowing in ExistsJudgment is unsupported")
         case ForallJudgment(varlist, _) =>
-          if(varlist.exists(renaming contains _))
+          if(renaming.exists(varlist contains _._2))
             throw RenamingError("Variable shadowing in ForallJudgment is unsupported")
         case _ =>
       }
@@ -162,16 +162,23 @@ object LemmaEquivalence {
     * Given two rules `ref` and `rule` that differ only in their variable namings,
     * try to find a renaming such that they are equal. Return None if impossible.
     */
-  def renameVariables(ref: TypingRule, rule: TypingRule): Option[TypingRule] = {
+  def harmonizeVariables(ref: TypingRule, rule: TypingRule): Option[TypingRule] = {
     try {
       val renaming = FindRenaming(ref, rule)
-      Some(TypingRule(rule.name,
-        rule.premises.map(VariableRenamer(_, renaming)),
-        rule.consequences.map(VariableRenamer(_, renaming))
-      ))
+      Some(renameVariables(rule, renaming))
     } catch {
       case _: RenamingError => None
     }
+  }
+
+  /**
+    * Rename variables in `rule` according to `renaming` and return the new TypingRule.
+    */
+  def renameVariables(rule: TypingRule, renaming: MetaVar => MetaVar): TypingRule = {
+    TypingRule(rule.name,
+      rule.premises.map(VariableRenamer(_, renaming)),
+      rule.consequences.map(VariableRenamer(_, renaming))
+    )
   }
 
   /**
@@ -183,15 +190,19 @@ object LemmaEquivalence {
     * @param rule compared lemma
     * @return true or false
     */
-  def isEquivalent(ref: TypingRule, rule: TypingRule): Boolean = {
-    reorderTypingRule(ref, rule) match {
+  def isEquivalent(ref: TypingRule, rule: TypingRule, checkSymmetry: Boolean = true): Boolean = {
+    val equiv = reorderTypingRule(ref, rule) match {
       case Some(reordered) => {
-        renameVariables(ref, reordered) match {
+        harmonizeVariables(ref, reordered) match {
           case Some(renamed) => renamed.premises == ref.premises && renamed.consequences == ref.consequences
           case None => false
         }
       }
       case None => false
     }
+    // TODO: Sanity check: require symmetry
+    if(checkSymmetry)
+      require(isEquivalent(rule, ref, false) == equiv)
+    equiv
   }
 }

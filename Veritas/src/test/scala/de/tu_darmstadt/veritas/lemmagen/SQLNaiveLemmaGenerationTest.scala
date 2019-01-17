@@ -12,13 +12,17 @@ import org.scalatest.FunSuite
 class SQLNaiveLemmaGenerationTest extends FunSuite {
   val MaxPremises = 4
   val ExcludeProperties = Seq(
+    "Progress",
+    "Preservation",
     // incompatible schemas:
     "welltypedEmptyProjection",
     "projectFirstRawPreservesWelltypedRaw",
     "findColPreservesWelltypedRaw",
     "attachColToFrontRawPreservesWellTypedRaw",
     "dropFirstColRawPreservesWelltypedRaw",
-    "attachColToFrontRawPreservesRowCount"
+    "attachColToFrontRawPreservesRowCount",
+    "projectTypeImpliesFindCol",
+    "projectTypeAttrLMatchesProjectTableAttrL"
   )
 
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
@@ -91,11 +95,13 @@ class SQLNaiveLemmaGenerationTest extends FunSuite {
   }
 
   def testProperties(kind: String,
-                     properties: Map[FunctionDef, Set[TypingRule]])
+                     properties: Map[FunctionDef, Set[TypingRule]],
+                     functions: Set[FunctionDef])
                     (builder: (Problem, FunctionDef) => RefinementStrategy): Unit = {
-    properties.foreach {
-      case (function, expectedLemmas) =>
-        val strategy = builder(problem, function)
+    functions.foreach { function =>
+      val strategy = builder(problem, function)
+      if (properties.contains(function)) {
+        val expectedLemmas = properties(function)
         val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
         lazy val lemmas = {
           generator.generate()
@@ -108,9 +114,20 @@ class SQLNaiveLemmaGenerationTest extends FunSuite {
             testLemmaGenerator(kind, function.signature.name, lemmas, expected)
           }
         })
+      } else {
+        test(s"$kind $function") {
+          cancel(s"no $kind property needed")
+        }
+      }
     }
   }
 
-  testProperties("progress", dsk.progressProperties)((problem, fn) => new naive.ProgressStrategy(problem, fn))
-  testProperties("preservation", dsk.preservationProperties)((problem, fn) => new naive.PreservationStrategy(problem, fn))
+  val progressFunctions = problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out))
+  val preservationFunctions = problem.enquirer.dynamicFunctions
+  testProperties("progress",
+    dsk.progressProperties,
+    progressFunctions)((problem, fn) => new naive.ProgressStrategy(problem, fn))
+  testProperties("preservation",
+    dsk.preservationProperties,
+    preservationFunctions)((problem, fn) => new naive.PreservationStrategy(problem, fn))
 }

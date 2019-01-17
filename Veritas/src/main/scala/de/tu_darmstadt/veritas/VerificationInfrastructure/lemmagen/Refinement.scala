@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
-import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar}
+import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, VeritasConstruct}
 import de.tu_darmstadt.veritas.backend.ast.function._
 
 trait Refinement {
@@ -8,9 +8,9 @@ trait Refinement {
 }
 
 object Refinement {
-  case class SuccessPredicate(function: FunctionDef,
-                              arguments: Seq[FunctionExpMeta],
-                              result: MetaVar) extends Refinement {
+  case class SuccessfulApplication(function: FunctionDef,
+                                   arguments: Seq[FunctionExpMeta],
+                                   result: MetaVar) extends Refinement {
     def refine(problem: Problem, lemma: Lemma): Option[Lemma] = {
       val invocationExp = FunctionExpApp(
         function.signature.name,
@@ -36,7 +36,7 @@ object Refinement {
       }
     }
 
-    override def toString: String = s"SuccessPredicate(${function.signature.name}, $arguments, $result)"
+    override def toString: String = s"SuccessfulApplication(${function.signature.name}, $arguments, $result)"
   }
 
   case class Predicate(predicate: FunctionDef,
@@ -53,5 +53,23 @@ object Refinement {
     override def toString: String = s"Predicate(${predicate.signature.name}, $arguments)"
   }
 
+  case class Equation(left: MetaVar, right: FunctionExpMeta) extends Refinement {
+    def refine(problem: Problem, lemma: Lemma): Option[Lemma] = {
+      // TODO: could undefine it for some things
+      // if the right side is another MetaVar, we can just rename it to the left side
+      right match {
+        case FunctionMeta(rightVar) =>
+          Some(Lemma.fromTypingRule(LemmaEquivalence.renameVariables(lemma, { mv =>
+            if(mv == rightVar)
+              left
+            else
+              mv
+          }), lemma.refinements :+ this))
+        case _ =>
+          val equation = problem.enquirer.makeEquation(left, right).asInstanceOf[FunctionExpJudgment]
+          Some(lemma.addPremise(this, equation))
+      }
+    }
+  }
 
 }

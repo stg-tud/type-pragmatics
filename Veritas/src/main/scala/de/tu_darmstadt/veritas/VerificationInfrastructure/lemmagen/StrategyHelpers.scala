@@ -25,17 +25,17 @@ trait StrategyHelpers {
     refinement.flatMap(_.refine(problem, lemma))
   }
 
-  def selectSuccessPredicate(lemma: Lemma, function: FunctionDef): Seq[Refinement.SuccessPredicate] = {
-    selectSuccessPredicate(lemma, function,
+  def selectSuccessfulApplication(lemma: Lemma, function: FunctionDef): Seq[Refinement.SuccessfulApplication] = {
+    selectSuccessfulApplication(lemma, function,
       Constraint.preferBound(function.inTypes),
       Constraint.fresh(function.successfulOutType))
   }
 
-  def selectSuccessPredicate(lemma: Lemma, function: FunctionDef,
-                             constraints: Seq[Constraint], successVarConstraint: Constraint): Seq[Refinement.SuccessPredicate] = {
+  def selectSuccessfulApplication(lemma: Lemma, function: FunctionDef,
+                                  constraints: Seq[Constraint], successVarConstraint: Constraint): Seq[Refinement.SuccessfulApplication] = {
     val query = successVarConstraint +: constraints
     Assignments.generate(query, lemma).map {
-      case successVar :: arguments => Refinement.SuccessPredicate(function, wrapMetaVars(arguments), successVar)
+      case successVar :: arguments => Refinement.SuccessfulApplication(function, wrapMetaVars(arguments), successVar)
     }
   }
 }

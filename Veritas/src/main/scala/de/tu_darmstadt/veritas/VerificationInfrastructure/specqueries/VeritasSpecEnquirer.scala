@@ -106,7 +106,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     }
 
   // get types of all variables (free and quantified)
-  private def getAllVarTypes(f: VeritasFormula): Map[MetaVar, SortRef] =
+  def getAllVarTypes(f: VeritasFormula): Map[MetaVar, SortRef] =
     retrieveTypingRule(f) match {
       case Some(tr@TypingRule(_, _, _)) => {
         //first, preprocess typing rule (translate typing judgments)
