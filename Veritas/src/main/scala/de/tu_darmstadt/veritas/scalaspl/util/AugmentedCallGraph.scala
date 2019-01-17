@@ -34,11 +34,12 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
   case class FunctionCall(funeq_num: Int, inner_nesting_level: Int, name: String) extends Node
 
   private val adjacencyList: mutable.Map[Node, Seq[Node]] = mutable.Map()
-  private val _roots = ListBuffer[Node]()
+  private val _sdroots = ListBuffer[StructuralDistinction]()
 
-  def addRoot(node: Node): Unit = {
-    adjacencyList(node) = Seq()
-    _roots += node
+  // roots of augmented call graphs can only ever be StructuralDistinction nodes (by design)
+  def addStructuralDistinctionRoot(snode: StructuralDistinction): Unit = {
+    adjacencyList(snode) = Seq()
+    _sdroots += snode
   }
 
   def addChild(parent: Node, child: Node): Unit = {
@@ -71,7 +72,7 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
 
   def nodes: Seq[Node] = (adjacencyList.keys.toSeq ++ adjacencyList.flatMap(_._2)).distinct
 
-  def roots: Set[Node] = _roots.toSet
+  def sdroots: Set[StructuralDistinction] = _sdroots.toSet
 
   def leaves: Set[Node] = adjacencyList.filter(_._2.isEmpty).keys.toSet
 

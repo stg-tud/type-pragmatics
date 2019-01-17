@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 
 trait DomainSpecificKnowledge[Type, FDef, Prop] {
   def failableTypes: Seq[Type]
-  def recursiveFunctions: Map[FDef, Type]
+  def recursiveFunctions: Map[FDef, (Type, Seq[Int])]
   def progressProperties: Map[FDef, Set[Prop]]
   def preservationProperties: Map[FDef, Set[Prop]]
 

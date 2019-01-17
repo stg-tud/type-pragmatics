@@ -1,21 +1,21 @@
 package de.tu_darmstadt.veritas.scalaspl.util
 
-import java.lang.IndexOutOfBoundsException
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.FreshVariables
+import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.DomainSpecificKnowledge
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphBuilder[FunctionDef, FunctionEq, FunctionExp, FunctionExpMeta, VeritasAugmentedCallGraph] {
+class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphBuilder[DataType, TypingRule, FunctionDef, FunctionEq, FunctionExp, FunctionExpMeta, VeritasAugmentedCallGraph] {
 
   private val ctorNames = ListBuffer[String]()
   private var constructors = Map[String, DataTypeConstructor]()
   private var funcSigs = Map[String, FunctionSig]()
 
-  override def translate(funDef: FunctionDef, distargpos: Int = 0)(dag: VeritasAugmentedCallGraph): AugmentedCallGraph[FunctionEq, FunctionExp, FunctionExpMeta] = {
+  override def translate(funDef: FunctionDef, dsk: DomainSpecificKnowledge[DataType, FunctionDef, TypingRule])(dag: VeritasAugmentedCallGraph): AugmentedCallGraph[FunctionEq, FunctionExp, FunctionExpMeta] = {
     spec.defs.foreach {
       case DataType(_, _, ctors) => {
         ctorNames ++= ctors.map(_.name)
@@ -26,7 +26,7 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
       case Functions(Seq(FunctionDef(sig@FunctionSig(name, _, _), _))) => funcSigs += (name -> sig)
       case _ =>
     }
-    super.translate(funDef)(dag)
+    super.translate(funDef, dsk)(dag)
   }
 
   override protected def getDistinctionByIfExpression(exp: FunctionExpMeta): Map[FunctionExp, FunctionExpMeta] = exp match {

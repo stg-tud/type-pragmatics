@@ -16,13 +16,13 @@ class VeritasDomainSpecificKnowledgeBuilderTest extends FunSuite {
     val dsk = builder.build(file)
 
     assert(dsk.recursiveFunctions.toSeq.head._1.signature.name == "twoParams")
-    assert(dsk.recursiveFunctions.toSeq.head._2.name == "inner")
+    assert(dsk.recursiveFunctions.toSeq.head._2._1.name == "inner")
 
     assert(dsk.recursiveFunctions.toSeq(1)._1.signature.name == "recursiveTwoLevel")
-    assert(dsk.recursiveFunctions.toSeq(1)._2.name == "inner")
+    assert(dsk.recursiveFunctions.toSeq(1)._2._1.name == "inner")
 
     assert(dsk.recursiveFunctions.toSeq(2)._1.signature.name == "recursiveOneLevel")
-    assert(dsk.recursiveFunctions.toSeq(2)._2.name == "inner")
+    assert(dsk.recursiveFunctions.toSeq(2)._2._1.name == "inner")
   }
 
   test("Recursive inner adt has two ctors") {
