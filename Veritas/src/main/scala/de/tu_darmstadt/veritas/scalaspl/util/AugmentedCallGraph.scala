@@ -64,10 +64,10 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
   def getOutgoing(distinction: Node): Seq[Node] =
     adjacencyList(distinction).toSeq
 
-  def getParent(distinction: Node): Option[Node] = {
+  def getParents(distinction: Node): Seq[Node] = {
     adjacencyList.filter { case (_, children) =>
       children.contains(distinction)
-    }.keys.headOption
+    }.keys.toSeq
   }
 
   def nodes: Seq[Node] = (adjacencyList.keys.toSeq ++ adjacencyList.flatMap(_._2)).distinct
@@ -76,29 +76,19 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
 
   def leaves: Set[Node] = adjacencyList.filter(_._2.isEmpty).keys.toSet
 
-  def getEquations(distinction: Node): Seq[Equation] = distinction match {
-    case structural: StructuralDistinction => structural.numbered_eqs.map(_._2)
-    case BooleanDistinction(_, _, _, _) =>
-      getParent(distinction) match {
-        case Some(StructuralDistinction(_, _, equation)) => equation.map(_._2)
-        case Some(parent) => getEquations(parent)
-        case None => Seq()// should not happen
-      }
-    case FunctionCall(_, _, _) =>
-      getParent(distinction) match {
-        case Some(StructuralDistinction(_, _, equation)) => equation.map(_._2)
-        case Some(parent) => getEquations(parent)
-        case None => Seq()// should not happen
-      }
-    case _ => Seq()
-  }
-
   //only call on leaves?
   def getExpression(distinction: Node): Expression = distinction match {
     case BooleanDistinction(_, _, _, resulting) => resulting
     case StructuralDistinction(_, _, eqs) if eqs.size == 1 => getRHSOfEquation(eqs.head._2)
     case FunctionCall(_, _, _) => throw new IllegalArgumentException("A function application does not represent a expression")
     case _ => throw new IllegalArgumentException("Every leaf node should be a boolean distinction or a structural distinction with exactly one equation attached.")
+  }
+
+  def getFCParents(n: Node): Seq[Node] = {
+    getParents(n) filter {
+      case fc@FunctionCall(_, _, _) => true
+      case _ => false
+    }
   }
 
   protected def getRHSOfEquation(eq: Equation): Expression
