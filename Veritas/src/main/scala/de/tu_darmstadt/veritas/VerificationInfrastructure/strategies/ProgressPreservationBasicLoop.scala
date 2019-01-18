@@ -10,15 +10,15 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
   * @param dsk domain-specific knowledge for the given specification
   * @param acg_gen function that can generate an augmented call graph for a given function name
   */
-case class ProgressPreservationBasicLoop[Spec, Goal, Type, FDef, Prop, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
+case class ProgressPreservationBasicLoop[Defs, Formulae <: Defs, Type, FDef, Prop, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                                                                                                        override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
-                                                                                                       retrievePropFromGoal: Goal => Prop)
-  extends DomainSpecificStrategy[Spec, Goal, Type, FDef, Prop, Equation, Criteria, Expression] {
+                                                                                                       retrievePropFromGoal: Formulae => Prop)
+  extends DomainSpecificStrategy[Defs, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
 
 
   // given obligation is the obligation to which the basic loop shall be applied
-  override def applyToPG(pg: ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal])(obl: pg.Obligation):
-    ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal] = {
+  override def applyToPG(pg: ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae])(obl: pg.Obligation):
+    ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae] = {
 
 
 
@@ -44,7 +44,7 @@ case class ProgressPreservationBasicLoop[Spec, Goal, Type, FDef, Prop, Equation,
     val all_leaves = pg.leaves(Set(obl))
 
     def isLemmaApplicationLeaf(l: pg.Obligation): Boolean = {
-      val maybe_lemtac = pg.requiringSteps(l).find { case (ps, _) => ps.tactic.isInstanceOf[LemmaApplication] }
+      val maybe_lemtac = pg.requiringSteps(l).find { case (ps, _) => ps.tactic.isInstanceOf[LemmaApplication[Defs, Formulae]] }
       maybe_lemtac.nonEmpty
     }
 
