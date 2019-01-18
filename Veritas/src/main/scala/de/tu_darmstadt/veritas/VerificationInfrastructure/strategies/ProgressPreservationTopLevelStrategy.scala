@@ -22,7 +22,7 @@ trait ProgressPreservationTopLevelStrategy[Spec, Goal, Type, FDef, Prop, Equatio
     val goals = for (goal <- getGoalsFromFunName(fn)) yield goal
     initializePG(goals)
 
-    val rootstrat = new ApplyStratToRoots[Spec, Goal](ProgressPreservationBasicLoop(dsk, createACG))
+    val rootstrat = new ApplyStratToRoots[Spec, Goal](ProgressPreservationBasicLoop(dsk, createACG, retrievePropFromGoal))
     rootstrat.applyToPG(g)(g.storedObligations.values.head) //the given obligation does not matter here
 
     g
@@ -30,5 +30,6 @@ trait ProgressPreservationTopLevelStrategy[Spec, Goal, Type, FDef, Prop, Equatio
 
   def computeDomainSpecificKnowledge(): DomainSpecificKnowledge[Type, FDef, Prop]
   def createACG(fn: String): AugmentedCallGraph[Equation, Criteria, Expression]
+  def retrievePropFromGoal(g: Goal): Prop
 
 }

@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
+import de.tu_darmstadt.veritas.backend.ast
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -99,5 +100,12 @@ class VeritasProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, 
     prettyPrinter.printer.close()
   }
 
-
+  override def retrievePropFromGoal(g: VeritasFormula): TypingRule = g match {
+    case Goals(Seq(t,_), _) => t
+    case GoalsWithStrategy(_, Seq(t, _), _) => t
+    case Lemmas(Seq(t,_),_) => t
+    case LemmasWithStrategy(_, Seq(t, _),_) => t
+    case Axioms(Seq(t, _)) => t
+    case _ => sys.error(s"Could not retrieve a TypingRule from $g")
+  }
 }
