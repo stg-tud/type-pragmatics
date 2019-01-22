@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.{SpecEnquirer, VeritasSpecEnquirer}
 import de.tu_darmstadt.veritas.backend.ast
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
@@ -25,6 +26,7 @@ class VeritasProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, 
   val sourcefile = new File(pathtoScalaSPLsource)
   override val spec: Module = new ScalaSPLTranslator().translate(sourcefile)
   override val goalname_extractor: VeritasFormula => String = ProofGraphUI.extractGoalOrLemmaName
+  override val spec_enquirer: SpecEnquirer[VeritasConstruct, VeritasFormula] = new VeritasSpecEnquirer(spec)
 
 
   override def computeDomainSpecificKnowledge(): DomainSpecificKnowledge[DataType, FunctionDef, TypingRule] = {

@@ -75,7 +75,7 @@ class SQLSoundnessProofGraph(file: File) {
   }
 
   def makeSetCaseDistinction(fv1name: String, fv2name: String): CaseDistinction[VeritasConstruct, VeritasFormula] =
-    CaseDistinction(makeSetCasePreds(fv1name, fv2name), fullSQLspec, specenq)
+    CaseDistinction(makeSetCasePreds(fv1name, fv2name), specenq)
 
   def extract2FVNames(casename: String): (String, String) = {
     val cases = rootobl_edge_map(casename)._2

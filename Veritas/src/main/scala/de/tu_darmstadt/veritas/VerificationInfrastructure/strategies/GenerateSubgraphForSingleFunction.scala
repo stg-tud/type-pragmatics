@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGraphTraversals}
 import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
 
@@ -21,12 +22,13 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
   * @tparam Expression
   */
 
-case class GenerateSubgraphForSingleFunction[Spec, Goal, Type, FDef, Prop, Equation, Criteria, Expression] (override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
+case class GenerateSubgraphForSingleFunction[Defs, Formulae <: Defs, Type, FDef, Prop, Equation, Criteria, Expression] (override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                                                                                                             override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
+                                                                                                            override val spec_enquirer: SpecEnquirer[Defs, Formulae],
                                                                                                             acg: AugmentedCallGraph[Equation, Criteria, Expression])
-  extends DomainSpecificStrategy[Spec, Goal, Type, FDef, Prop, Equation, Criteria, Expression] {
+  extends DomainSpecificStrategy[Defs, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
 
-  override def applyToPG(pg: ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal])(obl: pg.Obligation): ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal] = {
+  override def applyToPG(pg: ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae])(obl: pg.Obligation): ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae] = {
     val acg_sdroot = acg.sdroots.head //we implicitly assume that graph has only one structural distinction node as root
 
     //1) treat root node of acg separately, since it is the only node which may induce a structural induction step

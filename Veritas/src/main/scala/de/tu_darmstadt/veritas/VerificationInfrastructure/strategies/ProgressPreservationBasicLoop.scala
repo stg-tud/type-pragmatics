@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.LemmaApplication
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGraphTraversals}
 import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
@@ -7,19 +8,20 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
 /**
   * iterative strategy - builds a proof graph according to the "template" given by the augmented call graph
   * assumes a proof graph that already contains nodes (at least root nodes)
-  * @param dsk domain-specific knowledge for the given specification
+  *
+  * @param dsk     domain-specific knowledge for the given specification
   * @param acg_gen function that can generate an augmented call graph for a given function name
   */
 case class ProgressPreservationBasicLoop[Defs, Formulae <: Defs, Type, FDef, Prop, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
-                                                                                                       override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
-                                                                                                       retrievePropFromGoal: Formulae => Prop)
+                                                                                                                   override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
+                                                                                                                   override val spec_enquirer: SpecEnquirer[Defs, Formulae],
+                                                                                                                   retrievePropFromGoal: Formulae => Prop)
   extends DomainSpecificStrategy[Defs, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
 
 
   // given obligation is the obligation to which the basic loop shall be applied
   override def applyToPG(pg: ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae])(obl: pg.Obligation):
-    ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae] = {
-
+  ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae] = {
 
 
     //step 1: retrieve relevant function name from given obligation with the help of the given domain specific knowledge dsk
@@ -37,7 +39,7 @@ case class ProgressPreservationBasicLoop[Defs, Formulae <: Defs, Type, FDef, Pro
     val acg = acg_gen(fname)
 
     //step 3: apply strategy that traverses the computed ACG and grows the given proof graph accordingly
-    GenerateSubgraphForSingleFunction(dsk, acg_gen, acg)
+    GenerateSubgraphForSingleFunction(dsk, acg_gen, spec_enquirer, acg)
 
 
     //step 4: Collect all leaves that contain auxiliary lemmas (i.e. are children of a lemma application)

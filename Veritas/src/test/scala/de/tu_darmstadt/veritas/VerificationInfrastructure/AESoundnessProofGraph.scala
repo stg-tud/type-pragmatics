@@ -124,7 +124,7 @@ class AESoundnessProofGraph(storefile: File) {
   val ifcasetactic = CaseDistinction[VeritasConstruct, VeritasFormula](Map(
     "Truecase" -> Seq[TypingRuleJudgment](translateFunExp("vTerm0 == True()")),
     "Falsecase" -> Seq[TypingRuleJudgment](translateFunExp("vTerm0 == False()")),
-    "Othercase" -> Seq[TypingRuleJudgment](translateFunExp("(vTerm0 != True()) && (vTerm0 != False())"))), fullAESpec, specenq)
+    "Othercase" -> Seq[TypingRuleJudgment](translateFunExp("(vTerm0 != True()) && (vTerm0 != False())"))), specenq)
   val ifcasedistinction = g.applyTactic(ifcase_obl, ifcasetactic)
 
   val casestep = g.appliedStep(ifcase_obl).get

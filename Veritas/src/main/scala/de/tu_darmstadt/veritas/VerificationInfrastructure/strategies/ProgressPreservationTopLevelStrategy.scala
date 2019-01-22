@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGraphTraversals}
 import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
 
@@ -9,6 +10,8 @@ trait ProgressPreservationTopLevelStrategy[Def, Formulae <: Def, Type, FDef, Pro
   lazy val dsk = computeDomainSpecificKnowledge() //globally compute domain specific knowledge as implemented in concrete class
   //important: has to be lazy so that it is only computed when it is actually needed within the methods (NullPointerExcepections may
   //arise otherwise since at this point in the execution, not everything may have been initialized
+
+  val spec_enquirer: SpecEnquirer[Def, Formulae]
 
   //convenience function for top-level graph generation (from reduce function on)
   def generateFullGraph(): ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
@@ -22,7 +25,7 @@ trait ProgressPreservationTopLevelStrategy[Def, Formulae <: Def, Type, FDef, Pro
     val goals = for (goal <- getGoalsFromFunName(fn)) yield goal
     initializePG(goals)
 
-    val rootstrat = new ApplyStratToRoots[Def, Formulae](ProgressPreservationBasicLoop(dsk, createACG, retrievePropFromGoal))
+    val rootstrat = new ApplyStratToRoots[Def, Formulae](ProgressPreservationBasicLoop(dsk, createACG, spec_enquirer, retrievePropFromGoal))
     rootstrat.applyToPG(g)(g.storedObligations.values.head) //the given obligation does not matter here
 
     g
