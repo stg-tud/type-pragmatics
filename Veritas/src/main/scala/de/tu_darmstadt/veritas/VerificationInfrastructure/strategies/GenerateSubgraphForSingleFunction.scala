@@ -9,6 +9,7 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
   * assumes that the given augmented call graph "fits" to the goal in the given obligation
   * also receives the function for creating new augmented call graphs, since it implements DomainSpecificStrategy
   * currently, this would not be needed, but might be interesting for future refined strategies
+  *
   * @param dsk
   * @param acg_gen
   * @param acg
@@ -22,27 +23,33 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
   * @tparam Expression
   */
 
-case class GenerateSubgraphForSingleFunction[Defs, Formulae <: Defs, Type, FDef, Prop, Equation, Criteria, Expression] (override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
-                                                                                                            override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
-                                                                                                            override val spec_enquirer: SpecEnquirer[Defs, Formulae],
-                                                                                                            acg: AugmentedCallGraph[Equation, Criteria, Expression])
-  extends DomainSpecificStrategy[Defs, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
+case class GenerateSubgraphForSingleFunction[Def, Formulae <: Def, Type, FDef, Prop, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
+                                                                                                                     override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
+                                                                                                                     override val spec_enquirer: SpecEnquirer[Def, Formulae],
+                                                                                                                     acg: AugmentedCallGraph[Equation, Criteria, Expression])
+  extends DomainSpecificStrategy[Def, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
 
-  override def applyToPG(pg: ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae])(obl: pg.Obligation): ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae] = {
+  override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation): ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
     val acg_sdroot = acg.sdroots.head //we implicitly assume that graph has only one structural distinction node as root
+    val toplevel_call = acg_sdroot.arg_exp //this is the expression to which all the argument position
 
     //1) treat root node of acg separately, since it is the only node which may induce a structural induction step
     if (acg_sdroot.arg_pos.nonEmpty) { //first check whether we have to do a distinction at all
+      val distpos = acg_sdroot.arg_pos.get //this position is either the argument position in which the function is recursive or in which the top-level cases can be distinguished
+      val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos))
+      val distvar: Def = spec_enquirer.makeMVTerm(distvarname)
       // is our function in question a recursive function?
       val funname = acg.toplevel_fun
       val rec_fun = dsk.recursiveFunctions.find { case (fdef, _) => dsk.retrieveFunName(fdef) == funname }
+
       if (rec_fun.nonEmpty) {
-        //retrieve the recursive position
-        val recpos = rec_fun.get._2._2 //maybe rather take from ACG-node and not from DSK?? No, by design this has to be the SAME position.
+        //distpos is the recursive position
         ??? //TODO do structural induction
       }
-      else
-        ??? //TODO do structural case distinction
+      else {
+
+        StructuralCaseDistinctionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
+      }
     } else {
       //check whether the root node calls functions
       val root_fcparents = acg.getFCParents(acg_sdroot)
@@ -81,7 +88,7 @@ case class GenerateSubgraphForSingleFunction[Defs, Formulae <: Defs, Type, FDef,
 
         //retrieve all relevant children (ignore visited nodes and leaf nodes without function call parents)
         // result should only be StructuralDistinctions and BooleanDistinctions
-        var children = acg.getOutgoing(cn).filterNot(c => (visitednodes contains c) || isLeafNodeWithoutFCParent(c) )
+        var children = acg.getOutgoing(cn).filterNot(c => (visitednodes contains c) || isLeafNodeWithoutFCParent(c))
 
         //update currnodes and visitednodes for next iteration of outer loop
         visitednodes += cn
@@ -99,7 +106,6 @@ case class GenerateSubgraphForSingleFunction[Defs, Formulae <: Defs, Type, FDef,
 
     pg
   }
-
 
 
 }

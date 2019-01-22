@@ -91,6 +91,10 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
     }
   }
 
+  def getVariableName(mv: Expression): String
+
+  def getVarExpAtDistarg_pos(arglist: Seq[Expression], distposlist: Seq[Int]): Expression
+
   protected def getRHSOfEquation(eq: Equation): Expression
 
   // from here on: functions necessary for visualizing an augmented call graph

@@ -34,7 +34,7 @@ trait AugmentedCallGraphBuilder[Type, Prop, FunDef, Eq, Criteria, Exp, Graph <: 
       if (eqs_to_group.length > 1) {
         val groups_for_next_level = makeGroupsForPos(eqs_to_group, distargpos_list)
         for (g <- groups_for_next_level) {
-          val (new_distargpos_list, argexp_for_group) = makeArgExpWithDistPos(g, argexp_list, distargpos_list)
+          val (new_distargpos_list, argexp_for_group) = makeArgExpWithDistPos(g, argexp_list, distargpos_list, dag)
           val child = dag.StructuralDistinction(new_distargpos_list, argexp_for_group, g)
           dag.addChild(parent, child)
           if (g.length > 1) { //only refine further if the group still contains more than one function equation
@@ -114,7 +114,7 @@ protected def makeGenericFunctionCall (fundef: FunDef): Exp
 // e.g. a group with the single entry (3, Succ(t1)) creates (None, Succ(t1))
 // a group with three entries [(0, Ifelse(True(), t2, t3)), (1, Ifelse(False(), t2, t3)), (2, Ifelse(t1, t2, t3))]
 // creates (Some([0]), Ifelse(t, t2, t3)) where t is a generated fresh variable name
-protected def makeArgExpWithDistPos (eqs: Seq[(Int, Eq)], argexp_list: Seq[Exp], distarg_pos: Seq[Int] ): (Option[Seq[Int]], Exp)
+protected def makeArgExpWithDistPos (eqs: Seq[(Int, Eq)], argexp_list: Seq[Exp], distarg_pos: Seq[Int], dag: Graph): (Option[Seq[Int]], Exp)
 
 protected def getEquationsOfDefinition (funDef: FunDef): Seq[Eq]
 

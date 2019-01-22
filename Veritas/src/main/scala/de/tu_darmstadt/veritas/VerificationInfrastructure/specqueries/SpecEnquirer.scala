@@ -110,4 +110,7 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
   //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
   def makeNamedAxiom(f: Formulae, name: String): Formulae
 
+  //create an appropriate meta variable term given the string name of the meta variable
+  def makeMVTerm(s: String): Defs
+
 }
