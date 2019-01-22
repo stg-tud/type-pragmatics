@@ -23,7 +23,7 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
   * @tparam Expression
   */
 
-case class GenerateSubgraphForSingleFunction[Def, Formulae <: Def, Type, FDef, Prop, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
+case class GenerateSubgraphForSingleFunction[Def, Formulae <: Def, Type, FDef, Prop <: Formulae, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                                                                                                                      override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
                                                                                                                      override val spec_enquirer: SpecEnquirer[Def, Formulae],
                                                                                                                      acg: AugmentedCallGraph[Equation, Criteria, Expression])
@@ -55,8 +55,10 @@ case class GenerateSubgraphForSingleFunction[Def, Formulae <: Def, Type, FDef, P
     } else {
       //check whether the root node calls functions
       val root_fcparents = acg.getFCParents(acg_sdroot)
-      if (root_fcparents.nonEmpty)
-        ??? //TODO do lemma application
+      if (root_fcparents.nonEmpty) {
+          //collect lemmas for the individual function calls via lemma selection strategy and apply a lemma application
+          LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, SimplyFirstSelectionStrategy(), root_fcparents.map {case acg.FunctionCall(_,_,fn) => fn})
+      }
     }
 
 

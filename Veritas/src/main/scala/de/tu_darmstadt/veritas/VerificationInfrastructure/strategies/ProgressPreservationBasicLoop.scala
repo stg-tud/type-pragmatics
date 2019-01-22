@@ -12,7 +12,7 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
   * @param dsk     domain-specific knowledge for the given specification
   * @param acg_gen function that can generate an augmented call graph for a given function name
   */
-case class ProgressPreservationBasicLoop[Defs, Formulae <: Defs, Type, FDef, Prop, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
+case class ProgressPreservationBasicLoop[Defs, Formulae <: Defs, Type, FDef, Prop <: Formulae, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                                                                                                                    override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
                                                                                                                    override val spec_enquirer: SpecEnquirer[Defs, Formulae],
                                                                                                                    retrievePropFromGoal: Formulae => Prop)

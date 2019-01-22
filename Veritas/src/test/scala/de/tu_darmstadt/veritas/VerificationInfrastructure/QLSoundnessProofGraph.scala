@@ -72,7 +72,7 @@ class QLSoundnessProofGraph(file: File) {
   val valuePS = g.applyTactic(qsinglesubobs.toSeq(1)._1, valueCaseDistinction)
   val valueCases = g.requiredObls(valuePS)
 
-  val progressLookupQMapLemmaApplication = LemmaApplication(Seq(LookupQMapProgress), fullQLspec, specenq)
+  val progressLookupQMapLemmaApplication = LemmaApplication(Seq(LookupQMapProgress), specenq)
   val askPS = g.applyTactic(qsinglesubobs.toSeq(3)._1, progressLookupQMapLemmaApplication)
 
   // apply CaseDistinction to qseq case
@@ -87,7 +87,7 @@ class QLSoundnessProofGraph(file: File) {
 
   val expIsValueTruePS = g.applyTactic(valueCases.toSeq.head._1, Solve[VeritasConstruct, VeritasFormula])
 
-  val progressReduceExpLemmaApplication = LemmaApplication(Seq(ReduceExpProgress), fullQLspec, specenq)
+  val progressReduceExpLemmaApplication = LemmaApplication(Seq(ReduceExpProgress), specenq)
   val expIsValueFalsePS = g.applyTactic(valueCases.toSeq.last._1, progressReduceExpLemmaApplication)
   val progressReduceExpSubs = g.requiredObls(expIsValueFalsePS)
 
@@ -99,7 +99,7 @@ class QLSoundnessProofGraph(file: File) {
 
   val constantProgressReduceExpPS = g.applyTactic(progressReduceExpInductionCases.head._1, Solve[VeritasConstruct, VeritasFormula])
 
-  val progressLookupAnsMapLemma = LemmaApplication(Seq(LookupAnsMapProgress), fullQLspec, specenq)
+  val progressLookupAnsMapLemma = LemmaApplication(Seq(LookupAnsMapProgress), specenq)
   val qvarPS = g.applyTactic(progressReduceExpInductionCases(1)._1, progressLookupAnsMapLemma)
   val progressLookupAnsMap = g.requiredObls(qvarPS).toSeq.head._1
 
