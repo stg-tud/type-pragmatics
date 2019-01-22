@@ -43,7 +43,7 @@ class QLSoundnessProofGraph(file: File) {
   val progressObligation: g.Obligation = g.newObligation(fullQLspec, QLProgress)
   g.storeObligation("QL progress", progressObligation)
 
-  private val rootInduction = StructuralInduction(MetaVar("q"), fullQLspec, specenq)
+  private val rootInduction = StructuralInduction(MetaVar("q"), specenq)
   // first proof step: structural induction
   val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
 
@@ -91,7 +91,7 @@ class QLSoundnessProofGraph(file: File) {
   val expIsValueFalsePS = g.applyTactic(valueCases.toSeq.last._1, progressReduceExpLemmaApplication)
   val progressReduceExpSubs = g.requiredObls(expIsValueFalsePS)
 
-  val reduceExpInduction = StructuralInduction(MetaVar("exp"), fullQLspec, specenq)
+  val reduceExpInduction = StructuralInduction(MetaVar("exp"), specenq)
   val progressReduceExpInductionPS = g.applyTactic(progressReduceExpSubs.toSeq.head._1, reduceExpInduction)
 
   val progressReduceExpInductionCases = g.requiredObls(progressReduceExpInductionPS).toSeq
@@ -103,7 +103,7 @@ class QLSoundnessProofGraph(file: File) {
   val qvarPS = g.applyTactic(progressReduceExpInductionCases(1)._1, progressLookupAnsMapLemma)
   val progressLookupAnsMap = g.requiredObls(qvarPS).toSeq.head._1
 
-  val progressLookupAnsMapInduction = StructuralInduction(MetaVar("am"), fullQLspec, specenq)
+  val progressLookupAnsMapInduction = StructuralInduction(MetaVar("am"), specenq)
   val progressLookupAnsMapInductionPS = g.applyTactic(progressLookupAnsMap, progressLookupAnsMapInduction)
   val progressLookupAnsMapInductionCases = g.requiredObls(progressLookupAnsMapInductionPS).toSeq
   val progressLookupAnsMapInductionCasesPS =  progressLookupAnsMapInductionCases.map { case (obl, info) =>
@@ -140,7 +140,7 @@ class QLSoundnessProofGraph(file: File) {
 
   val progressLookupQMap = g.requiredObls(askPS).toSeq.head._1
 
-  val progressLookupQMapInduction = StructuralInduction(MetaVar("qm"), fullQLspec, specenq)
+  val progressLookupQMapInduction = StructuralInduction(MetaVar("qm"), specenq)
   val progressLookupQMapInductionPS = g.applyTactic(progressLookupQMap, progressLookupQMapInduction)
   val progressLookupQMapInductionCases = g.requiredObls(progressLookupQMapInductionPS).toSeq
   val progressLookupQMapInductionCasesPS = progressLookupQMapInductionCases.map { case (obl, _) =>

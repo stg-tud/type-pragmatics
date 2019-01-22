@@ -43,11 +43,13 @@ case class GenerateSubgraphForSingleFunction[Def, Formulae <: Def, Type, FDef, P
       val rec_fun = dsk.recursiveFunctions.find { case (fdef, _) => dsk.retrieveFunName(fdef) == funname }
 
       if (rec_fun.nonEmpty) {
-        //distpos is the recursive position
-        ??? //TODO do structural induction
+        //do a structural induction
+        StructuralInductionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
       }
       else {
-
+        //do a structural case distinction for the distinction var
+        //this is an approximation and might not work for every function
+        //TODO: analyze cases and do a general case distinction if necessary
         StructuralCaseDistinctionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
       }
     } else {

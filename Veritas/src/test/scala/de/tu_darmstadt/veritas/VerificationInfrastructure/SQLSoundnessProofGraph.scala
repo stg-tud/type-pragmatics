@@ -29,7 +29,7 @@ class SQLSoundnessProofGraph(file: File) {
 
   //apply structural induction on a given induction var to a given obligation and retrieve all resulting obligations
   def applyInductionGetCases(obl: g.Obligation, indvar: MetaVar): Map[String, (g.Obligation, EdgeLabel)] = {
-    val indtac = StructuralInduction(indvar, fullSQLspec, specenq)
+    val indtac = StructuralInduction(indvar, specenq)
     val ps = g.applyTactic(obl, indtac)
     val subobls = g.requiredObls(ps)
     indtac.enumerateCases(subobls)
