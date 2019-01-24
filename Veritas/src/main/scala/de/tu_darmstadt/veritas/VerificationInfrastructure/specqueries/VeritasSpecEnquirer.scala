@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.Configuration._
-import de.tu_darmstadt.veritas.backend.ast.function._
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExp, _}
 import de.tu_darmstadt.veritas.backend.ast.{TypingRuleJudgment, _}
 import de.tu_darmstadt.veritas.backend.transformation.{ModuleTransformation, SeqTrans}
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
@@ -387,6 +387,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   def makeNegation(body: VeritasConstruct): VeritasFormula =
     body match {
       case exp: FunctionExp => FunctionExpJudgment(FunctionExpNot(exp))
+      case FunctionExpJudgment(exp: FunctionExp) => FunctionExpJudgment(FunctionExpNot(exp))
       case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a negation.")
     }
 

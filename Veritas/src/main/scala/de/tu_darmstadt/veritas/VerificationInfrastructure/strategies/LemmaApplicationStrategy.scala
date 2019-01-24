@@ -5,15 +5,15 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquir
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.LemmaApplication
 import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
 
-case class LemmaApplicationStrategy[Defs, Formulae <: Defs, Type, FDef, Prop <: Formulae, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
+case class LemmaApplicationStrategy[Def, Formulae <: Def, Type <: Def, FDef <: Def, Prop <: Formulae, Equation <: Def, Criteria <: Def, Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                                                                                                               override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
-                                                                                                              override val spec_enquirer: SpecEnquirer[Defs, Formulae],
+                                                                                                              override val spec_enquirer: SpecEnquirer[Def, Formulae],
                                                                                                               acg: AugmentedCallGraph[Equation, Criteria, Expression],
                                                                                                               sel_strat: LemmaSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression],
                                                                                                               fnames: Seq[String])
-  extends DomainSpecificStrategy[Defs, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
+  extends DomainSpecificStrategy[Def, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
 
-  override def applyToPG(pg: ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae])(obl: pg.Obligation): ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae] = {
+  override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation): ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
     val lemmas: Seq[Formulae] = (for (fn <- fnames) yield sel_strat.selectLemma(dsk, acg, fn)).flatten
     val lemtac = LemmaApplication(lemmas, spec_enquirer)
     pg.applyTactic(obl, lemtac)

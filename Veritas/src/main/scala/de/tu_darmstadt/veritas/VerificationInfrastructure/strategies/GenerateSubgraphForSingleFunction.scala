@@ -23,7 +23,7 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
   * @tparam Expression
   */
 
-case class GenerateSubgraphForSingleFunction[Def, Formulae <: Def, Type, FDef, Prop <: Formulae, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
+case class GenerateSubgraphForSingleFunction[Def, Formulae <: Def, Type <: Def, FDef <: Def, Prop <: Formulae, Equation <: Def, Criteria <: Def, Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                                                                                                                      override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
                                                                                                                      override val spec_enquirer: SpecEnquirer[Def, Formulae],
                                                                                                                      acg: AugmentedCallGraph[Equation, Criteria, Expression])
