@@ -59,7 +59,7 @@ class PreservationStrategy(override val problem: Problem, function: FunctionDef)
       val constraints = Constraint.freshOrBound(predicate.inTypes)
       refine(lemma, selectPredicate(lemma, predicate, constraints))
     })
-    baseLemmas ++ evolvedLemmas
+    /*baseLemmas ++*/ evolvedLemmas
   }
 
   override def generateBase(): Seq[Lemma] = {
@@ -75,7 +75,7 @@ class PreservationStrategy(override val problem: Problem, function: FunctionDef)
         lemmas ++= buildRelationalPreservationLemmas(predicate)
       })
     }
-    val predicates = enquirer.retrievePredicates(Set(outType))
+    val predicates = enquirer.retrievePredicates(Set(outType)).filter(_.isStatic)
     predicates.foreach({
       lemmas ++= buildPredicatePreservationLemmas(_)
     })
