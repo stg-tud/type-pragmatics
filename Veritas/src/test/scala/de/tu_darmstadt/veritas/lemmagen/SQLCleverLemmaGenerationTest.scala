@@ -17,10 +17,10 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
   val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
     override val printer: PrettyPrintWriter = outputPrettyPrinter
   }
-
-  def rename(lemmas: Set[Lemma]): Set[Lemma] = {
+/*
+  def rename(lemmas: Seq[Lemma]): Seq[Lemma] = {
     (for((l, i) <- lemmas.toSeq.zipWithIndex) yield l.rename(s"Lemma$i")).toSet
-  }
+  }*/
 
   Seq("findCol", "lookupStore", "projectTable", "projectCols").foreach { name =>
     test(s"generate $name progress") {
@@ -37,8 +37,12 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
 
       val pool = new ShapedPool()
 
-      for (lemma <- lemmas) {
-        val eqs = rename(generator.addEquations(lemma))
+      for(lemma <- lemmas) {
+        generator.addEquations(lemma)
+      }
+
+      /*for (lemma <- lemmas) {
+        val eqs = rename(generator.addEquations(lemma).toSeq).toSet
         val pruned = Oracle.pruneProvablyFalseLemmas(problem, eqs)
         for (lemma <- pruned) {
           pool.add(lemma)
@@ -49,7 +53,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
         outputPrettyPrinter.flush()
         println(lemma.refinements)
         println()
-      }
+      }*/
 
       val progressProperties = problem.dsk.lookupByFunName(problem.dsk.progressProperties, name)
       println(s"generated ${pool.lemmas.size} lemmas")

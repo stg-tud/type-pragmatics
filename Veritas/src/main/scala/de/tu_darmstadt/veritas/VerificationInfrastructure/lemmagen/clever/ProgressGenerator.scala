@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
-import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, MetaVar, SortRef}
+import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionMeta}
 
 import scala.collection.mutable
@@ -60,6 +60,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
   }
 
   def addEquations(lemma: Lemma): Set[Lemma] = {
+    buildTree(lemma)
     var pool = Set(lemma)
     val boundTypes = lemma.boundTypes
     boundTypes.foreach(boundType => {
@@ -89,5 +90,88 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
       pool = nextGeneration
     })
     pool
+  }
+
+  class ProgressRefinementTree(rootLemma: Lemma, val rootTag: LemmaTag) extends RefinementTree[LemmaTag](rootLemma, rootTag) {
+    def refine(node: Node, refinement: Refinement): Node = {
+      refinement.refine(problem, node.lemma) match {
+        case Some(refinedLemma) => {
+          val child = new Node(refinedLemma, LemmaTag(None)) // TODO
+          node.addChild(child)
+          child
+        }
+        case None => node
+      }
+    }
+
+    def prune(nodes: Seq[Node]) = {
+      val unknownLemmas = nodes.collect {
+        case node if node.tag.status.isEmpty => node.lemma
+      }.toSet
+      val remaining = Oracle.pruneProvablyFalseLemmas(problem, unknownLemmas)
+      for(node <- nodes) {
+        if(remaining contains node.lemma) {
+          node.tag = node.tag.copy(Some(Oracle.Inconclusive()))
+          println(s"set to INCONCLUSIVE: ${node.lemma}")
+        } else {
+          node.tag = node.tag.copy(Some(Oracle.ProvablyFalse(None)))
+          println(s"set to FALSE: ${node.lemma}")
+        }
+      }
+    }
+  }
+
+  case class LemmaTag(status: Option[Oracle.Answer])
+  trait Equation {}
+  case class VarVarEquation(left: MetaVar, right: MetaVar) extends Equation
+  case class VarConstructorEquation(left: MetaVar, right: DataTypeConstructor, args: Seq[FunctionMeta]) extends Equation
+
+  def getConstrainedVariables(lemma: Lemma): Set[MetaVar] =
+    enquirer.getUniversallyQuantifiedVars(lemma.consequences.head).asInstanceOf[Set[MetaVar]]
+
+  def getEquations(lemma: Lemma, metaVar: MetaVar): Set[Equation] = {
+    val equations = new mutable.HashSet[Equation]()
+    equations ++= lemma.bindingsOfType(metaVar.sortType).filterNot(_ == metaVar).map(right => VarVarEquation(metaVar, right
+))
+    // all zero-argument constructors of value
+    val constructors = enquirer.getConstructors(metaVar.sortType).filter(_.in.isEmpty)
+    constructors.foreach { constructor =>
+      equations += VarConstructorEquation(metaVar, constructor, Seq())
+    }
+    // find datatype constructors of metaVar.sortType
+    equations.toSet
+  }
+
+  def buildTree(lemma: Lemma): Unit = {
+    val tree = new ProgressRefinementTree(lemma, LemmaTag(None))
+    println(tree)
+    lemma.boundVariables.foreach { mv =>
+      tree.leaves.foreach { leaf =>
+        val equations = getEquations(leaf.lemma, mv)
+        val possibleVariableEquations = equations.collect {
+          case VarVarEquation(_, right) => right
+        }
+        val possibleConstrEquations = equations.collect {
+          case VarConstructorEquation(_, right, _) => right
+        }
+        possibleVariableEquations.subsets.foreach { rightSides =>
+          if (rightSides.isEmpty)
+            Set(lemma)
+          else {
+            rightSides.foreach { right =>
+              val refinement = Refinement.Equation(mv, FunctionMeta(right))
+              tree.refine(leaf, refinement)
+            }
+          }
+        }
+        leaf.children.foreach { child =>
+          possibleConstrEquations.foreach { constr =>
+            val refinement = Refinement.Equation(mv, FunctionExpApp(constr.name, Seq()))
+            tree.refine(child, refinement)
+          }
+        }
+      }
+    }
+    tree.prune(tree.leaves.toSeq)
   }
 }

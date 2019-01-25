@@ -26,6 +26,18 @@ class ThesisTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
+  def printRules(lemmas: Seq[Lemma]) = {
+    val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
+    val lemmaPrettyPrinter = new SimpleLemmaPrinter {
+      override val printer: PrettyPrintWriter = outputPrettyPrinter
+    }
+    lemmas.foreach { lemma =>
+      lemmaPrettyPrinter.printTypingRule(lemma)
+    }
+    outputPrettyPrinter.flush()
+  }
+
+  /*
   test("lemma oracle") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
     val problem = new Problem(file)
@@ -35,7 +47,7 @@ class ThesisTest extends FunSuite {
 
     swLemmas = Oracle.pruneProvablyFalseLemmas(problem, swLemmas)
     println(s"remaining: ${swLemmas.map(_.name)}")
-  }
+  }*/
 
   test("static functions") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
@@ -99,10 +111,25 @@ class ThesisTest extends FunSuite {
 
     val base = strat.generateBase()
     val first = base.head
-    strat.expand(first).flatMap(_.refine(problem, first)).foreach {l =>
+    strat.expand(first).flatMap(_.refine(problem, first)).foreach { l =>
       lemmaPrettyPrinter.printTypingRule(l)
       println()
     }
     outputPrettyPrinter.flush()
+  }
+
+  test("progress projectTable") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+    val problem = new Problem(file)
+
+    val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "projectCols").get
+    val strat = new PreservationStrategy(problem, func)//new ProgressStrategy(problem, func)
+    val base = strat.generateBase()
+    printRules(base)
+
+    println("")/*
+    val refinements = strat.expand(base.head)
+    val refined = refinements.flatMap(_.refine(problem, base.head))
+    printRules(refined)*/
   }
 }

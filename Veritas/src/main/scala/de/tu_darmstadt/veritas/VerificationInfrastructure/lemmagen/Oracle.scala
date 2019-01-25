@@ -26,7 +26,7 @@ object Oracle {
     }
   }
 
-  def invoke(problem: Problem, lemmas: Set[TypingRule], timeout: Integer = 10, logic: String = "tff"): Answer = {
+  def invoke[A <: TypingRule](problem: Problem, lemmas: Set[A], timeout: Integer = 10, logic: String = "tff"): Answer = {
     val falseGoal = Goals(Seq(TypingRule("false-goal", Seq(), Seq(FunctionExpJudgment(FunctionExpFalse)))), None)
     val verifier = new TPTPVampireVerifier(timeout, "4.1", logic)
     val assumptions = lemmas.map(lemma => (LemmaApplicationStep(lemma.name), lemma)).toSeq
@@ -47,9 +47,18 @@ object Oracle {
     }
   }
 
-  def pruneProvablyFalseLemmas[A <: TypingRule](problem: Problem, lemmas: Set[A]): Set[A] = {
-    val remainingLemmas = new mutable.HashSet[A]()
-    remainingLemmas ++= lemmas
+  def rename(lemmas: Seq[Lemma]): Seq[(Lemma, Lemma)] = {
+    for((l, i) <- lemmas.zipWithIndex) yield (l, l.rename(s"Lemma$i"))
+  }
+
+  def pruneProvablyFalseLemmas(problem: Problem, lemmas: Set[Lemma]): Set[Lemma] = {
+    val remainingLemmas = new mutable.HashSet[Lemma]()
+    val lemmaSeq = lemmas.toSeq
+    val renamedLemmas = rename(lemmaSeq)
+    remainingLemmas ++= renamedLemmas.map(_._2)
+    val nameMap = renamedLemmas.map {
+      case (original, renamed) => (renamed.name, original)
+    }.toMap
     var run = true
     while (run && remainingLemmas.nonEmpty) {
       Oracle.invoke(problem, remainingLemmas.toSet) match {
@@ -65,6 +74,6 @@ object Oracle {
           }
         }
     }
-    remainingLemmas.toSet
+    remainingLemmas.map(lemma => nameMap(lemma.name)).toSet
   }
 }

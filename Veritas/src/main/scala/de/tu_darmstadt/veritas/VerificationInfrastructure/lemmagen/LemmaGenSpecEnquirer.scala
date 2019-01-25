@@ -58,4 +58,12 @@ class LemmaGenSpecEnquirer(spec: Module, dsk: VeritasDomainSpecificKnowledge) ex
   def retrieveAxiom(name: String): Option[TypingRule] = spec.defs.collect {
     case Axioms(axioms) => axioms
   }.flatten.find(_.name == name)
+
+  def getConstructors(typ: SortRef): Seq[DataTypeConstructor] = {
+    tdcollector.dataTypes
+      .filter(_._1 == typ.name)
+      .head match {
+      case (_, (_, constrs)) => constrs
+    }
+  }
 }
