@@ -115,7 +115,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //some auxiliary functions on raw tables (all not knowing anything about table types!)
   //the functions are intended to be used with well-typed tables!!
 
-  //@Dynamic
+  @Dynamic
   def rowIn(r: Row, rt: RawTable): Boolean = (r, rt) match {
     case (_, tempty()) => false
     case (r1, tcons(r2, rt2)) => (r1 == r2) || rowIn(r1, rt2)
@@ -608,6 +608,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
 
+  @Static
   def tcheckPred(pred: Pred, tType: TType): Boolean = (pred, tType) match {
     case (ptrue(), tt) => true
     case (and(p1, p2), tt) => tcheckPred(p1, tt) && tcheckPred(p2, tt)
