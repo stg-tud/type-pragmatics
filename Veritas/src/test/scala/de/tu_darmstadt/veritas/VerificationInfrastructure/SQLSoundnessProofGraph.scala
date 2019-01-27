@@ -29,7 +29,7 @@ class SQLSoundnessProofGraph(file: File) {
 
   //apply structural induction on a given induction var to a given obligation and retrieve all resulting obligations
   def applyInductionGetCases(obl: g.Obligation, indvar: MetaVar): Map[String, (g.Obligation, EdgeLabel)] = {
-    val indtac = StructuralInduction(indvar, fullSQLspec, specenq)
+    val indtac = StructuralInduction(indvar, specenq)
     val ps = g.applyTactic(obl, indtac)
     val subobls = g.requiredObls(ps)
     indtac.enumerateCases(subobls)
@@ -75,7 +75,7 @@ class SQLSoundnessProofGraph(file: File) {
   }
 
   def makeSetCaseDistinction(fv1name: String, fv2name: String): CaseDistinction[VeritasConstruct, VeritasFormula] =
-    CaseDistinction(makeSetCasePreds(fv1name, fv2name), fullSQLspec, specenq)
+    CaseDistinction(makeSetCasePreds(fv1name, fv2name), specenq)
 
   def extract2FVNames(casename: String): (String, String) = {
     val cases = rootobl_edge_map(casename)._2
@@ -125,7 +125,7 @@ class SQLSoundnessProofGraph(file: File) {
 
   //apply lemma application tactic to selection case
   val selLemmaTac = LemmaApplication(Seq(successfulLookup, welltypedLookup,
-    filterPreservesType, projectTableProgress), fullSQLspec, specenq)
+    filterPreservesType, projectTableProgress), specenq)
   val selLemmaPS = g.applyTactic(selcase, selLemmaTac)
 
 
@@ -147,7 +147,7 @@ class SQLSoundnessProofGraph(file: File) {
   val filterPreservesTypeobl = selLemmaTac.selectLemma(filterPreservesType.lemmas.head.name,
     g.requiredObls(selLemmaPS))
 
-  val filterPreservesTypeTac = LemmaApplication(Seq(filterRowsPreservesTable), fullSQLspec, specenq)
+  val filterPreservesTypeTac = LemmaApplication(Seq(filterRowsPreservesTable), specenq)
   val filterPreservesTypePS = g.applyTactic(filterPreservesTypeobl, filterPreservesTypeTac)
 
   val filterRowsPreservesTableObl = filterPreservesTypeTac.selectLemma(filterRowsPreservesTable.lemmas.head.name,
@@ -162,7 +162,7 @@ class SQLSoundnessProofGraph(file: File) {
   val projectTableProgressobl = selLemmaTac.selectLemma(projectTableProgress.lemmas.head.name,
     g.requiredObls(selLemmaPS))
 
-  private val projectTableProgressTac = LemmaApplication(Seq(projectColsProgress), fullSQLspec, specenq)
+  private val projectTableProgressTac = LemmaApplication(Seq(projectColsProgress), specenq)
   val projectTableProgressPS = g.applyTactic(projectTableProgressobl, projectTableProgressTac)
 
   //prove projectColsProgress via induction
@@ -179,7 +179,7 @@ class SQLSoundnessProofGraph(file: File) {
 
   // step case requires an auxiliary lemma (projectTypeImpliesFindCol)
   val projectColsProgressstepcase = projectColsProgress_casemap(projectColsProgress_casenames(1))._1
-  private val projectColsProgressStepCaseTac = LemmaApplication(Seq(projectTypeImpliesFindCol), fullSQLspec, specenq)
+  private val projectColsProgressStepCaseTac = LemmaApplication(Seq(projectTypeImpliesFindCol), specenq)
   val projectColsProgressstepcasePS = g.applyTactic(projectColsProgressstepcase, projectColsProgressStepCaseTac)
 
   //prove projectTypeImpliesFindCol via induction
@@ -195,7 +195,7 @@ class SQLSoundnessProofGraph(file: File) {
 
   // step case requires two auxiliary lemmas
   val projectTypeImpliesFindColstepcase = projectTypeImpliesFindCol_casemap(projectTypeImpliesFindCol_casenames(1))._1
-  private val projectTypeImpliesFindColStepCaseTac = LemmaApplication(Seq(findColTypeImpliesfindCol, projectTypeAttrLImpliesfindAllColType), fullSQLspec, specenq)
+  private val projectTypeImpliesFindColStepCaseTac = LemmaApplication(Seq(findColTypeImpliesfindCol, projectTypeAttrLImpliesfindAllColType), specenq)
   val projectTypeImpliesFindColstepcasePS = g.applyTactic(projectTypeImpliesFindColstepcase, projectTypeImpliesFindColStepCaseTac)
 
   //prove findColTypeImpliesfindCol via induction
@@ -211,7 +211,7 @@ class SQLSoundnessProofGraph(file: File) {
 
   //step requires auxiliary lemma dropFirstColRawPreservesWelltypedRaw
   val findColTypeImpliesfindColstepcase = findColTypeImpliesfindCol_casemap(findColTypeImpliesfindCol_casenames(1))._1
-  private val findColTypeImpliesfindColStepcaseTac = LemmaApplication(Seq(dropFirstColRawPreservesWelltypedRaw), fullSQLspec, specenq)
+  private val findColTypeImpliesfindColStepcaseTac = LemmaApplication(Seq(dropFirstColRawPreservesWelltypedRaw), specenq)
   val findColTypeImpliesfindColstepcasePS = g.applyTactic(findColTypeImpliesfindColstepcase, findColTypeImpliesfindColStepcaseTac)
 
   //prove projectTypeAttrLImpliesfindAllColType via induction

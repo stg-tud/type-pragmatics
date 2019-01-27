@@ -15,7 +15,7 @@ case class LemmaApplicationStep[Goal](lemmaname: String) extends EdgeLabel {
   override def propagateInfoList: Seq[PropagatableInfo] = Seq()
 }
 
-case class LemmaApplication[Defs, Formulae <: Defs](lemmas: Seq[Formulae], spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class LemmaApplication[Defs, Formulae <: Defs](lemmas: Seq[Formulae], queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -33,7 +33,7 @@ case class LemmaApplication[Defs, Formulae <: Defs](lemmas: Seq[Formulae], spec:
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
     for (lemma <- lemmas) yield {
-      val lemmaobl = produce.newObligation(spec, makeNamedGoal(lemma, getFormulaName(lemma)))
+      val lemmaobl = produce.newObligation(queryspec.fullspec, makeNamedGoal(lemma, getFormulaName(lemma)))
       val lemmaedge = LemmaApplicationStep(getFormulaName(lemma))
       (lemmaobl, lemmaedge)
     }

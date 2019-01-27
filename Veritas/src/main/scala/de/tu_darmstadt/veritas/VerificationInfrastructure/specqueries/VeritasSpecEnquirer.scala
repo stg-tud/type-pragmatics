@@ -409,4 +409,6 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
   def makeNamedAxiom(f: VeritasFormula, name: String): VeritasFormula =
     Axioms(Seq(makeNamedFormula(f, name)))
+
+  override def makeMVTerm(s: String): VeritasConstruct = MetaVar(s)
 }

@@ -15,9 +15,7 @@ class FunctionCallGraphGenerator(problem: Problem) {
   }
 
   def generateAugmentedCallGraph(function: FunctionDef): VeritasACG = {
-    new VeritasAugmentedCallGraphBuilder(problem.spec).translate(function)(
-      VeritasAugmentedCallGraph(function.signature.name)
-    )
+    new VeritasAugmentedCallGraphBuilder(problem.spec).translate(function, problem.dsk)(VeritasAugmentedCallGraph(function.signature.name))
   }
 
   def getAugmentedCallGraph(function: FunctionDef): VeritasACG = {

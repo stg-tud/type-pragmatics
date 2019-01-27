@@ -3,6 +3,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.{SpecEnquirer, VeritasSpecEnquirer}
+import de.tu_darmstadt.veritas.backend.ast
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -24,6 +26,7 @@ class VeritasProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, 
   val sourcefile = new File(pathtoScalaSPLsource)
   override val spec: Module = new ScalaSPLTranslator().translate(sourcefile)
   override val goalname_extractor: VeritasFormula => String = ProofGraphUI.extractGoalOrLemmaName
+  override val spec_enquirer: SpecEnquirer[VeritasConstruct, VeritasFormula] = new VeritasSpecEnquirer(spec)
 
 
   override def computeDomainSpecificKnowledge(): DomainSpecificKnowledge[DataType, FunctionDef, TypingRule] = {
@@ -50,7 +53,7 @@ class VeritasProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, 
     }
 
     //construct augmented call graph from reduce function on
-    val acg = new VeritasAugmentedCallGraphBuilder(spec).translate(fun)(VeritasAugmentedCallGraph(fun.signature.name))
+    val acg = new VeritasAugmentedCallGraphBuilder(spec).translate(fun, computeDomainSpecificKnowledge())(VeritasAugmentedCallGraph(fun.signature.name))
 
     //for debugging: visualize ACG
     val acg_name = s"acg_$fn.png"
@@ -99,5 +102,12 @@ class VeritasProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, 
     prettyPrinter.printer.close()
   }
 
-
+  override def retrievePropFromGoal(g: VeritasFormula): TypingRule = g match {
+    case Goals(Seq(t,_), _) => t
+    case GoalsWithStrategy(_, Seq(t, _), _) => t
+    case Lemmas(Seq(t,_),_) => t
+    case LemmasWithStrategy(_, Seq(t, _),_) => t
+    case Axioms(Seq(t, _)) => t
+    case _ => sys.error(s"Could not retrieve a TypingRule from $g")
+  }
 }

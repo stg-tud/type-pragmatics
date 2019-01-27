@@ -1,21 +1,21 @@
 package de.tu_darmstadt.veritas.scalaspl.util
 
-import java.lang.IndexOutOfBoundsException
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.FreshVariables
+import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.DomainSpecificKnowledge
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphBuilder[FunctionDef, FunctionEq, FunctionExp, FunctionExpMeta, VeritasAugmentedCallGraph] {
+class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphBuilder[DataType, TypingRule, FunctionDef, FunctionEq, FunctionExp, FunctionExpMeta, VeritasAugmentedCallGraph] {
 
   private val ctorNames = ListBuffer[String]()
   private var constructors = Map[String, DataTypeConstructor]()
   private var funcSigs = Map[String, FunctionSig]()
 
-  override def translate(funDef: FunctionDef, distargpos: Int = 0)(dag: VeritasAugmentedCallGraph): AugmentedCallGraph[FunctionEq, FunctionExp, FunctionExpMeta] = {
+  override def translate(funDef: FunctionDef, dsk: DomainSpecificKnowledge[DataType, FunctionDef, TypingRule])(dag: VeritasAugmentedCallGraph): AugmentedCallGraph[FunctionEq, FunctionExp, FunctionExpMeta] = {
     spec.defs.foreach {
       case DataType(_, _, ctors) => {
         ctorNames ++= ctors.map(_.name)
@@ -26,7 +26,7 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
       case Functions(Seq(FunctionDef(sig@FunctionSig(name, _, _), _))) => funcSigs += (name -> sig)
       case _ =>
     }
-    super.translate(funDef)(dag)
+    super.translate(funDef, dsk)(dag)
   }
 
   override protected def getDistinctionByIfExpression(exp: FunctionExpMeta): Map[FunctionExp, FunctionExpMeta] = exp match {
@@ -71,28 +71,6 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
         FunctionExpApp(name, varnames map (v => FunctionMeta(v)))
       }
     }
-
-  //internal helper function: given a list of argument expressions (from all node ancestors) and a position list,
-  //retrieve the correct variable name for the designated position
-  private def getVarExpAtDistarg_pos(arglist: Seq[FunctionExpMeta], distarg_pos: Seq[Int]): FunctionMeta = {
-
-    def retrieveArgList(exp: FunctionExpMeta): Seq[FunctionExpMeta] =
-      exp match {
-        case FunctionExpEq(_, FunctionExpApp(_, args)) => args
-        case FunctionExpApp(_, args) => args
-        case a => Seq(a)
-      }
-
-    //length of distarg_pos determines how far we have to look for a variable within arglist (is this really always true?)
-    val varlist = for (i <- distarg_pos.indices) yield retrieveArgList(arglist(i))(distarg_pos(i))
-    val res = varlist.last
-
-    res match {
-      case fm@FunctionMeta(_) => fm
-      case _ => sys.error(s"Variable name from $arglist at $distarg_pos could not be retrieved.")
-    }
-
-  }
 
   //construct groups of pattern arguments
   //predicate for determining whether an argument position is a next candidate for distinguishing a group
@@ -159,13 +137,13 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
   // e.g. a group with the single entry (3, Succ(t1)) creates (None, Succ(t1))
   // a group with three entries [(0, Ifelse(True(), t2, t3)), (1, Ifelse(False(), t2, t3)), (2, Ifelse(t1, t2, t3))]
   // creates (Some([0]), Ifelse(t, t2, t3)) where t is a generated fresh variable name
-  override protected def makeArgExpWithDistPos(eqs: Seq[(Int, FunctionEq)], argexp_list: Seq[FunctionExpMeta], distarg_pos: Seq[Int]): (Option[Seq[Int]], FunctionExpMeta) = {
+  override protected def makeArgExpWithDistPos(eqs: Seq[(Int, FunctionEq)], argexp_list: Seq[FunctionExpMeta], distarg_pos: Seq[Int], dag: VeritasAugmentedCallGraph): (Option[Seq[Int]], FunctionExpMeta) = {
     //common argument expression should be an equation; retrieve variable for lhs from parent_argexp
     //for groups with just one element, we can immediately return the result
     if (eqs.length == 1) {
       val pat = getFunctionPatternAtPos(eqs.head._2, distarg_pos)
-      val lhvarname = getVarExpAtDistarg_pos(argexp_list, distarg_pos)
-      (None, FunctionExpEq(lhvarname, makeFunctionExpFromPat(pat.get)))
+      val lhvarexpr = dag.getVarExpAtDistarg_pos(argexp_list, distarg_pos)
+      (None, FunctionExpEq(lhvarexpr, makeFunctionExpFromPat(pat.get)))
     } else {
       var considered_distarg_pos = distarg_pos //starting point for positions to still consider
       var next_dist_pos: Option[Int] = None // next position for distinguishing within the current argument list (to be discovered)
@@ -209,19 +187,23 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
             }
 
             //create a common argument expression (equation) for the group
-            val lhvarname = getVarExpAtDistarg_pos(argexp_list, considered_distarg_pos)
+            val lhvarexpr = dag.getVarExpAtDistarg_pos(argexp_list, considered_distarg_pos)
+
+            val lhvarmv = lhvarexpr match {
+              case FunctionMeta(mv@MetaVar(_)) => mv
+            }
 
             val rhs = if (constructors.isDefinedAt(funname)) {
-              val varnames = FreshVariables.freshMetaVars(Set(lhvarname.metavar), constructors(funname).in)
+              val varnames = FreshVariables.freshMetaVars(Set(lhvarmv), constructors(funname).in)
               FunctionExpApp(funname, varnames map (v => FunctionMeta(v)))
             }
             else {
-              val varnames = FreshVariables.freshMetaVars(Set(lhvarname.metavar), funcSigs(funname).in)
+              val varnames = FreshVariables.freshMetaVars(Set(lhvarmv), funcSigs(funname).in)
               FunctionExpApp(funname, varnames map (v => FunctionMeta(v)))
             }
 
 
-            common_exp = FunctionExpEq(lhvarname, rhs)
+            common_exp = FunctionExpEq(lhvarexpr, rhs)
           } else {
             sys.error(s"Could not detect a common pattern for group $eqs at argument position $considered_distarg_pos")
           }

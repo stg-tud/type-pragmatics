@@ -28,9 +28,7 @@ class ACGTest extends FunSuite {
   Directory.mkdirs()
 
   def generateACG(function: FunctionDef): AugmentedCallGraph[FunctionEq, FunctionExp, FunctionExpMeta] = {
-    new VeritasAugmentedCallGraphBuilder(problem.spec).translate(function)(
-      VeritasAugmentedCallGraph(function.signature.name)
-    )
+    new VeritasAugmentedCallGraphBuilder(problem.spec).translate(function, dsk)(VeritasAugmentedCallGraph(function.signature.name))
   }
 
   (dsk.staticFunctions ++ dsk.dynamicFunctions).foreach { fn =>
@@ -58,7 +56,7 @@ class ACGTest extends FunSuite {
     val calledFunctions = problem.enquirer.extractFunctionCalls(axiom.get).collect {
       case FunctionExpApp(name, _) => name
     }.flatMap(dsk.lookupByFunName(dsk.staticFunctions, _)).toSet
-    for(fn <- calledFunctions) {
+    for (fn <- calledFunctions) {
       val fct = new FunctionCallGraphGenerator(problem).generate(fn)
       val dotFile = new File(Directory, s"function-call-tree-${fn.signature.name}.dot")
       val writer = new BufferedWriter(new FileWriter(dotFile))
@@ -70,7 +68,9 @@ class ACGTest extends FunSuite {
         throw new RuntimeException("Function Call Graph could not be visualized. This could be caused by the non-existence of the dot command.")
     }
   }
+
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Query._
+
   implicit private val enquirer = problem.enquirer
 
   test("do findCol") {
@@ -100,7 +100,7 @@ class ACGTest extends FunSuite {
       val boundPremises = prop.premises.flatMap(problem.enquirer.getUniversallyQuantifiedVars(_)).toSet
       val boundConsequence = problem.enquirer.getUniversallyQuantifiedVars(prop.consequences.head).toSet
       val diff = boundConsequence.diff(boundPremises)
-      if(diff.nonEmpty) {
+      if (diff.nonEmpty) {
         println(prop.name, diff)
       }
     }

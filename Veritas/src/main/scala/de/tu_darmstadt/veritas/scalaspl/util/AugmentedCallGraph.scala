@@ -34,11 +34,12 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
   case class FunctionCall(funeq_num: Int, inner_nesting_level: Int, name: String) extends Node
 
   private val adjacencyList: mutable.Map[Node, Seq[Node]] = mutable.Map()
-  private val _roots = ListBuffer[Node]()
+  private val _sdroots = ListBuffer[StructuralDistinction]()
 
-  def addRoot(node: Node): Unit = {
-    adjacencyList(node) = Seq()
-    _roots += node
+  // roots of augmented call graphs can only ever be StructuralDistinction nodes (by design)
+  def addStructuralDistinctionRoot(snode: StructuralDistinction): Unit = {
+    adjacencyList(snode) = Seq()
+    _sdroots += snode
   }
 
   def addChild(parent: Node, child: Node): Unit = {
@@ -63,34 +64,17 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
   def getOutgoing(distinction: Node): Seq[Node] =
     adjacencyList(distinction).toSeq
 
-  def getParent(distinction: Node): Option[Node] = {
+  def getParents(distinction: Node): Seq[Node] = {
     adjacencyList.filter { case (_, children) =>
       children.contains(distinction)
-    }.keys.headOption
+    }.keys.toSeq
   }
 
   def nodes: Seq[Node] = (adjacencyList.keys.toSeq ++ adjacencyList.flatMap(_._2)).distinct
 
-  def roots: Set[Node] = _roots.toSet
+  def sdroots: Set[StructuralDistinction] = _sdroots.toSet
 
   def leaves: Set[Node] = adjacencyList.filter(_._2.isEmpty).keys.toSet
-
-  def getEquations(distinction: Node): Seq[Equation] = distinction match {
-    case structural: StructuralDistinction => structural.numbered_eqs.map(_._2)
-    case BooleanDistinction(_, _, _, _) =>
-      getParent(distinction) match {
-        case Some(StructuralDistinction(_, _, equation)) => equation.map(_._2)
-        case Some(parent) => getEquations(parent)
-        case None => Seq()// should not happen
-      }
-    case FunctionCall(_, _, _) =>
-      getParent(distinction) match {
-        case Some(StructuralDistinction(_, _, equation)) => equation.map(_._2)
-        case Some(parent) => getEquations(parent)
-        case None => Seq()// should not happen
-      }
-    case _ => Seq()
-  }
 
   //only call on leaves?
   def getExpression(distinction: Node): Expression = distinction match {
@@ -99,6 +83,17 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
     case FunctionCall(_, _, _) => throw new IllegalArgumentException("A function application does not represent a expression")
     case _ => throw new IllegalArgumentException("Every leaf node should be a boolean distinction or a structural distinction with exactly one equation attached.")
   }
+
+  def getFCParents(n: Node): Seq[Node] = {
+    getParents(n) filter {
+      case fc@FunctionCall(_, _, _) => true
+      case _ => false
+    }
+  }
+
+  def getVariableName(mv: Expression): String
+
+  def getVarExpAtDistarg_pos(arglist: Seq[Expression], distposlist: Seq[Int]): Expression
 
   protected def getRHSOfEquation(eq: Equation): Expression
 

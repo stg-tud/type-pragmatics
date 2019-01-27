@@ -50,7 +50,7 @@ class AESoundnessProofGraph(storefile: File) {
 
   //apply structural induction on a given induction var to a given obligation and retrieve all resulting obligations
   def applyInductionGetCases(obl: g.Obligation, indvar: MetaVar): Map[String, (g.Obligation, EdgeLabel)] = {
-    val indtac = StructuralInduction(indvar, fullAESpec, specenq)
+    val indtac = StructuralInduction(indvar, specenq)
     val ps = g.applyTactic(obl, indtac)
     val subobls = g.requiredObls(ps)
     indtac.enumerateCases(subobls)
@@ -124,7 +124,7 @@ class AESoundnessProofGraph(storefile: File) {
   val ifcasetactic = CaseDistinction[VeritasConstruct, VeritasFormula](Map(
     "Truecase" -> Seq[TypingRuleJudgment](translateFunExp("vTerm0 == True()")),
     "Falsecase" -> Seq[TypingRuleJudgment](translateFunExp("vTerm0 == False()")),
-    "Othercase" -> Seq[TypingRuleJudgment](translateFunExp("(vTerm0 != True()) && (vTerm0 != False())"))), fullAESpec, specenq)
+    "Othercase" -> Seq[TypingRuleJudgment](translateFunExp("(vTerm0 != True()) && (vTerm0 != False())"))), specenq)
   val ifcasedistinction = g.applyTactic(ifcase_obl, ifcasetactic)
 
   val casestep = g.appliedStep(ifcase_obl).get

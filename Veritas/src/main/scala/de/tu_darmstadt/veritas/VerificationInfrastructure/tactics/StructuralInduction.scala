@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Verifier, Ve
 
 case class StructuralInductionHint[Defs, Formulae <: Defs](goal: Formulae, inductionvar: Defs) extends VerifierHints
 
-case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -124,7 +124,7 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, spec:
 
       //modify the proof graph: create new obligations, return pairs of obligations and edges
       for ((n, (sobl, edge)) <- finalinductioncases) yield {
-        val newobl = produce.newObligation(spec, sobl, n)
+        val newobl = produce.newObligation(queryspec.fullspec, sobl, n)
         (newobl, edge)
       }
     }

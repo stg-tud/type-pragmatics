@@ -24,11 +24,13 @@ object SQLSpec extends ScalaSPLSpecification {
 
   case class acons(hd: Name, tl: AttrL) extends AttrL
 
+  @Recursive(0)
   def append(atl1: AttrL, atl2: AttrL): AttrL = (atl1, atl2) match {
     case (aempty(), atl) => atl
     case (acons(name, atlr), atl) => acons(name, append(atlr, atl))
   }
 
+  @Recursive(0)
   def attrListLength(al: AttrL): nat = al match {
     case aempty() => zero()
     case acons(_, altail) => succ(attrListLength(altail))
@@ -88,6 +90,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // does not yet check for whether the table type contains only unique attribute names!!
   // (but semantics should be possible to define in a sensible way without that requirement...)
   @Static
+  @Recursive(0)
   def matchingAttrL(tt: TType, attrl: AttrL): Boolean = (tt, attrl) match {
     case (ttempty(), aempty()) => true
     case (ttcons(a1, _, ttr), acons(a2, al)) => (a1 == a2) && matchingAttrL(ttr, al)
@@ -95,6 +98,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Static
+  @Recursive(0)
   def welltypedRow(tType: TType, row: Row): Boolean = (tType, row) match {
     case (ttempty(), rempty()) => true
     case (ttcons(_, ft, tt), rcons(v, r)) => fieldType(v) == ft && welltypedRow(tt, r)
@@ -102,6 +106,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Static
+  @Recursive(1)
   def welltypedRawtable(tt: TType, rt: RawTable): Boolean = (tt, rt) match {
     case (_, tempty()) => true
     case (tt1, tcons(r, t1)) => welltypedRow(tt1, r) && welltypedRawtable(tt1, t1)
@@ -116,6 +121,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //the functions are intended to be used with well-typed tables!!
 
   @Dynamic
+  @Recursive(1)
   def rowIn(r: Row, rt: RawTable): Boolean = (r, rt) match {
     case (_, tempty()) => false
     case (r1, tcons(r2, rt2)) => (r1 == r2) || rowIn(r1, rt2)
@@ -126,6 +132,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("projectFirstRawPreservesWelltypedRaw")
   @PreservationProperty("projectFirstRawPreservesRowCount")
+  @Recursive(0)
   def projectFirstRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), projectFirstRaw(rt1))
@@ -137,6 +144,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
   @PreservationProperty("dropFirstColRawPreservesRowCount")
+  @Recursive(0)
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
@@ -176,6 +184,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
   @PreservationProperty("attachColToFrontRawPreservesRowCount")
+  @Recursive(0)
  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
@@ -188,6 +197,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //preserves row order of the two original raw tables
   @Dynamic
   @PreservationProperty("rawUnionPreservesWellTypedRaw")
+  @Recursive(0)
   def rawUnion(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), rt2r) => rt2r
     case (rt1r, tempty()) => rt1r
@@ -201,6 +211,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @PreservationProperty("rawIntersectionPreservesWellTypedRaw")
+  @Recursive(0)
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (_, tempty()) => tempty()
@@ -218,6 +229,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @PreservationProperty("rawDifferencePreservesWellTypedRaw")
+  @Recursive(0)
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (rt1r, tempty()) => rt1r
@@ -259,6 +271,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @ProgressProperty("successfulLookup")
   @PreservationProperty("welltypedLookup")
+  @Recursive(1)
   def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
     case (_, emptyStore()) => noTable()
     case (n1, bindStore(m, t, tsr)) =>
@@ -292,6 +305,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Static
+  @Recursive(1)
   def lookupContext(n: Name, ttc: TTContext): OptTType = (n, ttc) match {
     case (_, emptyContext()) => noTType()
     case (tn, bindContext(tm, tt, ttcr)) =>
@@ -373,6 +387,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @ProgressProperty("projectTypeImpliesFindCol")
   @PreservationProperty("findColPreservesWelltypedRaw")
   @PreservationProperty("findColPreservesRowCount")
+  @Recursive(1)
   def findCol(n: Name, attrL: AttrL, rt: RawTable): OptRawTable = (n, attrL, rt) match {
     case (a, aempty(), _) => noRawTable()
     case (a, acons(a2, al), rtr) =>
@@ -387,6 +402,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("welltypedEmptyProjection")
   @PreservationProperty("projectEmptyColPreservesRowCount")
+  @Recursive(0)
   def projectEmptyCol(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(_, t) => tcons(rempty(), projectEmptyCol(t))
@@ -397,6 +413,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @ProgressProperty("projectColsProgress")
   @PreservationProperty("projectColsWelltypedWithSelectType")
   @PreservationProperty("projectColsPreservesRowCount")
+  @Recursive(0)
   def projectCols(al1: AttrL, al2: AttrL, rt: RawTable): OptRawTable = (al1, al2, rt) match {
     case (aempty(), _, rtr) => someRawTable(projectEmptyCol(rtr))
     case (acons(a, alr), al, rtr) =>
@@ -453,6 +470,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // returns true iff predicate succeeds on row
   // returns false if predicate evaluates to false or if predicate evaluation fails
   @Dynamic
+  @Recursive(0)
   def filterSingleRow(p: Pred, attrL: AttrL, row: Row): Boolean = (p, attrL, row) match {
     case (ptrue(), _, _) => true
     case (and(p1, p2), al, r) => filterSingleRow(p1, al, r) && filterSingleRow(p2, al, r)
@@ -474,6 +492,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // filter rows that satisfy pred
   @Dynamic
   @PreservationProperty("filterRowsPreservesTable")
+  @Recursive(0)
   def filterRows(rt: RawTable, attrL: AttrL, pred: Pred): RawTable = (rt, attrL, pred) match {
     case (tempty(), _, _) => tempty()
     case (tcons(r, rtr), al, p) =>
@@ -569,6 +588,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Static
+  @Recursive(1)
   def findColType(n: Name, tt: TType): OptFType = (n, tt) match {
     case (an, ttempty()) => noFType()
     case (an, ttcons(a, ft, ttr)) =>
@@ -579,6 +599,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Static
+  @Recursive(0)
   def projectTypeAttrL(attrl: AttrL, tt: TType): OptTType = (attrl, tt) match {
     case (aempty(), tt1) => someTType(ttempty())
     case (acons(a, alr), tt1) =>
@@ -597,6 +618,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Static
+  @Recursive(0)
   def typeOfExp(e: Exp, tt: TType): OptFType = (e, tt) match {
     case (constant(fv), tt1) => someFType(fieldType(fv))
     case (lookup(a), ttempty()) => noFType()
@@ -609,6 +631,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
 
   @Static
+  @Recursive(0)
   def tcheckPred(pred: Pred, tType: TType): Boolean = (pred, tType) match {
     case (ptrue(), tt) => true
     case (and(p1, p2), tt) => tcheckPred(p1, tt) && tcheckPred(p2, tt)
@@ -676,6 +699,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // and whether the table in the store is well-typed with regard to the table type in the context
   // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
   @Static
+  @Recursive(0) //TODO: is this position annotation really correct here?
   def storeContextConsistent(ts: TStore, ttc: TTContext): Boolean = (ts, ttc) match {
     case (emptyStore(), emptyContext()) => true
     case (bindStore(tn1, t, tsr), bindContext(tn2, tt, ttcr)) =>
