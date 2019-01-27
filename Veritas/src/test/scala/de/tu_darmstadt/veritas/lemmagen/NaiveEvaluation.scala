@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import java.io._
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaEquivalence, Problem}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.NaiveLemmaGenerator
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
@@ -39,6 +39,9 @@ object NaiveEvaluation {
     val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
+    val latexWriter = new SimpleLemmaPrinter {
+      override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
+    }
     for (lemma <- lemmas) {
       writer.write("--------------\n")
       lemmaWriter.printTypingRule(lemma)
@@ -47,6 +50,9 @@ object NaiveEvaluation {
       for (refinement <- lemma.refinements) {
         writer.write("  " + refinement + "\n")
       }
+      writer.write("\n")
+      latexWriter.printTypingRule(lemma)
+      writer.write("\n")
       writer.flush()
     }
     writer.close()
@@ -120,7 +126,7 @@ object NaiveEvaluation {
     val countLines = new mutable.ListBuffer[String]()
     val equivalentLines = new mutable.ListBuffer[String]()
     val successLines = new mutable.ListBuffer[String]()
-    sortFunctions(result.keys.toSeq).foreach { function =>
+    sortFunctions(result.keys.toSeq).filterNot(_.signature.name == "reduce").foreach { function =>
       val lemmas = result(function)
       val name = function.signature.name
       println(s"evaluating $name...")
@@ -156,6 +162,22 @@ object NaiveEvaluation {
     writeDynamicFunctions()
     writeStaticFunctions()
     writeLemmaClasses()
+    writeBaselineLemmas(new File(Directory, "baseline-lemmas.txt"))
+  }
+
+  def writeBaselineLemmas(file: File): Unit = {
+    val writer = new FileWriter(file)
+    val latexWriter = new SimpleLemmaPrinter {
+      override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
+    }
+    for (lemma <- problem.dsk.properties) {
+      writer.write(lemma.name + "\n")
+      writer.write("--------------\n")
+      latexWriter.printTypingRule(lemma)
+      writer.write("\n")
+      writer.flush()
+    }
+    writer.close()
   }
 
 

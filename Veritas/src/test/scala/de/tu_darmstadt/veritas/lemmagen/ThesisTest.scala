@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.ProgressStrategy
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.{PreservationStrategy, ProgressStrategy}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
@@ -83,5 +83,26 @@ class ThesisTest extends FunSuite {
     println(problem.enquirer.retrieveTransformers(sorts(Set("Table"))).map(_.signature.name))
     println(problem.enquirer.retrieveProducers(sorts(Set("Table"))).map(_.signature.name))
 
+  }
+
+  test("pres strat") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
+    val problem = new Problem(file)
+
+    val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
+    val lemmaPrettyPrinter = new SimpleLemmaPrinter {
+      override val printer: PrettyPrintWriter = outputPrettyPrinter
+    }
+
+    val projectCols = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "projectCols").get
+    val strat = new PreservationStrategy(problem, projectCols)
+
+    val base = strat.generateBase()
+    val first = base.head
+    strat.expand(first).flatMap(_.refine(problem, first)).foreach {l =>
+      lemmaPrettyPrinter.printTypingRule(l)
+      println()
+    }
+    outputPrettyPrinter.flush()
   }
 }

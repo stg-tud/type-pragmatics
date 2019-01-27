@@ -119,6 +119,12 @@ trait LemmaPrinter {
       printFunctionExp(exp)
       printer.write(" :: ")
       printFunctionExp(typ)*/
+    case TypingJudgment(ctx, exp, typ) =>
+      printFunctionExp(ctx)
+      printer.write("\\vdash")
+      printFunctionExp(exp)
+      printer.write("::")
+      printFunctionExp(typ)
     case FunctionExpJudgment(f) => printFunctionExp(f)
     case ExistsJudgment(bindings, body) =>
       printQuantifier("\\exists", bindings, body)
