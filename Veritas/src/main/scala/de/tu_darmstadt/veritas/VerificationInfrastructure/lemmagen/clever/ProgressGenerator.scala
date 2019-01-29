@@ -1,5 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
+import java.io.File
+
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
 import de.tu_darmstadt.veritas.backend.ast._
@@ -61,47 +63,32 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
 
   def addEquations(lemma: Lemma): Set[Lemma] = {
     buildTree(lemma)
-    var pool = Set(lemma)
-    val boundTypes = lemma.boundTypes
-    boundTypes.foreach(boundType => {
-      val bindings = lemma.bindingsOfType(boundType)
-      val possibleEquations = bindings.subsets
-      val nextGeneration = possibleEquations.flatMap(equalVars => {
-        pool.map { lemma =>
-          if(equalVars.size >= 2) {
-            // filter equation in which all variables are from the consequence
-            var consequenceVars = enquirer.getUniversallyQuantifiedVars(lemma.consequences.head).asInstanceOf[Set[MetaVar]]
-            if(equalVars == consequenceVars.filter(_.sortType == boundType)) {
-              lemma
-            } else {
-              var refinedLemma = lemma
-              val left = equalVars.head
-              for (right <- equalVars.tail) {
-                val refinement = Refinement.Equation(left, FunctionMeta(right))
-                refinedLemma = refinement.refine(problem, refinedLemma).getOrElse(refinedLemma)
-              }
-              refinedLemma
-            }
-          } else {
-            lemma
-          }
-        }
-      }).toSet
-      pool = nextGeneration
-    })
-    pool
+    Set(lemma)
   }
 
   class ProgressRefinementTree(rootLemma: Lemma, val rootTag: LemmaTag) extends RefinementTree[LemmaTag](rootLemma, rootTag) {
     def refine(node: Node, refinement: Refinement): Node = {
-      refinement.refine(problem, node.lemma) match {
-        case Some(refinedLemma) => {
-          val child = new Node(refinedLemma, LemmaTag(None)) // TODO
-          node.addChild(child)
-          child
+      node.findRefinement(refinement) match {
+        case Some(child) => child
+        case None =>
+          refinement.refine(problem, node.lemma) match {
+            case Some(refinedLemma) =>
+              val child = new Node(refinedLemma, Some(refinement), LemmaTag(None)) // TODO
+              node.addChild(child)
+              child
+            case None => node
+          }
         }
-        case None => node
       }
+
+    override def makeDotStringForNode(node: Node, sb: StringBuilder, nodeID: String): Unit = {
+      val color = node.tag.status match {
+        case Some(Oracle.Inconclusive()) => "gray"
+        case Some(Oracle.ProvablyFalse(_)) => "red"
+        case _ => "black"
+      }
+      val label = "\"" + node.lemma.refinements.last.toString + "\""
+      sb.append(nodeID + s" [shape=box, label=$label, color=$color];\n")
     }
 
     def prune(nodes: Seq[Node]) = {
@@ -144,7 +131,6 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
 
   def buildTree(lemma: Lemma): Unit = {
     val tree = new ProgressRefinementTree(lemma, LemmaTag(None))
-    println(tree)
     lemma.boundVariables.foreach { mv =>
       tree.leaves.foreach { leaf =>
         val equations = getEquations(leaf.lemma, mv)
@@ -154,17 +140,18 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
         val possibleConstrEquations = equations.collect {
           case VarConstructorEquation(_, right, _) => right
         }
+        val nodesToRefine = new mutable.ListBuffer[tree.Node]()
         possibleVariableEquations.subsets.foreach { rightSides =>
           if (rightSides.isEmpty)
             Set(lemma)
           else {
             rightSides.foreach { right =>
               val refinement = Refinement.Equation(mv, FunctionMeta(right))
-              tree.refine(leaf, refinement)
+              nodesToRefine += tree.refine(leaf, refinement)
             }
           }
         }
-        leaf.children.foreach { child =>
+        nodesToRefine.foreach { child =>
           possibleConstrEquations.foreach { constr =>
             val refinement = Refinement.Equation(mv, FunctionExpApp(constr.name, Seq()))
             tree.refine(child, refinement)
@@ -173,5 +160,6 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
       }
     }
     tree.prune(tree.leaves.toSeq)
+    tree.visualizeRT(new File(s"rt-${lemma.name}.png"))
   }
 }

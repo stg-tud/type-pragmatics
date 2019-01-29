@@ -33,7 +33,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
         outputPrettyPrinter.flush()
         println()
       }
-      println("prune ...")
+      //println("prune ...")
 
       val pool = new ShapedPool()
 

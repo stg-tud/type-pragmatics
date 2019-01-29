@@ -725,8 +725,44 @@ object SQLSpec extends ScalaSPLSpecification {
     require(storeContextConsistent(ts, ttc))
     require(lookupContext(ref, ttc) == someTType(tt))
   } ensuring exists((t: Table) => lookupStore(ref, ts) == someTable(t))*/
+/*
+  @Property
+  def somewhatWrong1(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable): Unit = {
+    //require(tt == ttcons(n, ft, ttr)) // |tt| > 0
+    require(welltypedRawtable(tt, rt))
+  } ensuring(welltypedRawtable(ttr, dropFirstColRaw(rt)))
 
   @Property
+  def somewhatWrong2(tt1: TType, name1: Name, ft1: FType,
+                                               tt2: TType,
+                                               rt1: RawTable, rt2: RawTable, rt3: RawTable): Unit = {
+    // |tt1| == 1
+    //require(tt1 == ttcons(name1, ft1, ttempty()))
+    require(sameLength(rt1, rt2))
+    require(welltypedRawtable(tt1, rt1))
+    require(welltypedRawtable(tt2, rt2))
+    require(attachColToFrontRaw(rt1, rt2) == rt3)
+  } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), rt3)*/
+
+  @Property
+  def somewhatWrong1(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable): Unit = {
+    //require(tt == ttcons(n, ft, ttr)) // |tt| > 0
+    require(welltypedRawtable(tt, rt))
+  } ensuring(welltypedRawtable(tt, dropFirstColRaw(rt)))
+
+  @Property
+  def somewhatWrong2(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable): Unit = {
+    //require(tt == ttcons(n, ft, ttr)) // |tt| > 0
+    require(welltypedRawtable(tt, rt))
+  } ensuring(welltypedRawtable(ttr, dropFirstColRaw(rt)))
+
+  @Property
+  def somewhatWrong3(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable): Unit = {
+    //require(tt == ttcons(n, ft, ttr)) // |tt| > 0
+    require(welltypedRawtable(tt, rt))
+  } ensuring(welltypedRawtable(ttr, dropFirstColRaw(rt)))
+
+  /*@Property
   def somewhatWrong1(tt: TType, tt1: TType, tt2: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt1, al))
@@ -779,5 +815,5 @@ object SQLSpec extends ScalaSPLSpecification {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al))
     require(projectTypeAttrL(al2, tt) == someTType(tt2))
-  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
+  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))*/
 }

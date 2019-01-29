@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.PreservationGenerator
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.{PreservationStrategy, ProgressStrategy}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
@@ -37,17 +38,16 @@ class ThesisTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
-  /*
   test("lemma oracle") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
     val problem = new Problem(file)
 
-    var swLemmas = problem.dsk.properties.filter(_.name.startsWith("somewhatWrong"))
+    var swLemmas = problem.dsk.properties.filter(_.name.startsWith("somewhatWrong")).map(tr => new Lemma(tr.name, tr.premises, tr.consequences))
     var run = true
 
-    swLemmas = Oracle.pruneProvablyFalseLemmas(problem, swLemmas)
-    println(s"remaining: ${swLemmas.map(_.name)}")
-  }*/
+    val rem = Oracle.pruneProvablyFalseLemmas(problem, swLemmas)
+    println(s"remaining: ${rem.map(_.name)}")
+  }
 
   test("static functions") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
@@ -126,6 +126,48 @@ class ThesisTest extends FunSuite {
     val strat = new PreservationStrategy(problem, func)//new ProgressStrategy(problem, func)
     val base = strat.generateBase()
     printRules(base)
+
+    println("")/*
+    val refinements = strat.expand(base.head)
+    val refined = refinements.flatMap(_.refine(problem, base.head))
+    printRules(refined)*/
+  }
+
+  test("preservation rawUnion") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+    val problem = new Problem(file)
+
+    println("rawUnion")
+    println("----------")
+
+    val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "rawUnion").get
+    val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedRawtable").get
+    val strat = new PreservationGenerator(problem, func, pred)//new ProgressStrategy(problem, func)
+    val base = strat.generateBase()
+    println(base)
+
+    println("prune ...")
+    val res = Oracle.pruneProvablyFalseLemmas(problem, Set(base))
+    println(res)
+
+    println("dropFirstColRaw")
+    println("----------")
+    val func2 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "dropFirstColRaw").get
+    val strat2 = new PreservationGenerator(problem, func2, pred)//new ProgressStrategy(problem, func)
+    val base2 = strat2.generateBase()
+    println(base2)
+
+    println("prune ...")
+    val res2 = Oracle.pruneProvablyFalseLemmas(problem, Set(base2))
+    println(res2)
+
+    /*println("projectTable")
+    println("----------")
+    val func3 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "projectTable").get
+    val pred2 = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "matchingAttrL").get
+    val strat3 = new PreservationGenerator(problem, func3, pred2)//new ProgressStrategy(problem, func)
+    val base3 = strat3.generateBase()
+    println(base3)*/
 
     println("")/*
     val refinements = strat.expand(base.head)
