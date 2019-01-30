@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.ProgressGenerator
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{PreservationGenerator, ProgressGenerator}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.ProgressStrategy
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
@@ -22,7 +22,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
     (for((l, i) <- lemmas.toSeq.zipWithIndex) yield l.rename(s"Lemma$i")).toSet
   }*/
 
-  Seq("findCol", "lookupStore", "projectTable", "projectCols").foreach { name =>
+ /* Seq("findCol", "lookupStore", "projectTable", "projectCols").foreach { name =>
     test(s"generate $name progress") {
       val fn = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, name).get
       val generator = new ProgressGenerator(problem, fn)
@@ -62,5 +62,12 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
         println(s"equivalent to ${expected.name}: ${equivalent.size}")
       }
     }
+  }*/
+
+  test("generate dropFirstColRaw preservation") {
+    val fn = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "dropFirstColRaw").get
+    val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedRawtable").get
+    val generator = new PreservationGenerator(problem, fn, pred)
+    generator.generate()
   }
 }

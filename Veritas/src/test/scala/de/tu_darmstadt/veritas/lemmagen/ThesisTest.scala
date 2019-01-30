@@ -39,16 +39,21 @@ class ThesisTest extends FunSuite {
   }
 
   test("lemma oracle") {
-    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
     val problem = new Problem(file)
 
-    var swLemmas = problem.dsk.properties.filter(_.name.startsWith("somewhatWrong")).map(tr => new Lemma(tr.name, tr.premises, tr.consequences))
-    var run = true
-
-    val rem = Oracle.pruneProvablyFalseLemmas(problem, swLemmas)
-    println(s"remaining: ${rem.map(_.name)}")
+    var swLemmas = problem.dsk.properties.map(tr => new Lemma(tr.name, tr.premises, tr.consequences))
+    for(swLemma <- swLemmas) {
+      val remaining = Oracle.pruneProvablyFalseLemmas(problem, Set(swLemma))
+      val status = if(remaining contains swLemma) {
+        "inconclusive"
+      } else {
+        "FALSE"
+      }
+      println(s"${swLemma.name}: $status")
+    }
   }
-
+/*
   test("static functions") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
     val problem = new Problem(file)
@@ -173,5 +178,29 @@ class ThesisTest extends FunSuite {
     val refinements = strat.expand(base.head)
     val refined = refinements.flatMap(_.refine(problem, base.head))
     printRules(refined)*/
+  }*/
+
+  test("reducers") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
+    val problem = new Problem(file)
+    for(fn <- problem.enquirer.retrieveReducers()) {
+      println(s"${fn.signature.name}: ${problem.enquirer.getSideArgumentsTypes(fn)}")
+      val sideArguments = problem.enquirer.getSideArgumentsTypes(fn)
+      val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
+      println(s"---> ${staticFunctions.map(_.signature.name)}")
+    }
+  }
+
+  test("generate") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
+    val problem = new Problem(file)
+    println("projectTable")
+    println("----------")
+    val func3 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "projectTable").get
+    val pred2 = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedtable").get
+    val strat3 = new PreservationGenerator(problem, func3, pred2)//new ProgressStrategy(problem, func)
+    strat3.generate()
+
+    println("")
   }
 }

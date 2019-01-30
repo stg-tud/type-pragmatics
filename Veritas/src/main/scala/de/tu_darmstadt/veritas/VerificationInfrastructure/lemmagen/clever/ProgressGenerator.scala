@@ -62,18 +62,18 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
   }
 
   def addEquations(lemma: Lemma): Set[Lemma] = {
-    buildTree(lemma)
+    //buildTree(lemma)
     Set(lemma)
   }
-
+/*
   class ProgressRefinementTree(rootLemma: Lemma, val rootTag: LemmaTag) extends RefinementTree[LemmaTag](rootLemma, rootTag) {
-    def refine(node: Node, refinement: Refinement): Node = {
+    def refine(node: RefinementNode, refinement: Refinement): RefinementNode = {
       node.findRefinement(refinement) match {
         case Some(child) => child
         case None =>
           refinement.refine(problem, node.lemma) match {
             case Some(refinedLemma) =>
-              val child = new Node(refinedLemma, Some(refinement), LemmaTag(None)) // TODO
+              val child = new RefinementNode(refinedLemma, Some(refinement), LemmaTag(None)) // TODO
               node.addChild(child)
               child
             case None => node
@@ -81,7 +81,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
         }
       }
 
-    override def makeDotStringForNode(node: Node, sb: StringBuilder, nodeID: String): Unit = {
+    override def makeDotStringForNode(node: RefinementNode, sb: StringBuilder, nodeID: String): Unit = {
       val color = node.tag.status match {
         case Some(Oracle.Inconclusive()) => "gray"
         case Some(Oracle.ProvablyFalse(_)) => "red"
@@ -91,7 +91,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
       sb.append(nodeID + s" [shape=box, label=$label, color=$color];\n")
     }
 
-    def prune(nodes: Seq[Node]) = {
+    def prune(nodes: Seq[RefinementNode]) = {
       val unknownLemmas = nodes.collect {
         case node if node.tag.status.isEmpty => node.lemma
       }.toSet
@@ -161,5 +161,5 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     }
     tree.prune(tree.leaves.toSeq)
     tree.visualizeRT(new File(s"rt-${lemma.name}.png"))
-  }
+  }*/
 }

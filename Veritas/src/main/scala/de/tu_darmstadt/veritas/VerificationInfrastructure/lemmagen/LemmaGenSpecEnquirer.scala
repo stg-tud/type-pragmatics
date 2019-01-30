@@ -66,4 +66,21 @@ class LemmaGenSpecEnquirer(spec: Module, dsk: VeritasDomainSpecificKnowledge) ex
       case (_, (_, constrs)) => constrs
     }
   }
+
+  def retrieveReducers(): Set[FunctionDef] = {
+    dynamicFunctions.filter(fn =>
+      fn.signature.in.contains(Query.QueryFunctionDef(fn)(this).successfulOutType)
+    )
+  }
+
+  def getSideArguments(fn: FunctionDef): Seq[Int] = {
+    val successfulOutType = Query.QueryFunctionDef(fn)(this).successfulOutType
+    fn.signature.in.zipWithIndex.collect {
+      case (typ, index) if typ != successfulOutType => index
+    }
+  }
+
+  def getSideArgumentsTypes(fn: FunctionDef): Seq[SortRef] = {
+    getSideArguments(fn).map(idx => fn.signature.in(idx))
+  }
 }
