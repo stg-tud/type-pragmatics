@@ -181,6 +181,8 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
         println("====")
         for (restriction <- restrictions) {
           println("--->" + restriction)
+          /*val neg = negative(restriction.refineNeg(problem, node.lemma).getOrElse(node.lemma))
+          println("NEGATIVE: " + Oracle.invoke(problem, Set(neg)))*/
           node.refine(problem, restriction)
         }
         node.refinementStatus = Refined()
