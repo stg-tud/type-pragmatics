@@ -655,6 +655,72 @@ object SQLSpec2 extends ScalaSPLSpecification {
     case (_, _) => false
   }
 
+ /* @Property
+  def R1(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {
+    require(projectCols(al1, al2, rt) == someRawTable(rt2))
+    //require(welltypedRawtable(tt, rt))
+  } ensuring sameLength(rt, rt2)
+
+  @Property
+  def R1_NEG(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {
+    require(projectCols(al1, al2, rt) == someRawTable(rt2))
+    //require(welltypedRawtable(tt, rt))
+  } ensuring !sameLength(rt, rt2)*/
+
+/*
+  @Property
+  def P0(sel: Select, t: Table, t2: Table, tt: TType, tt2: TType, a: Name, al: AttrL): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectTable(sel, t) == someTable(t2))
+  } ensuring welltypedtable(tt2, t2)
+
+  @Property
+  def P0_NEG(sel: Select, t: Table, t2: Table, tt2: TType, tt: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectTable(sel, t) == someTable(t2))
+  } ensuring !welltypedtable(tt2, t2)
+*/
+  @Property
+  def P1(sel: Select, t: Table, t2: Table, tt: TType, a: Name, al: AttrL): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectTable(sel, t) == someTable(t2))
+  } ensuring welltypedtable(tt, t2)
+
+  @Property
+  def P1_NEG(sel: Select, t: Table, t2: Table, tt: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectTable(sel, t) == someTable(t2))
+  } ensuring !welltypedtable(tt, t2)
+
+  @Property
+  def P2(sel: Select, t: Table, t2: Table, tt: TType, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectTable(sel, t) == someTable(t2))
+    require(projectType(sel, tt) != someTType(tt2))
+  } ensuring welltypedtable(tt2, t2)
+
+  @Property
+  def P2_NEG(sel: Select, t: Table, t2: Table, tt: TType, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectTable(sel, t) == someTable(t2))
+    require(projectType(sel, tt) != someTType(tt2))
+  } ensuring !welltypedtable(tt2, t2)
+
+  @Property
+  def P3(sel: Select, t: Table, t2: Table, tt: TType, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectTable(sel, t) == someTable(t2))
+    require(tt != tt2)
+  } ensuring welltypedtable(tt2, t2)
+
+  @Property
+  def P3_NEG(sel: Select, t: Table, t2: Table, tt: TType, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectTable(sel, t) == someTable(t2))
+    require(tt != tt2)
+  } ensuring !welltypedtable(tt2, t2)
+
+/*
   @Property
   def L1(al: AttrL, tal: AttrL, rt: RawTable, rt2: RawTable, tt: TType, tt2: TType): Unit = {
     require(welltypedRawtable(tt, rt))
@@ -671,23 +737,23 @@ object SQLSpec2 extends ScalaSPLSpecification {
   def L2(al: AttrL, tal: AttrL, rt: RawTable, rt2: RawTable, tt: TType, tt2: TType): Unit = {
     require(welltypedRawtable(tt, rt))
     require(projectCols(al, tal, rt) == someRawTable(rt2))
-    require(matchingAttrL(tt, tal))
+    require(!matchingAttrL(tt, tal))
   } ensuring welltypedRawtable(tt2, rt2)
 
   @Property
   def L2_negative(al: AttrL, tal: AttrL, rt: RawTable, rt2: RawTable, tt: TType, tt2: TType): Unit = {
     require(welltypedRawtable(tt, rt))
     require(projectCols(al, tal, rt) == someRawTable(rt2))
-    require(matchingAttrL(tt, tal))
-  } ensuring !welltypedRawtable(tt2, rt2)
+    require(!matchingAttrL(tt, tal))
+  } ensuring !welltypedRawtable(tt2, rt2)*/
 
-  @Property
+  /*@Property
   def L3(al: AttrL, tal: AttrL, rt: RawTable, rt2: RawTable, tt: TType, tt2: TType): Unit = {
     require(welltypedRawtable(tt, rt))
     require(projectCols(al, tal, rt) == someRawTable(rt2))
     require(projectTypeAttrL(al, tt) == someTType(tt2))
     require(matchingAttrL(tt, tal))
-    require(matchingAttrL(tt, al))
+    require(!matchingAttrL(tt, al))
   } ensuring welltypedRawtable(tt2, rt2)
 
   @Property
@@ -696,8 +762,8 @@ object SQLSpec2 extends ScalaSPLSpecification {
     require(projectCols(al, tal, rt) == someRawTable(rt2))
     require(projectTypeAttrL(al, tt) == someTType(tt2))
     require(matchingAttrL(tt, tal))
-    require(matchingAttrL(tt, al))
-  } ensuring !welltypedRawtable(tt2, rt2)
+    require(!matchingAttrL(tt, al))
+  } ensuring !welltypedRawtable(tt2, rt2)*/
 
 
   /*@Property
@@ -730,5 +796,69 @@ object SQLSpec2 extends ScalaSPLSpecification {
     require(rawIntersection(rt1, rt2) == result)
     require(tt1 == tt2)
     require(tt1 == tt)
-  } ensuring welltypedRawtable(tt, result)*/
+  } ensuring welltypedRawtable(tt, result)*//*
+
+  @Property
+  def PRJ1(a: Name, rt: RawTable, rt1: RawTable, tt: TType, tt1: TType, ct: FType, ttrest: TType): Unit = {
+    //require(tt == ttcons(a, ct, ttrest))
+    require(welltypedRawtable(tt, rt))
+    require(projectFirstRaw(rt) == rt1)
+  } ensuring welltypedRawtable(tt1, rt1)
+
+  @Property
+  def PRJ1_NEG(a: Name, rt: RawTable, rt1: RawTable, tt: TType, tt1: TType, ct: FType, ttrest: TType): Unit = {
+    //require(tt == ttcons(a, ct, ttrest))
+    require(welltypedRawtable(tt, rt))
+    require(projectFirstRaw(rt) == rt1)
+  } ensuring !welltypedRawtable(tt1, rt1)
+
+  @Property
+  def PRJ2(a: Name, rt: RawTable, rt1: RawTable, tt: TType, ct: FType, ttrest: TType): Unit = {
+    require(tt == ttcons(a, ct, ttrest))
+    require(welltypedRawtable(tt, rt))
+    require(projectFirstRaw(rt) == rt1)
+  } ensuring welltypedRawtable(tt, rt1)
+
+  @Property
+  def PRJ2_NEG(a: Name, rt: RawTable, rt1: RawTable, tt: TType, ct: FType, ttrest: TType): Unit = {
+    require(tt == ttcons(a, ct, ttrest))
+    require(welltypedRawtable(tt, rt))
+    require(projectFirstRaw(rt) == rt1)
+  } ensuring !welltypedRawtable(tt, rt1)*/
+/*
+
+  @Property
+  def Preservation(ttc: TTContext, ts: TStore, q: Query, qr: Query, tt: TType, t1: Table, t2: Table,
+                   al1: AttrL, rt1: RawTable, al2: AttrL, rt2: RawTable): Unit = {
+    require(welltypedtable(tt, t1))
+    require(welltypedtable(tt, t2))
+  } ensuring welltypedtable(tt, table(getAttrL(t1), rawUnion(getRaw(t1), getRaw(t2))))*/
+/*
+  @Property
+  def RIP1(rt1: RawTable, rt2: RawTable, result: RawTable, tt: TType, tt1: TType, tt2: TType): Unit = {
+    require(welltypedRawtable(tt1, rt1))
+    require(welltypedRawtable(tt2, rt2))
+    require(rawIntersection(rt1, rt2) == result)
+  } ensuring welltypedRawtable(tt, result)
+
+  @Property
+  def RIP1_NEG(rt1: RawTable, rt2: RawTable, result: RawTable, tt: TType, tt1: TType, tt2: TType): Unit = {
+    require(welltypedRawtable(tt1, rt1))
+    require(welltypedRawtable(tt2, rt2))
+    require(rawIntersection(rt1, rt2) == result)
+  } ensuring !welltypedRawtable(tt, result)
+
+  @Property
+  def RIP2(rt1: RawTable, rt2: RawTable, result: RawTable, tt: TType, tt1: TType, tt2: TType): Unit = {
+    require(welltypedRawtable(tt, rt1))
+    require(welltypedRawtable(tt, rt2))
+    require(rawIntersection(rt1, rt2) == result)
+  } ensuring welltypedRawtable(tt, result)
+
+  @Property
+  def RIP2_NEG(rt1: RawTable, rt2: RawTable, result: RawTable, tt: TType, tt1: TType, tt2: TType): Unit = {
+    require(welltypedRawtable(tt, rt1))
+    require(welltypedRawtable(tt, rt2))
+    require(rawIntersection(rt1, rt2) == result)
+  } ensuring !welltypedRawtable(tt, result)*/
 }

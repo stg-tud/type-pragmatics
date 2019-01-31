@@ -38,6 +38,7 @@ class ThesisTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
+  /*
   test("lemma oracle") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
     val problem = new Problem(file)
@@ -52,7 +53,7 @@ class ThesisTest extends FunSuite {
       }
       println(s"${swLemma.name}: $status")
     }
-  }
+  }*/
 /*
   test("static functions") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
@@ -198,6 +199,19 @@ class ThesisTest extends FunSuite {
     println("----------")
     val func3 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "projectTable").get
     val pred2 = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedtable").get
+    val strat3 = new PreservationGenerator(problem, func3, pred2)//new ProgressStrategy(problem, func)
+    strat3.generate()
+
+    println("")
+  }
+
+  test("generate rawUnion") {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
+    val problem = new Problem(file)
+    println("rawUnion")
+    println("----------")
+    val func3 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "rawUnion").get
+    val pred2 = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedRawtable").get
     val strat3 = new PreservationGenerator(problem, func3, pred2)//new ProgressStrategy(problem, func)
     strat3.generate()
 

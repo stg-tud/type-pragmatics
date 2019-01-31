@@ -3,10 +3,12 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem, Query, Refinement}
-import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, SortRef}
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionMeta}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
+import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, NotJudgment, SortRef}
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpNot, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
+
+import scala.collection.mutable
 
 class PreservationGenerator(val problem: Problem, function: FunctionDef, predicate: FunctionDef) {
   import Query._
@@ -61,36 +63,73 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
   def preVariables(lemma: Lemma): Set[MetaVar] = lemma.boundVariables -- postVariables(lemma)
   def postVariables(lemma: Lemma): Set[MetaVar] = FreeVariables.freeVariables(lemma.consequences)
 
-  def generateEquations(lemma: Lemma): Set[Refinement] = {
+  def generateEquations(lemma: Lemma): Set[Restriction] = {
     val restrictable = restrictableVariables(lemma)
     val partitioned = restrictable.groupBy(_.sortType)
-    /*var refinements = new mutable.List[Refinement]()
+    var restrictions = new mutable.ListBuffer[Restriction]()
     for((typ, metaVars) <- partitioned) {
       if(metaVars.size > 1) {
         val equals = metaVars.subsets.filter(_.size >= 2)
+        for(equal <- equals)
+          restrictions += Restriction.Equality(equal)
       }
-    }*/
-    Set()
+    }
+    restrictions.toSet
   }
 
-  def generateRestrictions(lemma: Lemma): Set[Refinement] = {
+  def generateRestrictions(lemma: Lemma): Set[Restriction] = {
     val restrictable = restrictableVariables(lemma)
-    print(restrictable)
     generateEquations(lemma)
-    Set()
+  }
+
+  def negative(lemma: Lemma): Lemma = {
+    val consequence = NotJudgment(lemma.consequences.head)
+    new Lemma(lemma.name + "_NEGATIVE", lemma.premises, Seq(consequence))
+  }
+
+  def testLemmaAndNegative(lemma: Lemma): (Oracle.Answer, Oracle.Answer)  = {
+    val neg = negative(lemma)
+    (Oracle.invoke(problem, Set(lemma)), Oracle.invoke(problem, Set(neg)))
+  }
+
+  def askOracle(lemma: Lemma): Unit = {
+    println(lemma)
+    val answer = testLemmaAndNegative(lemma) match {
+      case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
+      case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
+      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "not sure though"
+      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
+      case (a, b) => sys.error(s"oracle said something weird: $a, $b")
+    }
+    println(answer)
+  }
+
+  def shouldRefine(lemma: Lemma): Boolean = {
+    testLemmaAndNegative(lemma) match {
+      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => true
+      case _ => false
+    }
   }
 
   def generate(): Seq[Lemma] = {
-    val tree = new RefinementTree(generateBase())
-    println(tree.root.lemma)
+    val base = generateBase()
+    println(base)
+    val should = shouldRefine(base)
+    println("Should I refine? " + should)
+    val rest = generateRestrictions(base)
+    for(re <- rest) {
+      val lemma = re.restrict(problem, base)
+      askOracle(lemma)
+    }
     /*val refinement = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt2")))
     val foo = tree.root.refine(problem, refinement)
+    askOracle(foo.lemma)
     val refinement2 = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt1")))
-    foo.refine(problem, refinement2)*/
-    generateRestrictions(tree.root.lemma)
-    tree.prune(problem, tree.nodes.toSeq)
+    val leaf = foo.refine(problem, refinement2)
+    askOracle(leaf.lemma)
+    //tree.prune(problem, tree.nodes.toSeq)
     tree.visualizeRT(new File("preservation.png"), "png")
-
+    println(leaf.lemma)*/
     Seq()
   }
 }
