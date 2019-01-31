@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.SuccessfulApplication
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, NotJudgment, SortRef}
@@ -10,7 +11,7 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
-class PreservationGenerator(val problem: Problem, function: FunctionDef, predicate: FunctionDef) {
+class PreservationGenerator(val problem: Problem, function: FunctionDef, predicate: FunctionDef) extends StrategyHelpers {
   import Query._
 
   implicit private val enquirer = problem.enquirer
@@ -63,23 +64,40 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
   def preVariables(lemma: Lemma): Set[MetaVar] = lemma.boundVariables -- postVariables(lemma)
   def postVariables(lemma: Lemma): Set[MetaVar] = FreeVariables.freeVariables(lemma.consequences)
 
-  def generateEquations(lemma: Lemma): Set[Restriction] = {
+  def generateEquations(lemma: Lemma): Set[Refinement] = {
     val restrictable = restrictableVariables(lemma)
     val partitioned = restrictable.groupBy(_.sortType)
-    var restrictions = new mutable.ListBuffer[Restriction]()
+    var restrictions = new mutable.ListBuffer[Refinement]()
     for((typ, metaVars) <- partitioned) {
       if(metaVars.size > 1) {
-        val equals = metaVars.subsets.filter(_.size >= 2)
+        val equals = metaVars.subsets.filter(_.size == 2)
         for(equal <- equals)
-          restrictions += Restriction.Equality(equal)
+          restrictions += Refinement.Equation(equal.head, FunctionMeta(equal.tail.head))
       }
     }
     restrictions.toSet
   }
 
-  def generateRestrictions(lemma: Lemma): Set[Restriction] = {
+  def containsApplicationOf(lemma: Lemma, fn: FunctionDef): Boolean = {
+    lemma.refinements.collect {
+      case SuccessfulApplication(func, _, _) if fn == func => fn
+    }.nonEmpty
+  }
+
+  def generateApplications(lemma: Lemma): Set[Refinement] = {
+    val sideArguments = problem.enquirer.getSideArgumentsTypes(function)
+    val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
+    staticFunctions.flatMap(staticFn =>
+      if(!containsApplicationOf(lemma, staticFn))
+        selectSuccessfulApplication(lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
+      else
+        Set()
+    )
+  }
+
+  def generateRestrictions(lemma: Lemma): Set[Refinement] = {
     val restrictable = restrictableVariables(lemma)
-    generateEquations(lemma)
+    generateEquations(lemma) ++ generateApplications(lemma)
   }
 
   def negative(lemma: Lemma): Lemma = {
@@ -105,21 +123,47 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
   }
 
   def shouldRefine(lemma: Lemma): Boolean = {
-    testLemmaAndNegative(lemma) match {
+    println(lemma)
+    val answer = testLemmaAndNegative(lemma)
+    println(answer match {
+      case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
+      case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
+      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "not sure though"
+      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
+      case (a, b) => sys.error(s"oracle said something weird: $a, $b")
+    })
+    answer match {
       case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => true
       case _ => false
     }
   }
 
   def generate(): Seq[Lemma] = {
-    val base = generateBase()
-    println(base)
-    val should = shouldRefine(base)
-    println("Should I refine? " + should)
-    val rest = generateRestrictions(base)
-    for(re <- rest) {
-      val lemma = re.restrict(problem, base)
-      askOracle(lemma)
+    val tree = new RefinementTree(generateBase())
+    var changedAnything = true
+    while(changedAnything) {
+      changedAnything = false
+      val unknownNodes = tree.collectNodes(Unknown())
+      println(s"${unknownNodes.size} unknown nodes")
+      for (node <- unknownNodes) {
+        if (shouldRefine(node.lemma)) {
+          node.setStatus(ShouldRefine())
+        } else {
+          node.setStatus(Inconclusive())
+        }
+        changedAnything = true
+      }
+      val incompleteNodes = tree.collectNodes(ShouldRefine())
+      println(s"${incompleteNodes.size} incomplete nodes")
+      for(node <- incompleteNodes) {
+        val restrictions = generateRestrictions(node.lemma)
+        for (restriction <- restrictions) {
+          node.refine(problem, restriction)
+        }
+        node.setStatus(Refined())
+        changedAnything = true
+      }
+      println("and next!")
     }
     /*val refinement = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt2")))
     val foo = tree.root.refine(problem, refinement)
@@ -130,6 +174,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     //tree.prune(problem, tree.nodes.toSeq)
     tree.visualizeRT(new File("preservation.png"), "png")
     println(leaf.lemma)*/
-    Seq()
+    tree.visualizeRT(new File(s"pres-${function.signature.name}.png"), "png")
+    tree.collectNodes(Inconclusive()).map(_.lemma).toSeq
   }
 }

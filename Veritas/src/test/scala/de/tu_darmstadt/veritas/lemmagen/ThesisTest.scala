@@ -200,8 +200,8 @@ class ThesisTest extends FunSuite {
     val func3 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "projectTable").get
     val pred2 = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedtable").get
     val strat3 = new PreservationGenerator(problem, func3, pred2)//new ProgressStrategy(problem, func)
-    strat3.generate()
-
+    val lemmas = strat3.generate()
+    printRules(lemmas)
     println("")
   }
 
@@ -213,7 +213,8 @@ class ThesisTest extends FunSuite {
     val func3 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "rawUnion").get
     val pred2 = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedRawtable").get
     val strat3 = new PreservationGenerator(problem, func3, pred2)//new ProgressStrategy(problem, func)
-    strat3.generate()
+    val lemmas = strat3.generate()
+    printRules(lemmas)
 
     println("")
   }
