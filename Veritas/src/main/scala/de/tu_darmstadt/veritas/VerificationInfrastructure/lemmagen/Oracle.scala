@@ -26,7 +26,7 @@ object Oracle {
     }
   }
 
-  def invoke[A <: TypingRule](problem: Problem, lemmas: Set[A], timeout: Integer = 10, logic: String = "tff"): Answer = {
+  def invoke[A <: TypingRule](problem: Problem, lemmas: Set[A], timeout: Integer = 5, logic: String = "tff"): Answer = {
     val falseGoal = Goals(Seq(TypingRule("false-goal", Seq(), Seq(FunctionExpJudgment(FunctionExpFalse)))), None)
     val verifier = new TPTPVampireVerifier(timeout, "4.2.2", logic)
     val assumptions = lemmas.map(lemma => (LemmaApplicationStep(lemma.name), lemma)).toSeq

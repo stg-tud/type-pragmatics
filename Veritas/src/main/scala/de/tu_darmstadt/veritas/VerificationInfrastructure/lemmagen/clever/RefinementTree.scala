@@ -8,20 +8,24 @@ import scala.sys.process.stringToProcess
 
 sealed trait OracleStatus
 case class Unknown() extends OracleStatus
-case class ShouldRefine() extends OracleStatus
-case class Refined() extends OracleStatus
 case class Inconclusive() extends OracleStatus
+case class Incorrect() extends OracleStatus
+case class Unexpected(answer: (Oracle.Answer, Oracle.Answer)) extends OracleStatus
+
+sealed trait RefinementStatus
+case class ShouldNotRefine() extends RefinementStatus
+case class ShouldRefine() extends RefinementStatus
+case class Refined() extends RefinementStatus
 
 class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement: Option[Refinement]) {
   private var _children: Seq[RefinementNode] = Seq()
-  private var _status: OracleStatus = Unknown()
+  var oracleStatus: OracleStatus = Unknown()
+  var refinementStatus: RefinementStatus = ShouldNotRefine()
 
   def addChild(child: RefinementNode): Unit = {
     _children :+= child
   }
 
-  def status: OracleStatus = _status
-  def setStatus(status: OracleStatus): Unit = _status = status
   def children: Seq[RefinementNode] = _children
   def descendants: Set[RefinementNode] = children.toSet ++ children.flatMap(_.descendants)
   def leaves: Set[RefinementNode] =
@@ -57,7 +61,7 @@ class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement:
       case Inconclusive() => "black"
     }*/
     val color = "black"
-    val label = "\"" + lemma.toString.replace("\n", "\\n") + "\\n" + status + "\""
+    val label = "\"" + lemma.toString.replace("\n", "\\n") + s"\\n$oracleStatus\n$refinementStatus" + "\""
     sb.append(nodeID + s" [shape=box, label=$label, color=$color];\n")
   }
 }
@@ -76,7 +80,11 @@ class RefinementTree(rootLemma: Lemma) {
   }
 
   def collectNodes(status: OracleStatus): Set[RefinementNode] = {
-    nodes.filter(_.status == status)
+    nodes.filter(_.oracleStatus == status)
+  }
+
+  def collectNodes(status: RefinementStatus): Set[RefinementNode] = {
+    nodes.filter(_.refinementStatus == status)
   }
 
   def makeDotString(): String = {
@@ -88,7 +96,7 @@ class RefinementTree(rootLemma: Lemma) {
     for(node <- nodes; child <- node.children) {
       builder.append(calculateNodeID(node) + " -> " + calculateNodeID(child) + ";\n")
     }
-    "digraph {\n" + builder.toString() + "}"
+    "digraph {\ngraph [fontsize = 8];\n" + builder.toString() + "}"
   }
 
   def visualizeRT(outputPath: File, ext: String = "png"): Unit = {

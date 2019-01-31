@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import java.io.File
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.SuccessfulApplication
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, NotJudgment, SortRef}
@@ -81,6 +81,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
   def containsApplicationOf(lemma: Lemma, fn: FunctionDef): Boolean = {
     lemma.refinements.collect {
       case SuccessfulApplication(func, _, _) if fn == func => fn
+      case Predicate(func, _) if fn == func => fn
     }.nonEmpty
   }
 
@@ -88,9 +89,13 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     val sideArguments = problem.enquirer.getSideArgumentsTypes(function)
     val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
     staticFunctions.flatMap(staticFn =>
-      if(!containsApplicationOf(lemma, staticFn))
-        selectSuccessfulApplication(lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
-      else
+      if(!containsApplicationOf(lemma, staticFn)) {
+        if (staticFn.signature.out.name == "Bool") {
+          selectPredicate(lemma, staticFn)
+        } else {
+          selectSuccessfulApplication(lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
+        }
+      } else
         Set()
     )
   }
@@ -122,9 +127,9 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     println(answer)
   }
 
-  def shouldRefine(lemma: Lemma): Boolean = {
-    println(lemma)
-    val answer = testLemmaAndNegative(lemma)
+  def updateStatus(node: RefinementNode): Unit = {
+    println(node.lemma)
+    val answer = testLemmaAndNegative(node.lemma)
     println(answer match {
       case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
       case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
@@ -132,27 +137,30 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
       case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
       case (a, b) => sys.error(s"oracle said something weird: $a, $b")
     })
-    answer match {
-      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => true
-      case _ => false
+    val oracleStatus = answer match {
+      case (Oracle.Inconclusive(), _) => Inconclusive()
+      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => Incorrect()
+      case _ => Unexpected(answer)
     }
+    node.oracleStatus = oracleStatus
+    node.refinementStatus = ShouldRefine()
   }
 
   def generate(): Seq[Lemma] = {
     val tree = new RefinementTree(generateBase())
+    tree.root.refinementStatus = ShouldRefine()
     var changedAnything = true
+    var i = 0
     while(changedAnything) {
       changedAnything = false
-      val unknownNodes = tree.collectNodes(Unknown())
+      val unknownNodes = tree.collectNodes(Unknown()).toSeq
       println(s"${unknownNodes.size} unknown nodes")
-      for (node <- unknownNodes) {
-        if (shouldRefine(node.lemma)) {
-          node.setStatus(ShouldRefine())
-        } else {
-          node.setStatus(Inconclusive())
-        }
+      for ((node, idx) <- unknownNodes.zipWithIndex) {
+        println(s"=== ${idx+1}/${unknownNodes.size} ===")
+        updateStatus(node)
         changedAnything = true
       }
+      tree.visualizeRT(new File(s"pres-${function.signature.name}-${i}a.png"), "png")
       val incompleteNodes = tree.collectNodes(ShouldRefine())
       println(s"${incompleteNodes.size} incomplete nodes")
       for(node <- incompleteNodes) {
@@ -160,10 +168,12 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
         for (restriction <- restrictions) {
           node.refine(problem, restriction)
         }
-        node.setStatus(Refined())
+        node.refinementStatus = Refined()
         changedAnything = true
       }
+      tree.visualizeRT(new File(s"pres-${function.signature.name}-${i}b.png"), "png")
       println("and next!")
+      i += 1
     }
     /*val refinement = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt2")))
     val foo = tree.root.refine(problem, refinement)
@@ -174,7 +184,6 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     //tree.prune(problem, tree.nodes.toSeq)
     tree.visualizeRT(new File("preservation.png"), "png")
     println(leaf.lemma)*/
-    tree.visualizeRT(new File(s"pres-${function.signature.name}.png"), "png")
     tree.collectNodes(Inconclusive()).map(_.lemma).toSeq
   }
 }

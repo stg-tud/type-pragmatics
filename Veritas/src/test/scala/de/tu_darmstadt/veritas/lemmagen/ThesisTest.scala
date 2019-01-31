@@ -192,30 +192,21 @@ class ThesisTest extends FunSuite {
     }
   }
 
-  test("generate") {
-    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
-    val problem = new Problem(file)
-    println("projectTable")
-    println("----------")
-    val func3 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "projectTable").get
-    val pred2 = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedtable").get
-    val strat3 = new PreservationGenerator(problem, func3, pred2)//new ProgressStrategy(problem, func)
-    val lemmas = strat3.generate()
-    printRules(lemmas)
-    println("")
-  }
-
-  test("generate rawUnion") {
-    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
-    val problem = new Problem(file)
-    println("rawUnion")
-    println("----------")
-    val func3 = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "rawUnion").get
-    val pred2 = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedRawtable").get
-    val strat3 = new PreservationGenerator(problem, func3, pred2)//new ProgressStrategy(problem, func)
-    val lemmas = strat3.generate()
-    printRules(lemmas)
-
-    println("")
+  val Combinations = Seq(
+   /* ("projectTable", "welltypedtable"),
+    ("rawUnion", "welltypedRawtable"),*/
+    ("projectCols", "welltypedRawtable")
+  )
+  for((funcName, predName) <- Combinations) {
+    test(s"${funcName} / ${predName}") {
+      val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
+      val problem = new Problem(file)
+      val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, funcName).get
+      val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, predName).get
+      val strat = new PreservationGenerator(problem, func, pred)
+      val lemmas = strat.generate()
+      printRules(lemmas)
+      println("")
+    }
   }
 }
