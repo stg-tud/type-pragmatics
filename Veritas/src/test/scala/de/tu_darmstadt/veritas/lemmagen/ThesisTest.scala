@@ -193,20 +193,30 @@ class ThesisTest extends FunSuite {
   }
 
   val Combinations = Seq(
-   /* ("projectTable", "welltypedtable"),
-    ("rawUnion", "welltypedRawtable"),*/
-    ("projectCols", "welltypedRawtable")
+    ("projectTable", "welltypedtable"),
+    ("rawUnion", "welltypedRawtable"),
+    ("filterTable", "welltypedtable"),
+    ("filterRows", "welltypedRawtable"),
+    ("dropFirstColRaw", "welltypedRawtable"),
+    ("projectCols", "welltypedRawtable"),
   )
   for((funcName, predName) <- Combinations) {
     test(s"${funcName} / ${predName}") {
-      val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
+      val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
       val problem = new Problem(file)
       val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, funcName).get
       val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, predName).get
       val strat = new PreservationGenerator(problem, func, pred)
       val lemmas = strat.generate()
+      println(s"===== ${lemmas.size} lemmas!")
       printRules(lemmas)
       println("")
+
+      val expectedLemmas = problem.dsk.preservationProperties(func)
+      for(expected <- expectedLemmas) {
+        val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
+        println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
+      }
     }
   }
 }

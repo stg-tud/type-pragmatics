@@ -55,12 +55,11 @@ class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement:
   def findRefinement(refinement: Refinement): Option[RefinementNode] = children.find(_.refinement.exists(r => r == refinement))
 
   def makeDotString(sb: StringBuilder, nodeID: String): Unit = {
-    /*val color = status match {
+    val color = oracleStatus match {
       case Unknown() => "gray"
-      case ProvablyFalse() => "red"
+      case Incorrect() => "red"
       case Inconclusive() => "black"
-    }*/
-    val color = "black"
+    }
     val label = "\"" + lemma.toString.replace("\n", "\\n") + s"\\n$oracleStatus\n$refinementStatus" + "\""
     sb.append(nodeID + s" [shape=box, label=$label, color=$color];\n")
   }
