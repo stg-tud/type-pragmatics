@@ -29,6 +29,7 @@ object Oracle {
   def invoke[A <: TypingRule](problem: Problem, lemmas: Set[A], timeout: Integer = 5, logic: String = "tff"): Answer = {
     val falseGoal = Goals(Seq(TypingRule("false-goal", Seq(), Seq(FunctionExpJudgment(FunctionExpFalse)))), None)
     val verifier = new TPTPVampireVerifier(timeout, "4.2.2", logic)
+    //val verifier = new ADTVampireVerifier(timeout)
     val assumptions = lemmas.map(lemma => (LemmaApplicationStep(lemma.name), lemma)).toSeq
     // sanity check for distinguishable names
     require(lemmas.map(_.name).size == lemmas.size)

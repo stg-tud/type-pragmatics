@@ -38,23 +38,27 @@ class ThesisTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
-  /*
+
   test("lemma oracle") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
     val problem = new Problem(file)
 
     var swLemmas = problem.dsk.properties.map(tr => new Lemma(tr.name, tr.premises, tr.consequences))
-    for(swLemma <- swLemmas) {
-      val remaining = Oracle.pruneProvablyFalseLemmas(problem, Set(swLemma))
-      val status = if(remaining contains swLemma) {
-        "inconclusive"
-      } else {
-        "FALSE"
+    for(swLemma <- swLemmas.toSeq.sortBy(_.name)) {
+      try {
+        val remaining = Oracle.pruneProvablyFalseLemmas(problem, Set(swLemma))
+        val status = if (remaining contains swLemma) {
+          "inconclusive"
+        } else {
+          "FALSE"
+        }
+        println(s"${swLemma.name}: $status")
+      } catch {
+        case x: Exception => println(s"${swLemma.name}: $x")
       }
-      println(s"${swLemma.name}: $status")
     }
-  }*/
-/*
+  }
+
   test("static functions") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
     val problem = new Problem(file)
@@ -179,8 +183,8 @@ class ThesisTest extends FunSuite {
     val refinements = strat.expand(base.head)
     val refined = refinements.flatMap(_.refine(problem, base.head))
     printRules(refined)*/
-  }*/
-
+  }
+/*
   test("reducers") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
     val problem = new Problem(file)
@@ -193,7 +197,7 @@ class ThesisTest extends FunSuite {
   }
 
   val Combinations = Seq(
-    ("projectTable", "welltypedtable"),
+   /* ("projectTable", "welltypedtable"),*/
     ("rawUnion", "welltypedRawtable"),
     ("filterTable", "welltypedtable"),
     ("filterRows", "welltypedRawtable"),
@@ -218,5 +222,5 @@ class ThesisTest extends FunSuite {
         println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
       }
     }
-  }
+  }*/
 }

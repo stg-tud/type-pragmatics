@@ -679,7 +679,7 @@ object SQLSpec2 extends ScalaSPLSpecification {
     require(welltypedtable(tt, t))
     require(projectTable(sel, t) == someTable(t2))
   } ensuring !welltypedtable(tt2, t2)
-*/
+*//*
   @Property
   def P1(sel: Select, t: Table, t2: Table, tt: TType, a: Name, al: AttrL): Unit = {
     require(welltypedtable(tt, t))
@@ -719,6 +719,7 @@ object SQLSpec2 extends ScalaSPLSpecification {
     require(projectTable(sel, t) == someTable(t2))
     require(tt != tt2)
   } ensuring !welltypedtable(tt2, t2)
+  */
 
 /*
   @Property
@@ -861,4 +862,44 @@ object SQLSpec2 extends ScalaSPLSpecification {
     require(welltypedRawtable(tt, rt2))
     require(rawIntersection(rt1, rt2) == result)
   } ensuring !welltypedRawtable(tt, result)*/
+
+  @Property
+  def X1(tt: TType, t: Table, s: Select, tt2: TType, t2: Table): Unit = {
+  } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
+
+  @Property
+  def X2(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+  } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
+
+  @Property
+  def X3(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    require(projectType(s, tt) == someTType(tt2))
+  } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
+
+  @Property
+  def X4(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectType(s, tt) == someTType(tt2))
+  } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
+
+  @Property
+  def Y1(tt: TType, t: Table, s: Select, tt2: TType, t2: Table): Unit = {
+  } ensuring projectTable(s, t) != noTable()
+
+  @Property
+  def Y2(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+  } ensuring projectTable(s, t) != noTable()
+
+  @Property
+  def Y3(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    require(projectType(s, tt) == someTType(tt2))
+  } ensuring projectTable(s, t) != noTable()
+
+  @Property
+  def Y4(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
+    require(welltypedtable(tt, t))
+    require(projectType(s, tt) == someTType(tt2))
+  } ensuring projectTable(s, t) != noTable()
 }

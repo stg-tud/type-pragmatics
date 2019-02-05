@@ -163,7 +163,6 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     val tree = new RefinementTree(generateBase())
     tree.root.refinementStatus = ShouldRefine()
     var changedAnything = true
-    var i = 0
     while(changedAnything) {
       changedAnything = false
       val unknownNodes = tree.collectNodes(Unknown()).toSeq
@@ -173,7 +172,6 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
         updateStatus(node)
         changedAnything = true
       }
-      tree.visualizeRT(new File(s"pres-${function.signature.name}-${i}a.png"), "png")
       val incompleteNodes = tree.collectNodes(ShouldRefine())
       println(s"${incompleteNodes.size} incomplete nodes")
       for(node <- incompleteNodes) {
@@ -188,10 +186,9 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
         node.refinementStatus = Refined()
         changedAnything = true
       }
-      tree.visualizeRT(new File(s"pres-${function.signature.name}-${i}b.png"), "png")
       println("and next!")
-      i += 1
     }
+    tree.visualizeRT(new File(s"pres-${function.signature.name}.png"))
     /*val refinement = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt2")))
     val foo = tree.root.refine(problem, refinement)
     askOracle(foo.lemma)
