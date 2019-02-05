@@ -70,7 +70,7 @@ class ThesisTest extends FunSuite {
     val problem = new Problem(file)
     println(problem.dsk.dynamicFunctions.map(f => s"\\C{${f.signature.name}}").mkString(", "))
   }
-
+/*
   test("progress strategy") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec.scala")
     val problem = new Problem(file)
@@ -183,8 +183,8 @@ class ThesisTest extends FunSuite {
     val refinements = strat.expand(base.head)
     val refined = refinements.flatMap(_.refine(problem, base.head))
     printRules(refined)*/
-  }
-/*
+  }*/
+
   test("reducers") {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
     val problem = new Problem(file)
@@ -222,5 +222,5 @@ class ThesisTest extends FunSuite {
         println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
       }
     }
-  }*/
+  }
 }

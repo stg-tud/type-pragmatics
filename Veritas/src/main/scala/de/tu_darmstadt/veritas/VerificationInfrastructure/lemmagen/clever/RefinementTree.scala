@@ -58,10 +58,10 @@ class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement:
     val color = oracleStatus match {
       case Unknown() => "gray"
       case Incorrect() => "red"
-      case Inconclusive() => "black"
+      case Inconclusive() => "white"
     }
     val label = "\"" + lemma.toString.replace("\n", "\\n") + s"\\n$oracleStatus\n$refinementStatus" + "\""
-    sb.append(nodeID + s" [shape=box, label=$label, color=$color];\n")
+    sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
 }
 
