@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{P
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
 
 import scala.collection.mutable
 
@@ -37,8 +37,8 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     new Lemma(s"${function.name}Progress", Seq(), Seq(inequality))
   }
 
-  def generateEquations(lemma: Lemma): Set[Refinement] = {
-    val restrictable = lemma.boundVariables
+  def generateEquations(node: RefinementNode): Set[Refinement] = {
+    val restrictable = node.preVariables
     val partitioned = restrictable.groupBy(_.sortType)
     var restrictions = new mutable.ListBuffer[Refinement]()
     for((typ, metaVars) <- partitioned) {
@@ -47,7 +47,9 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
         for(equal <- equals) {
           val a = equal.head
           val b = equal.tail.head
-          restrictions += Refinement.Equation(a, FunctionMeta(b))
+          if(equal.exists(node.preVariables contains _) && equal.exists(node.postVariables contains _)) {
+            restrictions += Refinement.Equation(a, FunctionMeta(b))
+          }
         }
       }
     }
@@ -61,22 +63,22 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     }.nonEmpty
   }
 
-  def generateApplications(lemma: Lemma): Set[Refinement] = {
+  def generateApplications(node: RefinementNode): Set[Refinement] = {
     val sideArguments = function.inTypes
     val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
     staticFunctions.flatMap(staticFn =>
-      if(!containsApplicationOf(lemma, staticFn)) {
+      if(!containsApplicationOf(node.lemma, staticFn)) {
         if (staticFn.signature.out.name == "Bool") {
-          selectPredicate(lemma, staticFn)
+          selectPredicate(node.lemma, staticFn)
         } else {
-          var refinements = selectSuccessfulApplication(lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
+          var refinements = selectSuccessfulApplication(node.lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
           // do not want refinements which pass the same argument twice
           refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
           // do not want refinements which assume no change
           refinements = refinements.filterNot(r => r.arguments.contains(FunctionMeta(r.result)))
           // do not want refinements whose in arguments contain post variables
-          /*val postVars: Set[FunctionExpMeta] = postVariables(lemma).map(FunctionMeta(_))
-          refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))*/
+          val postVars: Set[FunctionExpMeta] = node.postVariables.map(FunctionMeta(_))
+          refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
           refinements
         }
       } else
@@ -84,8 +86,8 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     )
   }
 
-  def generateRestrictions(lemma: Lemma): Set[Refinement] = {
-    generateEquations(lemma) ++ generateApplications(lemma)
+  def generateRestrictions(node: RefinementNode): Set[Refinement] = {
+    generateEquations(node) ++ generateApplications(node)
   }
 
   def negative(lemma: Lemma): Lemma = {
@@ -145,7 +147,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
       val incompleteNodes = tree.collectNodes(ShouldRefine())
       println(s"${incompleteNodes.size} incomplete nodes")
       for(node <- incompleteNodes) {
-        val restrictions = generateRestrictions(node.lemma)
+        val restrictions = generateRestrictions(node)
         println("====")
         for (restriction <- restrictions) {
           println("--->" + restriction)

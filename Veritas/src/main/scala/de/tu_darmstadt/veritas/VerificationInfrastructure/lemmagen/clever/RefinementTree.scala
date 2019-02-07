@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 import java.io.{BufferedWriter, File, FileWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
+import de.tu_darmstadt.veritas.backend.ast.MetaVar
 
 import scala.sys.process.stringToProcess
 
@@ -17,7 +18,11 @@ case class ShouldNotRefine() extends RefinementStatus
 case class ShouldRefine() extends RefinementStatus
 case class Refined() extends RefinementStatus
 
-class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement: Option[Refinement]) {
+class RefinementNode(val tree: RefinementTree,
+                     val lemma: Lemma,
+                     val refinement: Option[Refinement],
+                     val preVariables: Set[MetaVar],
+                     val postVariables: Set[MetaVar]) {
   private var _children: Map[Refinement, RefinementNode] = Map()
   var oracleStatus: OracleStatus = Unknown()
   var refinementStatus: RefinementStatus = ShouldNotRefine()
@@ -37,16 +42,22 @@ class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement:
     }
 
   def refine(problem: Problem, refinement: Refinement): RefinementNode = {
+    val (pre, post) = PrePostVariables.calculatePrePostVariables(
+      preVariables, postVariables, refinement
+    )
     refinement.refine(problem, lemma) match {
       case None => this
       case Some(refinedLemma) =>
         tree.findLemma(refinedLemma) match {
           case Some(node) => {
+            require(node.preVariables == pre)
+            require(node.postVariables == post)
             addChild(node, refinement)
             node
           }
           case None =>
-            val child = new RefinementNode(tree, refinedLemma, Some(refinement))
+
+            val child = new RefinementNode(tree, refinedLemma, Some(refinement), pre, post)
             addChild(child, refinement)
             child
         }
@@ -61,13 +72,15 @@ class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement:
       case Incorrect() => "red"
       case Inconclusive() => "white"
     }
-    val label = "\"" + lemma.toString.replace("\n", "\\n") + s"\\n$oracleStatus\n$refinementStatus" + "\""
+    val label = ("\"" + lemma.toString.replace("\n", "\\n")
+                + s"\\n$oracleStatus\n$refinementStatus"
+                + s"\\npre=$preVariables\npost=$postVariables" + "\"")
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
 }
 
 class RefinementTree(rootLemma: Lemma) {
-  val root = new RefinementNode(this, rootLemma, None)
+  val root = new RefinementNode(this, rootLemma, None, rootLemma.boundVariables, Set())
   def nodes: Set[RefinementNode] = Set(root) ++ root.descendants
   def leaves: Set[RefinementNode] = root.leaves
 
