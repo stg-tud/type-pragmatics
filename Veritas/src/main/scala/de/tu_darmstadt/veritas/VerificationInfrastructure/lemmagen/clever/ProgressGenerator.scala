@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import java.io.File
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
 import de.tu_darmstadt.veritas.backend.ast._
@@ -14,152 +15,151 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
 
   implicit private val enquirer = problem.enquirer
 
-  def generateBase(): Seq[Lemma] = {
+  /*
+  def generateBase(): Lemma = {
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
-    val successVar :: arguments = Assignments.generateSimpleSingle(function.successfulOutType +: function.inTypes)
+    val assignments = Assignments.generateSimpleSingle(function.inTypes :+ function.successfulOutType)
+    val arguments = assignments.init
+    val successVar = assignments.last
     val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(arguments))
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
     val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
     val exists = ExistsJudgment(Seq(successVar), Seq(equality))
-    Seq(new Lemma(s"${function.name}Progress", Seq(), Seq(exists)))
-  }
-
-  def constructAllChoices[T](choices: Seq[Seq[T]]): Seq[Seq[T]] = choices match {
-    case currentChoices :: remainingChoices =>
-      val constructedRemainingChoices: Seq[Seq[T]] = constructAllChoices(remainingChoices)
-      for(currentChoice <- currentChoices; remainingChoice <- constructedRemainingChoices)
-          yield currentChoice +: remainingChoice
-    case Nil => Seq(Seq())
-  }
-
-  def constrainConsequenceVariables(lemma: Lemma): Set[Lemma] = {
-    val consequenceVariables: Seq[MetaVar] = lemma.consequences.flatMap(
-      enquirer.getUniversallyQuantifiedVars(_)
-    ).collect {
-      case mv@MetaVar(_) => mv
-    }
-    // find all static predicates and transformers that talk about these variables
-    val varConstraints = consequenceVariables.map(mv =>
-      (enquirer.retrievePredicates(Set(mv.sortType)) ++ enquirer.retrieveTransformers(Set(mv.sortType)))
-        .filter(_.isStatic).toSeq)
-    val choices = constructAllChoices(varConstraints)
-    var lemmas = new mutable.HashSet[Lemma]()
-    for(choice <- choices) {
-      var currentLemmas = Set(lemma)
-      for((mv, fn) <- consequenceVariables zip choice) {
-        val assignmentConstraint = fn.inTypes.map {
-          case typ if typ == mv.sortType => Constraint.fixed(mv) // TODO: might be multiple
-          case typ => Constraint.fresh(typ)
-        }
-        currentLemmas = currentLemmas.flatMap(lemma => refine(lemma, fn.successfulOutType match {
-            case SortRef("Bool") => selectPredicate(lemma, fn, assignmentConstraint)
-            case typ => selectSuccessfulApplication(lemma, fn, assignmentConstraint, Constraint.fresh(typ))
-          }))
-      }
-      lemmas ++= currentLemmas
-    }
-    lemmas.toSet
-  }
-
-  def addEquations(lemma: Lemma): Set[Lemma] = {
-    //buildTree(lemma)
-    Set(lemma)
-  }
-/*
-  class ProgressRefinementTree(rootLemma: Lemma, val rootTag: LemmaTag) extends RefinementTree[LemmaTag](rootLemma, rootTag) {
-    def refine(node: RefinementNode, refinement: Refinement): RefinementNode = {
-      node.findRefinement(refinement) match {
-        case Some(child) => child
-        case None =>
-          refinement.refine(problem, node.lemma) match {
-            case Some(refinedLemma) =>
-              val child = new RefinementNode(refinedLemma, Some(refinement), LemmaTag(None)) // TODO
-              node.addChild(child)
-              child
-            case None => node
-          }
-        }
-      }
-
-    override def makeDotStringForNode(node: RefinementNode, sb: StringBuilder, nodeID: String): Unit = {
-      val color = node.tag.status match {
-        case Some(Oracle.Inconclusive()) => "gray"
-        case Some(Oracle.ProvablyFalse(_)) => "red"
-        case _ => "black"
-      }
-      val label = "\"" + node.lemma.refinements.last.toString + "\""
-      sb.append(nodeID + s" [shape=box, label=$label, color=$color];\n")
-    }
-
-    def prune(nodes: Seq[RefinementNode]) = {
-      val unknownLemmas = nodes.collect {
-        case node if node.tag.status.isEmpty => node.lemma
-      }.toSet
-      val remaining = Oracle.pruneProvablyFalseLemmas(problem, unknownLemmas)
-      for(node <- nodes) {
-        if(remaining contains node.lemma) {
-          node.tag = node.tag.copy(Some(Oracle.Inconclusive()))
-          println(s"set to INCONCLUSIVE: ${node.lemma}")
-        } else {
-          node.tag = node.tag.copy(Some(Oracle.ProvablyFalse(None)))
-          println(s"set to FALSE: ${node.lemma}")
-        }
-      }
-    }
-  }
-
-  case class LemmaTag(status: Option[Oracle.Answer])
-  trait Equation {}
-  case class VarVarEquation(left: MetaVar, right: MetaVar) extends Equation
-  case class VarConstructorEquation(left: MetaVar, right: DataTypeConstructor, args: Seq[FunctionMeta]) extends Equation
-
-  def getConstrainedVariables(lemma: Lemma): Set[MetaVar] =
-    enquirer.getUniversallyQuantifiedVars(lemma.consequences.head).asInstanceOf[Set[MetaVar]]
-
-  def getEquations(lemma: Lemma, metaVar: MetaVar): Set[Equation] = {
-    val equations = new mutable.HashSet[Equation]()
-    equations ++= lemma.bindingsOfType(metaVar.sortType).filterNot(_ == metaVar).map(right => VarVarEquation(metaVar, right
-))
-    // all zero-argument constructors of value
-    val constructors = enquirer.getConstructors(metaVar.sortType).filter(_.in.isEmpty)
-    constructors.foreach { constructor =>
-      equations += VarConstructorEquation(metaVar, constructor, Seq())
-    }
-    // find datatype constructors of metaVar.sortType
-    equations.toSet
-  }
-
-  def buildTree(lemma: Lemma): Unit = {
-    val tree = new ProgressRefinementTree(lemma, LemmaTag(None))
-    lemma.boundVariables.foreach { mv =>
-      tree.leaves.foreach { leaf =>
-        val equations = getEquations(leaf.lemma, mv)
-        val possibleVariableEquations = equations.collect {
-          case VarVarEquation(_, right) => right
-        }
-        val possibleConstrEquations = equations.collect {
-          case VarConstructorEquation(_, right, _) => right
-        }
-        val nodesToRefine = new mutable.ListBuffer[tree.Node]()
-        possibleVariableEquations.subsets.foreach { rightSides =>
-          if (rightSides.isEmpty)
-            Set(lemma)
-          else {
-            rightSides.foreach { right =>
-              val refinement = Refinement.Equation(mv, FunctionMeta(right))
-              nodesToRefine += tree.refine(leaf, refinement)
-            }
-          }
-        }
-        nodesToRefine.foreach { child =>
-          possibleConstrEquations.foreach { constr =>
-            val refinement = Refinement.Equation(mv, FunctionExpApp(constr.name, Seq()))
-            tree.refine(child, refinement)
-          }
-        }
-      }
-    }
-    tree.prune(tree.leaves.toSeq)
-    tree.visualizeRT(new File(s"rt-${lemma.name}.png"))
+    new Lemma(s"${function.name}Progress", Seq(), Seq(exists))
   }*/
+
+  def generateBase(): Lemma = {
+    val (failConstructor, _) = enquirer.retrieveFailableConstructors(function.outType)
+    val arguments = Assignments.generateSimpleSingle(function.inTypes)
+    val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(arguments))
+    val failExp = FunctionExpApp(failConstructor.name, Seq())
+    val inequality = enquirer.makeInequation(invocationExp, failExp).asInstanceOf[FunctionExpJudgment]
+    new Lemma(s"${function.name}Progress", Seq(), Seq(inequality))
+  }
+
+  def generateEquations(lemma: Lemma): Set[Refinement] = {
+    val restrictable = lemma.boundVariables
+    val partitioned = restrictable.groupBy(_.sortType)
+    var restrictions = new mutable.ListBuffer[Refinement]()
+    for((typ, metaVars) <- partitioned) {
+      if(metaVars.size > 1) {
+        val equals = metaVars.subsets.filter(_.size == 2)
+        for(equal <- equals) {
+          val a = equal.head
+          val b = equal.tail.head
+          restrictions += Refinement.Equation(a, FunctionMeta(b))
+        }
+      }
+    }
+    restrictions.toSet
+  }
+
+  def containsApplicationOf(lemma: Lemma, fn: FunctionDef): Boolean = {
+    lemma.refinements.collect {
+      case SuccessfulApplication(func, _, _) if fn == func => fn
+      case Predicate(func, _) if fn == func => fn
+    }.nonEmpty
+  }
+
+  def generateApplications(lemma: Lemma): Set[Refinement] = {
+    val sideArguments = function.inTypes
+    val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
+    staticFunctions.flatMap(staticFn =>
+      if(!containsApplicationOf(lemma, staticFn)) {
+        if (staticFn.signature.out.name == "Bool") {
+          selectPredicate(lemma, staticFn)
+        } else {
+          var refinements = selectSuccessfulApplication(lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
+          // do not want refinements which pass the same argument twice
+          refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
+          // do not want refinements which assume no change
+          refinements = refinements.filterNot(r => r.arguments.contains(FunctionMeta(r.result)))
+          // do not want refinements whose in arguments contain post variables
+          /*val postVars: Set[FunctionExpMeta] = postVariables(lemma).map(FunctionMeta(_))
+          refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))*/
+          refinements
+        }
+      } else
+        Set()
+    )
+  }
+
+  def generateRestrictions(lemma: Lemma): Set[Refinement] = {
+    generateEquations(lemma) ++ generateApplications(lemma)
+  }
+
+  def negative(lemma: Lemma): Lemma = {
+    val consequence = NotJudgment(lemma.consequences.head)
+    new Lemma(lemma.name + "_NEGATIVE", lemma.premises, Seq(consequence))
+  }
+
+  def testLemmaAndNegative(lemma: Lemma): (Oracle.Answer, Oracle.Answer)  = {
+    val neg = negative(lemma)
+    (Oracle.invoke(problem, Set(lemma)), Oracle.invoke(problem, Set(neg)))
+  }
+
+  def askOracle(lemma: Lemma): Unit = {
+    println(lemma)
+    val answer = testLemmaAndNegative(lemma) match {
+      case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
+      case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
+      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "not sure though"
+      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
+      case (a, b) => sys.error(s"oracle said something weird: $a, $b")
+    }
+    println(answer)
+  }
+
+  def updateStatus(node: RefinementNode): Unit = {
+    println(node.lemma)
+    val answer = testLemmaAndNegative(node.lemma)
+    println(answer match {
+      case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
+      case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
+      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "not sure though"
+      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
+      case (a, b) => sys.error(s"oracle said something weird: $a, $b")
+    })
+    val oracleStatus = answer match {
+      case (Oracle.Inconclusive(), _) => Inconclusive()
+      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => Incorrect()
+      case _ => Unexpected(answer)
+    }
+    node.oracleStatus = oracleStatus
+    node.refinementStatus = ShouldRefine()
+  }
+
+  def generate(): Seq[Lemma] = {
+    val tree = new RefinementTree(generateBase())
+    tree.root.refinementStatus = ShouldRefine()
+    var changedAnything = true
+    while(changedAnything) {
+      changedAnything = false
+      val unknownNodes = tree.collectNodes(Unknown()).toSeq
+      println(s"${unknownNodes.size} unknown nodes")
+      for ((node, idx) <- unknownNodes.zipWithIndex) {
+        println(s"=== ${idx+1}/${unknownNodes.size} ===")
+        updateStatus(node)
+        changedAnything = true
+      }
+      val incompleteNodes = tree.collectNodes(ShouldRefine())
+      println(s"${incompleteNodes.size} incomplete nodes")
+      for(node <- incompleteNodes) {
+        val restrictions = generateRestrictions(node.lemma)
+        println("====")
+        for (restriction <- restrictions) {
+          println("--->" + restriction)
+          /*val neg = negative(restriction.refineNeg(problem, node.lemma).getOrElse(node.lemma))
+          println("NEGATIVE: " + Oracle.invoke(problem, Set(neg)))*/
+          node.refine(problem, restriction)
+        }
+        node.refinementStatus = Refined()
+        changedAnything = true
+      }
+      println("and next!")
+    }
+    tree.visualizeRT(new File(s"prog-${function.signature.name}.png") )
+    Seq()
+  }
+
 }

@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.PreservationGenerator
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{PreservationGenerator, ProgressGenerator}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.{PreservationStrategy, ProgressStrategy}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
@@ -195,9 +195,9 @@ class ThesisTest extends FunSuite {
       println(s"---> ${staticFunctions.map(_.signature.name)}")
     }
   }
-
+/*
   val Combinations = Seq(
-   /* ("projectTable", "welltypedtable"),*/
+    ("projectTable", "welltypedtable"),
     ("rawUnion", "welltypedRawtable"),
     ("filterTable", "welltypedtable"),
     ("filterRows", "welltypedRawtable"),
@@ -218,6 +218,29 @@ class ThesisTest extends FunSuite {
 
       val expectedLemmas = problem.dsk.preservationProperties(func)
       for(expected <- expectedLemmas) {
+        val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
+        println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
+      }
+    }
+  }*/
+
+  val ProgressFunctions = Seq(
+    "projectTable",
+    "findCol"
+  )
+  for(funcName <- ProgressFunctions) {
+    test(s"progress ${funcName}") {
+      val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+      val problem = new Problem(file)
+      val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, funcName).get
+      val strat = new ProgressGenerator(problem, func)
+      val lemmas = strat.generate()
+      println(s"===== ${lemmas.size} lemmas!")
+      printRules(lemmas)
+      println("")
+
+      val expectedLemmas = problem.dsk.progressProperties(func)
+      for (expected <- expectedLemmas) {
         val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
         println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
       }

@@ -655,17 +655,15 @@ object SQLSpec2 extends ScalaSPLSpecification {
     case (_, _) => false
   }
 
- /* @Property
+  @Property
   def R1(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {
     require(projectCols(al1, al2, rt) == someRawTable(rt2))
-    //require(welltypedRawtable(tt, rt))
-  } ensuring sameLength(rt, rt2)
+  } ensuring welltypedRawtable(tt2, rt2)
 
   @Property
   def R1_NEG(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {
     require(projectCols(al1, al2, rt) == someRawTable(rt2))
-    //require(welltypedRawtable(tt, rt))
-  } ensuring !sameLength(rt, rt2)*/
+  } ensuring !sameLength(rt, rt2)
 
 /*
   @Property
@@ -863,7 +861,7 @@ object SQLSpec2 extends ScalaSPLSpecification {
     require(rawIntersection(rt1, rt2) == result)
   } ensuring !welltypedRawtable(tt, result)*/
 
-  @Property
+  /*@Property
   def X1(tt: TType, t: Table, s: Select, tt2: TType, t2: Table): Unit = {
   } ensuring exists((t2: Table) => projectTable(s, t) == someTable(t2))
 
@@ -901,5 +899,5 @@ object SQLSpec2 extends ScalaSPLSpecification {
   def Y4(tt: TType, t: Table, s: Select, tt2: TType): Unit = {
     require(welltypedtable(tt, t))
     require(projectType(s, tt) == someTType(tt2))
-  } ensuring projectTable(s, t) != noTable()
+  } ensuring projectTable(s, t) != noTable()*/
 }
