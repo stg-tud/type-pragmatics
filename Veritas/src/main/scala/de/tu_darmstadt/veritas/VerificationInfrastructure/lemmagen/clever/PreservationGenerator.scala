@@ -188,7 +188,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
       }
       println("and next!")
     }
-    tree.visualizeRT(new File(s"pres-${function.signature.name}.png"))
+    tree.visualizeRT(new File(s"pres-${function.signature.name}.png") )
     /*val refinement = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt2")))
     val foo = tree.root.refine(problem, refinement)
     askOracle(foo.lemma)

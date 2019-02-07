@@ -18,15 +18,16 @@ case class ShouldRefine() extends RefinementStatus
 case class Refined() extends RefinementStatus
 
 class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement: Option[Refinement]) {
-  private var _children: Seq[RefinementNode] = Seq()
+  private var _children: Map[Refinement, RefinementNode] = Map()
   var oracleStatus: OracleStatus = Unknown()
   var refinementStatus: RefinementStatus = ShouldNotRefine()
 
-  def addChild(child: RefinementNode): Unit = {
-    _children :+= child
+  def addChild(child: RefinementNode, refinement: Refinement): Unit = {
+    _children += refinement -> child
   }
 
-  def children: Seq[RefinementNode] = _children
+  def children: Seq[RefinementNode] = _children.values.toSeq
+  def refinedChildren: Map[Refinement, RefinementNode] = _children
   def descendants: Set[RefinementNode] = children.toSet ++ children.flatMap(_.descendants)
   def leaves: Set[RefinementNode] =
     if(children.isEmpty) {
@@ -41,12 +42,12 @@ class RefinementNode(val tree: RefinementTree, val lemma: Lemma, val refinement:
       case Some(refinedLemma) =>
         tree.findLemma(refinedLemma) match {
           case Some(node) => {
-            addChild(node)
+            addChild(node, refinement)
             node
           }
           case None =>
             val child = new RefinementNode(tree, refinedLemma, Some(refinement))
-            addChild(child)
+            addChild(child, refinement)
             child
         }
     }
@@ -92,8 +93,8 @@ class RefinementTree(rootLemma: Lemma) {
       node.makeDotString(builder, calculateNodeID(node))
     }
     builder.append("\n")
-    for(node <- nodes; child <- node.children) {
-      builder.append(calculateNodeID(node) + " -> " + calculateNodeID(child) + ";\n")
+    for(node <- nodes; (refinement, child) <- node.refinedChildren) {
+      builder.append(s"${calculateNodeID(node)} -> ${calculateNodeID(child)} [label=" + "\"" + refinement + "\"];\n")
     }
     "digraph {\ngraph [fontsize = 8];\n" + builder.toString() + "}"
   }
