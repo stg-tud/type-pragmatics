@@ -26,6 +26,7 @@ class RefinementNode(val tree: RefinementTree,
   private var _parents: Seq[RefinementNode] = Seq()
   private var _children: Map[Refinement, RefinementNode] = Map()
   var oracleStatus: OracleStatus = Unknown()
+  var invertedStatus: OracleStatus = Unknown()
   var direct: Boolean = false
   var refinementStatus: RefinementStatus = ShouldRefine()
   var selected: Boolean = false
@@ -92,8 +93,8 @@ class RefinementNode(val tree: RefinementTree,
     }
 
     val label = ("\"" + lemma.toString.replace("\n", "\\n")
-                + s"\\n$oracleStatus\n$refinementStatus"
-                + s"\\npre=$preVariables\npost=$postVariables" + "\"")
+                + s"\\n$oracleStatus, $invertedStatus\n$refinementStatus"
+                + s"\\npre=$preVariables\\npost=$postVariables" + "\"")
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
 }
