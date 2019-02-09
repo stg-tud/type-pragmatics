@@ -26,7 +26,6 @@ class RefinementNode(val tree: RefinementTree,
   private var _parents: Seq[RefinementNode] = Seq()
   private var _children: Map[Refinement, RefinementNode] = Map()
   var oracleStatus: OracleStatus = Unknown()
-  var invertedStatus: OracleStatus = Unknown()
   var direct: Boolean = false
   var refinementStatus: RefinementStatus = ShouldRefine()
   var selected: Boolean = false
@@ -76,11 +75,13 @@ class RefinementNode(val tree: RefinementTree,
 
   def findRefinement(refinement: Refinement): Option[RefinementNode] = children.find(_.refinement.exists(r => r == refinement))
 
-  def setStatusRecursively(status: OracleStatus, isDirect: Boolean = true): Unit = {
+  def setStatusRecursively(status: OracleStatus): Unit = {
     this.oracleStatus = status
-    this.direct = isDirect
-    for(parent <- parents)
-      parent.setStatusRecursively(status, false)
+    this.direct = true
+    for(ancestor <- ancestors) {
+      ancestor.oracleStatus = status
+      ancestor.direct = false
+    }
   }
 
   def makeDotString(sb: StringBuilder, nodeID: String): Unit = {
@@ -93,7 +94,7 @@ class RefinementNode(val tree: RefinementTree,
     }
 
     val label = ("\"" + lemma.toString.replace("\n", "\\n")
-                + s"\\n$oracleStatus, $invertedStatus\n$refinementStatus"
+                + s"\\n$oracleStatus\n$refinementStatus"
                 + s"\\npre=$preVariables\\npost=$postVariables" + "\"")
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }

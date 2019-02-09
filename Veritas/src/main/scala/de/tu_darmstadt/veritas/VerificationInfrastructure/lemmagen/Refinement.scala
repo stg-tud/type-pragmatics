@@ -5,8 +5,6 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 
 trait Refinement {
   def refine(problem: Problem, lemma: Lemma): Option[Lemma]
-  // TODO: remove if not needed
-  def refineNeg(problem: Problem, lemma: Lemma): Option[Lemma]
 }
 
 object Refinement {
@@ -77,15 +75,6 @@ object Refinement {
       }
     }
 
-    def refineNeg(problem: Problem, lemma: Lemma): Option[Lemma] = {
-      val invocationExp = FunctionExpJudgment(FunctionExpNot(FunctionExpApp(predicate.signature.name, arguments)))
-      if(lemma.premises.contains(invocationExp) || lemma.consequences.contains(invocationExp)) {
-        None
-      } else {
-        Some(lemma.addPremise(this, invocationExp))
-      }
-    }
-
     override def toString: String = s"Predicate(${predicate.signature.name}, $arguments)"
   }
 
@@ -105,13 +94,6 @@ object Refinement {
           val equation = problem.enquirer.makeEquation(left, right).asInstanceOf[FunctionExpJudgment]
           Some(lemma.addPremise(this, equation))
       }
-    }
-
-    def refineNeg(problem: Problem, lemma: Lemma): Option[Lemma] = {
-      // TODO: could undefine it for some things
-      // if the right side is another MetaVar, we can just rename it to the left side
-      val equation = problem.enquirer.makeInequation(left, right).asInstanceOf[FunctionExpJudgment]
-      Some(lemma.addPremise(this, equation))
     }
   }
 

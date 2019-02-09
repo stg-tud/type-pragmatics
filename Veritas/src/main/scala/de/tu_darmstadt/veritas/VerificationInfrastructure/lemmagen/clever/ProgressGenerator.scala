@@ -96,43 +96,12 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     generateEquations(node) ++ generateApplications(node)
   }
 
-  def negative(lemma: Lemma): Lemma = {
-    val consequence = NotJudgment(lemma.consequences.head)
-    new Lemma(lemma.name + "_NEGATIVE", lemma.premises, Seq(consequence))
-  }
-
-  def testLemmaAndNegative(lemma: Lemma): (Oracle.Answer, Oracle.Answer)  = {
-    val neg = negative(lemma)
-    (Oracle.invoke(problem, Set(lemma)), Oracle.invoke(problem, Set(neg)))
-  }
-
-  def askOracle(lemma: Lemma): Unit = {
-    println(lemma)
-    val answer = testLemmaAndNegative(lemma) match {
-      case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
-      case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
-      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "not sure though"
-      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
-      case (a, b) => sys.error(s"oracle said something weird: $a, $b")
-    }
-    println(answer)
-  }
-
-  def updateStatus(node: RefinementNode): (OracleStatus, OracleStatus) = {
+  def updateStatus(node: RefinementNode): OracleStatus = {
     println(node.lemma)
-    val answer = testLemmaAndNegative(node.lemma)
-    println(answer match {
-      case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
-      case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
-      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "TODO not sure though"
-      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
-      case (a, b) => sys.error(s"oracle said something weird: $a, $b")
-    })
-    def translate(x: Oracle.Answer): OracleStatus = x match {
+    Oracle.invoke(problem, Set(node.lemma)) match {
       case Oracle.Inconclusive() => Inconclusive()
       case Oracle.ProvablyFalse(_) => Incorrect()
     }
-    (translate(answer._1), translate(answer._2))
   }
 
   def updateTree(tree: RefinementTree): Unit = {
@@ -147,8 +116,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
       }
       println(s"${fringe.size} elements")
       if(node.oracleStatus == Unknown()) {
-        val (status, statusInv) = updateStatus(node)
-        node.invertedStatus = statusInv
+        val status = updateStatus(node)
         if (status == Incorrect()) {
           node.setStatusRecursively(status)
         } else {
