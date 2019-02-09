@@ -28,7 +28,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     Assignments.generate(constraints).head // TODO
   }
 
-  def generateBase(): Lemma = {
+  def generateBase(): (Lemma, Set[MetaVar]) = {
     // --------------------
     // [predicate]([], ...)
     val outType = function.successfulOutType
@@ -57,14 +57,13 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
       val refinement = Refinement.Predicate(predicate, Assignments.wrapMetaVars(assignment))
       lemma = refinement.refine(problem, lemma).getOrElse(lemma)
     }
-    lemma
+    (lemma, predicateArgs.toSet)
   }
 
   def restrictableVariables(lemma: Lemma): Set[MetaVar] = lemma.boundVariables.filterNot(_.sortType == termType)
-  def preVariables(lemma: Lemma): Set[MetaVar] = lemma.boundVariables -- postVariables(lemma)
-  def postVariables(lemma: Lemma): Set[MetaVar] = FreeVariables.freeVariables(lemma.consequences)
 
-  def generateEquations(lemma: Lemma): Set[Refinement] = {
+  def generateEquations(node: RefinementNode): Set[Refinement] = {
+    val lemma = node.lemma
     val restrictable = restrictableVariables(lemma)
     val partitioned = restrictable.groupBy(_.sortType)
     var restrictions = new mutable.ListBuffer[Refinement]()
@@ -74,12 +73,11 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
         for(equal <- equals) {
           val a = equal.head
           val b = equal.tail.head
-          if(equal.exists(preVariables(lemma) contains _) && equal.exists(postVariables(lemma) contains _)) {
-            restrictions += Refinement.Equation(a, FunctionMeta(b))
+          if((equal intersect node.preVariables).nonEmpty && (equal intersect node.postVariables).nonEmpty)
+            restrictions += Refinement.Equation(equal.head, FunctionMeta(equal.tail.head))
           }
         }
       }
-    }
     restrictions.toSet
   }
 
@@ -90,7 +88,8 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     }.nonEmpty
   }
 
-  def generateApplications(lemma: Lemma): Set[Refinement] = {
+  def generateApplications(node: RefinementNode): Set[Refinement] = {
+    val lemma = node.lemma
     val sideArguments = problem.enquirer.getSideArgumentsTypes(function)
     val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
     staticFunctions.flatMap(staticFn =>
@@ -104,7 +103,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
           // do not want refinements which assume no change
           refinements = refinements.filterNot(r => r.arguments.contains(FunctionMeta(r.result)))
           // do not want refinements whose in arguments contain post variables
-          val postVars: Set[FunctionExpMeta] = postVariables(lemma).map(FunctionMeta(_))
+          val postVars: Set[FunctionExpMeta] = node.postVariables.map(FunctionMeta(_))
           refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
           refinements
         }
@@ -113,91 +112,28 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     )
   }
 
-  def generateRestrictions(lemma: Lemma): Set[Refinement] = {
-    val restrictable = restrictableVariables(lemma)
-    generateEquations(lemma) ++ generateApplications(lemma)
-  }
-
-  def negative(lemma: Lemma): Lemma = {
-    val consequence = NotJudgment(lemma.consequences.head)
-    new Lemma(lemma.name + "_NEGATIVE", lemma.premises, Seq(consequence))
-  }
-
-  def testLemmaAndNegative(lemma: Lemma): (Oracle.Answer, Oracle.Answer)  = {
-    val neg = negative(lemma)
-    (Oracle.invoke(problem, Set(lemma)), Oracle.invoke(problem, Set(neg)))
-  }
-
-  def askOracle(lemma: Lemma): Unit = {
-    println(lemma)
-    val answer = testLemmaAndNegative(lemma) match {
-      case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
-      case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
-      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "not sure though"
-      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
-      case (a, b) => sys.error(s"oracle said something weird: $a, $b")
-    }
-    println(answer)
-  }
-
-  def updateStatus(node: RefinementNode): Unit = {
-    println(node.lemma)
-    val answer = testLemmaAndNegative(node.lemma)
-    println(answer match {
-      case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
-      case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
-      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "not sure though"
-      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
-      case (a, b) => sys.error(s"oracle said something weird: $a, $b")
-    })
-    val oracleStatus = answer match {
-      case (Oracle.Inconclusive(), _) => Inconclusive()
-      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => Disproved()
-      case _ => sys.error("unknown oracle status")
-    }
-    node.provabilityStatus = oracleStatus
+  def generateRefinements(node: RefinementNode): Set[Refinement] = {
+    generateEquations(node) ++ generateApplications(node)
   }
 
   def generate(): Seq[Lemma] = {
-    /*val tree = new RefinementGraph(generateBase())
-    tree.root.refinementStatus = ShouldRefine()
-    var changedAnything = true
-    while(changedAnything) {
-      changedAnything = false
-      val unknownNodes = tree.collectNodes(Unknown()).toSeq
-      println(s"${unknownNodes.size} unknown nodes")
-      for ((node, idx) <- unknownNodes.zipWithIndex) {
-        println(s"=== ${idx+1}/${unknownNodes.size} ===")
-        updateStatus(node)
-        changedAnything = true
-      }
-      val incompleteNodes = tree.collectNodes(ShouldRefine())
-      println(s"${incompleteNodes.size} incomplete nodes")
-      for(node <- incompleteNodes) {
-        val restrictions = generateRestrictions(node.lemma)
-        println("====")
+    val (lemma, postVars) = generateBase()
+    val graph = new RefinementGraph(lemma, postVars)
+    while(graph.openNodes.nonEmpty) {
+      for(node <- graph.openNodes) {
+        val restrictions = generateRefinements(node)
         for (restriction <- restrictions) {
-          println("--->" + restriction)
-          /*val neg = negative(restriction.refineNeg(problem, node.lemma).getOrElse(node.lemma))
-          println("NEGATIVE: " + Oracle.invoke(problem, Set(neg)))*/
           node.refine(problem, restriction)
         }
-        node.refinementStatus = Refined()
-        changedAnything = true
+        node.open = false
       }
-      println("and next!")
     }
-    tree.visualize(new File(s"pres-${function.signature.name}.png") )
-    /*val refinement = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt2")))
-    val foo = tree.root.refine(problem, refinement)
-    askOracle(foo.lemma)
-    val refinement2 = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt1")))
-    val leaf = foo.refine(problem, refinement2)
-    askOracle(leaf.lemma)
-    //tree.prune(problem, tree.nodes.toSeq)
-    tree.visualizeRT(new File("preservation.png"), "png")
-    println(leaf.lemma)*/
-    tree.collectNodes(Inconclusive()).map(_.lemma).toSeq*/
-    Seq()
+    graph.visualize(new File(s"pres-${function.signature.name}-before.png") )
+    val consultation = new OracleConsultation(problem)
+    consultation.consult(graph)
+    val heuristic = new RankingHeuristic(graph)
+    val incLemmas = heuristic.extract().map(_.lemma)
+    graph.visualize(new File(s"pres-${function.signature.name}-after.png") )
+    heuristic.extract().map(_.lemma)
   }
 }
