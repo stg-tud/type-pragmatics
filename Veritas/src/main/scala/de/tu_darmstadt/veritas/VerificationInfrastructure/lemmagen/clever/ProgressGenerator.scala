@@ -15,19 +15,6 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
 
   implicit private val enquirer = problem.enquirer
 
-  /*
-  def generateBase(): Lemma = {
-    val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
-    val assignments = Assignments.generateSimpleSingle(function.inTypes :+ function.successfulOutType)
-    val arguments = assignments.init
-    val successVar = assignments.last
-    val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(arguments))
-    val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
-    val equality = enquirer.makeEquation(invocationExp, successExp).asInstanceOf[FunctionExpJudgment]
-    val exists = ExistsJudgment(Seq(successVar), Seq(equality))
-    new Lemma(s"${function.name}Progress", Seq(), Seq(exists))
-  }*/
-
   def generateBase(): Lemma = {
     val (failConstructor, _) = enquirer.retrieveFailableConstructors(function.outType)
     val arguments = Assignments.generateSimpleSingle(function.inTypes)
@@ -90,73 +77,27 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     )
   }
 
-  def generateRestrictions(node: RefinementNode): Set[Refinement] = {
+  def generateRefinements(node: RefinementNode): Set[Refinement] = {
     generateEquations(node) ++ generateApplications(node)
   }
 
-  def updateStatus(node: RefinementNode): OracleStatus = {
-    println(node.lemma)
-    Oracle.invoke(problem, Set(node.lemma)) match {
-      case Oracle.Inconclusive() => Inconclusive()
-      case Oracle.ProvablyFalse(_) => Incorrect()
-    }
-  }
-
-  def updateTree(tree: RefinementTree): Unit = {
-    var fringe = new mutable.Queue[RefinementNode]()
-    fringe ++= tree.leaves
-    while(fringe.nonEmpty) {
-      var node = fringe.dequeue()
-      fringe ++= node.parents
-      while(node.oracleStatus != Unknown() && fringe.nonEmpty) {
-        node = fringe.dequeue()
-        fringe ++= node.parents
-      }
-      println(s"${fringe.size} elements")
-      if(node.oracleStatus == Unknown()) {
-        val status = updateStatus(node)
-        if (status == Incorrect()) {
-          node.setStatusRecursively(status)
-        } else {
-          node.oracleStatus = status
-        }
-      }
-    }
-  }
-
   def generate(): Seq[Lemma] = {
-    val tree = new RefinementTree(generateBase())
-    var changedAnything = true
-    while(changedAnything) {
-      changedAnything = false
-      /*val unknownNodes = tree.collectNodes(Unknown()).toSeq
-      println(s"${unknownNodes.size} unknown nodes")
-      for ((node, idx) <- unknownNodes.zipWithIndex) {
-        println(s"=== ${idx+1}/${unknownNodes.size} ===")
-        updateStatus(node)
-        changedAnything = true
-      }*/
-      val incompleteNodes = tree.collectNodes(ShouldRefine())
-      println(s"${incompleteNodes.size} incomplete nodes")
-      for(node <- incompleteNodes) {
-        val restrictions = generateRestrictions(node)
-        println("====")
+    val graph = new RefinementGraph(generateBase())
+    while(graph.openNodes.nonEmpty) {
+      for(node <- graph.openNodes) {
+        val restrictions = generateRefinements(node)
         for (restriction <- restrictions) {
-          println("--->" + restriction)
-          /*val neg = negative(restriction.refineNeg(problem, node.lemma).getOrElse(node.lemma))
-          println("NEGATIVE: " + Oracle.invoke(problem, Set(neg)))*/
           node.refine(problem, restriction)
         }
-        node.refinementStatus = Refined()
-        changedAnything = true
+        node.open = false
       }
-      println("and next!")
     }
-    tree.visualizeRT(new File(s"prog-${function.signature.name}-before.png") )
-    updateTree(tree)
-    val heuristic = new RankingHeuristic(tree)
+    graph.visualize(new File(s"prog-${function.signature.name}-before.png") )
+    val consultation = new OracleConsultation(problem)
+    consultation.consult(graph)
+    val heuristic = new RankingHeuristic(graph)
     val incLemmas = heuristic.extract().map(_.lemma)
-    tree.visualizeRT(new File(s"prog-${function.signature.name}-after.png") )
+    graph.visualize(new File(s"prog-${function.signature.name}-after.png") )
     incLemmas.map(lemma =>
       lemma.consequences.head match {
         case FunctionExpJudgment(FunctionExpNeq(l, r)) =>

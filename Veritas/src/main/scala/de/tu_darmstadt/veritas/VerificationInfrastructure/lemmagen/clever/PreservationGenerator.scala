@@ -152,15 +152,14 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     })
     val oracleStatus = answer match {
       case (Oracle.Inconclusive(), _) => Inconclusive()
-      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => Incorrect()
-      case _ => Unexpected(answer)
+      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => Disproved()
+      case _ => sys.error("unknown oracle status")
     }
-    node.oracleStatus = oracleStatus
-    node.refinementStatus = ShouldRefine()
+    node.provabilityStatus = oracleStatus
   }
 
   def generate(): Seq[Lemma] = {
-    val tree = new RefinementTree(generateBase())
+    /*val tree = new RefinementGraph(generateBase())
     tree.root.refinementStatus = ShouldRefine()
     var changedAnything = true
     while(changedAnything) {
@@ -188,7 +187,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
       }
       println("and next!")
     }
-    tree.visualizeRT(new File(s"pres-${function.signature.name}.png") )
+    tree.visualize(new File(s"pres-${function.signature.name}.png") )
     /*val refinement = Refinement.Equation(MetaVar("tt"), FunctionMeta(MetaVar("tt2")))
     val foo = tree.root.refine(problem, refinement)
     askOracle(foo.lemma)
@@ -198,6 +197,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     //tree.prune(problem, tree.nodes.toSeq)
     tree.visualizeRT(new File("preservation.png"), "png")
     println(leaf.lemma)*/
-    tree.collectNodes(Inconclusive()).map(_.lemma).toSeq
+    tree.collectNodes(Inconclusive()).map(_.lemma).toSeq*/
+    Seq()
   }
 }

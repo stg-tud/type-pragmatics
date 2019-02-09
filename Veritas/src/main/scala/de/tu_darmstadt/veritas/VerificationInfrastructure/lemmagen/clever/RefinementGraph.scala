@@ -7,26 +7,20 @@ import de.tu_darmstadt.veritas.backend.ast.MetaVar
 
 import scala.sys.process.stringToProcess
 
-sealed trait OracleStatus
-case class Unknown() extends OracleStatus
-case class Inconclusive() extends OracleStatus
-case class Incorrect() extends OracleStatus
-case class Unexpected(answer: (Oracle.Answer, Oracle.Answer)) extends OracleStatus
+sealed trait ProvabilityStatus
+case class Unknown() extends ProvabilityStatus
+case class Inconclusive() extends ProvabilityStatus
+case class Disproved() extends ProvabilityStatus
 
-sealed trait RefinementStatus
-case class ShouldNotRefine() extends RefinementStatus
-case class ShouldRefine() extends RefinementStatus
-case class Refined() extends RefinementStatus
-
-class RefinementNode(val tree: RefinementTree,
+class RefinementNode(val graph: RefinementGraph,
                      val lemma: Lemma,
                      val refinement: Option[Refinement],
                      val postVariables: Set[MetaVar]) {
   private var _parents: Seq[RefinementNode] = Seq()
   private var _children: Map[Refinement, RefinementNode] = Map()
-  var oracleStatus: OracleStatus = Unknown()
+  var provabilityStatus: ProvabilityStatus = Unknown()
   var direct: Boolean = false
-  var refinementStatus: RefinementStatus = ShouldRefine()
+  var open: Boolean = true
   var selected: Boolean = false
 
   def preVariables: Set[MetaVar] = lemma.boundVariables -- postVariables
@@ -57,14 +51,14 @@ class RefinementNode(val tree: RefinementTree,
     refinement.refine(problem, lemma) match {
       case None => this
       case Some(refinedLemma) =>
-        tree.findLemma(refinedLemma) match {
+        graph.findLemma(refinedLemma) match {
           case Some(node) => {
             require(node.postVariables == post)
             this.addChild(node, refinement)
             node
           }
           case None =>
-            val child = new RefinementNode(tree, refinedLemma, Some(refinement), post)
+            val child = new RefinementNode(graph, refinedLemma, Some(refinement), post)
             this.addChild(child, refinement)
             child
         }
@@ -73,34 +67,35 @@ class RefinementNode(val tree: RefinementTree,
 
   def findRefinement(refinement: Refinement): Option[RefinementNode] = children.find(_.refinement.exists(r => r == refinement))
 
-  def setStatusRecursively(status: OracleStatus): Unit = {
-    this.oracleStatus = status
+  def setProvabilityStatusRecursively(status: ProvabilityStatus): Unit = {
+    this.provabilityStatus = status
     this.direct = true
     for(ancestor <- ancestors) {
-      ancestor.oracleStatus = status
+      ancestor.provabilityStatus = status
       ancestor.direct = false
     }
   }
 
   def makeDotString(sb: StringBuilder, nodeID: String): Unit = {
-    val color = oracleStatus match {
+    val color = provabilityStatus match {
       case Unknown() => "gray"
-      case Incorrect() if direct => "red"
-      case Incorrect() => "magenta"
+      case Disproved() if direct => "red"
+      case Disproved() => "magenta"
       case Inconclusive() if selected => "green"
       case Inconclusive() => "white"
     }
 
     val label = ("\"" + lemma.toString.replace("\n", "\\n")
-                + s"\\n$oracleStatus\n$refinementStatus"
+                + s"\\n$provabilityStatus\\nopen=$open"
                 + s"\\npost=$postVariables" + "\"")
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
 }
 
-class RefinementTree(rootLemma: Lemma) {
-  val root = new RefinementNode(this, rootLemma, None, Set())
+class RefinementGraph(rootLemma: Lemma, postVariables: Set[MetaVar] = Set()) {
+  val root = new RefinementNode(this, rootLemma, None, postVariables)
   def nodes: Set[RefinementNode] = Set(root) ++ root.descendants
+  def openNodes: Set[RefinementNode] = nodes.filter(_.open)
   def leaves: Set[RefinementNode] = root.leaves
 
   private def calculateNodeID(node: RefinementNode): String = {
@@ -111,12 +106,8 @@ class RefinementTree(rootLemma: Lemma) {
     nodes.find(node => LemmaEquivalence.isEquivalent(node.lemma, lemma))
   }
 
-  def collectNodes(status: OracleStatus): Set[RefinementNode] = {
-    nodes.filter(_.oracleStatus == status)
-  }
-
-  def collectNodes(status: RefinementStatus): Set[RefinementNode] = {
-    nodes.filter(_.refinementStatus == status)
+  def collectNodes(status: ProvabilityStatus): Set[RefinementNode] = {
+    nodes.filter(_.provabilityStatus == status)
   }
 
   def makeDotString(): String = {
@@ -131,7 +122,7 @@ class RefinementTree(rootLemma: Lemma) {
     "digraph {\ngraph [fontsize = 8];\n" + builder.toString() + "}"
   }
 
-  def visualizeRT(outputPath: File, ext: String = "png"): Unit = {
+  def visualize(outputPath: File, ext: String = "png"): Unit = {
     val dotFormatted = makeDotString()
     val dotFile = new File(outputPath.getParentFile, outputPath.getName.replace(s".$ext", ".dot"))
     dotFile.createNewFile()
@@ -141,6 +132,6 @@ class RefinementTree(rootLemma: Lemma) {
     // dot -T<fileformat> <pathtodotfile> -o<outputpath>
     val exitCode = s"dot -T$ext ${dotFile.getAbsolutePath} -o${outputPath.getAbsolutePath}".!
     if (exitCode != 0)
-      throw new RuntimeException("Refinement Tree could not be visualized. This could be caused by the non-existence of the dot command.")
+      throw new RuntimeException("Refinement Graph could not be visualized. This could be caused by the non-existence of the dot command.")
   }
 }
