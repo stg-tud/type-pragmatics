@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{P
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
 import de.tu_darmstadt.veritas.backend.ast._
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpMeta, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.function._
 
 import scala.collection.mutable
 
@@ -38,7 +38,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
   }
 
   def generateEquations(node: RefinementNode): Set[Refinement] = {
-    val restrictable = node.preVariables
+    val restrictable = node.lemma.boundVariables
     val partitioned = restrictable.groupBy(_.sortType)
     var restrictions = new mutable.ListBuffer[Refinement]()
     for((typ, metaVars) <- partitioned) {
@@ -69,7 +69,13 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     staticFunctions.flatMap(staticFn =>
       if(!containsApplicationOf(node.lemma, staticFn)) {
         if (staticFn.signature.out.name == "Bool") {
-          selectPredicate(node.lemma, staticFn)
+          var refinements = selectPredicate(node.lemma, staticFn)
+          // do not want refinements which pass the same argument twice
+          refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
+          // do not want refinements whose in arguments contain post variables
+          val postVars: Set[FunctionExpMeta] = node.postVariables.map(FunctionMeta(_))
+          refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
+          refinements
         } else {
           var refinements = selectSuccessfulApplication(node.lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
           // do not want refinements which pass the same argument twice
@@ -112,38 +118,57 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
     println(answer)
   }
 
-  def updateStatus(node: RefinementNode): Unit = {
+  def updateStatus(node: RefinementNode): OracleStatus = {
     println(node.lemma)
     val answer = testLemmaAndNegative(node.lemma)
     println(answer match {
       case (Oracle.Inconclusive(), Oracle.Inconclusive()) => "too specific"
       case (Oracle.Inconclusive(), Oracle.ProvablyFalse(_)) => "good lemma yay"
-      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "not sure though"
+      case (Oracle.ProvablyFalse(_), Oracle.Inconclusive()) => "TODO not sure though"
       case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => "NOT REALLY"
       case (a, b) => sys.error(s"oracle said something weird: $a, $b")
     })
-    val oracleStatus = answer match {
+    answer match {
       case (Oracle.Inconclusive(), _) => Inconclusive()
-      case (Oracle.ProvablyFalse(_), Oracle.ProvablyFalse(_)) => Incorrect()
+      case (Oracle.ProvablyFalse(_), _) => Incorrect()
       case _ => Unexpected(answer)
     }
-    node.oracleStatus = oracleStatus
-    node.refinementStatus = ShouldRefine()
+  }
+
+  def updateTree(tree: RefinementTree): Unit = {
+    var fringe = new mutable.Queue[RefinementNode]()
+    fringe ++= tree.leaves
+    while(fringe.nonEmpty) {
+      var node = fringe.dequeue()
+      fringe ++= node.parents
+      while(node.oracleStatus != Unknown() && fringe.nonEmpty) {
+        node = fringe.dequeue()
+        fringe ++= node.parents
+      }
+      println(s"${fringe.size} elements")
+      if(node.oracleStatus == Unknown()) {
+        val status = updateStatus(node)
+        if (status == Incorrect()) {
+          node.setStatusRecursively(status)
+        } else {
+          node.oracleStatus = status
+        }
+      }
+    }
   }
 
   def generate(): Seq[Lemma] = {
     val tree = new RefinementTree(generateBase())
-    tree.root.refinementStatus = ShouldRefine()
     var changedAnything = true
     while(changedAnything) {
       changedAnything = false
-      val unknownNodes = tree.collectNodes(Unknown()).toSeq
+      /*val unknownNodes = tree.collectNodes(Unknown()).toSeq
       println(s"${unknownNodes.size} unknown nodes")
       for ((node, idx) <- unknownNodes.zipWithIndex) {
         println(s"=== ${idx+1}/${unknownNodes.size} ===")
         updateStatus(node)
         changedAnything = true
-      }
+      }*/
       val incompleteNodes = tree.collectNodes(ShouldRefine())
       println(s"${incompleteNodes.size} incomplete nodes")
       for(node <- incompleteNodes) {
@@ -160,8 +185,23 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
       }
       println("and next!")
     }
-    tree.visualizeRT(new File(s"prog-${function.signature.name}.png") )
-    Seq()
+    tree.visualizeRT(new File(s"prog-${function.signature.name}-before.png") )
+    updateTree(tree)
+    val heuristic = new RankingHeuristic(tree)
+    val incLemmas = heuristic.extract().map(_.lemma)
+    tree.visualizeRT(new File(s"prog-${function.signature.name}-after.png") )
+    incLemmas.map(lemma =>
+      lemma.consequences.head match {
+        case FunctionExpJudgment(FunctionExpNeq(l, r)) =>
+          val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
+          val assignments = Assignments.generate(Seq(Constraint.fresh(function.successfulOutType)), lemma.boundVariables)
+          val successVar = assignments.head.head
+          val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
+          val equality = enquirer.makeEquation(l, successExp).asInstanceOf[FunctionExpJudgment]
+          val exists = ExistsJudgment(Seq(successVar), Seq(equality))
+          new Lemma(lemma.name, lemma.premises, Seq(exists), lemma.refinements)
+        case _ => sys.error("TODO")
+      })
   }
 
 }

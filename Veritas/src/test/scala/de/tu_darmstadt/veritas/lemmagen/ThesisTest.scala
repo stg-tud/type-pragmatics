@@ -223,23 +223,17 @@ class ThesisTest extends FunSuite {
       }
     }
   }*/
-
-  val ProgressFunctions = Seq(
-    "projectTable",
-    "findCol"
-  )
-  for(funcName <- ProgressFunctions) {
-    test(s"progress ${funcName}") {
-      val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
-      val problem = new Problem(file)
-      val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, funcName).get
+  val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+  val problem = new Problem(file)
+  for(func <- problem.dsk.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out))) {
+    test(s"progress ${func.signature.name}") {
       val strat = new ProgressGenerator(problem, func)
       val lemmas = strat.generate()
       println(s"===== ${lemmas.size} lemmas!")
       printRules(lemmas)
       println("")
 
-      val expectedLemmas = problem.dsk.progressProperties(func)
+      val expectedLemmas = problem.dsk.progressProperties.getOrElse(func, Set())
       for (expected <- expectedLemmas) {
         val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
         println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")

@@ -11,7 +11,7 @@ trait StrategyHelpers {
   private implicit val enquirer: LemmaGenSpecEnquirer = problem.enquirer
   import Query._
 
-  def selectPredicate(lemma: Lemma, predicate: FunctionDef): Seq[Refinement] = {
+  def selectPredicate(lemma: Lemma, predicate: FunctionDef): Seq[Refinement.Predicate] = {
     val assignments = Assignments.generateSimple(predicate.signature.in, lemma)
     assignments.map(assignment => Refinement.Predicate(predicate, wrapMetaVars(assignment)))
   }

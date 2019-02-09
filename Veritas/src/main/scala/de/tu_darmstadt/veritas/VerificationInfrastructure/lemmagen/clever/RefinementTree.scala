@@ -23,14 +23,23 @@ class RefinementNode(val tree: RefinementTree,
                      val refinement: Option[Refinement],
                      val preVariables: Set[MetaVar],
                      val postVariables: Set[MetaVar]) {
+  private var _parents: Seq[RefinementNode] = Seq()
   private var _children: Map[Refinement, RefinementNode] = Map()
   var oracleStatus: OracleStatus = Unknown()
-  var refinementStatus: RefinementStatus = ShouldNotRefine()
+  var direct: Boolean = false
+  var refinementStatus: RefinementStatus = ShouldRefine()
+  var selected: Boolean = false
 
   def addChild(child: RefinementNode, refinement: Refinement): Unit = {
     _children += refinement -> child
+    child.addParent(this)
   }
 
+  def addParent(parent: RefinementNode): Unit = {
+    _parents = _parents :+ parent
+  }
+
+  def parents: Seq[RefinementNode] = _parents
   def children: Seq[RefinementNode] = _children.values.toSeq
   def refinedChildren: Map[Refinement, RefinementNode] = _children
   def descendants: Set[RefinementNode] = children.toSet ++ children.flatMap(_.descendants)
@@ -40,6 +49,7 @@ class RefinementNode(val tree: RefinementTree,
     } else {
       children.flatMap(_.leaves).toSet
     }
+  def ancestors: Set[RefinementNode] = (parents ++ parents.flatMap(_.ancestors)).toSet
 
   def refine(problem: Problem, refinement: Refinement): RefinementNode = {
     val (pre, post) = PrePostVariables.calculatePrePostVariables(
@@ -52,13 +62,12 @@ class RefinementNode(val tree: RefinementTree,
           case Some(node) => {
             require(node.preVariables == pre)
             require(node.postVariables == post)
-            addChild(node, refinement)
+            this.addChild(node, refinement)
             node
           }
           case None =>
-
             val child = new RefinementNode(tree, refinedLemma, Some(refinement), pre, post)
-            addChild(child, refinement)
+            this.addChild(child, refinement)
             child
         }
     }
@@ -66,12 +75,22 @@ class RefinementNode(val tree: RefinementTree,
 
   def findRefinement(refinement: Refinement): Option[RefinementNode] = children.find(_.refinement.exists(r => r == refinement))
 
+  def setStatusRecursively(status: OracleStatus, isDirect: Boolean = true): Unit = {
+    this.oracleStatus = status
+    this.direct = isDirect
+    for(parent <- parents)
+      parent.setStatusRecursively(status, false)
+  }
+
   def makeDotString(sb: StringBuilder, nodeID: String): Unit = {
     val color = oracleStatus match {
       case Unknown() => "gray"
-      case Incorrect() => "red"
+      case Incorrect() if direct => "red"
+      case Incorrect() => "magenta"
+      case Inconclusive() if selected => "green"
       case Inconclusive() => "white"
     }
+
     val label = ("\"" + lemma.toString.replace("\n", "\\n")
                 + s"\\n$oracleStatus\n$refinementStatus"
                 + s"\\npre=$preVariables\npost=$postVariables" + "\"")
