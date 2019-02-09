@@ -39,17 +39,15 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
 
   def generateEquations(node: RefinementNode): Set[Refinement] = {
     val restrictable = node.lemma.boundVariables
+    val postVariables = node.postVariables
     val partitioned = restrictable.groupBy(_.sortType)
     var restrictions = new mutable.ListBuffer[Refinement]()
     for((typ, metaVars) <- partitioned) {
       if(metaVars.size > 1) {
         val equals = metaVars.subsets.filter(_.size == 2)
         for(equal <- equals) {
-          val a = equal.head
-          val b = equal.tail.head
-          if(equal.exists(node.preVariables contains _) && equal.exists(node.postVariables contains _)) {
-            restrictions += Refinement.Equation(a, FunctionMeta(b))
-          }
+          if((equal intersect node.preVariables).nonEmpty && (equal intersect node.postVariables).nonEmpty)
+            restrictions += Refinement.Equation(equal.head, FunctionMeta(equal.tail.head))
         }
       }
     }

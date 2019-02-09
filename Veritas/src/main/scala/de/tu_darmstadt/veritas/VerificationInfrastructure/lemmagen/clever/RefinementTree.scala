@@ -21,7 +21,6 @@ case class Refined() extends RefinementStatus
 class RefinementNode(val tree: RefinementTree,
                      val lemma: Lemma,
                      val refinement: Option[Refinement],
-                     val preVariables: Set[MetaVar],
                      val postVariables: Set[MetaVar]) {
   private var _parents: Seq[RefinementNode] = Seq()
   private var _children: Map[Refinement, RefinementNode] = Map()
@@ -29,6 +28,8 @@ class RefinementNode(val tree: RefinementTree,
   var direct: Boolean = false
   var refinementStatus: RefinementStatus = ShouldRefine()
   var selected: Boolean = false
+
+  def preVariables: Set[MetaVar] = lemma.boundVariables -- postVariables
 
   def addChild(child: RefinementNode, refinement: Refinement): Unit = {
     _children += refinement -> child
@@ -52,21 +53,18 @@ class RefinementNode(val tree: RefinementTree,
   def ancestors: Set[RefinementNode] = (parents ++ parents.flatMap(_.ancestors)).toSet
 
   def refine(problem: Problem, refinement: Refinement): RefinementNode = {
-    val (pre, post) = PrePostVariables.calculatePrePostVariables(
-      preVariables, postVariables, refinement
-    )
+    val post = PostVariables.calculatePostVariables(postVariables, refinement)
     refinement.refine(problem, lemma) match {
       case None => this
       case Some(refinedLemma) =>
         tree.findLemma(refinedLemma) match {
           case Some(node) => {
-            require(node.preVariables == pre)
             require(node.postVariables == post)
             this.addChild(node, refinement)
             node
           }
           case None =>
-            val child = new RefinementNode(tree, refinedLemma, Some(refinement), pre, post)
+            val child = new RefinementNode(tree, refinedLemma, Some(refinement), post)
             this.addChild(child, refinement)
             child
         }
@@ -95,13 +93,13 @@ class RefinementNode(val tree: RefinementTree,
 
     val label = ("\"" + lemma.toString.replace("\n", "\\n")
                 + s"\\n$oracleStatus\n$refinementStatus"
-                + s"\\npre=$preVariables\\npost=$postVariables" + "\"")
+                + s"\\npost=$postVariables" + "\"")
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
 }
 
 class RefinementTree(rootLemma: Lemma) {
-  val root = new RefinementNode(this, rootLemma, None, rootLemma.boundVariables, Set())
+  val root = new RefinementNode(this, rootLemma, None, Set())
   def nodes: Set[RefinementNode] = Set(root) ++ root.descendants
   def leaves: Set[RefinementNode] = root.leaves
 
