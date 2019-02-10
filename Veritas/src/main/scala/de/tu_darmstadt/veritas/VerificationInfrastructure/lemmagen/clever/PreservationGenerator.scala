@@ -28,7 +28,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     Assignments.generate(constraints).head // TODO
   }
 
-  def generateBase(): (Lemma, Set[MetaVar]) = {
+  def generateBase(): (Lemma, Set[MetaVar], Set[MetaVar]) = {
     // --------------------
     // [predicate]([], ...)
     val outType = function.successfulOutType
@@ -45,6 +45,7 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     // for each matching in var, add a Predicate refinement
     var lemma = baseLemma
     val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(inVars), outVar)
+    var constrainedVars = predicateArgs.toSet
     lemma = r.refine(problem, lemma).getOrElse(lemma)
     for(inVar <- matchingInVars) {
       val constraints = predicate.inTypes.map(inType =>
@@ -55,9 +56,10 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
       )
       val assignment = Assignments.generate(constraints, lemma).head
       val refinement = Refinement.Predicate(predicate, Assignments.wrapMetaVars(assignment))
+      constrainedVars ++= assignment.toSet
       lemma = refinement.refine(problem, lemma).getOrElse(lemma)
     }
-    (lemma, predicateArgs.toSet)
+    (lemma, predicateArgs.toSet, constrainedVars)
   }
 
   def restrictableVariables(lemma: Lemma): Set[MetaVar] = lemma.boundVariables.filterNot(_.sortType == termType)
@@ -117,8 +119,8 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
   }
 
   def generate(): Seq[Lemma] = {
-    val (lemma, postVars) = generateBase()
-    val graph = new RefinementGraph(lemma, postVars)
+    val (lemma, postVars, constrainedVars) = generateBase()
+    val graph = new RefinementGraph(lemma, constrainedVars, postVars)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
         val restrictions = generateRefinements(node)

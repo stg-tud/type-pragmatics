@@ -222,7 +222,7 @@ class ThesisTest extends FunSuite {
         println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
       }
     }
-  }/*
+  }
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
   val problem = new Problem(file)
   for(func <- problem.dsk.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out))) {
@@ -239,5 +239,5 @@ class ThesisTest extends FunSuite {
         println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
       }
     }
-  }*/
+  }
 }

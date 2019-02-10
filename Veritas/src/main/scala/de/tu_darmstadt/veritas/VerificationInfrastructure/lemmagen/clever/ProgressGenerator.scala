@@ -7,6 +7,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
+import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
@@ -82,7 +83,8 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
   }
 
   def generate(): Seq[Lemma] = {
-    val graph = new RefinementGraph(generateBase())
+    val base = generateBase()
+    val graph = new RefinementGraph(base, FreeVariables.freeVariables(base.consequences))
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
         val restrictions = generateRefinements(node)

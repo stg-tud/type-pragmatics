@@ -10,16 +10,17 @@ import scala.sys.process.stringToProcess
 sealed trait ProvabilityStatus
 case class Unknown() extends ProvabilityStatus
 case class Inconclusive() extends ProvabilityStatus
-case class Disproved() extends ProvabilityStatus
+case class DirectlyDisproved() extends ProvabilityStatus
+case class IndirectlyDisproved() extends ProvabilityStatus
 
 class RefinementNode(val graph: RefinementGraph,
                      val lemma: Lemma,
                      val refinement: Option[Refinement],
+                     val constrainedVariables: Set[MetaVar],
                      val postVariables: Set[MetaVar]) {
   private var _parents: Seq[RefinementNode] = Seq()
   private var _children: Map[Refinement, RefinementNode] = Map()
   var provabilityStatus: ProvabilityStatus = Unknown()
-  var direct: Boolean = false
   var open: Boolean = true
   var selected: Boolean = false
 
@@ -47,18 +48,20 @@ class RefinementNode(val graph: RefinementGraph,
   def ancestors: Set[RefinementNode] = (parents ++ parents.flatMap(_.ancestors)).toSet
 
   def refine(problem: Problem, refinement: Refinement): RefinementNode = {
-    val post = PostVariables.calculatePostVariables(postVariables, refinement)
+    val newPost = Variables.calculatePostVariables(postVariables, refinement)
+    var newConstrained = Variables.calculateConstrainedVariables(constrainedVariables, refinement)
     refinement.refine(problem, lemma) match {
       case None => this
       case Some(refinedLemma) =>
         graph.findLemma(refinedLemma) match {
           case Some(node) => {
-            require(node.postVariables == post)
+            require(node.postVariables == newPost)
+            require(node.constrainedVariables == newConstrained)
             this.addChild(node, refinement)
             node
           }
           case None =>
-            val child = new RefinementNode(graph, refinedLemma, Some(refinement), post)
+            val child = new RefinementNode(graph, refinedLemma, Some(refinement), newConstrained, newPost)
             this.addChild(child, refinement)
             child
         }
@@ -67,33 +70,33 @@ class RefinementNode(val graph: RefinementGraph,
 
   def findRefinement(refinement: Refinement): Option[RefinementNode] = children.find(_.refinement.exists(r => r == refinement))
 
-  def setProvabilityStatusRecursively(status: ProvabilityStatus): Unit = {
-    this.provabilityStatus = status
-    this.direct = true
+  def setDisprovedStatusRecursively(): Unit = {
+    this.provabilityStatus = DirectlyDisproved()
     for(ancestor <- ancestors) {
-      ancestor.provabilityStatus = status
-      ancestor.direct = false
+      ancestor.provabilityStatus = IndirectlyDisproved() // TODO: overwriting the status here
     }
   }
 
   def makeDotString(sb: StringBuilder, nodeID: String): Unit = {
     val color = provabilityStatus match {
       case Unknown() => "gray"
-      case Disproved() if direct => "red"
-      case Disproved() => "magenta"
+      case DirectlyDisproved() => "red"
+      case IndirectlyDisproved() => "magenta"
       case Inconclusive() if selected => "green"
       case Inconclusive() => "white"
     }
 
     val label = ("\"" + lemma.toString.replace("\n", "\\n")
-                + s"\\n$provabilityStatus\\nopen=$open"
-                + s"\\npost=$postVariables" + "\"")
+                + s"\\n$provabilityStatus\\nopen=$open\\n"
+                + s"constrained=$constrainedVariables\\npost=$postVariables" + "\"")
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
 }
 
-class RefinementGraph(rootLemma: Lemma, postVariables: Set[MetaVar] = Set()) {
-  val root = new RefinementNode(this, rootLemma, None, postVariables)
+class RefinementGraph(rootLemma: Lemma,
+                      constrainedVariables: Set[MetaVar],
+                      postVariables: Set[MetaVar] = Set()) {
+  val root = new RefinementNode(this, rootLemma, None, constrainedVariables, postVariables)
   def nodes: Set[RefinementNode] = Set(root) ++ root.descendants
   def openNodes: Set[RefinementNode] = nodes.filter(_.open)
   def leaves: Set[RefinementNode] = root.leaves

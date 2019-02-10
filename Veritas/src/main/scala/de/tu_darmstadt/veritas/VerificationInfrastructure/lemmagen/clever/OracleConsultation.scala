@@ -9,7 +9,7 @@ class OracleConsultation(val problem: Problem) {
     println(node.lemma)
     Oracle.invoke(problem, Set(node.lemma)) match {
       case Oracle.Inconclusive() => Inconclusive()
-      case Oracle.ProvablyFalse(_) => Disproved()
+      case Oracle.ProvablyFalse(_) => DirectlyDisproved()
     }
   }
 
@@ -26,8 +26,8 @@ class OracleConsultation(val problem: Problem) {
       println(s"${fringe.size} elements")
       if(node.provabilityStatus == Unknown()) {
         val status = updateStatus(node)
-        if (status == Disproved()) {
-          node.setProvabilityStatusRecursively(status)
+        if (status == DirectlyDisproved()) {
+          node.setDisprovedStatusRecursively()
         } else {
           node.provabilityStatus = status
         }
