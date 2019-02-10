@@ -145,6 +145,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
   @PreservationProperty("dropFirstColRawPreservesRowCount")
   @Recursive(0)
+  @AdditionalPremise("_ == ttcons(_, _, _)")
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
@@ -771,10 +772,11 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
 
   @Property
-  def dropFirstColRawPreservesWelltypedRaw(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable): Unit = {
+  def dropFirstColRawPreservesWelltypedRaw(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable, rt1: RawTable): Unit = {
     require(tt == ttcons(n, ft, ttr)) // |tt| > 0
     require(welltypedRawtable(tt, rt))
-  } ensuring(welltypedRawtable(ttr, dropFirstColRaw(rt)))
+    require(dropFirstColRaw(rt) == rt1)
+  } ensuring welltypedRawtable(ttr, rt1)
 
   //PRESERVATION
 

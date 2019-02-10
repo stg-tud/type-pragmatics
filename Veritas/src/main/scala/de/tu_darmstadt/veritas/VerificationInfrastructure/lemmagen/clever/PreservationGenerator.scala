@@ -5,13 +5,17 @@ import java.io.File
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.Hint
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, NotJudgment, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
-class PreservationGenerator(val problem: Problem, function: FunctionDef, predicate: FunctionDef) extends StrategyHelpers {
+class PreservationGenerator(val problem: Problem,
+                            function: FunctionDef,
+                            predicate: FunctionDef,
+                            hints: Seq[Hint]) extends StrategyHelpers {
   import Query._
 
   implicit private val enquirer = problem.enquirer
@@ -118,8 +122,19 @@ class PreservationGenerator(val problem: Problem, function: FunctionDef, predica
     generateEquations(node) ++ generateApplications(node)
   }
 
-  def generate(): Seq[Lemma] = {
+  def applyHints(lemma: Lemma, post: Set[MetaVar], constrained: Set[MetaVar]): (Lemma, Set[MetaVar], Set[MetaVar]) = {
+    hints.foldLeft((lemma, post, constrained)) {
+      case ((l, p, c), h) => h.apply(l, p, c)
+    }
+  }
+
+  def generateBaseWithHints(): (Lemma, Set[MetaVar], Set[MetaVar]) = {
     val (lemma, postVars, constrainedVars) = generateBase()
+    applyHints(lemma, postVars, constrainedVars)
+  }
+
+  def generate(): Seq[Lemma] = {
+    val (lemma, postVars, constrainedVars) = generateBaseWithHints()
     val graph = new RefinementGraph(lemma, constrainedVars, postVars)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {

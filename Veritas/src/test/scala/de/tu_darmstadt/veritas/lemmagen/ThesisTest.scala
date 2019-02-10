@@ -3,13 +3,19 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.AdditionalPremise
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{PreservationGenerator, ProgressGenerator}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.{PreservationStrategy, ProgressStrategy}
-import de.tu_darmstadt.veritas.backend.ast.SortRef
-import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
+import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExp}
 import de.tu_darmstadt.veritas.backend.transformation.collect.{CollectTypesDefs, CollectTypesDefsClass}
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
+import de.tu_darmstadt.veritas.scalaspl.translator.FunctionExpressionTranslator
 import org.scalatest.FunSuite
+
+import scala.meta.Term
+import scala.meta.inputs.Input
 
 class ThesisTest extends FunSuite {
   test("write lemma") {
@@ -25,6 +31,42 @@ class ThesisTest extends FunSuite {
       lemmaPrettyPrinter.printTypingRule(prop)
     }
     outputPrettyPrinter.flush()
+  }
+
+  test("parse hint") {
+    val hint = "_ == ttcons(_, _, ttempty())"
+    //val hint = "welltypedtable(tt, t)"
+    val input = Input.VirtualFile("annotation/hint.scala", hint)
+    val tree = input.parse[scala.meta.Term].get
+
+    var currentIndex = 1
+    var vars = Seq[String]()
+    def nextFreshName(): String = {
+      val name = s"_$currentIndex"
+      vars +:= name
+      currentIndex += 1
+      name
+    }
+    val transformed = tree.transform {
+      case Term.Placeholder() => Term.Name(nextFreshName())
+    }.asInstanceOf[Term]
+    println(vars)
+    val translator = new FunctionExpressionTranslator(vars)
+    val exp = translator.translateExp(transformed)
+    constructPremise(vars.map(name => MetaVar(name)), exp)
+  }
+
+  def constructPremise(vars: Seq[MetaVar], hint: FunctionExp): VeritasConstruct = {
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/ThesisExampleSpec2.scala")
+    val problem = new Problem(file)
+    val judgment = FunctionExpJudgment(hint)
+    val varTypes = problem.enquirer.getAllVarTypes(judgment)
+    val constraints = vars.map(mv => Constraint.fresh(varTypes(mv)))
+    val assignment = Assignments.generate(constraints).head
+    val renaming = vars.zip(assignment).toMap
+    val renamed = LemmaEquivalence.VariableRenamer(judgment, renaming)
+    println(renamed)
+    judgment
   }
 
   def printRules(lemmas: Seq[Lemma]) = {
@@ -197,20 +239,21 @@ class ThesisTest extends FunSuite {
   }
 
   val Combinations = Seq(
-    ("projectTable", "welltypedtable"),
+    /*("projectTable", "welltypedtable"),
     ("rawUnion", "welltypedRawtable"),
     ("filterTable", "welltypedtable"),
-    ("filterRows", "welltypedRawtable"),
+    ("filterRows", "welltypedRawtable"),*/
     ("dropFirstColRaw", "welltypedRawtable"),
-    ("projectCols", "welltypedRawtable"),
+    //("projectCols", "welltypedRawtable"),
   )
   for((funcName, predName) <- Combinations) {
     test(s"${funcName} / ${predName}") {
       val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
       val problem = new Problem(file)
       val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, funcName).get
+      val hints = problem.dsk.additionalPremises.getOrElse(func, Seq.empty).map(new AdditionalPremise(problem, _))
       val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, predName).get
-      val strat = new PreservationGenerator(problem, func, pred)
+      val strat = new PreservationGenerator(problem, func, pred, hints)
       val lemmas = strat.generate()
       println(s"===== ${lemmas.size} lemmas!")
       printRules(lemmas)
@@ -227,7 +270,8 @@ class ThesisTest extends FunSuite {
   val problem = new Problem(file)
   for(func <- problem.dsk.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out))) {
     test(s"progress ${func.signature.name}") {
-      val strat = new ProgressGenerator(problem, func)
+      val strat = new ProgressGenerator(problem, func, Seq())
+      println("additional:" + problem.dsk.additionalPremises.getOrElse(func, Seq.empty))
       val lemmas = strat.generate()
       println(s"===== ${lemmas.size} lemmas!")
       printRules(lemmas)

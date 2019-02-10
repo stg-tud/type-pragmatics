@@ -43,6 +43,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   protected val staticFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val properties: mutable.Set[Defn.Def] = mutable.Set()
+  protected val additionalPremises: mutable.Map[Defn.Def, Seq[String]] = mutable.Map()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -61,6 +62,8 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
         staticFunctions += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Property"))
         properties += fn
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "AdditionalPremise"))
+        collectAdditionalPremise(fn)
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
       preservationProperties ++= collectLinkingAnnotation(fn, "PreservationProperty")(collect)
     case tr: Defn.Trait =>
@@ -136,6 +139,14 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     recursiveFunctions += fn -> (adtTrait, positions)
   }
 
+  private def collectAdditionalPremise(fn: Defn.Def): Unit = {
+    val annot = collectAnnotation(fn.mods, "AdditionalPremise")
+    val premise = annot.init.argss.head.head.asInstanceOf[Lit.String].value
+    if(!additionalPremises.contains(fn))
+      additionalPremises += fn -> Seq()
+    additionalPremises(fn) +:= premise
+  }
+
   private def getTraitForLastParam(param: Term.Param): Defn.Trait = {
     val paramTrait = adts.filterKeys { key =>
       key.name.value == param.decltpe.get.toString
@@ -171,6 +182,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     val transPreservationProps = translateProperties(preservationProperties)
     val transStaticFuncs = translateFunctions(staticFunctions.toSet)
     val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
+    val transAdditionalPremises = translateAdditionalPremises()
     // TODO: This can be removed once we are sure we have linked all properties
     val transProperties = translateProperty(properties.toSet)
     new VeritasDomainSpecificKnowledge {
@@ -181,7 +193,15 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
       override val staticFunctions: Set[FunctionDef] = transStaticFuncs
       override val dynamicFunctions: Set[FunctionDef] = transDynamicFuncs
       override val properties: Set[TypingRule] = transProperties
+      override val additionalPremises: Map[FunctionDef, Seq[String]] = transAdditionalPremises
     }
+  }
+
+  private def translateAdditionalPremises(): Map[FunctionDef, Seq[String]] = {
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    additionalPremises.map { case (fn, premises) =>
+      functionTranslator.translate(fn) -> premises
+    }.toMap
   }
 
   private def translateRecursiveFunctions(): Map[FunctionDef, (DataType, Seq[Int])] = {

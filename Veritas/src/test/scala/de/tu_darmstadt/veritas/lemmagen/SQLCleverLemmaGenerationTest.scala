@@ -67,7 +67,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
   test("generate dropFirstColRaw preservation") {
     val fn = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "dropFirstColRaw").get
     val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedRawtable").get
-    val generator = new PreservationGenerator(problem, fn, pred)
+    val generator = new PreservationGenerator(problem, fn, pred, Seq())
     generator.generate()
   }
 }

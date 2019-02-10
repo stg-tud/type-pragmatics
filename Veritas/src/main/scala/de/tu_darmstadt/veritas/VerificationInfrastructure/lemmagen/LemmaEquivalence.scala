@@ -35,7 +35,7 @@ object LemmaEquivalence {
   /**
     * Companion object that applies a renaming to a typing rule judgment and returns the result.
     */
-  private object VariableRenamer {
+  object VariableRenamer {
     def apply(vc: TypingRuleJudgment, renaming: MetaVar => MetaVar): TypingRuleJudgment = {
       new VariableRenamer(renaming)(vc)
     }

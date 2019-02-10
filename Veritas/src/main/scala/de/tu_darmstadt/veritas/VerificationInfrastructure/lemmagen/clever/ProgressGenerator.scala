@@ -5,13 +5,14 @@ import java.io.File
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.Hint
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
-class ProgressGenerator(val problem: Problem, function: FunctionDef) extends StrategyHelpers {
+class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[Hint]) extends StrategyHelpers {
   import Query._
 
   implicit private val enquirer = problem.enquirer
@@ -84,7 +85,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef) extends Str
 
   def generate(): Seq[Lemma] = {
     val base = generateBase()
-    val graph = new RefinementGraph(base, FreeVariables.freeVariables(base.consequences))
+    val graph = new RefinementGraph(base, Set())
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
         val restrictions = generateRefinements(node)
