@@ -100,9 +100,6 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   def makeInequation(left: Defs, right: Defs): Formulae
 
-  def makeNegation(body: Defs): Formulae
-
-  def makeTypingFunctionExpression(body: Defs): Formulae
 
   //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
   def makeNamedGoal(f: Formulae, name: String): Formulae
@@ -112,5 +109,14 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   //create an appropriate meta variable term given the string name of the meta variable
   def makeMVTerm(s: String): Defs
+
+  //conversion functions
+
+  //turns an expression into a formula if possible
+  def convertExpToFormula(body: Defs): Formulae
+
+  // expects an expression that can be turned to a formula and returns its negation
+  def convertExpToNegFormula(body: Defs): Formulae
+
 
 }

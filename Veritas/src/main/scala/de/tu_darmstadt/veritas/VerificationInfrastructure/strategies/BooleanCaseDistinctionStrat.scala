@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGrap
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquirer
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.BooleanCaseDistinction
 
-class BooleanCaseDistinctionStrat[Def, Formulae <: Def](poscond: Formulae, spec_enquirer: SpecEnquirer[Def, Formulae])
+case class BooleanCaseDistinctionStrat[Def, Formulae <: Def](poscond: Formulae, spec_enquirer: SpecEnquirer[Def, Formulae])
   extends Strategy[Def, Formulae] {
 
   override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation): ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {

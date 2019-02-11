@@ -67,7 +67,7 @@ class QLSoundnessProofGraph(file: File) {
   val qsingleMatchingConds = getCases(getIntroducedMetaVars(matchingConds("qsingle")).head, qsinglesubobs.toSeq(1)._1.goal)
 
   val questionPS = g.applyTactic(qsinglesubobs.toSeq(0)._1, Solve[VeritasConstruct, VeritasFormula])
-  val valueCaseDistinction = BooleanCaseDistinction(FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(qsingleMatchingConds("value"))(2)))), specenq)
+  val valueCaseDistinction = BooleanCaseDistinction(FunctionExpJudgment(FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(qsingleMatchingConds("value"))(2))))), specenq)
 
   val valuePS = g.applyTactic(qsinglesubobs.toSeq(1)._1, valueCaseDistinction)
   val valueCases = g.requiredObls(valuePS)
@@ -110,16 +110,16 @@ class QLSoundnessProofGraph(file: File) {
     g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
   }
 
-  val binopProgressReduceExpDistinction = BooleanCaseDistinction(FunctionExpAnd(
+  val binopProgressReduceExpDistinction = BooleanCaseDistinction(FunctionExpJudgment(FunctionExpAnd(
         FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds("binop")).head))),
           FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds("binop")).last)))
-      ), specenq)
+      )), specenq)
   val binopProgressReduceExpPS = g.applyTactic(progressReduceExpInductionCases(2)._1, binopProgressReduceExpDistinction)
   val binopProgressReduceExpCases = g.requiredObls(binopProgressReduceExpPS).toSeq
   val binopProgressReduceExpIsValuePS = g.applyTactic(binopProgressReduceExpCases.head._1, Solve[VeritasConstruct, VeritasFormula])
 
-  val binopProgressReduceExpNoValueDistinction = BooleanCaseDistinction(FunctionExpApp("isSomeExp", Seq(FunctionExpApp("reduceExp",
-      Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds("binop")).head), FunctionMeta(MetaVar("am")))))), specenq)
+  val binopProgressReduceExpNoValueDistinction = BooleanCaseDistinction(FunctionExpJudgment(FunctionExpApp("isSomeExp", Seq(FunctionExpApp("reduceExp",
+      Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds("binop")).head), FunctionMeta(MetaVar("am"))))))), specenq)
 
   val binopProgressReduceExpNoValuePS = g.applyTactic(binopProgressReduceExpCases.last._1, binopProgressReduceExpNoValueDistinction)
   val binopProgressReduceExpNoValueCases = g.requiredObls(binopProgressReduceExpNoValuePS)
@@ -128,8 +128,8 @@ class QLSoundnessProofGraph(file: File) {
   }
 
 
-  val unopProgressReduceExpDistinction = BooleanCaseDistinction(FunctionExpApp("expIsValue",
-        Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds.last._2)(1)))), specenq)
+  val unopProgressReduceExpDistinction = BooleanCaseDistinction(FunctionExpJudgment(FunctionExpApp("expIsValue",
+        Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds.last._2)(1))))), specenq)
   val unopProgressReduceExpDisitinctionPS = g.applyTactic(progressReduceExpInductionCases.last._1, unopProgressReduceExpDistinction)
   val unopProgressReduceExpCases = g.requiredObls(unopProgressReduceExpDisitinctionPS).toSeq
   val unopProgressReduceExpCasesPS = unopProgressReduceExpCases.map { case (obl, info) =>
