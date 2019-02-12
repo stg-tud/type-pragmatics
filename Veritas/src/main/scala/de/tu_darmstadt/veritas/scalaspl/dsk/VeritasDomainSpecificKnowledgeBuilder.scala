@@ -140,11 +140,13 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   }
 
   private def collectAdditionalPremise(fn: Defn.Def): Unit = {
-    val annot = collectAnnotation(fn.mods, "AdditionalPremise")
-    val premise = annot.init.argss.head.head.asInstanceOf[Lit.String].value
-    if(!additionalPremises.contains(fn))
-      additionalPremises += fn -> Seq()
-    additionalPremises(fn) +:= premise
+    val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
+    annots.filter { _.init.tpe.toString == "AdditionalPremise" }.foreach { annot =>
+      val premise = annot.init.argss.head.head.asInstanceOf[Lit.String].value
+      if (!additionalPremises.contains(fn))
+        additionalPremises += fn -> Seq()
+      additionalPremises(fn) +:= premise
+    }
   }
 
   private def getTraitForLastParam(param: Term.Param): Defn.Trait = {

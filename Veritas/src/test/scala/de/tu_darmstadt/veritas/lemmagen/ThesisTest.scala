@@ -243,8 +243,9 @@ class ThesisTest extends FunSuite {
     ("rawUnion", "welltypedRawtable"),
     ("filterTable", "welltypedtable"),
     ("filterRows", "welltypedRawtable"),*/
-    ("dropFirstColRaw", "welltypedRawtable"),
+    //("dropFirstColRaw", "welltypedRawtable"),
     //("projectCols", "welltypedRawtable"),
+    ("attachColToFrontRaw", "welltypedRawtable")
   )
   for((funcName, predName) <- Combinations) {
     test(s"${funcName} / ${predName}") {

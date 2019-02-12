@@ -145,7 +145,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
   @PreservationProperty("dropFirstColRawPreservesRowCount")
   @Recursive(0)
-  @AdditionalPremise("_ == ttcons(_, _, _)")
+  //@AdditionalPremise("_tt1 == ttcons(_n, _ft, _tt)")
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
@@ -186,6 +186,9 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
   @PreservationProperty("attachColToFrontRawPreservesRowCount")
   @Recursive(0)
+  /*@AdditionalPremise("tt1 == ttcons(n2, n3, ttempty())")
+  @AdditionalPremise("sameLength(rt1, rt2)")
+  @AdditionalPremise("tt == ttcons(n2, n3, tt2)")*/
  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
@@ -829,7 +832,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Property
   def attachColToFrontRawPreservesWellTypedRaw(tt1: TType, name1: Name, ft1: FType,
-                                               tt2: TType,
+                                               tt2: TType, tt3: TType,
                                                rt1: RawTable, rt2: RawTable, rt3: RawTable): Unit = {
     // |tt1| == 1
     require(tt1 == ttcons(name1, ft1, ttempty()))
@@ -837,7 +840,8 @@ object SQLSpec extends ScalaSPLSpecification {
     require(welltypedRawtable(tt1, rt1))
     require(welltypedRawtable(tt2, rt2))
     require(attachColToFrontRaw(rt1, rt2) == rt3)
-  } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), rt3)
+    require(tt3 == ttcons(name1, ft1, tt2))
+  } ensuring welltypedRawtable(tt3, rt3)
 
   @Property
   def attachColToFrontRawPreservesRowCount(tt1: TType, a: Name, ct: FType,
