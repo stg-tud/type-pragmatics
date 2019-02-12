@@ -35,7 +35,7 @@ object CollectMetaVarsTraverser {
   }
 }
 
-class AdditionalPremises(problem: Problem, premiseHints: Seq[String]) extends Hint {
+class AdditionalPremises(problem: Problem, premiseHints: Seq[String], postVariablesHints: Seq[String]) extends Hint {
   override def apply(baseLemma: Lemma,
                      post: Set[MetaVar],
                      constrained: Set[MetaVar]): (Lemma, Set[MetaVar], Set[MetaVar]) = {
@@ -59,8 +59,9 @@ class AdditionalPremises(problem: Problem, premiseHints: Seq[String]) extends Hi
     val renaming = placeholderVars.zip(assignment).toMap.withDefault(d => d)
     val newConstrainedVars = allMetaVars.map(renaming) intersect baseLemma.boundVariables
     val newLemma = Lemma.fromTypingRule(LemmaEquivalence.renameVariables(lemma, renaming))
+    val newPostVariables = postVariablesHints.map(name => renaming(MetaVar(name)))
     (newLemma,
-      post,
+      post ++ newPostVariables,
       constrained ++ newConstrainedVars)
   }
 }
@@ -68,6 +69,7 @@ class AdditionalPremises(problem: Problem, premiseHints: Seq[String]) extends Hi
 object AdditionalPremises {
   def fromDSK(problem: Problem, function: FunctionDef): AdditionalPremises = {
     val premises = problem.dsk.additionalPremises.getOrElse(function, Seq())
-    new AdditionalPremises(problem, premises)
+    val postVariables = problem.dsk.postVariables.getOrElse(function, Seq())
+    new AdditionalPremises(problem, premises, postVariables)
   }
 }

@@ -146,6 +146,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("dropFirstColRawPreservesRowCount")
   @Recursive(0)
   @AdditionalPremise("_0 == ttcons(_1, _2, _3)")
+  /*@PostVariable("_0") // TODO this isn't a post variable */
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
