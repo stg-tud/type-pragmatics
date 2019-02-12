@@ -7,7 +7,7 @@ class RankingHeuristic(graph: RefinementGraph) {
     // get all inconclusive nodes
     val inconclusiveNodes = graph.collectNodes(Inconclusive())
     // only nodes that constrain all variables
-    val filteredNodes = inconclusiveNodes//.filter(node => node.lemma.boundVariables == node.constrainedVariables)
+    val filteredNodes = inconclusiveNodes.filter(node => node.lemma.boundVariables == node.constrainedVariables)
     val onlyDominators = filteredNodes.filterNot(node => {
       node.ancestors.exists(filteredNodes.contains)
     })

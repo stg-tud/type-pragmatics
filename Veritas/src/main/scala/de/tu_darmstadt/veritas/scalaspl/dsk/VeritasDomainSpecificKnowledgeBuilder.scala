@@ -44,7 +44,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val properties: mutable.Set[Defn.Def] = mutable.Set()
   protected val additionalPremises: mutable.Map[Defn.Def, Seq[String]] = mutable.Map()
-  protected val postVariables: mutable.Map[Defn.Def, Seq[String]] = mutable.Map()
+  protected val irrelevantVariable: mutable.Map[Defn.Def, Seq[String]] = mutable.Map()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -65,8 +65,8 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
         properties += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "AdditionalPremise"))
         collectAdditionalPremise(fn)
-      if(ScalaMetaUtils.containsAnnotation(fn.mods, "PostVariable"))
-        collectPostVariable(fn)
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "IrrelevantVariable"))
+        collectIrrelevantVariable(fn)
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
       preservationProperties ++= collectLinkingAnnotation(fn, "PreservationProperty")(collect)
     case tr: Defn.Trait =>
@@ -152,13 +152,13 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     }
   }
 
-  private def collectPostVariable(fn: Defn.Def): Unit = {
+  private def collectIrrelevantVariable(fn: Defn.Def): Unit = {
     val annots = ScalaMetaUtils.collectAnnotations(fn.mods)
-    annots.filter { _.init.tpe.toString == "PostVariable" }.foreach { annot =>
+    annots.filter { _.init.tpe.toString == "IrrelevantVariable" }.foreach { annot =>
       val premise = annot.init.argss.head.head.asInstanceOf[Lit.String].value
-      if (!postVariables.contains(fn))
-        postVariables += fn -> Seq()
-      postVariables(fn) +:= premise
+      if (!irrelevantVariable.contains(fn))
+        irrelevantVariable += fn -> Seq()
+      irrelevantVariable(fn) +:= premise
     }
   }
 
@@ -198,7 +198,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     val transStaticFuncs = translateFunctions(staticFunctions.toSet)
     val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
     val transAdditionalPremises = translateAdditionalPremises()
-    val transPostVariables = translatePostVariables()
+    val transIrrelevantVariables = translateIrrelevantVariables()
     // TODO: This can be removed once we are sure we have linked all properties
     val transProperties = translateProperty(properties.toSet)
     new VeritasDomainSpecificKnowledge {
@@ -210,7 +210,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
       override val dynamicFunctions: Set[FunctionDef] = transDynamicFuncs
       override val properties: Set[TypingRule] = transProperties
       override val additionalPremises: Map[FunctionDef, Seq[String]] = transAdditionalPremises
-      override val postVariables: Map[FunctionDef, Seq[String]] = transPostVariables
+      override val irrelevantVariables: Map[FunctionDef, Seq[String]] = transIrrelevantVariables
     }
   }
 
@@ -221,9 +221,9 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     }.toMap
   }
 
-  private def translatePostVariables(): Map[FunctionDef, Seq[String]] = {
+  private def translateIrrelevantVariables(): Map[FunctionDef, Seq[String]] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
-    postVariables.map { case (fn, variables) =>
+    irrelevantVariable.map { case (fn, variables) =>
       functionTranslator.translate(fn) -> variables
     }.toMap
   }

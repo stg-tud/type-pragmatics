@@ -240,12 +240,12 @@ class ThesisTest extends FunSuite {
 
   val Combinations = Seq(
     ("dropFirstColRaw", "welltypedRawtable"),
+    ("projectCols", "welltypedRawtable"),
+    ("attachColToFrontRaw", "welltypedRawtable"),
     ("projectTable", "welltypedtable"),
     ("rawUnion", "welltypedRawtable"),
     ("filterTable", "welltypedtable"),
     ("filterRows", "welltypedRawtable"),
-    //("projectCols", "welltypedRawtable"),
-    //("attachColToFrontRaw", "welltypedRawtable")
   )
   for((funcName, predName) <- Combinations) {
     test(s"${funcName} / ${predName}") {
