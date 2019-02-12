@@ -193,6 +193,12 @@ object SQLSpec extends ScalaSPLSpecification {
   @AdditionalPremise("tt == ttcons(_1, _2, tt2)")
   @IrrelevantVariable("_1")
   @IrrelevantVariable("_2")
+  /*
+  @AdditionalPremise("_tt1 == ttcons(_1, _2, ttempty())")
+  @AdditionalPremise("sameLength(rt1, rt2)")
+  @AdditionalPremise("_tt == ttcons(_1, _2, _tt2)")
+  @IrrelevantVariable("_1")
+  @IrrelevantVariable("_2")*/
  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
