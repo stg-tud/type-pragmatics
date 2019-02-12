@@ -4,7 +4,15 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquir
 import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGraphTraversals}
 import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
 
-trait ProgressPreservationTopLevelStrategy[Def, Formulae <: Def, Type, FDef, Prop <: Formulae, Equation, Criteria, Expression]
+trait ProgressPreservationTopLevelStrategy[
+Def,
+Formulae <: Def,
+Type <: Def,
+FDef <: Def,
+Prop <: Formulae,
+Equation <: Def,
+Criteria <: Def,
+Expression <: Def]
   extends InitializationStrategy[Def, Formulae] {
 
   lazy val dsk = computeDomainSpecificKnowledge() //globally compute domain specific knowledge as implemented in concrete class

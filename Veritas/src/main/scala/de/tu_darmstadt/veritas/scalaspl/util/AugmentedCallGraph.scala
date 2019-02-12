@@ -33,6 +33,7 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
   //as well as the inner nesting level (in case of nested ifs); first level is 0
   case class FunctionCall(funeq_num: Int, inner_nesting_level: Int, name: String) extends Node
 
+  //maybe use a ListSet for children list
   private val adjacencyList: mutable.Map[Node, Seq[Node]] = mutable.Map()
   private val _sdroots = ListBuffer[StructuralDistinction]()
 
@@ -84,11 +85,8 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
     case _ => throw new IllegalArgumentException("Every leaf node should be a boolean distinction or a structural distinction with exactly one equation attached.")
   }
 
-  def getFCParents(n: Node): Seq[Node] = {
-    getParents(n) filter {
-      case fc@FunctionCall(_, _, _) => true
-      case _ => false
-    }
+  def getFCParents(n: Node): Seq[FunctionCall] = {
+    for (n <- getParents(n) if n.isInstanceOf[FunctionCall]) yield n.asInstanceOf[FunctionCall]
   }
 
   def getVariableName(mv: Expression): String

@@ -12,16 +12,24 @@ import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
   * @param dsk     domain-specific knowledge for the given specification
   * @param acg_gen function that can generate an augmented call graph for a given function name
   */
-case class ProgressPreservationBasicLoop[Defs, Formulae <: Defs, Type, FDef, Prop <: Formulae, Equation, Criteria, Expression](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
-                                                                                                                   override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
-                                                                                                                   override val spec_enquirer: SpecEnquirer[Defs, Formulae],
-                                                                                                                   retrievePropFromGoal: Formulae => Prop)
-  extends DomainSpecificStrategy[Defs, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
+case class ProgressPreservationBasicLoop[
+Def,
+Formulae <: Def,
+Type <: Def,
+FDef <: Def,
+Prop <: Formulae,
+Equation <: Def,
+Criteria <: Def,
+Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
+                   override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
+                   override val spec_enquirer: SpecEnquirer[Def, Formulae],
+                   retrievePropFromGoal: Formulae => Prop)
+  extends DomainSpecificStrategy[Def, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
 
 
   // given obligation is the obligation to which the basic loop shall be applied
-  override def applyToPG(pg: ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae])(obl: pg.Obligation):
-  ProofGraph[Defs, Formulae] with ProofGraphTraversals[Defs, Formulae] = {
+  override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation):
+  ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
 
 
     //step 1: retrieve relevant function name from given obligation with the help of the given domain specific knowledge dsk
@@ -46,7 +54,7 @@ case class ProgressPreservationBasicLoop[Defs, Formulae <: Defs, Type, FDef, Pro
     val all_leaves = pg.leaves(Set(obl))
 
     def isLemmaApplicationLeaf(l: pg.Obligation): Boolean = {
-      val maybe_lemtac = pg.requiringSteps(l).find { case (ps, _) => ps.tactic.isInstanceOf[LemmaApplication[Defs, Formulae]] }
+      val maybe_lemtac = pg.requiringSteps(l).find { case (ps, _) => ps.tactic.isInstanceOf[LemmaApplication[Def, Formulae]] }
       maybe_lemtac.nonEmpty
     }
 

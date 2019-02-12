@@ -4,7 +4,9 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquir
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
 
-
+// General case distinction tactic
+// will not modify the cases map at all - expects case premises as they will have to be in the proof in the end
+// will prepend goal name and "-case-" to case names but not generate any appropriate case names
 case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formulae]], queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
@@ -122,7 +124,7 @@ case class EqualityCaseDistinction[Defs, Formulae <: Defs](lhs: Defs, rhs: Defs,
 
 }
 
-case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Formulae, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
   import queryspec._
 
   // TODO: check
@@ -143,7 +145,7 @@ case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Defs, queryspec:
                                  produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
 
     //TODO better names for equations?
-    val dist_cases = Map(("Pred-True" -> Seq(makeTypingFunctionExpression(body))), ("Pred-False" -> Seq(makeNegation(body))))
+    val dist_cases = Map(("Pred-True" -> Seq(body)), ("Pred-False" -> Seq(convertExpToNegFormula(body))))
     CaseDistinction[Defs, Formulae](dist_cases, queryspec)(obl, obllabels, produce)
   }
 
