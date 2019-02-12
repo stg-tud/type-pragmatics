@@ -179,6 +179,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @Preservable
   def sameLength(rt1: RawTable, rt2: RawTable): Boolean = (rt1, rt2) match {
     case (tempty(), tempty()) => true
     case (tcons(_, tll), tcons(_, tlr)) => sameLength(tll, tlr)

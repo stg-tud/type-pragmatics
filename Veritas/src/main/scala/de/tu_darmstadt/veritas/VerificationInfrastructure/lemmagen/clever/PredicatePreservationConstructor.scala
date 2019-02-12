@@ -12,10 +12,10 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
-class PreservationGenerator(val problem: Problem,
-                            function: FunctionDef,
-                            predicate: FunctionDef,
-                            hints: Seq[Hint]) extends GraphConstructor[RefinementGraph] with StrategyHelpers {
+class PredicatePreservationConstructor(val problem: Problem,
+                                       function: FunctionDef,
+                                       predicate: FunctionDef,
+                                       hints: Seq[Hint]) extends GraphConstructor[RefinementGraph] with StrategyHelpers {
   import Query._
 
   implicit private val enquirer = problem.enquirer

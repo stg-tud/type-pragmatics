@@ -12,7 +12,7 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
-class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[Hint])
+class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Seq[Hint])
   extends GraphConstructor[RefinementGraph] with StrategyHelpers {
   import Query._
 

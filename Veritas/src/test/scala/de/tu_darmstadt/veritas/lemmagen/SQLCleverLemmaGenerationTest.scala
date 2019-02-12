@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, PreservationGenerator, ProgressGenerator}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, PredicatePreservationConstructor, ProgressConstructor}
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import org.scalatest.FunSuite
 
