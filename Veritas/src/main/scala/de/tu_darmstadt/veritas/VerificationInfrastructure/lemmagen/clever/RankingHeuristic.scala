@@ -1,9 +1,9 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import de.tu_darmstadt.veritas.backend.util.FreeVariables
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 
-class RankingHeuristic(graph: RefinementGraph) {
-  def extract(): Seq[RefinementNode] = {
+class RankingHeuristic extends ExtractionHeuristic[RefinementGraph] {
+  def extract(graph: RefinementGraph): Seq[Lemma] = {
     // get all inconclusive nodes
     val inconclusiveNodes = graph.collectNodes(Inconclusive())
     // only nodes that constrain all variables
@@ -13,6 +13,6 @@ class RankingHeuristic(graph: RefinementGraph) {
     })
     for(node <- onlyDominators)
       node.selected = true
-    onlyDominators.toSeq
+    onlyDominators.map(_.lemma).toSeq
   }
 }

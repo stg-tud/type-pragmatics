@@ -12,7 +12,8 @@ import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
-class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[Hint]) extends StrategyHelpers {
+class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[Hint])
+  extends GraphConstructor[RefinementGraph] with StrategyHelpers {
   import Query._
 
   implicit private val enquirer = problem.enquirer
@@ -82,7 +83,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[
     generateEquations(node) ++ generateApplications(node)
   }
 
-  def generate(): Seq[Lemma] = {
+  def construct(): RefinementGraph = {
     val graph = new RefinementGraph(baseLemma, Set())
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
@@ -93,24 +94,6 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[
         node.open = false
       }
     }
-    graph.visualize(new File(s"prog-${function.signature.name}-before.png") )
-    val consultation = new OracleConsultation(problem)
-    consultation.consult(graph)
-    val heuristic = new RankingHeuristic(graph)
-    val incLemmas = heuristic.extract().map(_.lemma)
-    graph.visualize(new File(s"prog-${function.signature.name}-after.png") )
-    incLemmas.map(lemma =>
-      lemma.consequences.head match {
-        case FunctionExpJudgment(FunctionExpNeq(l, r)) =>
-          val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
-          val assignments = Assignments.generate(Seq(Constraint.fresh(function.successfulOutType)), lemma.boundVariables)
-          val successVar = assignments.head.head
-          val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
-          val equality = enquirer.makeEquation(l, successExp).asInstanceOf[FunctionExpJudgment]
-          val exists = ExistsJudgment(Seq(successVar), Seq(equality))
-          new Lemma(lemma.name, lemma.premises, Seq(exists), lemma.refinements)
-        case _ => sys.error("TODO")
-      })
+    graph
   }
-
 }

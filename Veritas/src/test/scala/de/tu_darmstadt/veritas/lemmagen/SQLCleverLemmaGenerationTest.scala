@@ -3,71 +3,67 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{PreservationGenerator, ProgressGenerator}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.ProgressStrategy
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, PreservationGenerator, ProgressGenerator}
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
-import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 import org.scalatest.FunSuite
 
 class SQLCleverLemmaGenerationTest extends FunSuite {
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
   val problem = new Problem(file)
+  val generator = new CleverLemmaGenerator(problem)
 
-  val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-  val lemmaPrettyPrinter = new SimpleToScalaSPLSpecificationPrinter {
-    override val printer: PrettyPrintWriter = outputPrettyPrinter
+  def printRules(lemmas: Seq[Lemma]) = {
+    val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
+    val lemmaPrettyPrinter = new SimpleLemmaPrinter {
+      override val printer: PrettyPrintWriter = outputPrettyPrinter
+    }
+    lemmas.foreach { lemma =>
+      lemmaPrettyPrinter.printTypingRule(lemma)
+    }
+    outputPrettyPrinter.flush()
   }
-/*
-  def rename(lemmas: Seq[Lemma]): Seq[Lemma] = {
-    (for((l, i) <- lemmas.toSeq.zipWithIndex) yield l.rename(s"Lemma$i")).toSet
-  }*/
 
- /* Seq("findCol", "lookupStore", "projectTable", "projectCols").foreach { name =>
-    test(s"generate $name progress") {
-      val fn = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, name).get
-      val generator = new ProgressGenerator(problem, fn)
-      val base = generator.generateBase().head
-      val lemmas = generator.constrainConsequenceVariables(base)
-      for (lemma <- lemmas) {
-        lemmaPrettyPrinter.printTypingRule(lemma)
-        outputPrettyPrinter.flush()
-        println()
-      }
-      //println("prune ...")
-
-      val pool = new ShapedPool()
-
-      for(lemma <- lemmas) {
-        generator.addEquations(lemma)
-      }
-
-      /*for (lemma <- lemmas) {
-        val eqs = rename(generator.addEquations(lemma).toSeq).toSet
-        val pruned = Oracle.pruneProvablyFalseLemmas(problem, eqs)
-        for (lemma <- pruned) {
-          pool.add(lemma)
-        }
-      }
-      for(lemma <- pool.lemmas) {
-        lemmaPrettyPrinter.printTypingRule(lemma)
-        outputPrettyPrinter.flush()
-        println(lemma.refinements)
-        println()
-      }*/
-
-      val progressProperties = problem.dsk.lookupByFunName(problem.dsk.progressProperties, name)
-      println(s"generated ${pool.lemmas.size} lemmas")
-      progressProperties.foreach { expected =>
-        val equivalent = pool.lemmas.filter(l => LemmaEquivalence.isEquivalent(expected, l))
-        println(s"equivalent to ${expected.name}: ${equivalent.size}")
+  for(func <- generator.preservationFunctions) {
+    lazy val lemmas = generator.generatePreservationLemmas(func).toSeq
+    val expectedLemmas = problem.dsk.preservationProperties.getOrElse(func, Seq())
+    for(expected <- expectedLemmas) {
+      test(s"preservation ${func.signature.name} (${expected.name})") {
+        println(s"===== ${lemmas.size} lemmas!")
+        printRules(lemmas)
+        println("")
+        val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
+        println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
+        assert(equivalentLemmas.nonEmpty)
       }
     }
-  }*/
+    if(expectedLemmas.isEmpty)
+      test(s"preservation ${func.signature.name}") {
+        println(s"===== ${lemmas.size} lemmas!")
+        printRules(lemmas)
+        println("")
+        succeed
+      }
+  }
 
-  test("generate dropFirstColRaw preservation") {
-    val fn = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, "dropFirstColRaw").get
-    val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, "welltypedRawtable").get
-    val generator = new PreservationGenerator(problem, fn, pred, Seq())
-    generator.generate()
+  for(func <- generator.progressFunctions) {
+    lazy val lemmas = generator.generateProgressLemmas(func).toSeq
+    val expectedLemmas = problem.dsk.progressProperties.getOrElse(func, Seq())
+    for(expected <- expectedLemmas) {
+      test(s"progress ${func.signature.name} (${expected.name})") {
+        println(s"===== ${lemmas.size} lemmas!")
+        printRules(lemmas)
+        println("")
+        val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
+        println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
+        assert(equivalentLemmas.nonEmpty)
+      }
+    }
+    if(expectedLemmas.isEmpty)
+      test(s"progress ${func.signature.name}") {
+        println(s"===== ${lemmas.size} lemmas!")
+        printRules(lemmas)
+        println("")
+        succeed
+      }
   }
 }

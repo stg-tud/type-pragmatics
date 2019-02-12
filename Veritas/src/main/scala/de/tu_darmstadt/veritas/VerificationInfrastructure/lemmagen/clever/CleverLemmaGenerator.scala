@@ -1,9 +1,12 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
+import java.io.File
+
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.AdditionalPremises
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
-import de.tu_darmstadt.veritas.backend.ast.SortRef
-import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
+import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
+import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpNeq, FunctionMeta}
 
 import scala.collection.mutable
 
@@ -39,9 +42,47 @@ class CleverLemmaGenerator(problem: Problem) {
     val hint = AdditionalPremises.fromDSK(problem, fn)
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
       println(s"${fn.signature.name} / ${predicate.signature.name}")
-      val generator = new PreservationGenerator(problem, fn, predicate, Seq(hint))
-      result ++= generator.generate()
+      val constructor = new PreservationGenerator(problem, fn, predicate, Seq(hint))
+      val consultation = new VampireOracleConsultation(problem)
+      val extractor = new RankingHeuristic()
+      val pipeline = new VisualizingGenerationPipeline(
+        constructor,
+        consultation,
+        extractor,
+        new File(s"generated/preservation/${fn.signature.name}/${predicate.name}")
+      )
+      result ++= pipeline.generate()
     }
     result.toSet
+  }
+
+  def generateProgressLemmas(fn: FunctionDef): Set[Lemma] = {
+    //val hint = AdditionalPremises.fromDSK(problem, fn) TODO
+    println(s"${fn.signature.name}")
+    val constructor = new ProgressGenerator(problem, fn, Seq())
+    val consultation = new VampireOracleConsultation(problem)
+    val extractor = new RankingHeuristic()
+    val pipeline = new VisualizingGenerationPipeline(
+      constructor,
+      consultation,
+      extractor,
+      new File(s"generated/progress/${fn.signature.name}/")
+    )
+    pipeline.generate().map(lemma =>
+      lemma.consequences.head match {
+        case FunctionExpJudgment(FunctionExpNeq(l, r)) =>
+          val (_, successConstructor) = enquirer.retrieveFailableConstructors(fn.outType)
+          val assignments = Assignments.generate(Seq(Constraint.fresh(fn.successfulOutType)), lemma.boundVariables)
+          val successVar = assignments.head.head
+          val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
+          val equality = enquirer.makeEquation(l, successExp).asInstanceOf[FunctionExpJudgment]
+          val exists = ExistsJudgment(Seq(successVar), Seq(equality))
+          new Lemma(lemma.name, lemma.premises, Seq(exists), lemma.refinements)
+        case _ => sys.error("TODO")
+      }).toSet // TODO: this needs to go somewhere else
+  }
+
+  def generatePreservationLemmas(): Map[FunctionDef, Set[Lemma]] = {
+    preservationFunctions.map(fn => fn -> generatePreservationLemmas(fn)).toMap
   }
 }
