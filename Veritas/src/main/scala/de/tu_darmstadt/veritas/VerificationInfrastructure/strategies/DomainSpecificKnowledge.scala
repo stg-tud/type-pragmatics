@@ -11,7 +11,6 @@ trait DomainSpecificKnowledge[Type, FDef, Prop] {
   def dynamicFunctions: Set[FDef]
 
   def additionalPremises: Map[FDef, Seq[String]]
-  def postVariables: Map[FDef, Seq[String]]
 
   def lookupByFunName[T](mp: Map[FDef, Set[T]], funname: String): Iterable[T] = {
     val allkeys: Iterable[FDef] = mp.keys.filter ((fd: FDef) => retrieveFunName(fd) == funname)

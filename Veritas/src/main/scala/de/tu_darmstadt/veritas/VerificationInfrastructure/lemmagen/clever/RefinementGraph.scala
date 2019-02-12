@@ -55,8 +55,8 @@ class RefinementNode(val graph: RefinementGraph,
       case Some(refinedLemma) =>
         graph.findLemma(refinedLemma) match {
           case Some(node) => {
-            /*require(node.postVariables == newPost)*/
-            //require(node.constrainedVariables == newConstrained)
+            require(node.postVariables == newPost)
+            require(node.constrainedVariables == newConstrained)
             this.addChild(node, refinement)
             node
           }

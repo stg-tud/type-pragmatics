@@ -20,7 +20,6 @@ trait DomainSpecificKnowledgeAnnotations {
   case class Dynamic() extends Annotation
 
   case class AdditionalPremise(premise: String) extends Annotation
-  case class PostVariable(variable: String) extends Annotation
 }
 
 object DomainSpecificKnowledgeAnnotations {
