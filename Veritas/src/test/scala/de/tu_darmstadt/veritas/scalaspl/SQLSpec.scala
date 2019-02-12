@@ -107,12 +107,14 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Static
   @Recursive(1)
+  @Preservable
   def welltypedRawtable(tt: TType, rt: RawTable): Boolean = (tt, rt) match {
     case (_, tempty()) => true
     case (tt1, tcons(r, t1)) => welltypedRow(tt1, r) && welltypedRawtable(tt1, t1)
   }
 
   @Static
+  @Preservable
   def welltypedtable(tt: TType, t: Table): Boolean = (tt, t) match {
     case (tt1, table(al, t1)) => matchingAttrL(tt1, al) && welltypedRawtable(tt1, t1)
   }

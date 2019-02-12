@@ -33,6 +33,7 @@ class PreservationGenerator(val problem: Problem,
   }
 
   private val resultVar :: functionArgs = Assignments.generateSimpleSingle(termType +: function.inTypes)
+  private val predicateArgs = generatePredicateArguments(resultVar)
 
   def generateBase(): (Lemma, Set[MetaVar], Set[MetaVar]) = {
     // --------------------
@@ -40,7 +41,6 @@ class PreservationGenerator(val problem: Problem,
     // [producer]([], ...) =  []
     // producer arguments can be fresh or bound with matching types
     // the success variable can be any of the arguments of ``predicate``, with matching types
-    val predicateArgs = generatePredicateArguments(resultVar)
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${function.name}${predicate.name}Preservation", Seq(), Seq(judgment))
@@ -97,7 +97,7 @@ class PreservationGenerator(val problem: Problem,
     val sideArguments = problem.enquirer.getSideArgumentsTypes(function)
     val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
     staticFunctions.flatMap(staticFn =>
-      if(!containsApplicationOf(lemma, staticFn)) {
+      if (!containsApplicationOf(lemma, staticFn)) {
         if (staticFn.signature.out.name == "Bool") {
           selectPredicate(lemma, staticFn)
         } else {
@@ -111,8 +111,9 @@ class PreservationGenerator(val problem: Problem,
           refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
           refinements
         }
-      } else
+      } else {
         Set()
+      }
     )
   }
 

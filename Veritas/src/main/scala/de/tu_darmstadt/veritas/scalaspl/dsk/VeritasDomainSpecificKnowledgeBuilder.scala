@@ -45,6 +45,8 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   protected val properties: mutable.Set[Defn.Def] = mutable.Set()
   protected val additionalPremises: mutable.Map[Defn.Def, Seq[String]] = mutable.Map()
   protected val irrelevantVariable: mutable.Map[Defn.Def, Seq[String]] = mutable.Map()
+  protected val preservables: mutable.Set[Defn.Def] = mutable.Set()
+
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -63,6 +65,8 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
         staticFunctions += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Property"))
         properties += fn
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Preservable"))
+        preservables += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "AdditionalPremise"))
         collectAdditionalPremise(fn)
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "IrrelevantVariable"))
@@ -199,6 +203,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
     val transAdditionalPremises = translateAdditionalPremises()
     val transIrrelevantVariables = translateIrrelevantVariables()
+    val transPreservables = translateFunctions(preservables.toSet)
     // TODO: This can be removed once we are sure we have linked all properties
     val transProperties = translateProperty(properties.toSet)
     new VeritasDomainSpecificKnowledge {
@@ -211,6 +216,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
       override val properties: Set[TypingRule] = transProperties
       override val additionalPremises: Map[FunctionDef, Seq[String]] = transAdditionalPremises
       override val irrelevantVariables: Map[FunctionDef, Seq[String]] = transIrrelevantVariables
+      override val preservables: Set[FunctionDef] = transPreservables
     }
   }
 

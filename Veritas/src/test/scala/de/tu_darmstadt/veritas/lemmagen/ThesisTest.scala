@@ -5,7 +5,7 @@ import java.io.{File, PrintWriter}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.AdditionalPremises
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{PreservationGenerator, ProgressGenerator}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, PreservationGenerator, ProgressGenerator}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.{PreservationStrategy, ProgressStrategy}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExp}
@@ -239,7 +239,7 @@ class ThesisTest extends FunSuite {
   }
 
   val Combinations = Seq(
-    ("dropFirstColRaw", "welltypedRawtable"),
+    //("dropFirstColRaw", "welltypedRawtable"),
     ("projectCols", "welltypedRawtable"),
     ("attachColToFrontRaw", "welltypedRawtable"),
     ("projectTable", "welltypedtable"),
@@ -252,10 +252,9 @@ class ThesisTest extends FunSuite {
       val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
       val problem = new Problem(file)
       val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, funcName).get
-      val hints = AdditionalPremises.fromDSK(problem, func)
-      val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, predName).get
-      val strat = new PreservationGenerator(problem, func, pred, Seq(hints))
-      val lemmas = strat.generate()
+      val generator = new CleverLemmaGenerator(problem)
+      val lemmas = generator.generatePreservationLemmas(func).toSeq
+
       println(s"===== ${lemmas.size} lemmas!")
       printRules(lemmas)
       println("")

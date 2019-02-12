@@ -21,6 +21,7 @@ trait DomainSpecificKnowledgeAnnotations {
 
   case class AdditionalPremise(premise: String) extends Annotation
   case class IrrelevantVariable(variable: String) extends Annotation
+  case class Preservable() extends Annotation
 }
 
 object DomainSpecificKnowledgeAnnotations {
