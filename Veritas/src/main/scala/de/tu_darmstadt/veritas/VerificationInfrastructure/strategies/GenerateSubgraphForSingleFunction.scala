@@ -57,7 +57,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       else {
         //do a structural case distinction for the distinction var
         //this is an approximation and might not work for every function
-        //TODO: analyze cases and do a general case distinction if necessary
+        //TODO: analyze cases and do a general case distinction if necessary?
         StructuralCaseDistinctionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
       }
     } else {
@@ -104,7 +104,8 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
 
         //case 1) There are only structural distinction children.
         if (fc_parents.isEmpty && children.nonEmpty && (sd_children.length == children.length)) {
-          //TODO Apply a general CaseDistinction based on the argument expression in the structural distinction node
+          val rawcases: Seq[Formulae] = for (sd <- sd_children) yield spec_enquirer.convertExpToFormula(sd.arg_exp)
+          CaseDistinctionStrat(rawcases, spec_enquirer).applyToPG(pg)(currobl)
         }
         // case 2) There are only function call parents -> try lemma application
         else if (fc_parents.nonEmpty && children.isEmpty) {

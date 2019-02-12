@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
-import de.tu_darmstadt.veritas.backend.Configuration
+import de.tu_darmstadt.veritas.backend.{Configuration, util}
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExp, _}
 import de.tu_darmstadt.veritas.backend.ast.{TypingRuleJudgment, _}
@@ -102,7 +102,10 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   private def getFreeVariables(f: VeritasFormula): Set[MetaVar] =
     retrieveTypingRule(f) match {
       case Some(TypingRule(_, prems, conseqs)) => FreeVariables.freeVariables(prems ++ conseqs)
-      case None => Set() //should not happen
+      case None => f match {
+        case tr : TypingRuleJudgment => FreeVariables.freeVariables(Seq(tr))
+        case _ => Set() //should not happen
+      }
     }
 
   // get types of all variables (free and quantified)
@@ -285,6 +288,13 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case None => sys.error("Cannot get name of an unnamed formula.")
     }
 
+
+  override def getVarName(f: VeritasConstruct): String = f match {
+    case MetaVar(n) => n
+    case FunctionMeta(MetaVar(n)) => n
+    case _ => sys.error(s"Could not extract variable name from given VeritasConstruct $f")
+  }
+
   //from a given definition, extract all the calls to functions
   override def extractFunctionCalls(s: VeritasConstruct): Seq[VeritasConstruct] = {
     val functionCallExtractor = new VeritasConstructTraverser {
@@ -294,7 +304,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
             //only collect calls to functions, not datatype constructors!
             if (tdcollector.functypes.contains(fn))
               collected = collected :+ fea
-            FunctionExpApp(fn, trace(args)(transFunctionExpMetas(_)))
+            FunctionExpApp(fn, trace(args)(transFunctionExpMetas))
           }
         }
 
@@ -304,12 +314,39 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
             //only collect calls to functions, not datatype constructors!
             if (tdcollector.functypes.contains(fn))
               collected = collected :+ fea
-            Seq(FunctionExpApp(fn, trace(args)(transFunctionExpMetas(_))))
+            Seq(FunctionExpApp(fn, trace(args)(transFunctionExpMetas)))
           }
         }
     }
     functionCallExtractor(s)
     functionCallExtractor.collected
+  }
+
+  //from a given definition, extract all usages of constructors
+  override def extractConstructorUsages(s: VeritasConstruct): Seq[VeritasConstruct] = {
+    val constructorUsagesExtractor = new VeritasConstructTraverser {
+      override def transFunctionExp(f: FunctionExp): FunctionExp =
+        withSuper(super.transFunctionExp(f)) {
+          case fea@FunctionExpApp(fn, args) => {
+            //only collect calls to functions, not datatype constructors!
+            if (tdcollector.constrTypes.contains(fn))
+              collected = collected :+ fea
+            FunctionExpApp(fn, trace(args)(transFunctionExpMetas))
+          }
+        }
+
+      override def transFunctionExps(f: FunctionExp): Seq[FunctionExp] =
+        withSuper(super.transFunctionExps(f)) {
+          case fea@FunctionExpApp(fn, args) => {
+            //only collect calls to functions, not datatype constructors!
+            if (tdcollector.constrTypes.contains(fn))
+              collected = collected :+ fea
+            Seq(FunctionExpApp(fn, trace(args)(transFunctionExpMetas)))
+          }
+        }
+    }
+    constructorUsagesExtractor(s)
+    constructorUsagesExtractor.collected
   }
 
   override def assignCaseVariables(nd: VeritasConstruct, refd: VeritasConstruct): VeritasConstruct =
@@ -384,6 +421,38 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an inequation.")
     }
 
+  //expects an unnamed Formulae and generates an appropriate name
+  //for Veritas language: expects judgments (which are by definition unnamed)
+  //currently limited to FunctionExpJudgments!
+  //generate name according to constructors called; if no constructors called, generate name according to functions called
+  //if no functions called, attach (unique) metavariable names used
+  override def makeFormulaName(f: VeritasFormula): String = f match {
+    case FunctionExpJudgment(fexp) => {
+      val constructorUsages = extractConstructorUsages(fexp)
+      if (constructorUsages.nonEmpty) {
+        val names = for (c <- constructorUsages) yield c match {
+          case FunctionExpApp(n, _) => n
+        }
+        names.mkString("-")
+      } else {
+        val functionCalls = extractFunctionCalls(fexp)
+        if (functionCalls.nonEmpty) {
+          val names = for (c <- functionCalls) yield c match {
+            case FunctionExpApp(n, _) => n
+          }
+          names.mkString("-")
+        } else {
+          val vars = getFreeVariables(f)
+          //collect unique variable names
+          val varnames = (for (v <- vars) yield getVarName(v)).toSet
+          varnames.mkString("-")
+        }
+      }
+    }
+    case _ => sys.error(s"Currently unable to generate a name for formula $f")
+  }
+
+
   //expects an unnamed formula or a named one and attaches or overwrites the new name, always creating a typing rule
   private def makeNamedFormula(f: VeritasFormula, name: String): TypingRule = retrieveTypingRule(f) match {
     case Some(TypingRule(_, prems, conseqs)) => TypingRule(name, prems, conseqs)
@@ -406,12 +475,32 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a function expression.")
     }
 
-  def convertExpToNegFormula(body: VeritasConstruct): VeritasFormula =
+  //currently only covers relevant cases existing in SQL/QL proofs
+  def convertExpToNegFormula(body: VeritasConstruct): VeritasFormula = {
+
+    def quantifyVars(f: VeritasFormula): Set[MetaVar] =
+      getFreeVariables(f)
+
+    def quantifyIfNecessary(f: TypingRuleJudgment, subf: FunctionExpMeta): VeritasFormula = {
+      val varsToQuantify = subf match {
+        case fexp: FunctionExp => quantifyVars(FunctionExpJudgment(fexp))
+        case _ => Set()
+      }
+
+      if (varsToQuantify.nonEmpty)
+        ForallJudgment(varsToQuantify.toSeq, Seq(f))
+      else
+        f
+    }
+
     body match {
-      case exp: FunctionExp => FunctionExpJudgment(FunctionExpNot(exp))
-      case FunctionExpJudgment(exp: FunctionExp) => FunctionExpJudgment(FunctionExpNot(exp))
+      case FunctionExpEq(l, r) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNeq(l, r)), r)
+      case exp: FunctionExp => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNot(exp)), exp)
+      case FunctionExpJudgment(FunctionExpEq(l, r)) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNeq(l, r)), r)
+      case FunctionExpJudgment(exp: FunctionExp) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNot(exp)), exp)
       case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a negation.")
     }
+  }
 
 
 }

@@ -4,7 +4,9 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquir
 import de.tu_darmstadt.veritas.VerificationInfrastructure._
 
 
-
+// General case distinction tactic
+// will not modify the cases map at all - expects case premises as they will have to be in the proof in the end
+// will prepend goal name and "-case-" to case names but not generate any appropriate case names
 case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formulae]], queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
 
   import queryspec._
