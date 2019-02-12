@@ -114,6 +114,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
           LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
         }
         // case 3) There are exactly two Boolean distinction children -> apply Boolean distinction
+          // first child contains the positive condition
         else if (fc_parents.isEmpty && bd_children.length == 2) {
           val poscond: Formulae = spec_enquirer.convertExpToFormula(bd_children.head.criteria)
           BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer)
@@ -121,6 +122,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
         //case 4) There are function call parents AND 2 Boolean distinction children
         else if (fc_parents.nonEmpty && bd_children.length == 2) {
           //TODO Apply a BooleanDistinction AND propagate the names of function calls for which we need lemma applications
+
         }
         //ignore all other cases - in all other cases, ACG is not well-constructed.
 
