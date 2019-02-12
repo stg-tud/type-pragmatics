@@ -17,10 +17,10 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[
 
   implicit private val enquirer = problem.enquirer
 
-  def generateBase(): Lemma = {
+  private val functionArguments = Assignments.generateSimpleSingle(function.inTypes)
+  private val baseLemma = {
     val (failConstructor, _) = enquirer.retrieveFailableConstructors(function.outType)
-    val arguments = Assignments.generateSimpleSingle(function.inTypes)
-    val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(arguments))
+    val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(functionArguments))
     val failExp = FunctionExpApp(failConstructor.name, Seq())
     val inequality = enquirer.makeInequation(invocationExp, failExp).asInstanceOf[FunctionExpJudgment]
     new Lemma(s"${function.name}Progress", Seq(), Seq(inequality))
@@ -28,14 +28,13 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[
 
   def generateEquations(node: RefinementNode): Set[Refinement] = {
     val restrictable = node.lemma.boundVariables
-    val postVariables = node.postVariables
     val partitioned = restrictable.groupBy(_.sortType)
     var restrictions = new mutable.ListBuffer[Refinement]()
     for((typ, metaVars) <- partitioned) {
       if(metaVars.size > 1) {
         val equals = metaVars.subsets.filter(_.size == 2)
         for(equal <- equals) {
-          if((equal intersect node.preVariables).nonEmpty && (equal intersect node.postVariables).nonEmpty)
+          if(!equal.subsetOf(functionArguments.toSet))
             restrictions += Refinement.Equation(equal.head, FunctionMeta(equal.tail.head))
         }
       }
@@ -84,8 +83,7 @@ class ProgressGenerator(val problem: Problem, function: FunctionDef, hints: Seq[
   }
 
   def generate(): Seq[Lemma] = {
-    val base = generateBase()
-    val graph = new RefinementGraph(base, Set())
+    val graph = new RefinementGraph(baseLemma, Set())
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
         val restrictions = generateRefinements(node)

@@ -32,23 +32,23 @@ class PreservationGenerator(val problem: Problem,
     Assignments.generate(constraints).head // TODO
   }
 
+  private val resultVar :: functionArgs = Assignments.generateSimpleSingle(termType +: function.inTypes)
+
   def generateBase(): (Lemma, Set[MetaVar], Set[MetaVar]) = {
     // --------------------
     // [predicate]([], ...)
-    val outType = function.successfulOutType
     // [producer]([], ...) =  []
     // producer arguments can be fresh or bound with matching types
-    val outVar :: inVars = Assignments.generateSimpleSingle(outType +: function.inTypes)
     // the success variable can be any of the arguments of ``predicate``, with matching types
-    val predicateArgs = generatePredicateArguments(outVar)
+    val predicateArgs = generatePredicateArguments(resultVar)
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${function.name}${predicate.name}Preservation", Seq(), Seq(judgment))
     // we find all inVars with matching type
-    val matchingInVars = inVars.filter(_.sortType == outType)
+    val matchingInVars = functionArgs.filter(_.sortType == termType)
     // for each matching in var, add a Predicate refinement
     var lemma = baseLemma
-    val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(inVars), outVar)
+    val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
     var constrainedVars = predicateArgs.toSet
     lemma = r.refine(problem, lemma).getOrElse(lemma)
     for(inVar <- matchingInVars) {
@@ -77,9 +77,7 @@ class PreservationGenerator(val problem: Problem,
       if(metaVars.size > 1) {
         val equals = metaVars.subsets.filter(_.size == 2)
         for(equal <- equals) {
-          val a = equal.head
-          val b = equal.tail.head
-          if((equal intersect node.preVariables).nonEmpty && (equal intersect node.postVariables).nonEmpty)
+          if(!equal.subsetOf(functionArgs.toSet))
             restrictions += Refinement.Equation(equal.head, FunctionMeta(equal.tail.head))
           }
         }

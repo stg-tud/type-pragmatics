@@ -145,7 +145,8 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
   @PreservationProperty("dropFirstColRawPreservesRowCount")
   @Recursive(0)
-  //@AdditionalPremise("_tt1 == ttcons(_n, _ft, _tt)")
+  @AdditionalPremise("_0 == ttcons(_1, _2, _3)")
+  /*@PostVariable("_0") // TODO this isn't a post variable */
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
@@ -186,9 +187,9 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
   @PreservationProperty("attachColToFrontRawPreservesRowCount")
   @Recursive(0)
-  /*@AdditionalPremise("tt1 == ttcons(n2, n3, ttempty())")
+  /*@AdditionalPremise("tt1 == ttcons(_1, _2, ttempty())")
   @AdditionalPremise("sameLength(rt1, rt2)")
-  @AdditionalPremise("tt == ttcons(n2, n3, tt2)")*/
+  @AdditionalPremise("tt == ttcons(_1, _2, tt2)")*/
  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))

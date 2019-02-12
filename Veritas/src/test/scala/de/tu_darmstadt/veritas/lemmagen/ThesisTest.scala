@@ -4,7 +4,7 @@ import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.AdditionalPremise
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.AdditionalPremises
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{PreservationGenerator, ProgressGenerator}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.{PreservationStrategy, ProgressStrategy}
 import de.tu_darmstadt.veritas.backend.ast._
@@ -239,22 +239,22 @@ class ThesisTest extends FunSuite {
   }
 
   val Combinations = Seq(
-    /*("projectTable", "welltypedtable"),
+    ("dropFirstColRaw", "welltypedRawtable"),
+    ("projectTable", "welltypedtable"),
     ("rawUnion", "welltypedRawtable"),
     ("filterTable", "welltypedtable"),
-    ("filterRows", "welltypedRawtable"),*/
-    //("dropFirstColRaw", "welltypedRawtable"),
+    ("filterRows", "welltypedRawtable"),
     //("projectCols", "welltypedRawtable"),
-    ("attachColToFrontRaw", "welltypedRawtable")
+    //("attachColToFrontRaw", "welltypedRawtable")
   )
   for((funcName, predName) <- Combinations) {
     test(s"${funcName} / ${predName}") {
       val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
       val problem = new Problem(file)
       val func = problem.dsk.lookupByFunName(problem.dsk.dynamicFunctions, funcName).get
-      val hints = problem.dsk.additionalPremises.getOrElse(func, Seq.empty).map(new AdditionalPremise(problem, _))
+      val hints = AdditionalPremises.fromDSK(problem, func)
       val pred = problem.dsk.lookupByFunName(problem.dsk.staticFunctions, predName).get
-      val strat = new PreservationGenerator(problem, func, pred, hints)
+      val strat = new PreservationGenerator(problem, func, pred, Seq(hints))
       val lemmas = strat.generate()
       println(s"===== ${lemmas.size} lemmas!")
       printRules(lemmas)
