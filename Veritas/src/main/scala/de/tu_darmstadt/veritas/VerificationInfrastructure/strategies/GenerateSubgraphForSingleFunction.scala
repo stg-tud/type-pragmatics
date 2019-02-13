@@ -88,6 +88,9 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     var currobls: Seq[pg.Obligation] = pg.leaves(Set(obl))
     var visitednodes: Set[acg.Node] = Set(acg_sdroot) //will not contain leaves; we treat leaves together at the end - do we need to keep track of visited nodes? ACGs are acyclic?
 
+    //simple lemma selection strategy for now, refine later
+    val sel_strat = SimplyFirstSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression]()
+
     //apply tactics to corresponding obligations according to information in acg
     while (curr_acg_nodes.nonEmpty) {
       var nextcurrnodes: Seq[acg.Node] = Seq()
@@ -109,28 +112,26 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
         //case 1) There are only structural distinction children.
         if (fc_parents.isEmpty && children.nonEmpty && (sd_children.length == children.length)) {
           val rawcases: Seq[Formulae] = for (sd <- sd_children) yield spec_enquirer.convertExpToFormula(sd.arg_exp)
-          CaseDistinctionStrat(rawcases, spec_enquirer).applyToPG(pg)(currobl)
+          CaseDistinctionStrat(rawcases, Seq(), spec_enquirer).applyToPG(pg)(currobl)
         }
         // case 2) There are only function call parents -> try lemma application
         else if (fc_parents.nonEmpty && children.isEmpty) {
           val fcnames = fc_parents map (_.name)
-          val sel_strat = SimplyFirstSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression]() //simple selection strategy for now, refine later
+
           LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
         }
         // case 3) There are exactly two Boolean distinction children -> apply Boolean distinction
           // first child contains the positive condition
-        else if (fc_parents.isEmpty && bd_children.length == 2) {
+        else if (bd_children.length == 2) {
           val poscond: Formulae = spec_enquirer.convertExpToFormula(bd_children.head.criteria)
           //both children have to contain the same new bindings
           val binding_premises: Seq[Formulae] = (for ((n, exp) <- bd_children.head.new_bindings) yield makebindingFormula(n, exp)).toSeq
-          BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, binding_premises)
-        }
-        //case 4) There are function call parents AND 2 Boolean distinction children
-        else if (fc_parents.nonEmpty && bd_children.length == 2) {
-          //TODO Apply a BooleanDistinction AND propagate the names of function calls for which we need lemma applications
-          //both children have to contain the same new bindings
-          val binding_premises: Seq[Formulae] = (for ((n, exp) <- bd_children.head.new_bindings) yield makebindingFormula(n, exp)).toSeq
 
+          // if there are also function call parents present: propagate the calls found through the proof graph along proof edges
+          // will result in lemma applications at the leaves later
+          val funcalls = if (fc_parents.isEmpty) Seq() else for (fcp <- fc_parents) yield fcp.name
+
+          BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, funcalls, binding_premises).applyToPG(pg)(currobl)
         }
         //ignore all other cases - in all other cases, ACG is not well-constructed.
 
@@ -146,8 +147,8 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       currobls = nextcurrobls
     }
 
-    //3) final step: apply Solve tactic to all remaining leaves in graph
-    ApplySolveToLeaves().applyToPG(pg)(obl)
+    //3) final step: Treat leaves. Either require a lemma application or application of Solve tactic (depending on proof edges)
+    new ApplyStratToLeaves(LemmaApplicationAtLeavesStrat(dsk, acg_gen, spec_enquirer, acg, sel_strat)).applyToPG(pg)(obl)
 
     pg
   }

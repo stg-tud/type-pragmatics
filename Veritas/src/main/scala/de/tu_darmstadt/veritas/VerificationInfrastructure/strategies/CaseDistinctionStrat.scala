@@ -7,14 +7,14 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.CaseDistinctio
 // expects unnamed cases in correct order
 // will attempt to generate appropriate case names (ideally for equations of the form ~mv == ConstructorName(...))
 // will append negative pre-patterns to cases according to their order (excluding the previous cases)
-case class CaseDistinctionStrat[Def, Formulae <: Def](cases: Seq[Formulae], spec_enquirer: SpecEnquirer[Def, Formulae])
+case class CaseDistinctionStrat[Def, Formulae <: Def](cases: Seq[Formulae], fc_calls: Seq[String], spec_enquirer: SpecEnquirer[Def, Formulae])
   extends Strategy[Def, Formulae] {
 
   override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation): ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
     val casemap = for (c <- cases) yield (makeCaseName(c), appendNegativePrepats(cases.take(cases.indexOf(c)), c))
 
 
-    val case_tac = CaseDistinction(casemap.toMap, spec_enquirer)
+    val case_tac = CaseDistinction(casemap.toMap, spec_enquirer, fc_calls)
     pg.applyTactic(obl, case_tac)
     pg
   }

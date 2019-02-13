@@ -230,12 +230,12 @@ object SQLMockTactics {
       //note: a real tactic would have to extract the information to be propagated
       // in the edges from the given obllabels (unused here) and decide which one
       // to forward where
-      Seq((mkcase(0), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "1",
+      Seq((mkcase(0), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "1", Seq(),
         (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))))),
-        (mkcase(1), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "2",
+        (mkcase(1), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "2", Seq(),
           (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))) :+
             InductionHypothesis[VeritasFormula](mkSQLProgressTSetCaseIH(2, setname, 'q2)))),
-        (mkcase(2), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "3",
+        (mkcase(2), CaseDistinctionCase[VeritasConstruct, VeritasFormula](setname + "3", Seq(),
           (setconsts map ((sc: VeritasConstruct) => FixedVar(sc))) :+
             InductionHypothesis[VeritasFormula](mkSQLProgressTSetCaseIH(1, setname, 'q1)))))
     }
