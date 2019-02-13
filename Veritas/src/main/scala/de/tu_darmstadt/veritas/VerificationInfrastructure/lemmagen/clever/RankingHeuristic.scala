@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 
-class RankingHeuristic extends ExtractionHeuristic[RefinementGraph] {
+class RankingHeuristic extends ExtractionHeuristic {
   def extract(graph: RefinementGraph): Seq[Lemma] = {
     // get all inconclusive nodes
     val inconclusiveNodes = graph.collectNodes(Inconclusive())

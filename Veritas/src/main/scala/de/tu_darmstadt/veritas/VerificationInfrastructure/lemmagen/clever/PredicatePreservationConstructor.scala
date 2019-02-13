@@ -14,7 +14,7 @@ import scala.collection.mutable
 class PredicatePreservationConstructor(val problem: Problem,
                                        function: FunctionDef,
                                        predicate: FunctionDef,
-                                       hints: Option[Hints]) extends GraphConstructor[RefinementGraph] with StrategyHelpers {
+                                       hints: Option[Hints]) extends GraphConstructor with StrategyHelpers {
   import Query._
 
   implicit private val enquirer = problem.enquirer

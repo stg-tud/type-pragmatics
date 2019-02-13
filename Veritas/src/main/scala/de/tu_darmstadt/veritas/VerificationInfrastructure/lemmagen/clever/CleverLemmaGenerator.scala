@@ -40,7 +40,7 @@ class CleverLemmaGenerator(problem: Problem) {
     problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.outType))
   }
 
-  def generateWithConstructor(constructor: GraphConstructor[RefinementGraph],
+  def generateWithConstructor(constructor: GraphConstructor,
                               directory: File): Seq[Lemma] = {
     if(!directory.exists())
       directory.mkdirs()
