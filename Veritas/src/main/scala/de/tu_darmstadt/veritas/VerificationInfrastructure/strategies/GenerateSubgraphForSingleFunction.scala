@@ -73,13 +73,41 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     def isLeafNodeWithoutFCParent(n: acg.Node): Boolean = (acg.leaves contains n) && acg.getFCParents(n).isEmpty
 
     //retrieve an obligation from a list of given obligations that fits to the given ACG_node
-    def getMatchingObl(acg_node: acg.Node, obls: Seq[pg.Obligation]): pg.Obligation = ??? //TODO How to do that abstractly? Via goal names?
+    // there are probably some gaps in this function, needs to be refined for concrete cases
+    def getMatchingObl(acg_node: acg.Node, obls: Seq[pg.Obligation]): pg.Obligation = {
+      val goalmap: Map[String, pg.Obligation] = (obls map (o => (spec_enquirer.getFormulaName(o.goal) -> o))).toMap
+      val selected_goalname: Option[String] = acg_node match {
+        case acg.StructuralDistinction(_, arg_exp, _) => {
+          //attempt to find the name for the case that the spec_enquirer would generate as substring of a goalname
+          val farg_exp = spec_enquirer.convertExpToFormula(arg_exp)
+          val genname = spec_enquirer.makeFormulaName(farg_exp)
+          goalmap.keys.find(n => n.contains(genname))
+        }
+        case acg.BooleanDistinction(_, _, criteria, _, _) => {
+          val f = spec_enquirer.convertExpToFormula(criteria)
+          val predname = spec_enquirer.makeFormulaName(f)
+          if (spec_enquirer.isNegation(f)) {
+            //look for "false" in goalnames
+            goalmap.keys.find(n => n.contains(predname) && n.contains("False"))
+          }
+          else {
+            //look for "true" in goalnames
+            goalmap.keys.find(n => n.contains(predname) && n.contains("True"))
+          }
+        }
+      }
+      if (selected_goalname.nonEmpty)
+        goalmap(selected_goalname.get)
+      else
+        sys.error(s"Could not find a matching obligation for acg_node $acg_node in $obls")
+    }
+
 
     def makebindingFormula(varname: String, rhs: Expression): Formulae =
       spec_enquirer.makeEquation(spec_enquirer.makeMVTerm(varname), rhs)
 
 
-    // 2) iteratively traverse given acg
+    // 2) iteratively traverse given acg and grow proof graph according to ACG information
 
     //loop initialization:
     // a) get children from root node; ignore leaves without any function call parents (will be treated at the end)

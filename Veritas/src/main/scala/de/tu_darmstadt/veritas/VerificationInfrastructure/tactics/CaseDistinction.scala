@@ -157,9 +157,9 @@ case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Formulae,
   override def apply[Obligation](obl: GenObligation[Defs, Formulae],
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
-
-    //TODO better names for equations?
-    val dist_cases = Map(("Pred-True" -> Seq(body)), ("Pred-False" -> Seq(convertExpToNegFormula(body))))
+    //generate a name out of the given body
+    val predname = makeFormulaName(body)
+    val dist_cases = Map((s"$predname-True" -> Seq(body)), (s"$predname-False" -> Seq(convertExpToNegFormula(body))))
     CaseDistinction[Defs, Formulae](dist_cases, queryspec, fc_calls, new_global_additional_premises)(obl, obllabels, produce)
   }
 

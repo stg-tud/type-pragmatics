@@ -28,6 +28,8 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   def isImplication(g: Formulae): Boolean
 
+  def isNegation(g: Formulae): Boolean
+
   //expects a function call, from which the function's name can be extracted!
   def isRecursiveFunctionCall(fc: Defs): Boolean
 

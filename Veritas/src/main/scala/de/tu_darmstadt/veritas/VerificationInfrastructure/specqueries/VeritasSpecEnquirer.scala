@@ -179,6 +179,14 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
       case _ => sys.error("Cannot determine if a construct that is not a FunctionExpApp is a call to a recursive function.")
     }
 
+
+  override def isNegation(g: VeritasFormula): Boolean = g match {
+    case FunctionExpJudgment(FunctionExpNot(_)) => true
+    case FunctionExpJudgment(FunctionExpNeq(_,_)) => true
+    case FunctionExpJudgment(_) => false
+    case _ => false
+  }
+
   /**
     * receive a formula that is universally or existentially quantified, return the body of the formula
     *
