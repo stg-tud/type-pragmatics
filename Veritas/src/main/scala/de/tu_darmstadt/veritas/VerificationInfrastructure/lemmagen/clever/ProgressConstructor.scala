@@ -7,7 +7,6 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
@@ -80,23 +79,12 @@ class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Op
     )
   }
 
-  def generateRefinements(node: RefinementNode): Set[Refinement] = {
-    generateEquations(node) ++ generateApplications(node)
+  override def constructRoot(): AnnotatedLemma = {
+    // TODO: Hints
+    AnnotatedLemma(baseLemma, Set(), Set())
   }
 
-  def construct(): RefinementGraph = {
-    // TODO Hints
-    val root = new RefinementNode(AnnotatedLemma(baseLemma, Set(), Set()))
-    val graph = new RefinementGraph(problem, root)
-    while(graph.openNodes.nonEmpty) {
-      for(node <- graph.openNodes) {
-        val restrictions = generateRefinements(node)
-        for (restriction <- restrictions) {
-          graph.refine(node, restriction)
-        }
-        node.open = false
-      }
-    }
-    graph
+  override def expand(node: RefinementNode): Set[Refinement] = {
+    generateEquations(node) ++ generateApplications(node)
   }
 }

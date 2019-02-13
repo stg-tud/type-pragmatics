@@ -53,8 +53,8 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
         node = fringe.dequeue()
         fringe ++= node.parents
       }
-      println(s"${fringe.size} elements")
       if(node.provabilityStatus == Unknown()) {
+        println(node.lemma)
         val status = invokeOracle(problem, Set(node.lemma))
         if (status == DirectlyDisproved()) {
           tree.setDisprovedStatusRecursively(node)

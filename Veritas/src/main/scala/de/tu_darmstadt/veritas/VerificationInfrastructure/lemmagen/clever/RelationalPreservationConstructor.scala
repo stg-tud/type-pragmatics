@@ -104,30 +104,15 @@ class RelationalPreservationConstructor(val problem: Problem,
     )
   }
 
-  def generateRefinements(node: RefinementNode): Set[Refinement] = {
+  override def expand(node: RefinementNode): Set[Refinement] = {
     generateEquations(node) ++ generateApplications(node)
   }
 
-  def generateBaseWithHints(): AnnotatedLemma = {
+  override def constructRoot(): AnnotatedLemma = {
     val base = generateBase()
     hints match {
       case None => base
       case Some(actualHints) => actualHints.apply(base)
     }
-  }
-
-  def construct(): RefinementGraph = {
-    val root = new RefinementNode(generateBaseWithHints())
-    val graph = new RefinementGraph(problem, root)
-    while(graph.openNodes.nonEmpty) {
-      for(node <- graph.openNodes) {
-        val restrictions = generateRefinements(node)
-        for (restriction <- restrictions) {
-          graph.refine(node, restriction)
-        }
-        node.open = false
-      }
-    }
-    graph
   }
 }
