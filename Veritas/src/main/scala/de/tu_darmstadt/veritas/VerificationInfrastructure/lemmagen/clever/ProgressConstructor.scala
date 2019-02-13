@@ -5,16 +5,17 @@ import java.io.File
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.Hint
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
-class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Seq[Hint])
+class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Option[Hints])
   extends GraphConstructor[RefinementGraph] with StrategyHelpers {
   import Query._
+
+  require(hints == None)
 
   implicit private val enquirer = problem.enquirer
 
@@ -84,6 +85,7 @@ class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Se
   }
 
   def construct(): RefinementGraph = {
+    // TODO Hints
     val root = new RefinementNode(AnnotatedLemma(baseLemma, Set(), Set()))
     val graph = new RefinementGraph(problem, root)
     while(graph.openNodes.nonEmpty) {

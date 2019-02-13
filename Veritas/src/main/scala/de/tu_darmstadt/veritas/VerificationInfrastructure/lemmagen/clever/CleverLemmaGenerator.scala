@@ -3,7 +3,6 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 import java.io.File
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.AdditionalPremises
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpNeq, FunctionMeta}
@@ -56,10 +55,10 @@ class CleverLemmaGenerator(problem: Problem) {
 
   def generatePreservationLemmas(fn: FunctionDef): Set[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
-    val hint = AdditionalPremises.fromDSK(problem, fn)
+    val hints = Hints.fromDSK(problem, fn)
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
       println(s"${fn.signature.name} / ${predicate.signature.name}")
-      val constructor = new PredicatePreservationConstructor(problem, fn, predicate, Seq(hint))
+      val constructor = new PredicatePreservationConstructor(problem, fn, predicate, Some(hints))
       result ++= generateWithConstructor(
         constructor,
         s"generated/preservation/${fn.signature.name}/${predicate.name}"
@@ -68,7 +67,7 @@ class CleverLemmaGenerator(problem: Problem) {
     if(fn.inTypes.count(_ == fn.successfulOutType) == 1) {
       for (relation <- getRelationsInvolving(fn.successfulOutType)) {
         println(s"${fn.signature.name} / ${relation.signature.name}")
-        val constructor = new RelationalPreservationConstructor(problem, fn, relation, Seq(hint))
+        val constructor = new RelationalPreservationConstructor(problem, fn, relation, Some(hints))
         result ++= generateWithConstructor(
           constructor,
           s"generated/preservation/${fn.signature.name}/${relation.name}"
@@ -81,7 +80,7 @@ class CleverLemmaGenerator(problem: Problem) {
   def generateProgressLemmas(fn: FunctionDef): Set[Lemma] = {
     //val hint = AdditionalPremises.fromDSK(problem, fn) TODO
     println(s"${fn.signature.name}")
-    val constructor = new ProgressConstructor(problem, fn, Seq())
+    val constructor = new ProgressConstructor(problem, fn, None)
     val consultation = new VampireOracleConsultation(problem)
     val extractor = new RankingHeuristic()
     val pipeline = new VisualizingGenerationPipeline(

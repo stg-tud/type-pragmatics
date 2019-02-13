@@ -1,21 +1,17 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import java.io.File
-
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.Hint
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, NotJudgment, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
 import scala.collection.mutable
 
 class RelationalPreservationConstructor(val problem: Problem,
                                        function: FunctionDef,
                                        predicate: FunctionDef,
-                                       hints: Seq[Hint]) extends GraphConstructor[RefinementGraph] with StrategyHelpers {
+                                       hints: Option[Hints]) extends GraphConstructor[RefinementGraph] with StrategyHelpers {
   import Query._
 
   implicit private val enquirer = problem.enquirer
@@ -32,20 +28,19 @@ class RelationalPreservationConstructor(val problem: Problem,
     Assignments.generate(constraints).head // TODO
   }
 
+  // --------------------
+  // [predicate]([t_1], [t_2])
+  // [producer]([], ...) =  []
+  // producer arguments can be fresh or bound with matching types
+  // the success variable can be any of the arguments of ``predicate``, with matching types
   private val resultVar :: functionArgs = Assignments.generateSimpleSingle(termType +: function.inTypes)
-  private val predicateArgs = generatePredicateArguments(resultVar)
+  private val matchingInVars = functionArgs.filter(_.sortType == termType)
+  require(matchingInVars.size == 1)
+  private val inVar = matchingInVars.head
+  private val relationConstraints = Seq(Constraint.fixed(inVar), Constraint.fixed(resultVar))
+  private val predicateArgs = Assignments.generate(relationConstraints).head
 
-  def generateBase(): (Lemma, Set[MetaVar], Set[MetaVar]) = {
-    // --------------------
-    // [predicate]([t_1], [t_2])
-    // [producer]([], ...) =  []
-    // producer arguments can be fresh or bound with matching types
-    val matchingInVars = functionArgs.filter(_.sortType == termType)
-    require(matchingInVars.size == 1)
-    val inVar = matchingInVars.head
-    // the success variable can be any of the arguments of ``predicate``, with matching types
-    val relationConstraints = Seq(Constraint.fixed(inVar), Constraint.fixed(resultVar))
-    val predicateArgs = Assignments.generate(relationConstraints).head
+  def generateBase(): AnnotatedLemma = {
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${function.name}${predicate.name}Preservation", Seq(), Seq(judgment))
@@ -55,7 +50,7 @@ class RelationalPreservationConstructor(val problem: Problem,
     var lemma = baseLemma
     val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
     lemma = r.refine(problem, lemma).getOrElse(lemma)
-    (lemma, Set(resultVar),predicateArgs.toSet)
+    AnnotatedLemma(lemma, predicateArgs.toSet, Set(resultVar))
   }
 
   def restrictableVariables(lemma: Lemma): Set[MetaVar] = lemma.boundVariables.filterNot(_.sortType == termType)
@@ -113,20 +108,16 @@ class RelationalPreservationConstructor(val problem: Problem,
     generateEquations(node) ++ generateApplications(node)
   }
 
-  def applyHints(lemma: Lemma, post: Set[MetaVar], constrained: Set[MetaVar]): (Lemma, Set[MetaVar], Set[MetaVar]) = {
-    hints.foldLeft((lemma, post, constrained)) {
-      case ((l, p, c), h) => h.apply(l, p, c)
+  def generateBaseWithHints(): AnnotatedLemma = {
+    val base = generateBase()
+    hints match {
+      case None => base
+      case Some(actualHints) => actualHints.apply(base)
     }
   }
 
-  def generateBaseWithHints(): (Lemma, Set[MetaVar], Set[MetaVar]) = {
-    val (lemma, postVars, constrainedVars) = generateBase()
-    applyHints(lemma, postVars, constrainedVars)
-  }
-
   def construct(): RefinementGraph = {
-    val (lemma, postVars, constrainedVars) = generateBaseWithHints()
-    val root = new RefinementNode(AnnotatedLemma(lemma, constrainedVars, postVars))
+    val root = new RefinementNode(generateBaseWithHints())
     val graph = new RefinementGraph(problem, root)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {

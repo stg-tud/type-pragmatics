@@ -5,7 +5,6 @@ import java.io.File
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.hints.Hint
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, NotJudgment, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.util.FreeVariables
@@ -15,7 +14,7 @@ import scala.collection.mutable
 class PredicatePreservationConstructor(val problem: Problem,
                                        function: FunctionDef,
                                        predicate: FunctionDef,
-                                       hints: Seq[Hint]) extends GraphConstructor[RefinementGraph] with StrategyHelpers {
+                                       hints: Option[Hints]) extends GraphConstructor[RefinementGraph] with StrategyHelpers {
   import Query._
 
   implicit private val enquirer = problem.enquirer
@@ -35,7 +34,7 @@ class PredicatePreservationConstructor(val problem: Problem,
   private val resultVar :: functionArgs = Assignments.generateSimpleSingle(termType +: function.inTypes)
   private val predicateArgs = generatePredicateArguments(resultVar)
 
-  def generateBase(): (Lemma, Set[MetaVar], Set[MetaVar]) = {
+  def generateBase(): AnnotatedLemma = {
     // --------------------
     // [predicate]([], ...)
     // [producer]([], ...) =  []
@@ -63,7 +62,7 @@ class PredicatePreservationConstructor(val problem: Problem,
       constrainedVars ++= assignment.toSet
       lemma = refinement.refine(problem, lemma).getOrElse(lemma)
     }
-    (lemma, predicateArgs.toSet, constrainedVars)
+    AnnotatedLemma(lemma, constrainedVars, predicateArgs.toSet)
   }
 
   def restrictableVariables(lemma: Lemma): Set[MetaVar] = lemma.boundVariables.filterNot(_.sortType == termType)
@@ -121,20 +120,16 @@ class PredicatePreservationConstructor(val problem: Problem,
     generateEquations(node) ++ generateApplications(node)
   }
 
-  def applyHints(lemma: Lemma, post: Set[MetaVar], constrained: Set[MetaVar]): (Lemma, Set[MetaVar], Set[MetaVar]) = {
-    hints.foldLeft((lemma, post, constrained)) {
-      case ((l, p, c), h) => h.apply(l, p, c)
+  def generateBaseWithHints(): AnnotatedLemma = {
+    val base = generateBase()
+    hints match {
+      case None => base
+      case Some(actualHints) => actualHints.apply(base)
     }
   }
 
-  def generateBaseWithHints(): (Lemma, Set[MetaVar], Set[MetaVar]) = {
-    val (lemma, postVars, constrainedVars) = generateBase()
-    applyHints(lemma, postVars, constrainedVars)
-  }
-
   def construct(): RefinementGraph = {
-    val (lemma, postVars, constrainedVars) = generateBaseWithHints()
-    val root = new RefinementNode(AnnotatedLemma(lemma, constrainedVars, postVars))
+    val root = new RefinementNode(generateBaseWithHints())
     val graph = new RefinementGraph(problem, root)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
