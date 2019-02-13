@@ -103,11 +103,11 @@ class VeritasProgressPreservationTopLevelStrategy(pathtoScalaSPLsource: String, 
   }
 
   override def retrievePropFromGoal(g: VeritasFormula): TypingRule = g match {
-    case Goals(Seq(t,_), _) => t
-    case GoalsWithStrategy(_, Seq(t, _), _) => t
-    case Lemmas(Seq(t,_),_) => t
-    case LemmasWithStrategy(_, Seq(t, _),_) => t
-    case Axioms(Seq(t, _)) => t
+    case Goals(l,_) if l.nonEmpty => l.head
+    case GoalsWithStrategy(_, l, _) if l.nonEmpty => l.head
+    case Lemmas(l,_) if l.nonEmpty => l.head
+    case LemmasWithStrategy(_, l,_) if l.nonEmpty => l.head
+    case Axioms(l) if l.nonEmpty => l.head
     case _ => sys.error(s"Could not retrieve a TypingRule from $g")
   }
 }

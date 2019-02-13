@@ -122,15 +122,15 @@ object AESpec extends ScalaSPLSpecification {
 
   // steps for soundness proof (progress and preservation) for typed arithmetic expressions as given in Pierce, TAPL, Chapter 8
   @Property
-  def Progress(t1: Term, T: Ty): Unit = {
-    require(t1 :: T)
-    require(!isValue(t1))
-  } ensuring exists( (t2: Term) => reduce(t1) == someTerm(t2))
+  def Progress(t: Term, T: Ty): Unit = {
+    require(t :: T)
+    require(!isValue(t))
+  } ensuring exists( (t2: Term) => reduce(t) == someTerm(t2))
 
   @Property
-  def Preservation(t1: Term, T: Ty, t2: Term): Unit = {
-    require(t1 :: T)
-    require(reduce(t1) == someTerm(t2))
+  def Preservation(t: Term, T: Ty, t2: Term): Unit = {
+    require(t :: T)
+    require(reduce(t) == someTerm(t2))
   } ensuring(t2 :: T)
 
 }

@@ -44,7 +44,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     //1) treat root node of acg separately, since it is the only node which may induce a structural induction step
     if (acg_sdroot.arg_pos.nonEmpty) { //first check whether we have to do a distinction at all
       val distpos = acg_sdroot.arg_pos.get //this position is either the argument position in which the function is recursive or in which the top-level cases can be distinguished
-    val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos))
+      val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos))
       val distvar: Def = spec_enquirer.makeMVTerm(distvarname)
       // is our function in question a recursive function?
       val funname = acg.toplevel_fun
@@ -65,7 +65,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       val root_fcparents = acg.getFCParents(acg_sdroot)
       if (root_fcparents.nonEmpty) {
         //collect lemmas for the individual function calls via lemma selection strategy and apply a lemma application
-        LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, SimplyFirstSelectionStrategy(), root_fcparents.map { case acg.FunctionCall(_, _, fn) => fn })
+        LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, SimplyFirstSelectionStrategy(), root_fcparents.map { case acg.FunctionCall(_, _, fn) => fn }).applyToPG(pg)(obl)
       }
     }
 

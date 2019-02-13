@@ -47,7 +47,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     val acg = acg_gen(fname)
 
     //step 3: apply strategy that traverses the computed ACG and grows the given proof graph accordingly
-    GenerateSubgraphForSingleFunction(dsk, acg_gen, spec_enquirer, acg)
+    GenerateSubgraphForSingleFunction(dsk, acg_gen, spec_enquirer, acg).applyToPG(pg)(obl)
 
 
     //step 4: Collect all leaves that contain auxiliary lemmas (i.e. are children of a lemma application)
@@ -70,6 +70,10 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     pg
   }
 
-  private def findFDefForDSKProp(p: Prop): Option[FDef] =
-    (dsk.preservationProperties ++ dsk.progressProperties).find(pair => pair._2.contains(p)).map(_._1)
+  private def findFDefForDSKProp(p: Prop): Option[FDef] = {
+    val preservationFDef = dsk.preservationProperties.find(pair => pair._2 contains p).map(_._1)
+    val progressFDef = dsk.progressProperties.find(pair => pair._2 contains p).map(_._1)
+
+    if (preservationFDef.nonEmpty) preservationFDef else progressFDef
+  }
 }
