@@ -409,8 +409,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @ProgressProperty("projectTypeImpliesFindCol")
   @PreservationProperty("findColPreservesWelltypedRaw")
   @PreservationProperty("findColPreservesRowCount")
-  @AdditionalPremise("tt == ttcons(_1, _2, ttempty())")
-  @IrrelevantVariable("_2")
+  @AdditionalPremise("tt == ttcons(n, _2, ttempty())")
   @Recursive(1)
   def findCol(n: Name, attrL: AttrL, rt: RawTable): OptRawTable = (n, attrL, rt) match {
     case (a, aempty(), _) => noRawTable()
@@ -427,7 +426,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("welltypedEmptyProjection")
   @PreservationProperty("projectEmptyColPreservesRowCount")
   @Recursive(0)
-  @AdditionalPremise("_ == ttempty()")
+  @AdditionalPremise("_0 == ttempty()")
   def projectEmptyCol(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(_, t) => tcons(rempty(), projectEmptyCol(t))

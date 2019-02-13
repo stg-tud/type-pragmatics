@@ -23,28 +23,6 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
-  for(func <- generator.preservationFunctions) {
-    lazy val lemmas = generator.generatePreservationLemmas(func).toSeq
-    val expectedLemmas = problem.dsk.preservationProperties.getOrElse(func, Seq())
-    for(expected <- expectedLemmas) {
-      test(s"preservation ${func.signature.name} (${expected.name})") {
-        println(s"===== ${lemmas.size} lemmas!")
-        printRules(lemmas)
-        println("")
-        val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
-        println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
-        assert(equivalentLemmas.nonEmpty)
-      }
-    }
-    if(expectedLemmas.isEmpty)
-      test(s"preservation ${func.signature.name}") {
-        println(s"===== ${lemmas.size} lemmas!")
-        printRules(lemmas)
-        println("")
-        succeed
-      }
-  }
-
   for(func <- generator.progressFunctions) {
     lazy val lemmas = generator.generateProgressLemmas(func).toSeq
     val expectedLemmas = problem.dsk.progressProperties.getOrElse(func, Seq())
@@ -60,6 +38,28 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
     }
     if(expectedLemmas.isEmpty)
       test(s"progress ${func.signature.name}") {
+        println(s"===== ${lemmas.size} lemmas!")
+        printRules(lemmas)
+        println("")
+        succeed
+      }
+  }
+
+  for(func <- generator.preservationFunctions) {
+    lazy val lemmas = generator.generatePreservationLemmas(func).toSeq
+    val expectedLemmas = problem.dsk.preservationProperties.getOrElse(func, Seq())
+    for(expected <- expectedLemmas) {
+      test(s"preservation ${func.signature.name} (${expected.name})") {
+        println(s"===== ${lemmas.size} lemmas!")
+        printRules(lemmas)
+        println("")
+        val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
+        println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
+        assert(equivalentLemmas.nonEmpty)
+      }
+    }
+    if(expectedLemmas.isEmpty)
+      test(s"preservation ${func.signature.name}") {
         println(s"===== ${lemmas.size} lemmas!")
         printRules(lemmas)
         println("")

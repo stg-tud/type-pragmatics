@@ -65,13 +65,15 @@ class CleverLemmaGenerator(problem: Problem) {
         s"generated/preservation/${fn.signature.name}/${predicate.name}"
       )
     }
-    for(relation <- getRelationsInvolving(fn.successfulOutType)) {
-      println(s"${fn.signature.name} / ${relation.signature.name}")
-      val constructor = new RelationalPreservationConstructor(problem, fn, relation, Seq(hint))
-      result ++= generateWithConstructor(
-        constructor,
-        s"generated/preservation/${fn.signature.name}/${relation.name}"
-      )
+    if(fn.inTypes.count(_ == fn.successfulOutType) == 1) {
+      for (relation <- getRelationsInvolving(fn.successfulOutType)) {
+        println(s"${fn.signature.name} / ${relation.signature.name}")
+        val constructor = new RelationalPreservationConstructor(problem, fn, relation, Seq(hint))
+        result ++= generateWithConstructor(
+          constructor,
+          s"generated/preservation/${fn.signature.name}/${relation.name}"
+        )
+      }
     }
     result.toSet
   }
