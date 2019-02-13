@@ -27,7 +27,7 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
       if(node.provabilityStatus == Unknown()) {
         val status = updateStatus(node)
         if (status == DirectlyDisproved()) {
-          node.setDisprovedStatusRecursively()
+          tree.setDisprovedStatusRecursively(node)
         } else {
           node.provabilityStatus = status
         }

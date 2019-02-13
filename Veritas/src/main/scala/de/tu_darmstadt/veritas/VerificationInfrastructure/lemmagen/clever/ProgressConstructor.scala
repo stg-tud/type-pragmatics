@@ -84,12 +84,13 @@ class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Se
   }
 
   def construct(): RefinementGraph = {
-    val graph = new RefinementGraph(baseLemma, Set())
+    val root = new RefinementNode(baseLemma, Set(), Set())
+    val graph = new RefinementGraph(problem, root)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
         val restrictions = generateRefinements(node)
         for (restriction <- restrictions) {
-          node.refine(problem, restriction)
+          graph.refine(node, restriction)
         }
         node.open = false
       }

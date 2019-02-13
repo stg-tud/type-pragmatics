@@ -134,23 +134,17 @@ class PredicatePreservationConstructor(val problem: Problem,
 
   def construct(): RefinementGraph = {
     val (lemma, postVars, constrainedVars) = generateBaseWithHints()
-    val graph = new RefinementGraph(lemma, constrainedVars, postVars)
+    val root = new RefinementNode(lemma, constrainedVars, postVars)
+    val graph = new RefinementGraph(problem, root)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
         val restrictions = generateRefinements(node)
         for (restriction <- restrictions) {
-          node.refine(problem, restriction)
+          graph.refine(node, restriction)
         }
         node.open = false
       }
-    }/*
-    graph.visualize(new File(s"pres-${function.signature.name}-before.png") )
-    val consultation = new VampireOracleConsultation(problem)
-    consultation.consult(graph)
-    val heuristic = new RankingHeuristic(graph)
-    val incLemmas = heuristic.extract().map(_.lemma)
-    graph.visualize(new File(s"pres-${function.signature.name}-after.png") )
-    heuristic.extract().map(_.lemma)*/
+    }
     graph
   }
 }

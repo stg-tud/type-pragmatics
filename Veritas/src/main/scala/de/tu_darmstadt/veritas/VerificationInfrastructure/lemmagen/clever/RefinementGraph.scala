@@ -13,9 +13,7 @@ case class Inconclusive() extends ProvabilityStatus
 case class DirectlyDisproved() extends ProvabilityStatus
 case class IndirectlyDisproved() extends ProvabilityStatus
 
-class RefinementNode(val graph: RefinementGraph,
-                     val lemma: Lemma,
-                     val refinement: Option[Refinement],
+class RefinementNode(val lemma: Lemma,
                      val constrainedVariables: Set[MetaVar],
                      val postVariables: Set[MetaVar]) {
   private var _parents: Seq[RefinementNode] = Seq()
@@ -47,36 +45,6 @@ class RefinementNode(val graph: RefinementGraph,
     }
   def ancestors: Set[RefinementNode] = (parents ++ parents.flatMap(_.ancestors)).toSet
 
-  def refine(problem: Problem, refinement: Refinement): RefinementNode = {
-    val newPost = Variables.calculatePostVariables(postVariables, refinement)
-    var newConstrained = Variables.calculateConstrainedVariables(constrainedVariables, refinement)
-    refinement.refine(problem, lemma) match {
-      case None => this
-      case Some(refinedLemma) =>
-        graph.findLemma(refinedLemma) match {
-          case Some(node) => {
-            require(node.postVariables == newPost)
-            require(node.constrainedVariables == newConstrained)
-            this.addChild(node, refinement)
-            node
-          }
-          case None =>
-            val child = new RefinementNode(graph, refinedLemma, Some(refinement), newConstrained, newPost)
-            this.addChild(child, refinement)
-            child
-        }
-    }
-  }
-
-  def findRefinement(refinement: Refinement): Option[RefinementNode] = children.find(_.refinement.exists(r => r == refinement))
-
-  def setDisprovedStatusRecursively(): Unit = {
-    this.provabilityStatus = DirectlyDisproved()
-    for(ancestor <- ancestors) {
-      ancestor.provabilityStatus = IndirectlyDisproved() // TODO: overwriting the status here
-    }
-  }
-
   def makeDotString(sb: StringBuilder, nodeID: String): Unit = {
     val color = provabilityStatus match {
       case Unknown() => "gray"
@@ -93,10 +61,7 @@ class RefinementNode(val graph: RefinementGraph,
   }
 }
 
-class RefinementGraph(rootLemma: Lemma,
-                      constrainedVariables: Set[MetaVar],
-                      postVariables: Set[MetaVar] = Set()) {
-  val root = new RefinementNode(this, rootLemma, None, constrainedVariables, postVariables)
+class RefinementGraph(problem: Problem, root: RefinementNode) {
   def nodes: Set[RefinementNode] = Set(root) ++ root.descendants
   def openNodes: Set[RefinementNode] = nodes.filter(_.open)
   def leaves: Set[RefinementNode] = root.leaves
@@ -136,5 +101,33 @@ class RefinementGraph(rootLemma: Lemma,
     val exitCode = s"dot -T$ext ${dotFile.getAbsolutePath} -o${outputPath.getAbsolutePath}".!
     if (exitCode != 0)
       throw new RuntimeException("Refinement Graph could not be visualized. This could be caused by the non-existence of the dot command.")
+  }
+
+  def refine(node: RefinementNode, refinement: Refinement): RefinementNode = {
+    val newPost = Variables.calculatePostVariables(node.postVariables, refinement)
+    val newConstrained = Variables.calculateConstrainedVariables(node.constrainedVariables, refinement)
+    refinement.refine(problem, node.lemma) match {
+      case None => node
+      case Some(refinedLemma) =>
+        findLemma(refinedLemma) match {
+          case Some(otherNode) => {
+            require(otherNode.postVariables == newPost)
+            require(otherNode.constrainedVariables == newConstrained)
+            node.addChild(otherNode, refinement)
+            otherNode
+          }
+          case None =>
+            val child = new RefinementNode(refinedLemma, newConstrained, newPost)
+            node.addChild(child, refinement)
+            child
+        }
+    }
+  }
+
+  def setDisprovedStatusRecursively(node: RefinementNode): Unit = {
+    node.provabilityStatus = DirectlyDisproved()
+    for(ancestor <- node.ancestors) {
+      ancestor.provabilityStatus = IndirectlyDisproved() // TODO: overwriting the status here
+    }
   }
 }
