@@ -1,15 +1,45 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Oracle, Problem}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{Evidence, GenStepResult, StepResultProducer}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.LemmaApplicationStep
+import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, Proved, TPTPVampireVerifier, VerifierStatus}
+import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
 
 import scala.collection.mutable
 
 class VampireOracleConsultation(val problem: Problem) extends OracleConsultation[RefinementGraph] {
-  def updateStatus(node: RefinementNode): ProvabilityStatus = {
-    println(node.lemma)
-    Oracle.invoke(problem, Set(node.lemma)) match {
-      case Oracle.Inconclusive() => Inconclusive()
-      case Oracle.ProvablyFalse(_) => DirectlyDisproved()
+  class StepResult(val status: VerifierStatus[VeritasConstruct, VeritasFormula],
+                   val evidence: Option[Evidence], val errorMsg: Option[String])
+    extends GenStepResult[VeritasConstruct, VeritasFormula]  {
+  }
+
+  object stepResultProducer extends StepResultProducer[VeritasConstruct, VeritasFormula, StepResult] {
+    override def newStepResult(status: VerifierStatus[VeritasConstruct, VeritasFormula], evidence: Option[Evidence],
+                               errorMsg: Option[String]): StepResult = {
+      new StepResult(status, evidence, errorMsg)
+    }
+  }
+
+  def invokeOracle(problem: Problem, lemmas: Set[Lemma], timeout: Integer = 3, logic: String = "tff"): ProvabilityStatus = {
+    val falseGoal = Goals(Seq(TypingRule("false-goal", Seq(), Seq(FunctionExpJudgment(FunctionExpFalse)))), None)
+    val verifier = new TPTPVampireVerifier(timeout, "4.2.2", logic)
+    //val verifier = new ADTVampireVerifier(timeout)
+    val assumptions = lemmas.map(lemma => (LemmaApplicationStep(lemma.name), lemma)).toSeq
+    // sanity check for distinguishable names
+    require(lemmas.map(_.name).size == lemmas.size)
+    val result = verifier.verify(
+      falseGoal,
+      problem.spec,
+      Seq(),
+      assumptions,
+      None,
+      stepResultProducer
+    )
+    result.status match {
+      case Finished(Proved(_), _) => DirectlyDisproved()
+      case _ => Inconclusive()
     }
   }
 
@@ -25,7 +55,7 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
       }
       println(s"${fringe.size} elements")
       if(node.provabilityStatus == Unknown()) {
-        val status = updateStatus(node)
+        val status = invokeOracle(problem, Set(node.lemma))
         if (status == DirectlyDisproved()) {
           tree.setDisprovedStatusRecursively(node)
         } else {
