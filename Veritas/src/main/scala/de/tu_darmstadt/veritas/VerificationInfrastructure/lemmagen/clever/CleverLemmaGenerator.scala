@@ -41,16 +41,21 @@ class CleverLemmaGenerator(problem: Problem) {
   }
 
   def generateWithConstructor(constructor: GraphConstructor[RefinementGraph],
-                              directory: String): Seq[Lemma] = {
+                              directory: File): Seq[Lemma] = {
+    if(!directory.exists())
+      directory.mkdirs()
+    val graph = constructor.construct()
+    println(s"-- constructed graph with ${graph.nodes.size} nodes")
+    graph.visualize(new File(directory, "step1.png"))
     val consultation = new VampireOracleConsultation(problem)
+    consultation.consult(graph)
+    println(s"-- consulted oracle")
     val extractor = new RankingHeuristic()
-    val pipeline = new VisualizingGenerationPipeline(
-      constructor,
-      consultation,
-      extractor,
-      new File(directory)
-    )
-    pipeline.generate()
+    graph.visualize(new File(directory, "step2.png"))
+    val lemmas = extractor.extract(graph)
+    println(s"-- extracted ${lemmas.size} lemmas")
+    graph.visualize(new File(directory, "step3.png"))
+    lemmas
   }
 
   def generatePreservationLemmas(fn: FunctionDef): Set[Lemma] = {
@@ -61,7 +66,7 @@ class CleverLemmaGenerator(problem: Problem) {
       val constructor = new PredicatePreservationConstructor(problem, fn, predicate, Some(hints))
       result ++= generateWithConstructor(
         constructor,
-        s"generated/preservation/${fn.signature.name}/${predicate.name}"
+        new File(s"generated/preservation/${fn.signature.name}/${predicate.name}")
       )
     }
     if(fn.inTypes.count(_ == fn.successfulOutType) == 1) {
@@ -70,26 +75,19 @@ class CleverLemmaGenerator(problem: Problem) {
         val constructor = new RelationalPreservationConstructor(problem, fn, relation, Some(hints))
         result ++= generateWithConstructor(
           constructor,
-          s"generated/preservation/${fn.signature.name}/${relation.name}"
+          new File(s"generated/preservation/${fn.signature.name}/${relation.name}")
         )
       }
     }
     result.toSet
   }
 
+
   def generateProgressLemmas(fn: FunctionDef): Set[Lemma] = {
     //val hint = AdditionalPremises.fromDSK(problem, fn) TODO
     println(s"${fn.signature.name}")
     val constructor = new ProgressConstructor(problem, fn, None)
-    val consultation = new VampireOracleConsultation(problem)
-    val extractor = new RankingHeuristic()
-    val pipeline = new VisualizingGenerationPipeline(
-      constructor,
-      consultation,
-      extractor,
-      new File(s"generated/progress/${fn.signature.name}/")
-    )
-    pipeline.generate().map(lemma =>
+    generateWithConstructor(constructor, new File(s"generated/progress/${fn.signature.name}/")).map(lemma =>
       lemma.consequences.head match {
         case FunctionExpJudgment(FunctionExpNeq(l, r)) =>
           val (_, successConstructor) = enquirer.retrieveFailableConstructors(fn.outType)
