@@ -84,7 +84,7 @@ class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Se
   }
 
   def construct(): RefinementGraph = {
-    val root = new RefinementNode(baseLemma, Set(), Set())
+    val root = new RefinementNode(AnnotatedLemma(baseLemma, Set(), Set()))
     val graph = new RefinementGraph(problem, root)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {

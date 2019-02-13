@@ -134,7 +134,7 @@ class PredicatePreservationConstructor(val problem: Problem,
 
   def construct(): RefinementGraph = {
     val (lemma, postVars, constrainedVars) = generateBaseWithHints()
-    val root = new RefinementNode(lemma, constrainedVars, postVars)
+    val root = new RefinementNode(AnnotatedLemma(lemma, constrainedVars, postVars))
     val graph = new RefinementGraph(problem, root)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {

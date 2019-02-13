@@ -13,15 +13,16 @@ case class Inconclusive() extends ProvabilityStatus
 case class DirectlyDisproved() extends ProvabilityStatus
 case class IndirectlyDisproved() extends ProvabilityStatus
 
-class RefinementNode(val lemma: Lemma,
-                     val constrainedVariables: Set[MetaVar],
-                     val postVariables: Set[MetaVar]) {
+class RefinementNode(val annotatedLemma: AnnotatedLemma) {
   private var _parents: Seq[RefinementNode] = Seq()
   private var _children: Map[Refinement, RefinementNode] = Map()
   var provabilityStatus: ProvabilityStatus = Unknown()
   var open: Boolean = true
   var selected: Boolean = false
 
+  def lemma: Lemma = annotatedLemma.lemma
+  def constrainedVariables: Set[MetaVar] = annotatedLemma.constrainedVariables
+  def postVariables: Set[MetaVar] = annotatedLemma.postVariables
   def preVariables: Set[MetaVar] = lemma.boundVariables -- postVariables
 
   def addChild(child: RefinementNode, refinement: Refinement): Unit = {
@@ -104,20 +105,16 @@ class RefinementGraph(problem: Problem, root: RefinementNode) {
   }
 
   def refine(node: RefinementNode, refinement: Refinement): RefinementNode = {
-    val newPost = Variables.calculatePostVariables(node.postVariables, refinement)
-    val newConstrained = Variables.calculateConstrainedVariables(node.constrainedVariables, refinement)
-    refinement.refine(problem, node.lemma) match {
+    AnnotatedLemma.refine(problem, node.annotatedLemma, refinement) match {
       case None => node
-      case Some(refinedLemma) =>
+      case Some(refinedAnnotated@AnnotatedLemma(refinedLemma, _, _)) =>
         findLemma(refinedLemma) match {
-          case Some(otherNode) => {
-            require(otherNode.postVariables == newPost)
-            require(otherNode.constrainedVariables == newConstrained)
+          case Some(otherNode) =>
+            require(refinedAnnotated equivalent otherNode.annotatedLemma)
             node.addChild(otherNode, refinement)
             otherNode
-          }
           case None =>
-            val child = new RefinementNode(refinedLemma, newConstrained, newPost)
+            val child = new RefinementNode(refinedAnnotated)
             node.addChild(child, refinement)
             child
         }
