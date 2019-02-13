@@ -1,18 +1,13 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import java.io.File
-
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Choice, Constraint}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 
-import scala.collection.mutable
-
 class ProgressConstructor(val problem: Problem,
                           function: FunctionDef,
-                          hints: Option[Hints]) extends LemmaGraphConstructor {
+                          val hints: Option[Hints]) extends LemmaGraphConstructor {
   import Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
@@ -27,11 +22,7 @@ class ProgressConstructor(val problem: Problem,
     new Lemma(s"${function.name}Progress", Seq(), Seq(inequality))
   }
 
+  override def generateBase(): AnnotatedLemma = AnnotatedLemma(baseLemma, Set(), Set())
   override def invocationArguments: Seq[MetaVar] = functionArguments
   override def restrictableVariables(node: RefinementNode): Set[MetaVar] = node.lemma.boundVariables
-
-  override def constructRoot(): AnnotatedLemma = {
-    // TODO: Hints
-    AnnotatedLemma(baseLemma, Set(), Set())
-  }
 }

@@ -9,14 +9,13 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 import scala.collection.mutable
 
 class RelationalPreservationConstructor(val problem: Problem,
-                                       function: FunctionDef,
-                                       predicate: FunctionDef,
-                                       hints: Option[Hints]) extends LemmaGraphConstructor {
+                                        function: FunctionDef,
+                                        predicate: FunctionDef,
+                                        val hints: Option[Hints]) extends LemmaGraphConstructor {
   import Query._
-  implicit private val enquirer = problem.enquirer
+  implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def termType: SortRef = function.successfulOutType
-
   def generatePredicateArguments(fixedArg: MetaVar): Seq[MetaVar] = {
     val constraints = predicate.inTypes.map(inType =>
       if(inType == fixedArg.sortType)
@@ -57,13 +56,4 @@ class RelationalPreservationConstructor(val problem: Problem,
   override def restrictableVariables(node: RefinementNode): Set[MetaVar] = {
     node.lemma.boundVariables.filterNot(_.sortType == termType)
   }
-
-  override def constructRoot(): AnnotatedLemma = {
-    val base = generateBase()
-    hints match {
-      case None => base
-      case Some(actualHints) => actualHints.apply(base)
-    }
-  }
-
 }

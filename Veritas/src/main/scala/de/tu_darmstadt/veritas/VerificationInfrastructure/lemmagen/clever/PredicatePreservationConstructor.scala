@@ -9,7 +9,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 class PredicatePreservationConstructor(val problem: Problem,
                                        function: FunctionDef,
                                        predicate: FunctionDef,
-                                       hints: Option[Hints]) extends LemmaGraphConstructor {
+                                       val hints: Option[Hints]) extends LemmaGraphConstructor {
   import Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
@@ -62,13 +62,5 @@ class PredicatePreservationConstructor(val problem: Problem,
       lemma = refinement.refine(problem, lemma).getOrElse(lemma)
     }
     AnnotatedLemma(lemma, constrainedVars, predicateArgs.toSet)
-  }
-
-  override def constructRoot(): AnnotatedLemma = {
-    val base = generateBase()
-    hints match {
-      case None => base
-      case Some(actualHints) => actualHints.apply(base)
-    }
   }
 }
