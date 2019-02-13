@@ -75,6 +75,10 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     //retrieve an obligation from a list of given obligations that fits to the given ACG_node
     def getMatchingObl(acg_node: acg.Node, obls: Seq[pg.Obligation]): pg.Obligation = ??? //TODO How to do that abstractly? Via goal names?
 
+    def makebindingFormula(varname: String, rhs: Expression): Formulae =
+      spec_enquirer.makeEquation(spec_enquirer.makeMVTerm(varname), rhs)
+
+
     // 2) iteratively traverse given acg
 
     //loop initialization:
@@ -117,11 +121,15 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
           // first child contains the positive condition
         else if (fc_parents.isEmpty && bd_children.length == 2) {
           val poscond: Formulae = spec_enquirer.convertExpToFormula(bd_children.head.criteria)
-          BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer)
+          //both children have to contain the same new bindings
+          val binding_premises: Seq[Formulae] = (for ((n, exp) <- bd_children.head.new_bindings) yield makebindingFormula(n, exp)).toSeq
+          BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, binding_premises)
         }
         //case 4) There are function call parents AND 2 Boolean distinction children
         else if (fc_parents.nonEmpty && bd_children.length == 2) {
           //TODO Apply a BooleanDistinction AND propagate the names of function calls for which we need lemma applications
+          //both children have to contain the same new bindings
+          val binding_premises: Seq[Formulae] = (for ((n, exp) <- bd_children.head.new_bindings) yield makebindingFormula(n, exp)).toSeq
 
         }
         //ignore all other cases - in all other cases, ACG is not well-constructed.

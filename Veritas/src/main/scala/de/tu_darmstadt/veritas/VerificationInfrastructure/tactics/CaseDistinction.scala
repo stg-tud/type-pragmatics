@@ -7,7 +7,10 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure._
 // General case distinction tactic
 // will not modify the cases map at all - expects case premises as they will have to be in the proof in the end
 // will prepend goal name and "-case-" to case names but not generate any appropriate case names
-case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formulae]], queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+// global_additional_premises: Premises that are going to be added to each case. Especially premises for let-bindings of variables
+case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formulae]],
+                                                   queryspec: SpecEnquirer[Defs, Formulae],
+                                                   new_global_additional_premises: Seq[Formulae] = Seq()) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -29,7 +32,7 @@ case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formul
     val case_subgoals: Seq[Formulae] =
       (cases map { case (n, c) => {
         //simply add each goal to the premises
-        val added_premises = c ++ prems
+        val added_premises = c ++ prems ++ new_global_additional_premises
         //reassemble goal and attach name
         val casename = "-case-" + n
         makeNamedGoal(makeForallQuantifyFreeVariables(
@@ -66,7 +69,9 @@ case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formul
     enumerateCases(required)(casename)._1
 }
 
-case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs,
+                                                             queryspec: SpecEnquirer[Defs, Formulae],
+                                                             new_global_additional_premises: Seq[Formulae] = Seq()) extends Tactic[Defs, Formulae] {
 
   import queryspec._
 
@@ -91,13 +96,15 @@ case class StructuralCaseDistinction[Defs, Formulae <: Defs](distvar: Defs, quer
       //make sure that variable names of cases do not clash with variables names in goal
       val dist_cases_defs_renamed = getCases(distvar, goalbody) map { case (n, c) => (n, assignCaseVariables(c, goalbody)) }
       val dist_cases = dist_cases_defs_renamed map {case (n, dc) => (n, Seq(makeEquation(distvar, dc))) }
-      CaseDistinction[Defs, Formulae](dist_cases, queryspec)(obl, obllabels, produce)
+      CaseDistinction[Defs, Formulae](dist_cases, queryspec, new_global_additional_premises)(obl, obllabels, produce)
     } else
       Seq() //TODO throw an exception that explains why the tactic failed
   }
 }
 
-case class EqualityCaseDistinction[Defs, Formulae <: Defs](lhs: Defs, rhs: Defs, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class EqualityCaseDistinction[Defs, Formulae <: Defs](lhs: Defs, rhs: Defs,
+                                                           queryspec: SpecEnquirer[Defs, Formulae],
+                                                           new_global_additional_premises: Seq[Formulae] = Seq()) extends Tactic[Defs, Formulae] {
   import queryspec._
 
   // TODO: check
@@ -119,12 +126,14 @@ case class EqualityCaseDistinction[Defs, Formulae <: Defs](lhs: Defs, rhs: Defs,
 
     //TODO better names for equations?
     val dist_cases = Map(("Eq-true" -> Seq(makeEquation(lhs, rhs))), ("Eq-false" -> Seq(makeInequation(lhs, rhs))))
-    CaseDistinction[Defs, Formulae](dist_cases, queryspec)(obl, obllabels, produce)
+    CaseDistinction[Defs, Formulae](dist_cases, queryspec, new_global_additional_premises)(obl, obllabels, produce)
   }
 
 }
 
-case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Formulae, queryspec: SpecEnquirer[Defs, Formulae]) extends Tactic[Defs, Formulae] {
+case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Formulae,
+                                                          queryspec: SpecEnquirer[Defs, Formulae],
+                                                          new_global_additional_premises: Seq[Formulae] = Seq()) extends Tactic[Defs, Formulae] {
   import queryspec._
 
   // TODO: check
@@ -146,7 +155,7 @@ case class BooleanCaseDistinction[Defs, Formulae <: Defs](body: Formulae, querys
 
     //TODO better names for equations?
     val dist_cases = Map(("Pred-True" -> Seq(body)), ("Pred-False" -> Seq(convertExpToNegFormula(body))))
-    CaseDistinction[Defs, Formulae](dist_cases, queryspec)(obl, obllabels, produce)
+    CaseDistinction[Defs, Formulae](dist_cases, queryspec, new_global_additional_premises)(obl, obllabels, produce)
   }
 
 }
