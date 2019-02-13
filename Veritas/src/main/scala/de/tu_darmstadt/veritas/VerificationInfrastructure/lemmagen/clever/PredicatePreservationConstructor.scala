@@ -1,23 +1,17 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import java.io.File
-
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, NotJudgment, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function._
-import de.tu_darmstadt.veritas.backend.util.FreeVariables
 
-import scala.collection.mutable
 
 class PredicatePreservationConstructor(val problem: Problem,
                                        function: FunctionDef,
                                        predicate: FunctionDef,
-                                       hints: Option[Hints]) extends GraphConstructor with StrategyHelpers {
+                                       hints: Option[Hints]) extends LemmaGraphConstructor {
   import Query._
-
-  implicit private val enquirer = problem.enquirer
+  implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def termType: SortRef = function.successfulOutType
 
@@ -33,6 +27,11 @@ class PredicatePreservationConstructor(val problem: Problem,
 
   private val resultVar :: functionArgs = Assignments.generateSimpleSingle(termType +: function.inTypes)
   private val predicateArgs = generatePredicateArguments(resultVar)
+
+  override def invocationArguments: Seq[MetaVar] = functionArgs
+  override def restrictableVariables(node: RefinementNode): Set[MetaVar] = {
+    node.lemma.boundVariables.filterNot(_.sortType == termType)
+  }
 
   def generateBase(): AnnotatedLemma = {
     // --------------------
@@ -63,58 +62,6 @@ class PredicatePreservationConstructor(val problem: Problem,
       lemma = refinement.refine(problem, lemma).getOrElse(lemma)
     }
     AnnotatedLemma(lemma, constrainedVars, predicateArgs.toSet)
-  }
-
-  def restrictableVariables(lemma: Lemma): Set[MetaVar] = lemma.boundVariables.filterNot(_.sortType == termType)
-
-  def generateEquations(node: RefinementNode): Set[Refinement] = {
-    val lemma = node.lemma
-    val restrictable = restrictableVariables(lemma)
-    val partitioned = restrictable.groupBy(_.sortType)
-    var restrictions = new mutable.ListBuffer[Refinement]()
-    for((typ, metaVars) <- partitioned) {
-      if(metaVars.size > 1) {
-        val equals = metaVars.subsets.filter(_.size == 2)
-        for(equal <- equals) {
-          if(!equal.subsetOf(functionArgs.toSet))
-            restrictions += Refinement.Equation(equal.head, FunctionMeta(equal.tail.head))
-          }
-        }
-      }
-    restrictions.toSet
-  }
-
-  def generateApplications(node: RefinementNode): Set[Refinement] = {
-    val sideArguments = function.inTypes
-    val notConstrainedYet: Set[FunctionExpMeta] = (node.lemma.boundVariables -- node.constrainedVariables).map(FunctionMeta(_))
-    val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
-    staticFunctions.flatMap(staticFn =>
-      if (staticFn.signature.out.name == "Bool") {
-        var refinements = selectPredicate(node.lemma, staticFn)
-        refinements = refinements.filter(r => r.arguments.toSet.intersect(notConstrainedYet).nonEmpty)
-        // do not want refinements which pass the same argument twice
-        refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
-        // do not want refinements whose in arguments contain post variables
-        val postVars: Set[FunctionExpMeta] = node.postVariables.map(FunctionMeta(_))
-        refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
-        refinements
-      } else {
-        var refinements = selectSuccessfulApplication(node.lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
-        refinements = refinements.filter(r => r.arguments.toSet.intersect(notConstrainedYet).nonEmpty)
-        // do not want refinements which pass the same argument twice
-        refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
-        // do not want refinements which assume no change
-        refinements = refinements.filterNot(r => r.arguments.contains(FunctionMeta(r.result)))
-        // do not want refinements whose in arguments contain post variables
-        val postVars: Set[FunctionExpMeta] = node.postVariables.map(FunctionMeta(_))
-        refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
-        refinements
-      }
-    )
-  }
-
-  override def expand(node: RefinementNode): Set[Refinement] = {
-    generateEquations(node) ++ generateApplications(node)
   }
 
   override def constructRoot(): AnnotatedLemma = {
