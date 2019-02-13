@@ -9,6 +9,7 @@ import org.scalatest.FunSuite
 
 class SQLCleverLemmaGenerationTest extends FunSuite {
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+  //   val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
   val problem = new Problem(file)
   val generator = new CleverLemmaGenerator(problem)
 
