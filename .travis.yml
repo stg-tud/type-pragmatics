@@ -5,6 +5,8 @@ branches:
     only:
         - ma
 before_script: cd Veritas
+before_install:
+  - sudo apt-get install -y graphviz
 script:
     - sbt 'test-only *.lemmagen.*'
 notifications:
