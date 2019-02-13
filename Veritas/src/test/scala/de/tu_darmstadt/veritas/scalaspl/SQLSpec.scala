@@ -152,7 +152,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
   @PreservationProperty("dropFirstColRawPreservesRowCount")
   @Recursive(0)
-  @AdditionalPremise("_0 == ttcons(_1, _2, _3)")
+  @AdditionalPremise("tt1 == ttcons(_1, _2, _3)")
   @IrrelevantVariable("_1")
   @IrrelevantVariable("_2")
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {

@@ -43,20 +43,14 @@ class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Op
     restrictions.toSet
   }
 
-  def containsApplicationOf(lemma: Lemma, fn: FunctionDef): Boolean = {
-    lemma.refinements.collect {
-      case SuccessfulApplication(func, _, _) if fn == func => fn
-      case Predicate(func, _) if fn == func => fn
-    }.nonEmpty
-  }
-
   def generateApplications(node: RefinementNode): Set[Refinement] = {
     val sideArguments = function.inTypes
+    val notConstrainedYet: Set[FunctionExpMeta] = (node.lemma.boundVariables -- node.constrainedVariables).map(FunctionMeta(_))
     val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
     staticFunctions.flatMap(staticFn =>
-      if(!containsApplicationOf(node.lemma, staticFn)) {
         if (staticFn.signature.out.name == "Bool") {
           var refinements = selectPredicate(node.lemma, staticFn)
+          refinements = refinements.filter(r => r.arguments.toSet.intersect(notConstrainedYet).nonEmpty)
           // do not want refinements which pass the same argument twice
           refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
           // do not want refinements whose in arguments contain post variables
@@ -65,6 +59,7 @@ class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Op
           refinements
         } else {
           var refinements = selectSuccessfulApplication(node.lemma, staticFn, Constraint.preferBound(staticFn.inTypes), Constraint.preferBound(staticFn.successfulOutType))
+          refinements = refinements.filter(r => r.arguments.toSet.intersect(notConstrainedYet).nonEmpty)
           // do not want refinements which pass the same argument twice
           refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
           // do not want refinements which assume no change
@@ -74,8 +69,6 @@ class ProgressConstructor(val problem: Problem, function: FunctionDef, hints: Op
           refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
           refinements
         }
-      } else
-        Set()
     )
   }
 

@@ -54,10 +54,11 @@ class RefinementNode(val annotatedLemma: AnnotatedLemma) {
       case Inconclusive() if selected => "green"
       case Inconclusive() => "white"
     }
+    val notConstrained = lemma.boundVariables -- constrainedVariables
 
     val label = ("\"" + lemma.toString.replace("\n", "\\n")
                 + s"\\n$provabilityStatus\\nopen=$open\\n"
-                + s"constrained=$constrainedVariables\\npost=$postVariables" + "\"")
+                + s"constrained=$constrainedVariables\\nnot constrained=$notConstrained\\npost=$postVariables" + "\"")
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
 }

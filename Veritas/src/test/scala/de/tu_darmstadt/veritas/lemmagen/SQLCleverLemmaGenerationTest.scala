@@ -48,7 +48,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
   for(func <- generator.preservationFunctions) {
     lazy val lemmas = generator.generatePreservationLemmas(func).toSeq
     val expectedLemmas = problem.dsk.preservationProperties.getOrElse(func, Seq())
-    for(expected <- expectedLemmas) {
+    for (expected <- expectedLemmas) {
       test(s"preservation ${func.signature.name} (${expected.name})") {
         println(s"===== ${lemmas.size} lemmas!")
         printRules(lemmas)
@@ -58,7 +58,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
         assert(equivalentLemmas.nonEmpty)
       }
     }
-    if(expectedLemmas.isEmpty)
+    if (expectedLemmas.isEmpty)
       test(s"preservation ${func.signature.name}") {
         println(s"===== ${lemmas.size} lemmas!")
         printRules(lemmas)
