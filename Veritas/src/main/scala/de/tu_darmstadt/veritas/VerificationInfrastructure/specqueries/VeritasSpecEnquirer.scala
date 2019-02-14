@@ -104,7 +104,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     retrieveTypingRule(f) match {
       case Some(TypingRule(_, prems, conseqs)) => FreeVariables.freeVariables(prems ++ conseqs)
       case None => f match {
-        case tr : TypingRuleJudgment => FreeVariables.freeVariables(Seq(tr))
+        case tr: TypingRuleJudgment => FreeVariables.freeVariables(Seq(tr))
         case _ => Set() //should not happen
       }
     }
@@ -183,7 +183,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
   override def isNegation(g: VeritasFormula): Boolean = g match {
     case FunctionExpJudgment(FunctionExpNot(_)) => true
-    case FunctionExpJudgment(FunctionExpNeq(_,_)) => true
+    case FunctionExpJudgment(FunctionExpNeq(_, _)) => true
     case FunctionExpJudgment(_) => false
     case _ => false
   }
@@ -466,9 +466,47 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
   override def makeMVTerm(s: String): VeritasConstruct = MetaVar(s)
 
+  private def convertAllFunExpVarsToMetaVars(fexp: FunctionExp): FunctionExp = {
+    val transformer = new VeritasConstructTraverser {
+      override def transFunctionExpMeta(f: FunctionExpMeta): FunctionExpMeta =
+        withSuper(super.transFunctionExpMeta(f)) {
+          case FunctionExpVar(n) => FunctionMeta(MetaVar(n))
+        }
+
+
+      override def transFunctionExpMetas(f: FunctionExpMeta): Seq[FunctionExpMeta] =
+        withSuper(super.transFunctionExpMetas(f)) {
+          case FunctionExpVar(n) => Seq(FunctionMeta(MetaVar(n)))
+        }
+
+
+    }
+
+    transformer.transFunctionExp(fexp)
+  }
+
+  private def convertAllFunExpVarsToMetaVars(fexpm: FunctionExpMeta): FunctionExpMeta = {
+    val transformer = new VeritasConstructTraverser {
+      override def transFunctionExpMeta(f: FunctionExpMeta): FunctionExpMeta =
+        withSuper(super.transFunctionExpMeta(f)) {
+          case FunctionExpVar(n) => FunctionMeta(MetaVar(n))
+        }
+
+
+      override def transFunctionExpMetas(f: FunctionExpMeta): Seq[FunctionExpMeta] =
+        withSuper(super.transFunctionExpMetas(f)) {
+          case FunctionExpVar(n) => Seq(FunctionMeta(MetaVar(n)))
+        }
+
+
+    }
+
+    transformer.transFunctionExpMeta(fexpm)
+  }
+
   def convertExpToFormula(body: VeritasConstruct): VeritasFormula =
     body match {
-      case exp: FunctionExp => FunctionExpJudgment(exp)
+      case exp: FunctionExp => FunctionExpJudgment(convertAllFunExpVarsToMetaVars(exp))
       case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a function expression.")
     }
 
@@ -480,7 +518,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
     def quantifyIfNecessary(f: TypingRuleJudgment, subf: FunctionExpMeta): VeritasFormula = {
       val varsToQuantify = subf match {
-        case fexp: FunctionExp => quantifyVars(FunctionExpJudgment(fexp))
+        case fexp: FunctionExp => quantifyVars(FunctionExpJudgment(convertAllFunExpVarsToMetaVars(fexp)))
         case _ => Set()
       }
 
@@ -491,10 +529,10 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     }
 
     body match {
-      case FunctionExpEq(l, r) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNeq(l, r)), r)
-      case exp: FunctionExp => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNot(exp)), exp)
-      case FunctionExpJudgment(FunctionExpEq(l, r)) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNeq(l, r)), r)
-      case FunctionExpJudgment(exp: FunctionExp) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNot(exp)), exp)
+      case FunctionExpEq(l, r) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNeq(convertAllFunExpVarsToMetaVars(l), convertAllFunExpVarsToMetaVars(r))), r)
+      case exp: FunctionExp => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNot(convertAllFunExpVarsToMetaVars(exp))), exp)
+      case FunctionExpJudgment(FunctionExpEq(l, r)) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNeq(convertAllFunExpVarsToMetaVars(l), convertAllFunExpVarsToMetaVars(r))), r)
+      case FunctionExpJudgment(exp: FunctionExp) => quantifyIfNecessary(FunctionExpJudgment(FunctionExpNot(convertAllFunExpVarsToMetaVars(exp))), exp)
       case _ => sys.error(s"Unable to cast $body into a FunctionExp for constructing a negation.")
     }
   }
