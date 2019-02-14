@@ -44,7 +44,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     //1) treat root node of acg separately, since it is the only node which may induce a structural induction step
     if (acg_sdroot.arg_pos.nonEmpty) { //first check whether we have to do a distinction at all
       val distpos = acg_sdroot.arg_pos.get //this position is either the argument position in which the function is recursive or in which the top-level cases can be distinguished
-      val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos))
+    val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos))
       val distvar: Def = spec_enquirer.makeMVTerm(distvarname)
       // is our function in question a recursive function?
       val funname = acg.toplevel_fun
@@ -76,30 +76,53 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     // there are probably some gaps in this function, needs to be refined for concrete cases
     def getMatchingObl(acg_node: acg.Node, obls: Seq[pg.Obligation]): pg.Obligation = {
       val goalmap: Map[String, pg.Obligation] = (obls map (o => (spec_enquirer.getFormulaName(o.goal) -> o))).toMap
-      val selected_goalname: Option[String] = acg_node match {
-        case acg.StructuralDistinction(_, arg_exp, _) => {
-          //attempt to find the name for the case that the spec_enquirer would generate as substring of a goalname
-          val farg_exp = spec_enquirer.convertExpToFormula(arg_exp)
-          val genname = spec_enquirer.makeFormulaName(farg_exp)
-          goalmap.keys.find(n => n.contains(genname))
+
+      //helper function for calculating part of a name that an obligation could have, from the distinguishing parts in ACG nodes
+      def getNamePred(acgn: acg.Node): String => Boolean =
+        acgn match {
+          case acg.StructuralDistinction(_, arg_exp, _) => {
+            //attempt to find the name for the case that the spec_enquirer would generate as substring of a goalname
+            val farg_exp = spec_enquirer.convertExpToFormula(arg_exp)
+            val genname = spec_enquirer.makeFormulaName(farg_exp)
+            (n: String) => n.contains(genname)
+          }
+          case acg.BooleanDistinction(_, _, criteria, _, _) => {
+            val f = spec_enquirer.convertExpToFormula(criteria)
+            val predname = spec_enquirer.makeFormulaName(f)
+            if (spec_enquirer.isNegation(f)) {
+              //look for "false" in goalnames
+              (n: String) => n.contains(predname) && n.contains("False")
+            }
+            else {
+              //look for "true" in goalnames
+              (n: String) => n.contains(predname) && n.contains("True")
+            }
+          }
         }
-        case acg.BooleanDistinction(_, _, criteria, _, _) => {
-          val f = spec_enquirer.convertExpToFormula(criteria)
-          val predname = spec_enquirer.makeFormulaName(f)
-          if (spec_enquirer.isNegation(f)) {
-            //look for "false" in goalnames
-            goalmap.keys.find(n => n.contains(predname) && n.contains("False"))
-          }
-          else {
-            //look for "true" in goalnames
-            goalmap.keys.find(n => n.contains(predname) && n.contains("True"))
-          }
+
+      // refine the search for an appropriate problem name in obls until a single problem name is found
+      var selected_goalnames: Seq[String] = Seq()
+      var next_acg_node = Seq(acg_node)
+      var namepred: String => Boolean = getNamePred(acg_node)
+
+      while (selected_goalnames.length != 1 && next_acg_node.length == 1) {
+        selected_goalnames = (goalmap.keys.filter(namepred)).toSeq
+
+        //go up in acg for next iteration
+        next_acg_node = acg.getParents(next_acg_node.head).filterNot(p => p.isInstanceOf[acg.FunctionCall]) //do not consider function call parents
+        //refine namepred according to next_acg_node
+        if (next_acg_node.nonEmpty) {
+          val oldnamepred = namepred
+          val newnamepred = getNamePred(next_acg_node.head)
+          namepred = (n: String) => (oldnamepred(n) && newnamepred(n))
         }
       }
-      if (selected_goalname.nonEmpty)
-        goalmap(selected_goalname.get)
+
+
+      if (selected_goalnames.length == 1)
+        goalmap(selected_goalnames.head)
       else
-        sys.error(s"Could not find a matching obligation for acg_node $acg_node in $obls")
+        sys.error(s"Could not find a unique matching obligation for acg_node $acg_node in $obls")
     }
 
 
@@ -133,7 +156,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
 
         //retrieve all relevant children (ignore visited nodes and leaf nodes without function call parents)
         // result should only be StructuralDistinctions and BooleanDistinctions
-        var children = acg.getOutgoing(cn).filterNot(c => (visitednodes contains c) || isLeafNodeWithoutFCParent(c))
+        var children = acg.getOutgoing(cn)
         val sd_children = for (c <- children if c.isInstanceOf[acg.StructuralDistinction]) yield c.asInstanceOf[acg.StructuralDistinction]
         val bd_children = for (c <- children if c.isInstanceOf[acg.BooleanDistinction]) yield c.asInstanceOf[acg.BooleanDistinction]
 
@@ -149,7 +172,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
           LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
         }
         // case 3) There are exactly two Boolean distinction children -> apply Boolean distinction
-          // first child contains the positive condition
+        // first child contains the positive condition
         else if (bd_children.length == 2) {
           val poscond: Formulae = spec_enquirer.convertExpToFormula(bd_children.head.criteria)
           //both children have to contain the same new bindings
@@ -166,7 +189,9 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
 
         //update currnodes and visitednodes for next iteration of outer loop
         visitednodes += cn
-        nextcurrnodes ++= children //we do not need to inspect FunctionCall nodes further
+        //we do not need to inspect FunctionCall nodes further
+        //also, we do not need to inspect leaf nodes without FC parents further - these will be treated in the final step.
+        nextcurrnodes ++= children.filterNot(c => (visitednodes contains c) || isLeafNodeWithoutFCParent(c))
         nextcurrobls ++= pg.leaves(Set(currobl))
 
       }
