@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.FreshVariables
 import de.tu_darmstadt.veritas.backend.{Configuration, util}
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExp, _}
@@ -370,21 +371,9 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
         val freevarnames = freevars map (fv => fv.name)
 
-        val fresh = new FreshNames
+        val freshargnames = FreshVariables.freshMetaVars(freevars, tdcollector.constrTypes(name)._1)
 
-        val namedargs = for (a <- args) yield {
-          //name arguments of datatype constructor according to their types (prepending a small letter)
-          val abasename = "v" + a.name
-          var argname = abasename
-          //make sure name clashes among the variables and with the free variables from refd are avoided
-          //also ensure that no names from existing constants are used (?)
-          do {
-            argname = fresh.freshName(abasename)
-          } while ((freevarnames contains argname) && (tdcollector.consts contains argname))
-          argname
-        }
-
-        FunctionExpApp(name, namedargs map (n => FunctionMeta(MetaVar(n))))
+        FunctionExpApp(name, freshargnames map (n => FunctionMeta(n)))
       }
       case _ => sys.error("Can only assign variables to DataTypeConstructor")
     }
