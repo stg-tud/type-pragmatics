@@ -101,6 +101,29 @@ object AESpec extends ScalaSPLSpecification {
     require(t3 :: T)
   } ensuring(Ifelse(t1, t2, t3) :: T)
 
+  //inversion axiom for Ifelse
+  //@Axiom
+  //def Tif_inv(t1: Term, t2: Term, t3: Term, T: Ty): Unit = {
+  //  require(Ifelse(t2, t2, t3) :: T)
+  //} ensuring((t1 :: B()) && (t2 :: T) && (t3 :: T))
+
+  //inversion axioms for Ifelse, since the above version causes translation problems:
+  @Axiom
+  def Tif_inv1(t1: Term, t2: Term, t3: Term, T: Ty): Unit = {
+    require(Ifelse(t1, t2, t3) :: T)
+  } ensuring(t1 :: B())
+
+  @Axiom
+  def Tif_inv2(t1: Term, t2: Term, t3: Term, T: Ty): Unit = {
+    require(Ifelse(t1, t2, t3) :: T)
+  } ensuring(t2 :: T)
+
+  @Axiom
+  def Tif_inv3(t1: Term, t2: Term, t3: Term, T: Ty): Unit = {
+    require(Ifelse(t1, t2, t3) :: T)
+  } ensuring(t3 :: T)
+
+
   @Axiom
   def TNat(): Unit = {} ensuring(Zero() :: Nat())
 
@@ -109,15 +132,33 @@ object AESpec extends ScalaSPLSpecification {
     require(t1 :: Nat())
   } ensuring(Succ(t1) :: Nat())
 
+  //inversion axiom for TSucc
+  @Axiom
+  def TSucc_inc(t1: Term): Unit = {
+    require(Succ(t1) :: Nat())
+  } ensuring(t1 :: Nat())
+
   @Axiom
   def TPred(t1: Term): Unit = {
     require(t1 :: Nat())
   } ensuring(Pred(t1) :: Nat())
 
+  //inversion axiom for TPred
+  @Axiom
+  def TPred_inv(t1: Term): Unit = {
+    require(Pred(t1) :: Nat())
+  } ensuring(t1 :: Nat())
+
   @Axiom
   def Tiszero(t1: Term): Unit = {
     require(t1 :: Nat())
   } ensuring(Iszero(t1) :: B())
+
+  //inversion axiom for Tiszero
+  @Axiom
+  def Tiszero_inv(t1: Term): Unit = {
+    require(Iszero(t1) :: B())
+  } ensuring(t1 :: Nat())
 
 
   // steps for soundness proof (progress and preservation) for typed arithmetic expressions as given in Pierce, TAPL, Chapter 8
