@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.ProgressStrategy
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{FunctionCallGraphGenerator, Oracle, Problem}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{FunctionCallGraphGenerator, Problem}
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
