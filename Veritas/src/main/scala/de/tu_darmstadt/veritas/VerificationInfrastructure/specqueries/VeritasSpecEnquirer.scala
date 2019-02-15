@@ -100,11 +100,11 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   }
 
   // list all unquantified variables in the given formula (empty if formula does not have free variables)
-  private def getFreeVariables(f: VeritasFormula): Set[MetaVar] =
+  private def getFreeVariables(f: VeritasFormula, ignore: Set[MetaVar] = Set()): Set[MetaVar] =
     retrieveTypingRule(f) match {
-      case Some(TypingRule(_, prems, conseqs)) => FreeVariables.freeVariables(prems ++ conseqs)
+      case Some(TypingRule(_, prems, conseqs)) => FreeVariables.freeVariables(prems ++ conseqs, ignore)
       case None => f match {
-        case tr: TypingRuleJudgment => FreeVariables.freeVariables(Seq(tr))
+        case tr: TypingRuleJudgment => FreeVariables.freeVariables(Seq(tr), ignore)
         case _ => Set() //should not happen
       }
     }
@@ -361,7 +361,8 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
   override def assignCaseVariables(nd: VeritasConstruct, refd: VeritasConstruct): VeritasConstruct =
     nd match {
       case DataTypeConstructor(name, args) => {
-        //obtain all (free?) variables in refd (it should suffice to obtain the free variables)
+        //obtain names of ALL variables in refd
+        // first the free vars:
         val freevars = refd match {
           case TypingRule(_, prems, conseqs) => FreeVariables.freeVariables(prems ++ conseqs, Set(): Set[MetaVar])
           case trj: TypingRuleJudgment => FreeVariables.freeVariables(trj, Set(): Set[MetaVar])
@@ -369,9 +370,38 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
           case _ => sys.error(s"Cannot retrieve free variables from this expression $refd")
         }
 
-        val freevarnames = freevars map (fv => fv.name)
+        // finally, also quantified names:
+        val qvarsextractor = new VeritasConstructTraverser {
+          override def transTypingRuleJudgment(trj: TypingRuleJudgment): TypingRuleJudgment =
+            withSuper(super.transTypingRuleJudgment(trj)) {
+              case ExistsJudgment(vl, jl) => {
+                collected = collected ++ vl
+                ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
+              }
+              case ForallJudgment(vl, jl) => {
+                collected = collected ++ vl
+                ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_)))
+              }
+            }
 
-        val freshargnames = FreshVariables.freshMetaVars(freevars, tdcollector.constrTypes(name)._1)
+          override def transTypingRuleJudgments(trj: TypingRuleJudgment): Seq[TypingRuleJudgment] =
+            withSuper(super.transTypingRuleJudgments(trj)) {
+              case ExistsJudgment(vl, jl) => {
+                collected = collected ++ vl
+                Seq(ExistsJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_))))
+              }
+              case ForallJudgment(vl, jl) => {
+                collected = collected ++ vl
+                Seq(ForallJudgment(trace(vl)(transMetaVars(_)), trace(jl)(transTypingRuleJudgments(_))))
+              }
+            }
+        }
+
+        qvarsextractor(refd)
+
+        val quantifiednames: Set[MetaVar] = (qvarsextractor.collected map (_.asInstanceOf[MetaVar])).toSet
+
+        val freshargnames = FreshVariables.freshMetaVars(freevars ++ quantifiednames, tdcollector.constrTypes(name)._1)
 
         FunctionExpApp(name, freshargnames map (n => FunctionMeta(n)))
       }
@@ -511,10 +541,13 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
     }
 
   //currently only covers relevant cases existing in SQL/QL proofs
-  def convertExpToNegFormula(body: VeritasConstruct): VeritasFormula = {
+  def convertExpToNegFormula(body: VeritasConstruct, context: Seq[VeritasFormula]): VeritasFormula = {
+
+    //from formula's context, compute variable names to be ignored during quantification
+    val ignore = (for (c <- context) yield getFreeVariables(c)).flatten.toSet
 
     def quantifyVars(f: VeritasFormula): Set[MetaVar] =
-      getFreeVariables(f)
+      getFreeVariables(f, ignore)
 
     def quantifyIfNecessary(f: TypingRuleJudgment, subf: FunctionExpMeta): VeritasFormula = {
       val varsToQuantify = subf match {

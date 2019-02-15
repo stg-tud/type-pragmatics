@@ -98,27 +98,32 @@ object ProgressPreservationGraphGeneration extends App {
             val goalobl = pg.targetedObl(ps)
             val goalname = extractGoalName(goalobl.goal)
 
-//            val goalobl_ui = ppstrat.PG_UI.getObligation(goalname)
-//
-//            val trans = new VeritasTransformer[TPTP](
-//              Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
-//                Simplification -> Simplification.LogicalAndConstructors,
-//                VariableEncoding -> VariableEncoding.InlineEverything,
-//                Selection -> Selection.SelectAll,
-//                Problem -> Problem.All)), x => x.asInstanceOf[TPTP])
-//
-//            //write pretty-printed version of problem to file
-//            val (aspec, assms, agoal) = ppstrat.PG_UI.getAssembledProblem[TPTP](goalobl_ui, trans)
-//            val assembledproblem_str = s"DEFINITIONS: \n ${aspec.toPrettyString()} \n\n " +
-//              s"GOAL-SPECIFIC ASSUMPTIONS: \n ${assms.toPrettyString()} \n\n" +
-//              s"GOAL: \n ${agoal.toPrettyString()}"
-//            val assembledProblemFile = new File(s"AESoundnessProof-allsteps-inconclusive/$goalname-assembledProblem")
-//            writeToFile(assembledProblemFile, assembledproblem_str)
-//
-//            //write translated version of problem to file
-//            val transformedProblem = trans.translateProblem((aspec, assms, agoal))
-//            val translatedProblemFile = new File(s"AESoundnessProof-allsteps-inconclusive/$goalname-translatedProblem")
-//            writeToFile(translatedProblemFile, transformedProblem.get.toString)
+            //val goalobl_ui = ppstrat.PG_UI.getObligation(goalname)
+
+            val trans = new VeritasTransformer[TPTP](
+              Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
+                Simplification -> Simplification.LogicalAndConstructors,
+                VariableEncoding -> VariableEncoding.InlineEverything,
+                Selection -> Selection.SelectAll,
+                Problem -> Problem.All)), x => x.asInstanceOf[TPTP])
+
+            //write pretty-printed version of problem to file
+            //val (aspec, assms, agoal) = ppstrat.PG_UI.getAssembledProblem[TPTP](goalobl, trans)
+            val parentedges = pg.requiringSteps(goalobl) map (_._2)
+            val assumptions = pg.requiredObls(ps) map { case (o, el) => (el, o.goal) }
+            val (aspec, assms, agoal) = trans.assembleFullProblem(goalobl.goal, goalobl.spec, parentedges, assumptions)
+
+
+            val assembledproblem_str = s"DEFINITIONS: \n ${aspec.toPrettyString()} \n\n " +
+              s"GOAL-SPECIFIC ASSUMPTIONS: \n ${assms.toPrettyString()} \n\n" +
+              s"GOAL: \n ${agoal.toPrettyString()}"
+            val assembledProblemFile = new File(s"AESoundnessProof-allsteps-inconclusive/$goalname-assembledProblem")
+            writeToFile(assembledProblemFile, assembledproblem_str)
+
+            //write translated version of problem to file
+            val transformedProblem = trans.translateProblem((aspec, assms, agoal))
+            val translatedProblemFile = new File(s"AESoundnessProof-allsteps-inconclusive/$goalname-translatedProblem")
+            writeToFile(translatedProblemFile, transformedProblem.get.toString)
 
             "Inconclusive."
           }
