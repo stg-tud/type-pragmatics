@@ -404,17 +404,17 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
 
   override def makeEquation(left: VeritasConstruct, right: VeritasConstruct): VeritasFormula =
     (left, right) match {
-      case (l: MetaVar, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpEq(FunctionMeta(l), r))
-      case (l: FunctionExpMeta, r: MetaVar) => FunctionExpJudgment(FunctionExpEq(l, FunctionMeta(r)))
-      case (l: FunctionExpMeta, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpEq(l, r))
+      case (l: MetaVar, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpEq(FunctionMeta(l), convertAllFunExpVarsToMetaVars(r)))
+      case (l: FunctionExpMeta, r: MetaVar) => FunctionExpJudgment(FunctionExpEq(convertAllFunExpVarsToMetaVars(l), FunctionMeta(r)))
+      case (l: FunctionExpMeta, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpEq(convertAllFunExpVarsToMetaVars(l), convertAllFunExpVarsToMetaVars(r)))
       case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an equation.")
     }
 
   override def makeInequation(left: VeritasConstruct, right: VeritasConstruct): VeritasFormula =
     (left, right) match {
-      case (l: MetaVar, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpNeq(FunctionMeta(l), r))
-      case (l: FunctionExpMeta, r: MetaVar) => FunctionExpJudgment(FunctionExpNeq(l, FunctionMeta(r)))
-      case (l: FunctionExpMeta, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpNeq(l, r))
+      case (l: MetaVar, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpNeq(FunctionMeta(l), convertAllFunExpVarsToMetaVars(r)))
+      case (l: FunctionExpMeta, r: MetaVar) => FunctionExpJudgment(FunctionExpNeq(convertAllFunExpVarsToMetaVars(l), FunctionMeta(r)))
+      case (l: FunctionExpMeta, r: FunctionExpMeta) => FunctionExpJudgment(FunctionExpNeq(convertAllFunExpVarsToMetaVars(l), convertAllFunExpVarsToMetaVars(r)))
       case _ => sys.error(s"Unable to cast $left or $right into a FunctionExpMeta for constructing an inequation.")
     }
 
