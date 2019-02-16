@@ -9,7 +9,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.{ProofGraph, ProofGrap
   */
 case class ApplySolve[Spec, Goal]() extends Strategy[Spec, Goal] {
   override def applyToPG(pg: ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal])(obl: pg.Obligation): ProofGraph[Spec, Goal] with ProofGraphTraversals[Spec, Goal] = {
-    pg. applyTactic(obl, Solve[Spec, Goal]())
+    pg.applyTactic(obl, Solve[Spec, Goal]())
     pg
   }
 }

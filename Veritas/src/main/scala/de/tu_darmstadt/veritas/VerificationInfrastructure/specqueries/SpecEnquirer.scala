@@ -28,6 +28,8 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   def isImplication(g: Formulae): Boolean
 
+  def isNegation(g: Formulae): Boolean
+
   //expects a function call, from which the function's name can be extracted!
   def isRecursiveFunctionCall(fc: Defs): Boolean
 
@@ -124,7 +126,9 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
   def convertExpToFormula(body: Defs): Formulae
 
   // expects an expression that can be turned to a formula and returns its negation
-  def convertExpToNegFormula(body: Defs): Formulae
+  // also expects the context into which the new formula shall be embedded.
+  //this may be necessary to avoid clashes of variable names
+  def convertExpToNegFormula(body: Defs, context: Seq[Formulae]): Formulae
 
 
 }

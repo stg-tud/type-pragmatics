@@ -19,7 +19,8 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
 
   //for uniqueness of nodes: also save the number of the function equation in which the distinction appears (starting from 0)
   //as well as the inner nesting level (in case of nested ifs); first level is 0
-  case class BooleanDistinction(funeq_num: Int, inner_nesting_level: Int, criteria: Criteria, resulting: Expression) extends Node
+  //new_bindings: Save
+  case class BooleanDistinction(funeq_num: Int, inner_nesting_level: Int, criteria: Criteria, resulting: Expression, new_bindings: Map[String, Expression]) extends Node
 
   //structural distinctions have to preserve the ordering of equations in function definition!
   //also save the index number of the top-level equation (for controlling purposes, and to be really sure to preserve the correct order)
@@ -79,7 +80,7 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
 
   //only call on leaves?
   def getExpression(distinction: Node): Expression = distinction match {
-    case BooleanDistinction(_, _, _, resulting) => resulting
+    case BooleanDistinction(_, _, _, resulting, _) => resulting
     case StructuralDistinction(_, _, eqs) if eqs.size == 1 => getRHSOfEquation(eqs.head._2)
     case FunctionCall(_, _, _) => throw new IllegalArgumentException("A function application does not represent a expression")
     case _ => throw new IllegalArgumentException("Every leaf node should be a boolean distinction or a structural distinction with exactly one equation attached.")
@@ -117,8 +118,8 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
     for (n <- nodes) {
       builder.append(calculateNodeID(n) + " ")
       n match {
-        case BooleanDistinction(feq, inner, c, _) =>
-          builder.append("[shape=box, color=black, label=" + "\"" + feq + ", " + inner + ": " + criteriaToString(c) + "\"")
+        case BooleanDistinction(feq, inner, c, _, varmap) =>
+          builder.append("[shape=box, color=black, label=" + "\"" + feq + ", " + inner + ": " + criteriaToString(c) + ", " + "new bindings: " + varmap + "\"")
         case StructuralDistinction(argpos, argexp, eqs) =>
           builder.append("[shape=diamond, color=black, label=" + "\"" + argpos + ", " + expressionToString(argexp) + ": " + makeDotLabelFromEqs(eqs) + "\"")
         case FunctionCall(feq, inner, name) =>
