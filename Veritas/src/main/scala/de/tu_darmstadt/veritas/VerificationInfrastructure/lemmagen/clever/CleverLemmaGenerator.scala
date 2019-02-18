@@ -69,14 +69,19 @@ class CleverLemmaGenerator(problem: Problem) {
         new File(s"generated/preservation/${fn.signature.name}/${predicate.name}")
       )
     }
-    if(fn.inTypes.count(_ == fn.successfulOutType) == 1) {
+    if(fn.inTypes.count(_ == fn.successfulOutType) >= 1) {
       for (relation <- getRelationsInvolving(fn.successfulOutType)) {
-        println(s"${fn.signature.name} / ${relation.signature.name}")
-        val constructor = new RelationalPreservationConstructor(problem, fn, relation, Some(hints))
-        result ++= generateWithConstructor(
-          constructor,
-          new File(s"generated/preservation/${fn.signature.name}/${relation.name}")
-        )
+        val matchingIndices = fn.inTypes.zipWithIndex.collect {
+          case (inType, idx) if inType == fn.successfulOutType => idx
+        }
+        for(idx <- matchingIndices) {
+          println(s"${fn.signature.name} / ${relation.signature.name}")
+          val constructor = new RelationalPreservationConstructor(problem, fn, relation, idx, Some(hints))
+          result ++= generateWithConstructor(
+            constructor,
+            new File(s"generated/preservation/${fn.signature.name}/${relation.name}$idx")
+          )
+        }
       }
     }
     result.toSet

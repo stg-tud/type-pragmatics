@@ -11,19 +11,21 @@ import scala.collection.mutable
 class RelationalPreservationConstructor(val problem: Problem,
                                         function: FunctionDef,
                                         predicate: FunctionDef,
+                                        termIndex: Int,
                                         val hints: Option[Hints]) extends LemmaGraphConstructor {
   import Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def termType: SortRef = function.successfulOutType
   def generatePredicateArguments(fixedArg: MetaVar): Seq[MetaVar] = {
-    val constraints = predicate.inTypes.map(inType =>
-      if(inType == fixedArg.sortType)
-        Constraint.fixed(fixedArg)
-      else
-        Constraint.fresh(inType)
-    )
-    Assignments.generate(constraints).head // TODO
+    val constraints = predicate.inTypes.zipWithIndex.map {
+      case (inType, idx) =>
+        if (idx == termIndex)
+          Constraint.fixed(fixedArg)
+        else
+          Constraint.fresh(inType)
+    }
+    Assignments.generate(constraints).head
   }
 
   // --------------------
@@ -32,11 +34,9 @@ class RelationalPreservationConstructor(val problem: Problem,
   // producer arguments can be fresh or bound with matching types
   // the success variable can be any of the arguments of ``predicate``, with matching types
   private val resultVar :: functionArgs = Assignments.generateSimpleSingle(termType +: function.inTypes)
-  private val matchingInVars = functionArgs.filter(_.sortType == termType)
-  require(matchingInVars.size == 1)
-  private val inVar = matchingInVars.head
-  private val relationConstraints = Seq(Constraint.fixed(inVar), Constraint.fixed(resultVar))
-  private val predicateArgs = Assignments.generate(relationConstraints).head
+  private val inVar = functionArgs(termIndex)
+  require(inVar.sortType == termType)
+  private val predicateArgs = Seq(inVar, resultVar)
 
   override def invocationArguments: Seq[MetaVar] = functionArgs
 
@@ -44,8 +44,6 @@ class RelationalPreservationConstructor(val problem: Problem,
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${function.name}${predicate.name}Preservation", Seq(), Seq(judgment))
-    // we find all inVars with matching type
-    //val matchingInVars = inVars.filter(_.sortType == outType)
     // for each matching in var, add a Predicate refinement
     var lemma = baseLemma
     val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
