@@ -60,9 +60,9 @@ class CleverLemmaGenerator(problem: Problem) {
 
   def generatePreservationLemmas(fn: FunctionDef): Set[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
-    val hints = Hints.fromDSK(problem, fn)
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
-      println(s"${fn.signature.name} / ${predicate.signature.name}")
+      val tag = s"preservation/predicate/${predicate.signature.name}"
+      val hints = Hints.fromDSK(problem, fn, tag)
       val constructor = new PredicatePreservationConstructor(problem, fn, predicate, Some(hints))
       result ++= generateWithConstructor(
         constructor,
@@ -75,7 +75,8 @@ class CleverLemmaGenerator(problem: Problem) {
           case (inType, idx) if inType == fn.successfulOutType => idx
         }
         for(idx <- matchingIndices) {
-          println(s"${fn.signature.name} / ${relation.signature.name}")
+          val tag = s"preservation/relational/${relation.signature.name}/$idx"
+          val hints = Hints.fromDSK(problem, fn, tag)
           val constructor = new RelationalPreservationConstructor(problem, fn, relation, idx, Some(hints))
           result ++= generateWithConstructor(
             constructor,
@@ -91,7 +92,9 @@ class CleverLemmaGenerator(problem: Problem) {
   def generateProgressLemmas(fn: FunctionDef): Set[Lemma] = {
     //val hint = AdditionalPremises.fromDSK(problem, fn) TODO
     println(s"${fn.signature.name}")
-    val constructor = new ProgressConstructor(problem, fn, None)
+    val tag = s"progress/${fn.signature.name}"
+    val hints = Hints.fromDSK(problem, fn, tag)
+    val constructor = new ProgressConstructor(problem, fn, Some(hints))
     generateWithConstructor(constructor, new File(s"generated/progress/${fn.signature.name}/")).map(lemma =>
       lemma.consequences.head match {
         case FunctionExpJudgment(FunctionExpNeq(l, r)) =>

@@ -11,8 +11,6 @@ class ProgressConstructor(val problem: Problem,
   import Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
-  require(hints.isEmpty)
-
   private val functionArguments = Assignments.generateSimpleSingle(function.inTypes)
   private val baseLemma = {
     val (failConstructor, _) = enquirer.retrieveFailableConstructors(function.outType)
