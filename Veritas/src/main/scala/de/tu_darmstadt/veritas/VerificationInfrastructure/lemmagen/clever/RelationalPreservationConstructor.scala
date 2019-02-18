@@ -50,7 +50,7 @@ class RelationalPreservationConstructor(val problem: Problem,
     var lemma = baseLemma
     val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
     lemma = r.refine(problem, lemma).getOrElse(lemma)
-    AnnotatedLemma(lemma, predicateArgs.toSet, Set(resultVar))
+    AnnotatedLemma(lemma, Set(resultVar), Set(resultVar))
   }
 
   override def restrictableVariables(node: RefinementNode): Set[MetaVar] = {
