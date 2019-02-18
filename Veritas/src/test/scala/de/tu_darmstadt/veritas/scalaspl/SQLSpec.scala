@@ -812,9 +812,10 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring matchingAttrL(tt2, getAttrL(t2))
 
   @Property
-  def welltypedEmptyProjection(rt: RawTable, tt: TType): Unit = {
+  def welltypedEmptyProjection(rt: RawTable, rt1: RawTable, tt: TType): Unit = {
     require(tt == ttempty())
-  } ensuring welltypedRawtable(tt, projectEmptyCol(rt))
+    require(projectEmptyCol(rt) == rt1)
+  } ensuring welltypedRawtable(tt, rt1)
 
   @Property
   def projectFirstRawPreservesWelltypedRaw(rt: RawTable, rt1: RawTable,

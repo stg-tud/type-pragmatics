@@ -215,7 +215,10 @@ object SQLSpec extends ScalaSPLSpecification {
     additionalPremises = Seq(
       "tt == ttcons(_1, _2, tt2)"
     ),
-    irrelevantVariables = Seq("_1", "_2", "rt2")
+    irrelevantVariables = Seq("_1", "_2")
+  )
+  @LemmaGeneratorHint(pattern = "preservation/relational",
+    irrelevantVariables = Seq("rt2")
   )
  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
@@ -853,9 +856,10 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring matchingAttrL(tt2, getAttrL(t2))
 
   @Property
-  def welltypedEmptyProjection(rt: RawTable, tt: TType): Unit = {
+  def welltypedEmptyProjection(rt: RawTable, rt1: RawTable, tt: TType): Unit = {
     require(tt == ttempty())
-  } ensuring welltypedRawtable(tt, projectEmptyCol(rt))
+    require(projectEmptyCol(rt) == rt1)
+  } ensuring welltypedRawtable(tt, rt1)
 
   @Property
   def projectFirstRawPreservesWelltypedRaw(rt: RawTable, rt1: RawTable,
