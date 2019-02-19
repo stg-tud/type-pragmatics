@@ -119,7 +119,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
           reporter.report(s"Invalid value for irrelevantVariables argument: $rhs", annot.pos.startLine)
         case arg => reporter.report(s"Invalid argument for LemmaGeneratorHint annotation: $arg")
       }
-      (maybePattern.getOrElse(".*"),
+      (maybePattern.getOrElse(""),
         maybeAdditionalPremises.getOrElse(Seq()),
         maybeIrrelevantVariables.getOrElse(Seq()))
     }
