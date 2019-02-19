@@ -774,11 +774,11 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
 
   @Property
-  def dropFirstColRawPreservesWelltypedRaw(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable, rt1: RawTable): Unit = {
-    require(tt == ttcons(n, ft, ttr)) // |tt| > 0
+  def dropFirstColRawPreservesWelltypedRaw(tt: TType, n: Name, ft: FType, ttrest: TType, rt: RawTable, rt1: RawTable): Unit = {
+    require(tt == ttcons(n, ft, ttrest)) // |tt| > 0
     require(welltypedRawtable(tt, rt))
     require(dropFirstColRaw(rt) == rt1)
-  } ensuring welltypedRawtable(ttr, rt1)
+  } ensuring welltypedRawtable(ttrest, rt1)
 
   //PRESERVATION
 
@@ -805,11 +805,9 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedRawtable(tt, result)
 
   @Property
-  def projectTypeAttrLMatchesProjectTableAttrL(al: AttrL, tt: TType, tt2: TType, t: Table, t2: Table): Unit = {
-    require(matchingAttrL(tt, getAttrL(t)))
+  def projectTypeAttrLMatchesProjectTableAttrL(al: AttrL, tt: TType, tt2: TType): Unit = {
     require(projectTypeAttrL(al, tt) == someTType(tt2))
-    require(projectTable(list(al), t) == someTable(t2))
-  } ensuring matchingAttrL(tt2, getAttrL(t2))
+  } ensuring matchingAttrL(tt2, al)
 
   @Property
   def welltypedEmptyProjection(rt: RawTable, rt1: RawTable, tt: TType): Unit = {
@@ -860,47 +858,47 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring sameLength(rt1, rt3)
 
   @Property
-  def projectFirstRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
-    require(projectFirstRaw(rt) == rt2)
-  } ensuring sameLength(rt, rt2)
+  def projectFirstRawPreservesRowCount(rt: RawTable, rt1: RawTable): Unit = {
+    require(projectFirstRaw(rt) == rt1)
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def dropFirstColRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
-    require(dropFirstColRaw(rt) == rt2)
-  } ensuring sameLength(rt, rt2)
+  def dropFirstColRawPreservesRowCount(rt: RawTable, rt1: RawTable): Unit = {
+    require(dropFirstColRaw(rt) == rt1)
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def findColPreservesRowCount(a: Name, al: AttrL, rt: RawTable, rt2: RawTable): Unit = {
-    require(findCol(a, al, rt) == someRawTable(rt2))
-  } ensuring sameLength(rt, rt2)
+  def findColPreservesRowCount(a: Name, al: AttrL, rt: RawTable, rt1: RawTable): Unit = {
+    require(findCol(a, al, rt) == someRawTable(rt1))
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def projectEmptyColPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
-    require(projectEmptyCol(rt) == rt2)
-  } ensuring sameLength(rt, rt2)
+  def projectEmptyColPreservesRowCount(rt: RawTable, rt1: RawTable): Unit = {
+    require(projectEmptyCol(rt) == rt1)
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def projectColsPreservesRowCount(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {
-    require(projectTypeAttrL(al1, tt) == someTType(tt2))
-    require(projectCols(al1, al2, rt) == someRawTable(rt2))
+  def projectColsPreservesRowCount(tt: TType, tt1: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt1: RawTable): Unit = {
+    require(projectTypeAttrL(al1, tt) == someTType(tt1))
+    require(projectCols(al1, al2, rt) == someRawTable(rt1))
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al2))
-  } ensuring sameLength(rt, rt2)
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def projectColsWelltypedWithSelectType(al: AttrL, tal: AttrL, rt: RawTable, rt2: RawTable, tt: TType, tt2: TType): Unit = {
+  def projectColsWelltypedWithSelectType(al: AttrL, tal: AttrL, rt: RawTable, rt1: RawTable, tt: TType, tt1: TType): Unit = {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, tal))
-    require(projectTypeAttrL(al, tt) == someTType(tt2))
-    require(projectCols(al, tal, rt) == someRawTable(rt2))
-  } ensuring welltypedRawtable(tt2, rt2)
+    require(projectTypeAttrL(al, tt) == someTType(tt1))
+    require(projectCols(al, tal, rt) == someRawTable(rt1))
+  } ensuring welltypedRawtable(tt1, rt1)
 
   @Property
-  def projectTableWelltypedWithSelectType(sel: Select, t: Table, t2: Table, tt: TType, tt2: TType): Unit = {
+  def projectTableWelltypedWithSelectType(sel: Select, t: Table, t1: Table, tt: TType, tt1: TType): Unit = {
     require(welltypedtable(tt, t))
-    require(projectType(sel, tt) == someTType(tt2))
-    require(projectTable(sel, t) == someTable(t2))
-  } ensuring welltypedtable(tt2, t2)
+    require(projectType(sel, tt) == someTType(tt1))
+    require(projectTable(sel, t) == someTable(t1))
+  } ensuring welltypedtable(tt1, t1)
 
   @Property
   def Preservation(ttc: TTContext, ts: TStore, q: Query, qr: Query, tt: TType): Unit = {
