@@ -18,7 +18,7 @@ class ProgressConstructor(val problem: Problem,
     val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(functionArguments))
     val failExp = FunctionExpApp(failConstructor.name, Seq())
     val inequality = enquirer.makeInequation(invocationExp, failExp).asInstanceOf[FunctionExpJudgment]
-    new Lemma(s"${function.name}_Progress", Seq(), Seq(inequality))
+    new Lemma(s"${function.name}Progress", Seq(), Seq(inequality))
   }
 
   override def generateBase(): AnnotatedLemma = AnnotatedLemma(baseLemma, Set(), Set())

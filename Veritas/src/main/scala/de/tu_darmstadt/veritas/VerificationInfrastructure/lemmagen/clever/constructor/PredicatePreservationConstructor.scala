@@ -42,7 +42,7 @@ class PredicatePreservationConstructor(val problem: Problem,
     // the success variable can be any of the arguments of ``predicate``, with matching types
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
-    val baseLemma = new Lemma(s"${function.name}_Preservation_${predicate.name}", Seq(), Seq(judgment))
+    val baseLemma = new Lemma(s"${function.name}Preservation${predicate.name}", Seq(), Seq(judgment))
     // we find all inVars with matching type
     val matchingInVars = functionArgs.filter(_.sortType == termType)
     // for each matching in var, add a Predicate refinement
