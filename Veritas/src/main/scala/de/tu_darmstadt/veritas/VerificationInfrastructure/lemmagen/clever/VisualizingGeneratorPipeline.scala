@@ -9,15 +9,6 @@ import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificatio
 trait VisualizingGeneratorPipeline extends LemmaGeneratorPipeline {
   def directory: File
 
-  private def recursivedelete(file: File) {
-    if (file.isDirectory)
-      Option(file.listFiles).map(_.toList).getOrElse(Nil).foreach(recursivedelete(_))
-    file.delete
-  }
-
-  if(directory.exists())
-    recursivedelete(directory)
-
   private def makeDirectory(graph: RefinementGraph): File = {
     val subdirectory = new File(directory, graph.root.lemma.name)
     if(!subdirectory.exists())

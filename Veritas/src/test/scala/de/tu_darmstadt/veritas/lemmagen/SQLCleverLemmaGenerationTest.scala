@@ -10,13 +10,24 @@ import org.scalatest.FunSuite
 
 class SQLCleverLemmaGenerationTest extends FunSuite {
   //val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
+  val Directory = new File("generated")
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
   val generationProblem = new Problem(file)
+
+  private def recursivedelete(file: File) {
+    if (file.isDirectory)
+      Option(file.listFiles).map(_.toList).getOrElse(Nil).foreach(recursivedelete(_))
+    file.delete
+  }
+
+  if(Directory.exists())
+    recursivedelete(Directory)
+
   val generator = new AbstractLemmaGenerator {
     override def problem: Problem = generationProblem
     override def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline = {
       new DefaultGeneratorPipeline with VisualizingGeneratorPipeline {
-        override def directory: File = new File("generated")
+        override def directory: File = Directory
         override def problem: Problem = generationProblem
         override def graphConstructor: GraphConstructor = constructor
       }
