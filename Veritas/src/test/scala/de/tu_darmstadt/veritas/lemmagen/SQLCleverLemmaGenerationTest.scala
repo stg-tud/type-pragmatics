@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{DefaultGeneratorPipeline, LemmaGeneratorPipeline, VisualizingGeneratorPipeline}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, DefaultGeneratorPipeline, LemmaGeneratorPipeline, VisualizingGeneratorPipeline}
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import org.scalatest.FunSuite
 
@@ -11,7 +11,8 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
   //val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
   val problem = new Problem(file)
-  val generator = new VisualizingGeneratorPipeline(problem, new File("generated"))
+  val pipeline = new VisualizingGeneratorPipeline(problem, new File("generated"))
+  val generator = new CleverLemmaGenerator(problem, pipeline)
 
   def printRules(lemmas: Seq[Lemma]) = {
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
