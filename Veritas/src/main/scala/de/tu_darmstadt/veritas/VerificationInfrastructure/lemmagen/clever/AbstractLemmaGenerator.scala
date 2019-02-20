@@ -82,17 +82,17 @@ trait AbstractLemmaGenerator {
 
   def makeProgressGraphConstructor(fn: FunctionDef): GraphConstructor = {
     new ProgressConstructor(problem, fn,
-      makeHints(s"progress/${fn.signature.name}", fn))
+      makeHints(s"progress", fn))
   }
 
   def makePredicatePreservationGraphConstructor(fn: FunctionDef, predicate: FunctionDef): GraphConstructor = {
     new PredicatePreservationConstructor(problem, fn, predicate,
-      makeHints(s"preservation/predicate/${fn.signature.name}", fn))
+      makeHints(s"preservation/predicate/${predicate.signature.name}", fn))
   }
 
   def makeRelationalPreservationGraphConstructor(fn: FunctionDef,
                                                  relation: FunctionDef, termIndex: Int): GraphConstructor = {
     new RelationalPreservationConstructor(problem, fn, relation, termIndex,
-      makeHints(s"preservation/relational/${fn.signature.name}/$termIndex", fn))
+      makeHints(s"preservation/relational/${relation.signature.name}/$termIndex", fn))
   }
 }
