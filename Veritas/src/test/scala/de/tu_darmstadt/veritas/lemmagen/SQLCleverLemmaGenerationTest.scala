@@ -14,13 +14,12 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
   val generationProblem = new Problem(file)
   val generator = new AbstractLemmaGenerator {
     override def problem: Problem = generationProblem
-    override def invokePipeline(constructor: GraphConstructor): Seq[Lemma] = {
-      val pipeline = new DefaultGeneratorPipeline with VisualizingGeneratorPipeline {
+    override def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline = {
+      new DefaultGeneratorPipeline with VisualizingGeneratorPipeline {
         override def directory: File = new File("generated")
         override def problem: Problem = generationProblem
         override def graphConstructor: GraphConstructor = constructor
       }
-      pipeline.invokePipeline()
     }
   }
 

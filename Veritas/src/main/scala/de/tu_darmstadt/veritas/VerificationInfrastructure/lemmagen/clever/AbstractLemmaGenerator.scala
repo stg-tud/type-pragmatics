@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 trait AbstractLemmaGenerator {
   def problem: Problem
-  def invokePipeline(constructor: GraphConstructor): Seq[Lemma]
+  def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline
 
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Query._
   implicit private val enquirer = problem.enquirer
@@ -42,7 +42,7 @@ trait AbstractLemmaGenerator {
   def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
-      result ++= invokePipeline(makePredicatePreservationGraphConstructor(fn, predicate))
+      result ++= makePipeline(makePredicatePreservationGraphConstructor(fn, predicate)).invokePipeline()
     }
     if(fn.inTypes.count(_ == fn.successfulOutType) >= 1) {
       for (relation <- getRelationsInvolving(fn.successfulOutType)) {
@@ -50,7 +50,7 @@ trait AbstractLemmaGenerator {
           case (inType, idx) if inType == fn.successfulOutType => idx
         }
         for(idx <- matchingIndices) {
-          result ++= invokePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx))
+          result ++= makePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx)).invokePipeline()
         }
       }
     }
@@ -62,7 +62,7 @@ trait AbstractLemmaGenerator {
   }
 
   def generateProgressLemmas(fn: FunctionDef): Seq[Lemma] = {
-    invokePipeline(makeProgressGraphConstructor(fn))
+    makePipeline(makeProgressGraphConstructor(fn)).invokePipeline()
   }
 
   def generateProgressLemmas(): Map[FunctionDef, Seq[Lemma]] = {
