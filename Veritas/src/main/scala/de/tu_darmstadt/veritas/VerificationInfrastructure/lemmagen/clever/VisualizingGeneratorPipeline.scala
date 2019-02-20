@@ -2,13 +2,12 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import java.io.{File, FileWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem, SimpleLemmaPrinter}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor.GraphConstructor
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, SimpleLemmaPrinter}
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 
-class VisualizingGeneratorPipeline(problem: Problem, directory: File)
-  extends DefaultGeneratorPipeline(problem) {
+trait VisualizingGeneratorPipeline extends DefaultGeneratorPipeline {
+  def directory: File
 
   private def recursivedelete(file: File) {
     if (file.isDirectory)
@@ -58,8 +57,8 @@ class VisualizingGeneratorPipeline(problem: Problem, directory: File)
     writeLemmasScalaSPL(new File(directory, "lemmas.scala"), lemmas)
   }
 
-  override def invokeConstructor(constructor: GraphConstructor): RefinementGraph = {
-    val graph = super.invokeConstructor(constructor)
+  override def invokeConstructor(): RefinementGraph = {
+    val graph = super.invokeConstructor()
     graph.visualize(new File(makeDirectory(graph), "step1.png"))
     graph
   }

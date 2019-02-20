@@ -3,16 +3,26 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, DefaultGeneratorPipeline, LemmaGeneratorPipeline, VisualizingGeneratorPipeline}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor.GraphConstructor
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import org.scalatest.FunSuite
 
 class SQLCleverLemmaGenerationTest extends FunSuite {
   //val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
-  val problem = new Problem(file)
-  val pipeline = new VisualizingGeneratorPipeline(problem, new File("generated"))
-  val generator = new CleverLemmaGenerator(problem, pipeline)
+  val generationProblem = new Problem(file)
+  val generator = new AbstractLemmaGenerator {
+    override def problem: Problem = generationProblem
+    override def invokePipeline(constructor: GraphConstructor): Seq[Lemma] = {
+      val pipeline = new VisualizingGeneratorPipeline {
+        override def directory: File = new File("generated")
+        override def problem: Problem = generationProblem
+        override def graphConstructor: GraphConstructor = constructor
+      }
+      pipeline.invokePipeline()
+    }
+  }
 
   def printRules(lemmas: Seq[Lemma]) = {
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
@@ -27,7 +37,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
 
   for(func <- generator.progressFunctions) {
     lazy val lemmas = generator.generateProgressLemmas(func).toSeq
-    val expectedLemmas = problem.dsk.progressProperties.getOrElse(func, Seq())
+    val expectedLemmas = generationProblem.dsk.progressProperties.getOrElse(func, Seq())
     for(expected <- expectedLemmas) {
       test(s"progress ${func.signature.name} (${expected.name})") {
         println(s"===== ${lemmas.size} lemmas!")
@@ -49,7 +59,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
 
   for(func <- generator.preservationFunctions) {
     lazy val lemmas = generator.generatePreservationLemmas(func).toSeq
-    val expectedLemmas = problem.dsk.preservationProperties.getOrElse(func, Seq())
+    val expectedLemmas = generationProblem.dsk.preservationProperties.getOrElse(func, Seq())
     for (expected <- expectedLemmas) {
       test(s"preservation ${func.signature.name} (${expected.name})") {
         println(s"===== ${lemmas.size} lemmas!")
