@@ -1,10 +1,11 @@
 package de.tu_darmstadt.veritas.lemmagen
 
-import java.io.{File, PrintWriter}
+import java.io.{File, FileWriter, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, PredicatePreservationConstructor, ProgressConstructor}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, PredicatePreservationConstructor, ProgressConstructor, ScalaSPLSpecificationOutput}
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
+import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 import org.scalatest.FunSuite
 
 class SQLCleverLemmaGenerationTest extends FunSuite {
@@ -24,8 +25,18 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
+  val writer = new FileWriter(new File("/tmp/foo.scala"))
+  val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
+    override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
+  }
+  lemmaWriter.print(problem.spec)
+
   for(func <- generator.progressFunctions) {
     lazy val lemmas = generator.generateProgressLemmas(func).toSeq
+    val l = lemmas.head
+    val source = scala.io.Source.fromFile(file).mkString("")
+    val adder = new ScalaSPLSpecificationOutput(source, Map("projectTable" -> Set(l)))
+    println(adder.generate())
     val expectedLemmas = problem.dsk.progressProperties.getOrElse(func, Seq())
     for(expected <- expectedLemmas) {
       test(s"progress ${func.signature.name} (${expected.name})") {

@@ -44,7 +44,7 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
   }
 
   def consult(tree: RefinementGraph): Unit = {
-    var fringe = new mutable.Queue[RefinementNode]()
+    /*var fringe = new mutable.Queue[RefinementNode]()
     fringe ++= tree.leaves
     while(fringe.nonEmpty) {
       var node = fringe.dequeue()
@@ -62,6 +62,7 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
           node.provabilityStatus = status
         }
       }
-    }
+    }*/
+    tree.nodes.foreach { n => n.provabilityStatus = Inconclusive() }
   }
 }
