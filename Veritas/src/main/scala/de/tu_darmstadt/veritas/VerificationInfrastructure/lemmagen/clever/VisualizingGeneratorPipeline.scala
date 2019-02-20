@@ -1,0 +1,82 @@
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+
+import java.io.{File, FileWriter}
+
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem, SimpleLemmaPrinter}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor.GraphConstructor
+import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
+import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
+
+class VisualizingGeneratorPipeline(problem: Problem, directory: File)
+  extends DefaultGeneratorPipeline(problem) {
+
+  private def recursivedelete(file: File) {
+    if (file.isDirectory)
+      Option(file.listFiles).map(_.toList).getOrElse(Nil).foreach(recursivedelete(_))
+    file.delete
+  }
+
+  if(directory.exists())
+    recursivedelete(directory)
+
+  private def makeDirectory(graph: RefinementGraph): File = {
+    val subdirectory = new File(directory, graph.root.lemma.name)
+    if(!subdirectory.exists())
+      subdirectory.mkdirs()
+    subdirectory
+  }
+
+  def writeLemmasLaTeX(file: File, lemmas: Seq[Lemma]): Unit = {
+    val writer = new FileWriter(file)
+    val latexWriter = new SimpleLemmaPrinter {
+      override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
+    }
+    for (lemma <- lemmas) {
+      latexWriter.printTypingRule(lemma)
+      writer.write("\n")
+      writer.flush()
+    }
+    writer.close()
+  }
+
+  def writeLemmasScalaSPL(file: File, lemmas: Seq[Lemma]): Unit = {
+    val writer = new FileWriter(file)
+    val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
+      override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
+    }
+    for (lemma <- lemmas) {
+      lemmaWriter.printTypingRule(lemma)
+      writer.write("\n")
+      writer.flush()
+    }
+    writer.close()
+  }
+
+  def writeLemmas(directory: File, lemmas: Seq[Lemma]) = {
+    // Write lemmas to LaTeX
+    writeLemmasLaTeX(new File(directory, "lemmas.tex"), lemmas)
+    writeLemmasScalaSPL(new File(directory, "lemmas.scala"), lemmas)
+  }
+
+  override def invokeConstructor(constructor: GraphConstructor): RefinementGraph = {
+    val graph = super.invokeConstructor(constructor)
+    graph.visualize(new File(makeDirectory(graph), "step1.png"))
+    graph
+  }
+
+  override def invokeOracle(graph: RefinementGraph): Unit = {
+    super.invokeOracle(graph)
+    graph.visualize(new File(makeDirectory(graph), "step2.png"))
+  }
+
+  override def invokeExtraction(graph: RefinementGraph): Unit = {
+    super.invokeExtraction(graph)
+    graph.visualize(new File(makeDirectory(graph), "step3.png"))
+  }
+
+  override def invokePostprocessor(graph: RefinementGraph): Seq[Lemma] = {
+    val lemmas = super.invokePostprocessor(graph)
+    writeLemmas(makeDirectory(graph), lemmas)
+    lemmas
+  }
+}

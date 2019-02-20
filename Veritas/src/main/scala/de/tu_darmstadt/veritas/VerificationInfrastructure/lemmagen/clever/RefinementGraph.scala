@@ -67,7 +67,7 @@ class RefinementNode(val annotatedLemma: AnnotatedLemma) {
   }
 }
 
-class RefinementGraph(problem: Problem, root: RefinementNode) {
+class RefinementGraph(problem: Problem, val root: RefinementNode) {
   def nodes: Set[RefinementNode] = Set(root) ++ root.descendants
   def openNodes: Set[RefinementNode] = nodes.filter(_.open)
   def selectedNodes: Set[RefinementNode] = nodes.filter(_.selected)

@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessor
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.RefinementGraph
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionExpNeq, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
@@ -35,7 +36,8 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
     }
   }
 
-  override def process(lemmas: Seq[Lemma]): Seq[Lemma] = {
+  override def process(graph: RefinementGraph): Seq[Lemma] = {
+    val lemmas = graph.selectedNodes.map(_.lemma).toSeq
     // first, reformulate progress lemmas
     val reformulated = reformulateProgressLemmas(lemmas)
     // then, rename lemmas

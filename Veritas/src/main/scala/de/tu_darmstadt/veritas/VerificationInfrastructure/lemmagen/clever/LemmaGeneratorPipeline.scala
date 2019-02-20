@@ -62,8 +62,8 @@ trait LemmaGeneratorPipeline {
     makeExtractionHeuristic().extract(graph)
   }
 
-  def invokePostprocessor(lemmas: Seq[Lemma]): Seq[Lemma] = {
-    makePostProcessor().process(lemmas)
+  def invokePostprocessor(graph: RefinementGraph): Seq[Lemma] = {
+    makePostProcessor().process(graph)
   }
 
   /*def generateWithConstructor(constructor: GraphConstructor,
@@ -88,8 +88,7 @@ trait LemmaGeneratorPipeline {
     val graph = invokeConstructor(constructor)
     invokeOracle(graph)
     invokeExtraction(graph)
-    val lemmas = graph.selectedNodes.map(_.lemma).toSeq
-    invokePostprocessor(lemmas)
+    invokePostprocessor(graph)
   }
 
   def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
