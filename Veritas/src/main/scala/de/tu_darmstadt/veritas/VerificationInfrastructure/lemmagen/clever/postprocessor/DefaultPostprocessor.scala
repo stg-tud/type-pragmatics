@@ -1,8 +1,9 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessor
+
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
-import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionExpNeq, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
 
 class DefaultPostprocessor(problem: Problem) extends Postprocessor {
   implicit private val enquirer = problem.enquirer

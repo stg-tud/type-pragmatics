@@ -1,6 +1,6 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.extraction
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{Inconclusive, RefinementGraph}
 
 class DefaultHeuristic extends ExtractionHeuristic {
   def extract(graph: RefinementGraph): Unit = {

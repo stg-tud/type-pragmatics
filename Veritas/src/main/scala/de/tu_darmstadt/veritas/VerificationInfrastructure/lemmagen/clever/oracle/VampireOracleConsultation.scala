@@ -1,9 +1,10 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{Evidence, GenStepResult, StepResultProducer}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.LemmaApplicationStep
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, Proved, TPTPVampireVerifier, VerifierStatus}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{Evidence, GenStepResult, StepResultProducer}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
 

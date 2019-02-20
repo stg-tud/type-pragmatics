@@ -1,7 +1,8 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Constraint
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{AnnotatedLemma, Hints, RefinementNode}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{LemmaGenSpecEnquirer, Query, Refinement, StrategyHelpers}
 import de.tu_darmstadt.veritas.backend.ast.MetaVar
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpMeta, FunctionMeta}
 

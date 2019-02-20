@@ -1,5 +1,9 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Problem
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor.{GraphConstructor, PredicatePreservationConstructor, ProgressConstructor, RelationalPreservationConstructor}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.extraction.{DefaultHeuristic, ExtractionHeuristic}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle.{OracleConsultation, VampireOracleConsultation}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessor.{DefaultPostprocessor, Postprocessor}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 class DefaultGeneratorPipeline(val problem: Problem) extends LemmaGeneratorPipeline {

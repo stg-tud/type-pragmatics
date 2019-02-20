@@ -1,5 +1,9 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor.GraphConstructor
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.extraction.ExtractionHeuristic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle.OracleConsultation
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessor.Postprocessor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef

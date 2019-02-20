@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessor
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 

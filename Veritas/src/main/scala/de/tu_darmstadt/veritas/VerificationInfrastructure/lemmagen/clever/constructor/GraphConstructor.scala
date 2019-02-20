@@ -1,5 +1,6 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{AnnotatedLemma, RefinementGraph, RefinementNode}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Problem, Refinement}
 
 trait GraphConstructor {
