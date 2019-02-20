@@ -15,7 +15,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
   val generator = new AbstractLemmaGenerator {
     override def problem: Problem = generationProblem
     override def invokePipeline(constructor: GraphConstructor): Seq[Lemma] = {
-      val pipeline = new VisualizingGeneratorPipeline {
+      val pipeline = new DefaultGeneratorPipeline with VisualizingGeneratorPipeline {
         override def directory: File = new File("generated")
         override def problem: Problem = generationProblem
         override def graphConstructor: GraphConstructor = constructor

@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Simpl
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 
-trait VisualizingGeneratorPipeline extends DefaultGeneratorPipeline {
+trait VisualizingGeneratorPipeline extends LemmaGeneratorPipeline {
   def directory: File
 
   private def recursivedelete(file: File) {
