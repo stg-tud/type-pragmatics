@@ -43,8 +43,10 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
         val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
         println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
         assert(equivalentLemmas.nonEmpty)
-        progressLemmas(func) ++= lemmas
       }
+    }
+    test(s"add ${func.signature.name} progress lemmas to store") {
+      progressLemmas(func) ++= lemmas
     }
     if(expectedLemmas.isEmpty)
       test(s"progress ${func.signature.name}") {
@@ -75,7 +77,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
         println("")
         succeed
       }
-    test(s"add ${func.signature.name} lemmas to store") {
+    test(s"add ${func.signature.name} preservation lemmas to store") {
       preservationLemmas(func) ++= lemmas
     }
   }

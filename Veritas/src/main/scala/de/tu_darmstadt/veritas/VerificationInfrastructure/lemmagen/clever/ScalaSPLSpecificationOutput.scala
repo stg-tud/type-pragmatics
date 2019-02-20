@@ -39,8 +39,8 @@ class ScalaSPLSpecificationOutput(input: Input,
     val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
       override val printer: PrettyPrintWriter = prettyWriter
     }
+    prettyWriter.writeln("// The following lemmas have been automatically generated.")
     for(lemma <- lemmas) {
-      prettyWriter.write("// The following lemmas have been automatically generated")
       prettyWriter.newline()
       prettyWriter.write("@Property")
       prettyWriter.newline()
@@ -85,7 +85,7 @@ object ScalaSPLSpecificationOutput {
                                preservationLemmas: Map[FunctionDef, Seq[Lemma]]): String = {
     val annotations = (flattenLemmas(progressLemmas, "ProgressProperty")
       ++ flattenLemmas(preservationLemmas, "PreservationProperty"))
-    val lemmas = (progressLemmas ++ preservationLemmas).flatMap(_._2).toSeq
+    val lemmas = progressLemmas.flatMap(_._2).toSeq ++ preservationLemmas.flatMap(_._2).toSeq
     val writer = new ScalaSPLSpecificationOutput(input, lemmas, annotations)
     writer.generate()
   }
