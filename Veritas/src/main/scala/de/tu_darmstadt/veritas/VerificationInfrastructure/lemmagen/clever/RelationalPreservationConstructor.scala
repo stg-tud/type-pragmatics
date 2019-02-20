@@ -43,7 +43,7 @@ class RelationalPreservationConstructor(val problem: Problem,
   def generateBase(): AnnotatedLemma = {
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
-    val baseLemma = new Lemma(s"${function.name}_Preserves_${predicate.name}$termIndex", Seq(), Seq(judgment))
+    val baseLemma = new Lemma(s"${function.name}_Preservation_${predicate.name}$termIndex", Seq(), Seq(judgment))
     // for each matching in var, add a Predicate refinement
     var lemma = baseLemma
     val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
