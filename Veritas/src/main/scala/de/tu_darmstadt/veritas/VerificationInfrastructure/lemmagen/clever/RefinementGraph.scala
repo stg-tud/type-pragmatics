@@ -61,12 +61,18 @@ class RefinementNode(val annotatedLemma: AnnotatedLemma) {
                 + s"constrained=$constrainedVariables\\nnot constrained=$notConstrained\\npost=$postVariables" + "\"")
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
+
+  def select(): Unit = {
+    selected = true
+  }
 }
 
 class RefinementGraph(problem: Problem, root: RefinementNode) {
   def nodes: Set[RefinementNode] = Set(root) ++ root.descendants
   def openNodes: Set[RefinementNode] = nodes.filter(_.open)
+  def selectedNodes: Set[RefinementNode] = nodes.filter(_.selected)
   def leaves: Set[RefinementNode] = root.leaves
+  // TODO: Can we make these Seqs with a fixed traversal order?
 
   private def calculateNodeID(node: RefinementNode): String = {
     "n" + (node.hashCode() & Integer.MAX_VALUE)

@@ -9,7 +9,7 @@ import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
 
 import scala.collection.mutable
 
-class VampireOracleConsultation(val problem: Problem) extends OracleConsultation[RefinementGraph] {
+class VampireOracleConsultation(val problem: Problem) extends OracleConsultation {
   class StepResult(val status: VerifierStatus[VeritasConstruct, VeritasFormula],
                    val evidence: Option[Evidence], val errorMsg: Option[String])
     extends GenStepResult[VeritasConstruct, VeritasFormula]  {

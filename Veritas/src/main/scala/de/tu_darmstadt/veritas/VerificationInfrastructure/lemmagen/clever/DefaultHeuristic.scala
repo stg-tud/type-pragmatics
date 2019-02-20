@@ -2,8 +2,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 
-class RankingHeuristic extends ExtractionHeuristic {
-  def extract(graph: RefinementGraph): Seq[Lemma] = {
+class DefaultHeuristic extends ExtractionHeuristic {
+  def extract(graph: RefinementGraph): Unit = {
     // get all inconclusive nodes
     val inconclusiveNodes = graph.collectNodes(Inconclusive())
     // only nodes that constrain all variables
@@ -12,7 +12,6 @@ class RankingHeuristic extends ExtractionHeuristic {
       node.ancestors.exists(filteredNodes.contains)
     })
     for(node <- onlyDominators)
-      node.selected = true
-    onlyDominators.map(_.lemma).toSeq
+      node.select()
   }
 }

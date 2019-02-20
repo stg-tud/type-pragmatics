@@ -12,7 +12,7 @@ class RelationalPreservationConstructor(val problem: Problem,
                                         function: FunctionDef,
                                         predicate: FunctionDef,
                                         termIndex: Int,
-                                        val hints: Option[Hints]) extends LemmaGraphConstructor {
+                                        val hints: Hints) extends LemmaGraphConstructor {
   import Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 

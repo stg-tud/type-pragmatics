@@ -12,7 +12,7 @@ trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def generateBase(): AnnotatedLemma
-  def hints: Option[Hints]
+  def hints: Hints
   def invocationArguments: Seq[MetaVar]
   def restrictableVariables(node: RefinementNode): Set[MetaVar]
 
@@ -69,9 +69,6 @@ trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
 
   override def constructRoot(): AnnotatedLemma = {
     val base = generateBase()
-    hints match {
-      case None => base
-      case Some(actualHints) => actualHints.apply(base)
-    }
+    hints.apply(base)
   }
 }

@@ -1,16 +1,22 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import java.io.File
-
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
-import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
-import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp, FunctionExpNeq, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.SortRef
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 import scala.collection.mutable
 
-class CleverLemmaGenerator(problem: Problem) {
+trait LemmaGeneratorPipeline {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Query._
+
+  def problem: Problem
+  def makeProgressGraphConstructor(fn: FunctionDef): GraphConstructor
+  def makePredicatePreservationGraphConstructor(fn: FunctionDef, predicate: FunctionDef): GraphConstructor
+  def makeRelationalPreservationGraphConstructor(fn: FunctionDef, relation: FunctionDef,
+                                                 termIndex: Int): GraphConstructor
+  def makeOracleConsultation(): OracleConsultation
+  def makeExtractionHeuristic(): ExtractionHeuristic
+  def makePostProcessor(): Postprocessor
 
   implicit private val enquirer = problem.enquirer
 
@@ -40,7 +46,23 @@ class CleverLemmaGenerator(problem: Problem) {
     problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.outType))
   }
 
-  def generateWithConstructor(constructor: GraphConstructor,
+  def invokeConstructor(constructor: GraphConstructor): RefinementGraph = {
+    constructor.construct()
+  }
+
+  def invokeOracle(graph: RefinementGraph): Unit = {
+    makeOracleConsultation().consult(graph)
+  }
+
+  def invokeExtraction(graph: RefinementGraph): Unit = {
+    makeExtractionHeuristic().extract(graph)
+  }
+
+  def invokePostprocessor(lemmas: Seq[Lemma]): Seq[Lemma] = {
+    makePostProcessor().process(lemmas)
+  }
+
+  /*def generateWithConstructor(constructor: GraphConstructor,
                               directory: File): Seq[Lemma] = {
     if (!directory.exists())
       directory.mkdirs()
@@ -56,18 +78,20 @@ class CleverLemmaGenerator(problem: Problem) {
     println(s"-- extracted ${lemmas.size} lemmas")
     graph.visualize(new File(directory, "step3.png"))
     lemmas
+  }*/
+
+  def invokePipeline(constructor: GraphConstructor): Seq[Lemma] = {
+    val graph = invokeConstructor(constructor)
+    invokeOracle(graph)
+    invokeExtraction(graph)
+    val lemmas = graph.selectedNodes.map(_.lemma).toSeq
+    invokePostprocessor(lemmas)
   }
 
-  def generatePreservationLemmas(fn: FunctionDef): Set[Lemma] = {
+  def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
-      val tag = s"preservation/predicate/${predicate.signature.name}"
-      val hints = Hints.fromDSK(problem, fn, tag)
-      val constructor = new PredicatePreservationConstructor(problem, fn, predicate, Some(hints))
-      result ++= generateWithConstructor(
-        constructor,
-        new File(s"generated/preservation/${fn.signature.name}/${predicate.name}")
-      )
+      result ++= invokePipeline(makePredicatePreservationGraphConstructor(fn, predicate))
     }
     if(fn.inTypes.count(_ == fn.successfulOutType) >= 1) {
       for (relation <- getRelationsInvolving(fn.successfulOutType)) {
@@ -75,35 +99,19 @@ class CleverLemmaGenerator(problem: Problem) {
           case (inType, idx) if inType == fn.successfulOutType => idx
         }
         for(idx <- matchingIndices) {
-          val tag = s"preservation/relational/${relation.signature.name}/$idx"
-          val hints = Hints.fromDSK(problem, fn, tag)
-          val constructor = new RelationalPreservationConstructor(problem, fn, relation, idx, Some(hints))
-          result ++= generateWithConstructor(
-            constructor,
-            new File(s"generated/preservation/${fn.signature.name}/${relation.name}$idx")
-          )
+          result ++= invokePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx))
         }
       }
     }
-    val postprocessor = new DefaultPostprocessor(problem)
-    val postprocessed = postprocessor.process(result.toSeq)
-    postprocessed.toSet
+    result.toSeq
   }
 
 
-  def generateProgressLemmas(fn: FunctionDef): Set[Lemma] = {
-    //val hint = AdditionalPremises.fromDSK(problem, fn) TODO
-    println(s"${fn.signature.name}")
-    val tag = s"progress/${fn.signature.name}"
-    val hints = Hints.fromDSK(problem, fn, tag)
-    val constructor = new ProgressConstructor(problem, fn, Some(hints))
-    val result = generateWithConstructor(constructor, new File(s"generated/progress/${fn.signature.name}/"))
-    val postprocessor = new DefaultPostprocessor(problem)
-    val postprocessed = postprocessor.process(result)
-    postprocessed.toSet
+  def generateProgressLemmas(fn: FunctionDef): Seq[Lemma] = {
+    invokePipeline(makeProgressGraphConstructor(fn))
   }
 
-  def generatePreservationLemmas(): Map[FunctionDef, Set[Lemma]] = {
+  def generatePreservationLemmas(): Map[FunctionDef, Seq[Lemma]] = {
     preservationFunctions.map(fn => fn -> generatePreservationLemmas(fn)).toMap
   }
 }

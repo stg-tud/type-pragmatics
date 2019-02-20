@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 
 class ProgressConstructor(val problem: Problem,
                           function: FunctionDef,
-                          val hints: Option[Hints]) extends LemmaGraphConstructor {
+                          val hints: Hints) extends LemmaGraphConstructor {
   import Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
