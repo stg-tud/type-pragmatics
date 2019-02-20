@@ -42,7 +42,7 @@ class CleverLemmaGenerator(problem: Problem) {
 
   def generateWithConstructor(constructor: GraphConstructor,
                               directory: File): Seq[Lemma] = {
-    if(!directory.exists())
+    if (!directory.exists())
       directory.mkdirs()
     val graph = constructor.construct()
     println(s"-- constructed graph with ${graph.nodes.size} nodes")
@@ -85,7 +85,9 @@ class CleverLemmaGenerator(problem: Problem) {
         }
       }
     }
-    result.toSet
+    val postprocessor = new DefaultPostprocessor(problem)
+    val postprocessed = postprocessor.process(result.toSeq)
+    postprocessed.toSet
   }
 
 
@@ -95,18 +97,10 @@ class CleverLemmaGenerator(problem: Problem) {
     val tag = s"progress/${fn.signature.name}"
     val hints = Hints.fromDSK(problem, fn, tag)
     val constructor = new ProgressConstructor(problem, fn, Some(hints))
-    generateWithConstructor(constructor, new File(s"generated/progress/${fn.signature.name}/")).map(lemma =>
-      lemma.consequences.head match {
-        case FunctionExpJudgment(FunctionExpNeq(l, r)) =>
-          val (_, successConstructor) = enquirer.retrieveFailableConstructors(fn.outType)
-          val assignments = Assignments.generate(Seq(Constraint.fresh(fn.successfulOutType)), lemma.boundVariables)
-          val successVar = assignments.head.head
-          val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
-          val equality = enquirer.makeEquation(l, successExp).asInstanceOf[FunctionExpJudgment]
-          val exists = ExistsJudgment(Seq(successVar), Seq(equality))
-          new Lemma(lemma.name, lemma.premises, Seq(exists), lemma.refinements)
-        case _ => sys.error("TODO")
-      }).toSet // TODO: this needs to go somewhere else
+    val result = generateWithConstructor(constructor, new File(s"generated/progress/${fn.signature.name}/"))
+    val postprocessor = new DefaultPostprocessor(problem)
+    val postprocessed = postprocessor.process(result)
+    postprocessed.toSet
   }
 
   def generatePreservationLemmas(): Map[FunctionDef, Set[Lemma]] = {
