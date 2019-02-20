@@ -43,9 +43,9 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
     }
   }
 
-  def consult(tree: RefinementGraph): Unit = {
+  def consult(graph: RefinementGraph): Unit = {
     var fringe = new mutable.Queue[RefinementNode]()
-    fringe ++= tree.leaves
+    fringe ++= graph.leaves
     while(fringe.nonEmpty) {
       var node = fringe.dequeue()
       fringe ++= node.parents
@@ -57,7 +57,7 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
         println(node.lemma)
         val status = invokeOracle(problem, Set(node.lemma))
         if (status == DirectlyDisproved()) {
-          tree.setDisprovedStatusRecursively(node)
+          graph.setDisprovedStatusRecursively(node)
         } else {
           node.provabilityStatus = status
         }
