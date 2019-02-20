@@ -1,12 +1,16 @@
 package de.tu_darmstadt.veritas.lemmagen
 
-import java.io.{File, FileWriter, PrintWriter}
+import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, PredicatePreservationConstructor, ProgressConstructor, ScalaSPLSpecificationOutput}
+import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 import org.scalatest.FunSuite
+
+import scala.collection.mutable
+import scala.meta.inputs.Input
 
 class SQLCleverLemmaGenerationTest extends FunSuite {
   //val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
@@ -25,18 +29,11 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
-  val writer = new FileWriter(new File("/tmp/foo.scala"))
-  val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
-    override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
-  }
-  lemmaWriter.print(problem.spec)
+  private val progressLemmas = new mutable.HashMap[FunctionDef, Seq[Lemma]]().withDefault(_ => Seq())
+  private val preservationLemmas = new mutable.HashMap[FunctionDef, Seq[Lemma]]().withDefault(_ => Seq())
 
   for(func <- generator.progressFunctions) {
     lazy val lemmas = generator.generateProgressLemmas(func).toSeq
-    val l = lemmas.head
-    val source = scala.io.Source.fromFile(file).mkString("")
-    val adder = new ScalaSPLSpecificationOutput(source, Map("projectTable" -> Set(l)))
-    println(adder.generate())
     val expectedLemmas = problem.dsk.progressProperties.getOrElse(func, Seq())
     for(expected <- expectedLemmas) {
       test(s"progress ${func.signature.name} (${expected.name})") {
@@ -46,6 +43,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
         val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
         println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
         assert(equivalentLemmas.nonEmpty)
+        progressLemmas(func) ++= lemmas
       }
     }
     if(expectedLemmas.isEmpty)
@@ -77,5 +75,22 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
         println("")
         succeed
       }
+    test(s"add ${func.signature.name} lemmas to store") {
+      preservationLemmas(func) ++= lemmas
+    }
+  }
+
+  test("write updated megaspec") {
+    println(s"progress lemmas: ${progressLemmas.values.flatten.size}")
+    println(s"preservation lemmas: ${preservationLemmas.values.flatten.size}")
+    println("")
+    val specString = scala.io.Source.fromFile(file).mkString("")
+    val input = Input.VirtualFile(file.getAbsolutePath, specString)
+    val updatedString = ScalaSPLSpecificationOutput.addLemmasToSpecification(input, progressLemmas.toMap, preservationLemmas.toMap)
+    val updatedFile = new File("generated/SQLSpecUpdated.scala")
+    val writer = new BufferedWriter(new FileWriter(updatedFile))
+    writer.write(updatedString)
+    writer.close()
+    succeed
   }
 }
