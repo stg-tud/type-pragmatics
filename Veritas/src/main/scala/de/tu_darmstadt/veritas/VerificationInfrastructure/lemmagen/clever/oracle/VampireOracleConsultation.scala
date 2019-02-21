@@ -76,6 +76,7 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
   }
 
   def consult(graph: RefinementGraph): Unit = {
+    println(s"${graph.nodes.size} nodes!")
     for(node <- topologicalOrderOfTranspose(graph)) {
       if(node.provabilityStatus == Unknown()) {
         println(node.lemma)
