@@ -29,12 +29,12 @@ object NaiveEvaluation {
     Directory.mkdirs()
   }
 
-  def generate(): Map[FunctionDef, Set[Lemma]] = {
+  def generate(): Map[FunctionDef, Seq[Lemma]] = {
     val generator = new NaiveLemmaGenerator(problem)
-    generator.generate()
+    generator.generateLemmas()
   }
 
-  def printLemmas(file: File, lemmas: Set[Lemma]): Unit = {
+  def printLemmas(file: File, lemmas: Seq[Lemma]): Unit = {
     println(s"Writing ${lemmas.size} lemmas to $file ...")
     val writer = new FileWriter(file)
     val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
@@ -69,7 +69,7 @@ object NaiveEvaluation {
     )
   }
 
-  def generateGeneratedLine(function: FunctionDef, lemmas: Set[Lemma]): String = {
+  def generateGeneratedLine(function: FunctionDef, lemmas: Seq[Lemma]): String = {
     val generatedProgress = lemmas.filter(_.name.endsWith("Progress"))
     val generatedPreservation = lemmas.filter(_.name.endsWith("Preservation"))
     require(generatedProgress ++ generatedPreservation == lemmas)
@@ -81,7 +81,7 @@ object NaiveEvaluation {
     | ${lemmas.size} \\\\""".stripMargin
   }
 
-  def generateEquivalentLine(function: FunctionDef, lemmas: Set[Lemma], equivalent: Set[Lemma]): String = {
+  def generateEquivalentLine(function: FunctionDef, lemmas: Seq[Lemma], equivalent: Seq[Lemma]): String = {
     val generatedProgress = lemmas.filter(_.name.endsWith("Progress"))
     val generatedPreservation = lemmas.filter(_.name.endsWith("Preservation"))
     val expectedProgress = problem.dsk.lookupByFunName(
@@ -118,7 +118,7 @@ object NaiveEvaluation {
        | ${equivalentPreservation.size} / ${expectedPreservation.size} \\\\""".stripMargin
   }
 
-  def evaluate(result: Map[FunctionDef, Set[Lemma]]): Unit = {
+  def evaluate(result: Map[FunctionDef, Seq[Lemma]]): Unit = {
     val countLines = new mutable.ListBuffer[String]()
     val equivalentLines = new mutable.ListBuffer[String]()
     val successLines = new mutable.ListBuffer[String]()
@@ -189,15 +189,16 @@ object NaiveEvaluation {
        """.stripMargin
     printToFile(new File(Directory, "lemma-classes.tex"), names)
   }
-  def serializeLemmas(file: File, lemmas: Map[FunctionDef, Set[Lemma]]): Unit = {
+
+  def serializeLemmas(file: File, lemmas: Map[FunctionDef, Seq[Lemma]]): Unit = {
     val stream = new ObjectOutputStream(new FileOutputStream(file))
     stream.writeObject(lemmas)
     stream.close()
   }
 
-  def deserializeLemmas(file: File): Map[FunctionDef, Set[Lemma]] = {
+  def deserializeLemmas(file: File): Map[FunctionDef, Seq[Lemma]] = {
     val stream = new ObjectInputStream(new FileInputStream(file))
-    val lemmas = stream.readObject().asInstanceOf[Map[FunctionDef, Set[Lemma]]]
+    val lemmas = stream.readObject().asInstanceOf[Map[FunctionDef, Seq[Lemma]]]
     stream.close()
     lemmas
   }
@@ -221,7 +222,7 @@ object NaiveEvaluation {
   }
 
   def main(args: Array[String]): Unit = {
-    var lemmas = Map.empty[FunctionDef, Set[Lemma]]
+    var lemmas = Map.empty[FunctionDef, Seq[Lemma]]
     if(!LemmaFile.exists()) {
       println("generating lemmas ...")
       lemmas = generate()

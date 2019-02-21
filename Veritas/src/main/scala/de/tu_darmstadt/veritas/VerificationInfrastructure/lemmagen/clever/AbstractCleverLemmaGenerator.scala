@@ -1,13 +1,13 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.{GraphConstructor, PredicatePreservationConstructor, ProgressConstructor, RelationalPreservationConstructor}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaGenerator, Problem}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 import scala.collection.mutable
 
-abstract class AbstractLemmaGenerator(problem: Problem) {
+abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGenerator {
   def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline
 
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
@@ -38,6 +38,7 @@ abstract class AbstractLemmaGenerator(problem: Problem) {
   def progressFunctions: Set[FunctionDef] = {
     problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.outType))
   }
+
   def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
@@ -56,7 +57,7 @@ abstract class AbstractLemmaGenerator(problem: Problem) {
     result.toSeq
   }
 
-  def generatePreservationLemmas(): Map[FunctionDef, Seq[Lemma]] = {
+  override def generatePreservationLemmas(): Map[FunctionDef, Seq[Lemma]] = {
     preservationFunctions.map(fn => fn -> generatePreservationLemmas(fn)).toMap
   }
 
@@ -64,7 +65,7 @@ abstract class AbstractLemmaGenerator(problem: Problem) {
     makePipeline(makeProgressGraphConstructor(fn)).invokePipeline()
   }
 
-  def generateProgressLemmas(): Map[FunctionDef, Seq[Lemma]] = {
+  override def generateProgressLemmas(): Map[FunctionDef, Seq[Lemma]] = {
     progressFunctions.map(fn => fn -> generateProgressLemmas(fn)).toMap
   }
 

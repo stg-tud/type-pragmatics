@@ -1,11 +1,9 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaGenerator, Problem}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
-import scala.collection.mutable
-
-class NaiveLemmaGenerator(problem: Problem, maxPremises: Int = 4) {
+class NaiveLemmaGenerator(problem: Problem, maxPremises: Int = 4) extends LemmaGenerator {
   def preservationFunctions: Set[FunctionDef] = {
     problem.enquirer.dynamicFunctions.filterNot(fn => fn.signature.out.name == "Bool")
   }
@@ -14,25 +12,20 @@ class NaiveLemmaGenerator(problem: Problem, maxPremises: Int = 4) {
     problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out))
   }
 
-  def generateWithStrategy(strategy: RefinementStrategy): Set[Lemma] = {
+  def generateWithStrategy(strategy: RefinementStrategy): Seq[Lemma] = {
     val generator = new LimitedDepthLemmaRefinery(problem, strategy, maxPremises)
-    generator.generate().toSet
+    generator.generate()
   }
 
-  def generate(): Map[FunctionDef, Set[Lemma]] = {
-    val generatedLemmas = new mutable.HashMap[FunctionDef, Set[Lemma]]()
-    preservationFunctions.foreach { fn =>
-      if(!generatedLemmas.contains(fn))
-        generatedLemmas(fn) = Set()
-      println(s"generate preservation lemmas for ${fn.signature.name}")
-      generatedLemmas(fn) ++= generateWithStrategy(new PreservationStrategy(problem, fn))
-    }
-    progressFunctions.foreach { fn =>
-      if(!generatedLemmas.contains(fn))
-        generatedLemmas(fn) = Set()
-      println(s"generate progress lemmas for ${fn.signature.name}")
-      generatedLemmas(fn) ++= generateWithStrategy(new ProgressStrategy(problem, fn))
-    }
-    generatedLemmas.toMap
+  def generatePreservationLemmas(): Map[FunctionDef, Seq[Lemma]] = {
+    preservationFunctions.map { fn =>
+      (fn, generateWithStrategy(new PreservationStrategy(problem, fn)))
+    }.toMap
+  }
+
+  def generateProgressLemmas(): Map[FunctionDef, Seq[Lemma]] = {
+    progressFunctions.toSeq.map { fn =>
+      (fn, generateWithStrategy(new ProgressStrategy(problem, fn)))
+    }.toMap
   }
 }
