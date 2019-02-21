@@ -1,7 +1,6 @@
 package de.tu_darmstadt.veritas.scalaspl.util
 
-
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.FreshVariables
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.FreshVariables
 import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.DomainSpecificKnowledge
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._

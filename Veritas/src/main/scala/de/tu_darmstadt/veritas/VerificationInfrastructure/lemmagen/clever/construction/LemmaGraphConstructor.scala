@@ -1,15 +1,15 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Constraint
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.{Constraint, StrategyHelpers}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{AnnotatedLemma, Hints, RefinementNode}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{LemmaGenSpecEnquirer, Query, Refinement, StrategyHelpers}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{LemmaGenSpecEnquirer, Refinement}
 import de.tu_darmstadt.veritas.backend.ast.MetaVar
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpMeta, FunctionMeta}
 
 import scala.collection.mutable
 
 trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
-  import Query._
+  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def generateBase(): AnnotatedLemma

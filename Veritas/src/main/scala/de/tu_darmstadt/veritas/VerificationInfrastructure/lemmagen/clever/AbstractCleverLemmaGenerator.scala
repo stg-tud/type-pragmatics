@@ -1,17 +1,16 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor.{GraphConstructor, PredicatePreservationConstructor, ProgressConstructor, RelationalPreservationConstructor}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.{GraphConstructor, PredicatePreservationConstructor, ProgressConstructor, RelationalPreservationConstructor}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaGenerator, Problem}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 import scala.collection.mutable
 
-trait AbstractLemmaGenerator {
-  def problem: Problem
+abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGenerator {
   def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline
 
-  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Query._
+  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
   implicit private val enquirer = problem.enquirer
 
   def isRelation(fn: FunctionDef): Boolean = {
@@ -39,6 +38,7 @@ trait AbstractLemmaGenerator {
   def progressFunctions: Set[FunctionDef] = {
     problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.outType))
   }
+
   def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
@@ -57,7 +57,7 @@ trait AbstractLemmaGenerator {
     result.toSeq
   }
 
-  def generatePreservationLemmas(): Map[FunctionDef, Seq[Lemma]] = {
+  override def generatePreservationLemmas(): Map[FunctionDef, Seq[Lemma]] = {
     preservationFunctions.map(fn => fn -> generatePreservationLemmas(fn)).toMap
   }
 
@@ -65,17 +65,17 @@ trait AbstractLemmaGenerator {
     makePipeline(makeProgressGraphConstructor(fn)).invokePipeline()
   }
 
-  def generateProgressLemmas(): Map[FunctionDef, Seq[Lemma]] = {
+  override def generateProgressLemmas(): Map[FunctionDef, Seq[Lemma]] = {
     progressFunctions.map(fn => fn -> generateProgressLemmas(fn)).toMap
   }
 
   def generate(): Map[FunctionDef, Seq[Lemma]] = {
-    val lemmas = new mutable.HashMap[FunctionDef, Seq[Lemma]]()
+    val lemmas = new mutable.HashMap[FunctionDef, Seq[Lemma]]().withDefaultValue(Seq())
     for((fn, progressLemmas) <- generateProgressLemmas())
       lemmas(fn) = progressLemmas
     for((fn, preservationLemmas) <- generatePreservationLemmas())
       lemmas(fn) ++= preservationLemmas
-    Map()
+    lemmas.toMap
   }
 
   def makeHints(tag: String, fn: FunctionDef): Hints = Hints.fromDSK(problem, fn, tag)

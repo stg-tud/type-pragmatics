@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.lemmagen
 
 import de.tu_darmstadt.veritas.scalaspl.lang.ScalaSPLSpecification
 
-object SQLSpec extends ScalaSPLSpecification {
+object SQLSpecAnnotated extends ScalaSPLSpecification {
 
   // name of attributes and tables
   trait Name extends Expression

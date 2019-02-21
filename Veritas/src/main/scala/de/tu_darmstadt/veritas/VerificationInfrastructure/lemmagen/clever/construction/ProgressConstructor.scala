@@ -1,7 +1,7 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Assignments
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Assignments
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{AnnotatedLemma, Hints, RefinementNode}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
@@ -9,7 +9,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 class ProgressConstructor(val problem: Problem,
                           function: FunctionDef,
                           val hints: Hints) extends LemmaGraphConstructor {
-  import Query._
+  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   private val functionArguments = Assignments.generateSimpleSingle(function.inTypes)

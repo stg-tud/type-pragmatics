@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util
 
 import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef}
 
@@ -7,7 +7,7 @@ case class VariableChoice(mv: MetaVar) extends Choice
 case class FreshChoice(typ: SortRef) extends Choice
 
 object Choice {
-  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Constraint._
+  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Constraint._
 
   def generate(constraint: Constraint, bound: Set[MetaVar]): Set[Choice] = constraint match {
     case Fresh(typ) => Set(FreshChoice(typ))//

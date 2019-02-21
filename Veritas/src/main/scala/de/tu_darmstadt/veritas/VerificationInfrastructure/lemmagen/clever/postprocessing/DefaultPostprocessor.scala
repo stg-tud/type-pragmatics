@@ -1,6 +1,6 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessor
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.RefinementGraph
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionExpNeq, FunctionMeta}

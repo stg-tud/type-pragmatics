@@ -1,17 +1,15 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor.GraphConstructor
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.GraphConstructor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.extraction.ExtractionHeuristic
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle.OracleConsultation
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessor.Postprocessor
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing.Postprocessor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 
-trait LemmaGeneratorPipeline {
-  def graphConstructor: GraphConstructor
-  def oracleConsultation: OracleConsultation
-  def extractionHeuristic: ExtractionHeuristic
-  def postProcessor: Postprocessor
-
+class LemmaGeneratorPipeline(graphConstructor: GraphConstructor,
+                             oracleConsultation: OracleConsultation,
+                             extractionHeuristic: ExtractionHeuristic,
+                             postprocessor: Postprocessor) {
   def invokeConstructor(): RefinementGraph = {
     graphConstructor.construct()
   }
@@ -25,7 +23,7 @@ trait LemmaGeneratorPipeline {
   }
 
   def invokePostprocessor(graph: RefinementGraph): Seq[Lemma] = {
-    postProcessor.process(graph)
+    postprocessor.process(graph)
   }
 
   def invokePipeline(): Seq[Lemma] = {

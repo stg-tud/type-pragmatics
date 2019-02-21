@@ -1,7 +1,7 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util
 
-import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 

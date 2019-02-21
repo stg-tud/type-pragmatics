@@ -1,9 +1,8 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Assignments.wrapMetaVars
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Constraint.Constraint
-import de.tu_darmstadt.veritas.backend.ast.MetaVar
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Assignments.wrapMetaVars
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Constraint.Constraint
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 trait StrategyHelpers {
