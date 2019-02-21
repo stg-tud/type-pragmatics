@@ -70,12 +70,12 @@ trait AbstractLemmaGenerator {
   }
 
   def generate(): Map[FunctionDef, Seq[Lemma]] = {
-    val lemmas = new mutable.HashMap[FunctionDef, Seq[Lemma]]()
+    val lemmas = new mutable.HashMap[FunctionDef, Seq[Lemma]]().withDefaultValue(Seq())
     for((fn, progressLemmas) <- generateProgressLemmas())
       lemmas(fn) = progressLemmas
     for((fn, preservationLemmas) <- generatePreservationLemmas())
       lemmas(fn) ++= preservationLemmas
-    Map()
+    lemmas.toMap
   }
 
   def makeHints(tag: String, fn: FunctionDef): Hints = Hints.fromDSK(problem, fn, tag)
