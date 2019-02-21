@@ -1,7 +1,7 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{AnnotatedLemma, Hints, RefinementNode}
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, SortRef}
@@ -11,7 +11,7 @@ class PredicatePreservationConstructor(val problem: Problem,
                                        function: FunctionDef,
                                        predicate: FunctionDef,
                                        val hints: Hints) extends LemmaGraphConstructor {
-  import Query._
+  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def termType: SortRef = function.successfulOutType

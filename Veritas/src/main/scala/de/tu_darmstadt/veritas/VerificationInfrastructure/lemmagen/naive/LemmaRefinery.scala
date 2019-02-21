@@ -1,8 +1,10 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive
+
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 
 import scala.collection.mutable
 
-class LemmaGenerator(problem: Problem, strategy: RefinementStrategy) {
+class LemmaRefinery(problem: Problem, strategy: RefinementStrategy) {
   type LemmaGeneration = mutable.MutableList[Lemma]
 
   protected val pool = new ShapedPool()

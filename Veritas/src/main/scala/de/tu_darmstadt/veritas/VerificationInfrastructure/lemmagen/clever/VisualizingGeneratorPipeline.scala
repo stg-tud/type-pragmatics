@@ -2,7 +2,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
 import java.io.{File, FileWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, SimpleLemmaPrinter}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 

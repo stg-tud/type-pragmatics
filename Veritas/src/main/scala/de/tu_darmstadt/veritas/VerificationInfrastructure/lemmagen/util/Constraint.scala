@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util
 
 import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef}
 

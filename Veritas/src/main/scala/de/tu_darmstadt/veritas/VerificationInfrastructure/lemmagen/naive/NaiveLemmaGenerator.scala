@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LimitedDepthLemmaGenerator, Problem, RefinementStrategy}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 import scala.collection.mutable
@@ -15,7 +15,7 @@ class NaiveLemmaGenerator(problem: Problem, maxPremises: Int = 4) {
   }
 
   def generateWithStrategy(strategy: RefinementStrategy): Set[Lemma] = {
-    val generator = new LimitedDepthLemmaGenerator(problem, strategy, maxPremises)
+    val generator = new LimitedDepthLemmaRefinery(problem, strategy, maxPremises)
     generator.generate().toSet
   }
 

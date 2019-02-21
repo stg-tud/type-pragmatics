@@ -1,4 +1,4 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{AnnotatedLemma, RefinementGraph, RefinementNode}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Problem, Refinement}

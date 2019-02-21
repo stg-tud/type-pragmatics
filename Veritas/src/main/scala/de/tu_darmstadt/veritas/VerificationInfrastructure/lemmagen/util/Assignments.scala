@@ -1,7 +1,7 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Constraint.Constraint
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{FreshVariables, Lemma}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Constraint.Constraint
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpMeta, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef}
 

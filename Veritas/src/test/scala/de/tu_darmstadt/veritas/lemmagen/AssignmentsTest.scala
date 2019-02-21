@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.lemmagen
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint, FreshChoice, VariableChoice}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.{Assignments, Constraint, FreshChoice, VariableChoice}
 import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef}
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 import org.scalatest.FunSuite

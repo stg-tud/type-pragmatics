@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor.{GraphConstructor, PredicatePreservationConstructor, ProgressConstructor, RelationalPreservationConstructor}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.{GraphConstructor, PredicatePreservationConstructor, ProgressConstructor, RelationalPreservationConstructor}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
@@ -11,7 +11,7 @@ trait AbstractLemmaGenerator {
   def problem: Problem
   def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline
 
-  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Query._
+  import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
   implicit private val enquirer = problem.enquirer
 
   def isRelation(fn: FunctionDef): Boolean = {
