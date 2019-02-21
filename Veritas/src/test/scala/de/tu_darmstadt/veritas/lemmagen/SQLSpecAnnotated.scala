@@ -470,7 +470,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @ProgressProperty("projectTableProgress")
   @PreservationProperty("projectTableWelltypedWithSelectType")
-  @PreservationProperty("projectTypeAttrLMatchesProjectTableAttrL")
+  @PreservationProperty("projectTypeAttrLMatchesAttrL")
   def projectTable(s: Select, t: Table): OptTable = (s, t) match {
     case (all(), table(al, rt)) => someTable(table(al, rt))
     case (list(alr), table(al, rt)) =>
@@ -841,7 +841,7 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedRawtable(tt, result)
 
   @Property
-  def projectTypeAttrLMatchesProjectTableAttrL(al: AttrL, tt: TType, tt2: TType): Unit = {
+  def projectTypeAttrLMatchesAttrL(al: AttrL, tt: TType, tt2: TType): Unit = {
     require(projectTypeAttrL(al, tt) == someTType(tt2))
   } ensuring matchingAttrL(tt2, al)
 
