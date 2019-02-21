@@ -31,7 +31,8 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
 
   def renameLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.map { lemma =>
-      val suffix = f"${lemma.hashCode()}%08X"
+      val code = (lemma.premises.toSet, lemma.consequences.toSet).hashCode
+      val suffix = f"${code}%08X"
       lemma.rename(s"${lemma.name}$suffix")
     }
   }
