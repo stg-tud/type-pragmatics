@@ -419,7 +419,6 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("findColTypeImpliesfindCol")
-  @ProgressProperty("projectTypeImpliesFindCol")
   @PreservationProperty("findColPreservesWelltypedRaw")
   @PreservationProperty("findColPreservesRowCount")
   @LemmaGeneratorHint(pattern = "preservation/predicate",
@@ -802,13 +801,6 @@ object SQLSpec extends ScalaSPLSpecification {
     //require(projectType(list(al2), tt) == someTType(tt2)) NOTE: expanded this to:
     require(projectTypeAttrL(al, tt) == someTType(tt2))
   } ensuring exists((rt2: RawTable) => projectCols(al, alt, rt) == someRawTable(rt2))
-
-  @Property
-  def projectTypeImpliesFindCol(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType, n: Name): Unit = {
-    require(welltypedRawtable(tt, rt))
-    require(matchingAttrL(tt, al))
-    require(projectTypeAttrL(acons(n, al2), tt) == someTType(tt2))
-  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
 
   @Property
   def findColTypeImpliesfindCol(tt: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
