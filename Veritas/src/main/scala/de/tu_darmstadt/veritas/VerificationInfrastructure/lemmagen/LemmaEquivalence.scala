@@ -181,7 +181,10 @@ object LemmaEquivalence {
     }
     // TODO: Sanity check: check equivalence
     if(!equiv)
-      require(ref.premises.toSet != rule.premises.toSet)
+       require(
+         ref.premises.size != rule.premises.size ||
+         ref.premises.toSet != rule.premises.toSet ||
+         ref.consequences.toSet != rule.consequences.toSet)
     // TODO: Sanity check: require symmetry
     if(checkSymmetry)
       require(isEquivalent(rule, ref, false) == equiv)
