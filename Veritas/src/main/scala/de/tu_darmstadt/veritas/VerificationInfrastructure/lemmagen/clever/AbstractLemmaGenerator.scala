@@ -7,8 +7,7 @@ import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 import scala.collection.mutable
 
-trait AbstractLemmaGenerator {
-  def problem: Problem
+abstract class AbstractLemmaGenerator(problem: Problem) {
   def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline
 
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._

@@ -3,12 +3,21 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
 import java.io.{File, FileWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.GraphConstructor
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.extraction.ExtractionHeuristic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle.OracleConsultation
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing.Postprocessor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 
-trait VisualizingGeneratorPipeline extends LemmaGeneratorPipeline {
-  def directory: File
+class VisualizingGeneratorPipeline(val directory: File,
+                                   graphConstructor: GraphConstructor,
+                                   oracleConsultation: OracleConsultation,
+                                   extractionHeuristic: ExtractionHeuristic,
+                                   postprocessor: Postprocessor)
+  extends LemmaGeneratorPipeline(
+    graphConstructor, oracleConsultation, extractionHeuristic, postprocessor) {
 
   private def makeDirectory(graph: RefinementGraph): File = {
     val subdirectory = new File(directory, graph.root.lemma.name)
