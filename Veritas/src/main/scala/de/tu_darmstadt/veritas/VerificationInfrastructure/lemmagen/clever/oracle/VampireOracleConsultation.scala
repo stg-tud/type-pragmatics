@@ -1,15 +1,16 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{Evidence, GenStepResult, StepResultProducer}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.LemmaApplicationStep
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier.{Finished, Proved, TPTPVampireVerifier, VerifierStatus}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.{Evidence, GenStepResult, StepResultProducer}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
 
 import scala.collection.mutable
 
-class VampireOracleConsultation(val problem: Problem) extends OracleConsultation[RefinementGraph] {
+class VampireOracleConsultation(val problem: Problem) extends OracleConsultation {
   class StepResult(val status: VerifierStatus[VeritasConstruct, VeritasFormula],
                    val evidence: Option[Evidence], val errorMsg: Option[String])
     extends GenStepResult[VeritasConstruct, VeritasFormula]  {
@@ -43,21 +44,46 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
     }
   }
 
-  def consult(tree: RefinementGraph): Unit = {
-    var fringe = new mutable.Queue[RefinementNode]()
-    fringe ++= tree.leaves
-    while(fringe.nonEmpty) {
-      var node = fringe.dequeue()
-      fringe ++= node.parents
-      while(node.provabilityStatus != Unknown() && fringe.nonEmpty) {
-        node = fringe.dequeue()
-        fringe ++= node.parents
-      }
+  sealed trait NodeColor
+  case class Gray() extends NodeColor
+  case class White() extends NodeColor
+
+  // variant of DFS(G) from CLRS
+  def topologicalOrderOfTranspose(graph: RefinementGraph): Seq[RefinementNode] = {
+    val order = new mutable.ListBuffer[RefinementNode]()
+    val colors = new mutable.HashMap[RefinementNode, NodeColor]()
+    // initialize all noes to white
+    for(node <- graph.nodes)
+      colors(node) = White()
+    for(node <- graph.nodes)
+      if(colors(node) == White())
+        dfsVisit(node)
+
+    def dfsVisit(u: RefinementNode): Unit = {
+      colors(u) = Gray()
+      // in contrast to CLRS, consider all *incoming* edges because we want
+      // a topological sort of the *transpose* of graph
+      for(v <- u.ancestors)
+        if(colors(v) == White())
+          dfsVisit(v)
+      order.prepend(u)
+    }
+
+    // sanity check
+    require(order.size == graph.nodes.size)
+    require(order.toSet == graph.nodes)
+    order
+  }
+
+  def consult(graph: RefinementGraph): Unit = {
+    println(s"${graph.nodes.size} nodes!")
+    for(node <- topologicalOrderOfTranspose(graph)) {
       if(node.provabilityStatus == Unknown()) {
         println(node.lemma)
+        println("-----------------")
         val status = invokeOracle(problem, Set(node.lemma))
         if (status == DirectlyDisproved()) {
-          tree.setDisprovedStatusRecursively(node)
+          graph.setDisprovedStatusRecursively(node)
         } else {
           node.provabilityStatus = status
         }

@@ -1,7 +1,8 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.Constraint
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{AnnotatedLemma, Hints, RefinementNode}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{LemmaGenSpecEnquirer, Query, Refinement, StrategyHelpers}
 import de.tu_darmstadt.veritas.backend.ast.MetaVar
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpMeta, FunctionMeta}
 
@@ -12,7 +13,7 @@ trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def generateBase(): AnnotatedLemma
-  def hints: Option[Hints]
+  def hints: Hints
   def invocationArguments: Seq[MetaVar]
   def restrictableVariables(node: RefinementNode): Set[MetaVar]
 
@@ -69,9 +70,6 @@ trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
 
   override def constructRoot(): AnnotatedLemma = {
     val base = generateBase()
-    hints match {
-      case None => base
-      case Some(actualHints) => actualHints.apply(base)
-    }
+    hints.apply(base)
   }
 }

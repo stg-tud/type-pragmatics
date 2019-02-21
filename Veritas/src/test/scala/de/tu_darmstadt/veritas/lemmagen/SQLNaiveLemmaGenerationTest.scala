@@ -55,10 +55,6 @@ class SQLNaiveLemmaGenerationTest extends FunSuite {
       writer.write("--------------\n")
       lemmaWriter.printTypingRule(lemma)
       writer.write("\n")
-      writer.write("Refinements:\n")
-      for (refinement <- lemma.refinements) {
-        writer.write("  " + refinement + "\n")
-      }
       writer.write("END\n")
       writer.flush()
     }

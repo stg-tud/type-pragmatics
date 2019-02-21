@@ -1,8 +1,10 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessor
+
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.RefinementGraph
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
-import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionExpNeq, FunctionMeta}
+import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
 
 class DefaultPostprocessor(problem: Problem) extends Postprocessor {
   implicit private val enquirer = problem.enquirer
@@ -22,7 +24,7 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
           val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))
           val equality = enquirer.makeEquation(l, successExp).asInstanceOf[FunctionExpJudgment]
           val exists = ExistsJudgment(Seq(successVar), Seq(equality))
-          new Lemma(lemma.name, lemma.premises, Seq(exists), lemma.refinements)
+          new Lemma(lemma.name, lemma.premises, Seq(exists))
         case _ => lemma
       })
   }
@@ -30,11 +32,12 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
   def renameLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.map { lemma =>
       val suffix = f"${lemma.hashCode()}%08X"
-      new Lemma(s"${lemma.name}_$suffix", lemma.premises, lemma.consequences, lemma.refinements)
+      lemma.rename(s"${lemma.name}_$suffix")
     }
   }
 
-  override def process(lemmas: Seq[Lemma]): Seq[Lemma] = {
+  override def process(graph: RefinementGraph): Seq[Lemma] = {
+    val lemmas = graph.selectedNodes.map(_.lemma).toSeq
     // first, reformulate progress lemmas
     val reformulated = reformulateProgressLemmas(lemmas)
     // then, rename lemmas

@@ -46,11 +46,6 @@ object NaiveEvaluation {
       writer.write("--------------\n")
       lemmaWriter.printTypingRule(lemma)
       writer.write("\n")
-      writer.write("Refinements:\n")
-      for (refinement <- lemma.refinements) {
-        writer.write("  " + refinement + "\n")
-      }
-      writer.write("\n")
       latexWriter.printTypingRule(lemma)
       writer.write("\n")
       writer.flush()

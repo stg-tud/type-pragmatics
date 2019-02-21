@@ -31,7 +31,7 @@ object Refinement {
         if(leftSides.contains(invocationExp)) {
           None
         } else {
-          Some(lemma.addPremise(this, equality))
+          Some(lemma.addPremise(equality))
         }
       }
     }
@@ -56,7 +56,7 @@ object Refinement {
         if(leftSides.contains(invocationExp)) {
           None
         } else {
-          Some(lemma.addPremise(this, equality))
+          Some(lemma.addPremise(equality))
         }
       }
     }
@@ -71,7 +71,7 @@ object Refinement {
       if(lemma.premises.contains(invocationExp) || lemma.consequences.contains(invocationExp)) {
         None
       } else {
-        Some(lemma.addPremise(this, invocationExp))
+        Some(lemma.addPremise(invocationExp))
       }
     }
 
@@ -89,10 +89,10 @@ object Refinement {
               left
             else
               mv
-          }), lemma.refinements :+ this))
+          })))
         case _ =>
           val equation = problem.enquirer.makeEquation(left, right).asInstanceOf[FunctionExpJudgment]
-          Some(lemma.addPremise(this, equation))
+          Some(lemma.addPremise(equation))
       }
     }
   }

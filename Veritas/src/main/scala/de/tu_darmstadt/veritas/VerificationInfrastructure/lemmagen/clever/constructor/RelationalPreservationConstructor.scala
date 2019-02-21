@@ -1,18 +1,16 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constructor
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Refinement.{Predicate, SuccessfulApplication}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, NotJudgment, SortRef}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.assignments.{Assignments, Constraint}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{AnnotatedLemma, Hints, RefinementNode}
 import de.tu_darmstadt.veritas.backend.ast.function._
-
-import scala.collection.mutable
+import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, SortRef}
 
 class RelationalPreservationConstructor(val problem: Problem,
                                         function: FunctionDef,
                                         predicate: FunctionDef,
                                         termIndex: Int,
-                                        val hints: Option[Hints]) extends LemmaGraphConstructor {
+                                        val hints: Hints) extends LemmaGraphConstructor {
   import Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
@@ -43,7 +41,7 @@ class RelationalPreservationConstructor(val problem: Problem,
   def generateBase(): AnnotatedLemma = {
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
-    val baseLemma = new Lemma(s"${function.name}_Preserves_${predicate.name}$termIndex", Seq(), Seq(judgment))
+    val baseLemma = new Lemma(s"${function.name}Preservation${predicate.name}$termIndex", Seq(), Seq(judgment))
     // for each matching in var, add a Predicate refinement
     var lemma = baseLemma
     val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
