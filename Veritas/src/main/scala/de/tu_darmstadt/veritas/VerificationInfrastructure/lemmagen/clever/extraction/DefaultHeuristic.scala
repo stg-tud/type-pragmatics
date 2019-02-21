@@ -40,6 +40,9 @@ class DefaultHeuristic extends ExtractionHeuristic {
     val inconclusiveNodes = graph.collectNodes(Inconclusive())
     // only nodes that constrain all variables
     val filteredNodes = inconclusiveNodes.filter(node => node.lemma.boundVariables == node.constrainedVariables)
-    selectMostGeneralLemmas(filteredNodes.toSeq)
+    val onlyDominators = filteredNodes.filterNot(node => {
+      node.ancestors.exists(filteredNodes.contains)
+    })
+    selectMostGeneralLemmas(onlyDominators.toSeq)
   }
 }
