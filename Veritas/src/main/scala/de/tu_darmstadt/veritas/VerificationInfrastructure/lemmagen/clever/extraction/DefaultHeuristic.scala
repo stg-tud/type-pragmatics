@@ -25,14 +25,13 @@ class DefaultHeuristic extends ExtractionHeuristic {
     false
   }
 
-  def selectMostGeneralLemmas(nodes: Seq[RefinementNode]): Unit = {
+  def selectMostGeneralLemmas(nodes: Seq[RefinementNode]): Seq[RefinementNode] = {
     val remainingNodes = new mutable.HashSet[RefinementNode]()
     remainingNodes ++= nodes
     for(left <- nodes; right <- nodes)
       if(moreGeneral(left.lemma, right.lemma))
         remainingNodes.remove(right)
-    for(node <- remainingNodes)
-      node.select()
+    remainingNodes.toSeq
   }
 
   def extract(graph: RefinementGraph): Unit = {
@@ -43,6 +42,11 @@ class DefaultHeuristic extends ExtractionHeuristic {
     val onlyDominators = filteredNodes.filterNot(node => {
       node.ancestors.exists(filteredNodes.contains)
     })
-    selectMostGeneralLemmas(onlyDominators.toSeq)
+    val remainingNodes = selectMostGeneralLemmas(onlyDominators.toSeq)
+    if(remainingNodes.nonEmpty)
+      for(node <- remainingNodes)
+        node.select()
+    else
+      graph.root.select()
   }
 }
