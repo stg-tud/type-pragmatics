@@ -44,7 +44,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val properties: mutable.Set[Defn.Def] = mutable.Set()
   protected val preservables: mutable.Set[Defn.Def] = mutable.Set()
-  protected val lemmaGeneratorHints: mutable.Map[Defn.Def, Seq[(String, Seq[String], Seq[String], Boolean)]] = mutable.Map()
+  protected val lemmaGeneratorHints: mutable.Map[Defn.Def, Seq[(Seq[String], Seq[String], Seq[String], Boolean)]] = mutable.Map()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -84,42 +84,36 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     }
   }
 
-  private def collectStringSeq(term: List[Term]): Seq[String] = {
-    term.collect {
-      case Lit.String(value) => value
-      case member => reporter.report(s"Invalid member of a string sequence: $member")
+  private def collectStringSeq(term: Term): Seq[String] = {
+    term match {
+      case Term.Apply(Term.Name("Seq"), rhs) => rhs.collect {
+        case Lit.String(value) => value
+        case member => reporter.report(s"Invalid member of a string sequence: $member")
+      }
+      case anyTerm => reporter.report(s"Invalid value for argument: $anyTerm")
     }
   }
 
   private def collectLemmaGeneratorHints(fn: Defn.Def): Unit = {
     val hintAnnotations = ScalaMetaUtils.collectAnnotations(fn.mods).filter(_.init.tpe.toString == "LemmaGeneratorHint")
     val hintPatterns = hintAnnotations.map { annot =>
-      var maybePattern: Option[String] = None
+      var maybePattern: Option[Seq[String]] = None
       var maybeAdditionalPremises: Option[Seq[String]] = None
       var maybeIrrelevantVariables: Option[Seq[String]] = None
       var maybeSuppress: Option[Boolean] = None
       collectNamedAnnotationArguments(annot).collect {
-        case ("pattern", Lit.String(argumentValue)) =>
-          if(maybePattern.isEmpty)
-            maybePattern = Some(argumentValue)
-          else
-            reporter.report("Duplicate argument: pattern")
-        case ("pattern", rhs) =>
-          reporter.report(s"Invalid value for pattern argument: $rhs", annot.pos.startLine)
-        case ("additionalPremises", Term.Apply(Term.Name("Seq"), rhs)) =>
-          if(maybeAdditionalPremises.isEmpty)
-            maybeAdditionalPremises = Some(collectStringSeq(rhs))
-          else
-            reporter.report("Duplicate argument: additionalPremises")
+        case ("pattern", rhs) if maybePattern.isEmpty =>
+          maybePattern = Some(collectStringSeq(rhs))
+        case ("pattern", _) =>
+          reporter.report("Duplicate argument: pattern")
+        case ("additionalPremises", rhs) if maybeAdditionalPremises.isEmpty =>
+          maybeAdditionalPremises = Some(collectStringSeq(rhs))
         case ("additionalPremises", rhs) =>
-          reporter.report(s"Invalid value for additionalPremises argument: $rhs", annot.pos.startLine)
-        case ("irrelevantVariables", Term.Apply(Term.Name("Seq"), rhs)) =>
-          if(maybeIrrelevantVariables.isEmpty)
-            maybeIrrelevantVariables = Some(collectStringSeq(rhs))
-          else
-            reporter.report("Duplicate argument: irrelevantVariables")
-        case ("irrelevantVariables", rhs) =>
-          reporter.report(s"Invalid value for irrelevantVariables argument: $rhs", annot.pos.startLine)
+          reporter.report("Duplicate argument: additionalPremises")
+        case ("irrelevantVariables", rhs) if maybeIrrelevantVariables.isEmpty =>
+          maybeIrrelevantVariables = Some(collectStringSeq(rhs))
+        case ("IrrelevantVariables", _) =>
+          reporter.report("Duplicate argument: irrelevantVariables")
         case ("suppress", Lit.Boolean(value)) =>
           if(maybeSuppress.isEmpty)
             maybeSuppress = Some(value)
@@ -129,7 +123,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
           reporter.report(s"Invalid value for suppress argument: $rhs", annot.pos.startLine)
         case arg => reporter.report(s"Invalid argument for LemmaGeneratorHint annotation: $arg")
       }
-      (maybePattern.getOrElse(""),
+      (maybePattern.getOrElse(Seq()),
         maybeAdditionalPremises.getOrElse(Seq()),
         maybeIrrelevantVariables.getOrElse(Seq()),
          maybeSuppress.getOrElse(false))
@@ -253,11 +247,11 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
       override val properties: Set[TypingRule] = transProperties
       override val preservables: Set[FunctionDef] = transPreservables
       override val lemmaGeneratorHints:
-        Map[FunctionDef, Seq[(String, Seq[String], Seq[String], Boolean)]] = transLemmaGeneratorHints
+        Map[FunctionDef, Seq[(Seq[String], Seq[String], Seq[String], Boolean)]] = transLemmaGeneratorHints
     }
   }
 
-  private def translateLemmaGeneratorHints(): Map[FunctionDef, Seq[(String, Seq[String], Seq[String], Boolean)]] = {
+  private def translateLemmaGeneratorHints(): Map[FunctionDef, Seq[(Seq[String], Seq[String], Seq[String], Boolean)]] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     lemmaGeneratorHints.map { case (fn, hints) =>
       functionTranslator.translate(fn) -> hints

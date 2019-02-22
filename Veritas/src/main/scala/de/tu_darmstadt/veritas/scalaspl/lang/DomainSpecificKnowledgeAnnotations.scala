@@ -21,7 +21,7 @@ trait DomainSpecificKnowledgeAnnotations {
 
   case class Preservable() extends Annotation
 
-  case class LemmaGeneratorHint(pattern: String = "",
+  case class LemmaGeneratorHint(pattern: Seq[String] = Seq(),
                                 additionalPremises: Seq[String] = Seq(),
                                 irrelevantVariables: Seq[String] = Seq(),
                                 suppress: Boolean = false) extends Annotation

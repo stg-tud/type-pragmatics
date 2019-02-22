@@ -61,7 +61,7 @@ class Hints(problem: Problem, premiseHints: Seq[String], irrelevantVariables: Se
 }
 
 object Hints {
-  def fromDSK(problem: Problem, function: FunctionDef, tag: String): Option[Hints] = {
+  def fromDSK(problem: Problem, function: FunctionDef, tag: Seq[String]): Option[Hints] = {
     parseLemmaGeneratorHints(
       problem,
       tag,
@@ -69,16 +69,12 @@ object Hints {
   }
 
   def parseLemmaGeneratorHints(problem: Problem,
-                               tag: String,
-                               hints: Seq[(String, Seq[String], Seq[String], Boolean)]): Option[Hints] = {
+                               tag: Seq[String],
+                               hints: Seq[(Seq[String], Seq[String], Seq[String], Boolean)]): Option[Hints] = {
     // find all matching hints
     val matchingHints = hints.collect {
-      case (pattern, localAdditionalPremises, localIrrelevantVariables, suppress) =>
-        val patternRegex = pattern.r.unanchored
-        tag match {
-          case patternRegex(_*) => (localAdditionalPremises, localIrrelevantVariables, suppress)
-          case _ => (Seq(), Seq(), false)
-        }
+      case (pattern, localAdditionalPremises, localIrrelevantVariables, suppress) if tag.startsWith(pattern) =>
+        (localAdditionalPremises, localIrrelevantVariables, suppress)
     }
     // find out whether any hint has suppress = true
     if(matchingHints.exists(_._3)) {

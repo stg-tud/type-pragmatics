@@ -82,20 +82,20 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
     lemmas.toMap
   }
 
-  def makeHints(tag: String, fn: FunctionDef): Option[Hints] = Hints.fromDSK(problem, fn, tag)
+  def makeHints(tag: Seq[String], fn: FunctionDef): Option[Hints] = Hints.fromDSK(problem, fn, tag)
 
   def makeProgressGraphConstructor(fn: FunctionDef): Option[GraphConstructor] = {
-    makeHints(s"progress", fn).map(hints => new ProgressConstructor(problem, fn, hints))
+    makeHints(Seq("Progress"), fn).map(hints => new ProgressConstructor(problem, fn, hints))
   }
 
   def makePredicatePreservationGraphConstructor(fn: FunctionDef, predicate: FunctionDef): Option[GraphConstructor] = {
-    makeHints(s"preservation/predicate/${predicate.signature.name}", fn).map(hints =>
+    makeHints(Seq("Preservation", predicate.signature.name), fn).map(hints =>
       new PredicatePreservationConstructor(problem, fn, predicate, hints))
   }
 
   def makeRelationalPreservationGraphConstructor(fn: FunctionDef,
                                                  relation: FunctionDef, termIndex: Int): Option[GraphConstructor] = {
-    makeHints(s"preservation/relational/${relation.signature.name}/$termIndex", fn).map(hints =>
+    makeHints(Seq("Preservation", relation.signature.name, termIndex.toString), fn).map(hints =>
       new RelationalPreservationConstructor(problem, fn, relation, termIndex, hints))
   }
 }
