@@ -61,7 +61,7 @@ class Hints(problem: Problem, premiseHints: Seq[String], irrelevantVariables: Se
 }
 
 object Hints {
-  def fromDSK(problem: Problem, function: FunctionDef, tag: String): Hints = {
+  def fromDSK(problem: Problem, function: FunctionDef, tag: String): Option[Hints] = {
     parseLemmaGeneratorHints(
       problem,
       tag,
@@ -70,19 +70,25 @@ object Hints {
 
   def parseLemmaGeneratorHints(problem: Problem,
                                tag: String,
-                               hints: Seq[(String, Seq[String], Seq[String])]): Hints = {
-    // collect all additionalPremises and irrelevantVariables of matching hints
+                               hints: Seq[(String, Seq[String], Seq[String], Boolean)]): Option[Hints] = {
+    // find all matching hints
     val matchingHints = hints.collect {
-      case (pattern, localAdditionalPremises, localIrrelevantVariables) =>
+      case (pattern, localAdditionalPremises, localIrrelevantVariables, suppress) =>
         val patternRegex = pattern.r.unanchored
         tag match {
-          case patternRegex(_*) => (localAdditionalPremises, localIrrelevantVariables)
-          case _ => (Seq(), Seq())
+          case patternRegex(_*) => (localAdditionalPremises, localIrrelevantVariables, suppress)
+          case _ => (Seq(), Seq(), false)
         }
     }
-    // make union
-    val additionalPremises = matchingHints.flatMap(_._1)
-    val irrelevantVariables = matchingHints.flatMap(_._2)
-    new Hints(problem, additionalPremises, irrelevantVariables)
+    // find out whether any hint has suppress = true
+    if(matchingHints.exists(_._3)) {
+      None
+    } else {
+      // collect all additionalPremises and irrelevantVariables of matching hints
+      // make union
+      val additionalPremises = matchingHints.flatMap(_._1)
+      val irrelevantVariables = matchingHints.flatMap(_._2)
+      Some(new Hints(problem, additionalPremises, irrelevantVariables))
+    }
   }
 }

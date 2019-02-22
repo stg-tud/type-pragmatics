@@ -42,7 +42,7 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
   def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
-      result ++= makePipeline(makePredicatePreservationGraphConstructor(fn, predicate)).invokePipeline()
+      result ++= tryInvokePipeline(makePredicatePreservationGraphConstructor(fn, predicate))
     }
     if(fn.inTypes.count(_ == fn.successfulOutType) >= 1) {
       for (relation <- getRelationsInvolving(fn.successfulOutType)) {
@@ -50,11 +50,15 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
           case (inType, idx) if inType == fn.successfulOutType => idx
         }
         for(idx <- matchingIndices) {
-          result ++= makePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx)).invokePipeline()
+          result ++= tryInvokePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx))
         }
       }
     }
     result.toSeq
+  }
+
+  def tryInvokePipeline(constructor: Option[GraphConstructor]): Seq[Lemma] = {
+    constructor.map(makePipeline(_).invokePipeline()).getOrElse(Seq())
   }
 
   override def generatePreservationLemmas(): Map[FunctionDef, Seq[Lemma]] = {
@@ -62,7 +66,7 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
   }
 
   def generateProgressLemmas(fn: FunctionDef): Seq[Lemma] = {
-    makePipeline(makeProgressGraphConstructor(fn)).invokePipeline()
+    tryInvokePipeline(makeProgressGraphConstructor(fn))
   }
 
   override def generateProgressLemmas(): Map[FunctionDef, Seq[Lemma]] = {
@@ -78,21 +82,20 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
     lemmas.toMap
   }
 
-  def makeHints(tag: String, fn: FunctionDef): Hints = Hints.fromDSK(problem, fn, tag)
+  def makeHints(tag: String, fn: FunctionDef): Option[Hints] = Hints.fromDSK(problem, fn, tag)
 
-  def makeProgressGraphConstructor(fn: FunctionDef): GraphConstructor = {
-    new ProgressConstructor(problem, fn,
-      makeHints(s"progress", fn))
+  def makeProgressGraphConstructor(fn: FunctionDef): Option[GraphConstructor] = {
+    makeHints(s"progress", fn).map(hints => new ProgressConstructor(problem, fn, hints))
   }
 
-  def makePredicatePreservationGraphConstructor(fn: FunctionDef, predicate: FunctionDef): GraphConstructor = {
-    new PredicatePreservationConstructor(problem, fn, predicate,
-      makeHints(s"preservation/predicate/${predicate.signature.name}", fn))
+  def makePredicatePreservationGraphConstructor(fn: FunctionDef, predicate: FunctionDef): Option[GraphConstructor] = {
+    makeHints(s"preservation/predicate/${predicate.signature.name}", fn).map(hints =>
+      new PredicatePreservationConstructor(problem, fn, predicate, hints))
   }
 
   def makeRelationalPreservationGraphConstructor(fn: FunctionDef,
-                                                 relation: FunctionDef, termIndex: Int): GraphConstructor = {
-    new RelationalPreservationConstructor(problem, fn, relation, termIndex,
-      makeHints(s"preservation/relational/${relation.signature.name}/$termIndex", fn))
+                                                 relation: FunctionDef, termIndex: Int): Option[GraphConstructor] = {
+    makeHints(s"preservation/relational/${relation.signature.name}/$termIndex", fn).map(hints =>
+      new RelationalPreservationConstructor(problem, fn, relation, termIndex, hints))
   }
 }

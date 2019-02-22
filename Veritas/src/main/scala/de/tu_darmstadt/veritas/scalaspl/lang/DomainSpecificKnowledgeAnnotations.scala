@@ -23,7 +23,8 @@ trait DomainSpecificKnowledgeAnnotations {
 
   case class LemmaGeneratorHint(pattern: String = "",
                                 additionalPremises: Seq[String] = Seq(),
-                                irrelevantVariables: Seq[String] = Seq()) extends Annotation
+                                irrelevantVariables: Seq[String] = Seq(),
+                                suppress: Boolean = false) extends Annotation
 }
 
 object DomainSpecificKnowledgeAnnotations {

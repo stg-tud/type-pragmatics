@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing.DefaultPostprocessor
 
 class CleverLemmaGenerator(problem: Problem) extends AbstractCleverLemmaGenerator(problem) {
-  val oracleConsultation = new VampireOracleConsultation(problem)
+  val oracleConsultation = new DummyOracleConsultation //VampireOracleConsultation(problem)
   val extractionHeuristic = new DefaultHeuristic()
   val postprocessor = new DefaultPostprocessor(problem)
 

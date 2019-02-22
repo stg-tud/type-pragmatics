@@ -559,6 +559,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @ProgressProperty("Progress")
   @PreservationProperty("Preservation")
   @Recursive(0)
+  @LemmaGeneratorHint(suppress = true)
   def reduce(query: Query, tst: TStore): OptQuery = (query, tst) match {
     case (tvalue(_), _) => noQuery()
     case (selectFromWhere(sel, name, pred), ts) =>
