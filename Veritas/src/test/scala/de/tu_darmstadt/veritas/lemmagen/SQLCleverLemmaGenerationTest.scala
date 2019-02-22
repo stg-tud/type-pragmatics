@@ -45,66 +45,29 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
     outputPrettyPrinter.flush()
   }
 
-  private val progressLemmas = new mutable.HashMap[FunctionDef, Seq[Lemma]]().withDefault(_ => Seq())
-  private val preservationLemmas = new mutable.HashMap[FunctionDef, Seq[Lemma]]().withDefault(_ => Seq())
+  println("generate progress ...")
+  private val progressLemmas = generator.generateProgressLemmas()
+  println("generate preservation ...")
+  private val preservationLemmas = generator.generatePreservationLemmas()
 
-  for(func <- generator.progressFunctions) {
-    lazy val lemmas = generator.generateProgressLemmas(func).toSeq
-    val expectedLemmas = problem.dsk.progressProperties.getOrElse(func, Seq())
-    for(expected <- expectedLemmas) {
-      test(s"progress ${func.signature.name} (${expected.name})") {
-        println(s"===== ${lemmas.size} lemmas!")
-        printRules(lemmas)
-        println("")
-        val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
-        println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
-        assert(equivalentLemmas.nonEmpty)
-      }
-    }
-    test(s"add ${func.signature.name} progress lemmas to store") {
-      progressLemmas(func) ++= lemmas
-    }
-    if(expectedLemmas.isEmpty)
-      test(s"progress ${func.signature.name}") {
-        println(s"===== ${lemmas.size} lemmas!")
-        printRules(lemmas)
-        println("")
-        succeed
-      }
-  }
+  val lemmas: Seq[Lemma] = (progressLemmas.values.flatten ++ preservationLemmas.values.flatten).toSeq
 
-  for(func <- generator.preservationFunctions) {
-    lazy val lemmas = generator.generatePreservationLemmas(func).toSeq
-    val expectedLemmas = problem.dsk.preservationProperties.getOrElse(func, Seq())
-    for (expected <- expectedLemmas) {
-      test(s"preservation ${func.signature.name} (${expected.name})") {
-        println(s"===== ${lemmas.size} lemmas!")
-        printRules(lemmas)
-        println("")
-        val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(expected, entry))
-        println(s"Equivalent to ${expected.name}: ${equivalentLemmas.length} out of ${lemmas.length}")
-        assert(equivalentLemmas.nonEmpty)
-      }
-    }
-    if (expectedLemmas.isEmpty)
-      test(s"preservation ${func.signature.name}") {
-        println(s"===== ${lemmas.size} lemmas!")
-        printRules(lemmas)
-        println("")
-        succeed
-      }
-    test(s"add ${func.signature.name} preservation lemmas to store") {
-      preservationLemmas(func) ++= lemmas
+  for(property <- problem.dsk.properties) {
+    test(s"${property.name}") {
+      val equivalentLemmas = lemmas.filter(entry => LemmaEquivalence.isEquivalent(property, entry))
+      println("")
+      println(s"Equivalent to ${property.name}: ${equivalentLemmas.size} out of ${lemmas.size}")
+      assert(equivalentLemmas.nonEmpty)
     }
   }
 
-  test("write updated megaspec") {
+    test("write updated megaspec") {
     println(s"progress lemmas: ${progressLemmas.values.flatten.size}")
     println(s"preservation lemmas: ${preservationLemmas.values.flatten.size}")
     println("")
     val specString = scala.io.Source.fromFile(file).mkString("")
     val input = Input.VirtualFile(file.getAbsolutePath, specString)
-    val updatedString = ScalaSPLSpecificationOutput.addLemmasToSpecification(input, progressLemmas.toMap, preservationLemmas.toMap)
+    val updatedString = ScalaSPLSpecificationOutput.addLemmasToSpecification(input, progressLemmas, preservationLemmas)
     val updatedFile = new File("generated/SQLSpecUpdated.scala")
     val writer = new BufferedWriter(new FileWriter(updatedFile))
     writer.write(updatedString)
