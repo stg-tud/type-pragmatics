@@ -48,10 +48,10 @@ class RefinementNode(val annotatedLemma: AnnotatedLemma) {
 
   def makeDotString(sb: StringBuilder, nodeID: String): Unit = {
     val color = provabilityStatus match {
+      case _ if selected => "green"
       case Unknown() => "gray"
       case DirectlyDisproved() => "red"
       case IndirectlyDisproved() => "magenta"
-      case Inconclusive() if selected => "green"
       case Inconclusive() => "white"
     }
     val notConstrained = lemma.boundVariables -- constrainedVariables

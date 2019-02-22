@@ -233,6 +233,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("rawUnionPreservesWellTypedRaw")
   @Recursive(0)
+  @LemmaGeneratorHint(pattern = "preservation/predicate/sameLength", suppress = true)
   def rawUnion(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), rt2r) => rt2r
     case (rt1r, tempty()) => rt1r
@@ -247,6 +248,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("rawIntersectionPreservesWellTypedRaw")
   @Recursive(0)
+  @LemmaGeneratorHint(pattern = "preservation/predicate/sameLength", suppress = true)
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (_, tempty()) => tempty()
@@ -265,6 +267,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("rawDifferencePreservesWellTypedRaw")
   @Recursive(0)
+  @LemmaGeneratorHint(pattern = "preservation/predicate/sameLength", suppress = true)
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (rt1r, tempty()) => rt1r
