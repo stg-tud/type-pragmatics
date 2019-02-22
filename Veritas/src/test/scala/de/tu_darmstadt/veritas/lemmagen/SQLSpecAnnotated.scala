@@ -220,6 +220,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @LemmaGeneratorHint(pattern = "preservation/relational",
     irrelevantVariables = Seq("rt2")
   )
+  @LemmaGeneratorHint(pattern = "preservation/relational/sameLength/1", suppress = true)
  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
@@ -233,7 +234,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("rawUnionPreservesWellTypedRaw")
   @Recursive(0)
-  @LemmaGeneratorHint(pattern = "preservation/predicate/sameLength", suppress = true)
+  @LemmaGeneratorHint(pattern = "preservation/relational/sameLength", suppress = true)
   def rawUnion(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), rt2r) => rt2r
     case (rt1r, tempty()) => rt1r
@@ -248,7 +249,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("rawIntersectionPreservesWellTypedRaw")
   @Recursive(0)
-  @LemmaGeneratorHint(pattern = "preservation/predicate/sameLength", suppress = true)
+  @LemmaGeneratorHint(pattern = "preservation/relational/sameLength", suppress = true)
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (_, tempty()) => tempty()
@@ -267,7 +268,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("rawDifferencePreservesWellTypedRaw")
   @Recursive(0)
-  @LemmaGeneratorHint(pattern = "preservation/predicate/sameLength", suppress = true)
+  @LemmaGeneratorHint(pattern = "preservation/relational/sameLength", suppress = true)
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
     case (rt1r, tempty()) => rt1r
