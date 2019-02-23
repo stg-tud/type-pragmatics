@@ -31,17 +31,27 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
 
   def renameLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.map { lemma =>
-      val code = (lemma.premises.toSet, lemma.consequences.toSet).hashCode
+      val code = lemma.hashCode
       val suffix = f"${code}%08X"
       lemma.rename(s"${lemma.name}$suffix")
+    }
+  }
+
+  def sortPremises(lemmas: Seq[Lemma]): Seq[Lemma] = {
+    lemmas.map { lemma =>
+      new Lemma(lemma.name, lemma.premises.sortBy(_.toString), lemma.consequences)
     }
   }
 
   override def process(graph: RefinementGraph): Seq[Lemma] = {
     val lemmas = graph.selectedNodes.map(_.lemma).toSeq
     // first, reformulate progress lemmas
-    val reformulated = reformulateProgressLemmas(lemmas)
+    // then, sort premises
     // then, rename lemmas
-    renameLemmas(reformulated)
+    // then, sort by name
+    (reformulateProgressLemmas _)
+      .andThen(sortPremises)
+      .andThen(renameLemmas)
+      .andThen(lemmas => lemmas.sortBy(_.name))(lemmas)
   }
 }
