@@ -125,7 +125,8 @@ object LemmaEquivalence {
     */
   def reorderTypingJudments(ref: Seq[TypingRuleJudgment], rule: Seq[TypingRuleJudgment]): Set[Seq[TypingRuleJudgment]] = {
     // highly inefficient, TODO
-    for(permutation <- rule.permutations.toSet if replaceVarsWithBottom(ref) == replaceVarsWithBottom(permutation))
+    val refBottom = replaceVarsWithBottom(ref)
+    for(permutation <- rule.permutations.toSet if refBottom == replaceVarsWithBottom(permutation))
       yield permutation
   }
 
