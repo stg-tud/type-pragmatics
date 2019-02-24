@@ -2,6 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.evaluation
 
 import java.io.{File, FileWriter}
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.ScalaSPLSpecificationOutput
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaEquivalence, LemmaGenerator, Problem}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
@@ -10,6 +11,7 @@ import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 
 import scala.collection.mutable
+import scala.meta.inputs.Input
 
 class GeneratorEvaluator(problem: Problem,
                          generator: LemmaGenerator,
@@ -48,9 +50,27 @@ class GeneratorEvaluator(problem: Problem,
     )
   }
 
+  def progressLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
+    lemmas.filter(_.name.contains("Progress"))
+  }
+
+  def preservationLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
+    lemmas.filter(_.name.contains("Preservation"))
+  }
+
+  def lemmaMap(lemmas: Map[FunctionDef, Seq[Lemma]]): (Map[FunctionDef, Seq[Lemma]], Map[FunctionDef, Seq[Lemma]]) = {
+    val progress = lemmas.map {
+      case (fn, lst) => (fn, progressLemmas(lst))
+    }
+    val preservation = lemmas.map {
+      case (fn, lst) => (fn, preservationLemmas(lst))
+    }
+    (progress, preservation)
+  }
+
   def generateGeneratedLine(function: FunctionDef, lemmas: Seq[Lemma]): String = {
-    val generatedProgress = lemmas.filter(_.name.contains("Progress"))
-    val generatedPreservation = lemmas.filter(_.name.contains("Preservation"))
+    val generatedProgress = progressLemmas(lemmas)
+    val generatedPreservation = preservationLemmas(lemmas)
     require((generatedProgress ++ generatedPreservation).toSet == lemmas.toSet)
     //val equivalentProgress = equivalent intersect generatedProgress
     //val equivalentPreservation = equivalent intersect generatedPreservation
@@ -61,8 +81,8 @@ class GeneratorEvaluator(problem: Problem,
   }
 
   def generateEquivalentLine(function: FunctionDef, lemmas: Seq[Lemma], equivalent: Seq[Lemma]): String = {
-    val generatedProgress = lemmas.filter(_.name.contains("Progress"))
-    val generatedPreservation = lemmas.filter(_.name.contains("Preservation"))
+    val generatedProgress = progressLemmas(lemmas)
+    val generatedPreservation = preservationLemmas(lemmas)
     val expectedProgress = problem.dsk.lookupByFunName(
       problem.dsk.progressProperties,
       function.signature.name).toSet
@@ -97,7 +117,7 @@ class GeneratorEvaluator(problem: Problem,
        | ${equivalentPreservation.size} / ${expectedPreservation.size} \\\\""".stripMargin
   }
 
-  def evaluate(): Unit = {
+  def evaluate(writeSpec: Boolean = false): Unit = {
     val result = lemmaStore.loadOrGenerate(generator)
     val countLines = new mutable.ListBuffer[String]()
     val equivalentLines = new mutable.ListBuffer[String]()
@@ -135,6 +155,14 @@ class GeneratorEvaluator(problem: Problem,
     printToFile(new File(outputDirectory, "counts-table.tex"), countLines.mkString("\n"))
     printToFile(new File(outputDirectory, "equivalent-table.tex"), equivalentLines.mkString("\n"))
     printToFile(new File(outputDirectory, "success-table.tex"), successLines.mkString("\n"))
+    if(writeSpec) {
+      // write updated spec
+      val specString = scala.io.Source.fromFile(problem.specFile).mkString("")
+      val input = Input.VirtualFile(problem.specFile.getAbsolutePath, specString)
+      val (progress, preservation) = lemmaMap(result)
+      val updated = ScalaSPLSpecificationOutput.addLemmasToSpecification(input, progress, preservation)
+      printToFile(new File(outputDirectory, "UpdatedSpec.scala"), updated)
+    }
     /*writeDynamicFunctions()
     writeStaticFunctions()
     writeLemmaClasses()
