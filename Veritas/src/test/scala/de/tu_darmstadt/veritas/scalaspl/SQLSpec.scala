@@ -7,16 +7,6 @@ object SQLSpec extends ScalaSPLSpecification {
   // name of attributes and tables
   trait Name extends Expression
 
-  // natural numbers for preservation proof
-  sealed trait nat extends Expression
-  case class zero() extends nat
-  case class succ(n: nat) extends nat
-
-  def nonzero(n: nat): Boolean = n match {
-    case zero() => false
-    case succ(_) => true
-  }
-
   // list of attribute names
   sealed trait AttrL extends Expression
 
@@ -28,12 +18,6 @@ object SQLSpec extends ScalaSPLSpecification {
   def append(atl1: AttrL, atl2: AttrL): AttrL = (atl1, atl2) match {
     case (aempty(), atl) => atl
     case (acons(name, atlr), atl) => acons(name, append(atlr, atl))
-  }
-
-  @Recursive(0)
-  def attrListLength(al: AttrL): nat = al match {
-    case aempty() => zero()
-    case acons(_, altail) => succ(attrListLength(altail))
   }
 
   trait FType extends Type
@@ -273,7 +257,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("successfulLookup")
-  @PreservationProperty("welltypedLookup")
+  //@PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
   @Recursive(1)
   def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
     case (_, emptyStore()) => noTable()
@@ -430,7 +414,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @ProgressProperty("projectTableProgress")
   @PreservationProperty("projectTableWelltypedWithSelectType")
-  @PreservationProperty("projectTypeAttrLMatchesAttrL")
+  //@PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
   def projectTable(s: Select, t: Table): OptTable = (s, t) match {
     case (all(), table(al, rt)) => someTable(table(al, rt))
     case (list(alr), table(al, rt)) =>
