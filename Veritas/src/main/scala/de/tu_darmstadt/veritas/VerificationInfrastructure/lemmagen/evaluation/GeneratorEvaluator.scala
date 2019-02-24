@@ -14,16 +14,8 @@ import scala.collection.mutable
 class GeneratorEvaluator(problem: Problem,
                          generator: LemmaGenerator,
                          lemmaStoreFile: File,
-                         outputDirectory: File) {
-
-  def recursivedelete(file: File) {
-    if (file.isDirectory)
-      Option(file.listFiles).map(_.toList).getOrElse(Nil).foreach(recursivedelete(_))
-    file.delete
-  }
-
-  if (outputDirectory.exists()) recursivedelete(outputDirectory)
-  outputDirectory.mkdirs()
+                         outputDirectory: File) extends EvaluationHelpers {
+  ensureEmpty(outputDirectory)
 
   val lemmaStore = new LemmaStore(lemmaStoreFile)
 
@@ -44,12 +36,6 @@ class GeneratorEvaluator(problem: Problem,
       writer.write("\n")
       writer.flush()
     }
-    writer.close()
-  }
-
-  def printToFile(file: File, content: String): Unit = {
-    val writer = new FileWriter(file)
-    writer.write(content)
     writer.close()
   }
 
@@ -156,12 +142,5 @@ class GeneratorEvaluator(problem: Problem,
   }
 
 
-  def sortFunctions(functions: Seq[FunctionDef]): Seq[FunctionDef] = {
-    functions.sortBy(_.signature.name)
-  }
 
-
-  def formatFunctionName(f: FunctionDef): String = {
-    s"\\C{${f.signature.name}}"
-  }
 }
