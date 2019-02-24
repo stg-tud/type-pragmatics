@@ -1,9 +1,8 @@
-package de.tu_darmstadt.veritas.lemmagen
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.evaluation
 
-import java.io._
+import java.io.{File, FileWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.NaiveLemmaGenerator
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaEquivalence, LemmaGenerator, Problem}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
@@ -12,11 +11,10 @@ import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificatio
 
 import scala.collection.mutable
 
-object NaiveEvaluation {
-  val LemmaFile = new File("lemmas-naive.dat")
-  val Directory = new File("evaluation-naive")
-  val SpecFile = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
-  val problem = new Problem(SpecFile)
+class GeneratorEvaluator(problem: Problem,
+                         generator: LemmaGenerator,
+                         lemmaStoreFile: File,
+                         outputDirectory: File) {
 
   def recursivedelete(file: File) {
     if (file.isDirectory)
@@ -24,15 +22,10 @@ object NaiveEvaluation {
     file.delete
   }
 
-  def cleanDirectory(): Unit = {
-    if (Directory.exists()) recursivedelete(Directory)
-    Directory.mkdirs()
-  }
+  if (outputDirectory.exists()) recursivedelete(outputDirectory)
+  outputDirectory.mkdirs()
 
-  def generate(): Map[FunctionDef, Seq[Lemma]] = {
-    val generator = new NaiveLemmaGenerator(problem)
-    generator.generateLemmas()
-  }
+  val lemmaStore = new LemmaStore(lemmaStoreFile)
 
   def printLemmas(file: File, lemmas: Seq[Lemma]): Unit = {
     println(s"Writing ${lemmas.size} lemmas to $file ...")
@@ -70,27 +63,27 @@ object NaiveEvaluation {
   }
 
   def generateGeneratedLine(function: FunctionDef, lemmas: Seq[Lemma]): String = {
-    val generatedProgress = lemmas.filter(_.name.endsWith("Progress"))
-    val generatedPreservation = lemmas.filter(_.name.endsWith("Preservation"))
-    require(generatedProgress ++ generatedPreservation == lemmas)
+    val generatedProgress = lemmas.filter(_.name.contains("Progress"))
+    val generatedPreservation = lemmas.filter(_.name.contains("Preservation"))
+    require((generatedProgress ++ generatedPreservation).toSet == lemmas.toSet)
     //val equivalentProgress = equivalent intersect generatedProgress
     //val equivalentPreservation = equivalent intersect generatedPreservation
     s"""${formatFunctionName(function)} &
-    | ${generatedProgress.size} &
-    | ${generatedPreservation.size} &
-    | ${lemmas.size} \\\\""".stripMargin
+       | ${generatedProgress.size} &
+       | ${generatedPreservation.size} &
+       | ${lemmas.size} \\\\""".stripMargin
   }
 
   def generateEquivalentLine(function: FunctionDef, lemmas: Seq[Lemma], equivalent: Seq[Lemma]): String = {
-    val generatedProgress = lemmas.filter(_.name.endsWith("Progress"))
-    val generatedPreservation = lemmas.filter(_.name.endsWith("Preservation"))
+    val generatedProgress = lemmas.filter(_.name.contains("Progress"))
+    val generatedPreservation = lemmas.filter(_.name.contains("Preservation"))
     val expectedProgress = problem.dsk.lookupByFunName(
       problem.dsk.progressProperties,
       function.signature.name).toSet
     val expectedPreservation = problem.dsk.lookupByFunName(
       problem.dsk.preservationProperties,
       function.signature.name).toSet
-    require(generatedProgress ++ generatedPreservation == lemmas)
+    require((generatedProgress ++ generatedPreservation).toSet == lemmas.toSet)
     val equivalentProgress = equivalent intersect generatedProgress
     val equivalentPreservation = equivalent intersect generatedPreservation
     val Precision = "%1.4f"
@@ -118,16 +111,17 @@ object NaiveEvaluation {
        | ${equivalentPreservation.size} / ${expectedPreservation.size} \\\\""".stripMargin
   }
 
-  def evaluate(result: Map[FunctionDef, Seq[Lemma]]): Unit = {
+  def evaluate(): Unit = {
+    val result = lemmaStore.loadOrGenerate(generator)
     val countLines = new mutable.ListBuffer[String]()
     val equivalentLines = new mutable.ListBuffer[String]()
     val successLines = new mutable.ListBuffer[String]()
-    sortFunctions(result.keys.toSeq).filterNot(_.signature.name == "reduce").foreach { function =>
+    sortFunctions(result.keys.toSeq).foreach { function =>
       val lemmas = result(function)
       val name = function.signature.name
       println(s"evaluating $name...")
       // all lemmas
-      printLemmas(new File(Directory, s"generated-$name.txt"), lemmas)
+      printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
       // equivalent lemmas
       val expectedLemmas = lookupExpectedLemmas(function)
       val equivalentLemmas = lemmas.filter(generated =>
@@ -135,7 +129,7 @@ object NaiveEvaluation {
           LemmaEquivalence.isEquivalent(expected, generated)
         )
       )
-      printLemmas(new File(Directory, s"equivalent-$name.txt"), equivalentLemmas)
+      printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
       countLines += generateGeneratedLine(function, lemmas)
       equivalentLines += generateEquivalentLine(function, lemmas, equivalentLemmas)
 
@@ -152,86 +146,22 @@ object NaiveEvaluation {
         successLines += (if(success) "\\checkmark" else "$\\times$") + "\\\\"
       }
     }
-    printToFile(new File(Directory, "naive-counts-table.tex"), countLines.mkString("\n"))
-    printToFile(new File(Directory, "naive-equivalent-table.tex"), equivalentLines.mkString("\n"))
-    printToFile(new File(Directory, "naive-success-table.tex"), successLines.mkString("\n"))
-    writeDynamicFunctions()
+    printToFile(new File(outputDirectory, "counts-table.tex"), countLines.mkString("\n"))
+    printToFile(new File(outputDirectory, "equivalent-table.tex"), equivalentLines.mkString("\n"))
+    printToFile(new File(outputDirectory, "success-table.tex"), successLines.mkString("\n"))
+    /*writeDynamicFunctions()
     writeStaticFunctions()
     writeLemmaClasses()
-    writeBaselineLemmas(new File(Directory, "baseline-lemmas.txt"))
+    writeBaselineLemmas(new File(Directory, "baseline-lemmas.txt"))Ü*/
   }
 
-  def writeBaselineLemmas(file: File): Unit = {
-    val writer = new FileWriter(file)
-    val latexWriter = new SimpleLemmaPrinter {
-      override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
-    }
-    for (lemma <- problem.dsk.properties) {
-      writer.write(lemma.name + "\n")
-      writer.write("--------------\n")
-      latexWriter.printTypingRule(lemma)
-      writer.write("\n")
-      writer.flush()
-    }
-    writer.close()
-  }
-
-
-  def writeLemmaClasses(): Unit = {
-    val sorted = problem.dsk.properties.toSeq.sortBy(_.name)
-    val (progress, preservation) = sorted.partition(lemma =>
-      problem.dsk.progressProperties.values.exists(_.contains(lemma)))
-    val progressNames = progress.map(l => s"\\C{${l.name}}")
-    val preservationNames = preservation.map(l => s"\\C{${l.name}}")
-    val names = s"""
-         | progress lemma & ${progressNames.mkString(", ")} \\\\
-         | preservation lemma & ${preservationNames.mkString(", ")} \\\\
-       """.stripMargin
-    printToFile(new File(Directory, "lemma-classes.tex"), names)
-  }
-
-  def serializeLemmas(file: File, lemmas: Map[FunctionDef, Seq[Lemma]]): Unit = {
-    val stream = new ObjectOutputStream(new FileOutputStream(file))
-    stream.writeObject(lemmas)
-    stream.close()
-  }
-
-  def deserializeLemmas(file: File): Map[FunctionDef, Seq[Lemma]] = {
-    val stream = new ObjectInputStream(new FileInputStream(file))
-    val lemmas = stream.readObject().asInstanceOf[Map[FunctionDef, Seq[Lemma]]]
-    stream.close()
-    lemmas
-  }
 
   def sortFunctions(functions: Seq[FunctionDef]): Seq[FunctionDef] = {
     functions.sortBy(_.signature.name)
   }
 
-  def writeStaticFunctions(): Unit = {
-    val names = sortFunctions(problem.dsk.staticFunctions.toSeq).map(formatFunctionName).mkString(", ")
-    printToFile(new File(Directory, "static-functions.tex"), names)
-  }
-
-  def writeDynamicFunctions(): Unit = {
-    val names = sortFunctions(problem.dsk.dynamicFunctions.toSeq).map(formatFunctionName).mkString(", ")
-    printToFile(new File(Directory, "dynamic-functions.tex"), names)
-  }
 
   def formatFunctionName(f: FunctionDef): String = {
     s"\\C{${f.signature.name}}"
-  }
-
-  def main(args: Array[String]): Unit = {
-    var lemmas = Map.empty[FunctionDef, Seq[Lemma]]
-    if(!LemmaFile.exists()) {
-      println("generating lemmas ...")
-      lemmas = generate()
-      println(s"serializing lemmas to $LemmaFile ...")
-      serializeLemmas(LemmaFile, lemmas)
-    } else {
-      println(s"deserializing lemmas from $LemmaFile ...")
-      lemmas = deserializeLemmas(LemmaFile)
-    }
-    evaluate(lemmas)
   }
 }
