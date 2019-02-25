@@ -55,13 +55,13 @@ object AESpec extends ScalaSPLSpecification {
     case someTerm(t) => t
   }
 
-  @Partial
   @Dynamic
   @Recursive(1)
   @PreservationProperty("PlusPreservation")
   def plusop(t: Term, t1: Term): Term = (t, t1) match {
     case (t2, Zero()) => t2
     case (t2, Succ(t3)) => Succ(plusop(t2, t3))
+    case (t2, t3) => t3
   }
 
   //reduction semantics for simple Boolean and arithmetic terms
