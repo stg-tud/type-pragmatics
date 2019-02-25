@@ -311,7 +311,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
         withSuper(super.transFunctionExp(f)) {
           case fea@FunctionExpApp(fn, args) => {
             //only collect calls to functions, not datatype constructors!
-            if (tdcollector.functypes.contains(fn))
+            if (tdcollector.functypes.contains(fn) || tdcollector.pfunctypes.contains(fn))
               collected = collected :+ fea
             FunctionExpApp(fn, trace(args)(transFunctionExpMetas))
           }
@@ -321,7 +321,7 @@ class VeritasSpecEnquirer(spec: VeritasConstruct) extends SpecEnquirer[VeritasCo
         withSuper(super.transFunctionExps(f)) {
           case fea@FunctionExpApp(fn, args) => {
             //only collect calls to functions, not datatype constructors!
-            if (tdcollector.functypes.contains(fn))
+            if (tdcollector.functypes.contains(fn) || tdcollector.pfunctypes.contains(fn))
               collected = collected :+ fea
             Seq(FunctionExpApp(fn, trace(args)(transFunctionExpMetas)))
           }
