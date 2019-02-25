@@ -77,7 +77,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     def getMatchingObl(acg_node: acg.Node, obls: Seq[pg.Obligation]): pg.Obligation = {
       val goalmap: Map[String, pg.Obligation] = (obls map (o => (spec_enquirer.getFormulaName(o.goal) -> o))).toMap
 
-      var accumulated_namestrings: String = "" //for debugging of namepred accumulation
+      var accumulated_namestrings: Seq[String] = Seq() //for debugging of namepred construction
 
       //helper function for calculating part of a name that an obligation could have, from the distinguishing parts in ACG nodes
       def getNamePred(acgn: acg.Node): String => Boolean =
@@ -86,21 +86,21 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
             //attempt to find the name for the case that the spec_enquirer would generate as substring of a goalname
             val farg_exp = spec_enquirer.convertExpToFormula(arg_exp)
             val genname = spec_enquirer.makeFormulaName(farg_exp)
-            accumulated_namestrings = accumulated_namestrings + "_" + genname
-            (n: String) => n.contains(genname)
+            accumulated_namestrings = accumulated_namestrings :+ genname
+            (n: String) => n.contains(accumulated_namestrings.reverse.mkString("-"))
           }
           case acg.BooleanDistinction(_, _, criteria, _, _) => {
             val f = spec_enquirer.convertExpToFormula(criteria)
             val predname = spec_enquirer.makeFormulaName(f)
             if (spec_enquirer.isNegation(f)) {
               //look for "false" in goalnames
-              accumulated_namestrings = accumulated_namestrings + "_" + predname + "-False"
-              (n: String) => n.contains(predname + "-False")
+              accumulated_namestrings = accumulated_namestrings :+ predname + "-False"
+              (n: String) => n.contains(accumulated_namestrings.reverse.mkString("-"))
             }
             else {
               //look for "true" in goalnames
-              accumulated_namestrings = accumulated_namestrings + "_" + predname +  "-True"
-              (n: String) => n.contains(predname + "-True")
+              accumulated_namestrings = accumulated_namestrings :+ predname +  "-True"
+              (n: String) => n.contains(accumulated_namestrings.reverse.mkString("-"))
             }
           }
         }
@@ -117,9 +117,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
         next_acg_node = acg.getParents(next_acg_node.head).filterNot(p => p.isInstanceOf[acg.FunctionCall]) //do not consider function call parents
         //refine namepred according to next_acg_node
         if (next_acg_node.nonEmpty) {
-          val oldnamepred = namepred
-          val newnamepred = getNamePred(next_acg_node.head)
-          namepred = (n: String) => (oldnamepred(n) && newnamepred(n))
+          namepred = getNamePred(next_acg_node.head)
         }
       }
 

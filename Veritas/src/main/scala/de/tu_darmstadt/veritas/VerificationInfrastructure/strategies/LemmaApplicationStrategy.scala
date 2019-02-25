@@ -30,7 +30,8 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       //only create lemma application node if selection actually yielded lemmas to apply!
       val lemtac = LemmaApplication(lemmas, spec_enquirer)
       pg.applyTactic(obl, lemtac)
-    } //otherwise do not apply any changes to the proof graph!
+    } //otherwise apply solve tactic to ensure complete proof graphs
+    else ApplySolve().applyToPG(pg)(obl)
 
     pg
   }

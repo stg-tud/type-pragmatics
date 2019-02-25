@@ -93,7 +93,7 @@ case class StructuralInduction[Defs, Formulae <: Defs](inductionvar: Defs, query
       iv_cases map { case (n, named_ic) => {
           val added_premises = makeEquation(inductionvar, named_ic) +: prems
           //reassemble goal and attach name
-          val casename = getFormulaName(goal) + n
+          val casename = getFormulaName(goal) + "-" + n
           n -> makeNamedGoal(
             makeForallQuantifyFreeVariables(makeImplication(added_premises, concs),
               Seq()), casename)
