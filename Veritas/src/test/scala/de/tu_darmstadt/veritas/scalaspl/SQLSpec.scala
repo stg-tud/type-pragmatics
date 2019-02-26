@@ -257,7 +257,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("successfulLookup")
-  //@PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
+  @PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
   @Recursive(1)
   def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
     case (_, emptyStore()) => noTable()
@@ -414,7 +414,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @ProgressProperty("projectTableProgress")
   @PreservationProperty("projectTableWelltypedWithSelectType")
-  //@PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
+  @PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
   def projectTable(s: Select, t: Table): OptTable = (s, t) match {
     case (all(), table(al, rt)) => someTable(table(al, rt))
     case (list(alr), table(al, rt)) =>
