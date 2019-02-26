@@ -28,7 +28,7 @@ object AESpec extends ScalaSPLSpecification {
 
   @Dynamic
   @Recursive(0)
-  @ProgressProperty("NatisNV")
+  @PreservationProperty("isNVisNat") //use different annotation later, e.g. @AuxiliaryProperty
   def isNV(t: Term): Boolean = t match {
     case Zero() => true
     case Succ(nv) => isNV(nv)
@@ -249,8 +249,7 @@ object AESpec extends ScalaSPLSpecification {
   } ensuring (plusop(t, t1) :: Nat())
 
   @Property
-  def NatisNV(t: Term): Unit = {
-    require(t :: Nat())
-  } ensuring (isNV(t))
-
+  def isNVisNat(t: Term): Unit = {
+    require(isNV(t))
+  } ensuring (t :: Nat())
 }
