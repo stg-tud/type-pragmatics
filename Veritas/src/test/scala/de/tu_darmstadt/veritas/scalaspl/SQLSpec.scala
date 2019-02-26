@@ -172,7 +172,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
   @PreservationProperty("attachColToFrontRawPreservesRowCount")
   @Recursive(0)
- def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
+  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
     case (_, _) => tcons(rempty(), tempty())
@@ -187,7 +187,6 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def rawUnion(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), rt2r) => rt2r
-    case (rt1r, tempty()) => rt1r
     case (tcons(r1, rt1r), rt2r) =>
       val urt1rt2 = rawUnion(rt1r, rt2r)
       if (!rowIn(r1, rt2r))
@@ -201,7 +200,6 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
-    case (_, tempty()) => tempty()
     case (tcons(r1, tempty()), rtr2) =>
       if (rowIn(r1, rtr2))
         tcons(r1, tempty())
@@ -219,7 +217,6 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
-    case (rt1r, tempty()) => rt1r
     case (tcons(r1, tempty()), rtr2) =>
       if (!rowIn(r1, rtr2))
         tcons(r1, tempty())
@@ -257,7 +254,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("successfulLookup")
-  //@PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
+  @PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
   @Recursive(1)
   def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
     case (_, emptyStore()) => noTable()
@@ -414,7 +411,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @ProgressProperty("projectTableProgress")
   @PreservationProperty("projectTableWelltypedWithSelectType")
-  //@PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
+  @PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
   def projectTable(s: Select, t: Table): OptTable = (s, t) match {
     case (all(), table(al, rt)) => someTable(table(al, rt))
     case (list(alr), table(al, rt)) =>

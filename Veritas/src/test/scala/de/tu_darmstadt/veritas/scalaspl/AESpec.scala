@@ -26,6 +26,9 @@ object AESpec extends ScalaSPLSpecification {
 
   case class Plus(t1: Term, t2: Term) extends Term
 
+  @Dynamic
+  @Recursive(0)
+  @ProgressProperty("NatisNV")
   def isNV(t: Term): Boolean = t match {
     case Zero() => true
     case Succ(nv) => isNV(nv)
@@ -55,13 +58,13 @@ object AESpec extends ScalaSPLSpecification {
     case someTerm(t) => t
   }
 
-  @Partial
   @Dynamic
   @Recursive(1)
   @PreservationProperty("PlusPreservation")
   def plusop(t: Term, t1: Term): Term = (t, t1) match {
     case (t2, Zero()) => t2
     case (t2, Succ(t3)) => Succ(plusop(t2, t3))
+    case (t2, t3) => t3
   }
 
   //reduction semantics for simple Boolean and arithmetic terms
@@ -101,12 +104,9 @@ object AESpec extends ScalaSPLSpecification {
       else
         noTerm()
     case Plus(t1, t2) =>
-      if (isNV(t1) && isNV(t2))
-        someTerm(plusop(t1, t2))
-      else {
-        val ot1 = reduce(t1)
-        if (isSomeTerm(ot1))
-          someTerm(Plus(getTerm(ot1), t2))
+      if (isNV(t1))
+        if (isNV(t2))
+          someTerm(plusop(t1, t2))
         else {
           val ot2 = reduce(t2)
           if (isSomeTerm(ot2))
@@ -114,6 +114,12 @@ object AESpec extends ScalaSPLSpecification {
           else
             noTerm()
         }
+      else {
+        val ot1 = reduce(t1)
+        if (isSomeTerm(ot1))
+          someTerm(Plus(getTerm(ot1), t2))
+        else
+          noTerm()
       }
     case _ => noTerm()
   }
@@ -202,37 +208,49 @@ object AESpec extends ScalaSPLSpecification {
   def TPlus(t1: Term, t2: Term): Unit = {
     require(t1 :: Nat())
     require(t2 :: Nat())
-  } ensuring(Plus(t1, t2) :: Nat())
+  } ensuring (Plus(t1, t2) :: Nat())
 
   //inversion axioms for TPlus
   @Axiom
   def TPlus_inv1(t1: Term, t2: Term): Unit = {
     require(Plus(t1, t2) :: Nat())
-  } ensuring(t1 :: Nat())
+  } ensuring (t1 :: Nat())
 
 
   @Axiom
   def TPlus_inv2(t1: Term, t2: Term): Unit = {
     require(Plus(t1, t2) :: Nat())
-  } ensuring(t2 :: Nat())
+  } ensuring (t2 :: Nat())
+
+  //no term can have two types
+  @Axiom
+  def OnlyOneType(t: Term, T: Ty, T1: Ty): Unit = {
+    require(t :: T)
+    require(t :: T1)
+  } ensuring(T1 == T)
 
   // steps for soundness proof (progress and preservation) for typed arithmetic expressions as given in Pierce, TAPL, Chapter 8
   @Property
   def Progress(t: Term, T: Ty): Unit = {
     require(t :: T)
     require(!isValue(t))
-  } ensuring exists((t2: Term) => reduce(t) == someTerm(t2))
+  } ensuring exists((tres: Term) => reduce(t) == someTerm(tres))
 
   @Property
-  def Preservation(t: Term, T: Ty, t2: Term): Unit = {
+  def Preservation(t: Term, T: Ty, tres: Term): Unit = {
     require(t :: T)
-    require(reduce(t) == someTerm(t2))
-  } ensuring (t2 :: T)
+    require(reduce(t) == someTerm(tres))
+  } ensuring (tres :: T)
 
   @Property
   def PlusPreservation(t: Term, t1: Term): Unit = {
     require(t :: Nat())
     require(t1 :: Nat())
-  } ensuring(plusop(t, t1) :: Nat())
+  } ensuring (plusop(t, t1) :: Nat())
+
+  @Property
+  def NatisNV(t: Term): Unit = {
+    require(t :: Nat())
+  } ensuring (isNV(t))
 
 }

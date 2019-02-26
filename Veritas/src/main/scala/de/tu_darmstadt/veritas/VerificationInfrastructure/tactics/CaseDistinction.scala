@@ -35,7 +35,7 @@ case class CaseDistinction[Defs, Formulae <: Defs](cases: Map[String, Seq[Formul
         //simply add each goal to the premises
         val added_premises = c ++ prems ++ new_global_additional_premises
         //reassemble goal and attach name
-        val casename = "-case-" + n
+        val casename = "-" + n
         makeNamedGoal(makeForallQuantifyFreeVariables(
           makeImplication(added_premises, concs)), getFormulaName(goal) ++ casename)
       }
