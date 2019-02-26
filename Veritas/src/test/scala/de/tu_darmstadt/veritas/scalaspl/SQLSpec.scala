@@ -85,7 +85,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def welltypedRow(tType: TType, row: Row): Boolean = (tType, row) match {
     case (ttempty(), rempty()) => true
-    case (ttcons(_, ft, tt), rcons(v, r)) => fieldType(v) == ft && welltypedRow(tt, r)
+    case (ttcons(_, ft, ttr), rcons(v, r)) => fieldType(v) == ft && welltypedRow(ttr, r)
     case (_, _) => false
   }
 
@@ -134,7 +134,7 @@ object SQLSpec extends ScalaSPLSpecification {
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
     case tcons(rempty(), rt1) => tcons(rempty(), dropFirstColRaw(rt1))
-    case tcons(rcons(_, r), rt1) => tcons(r, dropFirstColRaw(rt1))
+    case tcons(rcons(_, rr), rt1) => tcons(rr, dropFirstColRaw(rt1))
   }
 
   @FailableType
@@ -215,7 +215,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("rawDifferencePreservesWellTypedRaw")
   @Recursive(0)
-  def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
+  def rawDifference(rt: RawTable, rt1: RawTable): RawTable = (rt, rt1) match {
     case (tempty(), _) => tempty()
     case (tcons(r1, tempty()), rtr2) =>
       if (!rowIn(r1, rtr2))
@@ -397,11 +397,11 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("projectColsWelltypedWithSelectType")
   @PreservationProperty("projectColsPreservesRowCount")
   @Recursive(0)
-  def projectCols(al1: AttrL, al2: AttrL, rt: RawTable): OptRawTable = (al1, al2, rt) match {
+  def projectCols(al: AttrL, al1: AttrL, rt: RawTable): OptRawTable = (al, al1, rt) match {
     case (aempty(), _, rtr) => someRawTable(projectEmptyCol(rtr))
-    case (acons(a, alr), al, rtr) =>
-      val col = findCol(a, al, rtr)
-      val rest = projectCols(alr, al, rtr)
+    case (acons(a, alr), al2, rtr) =>
+      val col = findCol(a, al2, rtr)
+      val rest = projectCols(alr, al2, rtr)
       if (isSomeRawTable(col) && isSomeRawTable(rest))
         someRawTable(attachColToFrontRaw(getRawTable(col), getRawTable(rest)))
       else
