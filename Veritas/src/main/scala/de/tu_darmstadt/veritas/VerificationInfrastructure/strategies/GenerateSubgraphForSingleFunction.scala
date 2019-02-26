@@ -65,7 +65,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       val root_fcparents = acg.getFCParents(acg_sdroot)
       if (root_fcparents.nonEmpty) {
         //collect lemmas for the individual function calls via lemma selection strategy and apply a lemma application
-        LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, SimplyFirstSelectionStrategy(), root_fcparents.map { case acg.FunctionCall(_, _, fn) => fn }).applyToPG(pg)(obl)
+        LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, SelectAllSelectionStrategy(), root_fcparents.map { case acg.FunctionCall(_, _, fn) => fn }).applyToPG(pg)(obl)
       }
     }
 
@@ -143,7 +143,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     var visitednodes: Set[acg.Node] = Set(acg_sdroot) //will not contain leaves; we treat leaves together at the end - do we need to keep track of visited nodes? ACGs are acyclic?
 
     //simple lemma selection strategy for now, refine later
-    val sel_strat = SimplyFirstSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression]()
+    val sel_strat = SelectAllSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression]()
 
     //apply tactics to corresponding obligations according to information in acg
     while (curr_acg_nodes.nonEmpty) {
