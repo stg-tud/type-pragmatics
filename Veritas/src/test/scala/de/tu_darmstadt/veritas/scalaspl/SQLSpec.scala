@@ -7,16 +7,6 @@ object SQLSpec extends ScalaSPLSpecification {
   // name of attributes and tables
   trait Name extends Expression
 
-  // natural numbers for preservation proof
-  sealed trait nat extends Expression
-  case class zero() extends nat
-  case class succ(n: nat) extends nat
-
-  def nonzero(n: nat): Boolean = n match {
-    case zero() => false
-    case succ(_) => true
-  }
-
   // list of attribute names
   sealed trait AttrL extends Expression
 
@@ -28,12 +18,6 @@ object SQLSpec extends ScalaSPLSpecification {
   def append(atl1: AttrL, atl2: AttrL): AttrL = (atl1, atl2) match {
     case (aempty(), atl) => atl
     case (acons(name, atlr), atl) => acons(name, append(atlr, atl))
-  }
-
-  @Recursive(0)
-  def attrListLength(al: AttrL): nat = al match {
-    case aempty() => zero()
-    case acons(_, altail) => succ(attrListLength(altail))
   }
 
   trait FType extends Type
@@ -107,12 +91,14 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Static
   @Recursive(1)
+  @Preservable
   def welltypedRawtable(tt: TType, rt: RawTable): Boolean = (tt, rt) match {
     case (_, tempty()) => true
     case (tt1, tcons(r, t1)) => welltypedRow(tt1, r) && welltypedRawtable(tt1, t1)
   }
 
   @Static
+  @Preservable
   def welltypedtable(tt: TType, t: Table): Boolean = (tt, t) match {
     case (tt1, table(al, t1)) => matchingAttrL(tt1, al) && welltypedRawtable(tt1, t1)
   }
@@ -120,7 +106,7 @@ object SQLSpec extends ScalaSPLSpecification {
   //some auxiliary functions on raw tables (all not knowing anything about table types!)
   //the functions are intended to be used with well-typed tables!!
 
-  //@Dynamic
+  @Dynamic
   @Recursive(1)
   def rowIn(r: Row, rt: RawTable): Boolean = (r, rt) match {
     case (_, tempty()) => false
@@ -169,6 +155,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @Preservable
   def sameLength(rt1: RawTable, rt2: RawTable): Boolean = (rt1, rt2) match {
     case (tempty(), tempty()) => true
     case (tcons(_, tll), tcons(_, tlr)) => sameLength(tll, tlr)
@@ -185,7 +172,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
   @PreservationProperty("attachColToFrontRawPreservesRowCount")
   @Recursive(0)
- def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
+  def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
     case (_, _) => tcons(rempty(), tempty())
@@ -270,7 +257,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("successfulLookup")
-  @PreservationProperty("welltypedLookup")
+  //@PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
   @Recursive(1)
   def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
     case (_, emptyStore()) => noTable()
@@ -384,7 +371,6 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("findColTypeImpliesfindCol")
-  @ProgressProperty("projectTypeImpliesFindCol")
   @PreservationProperty("findColPreservesWelltypedRaw")
   @PreservationProperty("findColPreservesRowCount")
   @Recursive(1)
@@ -428,7 +414,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @ProgressProperty("projectTableProgress")
   @PreservationProperty("projectTableWelltypedWithSelectType")
-  @PreservationProperty("projectTypeAttrLMatchesProjectTableAttrL")
+  //@PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
   def projectTable(s: Select, t: Table): OptTable = (s, t) match {
     case (all(), table(al, rt)) => someTable(table(al, rt))
     case (list(alr), table(al, rt)) =>
@@ -728,7 +714,7 @@ object SQLSpec extends ScalaSPLSpecification {
     require(storeContextConsistent(ts, ttc))
     require(lookupContext(ref, ttc) == someTType(tt))
     require(lookupStore(ref, ts) == someTable(t))
-  } ensuring welltypedtable(tt, t) // TODO: may this be a preservation lemma?
+  } ensuring welltypedtable(tt, t)
 
   @Property
   def filterPreservesType(tt: TType, t: Table, result: Table, p: Pred): Unit = {
@@ -757,13 +743,6 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring exists((rt2: RawTable) => projectCols(al, alt, rt) == someRawTable(rt2))
 
   @Property
-  def projectTypeImpliesFindCol(tt: TType, al: AttrL, rt: RawTable, al2: AttrL, tt2: TType, n: Name): Unit = {
-    require(welltypedRawtable(tt, rt))
-    require(matchingAttrL(tt, al))
-    require(projectTypeAttrL(acons(n, al2), tt) == someTType(tt2))
-  } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
-
-  @Property
   def findColTypeImpliesfindCol(tt: TType, al: AttrL, rt: RawTable, n: Name, ft: FType): Unit = {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al))
@@ -771,10 +750,11 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring exists((rt2: RawTable) => findCol(n, al, rt) == someRawTable(rt2))
 
   @Property
-  def dropFirstColRawPreservesWelltypedRaw(tt: TType, n: Name, ft: FType, ttr: TType, rt: RawTable): Unit = {
-    require(tt == ttcons(n, ft, ttr)) // |tt| > 0
+  def dropFirstColRawPreservesWelltypedRaw(tt: TType, n: Name, ft: FType, ttrest: TType, rt: RawTable, rt1: RawTable): Unit = {
+    require(tt == ttcons(n, ft, ttrest)) // |tt| > 0
     require(welltypedRawtable(tt, rt))
-  } ensuring(welltypedRawtable(ttr, dropFirstColRaw(rt)))
+    require(dropFirstColRaw(rt) == rt1)
+  } ensuring welltypedRawtable(ttrest, rt1)
 
   //PRESERVATION
 
@@ -801,33 +781,39 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedRawtable(tt, result)
 
   @Property
-  def projectTypeAttrLMatchesProjectTableAttrL(al: AttrL, tt: TType, tt2: TType, t: Table, t2: Table): Unit = {
-    require(matchingAttrL(tt, getAttrL(t)))
+  def projectTypeAttrLMatchesAttrL(al: AttrL, tt: TType, tt2: TType): Unit = {
     require(projectTypeAttrL(al, tt) == someTType(tt2))
-    require(projectTable(list(al), t) == someTable(t2))
-  } ensuring matchingAttrL(tt2, getAttrL(t2))
+  } ensuring matchingAttrL(tt2, al)
 
   @Property
-  def welltypedEmptyProjection(rt: RawTable): Unit = {
-  } ensuring welltypedRawtable(ttempty(), projectEmptyCol(rt))
+  def welltypedEmptyProjection(rt: RawTable, rt1: RawTable, tt: TType): Unit = {
+    require(tt == ttempty())
+    require(projectEmptyCol(rt) == rt1)
+  } ensuring welltypedRawtable(tt, rt1)
 
   @Property
-  def projectFirstRawPreservesWelltypedRaw(a: Name, t: Table, tt: TType, ct: FType, ttrest: TType): Unit = {
+  def projectFirstRawPreservesWelltypedRaw(rt: RawTable, rt1: RawTable,
+                                           tt: TType, tt1: TType,
+                                           a: Name, ct: FType, ttrest: TType): Unit = {
     require(tt == ttcons(a, ct, ttrest))
-    require(welltypedRawtable(tt, getRaw(t)))
-  } ensuring welltypedRawtable(ttcons(a, ct, ttempty()), projectFirstRaw(getRaw(t)))
+    require(tt1 == ttcons(a, ct, ttempty()))
+    require(welltypedRawtable(tt, rt))
+    require(projectFirstRaw(rt) == rt1)
+  } ensuring welltypedRawtable(tt1, rt1)
 
   @Property
-  def findColPreservesWelltypedRaw(a: Name, al: AttrL, rt: RawTable, tt: TType, ft: FType, rt2: RawTable): Unit = {
+  def findColPreservesWelltypedRaw(a: Name, al: AttrL, rt: RawTable,
+                                   tt: TType, tt2: TType, ft: FType, rt2: RawTable): Unit = {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al))
     require(findColType(a, tt) == someFType(ft))
     require(findCol(a, al, rt) == someRawTable(rt2))
-  } ensuring welltypedRawtable(ttcons(a, ft, ttempty()), rt2)
+    require(tt2 == ttcons(a, ft, ttempty()))
+  } ensuring welltypedRawtable(tt2, rt2)
 
   @Property
   def attachColToFrontRawPreservesWellTypedRaw(tt1: TType, name1: Name, ft1: FType,
-                                               tt2: TType,
+                                               tt2: TType, tt3: TType,
                                                rt1: RawTable, rt2: RawTable, rt3: RawTable): Unit = {
     // |tt1| == 1
     require(tt1 == ttcons(name1, ft1, ttempty()))
@@ -835,7 +821,8 @@ object SQLSpec extends ScalaSPLSpecification {
     require(welltypedRawtable(tt1, rt1))
     require(welltypedRawtable(tt2, rt2))
     require(attachColToFrontRaw(rt1, rt2) == rt3)
-  } ensuring welltypedRawtable(ttcons(name1, ft1, tt2), rt3)
+    require(tt3 == ttcons(name1, ft1, tt2))
+  } ensuring welltypedRawtable(tt3, rt3)
 
   @Property
   def attachColToFrontRawPreservesRowCount(tt1: TType, a: Name, ct: FType,
@@ -847,47 +834,47 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring sameLength(rt1, rt3)
 
   @Property
-  def projectFirstRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
-    require(projectFirstRaw(rt) == rt2)
-  } ensuring sameLength(rt, rt2)
+  def projectFirstRawPreservesRowCount(rt: RawTable, rt1: RawTable): Unit = {
+    require(projectFirstRaw(rt) == rt1)
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def dropFirstColRawPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
-    require(dropFirstColRaw(rt) == rt2)
-  } ensuring sameLength(rt, rt2)
+  def dropFirstColRawPreservesRowCount(rt: RawTable, rt1: RawTable): Unit = {
+    require(dropFirstColRaw(rt) == rt1)
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def findColPreservesRowCount(a: Name, al: AttrL, rt: RawTable, rt2: RawTable): Unit = {
-    require(findCol(a, al, rt) == someRawTable(rt2))
-  } ensuring sameLength(rt, rt2)
+  def findColPreservesRowCount(a: Name, al: AttrL, rt: RawTable, rt1: RawTable): Unit = {
+    require(findCol(a, al, rt) == someRawTable(rt1))
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def projectEmptyColPreservesRowCount(rt: RawTable, rt2: RawTable): Unit = {
-    require(projectEmptyCol(rt) == rt2)
-  } ensuring sameLength(rt, rt2)
+  def projectEmptyColPreservesRowCount(rt: RawTable, rt1: RawTable): Unit = {
+    require(projectEmptyCol(rt) == rt1)
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def projectColsPreservesRowCount(tt: TType, tt2: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt2: RawTable): Unit = {
-    require(projectTypeAttrL(al1, tt) == someTType(tt2))
-    require(projectCols(al1, al2, rt) == someRawTable(rt2))
+  def projectColsPreservesRowCount(tt: TType, tt1: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt1: RawTable): Unit = {
+    require(projectTypeAttrL(al1, tt) == someTType(tt1))
+    require(projectCols(al1, al2, rt) == someRawTable(rt1))
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al2))
-  } ensuring sameLength(rt, rt2)
+  } ensuring sameLength(rt, rt1)
 
   @Property
-  def projectColsWelltypedWithSelectType(al: AttrL, tal: AttrL, rt: RawTable, rt2: RawTable, tt: TType, tt2: TType): Unit = {
+  def projectColsWelltypedWithSelectType(al: AttrL, tal: AttrL, rt: RawTable, rt1: RawTable, tt: TType, tt1: TType): Unit = {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, tal))
-    require(projectTypeAttrL(al, tt) == someTType(tt2))
-    require(projectCols(al, tal, rt) == someRawTable(rt2))
-  } ensuring welltypedRawtable(tt2, rt2)
+    require(projectTypeAttrL(al, tt) == someTType(tt1))
+    require(projectCols(al, tal, rt) == someRawTable(rt1))
+  } ensuring welltypedRawtable(tt1, rt1)
 
   @Property
-  def projectTableWelltypedWithSelectType(sel: Select, t: Table, t2: Table, tt: TType, tt2: TType): Unit = {
+  def projectTableWelltypedWithSelectType(sel: Select, t: Table, t1: Table, tt: TType, tt1: TType): Unit = {
     require(welltypedtable(tt, t))
-    require(projectType(sel, tt) == someTType(tt2))
-    require(projectTable(sel, t) == someTable(t2))
-  } ensuring welltypedtable(tt2, t2)
+    require(projectType(sel, tt) == someTType(tt1))
+    require(projectTable(sel, t) == someTable(t1))
+  } ensuring welltypedtable(tt1, t1)
 
   @Property
   def Preservation(ttc: TTContext, ts: TStore, q: Query, qr: Query, tt: TType): Unit = {
