@@ -187,7 +187,6 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def rawUnion(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), rt2r) => rt2r
-    case (rt1r, tempty()) => rt1r
     case (tcons(r1, rt1r), rt2r) =>
       val urt1rt2 = rawUnion(rt1r, rt2r)
       if (!rowIn(r1, rt2r))
@@ -201,7 +200,6 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
-    case (_, tempty()) => tempty()
     case (tcons(r1, tempty()), rtr2) =>
       if (rowIn(r1, rtr2))
         tcons(r1, tempty())
@@ -219,7 +217,6 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
-    case (rt1r, tempty()) => rt1r
     case (tcons(r1, tempty()), rtr2) =>
       if (!rowIn(r1, rtr2))
         tcons(r1, tempty())
