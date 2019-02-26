@@ -16,6 +16,7 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
     for (lemma <- problem.dsk.properties) {
+      problem.enquirer.getAllVarTypes(lemma) // to force correct types
       writer.write(lemma.name + "\n")
       writer.write("--------------\n")
       latexWriter.printTypingRule(lemma)
@@ -54,6 +55,7 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     writeLemmaClasses()
     writeStaticFunctions()
     writeDynamicFunctions()
+    writeBaselineLemmas(new File(directory, "baseline-lemmas.tex"))
   }
 }
 
