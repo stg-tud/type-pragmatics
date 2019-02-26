@@ -20,7 +20,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                    sel_strat: LemmaSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression])
   extends DomainSpecificStrategy[Def, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
   override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation): ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
-    //collect function calls from edges (conservatively throw all of them together
+    //collect function calls from edges (conservatively throw all of them together)
     val edgelabels = pg.requiringSteps(obl) map (_._2)
     val functioncalls = for (el <- edgelabels; pp <- el.propagateInfoList if pp.isInstanceOf[FunctionCall]) yield pp.asInstanceOf[FunctionCall]
     val fnames = (for (fc <- functioncalls) yield fc.fname).toSeq.distinct
