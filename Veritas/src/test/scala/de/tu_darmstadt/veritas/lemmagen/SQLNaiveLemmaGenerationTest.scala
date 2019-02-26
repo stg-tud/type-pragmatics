@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io.{File, FileWriter, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.{LimitedDepthLemmaRefinery, RefinementStrategy}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -55,10 +56,6 @@ class SQLNaiveLemmaGenerationTest extends FunSuite {
       writer.write("--------------\n")
       lemmaWriter.printTypingRule(lemma)
       writer.write("\n")
-      writer.write("Refinements:\n")
-      for (refinement <- lemma.refinements) {
-        writer.write("  " + refinement + "\n")
-      }
       writer.write("END\n")
       writer.flush()
     }
@@ -102,7 +99,7 @@ class SQLNaiveLemmaGenerationTest extends FunSuite {
       val strategy = builder(problem, function)
       if (properties.contains(function)) {
         val expectedLemmas = properties(function)
-        val generator = new LimitedDepthLemmaGenerator(problem, strategy, MaxPremises)
+        val generator = new LimitedDepthLemmaRefinery(problem, strategy, MaxPremises)
         lazy val lemmas = {
           generator.generate()
         }

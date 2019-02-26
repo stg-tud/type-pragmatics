@@ -31,7 +31,32 @@ object Refinement {
         if(leftSides.contains(invocationExp)) {
           None
         } else {
-          Some(lemma.addPremise(this, equality))
+          Some(lemma.addPremise(equality))
+        }
+      }
+    }
+
+    def refineNeg(problem: Problem, lemma: Lemma): Option[Lemma] = {
+      val invocationExp = FunctionExpApp(
+        function.signature.name,
+        arguments
+      )
+      var right: FunctionExpMeta = FunctionMeta(result)
+      if(problem.enquirer.isFailableType(function.signature.out)) {
+        val (_, successConstructor) = problem.enquirer.retrieveFailableConstructors(function.signature.out)
+        right = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(result)))
+      }
+      val equality = problem.enquirer.makeInequation(invocationExp, right).asInstanceOf[FunctionExpJudgment]
+      if(lemma.premises.contains(equality) || lemma.consequences.contains(equality)) {
+        None
+      } else {
+        val leftSides = lemma.premises.collect {
+          case FunctionExpJudgment(FunctionExpEq(left, _)) => left
+        }
+        if(leftSides.contains(invocationExp)) {
+          None
+        } else {
+          Some(lemma.addPremise(equality))
         }
       }
     }
@@ -46,7 +71,7 @@ object Refinement {
       if(lemma.premises.contains(invocationExp) || lemma.consequences.contains(invocationExp)) {
         None
       } else {
-        Some(lemma.addPremise(this, invocationExp))
+        Some(lemma.addPremise(invocationExp))
       }
     }
 
@@ -64,10 +89,10 @@ object Refinement {
               left
             else
               mv
-          }), lemma.refinements :+ this))
+          })))
         case _ =>
           val equation = problem.enquirer.makeEquation(left, right).asInstanceOf[FunctionExpJudgment]
-          Some(lemma.addPremise(this, equation))
+          Some(lemma.addPremise(equation))
       }
     }
   }

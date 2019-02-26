@@ -8,8 +8,7 @@ case class LemmaShape(premises: Set[TypingRuleJudgment], consequences: Set[Typin
 
 class Lemma(name: String,
             premises: Seq[TypingRuleJudgment],
-            consequences: Seq[TypingRuleJudgment],
-            val refinements: Seq[Refinement] = Seq())
+            consequences: Seq[TypingRuleJudgment])
   extends TypingRule(name, premises, consequences) {
   require(consequences.length == 1, "only lemmas with a single consequence are supported")
 
@@ -20,12 +19,8 @@ class Lemma(name: String,
   def boundTypes: Set[SortRef] = bindings.values.toSet
   def bindingsOfType(typ: SortRef): Set[MetaVar] = boundVariables.filter(_.sortType == typ).toSet
 
-  def addPremise(refinement: Refinement, premise: TypingRuleJudgment): Lemma = {
-    new Lemma(name, premises :+ premise, consequences, refinements :+ refinement)
-  }
-
   def addPremise(premise: TypingRuleJudgment): Lemma = {
-    new Lemma(name, premises :+ premise, consequences, refinements)
+    new Lemma(name, premises :+ premise, consequences)
   }
 
   def shape(): LemmaShape = {
@@ -34,9 +29,12 @@ class Lemma(name: String,
       LemmaEquivalence.replaceVarsWithBottom(consequences).toSet
     )
   }
+
+  def rename(newName: String): Lemma =
+    new Lemma(newName, premises, consequences)
 }
 
 object Lemma {
-  def fromTypingRule(tr: TypingRule, refinements: Seq[Refinement] = Seq()): Lemma =
-    new Lemma(tr.name, tr.premises, tr.consequences, refinements)
+  def fromTypingRule(tr: TypingRule): Lemma =
+    new Lemma(tr.name, tr.premises, tr.consequences)
 }

@@ -1,5 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.ast._
@@ -58,4 +59,29 @@ class LemmaGenSpecEnquirer(spec: Module, dsk: VeritasDomainSpecificKnowledge) ex
   def retrieveAxiom(name: String): Option[TypingRule] = spec.defs.collect {
     case Axioms(axioms) => axioms
   }.flatten.find(_.name == name)
+
+  def getConstructors(typ: SortRef): Seq[DataTypeConstructor] = {
+    tdcollector.dataTypes
+      .filter(_._1 == typ.name)
+      .head match {
+      case (_, (_, constrs)) => constrs
+    }
+  }
+
+  def retrieveReducers(): Set[FunctionDef] = {
+    dynamicFunctions.filter(fn =>
+      fn.signature.in.contains(Query.QueryFunctionDef(fn)(this).successfulOutType)
+    )
+  }
+
+  def getSideArguments(fn: FunctionDef): Seq[Int] = {
+    val successfulOutType = Query.QueryFunctionDef(fn)(this).successfulOutType
+    fn.signature.in.zipWithIndex.collect {
+      case (typ, index) if typ != successfulOutType => index
+    }
+  }
+
+  def getSideArgumentsTypes(fn: FunctionDef): Seq[SortRef] = {
+    getSideArguments(fn).map(idx => fn.signature.in(idx))
+  }
 }

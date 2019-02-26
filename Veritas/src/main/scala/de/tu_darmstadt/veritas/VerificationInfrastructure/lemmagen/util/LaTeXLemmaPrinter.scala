@@ -1,7 +1,7 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util
 
-import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
+import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
@@ -119,6 +119,12 @@ trait LemmaPrinter {
       printFunctionExp(exp)
       printer.write(" :: ")
       printFunctionExp(typ)*/
+    case TypingJudgment(ctx, exp, typ) =>
+      printFunctionExp(ctx)
+      printer.write("\\vdash")
+      printFunctionExp(exp)
+      printer.write("::")
+      printFunctionExp(typ)
     case FunctionExpJudgment(f) => printFunctionExp(f)
     case ExistsJudgment(bindings, body) =>
       printQuantifier("\\exists", bindings, body)

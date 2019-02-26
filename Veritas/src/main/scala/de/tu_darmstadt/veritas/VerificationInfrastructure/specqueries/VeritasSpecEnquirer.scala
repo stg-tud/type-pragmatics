@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.FreshVariables
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.FreshVariables
 import de.tu_darmstadt.veritas.backend.{Configuration, util}
 import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExp, _}

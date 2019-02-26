@@ -1,4 +1,6 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive
+
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaEquivalence, LemmaShape}
 
 import scala.collection.mutable
 

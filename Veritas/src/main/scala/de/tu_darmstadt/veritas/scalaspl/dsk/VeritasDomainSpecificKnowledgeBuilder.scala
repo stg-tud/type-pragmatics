@@ -43,6 +43,8 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   protected val staticFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val properties: mutable.Set[Defn.Def] = mutable.Set()
+  protected val preservables: mutable.Set[Defn.Def] = mutable.Set()
+  protected val lemmaGeneratorHints: mutable.Map[Defn.Def, Seq[(Seq[String], Seq[String], Seq[String], Boolean)]] = mutable.Map()
 
   protected def withSuper[S](construct: S)(supcollect: S => Unit)(f: PartialFunction[S, Unit]): Unit = {
     if (f.isDefinedAt(construct))
@@ -61,12 +63,72 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
         staticFunctions += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Property"))
         properties += fn
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "Preservable"))
+        preservables += fn
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "LemmaGeneratorHint"))
+        collectLemmaGeneratorHints(fn)
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
       preservationProperties ++= collectLinkingAnnotation(fn, "PreservationProperty")(collect)
     case tr: Defn.Trait =>
       if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
         failableTypes += tr
     case _ => ()
+  }
+
+  private def collectNamedAnnotationArguments(annot: Mod.Annot): Seq[(String, Term)] = {
+    annot.init.argss.head.collect {
+      case Term.Assign(Term.Name(argumentName), rhs) => (argumentName, rhs)
+      case arg => reporter.report(
+        s"Annotation contains invalid argument: $arg. Please use only named arguments.",
+        annot.pos.startLine)
+    }
+  }
+
+  private def collectStringSeq(term: Term): Seq[String] = {
+    term match {
+      case Term.Apply(Term.Name("Seq"), rhs) => rhs.collect {
+        case Lit.String(value) => value
+        case member => reporter.report(s"Invalid member of a string sequence: $member")
+      }
+      case anyTerm => reporter.report(s"Invalid value for argument: $anyTerm")
+    }
+  }
+
+  private def collectLemmaGeneratorHints(fn: Defn.Def): Unit = {
+    val hintAnnotations = ScalaMetaUtils.collectAnnotations(fn.mods).filter(_.init.tpe.toString == "LemmaGeneratorHint")
+    val hintPatterns = hintAnnotations.map { annot =>
+      var maybePattern: Option[Seq[String]] = None
+      var maybeAdditionalPremises: Option[Seq[String]] = None
+      var maybeIrrelevantVariables: Option[Seq[String]] = None
+      var maybeSuppress: Option[Boolean] = None
+      collectNamedAnnotationArguments(annot).collect {
+        case ("pattern", rhs) if maybePattern.isEmpty =>
+          maybePattern = Some(collectStringSeq(rhs))
+        case ("pattern", _) =>
+          reporter.report("Duplicate argument: pattern")
+        case ("additionalPremises", rhs) if maybeAdditionalPremises.isEmpty =>
+          maybeAdditionalPremises = Some(collectStringSeq(rhs))
+        case ("additionalPremises", rhs) =>
+          reporter.report("Duplicate argument: additionalPremises")
+        case ("irrelevantVariables", rhs) if maybeIrrelevantVariables.isEmpty =>
+          maybeIrrelevantVariables = Some(collectStringSeq(rhs))
+        case ("IrrelevantVariables", _) =>
+          reporter.report("Duplicate argument: irrelevantVariables")
+        case ("suppress", Lit.Boolean(value)) =>
+          if(maybeSuppress.isEmpty)
+            maybeSuppress = Some(value)
+          else
+            reporter.report("Duplicate argument: suppress")
+        case ("suppress", rhs) =>
+          reporter.report(s"Invalid value for suppress argument: $rhs", annot.pos.startLine)
+        case arg => reporter.report(s"Invalid argument for LemmaGeneratorHint annotation: $arg")
+      }
+      (maybePattern.getOrElse(Seq()),
+        maybeAdditionalPremises.getOrElse(Seq()),
+        maybeIrrelevantVariables.getOrElse(Seq()),
+         maybeSuppress.getOrElse(false))
+    }
+    lemmaGeneratorHints(fn) = hintPatterns
   }
 
   private def collect(fn: Defn.Def, prop: Defn.Def, annot: Mod.Annot): (Defn.Def, Defn.Def) = fn -> prop
@@ -171,6 +233,8 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     val transPreservationProps = translateProperties(preservationProperties)
     val transStaticFuncs = translateFunctions(staticFunctions.toSet)
     val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
+    val transPreservables = translateFunctions(preservables.toSet)
+    val transLemmaGeneratorHints = translateLemmaGeneratorHints()
     // TODO: This can be removed once we are sure we have linked all properties
     val transProperties = translateProperty(properties.toSet)
     new VeritasDomainSpecificKnowledge {
@@ -181,7 +245,17 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
       override val staticFunctions: Set[FunctionDef] = transStaticFuncs
       override val dynamicFunctions: Set[FunctionDef] = transDynamicFuncs
       override val properties: Set[TypingRule] = transProperties
+      override val preservables: Set[FunctionDef] = transPreservables
+      override val lemmaGeneratorHints:
+        Map[FunctionDef, Seq[(Seq[String], Seq[String], Seq[String], Boolean)]] = transLemmaGeneratorHints
     }
+  }
+
+  private def translateLemmaGeneratorHints(): Map[FunctionDef, Seq[(Seq[String], Seq[String], Seq[String], Boolean)]] = {
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    lemmaGeneratorHints.map { case (fn, hints) =>
+      functionTranslator.translate(fn) -> hints
+    }.toMap
   }
 
   private def translateRecursiveFunctions(): Map[FunctionDef, (DataType, Seq[Int])] = {
