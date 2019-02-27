@@ -17,10 +17,9 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     }
     for (lemma <- problem.dsk.properties) {
       problem.enquirer.getAllVarTypes(lemma) // to force correct types
-      writer.write(lemma.name + "\n")
-      writer.write("--------------\n")
+      writer.write(s"\\def\\lemmaBaseline${lemma.name}/{")
       latexWriter.printTypingRule(lemma)
-      writer.write("\n")
+      writer.write("}\n")
       writer.flush()
     }
     writer.close()
