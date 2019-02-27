@@ -121,6 +121,7 @@ class GeneratorEvaluator(problem: Problem,
     val result = lemmaStore.loadOrGenerate(generator)
     val countLines = new mutable.ListBuffer[String]()
     val equivalentLines = new mutable.ListBuffer[String]()
+    val successLemmas = new mutable.HashMap[String, Boolean]()
     val successLines = new mutable.ListBuffer[String]()
     sortFunctions(result.keys.toSeq).foreach { function =>
       val lemmas = result(function)
@@ -139,18 +140,17 @@ class GeneratorEvaluator(problem: Problem,
       countLines += generateGeneratedLine(function, lemmas)
       equivalentLines += generateEquivalentLine(function, lemmas, equivalentLemmas)
 
-      val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
-      var firstIteration = true
-      sortedExpectedLemmas.foreach { lemma =>
-        if(firstIteration) {
-          successLines += s"${formatFunctionName(function)}"
-          firstIteration = false
+      if(function.signature.name != "reduce") {
+        val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
+        sortedExpectedLemmas.foreach { lemma =>
+          val success = equivalentLemmas.exists(l => LemmaEquivalence.isEquivalent(lemma, l))
+          successLemmas(lemma.name) = success
         }
-        successLines += "&"
-        successLines += s"\\C{${lemma.name}} &"
-        val success = equivalentLemmas.exists(l => LemmaEquivalence.isEquivalent(lemma, l))
-        successLines += (if(success) "\\checkmark" else "$\\times$") + "\\\\"
       }
+    }
+    successLemmas.keys.toSeq.sortBy(_.toLowerCase).foreach {lemmaName =>
+      successLines += s"\\C{${lemmaName}} &"
+      successLines += (if(successLemmas(lemmaName)) "\\checkmark" else "$\\times$") + "\\\\"
     }
     printToFile(new File(outputDirectory, "counts-table.tex"), countLines.mkString("\n"))
     printToFile(new File(outputDirectory, "equivalent-table.tex"), equivalentLines.mkString("\n"))
