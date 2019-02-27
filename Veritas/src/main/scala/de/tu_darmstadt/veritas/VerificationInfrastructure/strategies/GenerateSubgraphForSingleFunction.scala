@@ -44,7 +44,9 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     //1) treat root node of acg separately, since it is the only node which may induce a structural induction step
     if (acg_sdroot.arg_pos.nonEmpty) { //first check whether we have to do a distinction at all
       val distpos = acg_sdroot.arg_pos.get //this position is either the argument position in which the function is recursive or in which the top-level cases can be distinguished
-    val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos))
+      // restriction: only consider first dispos passed here for the moment! (this is typically correct for structural inductions,
+      //but something more sophisticated needs to be done if there has to be a general case distinction at the top-level
+    val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos.head))
       val distvar: Def = spec_enquirer.makeMVTerm(distvarname)
       // is our function in question a recursive function?
       val funname = acg.toplevel_fun
@@ -57,7 +59,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       else {
         //do a structural case distinction for the distinction var
         //this is an approximation and might not work for every function
-        //TODO: analyze cases and do a general case distinction if necessary?
+        //TODO: analyze cases and do a general case distinction if necessary (see above)
         StructuralCaseDistinctionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
       }
     } else {

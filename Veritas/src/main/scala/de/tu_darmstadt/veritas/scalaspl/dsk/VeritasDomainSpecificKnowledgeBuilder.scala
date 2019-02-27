@@ -36,7 +36,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     build(base)
   }
 
-  protected val recursiveFunctions: mutable.Map[Defn.Def, (Defn.Trait, Seq[Int])] = mutable.Map()
+  protected val recursiveFunctions: mutable.Map[Defn.Def, (Defn.Trait, Seq[Seq[Int]])] = mutable.Map()
   protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
   protected val progressProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
   protected val preservationProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
@@ -190,12 +190,12 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
       reporter.report("At least one index has to be given for the Recursive annotation.", annot.pos.startLine)
     val outer = fn.paramss.head(positions.head)
     val adtTrait =
-      if (positions.tail.nonEmpty)
-        collectInnerADT(outer, positions.tail)
-      else
+      //if (positions.tail.nonEmpty)
+        //collectInnerADT(outer, positions.tail)
+      //else
         getTraitForLastParam(outer)
 
-    recursiveFunctions += fn -> (adtTrait, positions)
+    recursiveFunctions += fn -> (adtTrait, positions map (p => Seq(p)))
   }
 
   private def getTraitForLastParam(param: Term.Param): Defn.Trait = {
@@ -238,7 +238,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     // TODO: This can be removed once we are sure we have linked all properties
     val transProperties = translateProperty(properties.toSet)
     new VeritasDomainSpecificKnowledge {
-      override val recursiveFunctions: Map[FunctionDef, (DataType, Seq[Int])] = transRecursiveFuncs
+      override val recursiveFunctions: Map[FunctionDef, (DataType, Seq[Seq[Int]])] = transRecursiveFuncs
       override val failableTypes: Seq[DataType] = transFailableTypes
       override val preservationProperties: Map[FunctionDef, Set[TypingRule]] = transPreservationProps
       override val progressProperties: Map[FunctionDef, Set[TypingRule]] = transProgressProps
@@ -258,7 +258,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     }.toMap
   }
 
-  private def translateRecursiveFunctions(): Map[FunctionDef, (DataType, Seq[Int])] = {
+  private def translateRecursiveFunctions(): Map[FunctionDef, (DataType, Seq[Seq[Int]])] = {
     val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
     val adtTranslator = AlgebraicDataTypeTranslator(reporter)
     recursiveFunctions.map { case (fn, tr) =>

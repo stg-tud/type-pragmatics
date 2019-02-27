@@ -171,7 +171,7 @@ object SQLSpec extends ScalaSPLSpecification {
   @Dynamic
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
   @PreservationProperty("attachColToFrontRawPreservesRowCount")
-  @Recursive(0)
+  @Recursive(0, 1)
   def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
     case (tcons(rcons(f, rempty()), rt1r), tcons(r, rt2r)) => tcons(rcons(f, r), attachColToFrontRaw(rt1r, rt2r))
@@ -682,7 +682,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // and whether the table in the store is well-typed with regard to the table type in the context
   // design decision: require bindings to appear in exactly the SAME ORDER! (simpler?)
   @Static
-  @Recursive(0) //TODO: is this position annotation really correct here?
+  @Recursive(0, 1)
   def storeContextConsistent(ts: TStore, ttc: TTContext): Boolean = (ts, ttc) match {
     case (emptyStore(), emptyContext()) => true
     case (bindStore(tn1, t, tsr), bindContext(tn2, tt, ttcr)) =>

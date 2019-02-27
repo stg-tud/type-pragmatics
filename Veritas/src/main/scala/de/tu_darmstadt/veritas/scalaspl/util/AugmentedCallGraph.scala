@@ -27,7 +27,7 @@ trait AugmentedCallGraph[Equation, Criteria, Expression] {
   //arg_pos: argument position (in top-level function call) for which we distinguish the expressions in arg_exp - top-level arg_exp is a generic function call to the top-level function
   //arg_pos can be None if no further distinction happens (then numbered_eqs has to have only a single element)
   //arg_exp further down may be generic constructor calls (generic = fresh variable names for all arguments)
-  case class StructuralDistinction(arg_pos: Option[Seq[Int]], arg_exp: Expression, numbered_eqs: Seq[(Int, Equation)]) extends Node
+  case class StructuralDistinction(arg_pos: Option[Seq[Seq[Int]]], arg_exp: Expression, numbered_eqs: Seq[(Int, Equation)]) extends Node
 
   //also save the index number of the top-level equation (for controlling purposes, and to be really sure to preserve the correct order)
   //for uniqueness of nodes: also save the number of the function equation in which the distinction appears (starting from 0)
