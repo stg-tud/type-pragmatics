@@ -111,3 +111,6 @@ Veritas/*.dot
 /Veritas/AESoundnessGeneratedProofGraph-store
 /Veritas/SudokuPGStores
 /Veritas/QLProgressProof-allsteps
+/Veritas/SQLSoundnessGeneratedProofGraph-store
+/Veritas/QLSoundnessGeneratedProofGraph-store
+/Veritas/augmented-call-graphs
