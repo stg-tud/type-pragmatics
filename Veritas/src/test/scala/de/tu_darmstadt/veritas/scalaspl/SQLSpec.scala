@@ -74,7 +74,7 @@ object SQLSpec extends ScalaSPLSpecification {
   // does not yet check for whether the table type contains only unique attribute names!!
   // (but semantics should be possible to define in a sensible way without that requirement...)
   @Static
-  @Recursive(0)
+  @Recursive(0, 1)
   def matchingAttrL(tt: TType, attrl: AttrL): Boolean = (tt, attrl) match {
     case (ttempty(), aempty()) => true
     case (ttcons(a1, _, ttr), acons(a2, al)) => (a1 == a2) && matchingAttrL(ttr, al)
@@ -82,7 +82,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Static
-  @Recursive(0)
+  @Recursive(0, 1)
   def welltypedRow(tType: TType, row: Row): Boolean = (tType, row) match {
     case (ttempty(), rempty()) => true
     case (ttcons(_, ft, ttr), rcons(v, r)) => fieldType(v) == ft && welltypedRow(ttr, r)
@@ -92,15 +92,15 @@ object SQLSpec extends ScalaSPLSpecification {
   @Static
   @Recursive(1)
   @Preservable
-  def welltypedRawtable(tt: TType, rt: RawTable): Boolean = (tt, rt) match {
+  def welltypedRawtable(tty: TType, rt: RawTable): Boolean = (tty, rt) match {
     case (_, tempty()) => true
-    case (tt1, tcons(r, t1)) => welltypedRow(tt1, r) && welltypedRawtable(tt1, t1)
+    case (tt, tcons(r, t1)) => welltypedRow(tt, r) && welltypedRawtable(tt, t1)
   }
 
   @Static
   @Preservable
-  def welltypedtable(tt: TType, t: Table): Boolean = (tt, t) match {
-    case (tt1, table(al, t1)) => matchingAttrL(tt1, al) && welltypedRawtable(tt1, t1)
+  def welltypedtable(tty: TType, t: Table): Boolean = (tty, t) match {
+    case (tt, table(al, t1)) => matchingAttrL(tt, al) && welltypedRawtable(tt, t1)
   }
 
   //some auxiliary functions on raw tables (all not knowing anything about table types!)
@@ -155,6 +155,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @Recursive(0, 1)
   @Preservable
   def sameLength(rt1: RawTable, rt2: RawTable): Boolean = (rt1, rt2) match {
     case (tempty(), tempty()) => true
@@ -186,11 +187,11 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("rawUnionPreservesWellTypedRaw")
   @Recursive(0)
   def rawUnion(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
-    case (tempty(), rt2r) => rt2r
-    case (tcons(r1, rt1r), rt2r) =>
-      val urt1rt2 = rawUnion(rt1r, rt2r)
-      if (!rowIn(r1, rt2r))
-        tcons(r1, urt1rt2)
+    case (tempty(), rt) => rt
+    case (tcons(r, rtr1), rt) =>
+      val urt1rt2 = rawUnion(rtr1, rt)
+      if (!rowIn(r, rt))
+        tcons(r, urt1rt2)
       else
         urt1rt2
   }
@@ -200,31 +201,31 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def rawIntersection(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
-    case (tcons(r1, tempty()), rtr2) =>
-      if (rowIn(r1, rtr2))
-        tcons(r1, tempty())
+    case (tcons(r, tempty()), rt) =>
+      if (rowIn(r, rt))
+        tcons(r, tempty())
       else
         tempty()
-    case (tcons(r1, rtr1), rtr2) =>
-      val irt1rt2 = rawIntersection(rtr1, rtr2)
-      if (rowIn(r1, rtr2))
-        tcons(r1, irt1rt2)
+    case (tcons(r, rtr1), rt) =>
+      val irt1rt2 = rawIntersection(rtr1, rt)
+      if (rowIn(r, rt))
+        tcons(r, irt1rt2)
       else irt1rt2
   }
 
   @Dynamic
   @PreservationProperty("rawDifferencePreservesWellTypedRaw")
   @Recursive(0)
-  def rawDifference(rt: RawTable, rt1: RawTable): RawTable = (rt, rt1) match {
+  def rawDifference(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), _) => tempty()
-    case (tcons(r1, tempty()), rtr2) =>
-      if (!rowIn(r1, rtr2))
-        tcons(r1, tempty())
+    case (tcons(r, tempty()), rt) =>
+      if (!rowIn(r, rt))
+        tcons(r, tempty())
       else tempty()
-    case (tcons(r1, rtr1), rtr2) =>
-      val drt1rt2 = rawDifference(rtr1, rtr2)
-      if (!rowIn(r1, rtr2))
-        tcons(r1, drt1rt2)
+    case (tcons(r, rtr1), rt) =>
+      val drt1rt2 = rawDifference(rtr1, rt)
+      if (!rowIn(r, rt))
+        tcons(r, drt1rt2)
       else drt1rt2
   }
 
@@ -256,12 +257,12 @@ object SQLSpec extends ScalaSPLSpecification {
   @ProgressProperty("successfulLookup")
   @PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
   @Recursive(1)
-  def lookupStore(n: Name, tst: TStore): OptTable = (n, tst) match {
+  def lookupStore(an: Name, tst: TStore): OptTable = (an, tst) match {
     case (_, emptyStore()) => noTable()
-    case (n1, bindStore(m, t, tsr)) =>
-      if (n1 == m)
+    case (n, bindStore(m, t, tsr)) =>
+      if (n == m)
         someTable(t)
-      else lookupStore(n1, tsr)
+      else lookupStore(n, tsr)
   }
 
   sealed trait TTContext extends Context
@@ -290,12 +291,12 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Static
   @Recursive(1)
-  def lookupContext(n: Name, ttc: TTContext): OptTType = (n, ttc) match {
+  def lookupContext(an: Name, ttc: TTContext): OptTType = (an, ttc) match {
     case (_, emptyContext()) => noTType()
-    case (tn, bindContext(tm, tt, ttcr)) =>
-      if (tn == tm)
+    case (n, bindContext(m, tt, ttcr)) =>
+      if (n == m)
         someTType(tt)
-      else lookupContext(tn, ttcr)
+      else lookupContext(n, ttcr)
   }
 
   sealed trait Exp extends Expression
@@ -371,13 +372,13 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("findColPreservesWelltypedRaw")
   @PreservationProperty("findColPreservesRowCount")
   @Recursive(1)
-  def findCol(n: Name, attrL: AttrL, rt: RawTable): OptRawTable = (n, attrL, rt) match {
-    case (a, aempty(), _) => noRawTable()
-    case (a, acons(a2, al), rtr) =>
-      if (a == a2)
+  def findCol(a: Name, attrL: AttrL, rt: RawTable): OptRawTable = (a, attrL, rt) match {
+    case (n, aempty(), _) => noRawTable()
+    case (n, acons(a2, alr), rtr) =>
+      if (n == a2)
         someRawTable(projectFirstRaw(rtr))
       else
-        findCol(a, al, dropFirstColRaw(rtr))
+        findCol(n, alr, dropFirstColRaw(rtr))
   }
 
   // for projection base case: projecting on an empty attribute list must yield a
@@ -397,11 +398,11 @@ object SQLSpec extends ScalaSPLSpecification {
   @PreservationProperty("projectColsWelltypedWithSelectType")
   @PreservationProperty("projectColsPreservesRowCount")
   @Recursive(0)
-  def projectCols(al: AttrL, al1: AttrL, rt: RawTable): OptRawTable = (al, al1, rt) match {
-    case (aempty(), _, rtr) => someRawTable(projectEmptyCol(rtr))
-    case (acons(a, alr), al2, rtr) =>
-      val col = findCol(a, al2, rtr)
-      val rest = projectCols(alr, al2, rtr)
+  def projectCols(attrl1: AttrL, attrl2: AttrL, rtable: RawTable): OptRawTable = (attrl1, attrl2, rtable) match {
+    case (aempty(), _, rt) => someRawTable(projectEmptyCol(rt))
+    case (acons(a, alr), al1, rt) =>
+      val col = findCol(a, al1, rt)
+      val rest = projectCols(alr, al1, rt)
       if (isSomeRawTable(col) && isSomeRawTable(rest))
         someRawTable(attachColToFrontRaw(getRawTable(col), getRawTable(rest)))
       else
@@ -412,10 +413,10 @@ object SQLSpec extends ScalaSPLSpecification {
   @ProgressProperty("projectTableProgress")
   @PreservationProperty("projectTableWelltypedWithSelectType")
   @PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
-  def projectTable(s: Select, t: Table): OptTable = (s, t) match {
-    case (all(), table(al, rt)) => someTable(table(al, rt))
-    case (list(alr), table(al, rt)) =>
-      val projected = projectCols(alr, al, rt)
+  def projectTable(s: Select, tab: Table): OptTable = (s, tab) match {
+    case (all(), t) => someTable(t)
+    case (list(alr), t) =>
+      val projected = projectCols(alr, getAttrL(t), getRaw(t))
       if (isSomeRawTable(projected))
         someTable(table(alr, getRawTable(projected)))
       else
@@ -572,22 +573,22 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Static
   @Recursive(1)
-  def findColType(n: Name, tt: TType): OptFType = (n, tt) match {
-    case (an, ttempty()) => noFType()
-    case (an, ttcons(a, ft, ttr)) =>
-      if (an == a)
+  def findColType(an: Name, tt: TType): OptFType = (an, tt) match {
+    case (n, ttempty()) => noFType()
+    case (n, ttcons(a, ft, ttr)) =>
+      if (n == a)
         someFType(ft)
       else
-        findColType(an, ttr)
+        findColType(n, ttr)
   }
 
   @Static
   @Recursive(0)
-  def projectTypeAttrL(attrl: AttrL, tt: TType): OptTType = (attrl, tt) match {
-    case (aempty(), tt1) => someTType(ttempty())
-    case (acons(a, alr), tt1) =>
-      val ft = findColType(a, tt1)
-      val tprest = projectTypeAttrL(alr, tt1)
+  def projectTypeAttrL(attrl: AttrL, tty: TType): OptTType = (attrl, tty) match {
+    case (aempty(), tt) => someTType(ttempty())
+    case (acons(a, alr), tt) =>
+      val ft = findColType(a, tt)
+      val tprest = projectTypeAttrL(alr, tt)
       if (isSomeFType(ft) && isSomeTType(tprest))
         someTType(ttcons(a, getFType(ft), getTType(tprest)))
       else
@@ -602,14 +603,14 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Static
   @Recursive(0)
-  def typeOfExp(e: Exp, tt: TType): OptFType = (e, tt) match {
-    case (constant(fv), tt1) => someFType(fieldType(fv))
-    case (lookup(a), ttempty()) => noFType()
-    case (lookup(a), ttcons(a2, ft, ttr)) =>
-      if (a == a2)
+  def typeOfExp(e: Exp, tty: TType): OptFType = (e, tty) match {
+    case (constant(fv), tt) => someFType(fieldType(fv))
+    case (lookup(n), ttempty()) => noFType()
+    case (lookup(n), ttcons(a2, ft, ttr)) =>
+      if (n == a2)
         someFType(ft)
       else
-        typeOfExp(lookup(a), ttr)
+        typeOfExp(lookup(n), ttr)
   }
 
 
