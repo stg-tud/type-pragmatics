@@ -14,8 +14,8 @@ trait AugmentedCallGraphBuilder[Type, Prop, FunDef, Eq, Criteria, Exp, Graph <: 
         dsk.recursiveFunctions(funDef)._2
       } catch {
         // set first argument position as default value
-        case e: NoSuchElementException => Seq(0)
-        case _: Throwable => Seq(0)
+        case e: NoSuchElementException => Seq(Seq(0))
+        case _: Throwable => Seq(Seq(0))
       }
 
     val funeqs = getEquationsOfDefinition(funDef)
@@ -28,7 +28,7 @@ trait AugmentedCallGraphBuilder[Type, Prop, FunDef, Eq, Criteria, Exp, Graph <: 
     dag.addStructuralDistinctionRoot(root)
 
     //inner recursive function: add structural distinction node level to graph
-    def refineStructuralDistinctionLevel(parent: dag.StructuralDistinction, argexp_list: Seq[Exp], distargpos_list: Seq[Int], level: Int): Unit = {
+    def refineStructuralDistinctionLevel(parent: dag.StructuralDistinction, argexp_list: Seq[Exp], distargpos_list: Seq[Seq[Int]], level: Int): Unit = {
       val eqs_to_group = parent.numbered_eqs
       //only do sth. if there actually is more than one equation to group!
       if (eqs_to_group.length > 1) {
@@ -117,13 +117,13 @@ protected def makeGenericFunctionCall (fundef: FunDef): Exp
 // e.g. a group with the single entry (3, Succ(t1)) creates (None, Succ(t1))
 // a group with three entries [(0, Ifelse(True(), t2, t3)), (1, Ifelse(False(), t2, t3)), (2, Ifelse(t1, t2, t3))]
 // creates (Some([0]), Ifelse(t, t2, t3)) where t is a generated fresh variable name
-protected def makeArgExpWithDistPos (eqs: Seq[(Int, Eq)], argexp_list: Seq[Exp], distarg_pos: Seq[Int], dag: Graph): (Option[Seq[Int]], Exp)
+protected def makeArgExpWithDistPos (eqs: Seq[(Int, Eq)], argexp_list: Seq[Exp], distarg_pos: Seq[Seq[Int]], dag: Graph): (Option[Seq[Seq[Int]]], Exp)
 
 protected def getEquationsOfDefinition (funDef: FunDef): Seq[Eq]
 
 //given a list of numbered equations, create the next grouping level for the argument position indicated by poslist
 //i.e. poslist = [0, 2] would indicate the third argument within a function/constructor call at the first argument of the original function
-protected def makeGroupsForPos (eqs_to_group: Seq[(Int, Eq)], poslist: Seq[Int] ): Seq[Seq[(Int, Eq)]]
+protected def makeGroupsForPos (eqs_to_group: Seq[(Int, Eq)], poslist: Seq[Seq[Int]] ): Seq[Seq[(Int, Eq)]]
 
 //protected def groupFunctionEquations(eqs: Seq[(Int, Eq)]): Map[Int, Seq[(Int, Eq)]]
 

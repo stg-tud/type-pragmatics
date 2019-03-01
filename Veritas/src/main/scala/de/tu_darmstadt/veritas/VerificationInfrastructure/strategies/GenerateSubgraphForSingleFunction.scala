@@ -44,7 +44,9 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     //1) treat root node of acg separately, since it is the only node which may induce a structural induction step
     if (acg_sdroot.arg_pos.nonEmpty) { //first check whether we have to do a distinction at all
       val distpos = acg_sdroot.arg_pos.get //this position is either the argument position in which the function is recursive or in which the top-level cases can be distinguished
-    val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos))
+      // restriction: only consider first dispos passed here for the moment! (this is typically correct for structural inductions,
+      //but something more sophisticated needs to be done if there has to be a general case distinction at the top-level
+    val distvarname: String = acg.getVariableName(acg.getVarExpAtDistarg_pos(Seq(acg_sdroot.arg_exp), distpos.head))
       val distvar: Def = spec_enquirer.makeMVTerm(distvarname)
       // is our function in question a recursive function?
       val funname = acg.toplevel_fun
@@ -57,7 +59,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       else {
         //do a structural case distinction for the distinction var
         //this is an approximation and might not work for every function
-        //TODO: analyze cases and do a general case distinction if necessary?
+        //TODO: analyze cases and do a general case distinction if necessary (see above)
         StructuralCaseDistinctionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
       }
     } else {
@@ -74,7 +76,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
 
     //retrieve an obligation from a list of given obligations that fits to the given ACG_node
     // there are probably some gaps in this function, needs to be refined for concrete cases
-    def getMatchingObl(acg_node: acg.Node, obls: Seq[pg.Obligation]): pg.Obligation = {
+    def getMatchingObl(acg_node: acg.Node, obls: Seq[pg.Obligation]): Option[pg.Obligation] = {
       val goalmap: Map[String, pg.Obligation] = (obls map (o => (spec_enquirer.getFormulaName(o.goal) -> o))).toMap
 
       var accumulated_namestrings: Seq[String] = Seq() //for debugging of namepred construction
@@ -123,9 +125,11 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
 
 
       if (selected_goalnames.length == 1)
-        goalmap(selected_goalnames.head)
-      else
-        sys.error(s"Could not find a unique matching obligation for acg_node $acg_node in $obls")
+        Some(goalmap(selected_goalnames.head))
+      else {
+        println(s"Could not find a unique matching obligation for acg_node $acg_node in $obls")
+        None
+      }
     }
 
 
@@ -152,51 +156,53 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       for (cn <- curr_acg_nodes) {
         //retrieve the obligation from the proof graph that corresponds to the current acg node
         //the current obligation currobl is the obligation in the proof graph that we have to apply a tactic on
-        val currobl = getMatchingObl(cn, currobls)
+        val maybecurrobl = getMatchingObl(cn, currobls) match {
+          case Some(currobl) => {
+            //retrieve all direct parents that are function calls
+            var fc_parents = acg.getFCParents(cn)
 
-        //retrieve all direct parents that are function calls
-        var fc_parents = acg.getFCParents(cn)
+            //retrieve all relevant children (ignore visited nodes and leaf nodes without function call parents)
+            // result should only be StructuralDistinctions and BooleanDistinctions
+            var children = acg.getOutgoing(cn)
+            val sd_children = for (c <- children if c.isInstanceOf[acg.StructuralDistinction]) yield c.asInstanceOf[acg.StructuralDistinction]
+            val bd_children = for (c <- children if c.isInstanceOf[acg.BooleanDistinction]) yield c.asInstanceOf[acg.BooleanDistinction]
 
-        //retrieve all relevant children (ignore visited nodes and leaf nodes without function call parents)
-        // result should only be StructuralDistinctions and BooleanDistinctions
-        var children = acg.getOutgoing(cn)
-        val sd_children = for (c <- children if c.isInstanceOf[acg.StructuralDistinction]) yield c.asInstanceOf[acg.StructuralDistinction]
-        val bd_children = for (c <- children if c.isInstanceOf[acg.BooleanDistinction]) yield c.asInstanceOf[acg.BooleanDistinction]
+            //case 1) There are only structural distinction children.
+            if (fc_parents.isEmpty && children.nonEmpty && (sd_children.length == children.length)) {
+              val rawcases: Seq[Formulae] = for (sd <- sd_children) yield spec_enquirer.convertExpToFormula(sd.arg_exp)
+              CaseDistinctionStrat(rawcases, Seq(), spec_enquirer).applyToPG(pg)(currobl)
+            }
+            // case 2) There are only function call parents -> try lemma application
+            else if (fc_parents.nonEmpty && children.isEmpty) {
+              val fcnames = fc_parents map (_.name)
 
-        //case 1) There are only structural distinction children.
-        if (fc_parents.isEmpty && children.nonEmpty && (sd_children.length == children.length)) {
-          val rawcases: Seq[Formulae] = for (sd <- sd_children) yield spec_enquirer.convertExpToFormula(sd.arg_exp)
-          CaseDistinctionStrat(rawcases, Seq(), spec_enquirer).applyToPG(pg)(currobl)
+              LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
+            }
+            // case 3) There are exactly two Boolean distinction children -> apply Boolean distinction
+            // first child contains the positive condition
+            else if (bd_children.length == 2) {
+              val poscond: Formulae = spec_enquirer.convertExpToFormula(bd_children.head.criteria)
+              //both children have to contain the same new bindings
+              val binding_premises: Seq[Formulae] = (for ((n, exp) <- bd_children.head.new_bindings) yield makebindingFormula(n, exp)).toSeq
+
+              // if there are also function call parents present: propagate the calls found through the proof graph along proof edges
+              // will result in lemma applications at the leaves later
+              val funcalls = if (fc_parents.isEmpty) Seq() else for (fcp <- fc_parents) yield fcp.name
+
+              BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, funcalls, binding_premises).applyToPG(pg)(currobl)
+            }
+            //ignore all other cases - in all other cases, ACG is not well-constructed.
+
+
+            //update currnodes and visitednodes for next iteration of outer loop
+            visitednodes += cn
+            //we do not need to inspect FunctionCall nodes further
+            //also, we do not need to inspect leaf nodes without FC parents further - these will be treated in the final step.
+            nextcurrnodes ++= children.filterNot(c => (visitednodes contains c) || isLeafNodeWithoutFCParent(c))
+            nextcurrobls ++= pg.leaves(Set(currobl))
+          }
+          case None => //do nothing (will exit while loop then, with potentially incomplete proof graph)
         }
-        // case 2) There are only function call parents -> try lemma application
-        else if (fc_parents.nonEmpty && children.isEmpty) {
-          val fcnames = fc_parents map (_.name)
-
-          LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
-        }
-        // case 3) There are exactly two Boolean distinction children -> apply Boolean distinction
-        // first child contains the positive condition
-        else if (bd_children.length == 2) {
-          val poscond: Formulae = spec_enquirer.convertExpToFormula(bd_children.head.criteria)
-          //both children have to contain the same new bindings
-          val binding_premises: Seq[Formulae] = (for ((n, exp) <- bd_children.head.new_bindings) yield makebindingFormula(n, exp)).toSeq
-
-          // if there are also function call parents present: propagate the calls found through the proof graph along proof edges
-          // will result in lemma applications at the leaves later
-          val funcalls = if (fc_parents.isEmpty) Seq() else for (fcp <- fc_parents) yield fcp.name
-
-          BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, funcalls, binding_premises).applyToPG(pg)(currobl)
-        }
-        //ignore all other cases - in all other cases, ACG is not well-constructed.
-
-
-        //update currnodes and visitednodes for next iteration of outer loop
-        visitednodes += cn
-        //we do not need to inspect FunctionCall nodes further
-        //also, we do not need to inspect leaf nodes without FC parents further - these will be treated in the final step.
-        nextcurrnodes ++= children.filterNot(c => (visitednodes contains c) || isLeafNodeWithoutFCParent(c))
-        nextcurrobls ++= pg.leaves(Set(currobl))
-
       }
 
       curr_acg_nodes = nextcurrnodes

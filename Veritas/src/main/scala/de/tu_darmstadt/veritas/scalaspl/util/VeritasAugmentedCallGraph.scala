@@ -25,15 +25,24 @@ case class VeritasAugmentedCallGraph(funname: String) extends AugmentedCallGraph
 
   override def getVarExpAtDistarg_pos(arglist: Seq[FunctionExpMeta], distposlist: Seq[Int]): FunctionExpMeta = {
 
-    def retrieveArgList(exp: FunctionExpMeta): Seq[FunctionExpMeta] =
+    def retrieveAndArg(fexpand: FunctionExpMeta, i: Int): FunctionExpMeta = fexpand match {
+      case eq@FunctionExpEq(_, _) => eq
+      case FunctionExpAnd(l, r) => if (i == 0) l else retrieveAndArg(r, i-1)
+    }
+
+
+    def retrieveArgList(exp: FunctionExpMeta, eqindex: Int): Seq[FunctionExpMeta] =
       exp match {
         case FunctionExpEq(_, FunctionExpApp(_, args)) => args
         case FunctionExpApp(_, args) => args
+        case a@FunctionExpAnd(_, _) => retrieveArgList(retrieveAndArg(a, eqindex), eqindex) //should probably be recursive
         case a => Seq(a)
       }
 
     //length of distarg_pos determines how far we have to look for a variable within arglist (is this really always true?)
-    val varlist = for (i <- distposlist.indices) yield retrieveArgList(arglist(i))(distposlist(i))
+    //for complex argument expressions (at top-level only!), head of distposlist chooses the equation where we have to look
+    //(this might not be true in every case!)
+    val varlist = for (i <- distposlist.indices) yield retrieveArgList(arglist(i), distposlist.head)(distposlist(i))
     val res = varlist.last
 
     res match {

@@ -11,7 +11,8 @@ trait DomainSpecificKnowledgeAnnotations {
   case class FailableType() extends Annotation
   case class Property() extends Annotation
   // a function can have multiple properties and each property gets a name assigned and a function
-  // first position function param pos, second ctor position of function param and so on
+  // recursive annotation only supports positions for top-level arguments!
+  // position list: if function is recursive in multiple positions
   case class Recursive(positions: Int*) extends Annotation {
     require(positions.nonEmpty)
   }

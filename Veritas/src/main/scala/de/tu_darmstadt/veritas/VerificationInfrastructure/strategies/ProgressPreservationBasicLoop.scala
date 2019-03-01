@@ -31,6 +31,8 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
   override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation):
   ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
 
+    //step0: save current leaves for checking generation progress
+    val old_leaves = pg.leaves(Set(obl))
 
     //step 1: retrieve relevant function name from given obligation with the help of the given domain specific knowledge dsk
     val goal = obl.goal
@@ -51,20 +53,19 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
 
 
     //step 4: Collect all leaves that contain auxiliary lemmas (i.e. are children of a lemma application)
-    val all_leaves = pg.leaves(Set(obl))
+    val new_leaves = pg.leaves(Set(obl))
 
     def isLemmaApplicationLeaf(l: pg.Obligation): Boolean = {
       val maybe_lemtac = pg.requiringSteps(l).find { case (ps, _) => ps.tactic.isInstanceOf[LemmaApplication[Def, Formulae]] }
       maybe_lemtac.nonEmpty
     }
 
-    val pp_leaves: Seq[pg.Obligation] = for (l <- all_leaves if isLemmaApplicationLeaf(l)) yield l
+    //step 5: recall the basic loop for all new leaves collected above, if there was progress compared to previous leaves
+    if (new_leaves != old_leaves) {
+      val pp_leaves: Seq[pg.Obligation] = for (l <- new_leaves if isLemmaApplicationLeaf(l)) yield l
 
-    //step 5: recall the basic loop for all leaves collected above
-    for (l <- pp_leaves) this.applyToPG(pg)(l)
-
-    //final step: apply Solve tactic to all leaves
-    //ApplySolveToLeaves().applyToPG(pg)(obl)
+      for (l <- pp_leaves) this.applyToPG(pg)(l)
+    }
 
 
     pg
