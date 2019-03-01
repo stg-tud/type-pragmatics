@@ -12,7 +12,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.NaiveLe
 object ThesisEvaluation {
   val EvaluationDirectory = new File("evaluation")
 
-  def SQLSpec() = new Problem(new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala"))
+  def SQLSpec() = new Problem(new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala"))
   def SQLSpecAnnotated() = new Problem(new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala"))
 
   def evaluateGenerator(problem: Problem, generator: Problem => LemmaGenerator, name: String, writeSpec: Boolean = false): Unit = {
