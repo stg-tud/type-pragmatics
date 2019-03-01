@@ -10,6 +10,8 @@ import de.tu_darmstadt.veritas.backend.Configuration._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 
+import scala.util.Success
+
 // utility class with top-level methods for generating proof graphs for progress and preservation proofs,
 // verifying them, visualizing them etc.
 case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepath: String) {
@@ -68,7 +70,7 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
       case Finished(stat, ver) =>
         stat match {
           case Proved(ie@InductionSchemeEvidence(_, _, _)) => s"Proved (induction scheme application)."
-          case Proved(ATPResultDetails(_, _, _, _, Some(t))) => "Proved (" + t + "s)."
+          case Proved(ATPResultDetails(_, _, _, Some(lems), Some(t))) => s"Proved ($t s). Used lemmas: $lems"
           case Proved(_) => "Proved (unknown details)."
           case Disproved(_) => "Disproved."
           case Inconclusive(_) => {
@@ -80,11 +82,7 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
               //val goalobl_ui = ppstrat.PG_UI.getObligation(goalname)
 
               val trans = new VeritasTransformer[TPTP](
-                Configuration(Map(FinalEncoding -> FinalEncoding.TFF,
-                  Simplification -> Simplification.LogicalAndConstructors,
-                  VariableEncoding -> VariableEncoding.InlineEverything,
-                  Selection -> Selection.SelectAll,
-                  Problem -> Problem.All)), x => x.asInstanceOf[TPTP])
+                VeritasTransformerBestStrat.config, x => x.asInstanceOf[TPTP])
 
               //write pretty-printed version of problem to file
               //val (aspec, assms, agoal) = ppstrat.PG_UI.getAssembledProblem[TPTP](goalobl, trans)
@@ -141,6 +139,31 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
     }
 
 
+  }
+
+  def checkConsistencyAll(log_inconsistent: Boolean = true, provertimeout: Int = 300): Unit = {
+    val ver = makeCustomVampire(provertimeout, "tff")
+    val consistencyChecker = ConsistencyChecker(VeritasTransformerBestStrat.config, ver.prover)
+
+    val noindobls = pg.obligationDFS() filterNot (o => pg.appliedStep(o).get.tactic.isInstanceOf[StructuralInduction[VeritasConstruct, VeritasFormula]])
+
+    for (obl <- noindobls) {
+      val goalname = extractGoalName(obl.goal)
+      val trans = new VeritasTransformer[TPTP](
+        VeritasTransformerBestStrat.config, x => x.asInstanceOf[TPTP])
+      val ps = pg.appliedStep(obl).get
+      val parentedges = pg.requiringSteps(obl) map (_._2)
+      val assumptions = pg.requiredObls(ps) map { case (o, el) => (el, o.goal) }
+      val (aspec, assms, agoal) = trans.assembleFullProblem(obl.goal, obl.spec, parentedges, assumptions)
+
+      val module: Module = Module("ConsistencyModule", Seq(), aspec.asInstanceOf[Module].defs ++ assumptions.asInstanceOf[Module].defs)
+
+      consistencyChecker.consistent(module) match {
+        case Success(true) => println(s"$goalname: No inconsistency found.")
+        case Success(false) => println(s"$goalname: Inconsistency found!!!!!!!!!!!!")
+      }
+
+    }
   }
 
 
