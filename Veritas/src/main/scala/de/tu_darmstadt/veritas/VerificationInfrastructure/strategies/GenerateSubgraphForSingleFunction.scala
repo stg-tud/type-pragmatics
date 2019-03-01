@@ -174,7 +174,8 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
             }
             // case 2) There are only function call parents -> try lemma application
             else if (fc_parents.nonEmpty && children.isEmpty) {
-              val fcnames = fc_parents map (_.name)
+              //make sure to exclude recursive calls
+              val fcnames = (fc_parents map (_.name)).filterNot(fn => acg.toplevel_fun == fn)
 
               LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
             }
@@ -189,7 +190,10 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
               // will result in lemma applications at the leaves later
               val funcalls = if (fc_parents.isEmpty) Seq() else for (fcp <- fc_parents) yield fcp.name
 
-              BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, funcalls, binding_premises).applyToPG(pg)(currobl)
+              //partition funcalls into recursive funcall and all others; omit duplicate names if any
+              val (reccalls, othercalls) = funcalls.distinct.partition(s => acg.toplevel_fun == s)
+
+              BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, reccalls, othercalls, binding_premises).applyToPG(pg)(currobl)
             }
             //ignore all other cases - in all other cases, ACG is not well-constructed.
 

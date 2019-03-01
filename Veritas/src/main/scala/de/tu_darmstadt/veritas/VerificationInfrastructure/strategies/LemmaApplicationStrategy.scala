@@ -24,13 +24,14 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
   override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation): ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
     //collect propagated function calls from edges (conservatively throw all of them together) and add them to fnames
     val edgelabels = pg.requiringSteps(obl) map (_._2)
+
+    //here we deliberately only look for FunctionCalls and ignore the RecursiveCalls for now
+    //these could be used later for provers which you can tell to apply the induction hypothesis at a certain point
     val functioncalls = for (el <- edgelabels; pp <- el.propagateInfoList if pp.isInstanceOf[FunctionCall]) yield pp.asInstanceOf[FunctionCall]
-    val aug_fnames = (for (fc <- functioncalls) yield fc.fname).toSeq.distinct ++ fnames
+    val aug_fnames = ((for (fc <- functioncalls) yield fc.fname).toSeq ++ fnames).distinct
 
-    //filter out simple recursive calls:
-    val acyclic_fnames = aug_fnames.filterNot(fn => acg.toplevel_fun == fn)
 
-    val lemmas: Seq[Formulae] = (for (fn <- acyclic_fnames) yield sel_strat.selectLemma(dsk, acg, fn)).flatten
+    val lemmas: Seq[Formulae] = (for (fn <- aug_fnames) yield sel_strat.selectLemma(dsk, acg, fn)).flatten
     if (lemmas.nonEmpty) {
       //only create lemma application node if selection actually yielded lemmas to apply!
       val lemtac = LemmaApplication(lemmas, spec_enquirer)
