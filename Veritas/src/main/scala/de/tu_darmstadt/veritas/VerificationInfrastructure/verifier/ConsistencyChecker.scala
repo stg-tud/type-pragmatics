@@ -1,6 +1,5 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenStepResult, StepResultProducer}
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.Configuration.Problem
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
