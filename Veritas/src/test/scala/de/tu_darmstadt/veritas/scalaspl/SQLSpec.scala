@@ -116,8 +116,8 @@ object SQLSpec extends ScalaSPLSpecification {
   //projects a raw table to its first column
   //returns a raw table with exactly one column or tempty
   @Dynamic
-  //@PreservationProperty("projectFirstRawPreservesWelltypedRaw")
-  //@PreservationProperty("projectFirstRawPreservesRowCount")
+  @PreservationProperty("projectFirstRawPreservesWelltypedRaw")
+  @PreservationProperty("projectFirstRawPreservesRowCount")
   @Recursive(0)
   def projectFirstRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
@@ -128,8 +128,8 @@ object SQLSpec extends ScalaSPLSpecification {
   //drops the first column of a raw table
   //returns a raw table with one column less than before or tempty
   @Dynamic
-  //@PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
-  //@PreservationProperty("dropFirstColRawPreservesRowCount")
+  @PreservationProperty("dropFirstColRawPreservesWelltypedRaw")
+  @PreservationProperty("dropFirstColRawPreservesRowCount")
   @Recursive(0)
   def dropFirstColRaw(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
@@ -170,8 +170,8 @@ object SQLSpec extends ScalaSPLSpecification {
   //include empty brackets after tempty such that the parser does not report an error
   //is treated exactly like tempty for fof-generation
   @Dynamic
-  //@PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
-  //@PreservationProperty("attachColToFrontRawPreservesRowCount")
+  @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
+  @PreservationProperty("attachColToFrontRawPreservesRowCount")
   @Recursive(0, 1)
   def attachColToFrontRaw(rt1: RawTable, rt2: RawTable): RawTable = (rt1, rt2) match {
     case (tempty(), tempty()) => tempty()
@@ -254,8 +254,8 @@ object SQLSpec extends ScalaSPLSpecification {
   case class bindStore(n: Name, t: Table, rst: TStore) extends TStore
 
   @Dynamic
-  //@ProgressProperty("successfulLookup")
-  //@PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
+  @ProgressProperty("successfulLookup")
+  @PreservationProperty("welltypedLookup") // FIXME: In the strict sense, ``welltypedLookup`` is no preservation lemma
   @Recursive(1)
   def lookupStore(an: Name, tst: TStore): OptTable = (an, tst) match {
     case (_, emptyStore()) => noTable()
@@ -368,9 +368,9 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
-  //@ProgressProperty("findColTypeImpliesfindCol")
-  //@PreservationProperty("findColPreservesWelltypedRaw")
-  //@PreservationProperty("findColPreservesRowCount")
+  @ProgressProperty("findColTypeImpliesfindCol")
+  @PreservationProperty("findColPreservesWelltypedRaw")
+  @PreservationProperty("findColPreservesRowCount")
   @Recursive(1)
   def findCol(a: Name, attrL: AttrL, rt: RawTable): OptRawTable = (a, attrL, rt) match {
     case (n, aempty(), _) => noRawTable()
@@ -384,8 +384,8 @@ object SQLSpec extends ScalaSPLSpecification {
   // for projection base case: projecting on an empty attribute list must yield a
   // table with as many empty rows as the rowcount of the given table
   @Dynamic
-  //@PreservationProperty("welltypedEmptyProjection")
-  //@PreservationProperty("projectEmptyColPreservesRowCount")
+  @PreservationProperty("welltypedEmptyProjection")
+  @PreservationProperty("projectEmptyColPreservesRowCount")
   @Recursive(0)
   def projectEmptyCol(rt: RawTable): RawTable = rt match {
     case tempty() => tempty()
@@ -394,9 +394,9 @@ object SQLSpec extends ScalaSPLSpecification {
 
   // arguments: select-list table-list table-rows
   @Dynamic
-  //@ProgressProperty("projectColsProgress")
-  //@PreservationProperty("projectColsWelltypedWithSelectType")
-  //@PreservationProperty("projectColsPreservesRowCount")
+  @ProgressProperty("projectColsProgress")
+  @PreservationProperty("projectColsWelltypedWithSelectType")
+  @PreservationProperty("projectColsPreservesRowCount")
   @Recursive(0)
   def projectCols(attrl1: AttrL, attrl2: AttrL, rtable: RawTable): OptRawTable = (attrl1, attrl2, rtable) match {
     case (aempty(), _, rt) => someRawTable(projectEmptyCol(rt))
@@ -410,8 +410,8 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
-  //@ProgressProperty("projectTableProgress")
-  //@PreservationProperty("projectTableWelltypedWithSelectType")
+  @ProgressProperty("projectTableProgress")
+  @PreservationProperty("projectTableWelltypedWithSelectType")
   //@PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
   def projectTable(s: Select, tab: Table): OptTable = (s, tab) match {
     case (all(), t) => someTable(t)
@@ -475,7 +475,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   // filter rows that satisfy pred
   @Dynamic
-  //@PreservationProperty("filterRowsPreservesTable")
+  @PreservationProperty("filterRowsPreservesTable")
   @Recursive(0)
   def filterRows(rt: RawTable, attrL: AttrL, pred: Pred): RawTable = (rt, attrL, pred) match {
     case (tempty(), _, _) => tempty()
@@ -488,7 +488,7 @@ object SQLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
-  //@PreservationProperty("filterPreservesType")
+  @PreservationProperty("filterPreservesType")
   def filterTable(t: Table, pred: Pred): Table = (t, pred) match {
     case (table(al, rt), p) => table(al, filterRows(rt, al, p))
   }
@@ -852,11 +852,11 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring sameLength(rt, rt1)
 
   @Property
-  def projectColsPreservesRowCount(tt: TType, tt1: TType, al1: AttrL, al2: AttrL, rt: RawTable, rt1: RawTable): Unit = {
-    require(projectTypeAttrL(al1, tt) == someTType(tt1))
-    require(projectCols(al1, al2, rt) == someRawTable(rt1))
+  def projectColsPreservesRowCount(tt: TType, tt1: TType, al: AttrL, al1: AttrL, rt: RawTable, rt1: RawTable): Unit = {
+    require(projectTypeAttrL(al, tt) == someTType(tt1))
+    require(projectCols(al, al1, rt) == someRawTable(rt1))
     require(welltypedRawtable(tt, rt))
-    require(matchingAttrL(tt, al2))
+    require(matchingAttrL(tt, al1))
   } ensuring sameLength(rt, rt1)
 
   @Property
