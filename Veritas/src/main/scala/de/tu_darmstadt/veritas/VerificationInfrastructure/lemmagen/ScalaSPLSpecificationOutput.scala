@@ -77,7 +77,7 @@ object ScalaSPLSpecificationOutput {
                             annotation: String): Seq[(String, String, String)] = {
     allLemmas.flatMap {
       case (fn, lemmas) => lemmas.map(lemma => (fn.signature.name, annotation, lemma.name))
-    }.toSeq
+    }.toSeq.sorted // sort lexicographically
   }
 
   def addLemmasToSpecification(input: Input,
@@ -85,7 +85,8 @@ object ScalaSPLSpecificationOutput {
                                preservationLemmas: Map[FunctionDef, Seq[Lemma]]): String = {
     val annotations = (flattenLemmas(progressLemmas, "ProgressProperty")
       ++ flattenLemmas(preservationLemmas, "PreservationProperty"))
-    val lemmas = progressLemmas.flatMap(_._2).toSeq ++ preservationLemmas.flatMap(_._2).toSeq
+    // sort lemmas by name
+    val lemmas = (progressLemmas.flatMap(_._2).toSeq ++ preservationLemmas.flatMap(_._2).toSeq).sortBy(_.name)
     val writer = new ScalaSPLSpecificationOutput(input, lemmas, annotations)
     writer.generate()
   }
