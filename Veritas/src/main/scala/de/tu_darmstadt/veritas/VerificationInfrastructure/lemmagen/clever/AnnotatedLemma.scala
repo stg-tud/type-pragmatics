@@ -11,9 +11,16 @@ case class AnnotatedLemma(lemma: Lemma,
                           postVariables: Set[MetaVar]) {
   def equivalent(right: AnnotatedLemma): Boolean = right match {
     case AnnotatedLemma(rightLemma, rightConstrained, rightPost) =>
-      (LemmaEquivalence.isEquivalent(lemma, rightLemma)
-        && constrainedVariables == rightConstrained
-        && postVariables == rightPost)
+      LemmaEquivalence.findHarmonizingRenaming(lemma, rightLemma) match {
+        case None => false
+        case Some(renaming) =>
+          val rightConstrainedRenamed = rightConstrained.map(renaming)
+          val rightPostRenamed = rightPost.map(renaming)
+          (LemmaEquivalence.isEquivalent(lemma, rightLemma)
+            && constrainedVariables == rightConstrainedRenamed
+            && postVariables == rightPostRenamed)
+      }
+
   }
 }
 

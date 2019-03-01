@@ -41,8 +41,6 @@ trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
       if (staticFn.signature.out.name == "Bool") {
         var refinements = selectPredicate(node.lemma, staticFn)
         refinements = refinements.filter(r => r.arguments.toSet.intersect(notConstrainedYet).nonEmpty)
-        // do not want refinements which pass the same argument twice
-        refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
         // do not want refinements whose in arguments contain post variables
         val postVars: Set[FunctionExpMeta] = node.postVariables.map(FunctionMeta(_))
         refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
@@ -52,10 +50,6 @@ trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
           Constraint.preferBound(staticFn.inTypes),
           Constraint.preferBound(staticFn.successfulOutType))
         refinements = refinements.filter(r => r.arguments.toSet.intersect(notConstrainedYet).nonEmpty)
-        // do not want refinements which pass the same argument twice
-        refinements = refinements.filterNot(r => r.arguments.toSet.size != r.arguments.size)
-        // do not want refinements which assume no change
-        refinements = refinements.filterNot(r => r.arguments.contains(FunctionMeta(r.result)))
         // do not want refinements whose in arguments contain post variables
         val postVars: Set[FunctionExpMeta] = node.postVariables.map(FunctionMeta(_))
         refinements = refinements.filterNot(r => r.arguments.exists(arg => postVars.contains(arg)))
