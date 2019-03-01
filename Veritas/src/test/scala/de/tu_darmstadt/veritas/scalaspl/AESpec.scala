@@ -169,16 +169,27 @@ object AESpec extends ScalaSPLSpecification {
 
 
   @Axiom
-  def TNat(): Unit = {} ensuring (Zero() :: Nat())
+  def TZero(): Unit = {} ensuring (Zero() :: Nat())
+
+  //inversion axiom for TZero
+  @Axiom
+  def TZero_inv(T: Ty): Unit = {
+    require(Zero() :: T)
+  } ensuring(T == Nat())
 
   @Axiom
   def TSucc(t1: Term): Unit = {
     require(t1 :: Nat())
   } ensuring (Succ(t1) :: Nat())
 
-  //inversion axiom for TSucc
+  //inversion axioms for TSucc
   @Axiom
-  def TSucc_inc(t1: Term): Unit = {
+  def TSucc_inv1(t1: Term, T: Ty): Unit = {
+    require(Succ(t1) :: T)
+  } ensuring (T == Nat())
+
+  @Axiom
+  def TSucc_inv2(t1: Term): Unit = {
     require(Succ(t1) :: Nat())
   } ensuring (t1 :: Nat())
 
@@ -187,22 +198,32 @@ object AESpec extends ScalaSPLSpecification {
     require(t1 :: Nat())
   } ensuring (Pred(t1) :: Nat())
 
-  //inversion axiom for TPred
+  //inversion axioms for TPred
   @Axiom
-  def TPred_inv(t1: Term): Unit = {
+  def TPred_inv1(t1: Term): Unit = {
     require(Pred(t1) :: Nat())
   } ensuring (t1 :: Nat())
+
+  @Axiom
+  def TPred_inv2(t1: Term, T: Ty): Unit = {
+    require(Pred(t1) :: T)
+  } ensuring (T == Nat())
 
   @Axiom
   def Tiszero(t1: Term): Unit = {
     require(t1 :: Nat())
   } ensuring (Iszero(t1) :: B())
 
-  //inversion axiom for Tiszero
+  //inversion axioms for Tiszero
   @Axiom
-  def Tiszero_inv(t1: Term): Unit = {
+  def Tiszero_inv1(t1: Term): Unit = {
     require(Iszero(t1) :: B())
   } ensuring (t1 :: Nat())
+
+  @Axiom
+  def Tiszero_inv2(t1: Term, T: Ty): Unit = {
+    require(Iszero(t1) :: T)
+  } ensuring (T == B())
 
   @Axiom
   def TPlus(t1: Term, t2: Term): Unit = {
@@ -212,29 +233,26 @@ object AESpec extends ScalaSPLSpecification {
 
   //inversion axioms for TPlus
   @Axiom
+  def TPlus_inv0(t1: Term, t2: Term, T: Ty): Unit = {
+    require(Plus(t1, t2) :: T)
+  } ensuring (T == Nat())
+
+  @Axiom
   def TPlus_inv1(t1: Term, t2: Term): Unit = {
     require(Plus(t1, t2) :: Nat())
   } ensuring (t1 :: Nat())
-
 
   @Axiom
   def TPlus_inv2(t1: Term, t2: Term): Unit = {
     require(Plus(t1, t2) :: Nat())
   } ensuring (t2 :: Nat())
 
-  //no term can have two types
-  @Axiom
-  def OnlyOneType(t: Term, T: Ty, T1: Ty): Unit = {
-    require(t :: T)
-    require(t :: T1)
-  } ensuring(T1 == T)
-
   // steps for soundness proof (progress and preservation) for typed arithmetic expressions as given in Pierce, TAPL, Chapter 8
   @Property
   def Progress(t: Term, T: Ty): Unit = {
     require(t :: T)
     require(!isValue(t))
-  } ensuring exists((tres: Term) => reduce(t) == someTerm(tres))
+  } ensuring (reduce(t) != noTerm())
 
   @Property
   def Preservation(t: Term, T: Ty, tres: Term): Unit = {
