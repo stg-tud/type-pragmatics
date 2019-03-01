@@ -10,8 +10,9 @@ object ProgressPreservationGraphGeneration extends App {
   val AEProof = ProgressPreservationProofGraphGeneration(aesource, aestore)
 
   AEProof.visualizeProofGraph("GeneratedAESoundness_Unverified.png")
-  //AEProof.checkConsistencyAll()
-  AEProof.verifyAll(true, 20)
+  //AEProof.checkConsistencyTopLevelProblems() //should run for 10 min
+  //AEProof.checkConsistencyAll() //might run for a really long time!!
+  AEProof.verifyAll(true, 30)
   AEProof.visualizeProofGraph("GeneratedAESoundness_PartialVerification.png")
 
   val sqlsource = "src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala"

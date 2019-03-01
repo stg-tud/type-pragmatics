@@ -141,13 +141,11 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
 
   }
 
-  def checkConsistencyAll(log_inconsistent: Boolean = true, provertimeout: Int = 300): Unit = {
+  def checkConsistencyFor(obls: Seq[pg.Obligation], log_inconsistent: Boolean = true, provertimeout: Int = 300): Unit = {
     val ver = makeCustomVampire(provertimeout, "tff")
     val consistencyChecker = ConsistencyChecker(VeritasTransformerBestStrat.config, ver.prover)
 
-    val noindobls = pg.obligationDFS() filterNot (o => pg.appliedStep(o).get.tactic.isInstanceOf[StructuralInduction[VeritasConstruct, VeritasFormula]])
-
-    for (obl <- noindobls) {
+    for (obl <- obls) {
       val goalname = extractGoalName(obl.goal)
       val trans = new VeritasTransformer[TPTP](
         VeritasTransformerBestStrat.config, x => x.asInstanceOf[TPTP])
@@ -155,8 +153,12 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
       val parentedges = pg.requiringSteps(obl) map (_._2)
       val assumptions = pg.requiredObls(ps) map { case (o, el) => (el, o.goal) }
       val (aspec, assms, agoal) = trans.assembleFullProblem(obl.goal, obl.spec, parentedges, assumptions)
-
-      val module: Module = Module("ConsistencyModule", Seq(), aspec.asInstanceOf[Module].defs ++ assumptions.asInstanceOf[Module].defs)
+      val assembledproblem_str = s"DEFINITIONS: \n ${aspec.toPrettyString()} \n\n " +
+        s"GOAL-SPECIFIC ASSUMPTIONS: \n ${assms.toPrettyString()} \n\n" +
+        s"GOAL: \n ${agoal.toPrettyString()}"
+      val assembledProblemFile = new File(s"ConsistencyCheck/$goalname")
+      writeToFile(assembledProblemFile, assembledproblem_str)
+      val module: Module = Module("ConsistencyModule", Seq(), aspec.asInstanceOf[Module].defs ++ assms.asInstanceOf[Module].defs)
 
       consistencyChecker.consistent(module) match {
         case Success(true) => println(s"$goalname: No inconsistency found.")
@@ -164,6 +166,23 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
       }
 
     }
+  }
+
+
+
+  def checkConsistencyAll(log_inconsistent: Boolean = true, provertimeout: Int = 300): Unit = {
+    //deliberately include top-level theorems with induction steps. Vampire may find counter-examples pretty well
+    //if a problem does NOT hold
+    val allobls = pg.obligationDFS()
+    checkConsistencyFor(allobls, log_inconsistent, provertimeout)
+  }
+
+  def checkConsistencyTopLevelProblems() = {
+    val progressobl = pg.findObligation("Progress")
+    val preservationobl = pg.findObligation("Preservation")
+
+    for (o <- progressobl) checkConsistencyFor(Seq(o))
+    for (o <- preservationobl) checkConsistencyFor(Seq(o))
   }
 
 

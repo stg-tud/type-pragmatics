@@ -19,7 +19,7 @@ case class ConsistencyChecker[Format <: VerifierFormat](config: Configuration, p
         prover.callProver(result) match {
           case Inconclusive(_) => Success(true)
           case Proved(rd) => {
-            println(rd.proofEvidence.get)
+            println("Evidence: " + rd.proofEvidence.get)
             Success(false)
           }
           case _ => Success(false)
