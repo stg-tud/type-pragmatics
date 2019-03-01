@@ -5,6 +5,7 @@ import scala.annotation.Annotation
 trait DomainSpecificKnowledgeAnnotations {
   case class ProgressProperty(functionName: String) extends Annotation
   case class PreservationProperty(functionName: String) extends Annotation
+  case class AuxiliaryProperty(functionName: String) extends Annotation
 
   // Marks an ADT that can represent a stuck state
   // Every function that returns a failable type can get stuck.

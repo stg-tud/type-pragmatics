@@ -40,6 +40,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
   protected val progressProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
   protected val preservationProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
+  protected val auxiliaryProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
   protected val staticFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val dynamicFunctions: mutable.Set[Defn.Def] = mutable.Set()
   protected val properties: mutable.Set[Defn.Def] = mutable.Set()
@@ -69,6 +70,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
         collectLemmaGeneratorHints(fn)
       progressProperties ++= collectLinkingAnnotation(fn, "ProgressProperty")(collect)
       preservationProperties ++= collectLinkingAnnotation(fn, "PreservationProperty")(collect)
+      auxiliaryProperties ++= collectLinkingAnnotation(fn, "AuxiliaryProperty")(collect)
     case tr: Defn.Trait =>
       if (ScalaMetaUtils.containsAnnotation(tr.mods, "FailableType"))
         failableTypes += tr
@@ -231,6 +233,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     val transFailableTypes = translateTrait(failableTypes)
     val transProgressProps = translateProperties(progressProperties)
     val transPreservationProps = translateProperties(preservationProperties)
+    val transAuxiliaryProps = translateProperties(auxiliaryProperties)
     val transStaticFuncs = translateFunctions(staticFunctions.toSet)
     val transDynamicFuncs = translateFunctions(dynamicFunctions.toSet)
     val transPreservables = translateFunctions(preservables.toSet)
@@ -242,6 +245,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
       override val failableTypes: Seq[DataType] = transFailableTypes
       override val preservationProperties: Map[FunctionDef, Set[TypingRule]] = transPreservationProps
       override val progressProperties: Map[FunctionDef, Set[TypingRule]] = transProgressProps
+      override val auxiliaryProperties: Map[FunctionDef, Set[TypingRule]] = transAuxiliaryProps
       override val staticFunctions: Set[FunctionDef] = transStaticFuncs
       override val dynamicFunctions: Set[FunctionDef] = transDynamicFuncs
       override val properties: Set[TypingRule] = transProperties

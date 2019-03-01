@@ -5,6 +5,7 @@ trait DomainSpecificKnowledge[Type, FDef, Prop] {
   def recursiveFunctions: Map[FDef, (Type, Seq[Seq[Int]])] //Second part of pair Seq[Seq[Int]] contains the position(s) at which the function is marked recursive
   def progressProperties: Map[FDef, Set[Prop]]
   def preservationProperties: Map[FDef, Set[Prop]]
+  def auxiliaryProperties: Map[FDef, Set[Prop]]
 
   def properties: Set[Prop]
   def staticFunctions: Set[FDef]
