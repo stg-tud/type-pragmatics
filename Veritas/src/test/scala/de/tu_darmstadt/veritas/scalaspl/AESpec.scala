@@ -88,7 +88,16 @@ object AESpec extends ScalaSPLSpecification {
       else
         noTerm()
     case Pred(Zero()) => someTerm(Zero())
-    case Pred(Succ(nv)) => if (isNV(nv)) someTerm(nv) else noTerm()
+    case Pred(Succ(nv)) =>
+      if (isNV(nv))
+        someTerm(nv)
+      else {
+        val ot2 = reduce(Succ(nv))
+        if (isSomeTerm(ot2))
+          someTerm(Pred(getTerm(ot2)))
+        else
+          noTerm()
+      }
     case Pred(t1) =>
       val ot2 = reduce(t1)
       if (isSomeTerm(ot2))
@@ -96,7 +105,16 @@ object AESpec extends ScalaSPLSpecification {
       else
         noTerm()
     case Iszero(Zero()) => someTerm(True())
-    case Iszero(Succ(nv)) => if (isNV(nv)) someTerm(False()) else noTerm()
+    case Iszero(Succ(nv)) =>
+      if (isNV(nv))
+        someTerm(False())
+      else {
+        val ot2 = reduce(Succ(nv))
+        if (isSomeTerm(ot2))
+          someTerm(Iszero(getTerm(ot2)))
+        else
+          noTerm()
+      }
     case Iszero(t1) =>
       val ot2 = reduce(t1)
       if (isSomeTerm(ot2))
