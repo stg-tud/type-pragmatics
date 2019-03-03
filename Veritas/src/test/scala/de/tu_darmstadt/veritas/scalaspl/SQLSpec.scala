@@ -648,9 +648,9 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring(bindContext(y, Ty, bindContext(x, Tx, C)) |- e :: T)
 
   @Axiom
-  def Ttvalue(al: AttrL, rt: RawTable, TTC: TTContext, TT: TType): Unit = {
-    require(welltypedtable(TT, table(al, rt)))
-  } ensuring(TTC |- tvalue(table(al, rt)) :: TT)
+  def Ttvalue(t: Table, TTC: TTContext, TT: TType): Unit = {
+    require(welltypedtable(TT, t))
+  } ensuring(TTC |- tvalue(t) :: TT)
 
   @Axiom
   def TSelectFromWhere(tn: Name, TTC: TTContext, TT: TType, p: Pred, sel: Select, TTr: TType): Unit = {
@@ -677,7 +677,59 @@ object SQLSpec extends ScalaSPLSpecification {
     require(TTC |- q2 :: TT)
   } ensuring(TTC |- Difference(q1, q2) :: TT)
 
-  // type inversion axiom needed or not?
+  // type inversion axioms
+  /*@Axiom
+  def Ttvalue_inv(t: table, TTC: TTContext, TT: TType): Unit = {
+    require(TTC |- tvalue(t) :: TT)
+  } ensuring(welltypedtable(TT, t))
+
+  @Axiom
+  def TSelectFromWhere_inv1(tn: Name, TTC: TTContext, TT: TType, p: Pred, sel: Select, TTr: TType): Unit = {
+    require(TTC |- selectFromWhere(sel, tn, p) :: TTr)
+  } ensuring(lookupContext(tn, TTC) == someTType(TT))
+
+  @Axiom
+  def TSelectFromWhere_inv2(tn: Name, TTC: TTContext, TT: TType, p: Pred, sel: Select, TTr: TType): Unit = {
+    require(TTC |- selectFromWhere(sel, tn, p) :: TTr)
+    require(lookupContext(tn, TTC) == someTType(TT))
+  } ensuring(tcheckPred(p, TT))
+
+  @Axiom
+  def TSelectFromWhere_inv3(tn: Name, TTC: TTContext, TT: TType, p: Pred, sel: Select, TTr: TType): Unit = {
+    require(TTC |- selectFromWhere(sel, tn, p) :: TTr)
+    require(lookupContext(tn, TTC) == someTType(TT))
+  } ensuring(projectType(sel, TT) == someTType(TTr))
+
+  @Axiom
+  def TUnion_inv1(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- Union(q1, q2) :: TT)
+  } ensuring(TTC |- q1 :: TT)
+
+  @Axiom
+  def TUnion_inv2(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- Union(q1, q2) :: TT)
+  } ensuring(TTC |- q2 :: TT)
+
+  @Axiom
+  def TIntersection_inv1(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- Intersection(q1, q2) :: TT)
+  } ensuring(TTC |- q1 :: TT)
+
+  @Axiom
+  def TIntersection_inv2(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- Intersection(q1, q2) :: TT)
+  } ensuring(TTC |- q2 :: TT)
+
+  @Axiom
+  def TDifference_inv1(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- Difference(q1, q2) :: TT)
+  } ensuring(TTC |- q1 :: TT)
+
+  @Axiom
+  def TDifference_inv2(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
+    require(TTC |- Difference(q1, q2) :: TT)
+  } ensuring(TTC |- q2 :: TT)
+  */
 
   // determines whether a given TTContext is consistent with a given TStore
   // and whether the table in the store is well-typed with regard to the table type in the context
