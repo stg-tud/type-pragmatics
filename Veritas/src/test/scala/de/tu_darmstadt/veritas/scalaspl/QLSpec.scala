@@ -252,9 +252,9 @@ object QLSpec extends ScalaSPLSpecification {
     case QC(_, _, q) => q
   }
 
-  def isValue(qc: QConf): Boolean = qc match {
-    case QC(_, _, qempty()) => true
-    case QC(_, _, _) => false
+  def isValue(q: Questionnaire): Boolean = q match {
+    case qempty() => true
+    case _ => false
   }
 
   @FailableType
@@ -563,19 +563,19 @@ object QLSpec extends ScalaSPLSpecification {
     require(MC(atm, qm) |- q :: MC(atm1, qm1))
   } ensuring (MC(atm, qm) |- qgroup(gid, q) :: MC(atm1, qm1))
 
-  def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
+  //def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
 
-  @Axiom
-  def TqcCheck(am: AnsMap, atm1: ATMap, atm0: ATMap, qm0: ATMap,
-      qm: QMap, q: Questionnaire, atm2: ATMap, qm2: ATMap): Unit = {
-    require(typeAM(am) == atm1)
-    require(MC(appendATMap(atm0, atm1), appendATMap(qm0, typeQM(qm))) |- q :: MC(atm2 ,qm2))
-  } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
+  //@Axiom
+  //def TqcCheck(am: AnsMap, atm1: ATMap, atm0: ATMap, qm0: ATMap,
+  //    qm: QMap, q: Questionnaire, atm2: ATMap, qm2: ATMap): Unit = {
+  //  require(typeAM(am) == atm1)
+  //  require(MC(appendATMap(atm0, atm1), appendATMap(qm0, typeQM(qm))) |- q :: MC(atm2 ,qm2))
+  //} ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
 
   @Property
   def reduceProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap,
       qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
-    require(!isValue(QC(am, qm, q)))
+    require(!isValue(q))
     require(typeAM(am) == atm)
     require(typeQM(qm) == qtm)
     require(MC(atm, qtm) |- q :: MC(atm2, qtm2))

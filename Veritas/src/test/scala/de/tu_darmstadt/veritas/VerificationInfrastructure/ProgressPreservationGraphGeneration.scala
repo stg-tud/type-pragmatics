@@ -21,9 +21,9 @@ object ProgressPreservationGraphGeneration extends App {
   val SQLProof = ProgressPreservationProofGraphGeneration(sqlsource, sqlstore)
 
   SQLProof.visualizeProofGraph("GeneratedSQLSoundness_Unverified.png")
-  SQLProof.checkConsistencyAll()
-  //SQLProof.verifyAll()
-  //SQLProof.visualizeProofGraph("GeneratedSQLSoundness_PartialVerification.png")
+  //SQLProof.checkConsistencyAll()
+  SQLProof.verifyAll(true, 120)
+  SQLProof.visualizeProofGraph("GeneratedSQLSoundness_PartialVerification.png")
 
   //val qlsource = "src/test/scala/de/tu_darmstadt/veritas/scalaspl/QLSpec.scala"
   //val qlstore = "QLSoundnessGeneratedProofGraph-store"
