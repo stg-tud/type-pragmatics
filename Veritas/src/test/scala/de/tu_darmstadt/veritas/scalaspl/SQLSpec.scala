@@ -374,8 +374,8 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(1)
   def findCol(a: Name, attrL: AttrL, rt: RawTable): OptRawTable = (a, attrL, rt) match {
     case (n, aempty(), _) => noRawTable()
-    case (n, acons(a2, alr), rtr) =>
-      if (n == a2)
+    case (n, acons(n1, alr), rtr) =>
+      if (n == n1)
         someRawTable(projectFirstRaw(rtr))
       else
         findCol(n, alr, dropFirstColRaw(rtr))
@@ -400,9 +400,9 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def projectCols(attrl1: AttrL, attrl2: AttrL, rtable: RawTable): OptRawTable = (attrl1, attrl2, rtable) match {
     case (aempty(), _, rt) => someRawTable(projectEmptyCol(rt))
-    case (acons(a, alr), al1, rt) =>
-      val col = findCol(a, al1, rt)
-      val rest = projectCols(alr, al1, rt)
+    case (acons(n, al2), al1, rt) =>
+      val col = findCol(n, al1, rt)
+      val rest = projectCols(al2, al1, rt)
       if (isSomeRawTable(col) && isSomeRawTable(rest))
         someRawTable(attachColToFrontRaw(getRawTable(col), getRawTable(rest)))
       else
@@ -415,10 +415,10 @@ object SQLSpec extends ScalaSPLSpecification {
   //@PreservationProperty("projectTypeAttrLMatchesAttrL") // FIXME: projectTypeAttrLMatchesAttrL is no preservation lemma
   def projectTable(s: Select, tab: Table): OptTable = (s, tab) match {
     case (all(), t) => someTable(t)
-    case (list(alr), t) =>
-      val projected = projectCols(alr, getAttrL(t), getRaw(t))
+    case (list(al), t) =>
+      val projected = projectCols(al, getAttrL(t), getRaw(t))
       if (isSomeRawTable(projected))
-        someTable(table(alr, getRawTable(projected)))
+        someTable(table(al, getRawTable(projected)))
       else
         noTable()
   }
@@ -499,11 +499,11 @@ object SQLSpec extends ScalaSPLSpecification {
   @Recursive(0)
   def reduce(query: Query, tst: TStore): OptQuery = (query, tst) match {
     case (tvalue(_), _) => noQuery()
-    case (selectFromWhere(sel, name, pred), ts) =>
-      val maybeTable = lookupStore(name, ts)
+    case (selectFromWhere(s, n, p), ts) =>
+      val maybeTable = lookupStore(n, ts)
       if (isSomeTable(maybeTable)) {
-        val filtered = filterTable(getTable(maybeTable), pred)
-        val maybeSelected = projectTable(sel, filtered)
+        val filtered = filterTable(getTable(maybeTable), p)
+        val maybeSelected = projectTable(s, filtered)
         if (isSomeTable(maybeSelected))
           someQuery(tvalue(getTable(maybeSelected)))
         else noQuery()
@@ -678,27 +678,15 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring(TTC |- Difference(q1, q2) :: TT)
 
   // type inversion axioms
-  /*@Axiom
+  @Axiom
   def Ttvalue_inv(t: table, TTC: TTContext, TT: TType): Unit = {
     require(TTC |- tvalue(t) :: TT)
   } ensuring(welltypedtable(TT, t))
 
   @Axiom
-  def TSelectFromWhere_inv1(tn: Name, TTC: TTContext, TT: TType, p: Pred, sel: Select, TTr: TType): Unit = {
+  def TSelectFromWhere_inv(tn: Name, TTC: TTContext, p: Pred, sel: Select, TTr: TType): Unit = {
     require(TTC |- selectFromWhere(sel, tn, p) :: TTr)
-  } ensuring(lookupContext(tn, TTC) == someTType(TT))
-
-  @Axiom
-  def TSelectFromWhere_inv2(tn: Name, TTC: TTContext, TT: TType, p: Pred, sel: Select, TTr: TType): Unit = {
-    require(TTC |- selectFromWhere(sel, tn, p) :: TTr)
-    require(lookupContext(tn, TTC) == someTType(TT))
-  } ensuring(tcheckPred(p, TT))
-
-  @Axiom
-  def TSelectFromWhere_inv3(tn: Name, TTC: TTContext, TT: TType, p: Pred, sel: Select, TTr: TType): Unit = {
-    require(TTC |- selectFromWhere(sel, tn, p) :: TTr)
-    require(lookupContext(tn, TTC) == someTType(TT))
-  } ensuring(projectType(sel, TT) == someTType(TTr))
+  } ensuring(exists((TT: TType) => lookupContext(tn, TTC) == someTType(TT) && tcheckPred(p, TT) && projectType(sel, TT) == someTType(TTr)))
 
   @Axiom
   def TUnion_inv1(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
@@ -729,7 +717,7 @@ object SQLSpec extends ScalaSPLSpecification {
   def TDifference_inv2(q1: Query, q2: Query, TT: TType, TTC: TTContext): Unit = {
     require(TTC |- Difference(q1, q2) :: TT)
   } ensuring(TTC |- q2 :: TT)
-  */
+
 
   // determines whether a given TTContext is consistent with a given TStore
   // and whether the table in the store is well-typed with regard to the table type in the context
@@ -852,13 +840,13 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring welltypedRawtable(tt1, rt1)
 
   @Property
-  def findColPreservesWelltypedRaw(a: Name, al: AttrL, rt: RawTable,
+  def findColPreservesWelltypedRaw(n: Name, al: AttrL, rt: RawTable,
                                    tt: TType, tt2: TType, ft: FType, rt2: RawTable): Unit = {
     require(welltypedRawtable(tt, rt))
     require(matchingAttrL(tt, al))
-    require(findColType(a, tt) == someFType(ft))
-    require(findCol(a, al, rt) == someRawTable(rt2))
-    require(tt2 == ttcons(a, ft, ttempty()))
+    require(findColType(n, tt) == someFType(ft))
+    require(findCol(n, al, rt) == someRawTable(rt2))
+    require(tt2 == ttcons(n, ft, ttempty()))
   } ensuring welltypedRawtable(tt2, rt2)
 
   @Property
@@ -894,8 +882,8 @@ object SQLSpec extends ScalaSPLSpecification {
   } ensuring sameLength(rt, rt1)
 
   @Property
-  def findColPreservesRowCount(a: Name, al: AttrL, rt: RawTable, rt1: RawTable): Unit = {
-    require(findCol(a, al, rt) == someRawTable(rt1))
+  def findColPreservesRowCount(n: Name, al: AttrL, rt: RawTable, rt1: RawTable): Unit = {
+    require(findCol(n, al, rt) == someRawTable(rt1))
   } ensuring sameLength(rt, rt1)
 
   @Property
