@@ -13,8 +13,8 @@ trait GraphConstructor {
     val graph = new RefinementGraph(problem, root)
     while(graph.openNodes.nonEmpty) {
       for(node <- graph.openNodes) {
-        val restrictions = expand(node)
-        for (restriction <- restrictions) {
+        val refinements = expand(node)
+        for (restriction <- refinements) {
           graph.refine(node, restriction)
         }
         node.open = false
