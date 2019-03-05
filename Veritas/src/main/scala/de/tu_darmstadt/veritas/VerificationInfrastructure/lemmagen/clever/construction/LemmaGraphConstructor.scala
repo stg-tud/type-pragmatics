@@ -26,7 +26,7 @@ trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
         val equals = metaVars.subsets.filter(_.size == 2)
         for(equal <- equals) {
           if(!equal.subsetOf(invocationArguments.toSet))
-            restrictions += Refinement.Equation(equal.head, FunctionMeta(equal.tail.head))
+            restrictions += Refinement.Equation(equal.head, equal.tail.head)
         }
       }
     }

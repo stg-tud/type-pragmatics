@@ -50,10 +50,7 @@ object AnnotatedLemma {
     refinement match {
       case Predicate(fn, args) => post
       case SuccessfulApplication(fn, args, result) => post + result
-      case Equation(left, FunctionMeta(rightVar)) => replace(post, rightVar, left)
-      case Equation(left, right) =>
-        sys.error("not sure what to do") // TODO
-        post
+      case Equation(left, right) => replace(post, right, left)
     }
   }
 
@@ -63,9 +60,7 @@ object AnnotatedLemma {
         constrainedVariables ++ args.flatMap(FreeVariables.freeVariables(_, Set.empty[MetaVar]))
       case SuccessfulApplication(fn, args, result) =>
         constrainedVariables ++ args.flatMap(FreeVariables.freeVariables(_, Set.empty[MetaVar])) + result
-      case Equation(left, FunctionMeta(rightVar)) => replace(constrainedVariables, rightVar, left)
-      case Equation(left, right) =>
-        sys.error("not sure what to do") // TODO
+      case Equation(left, right) => replace(constrainedVariables, right, left)
     }
   }
 }
