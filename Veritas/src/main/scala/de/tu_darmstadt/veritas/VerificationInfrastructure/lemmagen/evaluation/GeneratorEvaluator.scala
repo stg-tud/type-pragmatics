@@ -82,12 +82,11 @@ class GeneratorEvaluator(problem: Problem,
     val countLines = new mutable.ListBuffer[String]()
     val successLemmas = new mutable.HashMap[String, Boolean]()
     val successLines = new mutable.ListBuffer[String]()
-    sortFunctions(result.keys.toSeq).foreach { function =>
-      val lemmas = result(function)
+    sortFunctions((problem.dsk.dynamicFunctions ++ problem.dsk.staticFunctions).toSeq).foreach { function =>
+      val lemmas = result.getOrElse(function, Seq())
       val name = function.signature.name
       println(s"evaluating $name...")
-      // all lemmas
-      printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
+
       // equivalent lemmas
       val expectedLemmas = lookupExpectedLemmas(function)
       val equivalentLemmas = lemmas.filter(generated =>
@@ -95,8 +94,12 @@ class GeneratorEvaluator(problem: Problem,
           LemmaEquivalence.isEquivalent(expected, generated)
         )
       )
-      printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
-      countLines += generateGeneratedLine(function, lemmas)
+      if(lemmas.nonEmpty) {
+        // all lemmas
+        printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
+        printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
+        countLines += generateGeneratedLine(function, lemmas)
+      }
 
       if(function.signature.name != "reduce") {
         val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
