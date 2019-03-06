@@ -524,36 +524,36 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Axiom
   def Tqempty(atm: ATMap, qm: ATMap): Unit = {
-  } ensuring MC(atm, qm) |- qempty() :: MC(atmempty(), atmempty())
+  } ensuring MC(atm, qm) |- qempty() :: MC(atm, qm)
 
   @Axiom
   def Tquestion(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType): Unit = {
     require(lookupATMap(qid, atm) == noAType())
-  } ensuring MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atmbind(qid, at, atmempty()), atmempty())
+  } ensuring MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atmbind(qid, at, atm), qm)
 
   @Axiom
   def Tvalue(qid: QID, atm: ATMap, exp: Exp, qm: ATMap, at: AType): Unit = {
     require(lookupATMap(qid, atm) == noAType())
     require(echeck(atm, exp) == someAType(at))
-  } ensuring MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atmbind(qid, at, atmempty()), atmempty())
+  } ensuring MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atmbind(qid, at, atm), qm)
 
   @Axiom
   def Tdefquestion(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType): Unit = {
     require(lookupATMap(qid, qm) == noAType())
-  } ensuring MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atmempty(), atmbind(qid, at, atmempty()))
+  } ensuring MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atm, atmbind(qid, at, qm))
 
   @Axiom
   def Task(qid: QID, qm: ATMap, at: AType, atm: ATMap): Unit = {
     require(lookupATMap(qid, qm) == someAType(at))
     require(lookupATMap(qid, atm) == noAType())
-  } ensuring MC(atm, qm) |- qsingle(ask(qid)) :: MC(atmbind(qid, at, atmempty()), atmempty())
+  } ensuring MC(atm, qm) |- qsingle(ask(qid)) :: MC(atmbind(qid, at, atm), qm)
 
   @Axiom
   def Tqseq(atm: ATMap, qm: ATMap, q1: Questionnaire, atm1: ATMap,
       atm2: ATMap, qm1: ATMap, q2: Questionnaire, qm2: ATMap): Unit = {
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
-    require(MC(appendATMap(atm, atm1), appendATMap(qm, qm1)) |- q2 :: MC(atm2, qm2))
-  } ensuring MC(atm, qm) |- qseq(q1, q2) :: MC(appendATMap(atm1, atm2), appendATMap(qm1, qm2))
+    require(MC(atm1, qm1) |- q2 :: MC(atm2, qm2))
+  } ensuring MC(atm, qm) |- qseq(q1, q2) :: MC(atm2, qm2)
 
   @Axiom
   def Tqcond(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
@@ -569,16 +569,35 @@ object QLSpec extends ScalaSPLSpecification {
   } ensuring (MC(atm, qm) |- qgroup(gid, q) :: MC(atm1, qm1))
 
 
+  //subtyping relation (for preservation theorem!)
+
+  //helper predicate
+  @Static
+  @Recursive(0)
+  def containsATPair(atmap: ATMap, id: QID, atype: AType): Boolean = (atmap, id, atype) match {
+    case (atmempty(), _, _) => false
+    case (atmbind(qid, at, atmr), qid1, at1) => if (qid == qid1 && at == at1) true else containsATPair(atmr, qid1, at1)
+  }
+
+  //"sub(atm, atm1) holds iff atm contains at least all answer/question types that atm1 contains" (i.e. atm may contain more bindings)
+  @Static
+  @Recursive(1)
+  def sub(atmap1: ATMap, atmap2: ATMap): Boolean = (atmap1, atmap2) match {
+    case (atm, atmempty()) => true
+    case (atm, atmbind(qid, at, atmr)) => containsATPair(atm, qid, at) && sub(atm, atmr)
+  }
+
+
   //type inversion axioms
   @Axiom
   def Tqempty_inv1(atm: ATMap, qm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
     require (MC(atm, qm) |- qempty() :: MC(atm1, qm1))
-  } ensuring (atm1 == atmempty())
+  } ensuring (atm1 == atm)
 
   @Axiom
   def Tqempty_inv2(atm: ATMap, qm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
     require (MC(atm, qm) |- qempty() :: MC(atm1, qm1))
-  } ensuring (qm1 == atmempty())
+  } ensuring (qm1 == qm)
 
 
   @Axiom
@@ -589,12 +608,12 @@ object QLSpec extends ScalaSPLSpecification {
   @Axiom
   def Tquestion_inv2(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
     require(MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atm1, qm1))
-  } ensuring (atm1 == atmbind(qid, at, atmempty()))
+  } ensuring (atm1 == atmbind(qid, at, atm))
 
   @Axiom
   def Tquestion_inv3(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
     require(MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atm1, qm1))
-  } ensuring (qm1 == atmempty())
+  } ensuring (qm1 == qm)
 
 
   @Axiom
@@ -610,12 +629,12 @@ object QLSpec extends ScalaSPLSpecification {
   @Axiom
   def Tvalue_inv3(qid: QID, atm: ATMap, exp: Exp, qm: ATMap, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
     require(MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atm1, qm1))
-  } ensuring (atm1 == atmbind(qid, at, atmempty()))
+  } ensuring (atm1 == atmbind(qid, at, atm))
 
   @Axiom
   def Tvalue_inv4(qid: QID, atm: ATMap, exp: Exp, qm: ATMap, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
     require(MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atm1, qm1))
-  } ensuring (qm1 == atmempty())
+  } ensuring (qm1 == qm)
 
 
   @Axiom
@@ -626,12 +645,12 @@ object QLSpec extends ScalaSPLSpecification {
   @Axiom
   def Tdefquestion_inv2(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
     require (MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atm1, qm1))
-  } ensuring (atm1 == atmempty())
+  } ensuring (atm1 == atm)
 
   @Axiom
   def Tdefquestion_inv3(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
     require (MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atm1, qm1))
-  } ensuring (qm1 == atmbind(qid, at, atmempty()))
+  } ensuring (qm1 == atmbind(qid, at, qm))
 
 
   @Axiom
@@ -648,12 +667,12 @@ object QLSpec extends ScalaSPLSpecification {
   def Task_inv3(qid: QID, qm: ATMap, at: AType, atm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
     require(MC(atm, qm) |- qsingle(ask(qid)) :: MC(atm1, qm1))
     require(lookupATMap(qid, qm) == someAType(at))
-  } ensuring (atm1 == atmbind(qid, at, atmempty()))
+  } ensuring (atm1 == atmbind(qid, at, atm))
 
   @Axiom
   def Task_inv4(qid: QID, qm: ATMap, atm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
     require(MC(atm, qm) |- qsingle(ask(qid)) :: MC(atm1, qm1))
-  } ensuring (qm1 == atmempty())
+  } ensuring (qm1 == qm)
 
 
   @Axiom
@@ -665,27 +684,21 @@ object QLSpec extends ScalaSPLSpecification {
   def Tqseq_inv2(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
     require(MC(atm, qm) |- qseq(q1, q2) :: MC(atmr, qmr))
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
-  } ensuring (exists ((atm2: ATMap, qm2: ATMap) => MC(appendATMap(atm, atm1), appendATMap(qm, qm1)) |- q2 :: MC(atm2, qm2)))
+  } ensuring (exists ((atm2: ATMap, qm2: ATMap) => MC(atm1, qm1) |- q2 :: MC(atm2, qm2)))
 
   @Axiom
-  def Tqseq_inv3(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+  def Tqseq_inv3(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap, atm2: ATMap, qm2: ATMap): Unit = {
     require(MC(atm, qm) |- qseq(q1, q2) :: MC(atmr, qmr))
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
-  } ensuring (exists ((atm2: ATMap, qm2: ATMap) => MC(appendATMap(atm, atm1), appendATMap(qm, qm1)) |- q2 :: MC(atm2, qm2)))
+    require(MC(atm1, qm1) |- q2 :: MC(atm2, qm2))
+  } ensuring (atmr == atm2)
 
   @Axiom
   def Tqseq_inv4(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap, atm2: ATMap, qm2: ATMap): Unit = {
     require(MC(atm, qm) |- qseq(q1, q2) :: MC(atmr, qmr))
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
-    require(MC(appendATMap(atm, atm1), appendATMap(qm, qm1)) |- q2 :: MC(atm2, qm2))
-  } ensuring (atmr == appendATMap(atm1, atm2))
-
-  @Axiom
-  def Tqseq_inv5(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap, atm2: ATMap, qm2: ATMap): Unit = {
-    require(MC(atm, qm) |- qseq(q1, q2) :: MC(atmr, qmr))
-    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
-    require(MC(appendATMap(atm, atm1), appendATMap(qm, qm1)) |- q2 :: MC(atm2, qm2))
-  } ensuring (qmr == appendATMap(qm1, qm2))
+    require(MC(atm1, qm1) |- q2 :: MC(atm2, qm2))
+  } ensuring (qmr == qm2)
 
 
   @Axiom
@@ -776,13 +789,11 @@ object QLSpec extends ScalaSPLSpecification {
   //property below is not correct yet, definition of preservation is a bit tricky for QL!
   @Property
   def Preservation(atm: ATMap, qtm: ATMap, q: Questionnaire, atm1: ATMap, qtm1: ATMap,
-                   am: AnsMap, qm: QMap, am0: AnsMap, qm0: QMap, q0: Questionnaire, atm0: ATMap, qtm0: ATMap): Unit = {
+                   am: AnsMap, qm: QMap, am0: AnsMap, qm0: QMap, q0: Questionnaire): Unit = {
     require(MC(atm, qtm) |- q :: MC(atm1, qtm1))
     require(typeAM(am) == atm)
     require(typeQM(qm) == qtm)
     require(reduce(q, am, qm) == someQConf(QC(am0, qm0, q0)))
-    require(typeAM(am0) == atm0)
-    require(typeQM(qm0) == qtm0)
-  } ensuring (MC(atm, qtm) |- q0 :: MC(atm0, qtm0))
+  } ensuring (exists((atm0: ATMap, qtm0: ATMap) => ((MC(atm, qtm) |- q0 :: MC(atm0, qtm0)) && sub(atm0, atm1) && sub(qtm0, qtm1))))
 
 }
