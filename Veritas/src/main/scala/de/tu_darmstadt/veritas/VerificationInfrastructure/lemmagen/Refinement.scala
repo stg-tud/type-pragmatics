@@ -81,12 +81,16 @@ object Refinement {
   case class Equation(left: MetaVar, right: MetaVar) extends Refinement {
     def refine(problem: Problem, lemma: Lemma): Option[Lemma] = {
       // we can just rename it to the left side
-      Some(Lemma.fromTypingRule(LemmaEquivalence.renameVariables(lemma, { mv =>
-        if(mv == right)
-          left
-        else
-          mv
-      })))
+      if(Set(left, right) subsetOf lemma.boundVariables) {
+        Some(Lemma.fromTypingRule(LemmaEquivalence.renameVariables(lemma, { mv =>
+          if (mv == right)
+            left
+          else
+            mv
+        })))
+      } else {
+        None
+      }
     }
   }
 
