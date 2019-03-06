@@ -8,14 +8,23 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.DomainSpeci
 trait AugmentedCallGraphBuilder[Type, Prop, FunDef, Eq, Criteria, Exp, Graph <: AugmentedCallGraph[Eq, Criteria, Exp]] {
 
   def translate(funDef: FunDef, dsk: DomainSpecificKnowledge[Type, FunDef, Prop])(dag: Graph): AugmentedCallGraph[Eq, Criteria, Exp] = {
+    val defaultstartingposition = Seq(Seq(0)) //default position for grouping of function equations (first argument position)
 
     val distargpos =
       try {
         dsk.recursiveFunctions(funDef)._2
       } catch {
         // set first argument position as default value
-        case e: NoSuchElementException => Seq(Seq(0))
-        case _: Throwable => Seq(Seq(0))
+        case e: NoSuchElementException => {
+          //try to retrieve TopLevelDistinctionHint
+          try {
+            dsk.distinctionHints(funDef)
+          } catch {
+            case e: NoSuchElementException => defaultstartingposition
+            case _: Throwable => defaultstartingposition
+          }
+        }
+        case _: Throwable => defaultstartingposition
       }
 
     val funeqs = getEquationsOfDefinition(funDef)

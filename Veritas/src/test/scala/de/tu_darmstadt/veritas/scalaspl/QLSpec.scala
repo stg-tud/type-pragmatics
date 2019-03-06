@@ -313,6 +313,7 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("evalBinOpProgress")
+  @TopLevelDistinctionHint(0, 1, 2)
   def evalBinOp(op: BinOpT, av1: Aval, av2: Aval): OptExp = (op, av1, av2) match {
     case (addop(), Num(n1), Num(n2)) => someExp(constant(Num(plus(n1, n2))))
     case (subop(), Num(n1), Num(n2)) => someExp(constant(Num(minus(n1, n2))))
@@ -322,18 +323,8 @@ object QLSpec extends ScalaSPLSpecification {
     case (ltop(), Num(n1), Num(n2)) => someExp(constant(B(lt(n1, n2))))
     case (andop(), B(b1), B(b2)) => someExp(constant(B(and(b1, b2))))
     case (orop(), B(b1), B(b2)) => someExp(constant(B(or(b1, b2))))
-    case (eqop(), Num(n1), Num(n2)) =>
-      if(n1 == n2)
-        someExp(constant(B(yes())))
-      else
-        someExp(constant(B(no())))
-    case (eqop(), B(b1), B(b2)) =>
-      if(b1 == b2)
-        someExp(constant(B(yes())))
-      else
-        someExp(constant(B(no())))
-    case (eqop(), T(t1), T(t2)) =>
-      if(t1 == t2)
+    case (eqop(), a, a1) =>
+      if(a == a1)
         someExp(constant(B(yes())))
       else
         someExp(constant(B(no())))
@@ -501,9 +492,7 @@ object QLSpec extends ScalaSPLSpecification {
     case (ltop(), Number(),  Number()) => someAType(YesNo())
     case (andop(), YesNo(),  YesNo()) => someAType(YesNo())
     case (orop(), YesNo(),  YesNo()) => someAType(YesNo())
-    case (eqop(), Number(),  Number()) => someAType(YesNo())
-    case (eqop(), YesNo(),  YesNo()) => someAType(YesNo())
-    case (eqop(), Text(),  Text()) => someAType(YesNo())
+    case (eqop(), _,  _) => someAType(YesNo())
     case (_, _, _) => noAType()
   }
 
@@ -775,9 +764,9 @@ object QLSpec extends ScalaSPLSpecification {
     lookupQMap(qid, qm) == someQuestion(qid0, l0, t0))
 
   @Property
-  def evalBinOpProgress(atm: ATMap, bot: BinOpT, at: AType, av1: Aval, av2: Aval): Unit =  {
-    require(echeck(atm, binop(constant(av1), bot, constant(av2))) == someAType(at))
-  } ensuring(exists ((eres: Exp) => evalBinOp(bot, av1, av2) == someExp(eres)))
+  def evalBinOpProgress(atm: ATMap, bot: BinOpT, at: AType, a: Aval, a1: Aval): Unit =  {
+    require(echeck(atm, binop(constant(a), bot, constant(a1))) == someAType(at))
+  } ensuring(exists ((eres: Exp) => evalBinOp(bot, a, a1) == someExp(eres)))
 
 
 
