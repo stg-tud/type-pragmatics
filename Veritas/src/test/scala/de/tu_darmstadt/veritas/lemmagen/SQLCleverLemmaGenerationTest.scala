@@ -14,9 +14,9 @@ import scala.collection.mutable
 import scala.meta.inputs.Input
 
 class SQLCleverLemmaGenerationTest extends FunSuite {
-  //val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
+  val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
   val Directory = new File("generated")
-  val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
+  //val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
   val problem = new Problem(file)
 
   private def recursivedelete(file: File) {

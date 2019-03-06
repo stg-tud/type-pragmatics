@@ -34,10 +34,10 @@ trait LemmaGraphConstructor extends GraphConstructor with StrategyHelpers {
   }
 
   def generateApplications(node: RefinementNode): Set[Refinement] = {
-    val sideArguments = invocationArguments.map(_.sortType)
+    val invocationTypes = invocationArguments.map(_.sortType)
     val notConstrainedYet: Set[FunctionExpMeta] = (node.lemma.boundVariables -- node.constrainedVariables).map(FunctionMeta(_))
-    val staticFunctions = problem.enquirer.staticFunctions.filter(_.signature.in.intersect(sideArguments).nonEmpty)
-    staticFunctions.flatMap(staticFn =>
+    val relevantFunctions = problem.enquirer.staticFunctions.filter(_.inTypes.intersect(invocationTypes).nonEmpty)
+    relevantFunctions.flatMap(staticFn =>
       if (staticFn.signature.out.name == "Bool") {
         var refinements = selectPredicate(node.lemma, staticFn)
         refinements = refinements.filter(r => r.arguments.toSet.intersect(notConstrainedYet).nonEmpty)
