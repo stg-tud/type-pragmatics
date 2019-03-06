@@ -203,7 +203,7 @@ class TypeInference(symbolType: String => Option[(Seq[SortRef], SortRef)]) {
   def checkExp(e: FunctionExpMeta): Type = e match {
     case FunctionMeta(v) =>
       val t = metacontext.get(v) match {
-        case Some(t) => t
+        case Some(tt) => tt
         case None    => freshType(v)
       }
       v.typ = Some(t)
