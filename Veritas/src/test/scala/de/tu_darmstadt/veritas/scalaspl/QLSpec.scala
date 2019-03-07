@@ -179,6 +179,7 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("lookupAnsMapProgress")
+  @PreservationProperty("lookupAnsMapPreservation")
   @Recursive(1)
   def lookupAnsMap(id: QID, am: AnsMap): OptAval = (id, am) match {
     case (_, aempty()) => noAval()
@@ -225,6 +226,7 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("lookupQMapProgress")
+  @PreservationProperty("lookupQMapPreservation")
   @Recursive(1)
   def lookupQMap(id: QID, qm: QMap): OptQuestion = (id, qm) match {
     case (_, qmempty()) => noQuestion()
@@ -313,6 +315,7 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("evalBinOpProgress")
+  @PreservationProperty("evalBinOpPreservation")
   @TopLevelDistinctionHint(0, 1, 2)
   def evalBinOp(op: BinOpT, av1: Aval, av2: Aval): OptExp = (op, av1, av2) match {
     case (addop(), Num(n1), Num(n2)) => someExp(constant(Num(plus(n1, n2))))
@@ -332,6 +335,8 @@ object QLSpec extends ScalaSPLSpecification {
   }
 
   @Dynamic
+  @ProgressProperty("evalUnOpProgress")
+  @PreservationProperty("evalUnOpPreservation")
   def evalUnOp(op: UnOpT, av: Aval): OptExp = (op, av) match {
     case (notop(), B(b)) => someExp(constant(B(not(b))))
     case (_, _) => noExp()
@@ -339,6 +344,7 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Dynamic
   @ProgressProperty("reduceExpProgress")
+  @PreservationProperty("reduceExpPreservation")
   @Recursive(0)
   def reduceExp(exp: Exp, amap: AnsMap): OptExp = (exp, amap) match {
     case (constant(av), _) => noExp()
@@ -362,11 +368,11 @@ object QLSpec extends ScalaSPLSpecification {
           else noExp()
         }
       }
-    case (unop(op, e), am) =>
-      if (expIsValue(e))
-        evalUnOp(op, getExpValue(e))
+    case (unop(op, e1), am) =>
+      if (expIsValue(e1))
+        evalUnOp(op, getExpValue(e1))
       else {
-        val eOpt = reduceExp(e, am)
+        val eOpt = reduceExp(e1, am)
         if (isSomeExp(eOpt))
           someExp(unop(op, getExp(eOpt)))
         else noExp()
@@ -779,9 +785,11 @@ object QLSpec extends ScalaSPLSpecification {
     require(echeck(atm, binop(constant(a), bot, constant(a1))) == someAType(at))
   } ensuring(exists ((eres: Exp) => evalBinOp(bot, a, a1) == someExp(eres)))
 
+  @Property
+  def evalUnOpProgress(atm: ATMap, uot: UnOpT, at: AType, a: Aval, a1: Aval): Unit =  {
+    require(echeck(atm, unop(uot, constant(a))) == someAType(at))
+  } ensuring(exists ((eres: Exp) => evalUnOp(uot, a) == someExp(eres)))
 
-
-  //TODO: add preservation property
 
   //Preservation property and necessary auxiliary lemmas
   @Property
@@ -794,5 +802,38 @@ object QLSpec extends ScalaSPLSpecification {
     require(atmr == typeAM(amr))
     require(qtmr == typeQM(qmr))
   } ensuring (MC(atmr, qtmr) |- qr :: MC(atm1, qtm1))
+
+  @Property
+  def reduceExpPreservation(e: Exp, am: AnsMap, atm: ATMap, at: AType, er: Exp): Unit = {
+    require(echeck(atm, e) == someAType(at))
+    require(typeAM(am) == atm)
+    require(reduceExp(e, am) == someExp(er))
+  } ensuring(echeck(atm, er) == someAType(at))
+
+  @Property
+  def lookupAnsMapPreservation(am: AnsMap, atm: ATMap, qid: QID, at: AType, avr: Aval): Unit = {
+    require(lookupATMap(qid, atm) == someAType(at))
+    require(lookupAnsMap(qid, am) == someAval(avr))
+    require(typeAM(am) == atm)
+  } ensuring(typeOf(avr) == at)
+
+  @Property
+  def lookupQMapPreservation(qm: QMap, atm: ATMap, qid: QID, at: AType, l: Label, t: AType): Unit = {
+    require(lookupATMap(qid, atm) == someAType(at))
+    require(lookupQMap(qid, qm) == someQuestion(qid, l, t))
+    require(typeQM(qm) == atm)
+  } ensuring(at == t)
+
+  @Property
+  def evalBinOpPreservation(atm: ATMap, bot: BinOpT, at: AType, a: Aval, a1: Aval, eres: Exp): Unit = {
+    require(echeck(atm, binop(constant(a), bot, constant(a1))) == someAType(at))
+    require(evalBinOp(bot, a, a1) == someExp(eres))
+  } ensuring(echeck(atm, eres) == someAType(at))
+
+  @Property
+  def evalUnOpPreservation(uot: UnOpT, av: Aval, atm: ATMap, at: AType, eres: Exp): Unit = {
+    require(echeck(atm, unop(uot, constant(av))) == someAType(at))
+    require(evalUnOp(uot, av) == someExp(eres))
+  } ensuring(echeck(atm, eres) == someAType(at))
 
 }
