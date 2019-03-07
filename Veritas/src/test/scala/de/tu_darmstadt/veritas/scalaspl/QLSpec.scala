@@ -557,35 +557,16 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Axiom
   def Tqcond(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
-      atm1: ATMap, qm1: ATMap, q2: Questionnaire, atm2: ATMap, qm2: ATMap): Unit = {
+      atm1: ATMap, qm1: ATMap, q2: Questionnaire): Unit = {
     require(echeck(atm, exp) == someAType(YesNo()))
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
-    require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
-  } ensuring MC(atm, qm) |- qcond(exp, q1, q2) :: MC(intersectATM(atm1, atm2), intersectATM(qm1, qm2))
+    require(MC(atm, qm) |- q2 :: MC(atm1, qm1))
+  } ensuring MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atm1, qm1)
 
   @Axiom
   def Tqgroup(atm: ATMap, qm: ATMap, q: Questionnaire, atm1: ATMap, qm1: ATMap, gid: GID): Unit = {
     require(MC(atm, qm) |- q :: MC(atm1, qm1))
   } ensuring (MC(atm, qm) |- qgroup(gid, q) :: MC(atm1, qm1))
-
-
-  //subtyping relation (for preservation theorem!)
-
-  //helper predicate
-  @Static
-  @Recursive(0)
-  def containsATPair(atmap: ATMap, id: QID, atype: AType): Boolean = (atmap, id, atype) match {
-    case (atmempty(), _, _) => false
-    case (atmbind(qid, at, atmr), qid1, at1) => if (qid == qid1 && at == at1) true else containsATPair(atmr, qid1, at1)
-  }
-
-  //"sub(atm, atm1) holds iff atm contains at least all answer/question types that atm1 contains" (i.e. atm may contain more bindings)
-  @Static
-  @Recursive(1)
-  def sub(atmap1: ATMap, atmap2: ATMap): Boolean = (atmap1, atmap2) match {
-    case (atm, atmempty()) => true
-    case (atm, atmbind(qid, at, atmr)) => containsATPair(atm, qid, at) && sub(atm, atmr)
-  }
 
 
   //type inversion axioms
@@ -717,7 +698,7 @@ object QLSpec extends ScalaSPLSpecification {
   def Tqcond_inv3(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
                   q2: Questionnaire, atmr: ATMap, qmr: ATMap): Unit = {
     require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
-  } ensuring (exists ((atm2: ATMap, qm2: ATMap) => MC(atm, qm) |- q2 :: MC(atm2, qm2)))
+  } ensuring (exists ((atm1: ATMap, qm1: ATMap) => MC(atm, qm) |- q2 :: MC(atm1, qm1)))
 
 
   @Axiom
@@ -726,7 +707,7 @@ object QLSpec extends ScalaSPLSpecification {
     require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
     require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
-  } ensuring (atmr == intersectATM(atm1, atm2))
+  } ensuring (atm1 == atm2)
 
   @Axiom
   def Tqcond_inv5(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
@@ -734,7 +715,24 @@ object QLSpec extends ScalaSPLSpecification {
     require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
     require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
-  } ensuring (qmr == intersectATM(qm1, qm2))
+  } ensuring (qm1 == qm2)
+
+  @Axiom
+  def Tqcond_inv6(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+                  q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+    require(MC(atm, qm) |- q2 :: MC(atm1, qm1))
+  } ensuring (atmr == atm1)
+
+  @Axiom
+  def Tqcond_inv7(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+                  q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+    require(MC(atm, qm) |- q2 :: MC(atm1, qm1))
+  } ensuring (qmr == qm1)
+
 
 
   @Axiom
@@ -786,14 +784,15 @@ object QLSpec extends ScalaSPLSpecification {
   //TODO: add preservation property
 
   //Preservation property and necessary auxiliary lemmas
-  //property below is not correct yet, definition of preservation is a bit tricky for QL!
   @Property
   def Preservation(atm: ATMap, qtm: ATMap, q: Questionnaire, atm1: ATMap, qtm1: ATMap,
-                   am: AnsMap, qm: QMap, am0: AnsMap, qm0: QMap, q0: Questionnaire): Unit = {
+                   am: AnsMap, qm: QMap, amr: AnsMap, qmr: QMap, qr: Questionnaire, atmr: ATMap, qtmr: ATMap): Unit = {
     require(MC(atm, qtm) |- q :: MC(atm1, qtm1))
     require(typeAM(am) == atm)
     require(typeQM(qm) == qtm)
-    require(reduce(q, am, qm) == someQConf(QC(am0, qm0, q0)))
-  } ensuring (exists((atm0: ATMap, qtm0: ATMap) => ((MC(atm, qtm) |- q0 :: MC(atm0, qtm0)) && sub(atm0, atm1) && sub(qtm0, qtm1))))
+    require(reduce(q, am, qm) == someQConf(QC(amr, qmr, qr)))
+    require(atmr == typeAM(amr))
+    require(qtmr == typeQM(qmr))
+  } ensuring (MC(atmr, qtmr) |- qr :: MC(atm1, qtm1))
 
 }
