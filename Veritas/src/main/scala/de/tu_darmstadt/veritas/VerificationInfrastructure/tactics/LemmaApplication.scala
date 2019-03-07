@@ -33,7 +33,8 @@ case class LemmaApplication[Defs, Formulae <: Defs](lemmas: Seq[Formulae], query
                                  obllabels: Iterable[EdgeLabel],
                                  produce: ObligationProducer[Defs, Formulae, Obligation]): Iterable[(Obligation, EdgeLabel)] = {
     for (lemma <- lemmas) yield {
-      val lemmaobl = produce.newObligation(queryspec.fullspec, makeNamedGoal(lemma, getFormulaName(lemma)))
+      val lemname = getFormulaName(lemma)
+      val lemmaobl = produce.newObligation(queryspec.fullspec, makeNamedGoal(lemma, lemname), lemname)
       val lemmaedge = LemmaApplicationStep(getFormulaName(lemma))
       (lemmaobl, lemmaedge)
     }

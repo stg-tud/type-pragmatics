@@ -18,6 +18,10 @@ trait DomainSpecificKnowledgeAnnotations {
     require(positions.nonEmpty)
   }
 
+  case class TopLevelDistinctionHint(postions: Int*) extends Annotation {
+    require(postions.nonEmpty)
+  }
+
   case class Static() extends Annotation
   case class Dynamic() extends Annotation
 

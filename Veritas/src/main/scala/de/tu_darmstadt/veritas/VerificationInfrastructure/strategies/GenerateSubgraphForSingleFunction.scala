@@ -57,10 +57,19 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
         StructuralInductionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
       }
       else {
-        //do a structural case distinction for the distinction var
-        //this is an approximation and might not work for every function
-        //TODO: analyze cases and do a general case distinction if necessary (see above)
-        StructuralCaseDistinctionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
+        //check whether original distpos contains more information than used to far
+        if (distpos.length == 1)
+          //no further distpos information exists, i.e. we can probably just do a structural case distinction
+          //this is an approximation and might not work for every function
+          StructuralCaseDistinctionStrat(distvar, spec_enquirer).applyToPG(pg)(obl)
+        else {
+          //we need a general case distinction
+          //retrieve cases from root's children
+          var rootschildren = acg.getOutgoing(acg_sdroot)
+          val sd_children = for (c <- rootschildren if c.isInstanceOf[acg.StructuralDistinction]) yield c.asInstanceOf[acg.StructuralDistinction]
+          val rawcases: Seq[Formulae] = for (sd <- sd_children) yield spec_enquirer.convertExpToFormula(sd.arg_exp)
+          CaseDistinctionStrat(rawcases, Seq(), spec_enquirer).applyToPG(pg)(obl)
+        }
       }
     } else {
       //check whether the root node calls functions
@@ -174,7 +183,8 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
             }
             // case 2) There are only function call parents -> try lemma application
             else if (fc_parents.nonEmpty && children.isEmpty) {
-              val fcnames = fc_parents map (_.name)
+              //make sure to exclude recursive calls
+              val fcnames = (fc_parents map (_.name)).filterNot(fn => acg.toplevel_fun == fn)
 
               LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
             }
@@ -189,7 +199,10 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
               // will result in lemma applications at the leaves later
               val funcalls = if (fc_parents.isEmpty) Seq() else for (fcp <- fc_parents) yield fcp.name
 
-              BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, funcalls, binding_premises).applyToPG(pg)(currobl)
+              //partition funcalls into recursive funcall and all others; omit duplicate names if any
+              val (reccalls, othercalls) = funcalls.distinct.partition(s => acg.toplevel_fun == s)
+
+              BooleanCaseDistinctionStrat[Def, Formulae](poscond, spec_enquirer, reccalls, othercalls, binding_premises).applyToPG(pg)(currobl)
             }
             //ignore all other cases - in all other cases, ACG is not well-constructed.
 

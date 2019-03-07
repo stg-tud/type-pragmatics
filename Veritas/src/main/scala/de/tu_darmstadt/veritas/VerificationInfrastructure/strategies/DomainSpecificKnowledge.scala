@@ -3,6 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.strategies
 trait DomainSpecificKnowledge[Type, FDef, Prop] {
   def failableTypes: Seq[Type]
   def recursiveFunctions: Map[FDef, (Type, Seq[Seq[Int]])] //Second part of pair Seq[Seq[Int]] contains the position(s) at which the function is marked recursive
+  def distinctionHints: Map[FDef, Seq[Seq[Int]]] //maps a function def to a position description for top-level case distinctions (to serve as manual hint for complex function patterns of non-recursive functions)
   def progressProperties: Map[FDef, Set[Prop]]
   def preservationProperties: Map[FDef, Set[Prop]]
   def auxiliaryProperties: Map[FDef, Set[Prop]]

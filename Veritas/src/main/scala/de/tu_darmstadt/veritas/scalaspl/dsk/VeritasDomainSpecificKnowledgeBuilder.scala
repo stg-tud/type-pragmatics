@@ -37,6 +37,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
   }
 
   protected val recursiveFunctions: mutable.Map[Defn.Def, (Defn.Trait, Seq[Seq[Int]])] = mutable.Map()
+  protected val distinctionHints: mutable.Map[Defn.Def, Seq[Seq[Int]]] = mutable.Map()
   protected val failableTypes: ListBuffer[Defn.Trait] = ListBuffer()
   protected val progressProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
   protected val preservationProperties: mutable.MutableList[(Defn.Def, Defn.Def)] = new mutable.MutableList[(Defn.Def, Defn.Def)]()
@@ -58,6 +59,8 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     case fn: Defn.Def =>
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Recursive"))
         collectRecursive(fn)
+      if(ScalaMetaUtils.containsAnnotation(fn.mods, "TopLevelDistinctionHint"))
+        collectDistinctionHints(fn)
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Dynamic"))
         dynamicFunctions += fn
       if(ScalaMetaUtils.containsAnnotation(fn.mods, "Static"))
@@ -200,6 +203,15 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     recursiveFunctions += fn -> (adtTrait, positions map (p => Seq(p)))
   }
 
+  private def collectDistinctionHints(fn: Defn.Def): Unit = {
+    val annot = collectAnnotation(fn.mods, "TopLevelDistinctionHint")
+    val positions = annot.init.argss.head.map { _.asInstanceOf[Lit.Int].value }
+    if (positions.isEmpty)
+      reporter.report("At least one position index has to be given for the TopLevelDistinctionHint annotation.", annot.pos.startLine)
+
+    distinctionHints += fn -> (positions map (p => Seq(p)))
+  }
+
   private def getTraitForLastParam(param: Term.Param): Defn.Trait = {
     val paramTrait = adts.filterKeys { key =>
       key.name.value == param.decltpe.get.toString
@@ -230,6 +242,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
 
   def buildBase(): VeritasDomainSpecificKnowledge = {
     val transRecursiveFuncs = translateRecursiveFunctions()
+    val transDistinctionHints = translateDistinctionHints()
     val transFailableTypes = translateTrait(failableTypes)
     val transProgressProps = translateProperties(progressProperties)
     val transPreservationProps = translateProperties(preservationProperties)
@@ -242,6 +255,7 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     val transProperties = translateProperty(properties.toSet)
     new VeritasDomainSpecificKnowledge {
       override val recursiveFunctions: Map[FunctionDef, (DataType, Seq[Seq[Int]])] = transRecursiveFuncs
+      override def distinctionHints: Map[FunctionDef, Seq[Seq[Int]]] = transDistinctionHints
       override val failableTypes: Seq[DataType] = transFailableTypes
       override val preservationProperties: Map[FunctionDef, Set[TypingRule]] = transPreservationProps
       override val progressProperties: Map[FunctionDef, Set[TypingRule]] = transProgressProps
@@ -268,6 +282,13 @@ trait VeritasDomainSpecificKnowledgeBuilder[Specification <: ScalaSPLSpecificati
     recursiveFunctions.map { case (fn, tr) =>
         val cases = adts(tr._1)
         functionTranslator.translate(fn) -> (adtTranslator.translate(tr._1, cases), tr._2)
+    }.toMap
+  }
+
+  private def translateDistinctionHints(): Map[FunctionDef, Seq[Seq[Int]]] = {
+    val functionTranslator = FunctionDefinitionTranslator(reporter, adts)
+    distinctionHints.map { case (fn, pos) =>
+        functionTranslator.translate(fn) -> pos
     }.toMap
   }
 

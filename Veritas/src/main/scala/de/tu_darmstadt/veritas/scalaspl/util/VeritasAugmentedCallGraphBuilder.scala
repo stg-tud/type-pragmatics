@@ -228,7 +228,9 @@ class VeritasAugmentedCallGraphBuilder(spec: Module) extends AugmentedCallGraphB
           (total_dist_pos, common_exp)
         }
       val newpos_seq: Seq[Seq[Int]] = (for ((op, eq) <- newpos_eqs) yield op.getOrElse(Seq())).filterNot(_.isEmpty)
-      val argexp: FunctionExpMeta = if (newpos_eqs.length == 1) newpos_eqs.head._2 else FunctionExpAnd(newpos_eqs map (_._2.asInstanceOf[FunctionExp]))
+      //make sure that the arguments for AND only contain equations (otherwise, this yields incorrect Boolean expressions)
+      val newpos_eqs_cor = for ((p, exp) <- newpos_eqs if exp.isInstanceOf[FunctionExpEq]) yield  (p, exp)
+      val argexp: FunctionExpMeta = if (newpos_eqs_cor.length == 1) newpos_eqs_cor.head._2 else FunctionExpAnd(newpos_eqs_cor map (_._2.asInstanceOf[FunctionExp]))
       (if (newpos_seq.isEmpty) None else Some(newpos_seq), argexp)
     }
   }
