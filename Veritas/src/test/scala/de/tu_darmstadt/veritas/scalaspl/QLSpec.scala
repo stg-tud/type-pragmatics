@@ -237,7 +237,7 @@ object QLSpec extends ScalaSPLSpecification {
         lookupQMap(qid, qml)
   }
 
-  trait QConf extends Expression
+  sealed trait QConf extends Expression
   case class QC(am: AnsMap, qm: QMap, q: Questionnaire) extends QConf
 
   def getAM(qc: QConf): AnsMap = qc match {
@@ -461,7 +461,8 @@ object QLSpec extends ScalaSPLSpecification {
   sealed trait MapConf extends Context with Type
   case class MC(atm: ATMap, qtm: ATMap) extends MapConf
 
-  trait OptMapConf extends Context with Type
+  @FailableType
+  sealed trait OptMapConf extends Context with Type
   case class noMapConf() extends OptMapConf
   case class someMapConf(mc: MapConf) extends OptMapConf
 
