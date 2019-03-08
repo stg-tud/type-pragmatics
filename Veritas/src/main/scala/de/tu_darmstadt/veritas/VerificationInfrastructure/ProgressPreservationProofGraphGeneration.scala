@@ -118,7 +118,7 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
     //write SMTLIB translation of problem to file
     val transformedProblemSMTLIB = transSMTLIB.translateProblem((aspec, assms, agoal))
     val translatedProblemFileSMTLIB = new File(s"$filepath/$goalname-SMTLIB_Problem")
-
+    writeToFile(translatedProblemFile, transformedProblem.get.toString)
   }
 
   // print step results on console and log inconclusive problem descriptions as files
