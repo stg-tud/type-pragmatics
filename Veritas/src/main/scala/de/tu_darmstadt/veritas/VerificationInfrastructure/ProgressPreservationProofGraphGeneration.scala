@@ -51,9 +51,10 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
 
 
   private def makeCustomVampire(timeout: Int, logic: String) = new TPTPVampireVerifier(timeout, "4.3.0", logic)
-  private def makeCustomVampireZ3(timeout: Int) = new Z3VampireVerifier(timeout)
-  private def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
 
+  private def makeCustomVampireZ3(timeout: Int) = new Z3VampireVerifier(timeout)
+
+  private def makeCustomVampireTar(timeout: Int) = new ADTVampireVerifier(timeout)
 
 
   private def extractGoalName(vc: VeritasConstruct): String =
@@ -144,7 +145,11 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
 
             "Inconclusive."
           }
-          case ProverFailure(_) => "Failure."
+          case ProverFailure(_) => {
+            logProblem(ps, "FAILED")
+            "Failure."
+          }
+
         }
       case Unknown(_) => "Unknown"
       case VerifierFailure(err, _) => "VerifierFailure :" + err
@@ -165,7 +170,7 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
     // 1) makeCustomVampire(provertimeout, "tff") or makeCustomVampire(provertimeout, "fof") - Vampire 4.3.0 with a TPTP encoding of the problems, calls binary named "vampire-4.3.0" (casc mode)
     // 2) makeCustomVampireZ3(provertimeout) - Vampire 4.3.0 with an SMTLIB encoding of the problems, calls binary named "vampire-4.3.0" and appends flags "--input_syntax smtlib2"
     // 3) makeCustomVampireTar(provertimeout) - Vampire 4.1 with TAR support (and an SMTLIB encoding of the problems), calls binary named "vampire-4.1_tar" and appends flags "--input_syntax smtlib2"
-    val noindver = makeCustomVampireZ3(provertimeout)
+    val noindver = makeCustomVampireTar(provertimeout)
 
     val (indobls, noindobls) = pg.obligationDFS() partition (o => pg.appliedStep(o).get.tactic.isInstanceOf[StructuralInduction[VeritasConstruct, VeritasFormula]])
 
@@ -214,7 +219,6 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
       }
     }
   }
-
 
 
   def checkConsistencyAll(log_inconsistent: Boolean = true, provertimeout: Int = 300): Unit = {
