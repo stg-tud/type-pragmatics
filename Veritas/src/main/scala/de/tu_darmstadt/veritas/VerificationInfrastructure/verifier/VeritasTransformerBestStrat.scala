@@ -366,3 +366,10 @@ object VeritasTransformerBestStrat extends VeritasTransformer(
     VariableEncoding -> VariableEncoding.InlineEverything,
     Selection -> Selection.SelectAll,
     Problem -> Problem.All)), x => x.asInstanceOf[TFFFormat])
+
+object VeritasTransformerSMTLIBStrat extends VeritasTransformer(
+  Configuration(Map(FinalEncoding -> FinalEncoding.SMTLib,
+    Simplification -> Simplification.LogicalAndConstructors,
+    VariableEncoding -> VariableEncoding.InlineEverything,
+    Selection -> Selection.SelectAll,
+    Problem -> Problem.All)), x => x.asInstanceOf[SMTLibFormat])

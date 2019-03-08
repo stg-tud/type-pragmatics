@@ -76,7 +76,7 @@ sealed abstract class Vampire[Format <: VerifierFormat](version: String, timeout
   */
 case class VampireTPTP(version: String, timeout: Int, mode: String = "casc") extends Vampire[TPTP](version, timeout, mode)
 
-case class VampireZ3(timeout: Int, mode: String = "casc") extends Vampire[SMTLibFormat]("4.1_z3_tar", timeout, mode, flags = Seq("--input_syntax", "smtlib2"))
+case class VampireZ3(timeout: Int, mode: String = "casc") extends Vampire[SMTLibFormat]("4.3.0", timeout, mode, flags = Seq("--input_syntax", "smtlib2"))
 case class Vampire4_1_tar(timeout: Int, mode: String = "casc") extends Vampire[SMTLibFormat]("4.1_tar", timeout, mode, flags = Seq("--input_syntax", "smtlib2"))
 
 case class TSTPProof(proof: String) extends TSTP[String] {
