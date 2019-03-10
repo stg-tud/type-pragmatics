@@ -170,7 +170,7 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
     // 1) makeCustomVampire(provertimeout, "tff") or makeCustomVampire(provertimeout, "fof") - Vampire 4.3.0 with a TPTP encoding of the problems, calls binary named "vampire-4.3.0" (casc mode)
     // 2) makeCustomVampireZ3(provertimeout) - Vampire 4.3.0 with an SMTLIB encoding of the problems, calls binary named "vampire-4.3.0" and appends flags "--input_syntax smtlib2"
     // 3) makeCustomVampireTar(provertimeout) - Vampire 4.1 with TAR support (and an SMTLIB encoding of the problems), calls binary named "vampire-4.1_tar" and appends flags "--input_syntax smtlib2"
-    val noindver = makeCustomVampireTar(provertimeout)
+    val noindver = makeCustomVampire(provertimeout, "tff")
 
     val (indobls, noindobls) = pg.obligationDFS() partition (o => pg.appliedStep(o).get.tactic.isInstanceOf[StructuralInduction[VeritasConstruct, VeritasFormula]])
 

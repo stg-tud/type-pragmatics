@@ -22,7 +22,7 @@ object ProgressPreservationGraphGeneration extends App {
 
   SQLProof.visualizeProofGraph("GeneratedSQLSoundness_Unverified.png")
   //SQLProof.checkConsistencyAll()
-  SQLProof.verifyAll( 120, true, true)
+  SQLProof.verifyAll(120, true, true)
   SQLProof.visualizeProofGraph("GeneratedSQLSoundness_PartialVerification.png")
 
   val qlsource = "src/test/scala/de/tu_darmstadt/veritas/scalaspl/QLSpec.scala"
@@ -32,6 +32,6 @@ object ProgressPreservationGraphGeneration extends App {
 
   QLProof.visualizeProofGraph("GeneratedQLSoundness_Unverified.png")
   //QLProof.checkConsistencyTopLevelProblems()
-  QLProof.verifyAll( 120, true, true)
+  QLProof.verifyAll(120, true, true)
   QLProof.visualizeProofGraph("GeneratedQLSoundness_PartialVerification.png")
 }
