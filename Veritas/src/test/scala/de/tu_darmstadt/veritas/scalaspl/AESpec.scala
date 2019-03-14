@@ -28,7 +28,7 @@ object AESpec extends ScalaSPLSpecification {
 
   @Dynamic
   @Recursive(0)
-  @PreservationProperty("isNVisNat") //use different annotation later, e.g. @AuxiliaryProperty
+  @AuxiliaryProperty("isNVisNat")
   def isNV(t: Term): Boolean = t match {
     case Zero() => true
     case Succ(nv) => isNV(nv)

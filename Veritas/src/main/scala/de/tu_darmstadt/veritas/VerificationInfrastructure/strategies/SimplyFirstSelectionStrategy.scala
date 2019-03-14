@@ -23,11 +23,13 @@ Expression]()
   override def selectLemma(dsk: DomainSpecificKnowledge[Type, FDef, Prop], acg: AugmentedCallGraph[Equation, Criteria, Expression], fn: String): Seq[Prop] = {
     val progresslemmas = dsk.lookupByFunName(dsk.progressProperties, fn)
     val preservationlemmas = dsk.lookupByFunName(dsk.preservationProperties, fn)
+    val otherlemmas = dsk.lookupByFunName(dsk.auxiliaryProperties, fn)
 
     val progresslemma = if (progresslemmas.nonEmpty) Seq(progresslemmas.head) else Seq()
     val preservationlemma = if (preservationlemmas.nonEmpty) Seq(preservationlemmas.head) else Seq()
+    val otherlemma = if (otherlemmas.nonEmpty) Seq(otherlemmas.head) else Seq()
 
-    progresslemma ++ preservationlemma
+    progresslemma ++ preservationlemma ++ otherlemma
 
   }
 }
