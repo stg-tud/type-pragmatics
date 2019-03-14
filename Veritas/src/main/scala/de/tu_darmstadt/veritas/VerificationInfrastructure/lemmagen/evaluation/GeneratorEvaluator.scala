@@ -42,12 +42,9 @@ class GeneratorEvaluator(problem: Problem,
   }
 
   def lookupExpectedLemmas(fn: FunctionDef): Set[TypingRule] = {
-    problem.dsk.lookupByFunName(
-      problem.dsk.progressProperties,
-      fn.signature.name).toSet ++ problem.dsk.lookupByFunName(
-      problem.dsk.preservationProperties,
-      fn.signature.name
-    )
+    Seq(problem.dsk.progressProperties, problem.dsk.preservationProperties, problem.dsk.auxiliaryProperties).flatMap {
+      problem.dsk.lookupByFunName(_, fn.signature.name)
+    }.toSet
   }
 
   def progressLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
@@ -80,54 +77,16 @@ class GeneratorEvaluator(problem: Problem,
        | ${lemmas.size} \\\\""".stripMargin
   }
 
-  def generateEquivalentLine(function: FunctionDef, lemmas: Seq[Lemma], equivalent: Seq[Lemma]): String = {
-    val generatedProgress = progressLemmas(lemmas)
-    val generatedPreservation = preservationLemmas(lemmas)
-    val expectedProgress = problem.dsk.lookupByFunName(
-      problem.dsk.progressProperties,
-      function.signature.name).toSet
-    val expectedPreservation = problem.dsk.lookupByFunName(
-      problem.dsk.preservationProperties,
-      function.signature.name).toSet
-    require((generatedProgress ++ generatedPreservation).toSet == lemmas.toSet)
-    val equivalentProgress = equivalent intersect generatedProgress
-    val equivalentPreservation = equivalent intersect generatedPreservation
-    val Precision = "%1.4f"
-
-    def percentage(a: Integer, b: Integer): String = {
-      if(b == 0) {
-        "-"
-      } else {
-        Precision.format(a.toDouble / b.toDouble)
-      }
-    }
-    /*
-     ${equivalentProgress.size + equivalentPreservation.size} & ${expectedProgress.size + expectedPreservation.size}
-     ${percentage(equivalentProgress.size, expectedProgress.size)} &
- ${percentage(equivalentPreservation.size, expectedPreservation.size)} &
- ${percentage((equivalentProgress.size + equivalentPreservation.size), (expectedProgress.size + expectedPreservation.size))} &
-     */
-    /*
-        s"""${formatFunctionName(function)} &
-       | ${equivalentProgress.size} & ${expectedProgress.size} &
-       | ${equivalentPreservation.size} & ${expectedPreservation.size} \\\\""".stripMargin
-     */
-    s"""${formatFunctionName(function)} &
-       | ${equivalentProgress.size} / ${expectedProgress.size} &
-       | ${equivalentPreservation.size} / ${expectedPreservation.size} \\\\""".stripMargin
-  }
-
   def evaluate(writeSpec: Boolean = false): Unit = {
     val result = lemmaStore.loadOrGenerate(generator)
     val countLines = new mutable.ListBuffer[String]()
-    val equivalentLines = new mutable.ListBuffer[String]()
+    val successLemmas = new mutable.HashMap[String, Boolean]()
     val successLines = new mutable.ListBuffer[String]()
-    sortFunctions(result.keys.toSeq).foreach { function =>
-      val lemmas = result(function)
+    sortFunctions((problem.dsk.dynamicFunctions ++ problem.dsk.staticFunctions).toSeq).foreach { function =>
+      val lemmas = result.getOrElse(function, Seq())
       val name = function.signature.name
       println(s"evaluating $name...")
-      // all lemmas
-      printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
+
       // equivalent lemmas
       val expectedLemmas = lookupExpectedLemmas(function)
       val equivalentLemmas = lemmas.filter(generated =>
@@ -135,25 +94,26 @@ class GeneratorEvaluator(problem: Problem,
           LemmaEquivalence.isEquivalent(expected, generated)
         )
       )
-      printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
-      countLines += generateGeneratedLine(function, lemmas)
-      equivalentLines += generateEquivalentLine(function, lemmas, equivalentLemmas)
+      if(lemmas.nonEmpty) {
+        // all lemmas
+        printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
+        printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
+        countLines += generateGeneratedLine(function, lemmas)
+      }
 
-      val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
-      var firstIteration = true
-      sortedExpectedLemmas.foreach { lemma =>
-        if(firstIteration) {
-          successLines += s"${formatFunctionName(function)}"
-          firstIteration = false
+      if(function.signature.name != "reduce") {
+        val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
+        sortedExpectedLemmas.foreach { lemma =>
+          val success = equivalentLemmas.exists(l => LemmaEquivalence.isEquivalent(lemma, l))
+          successLemmas(lemma.name) = success
         }
-        successLines += "&"
-        successLines += s"\\C{${lemma.name}} &"
-        val success = equivalentLemmas.exists(l => LemmaEquivalence.isEquivalent(lemma, l))
-        successLines += (if(success) "\\checkmark" else "$\\times$") + "\\\\"
       }
     }
+    successLemmas.keys.toSeq.sortBy(_.toLowerCase).foreach {lemmaName =>
+      successLines += s"\\C{${lemmaName}} &"
+      successLines += (if(successLemmas(lemmaName)) "\\checkmark" else "$\\times$") + "\\\\"
+    }
     printToFile(new File(outputDirectory, "counts-table.tex"), countLines.mkString("\n"))
-    printToFile(new File(outputDirectory, "equivalent-table.tex"), equivalentLines.mkString("\n"))
     printToFile(new File(outputDirectory, "success-table.tex"), successLines.mkString("\n"))
     if(writeSpec) {
       // write updated spec

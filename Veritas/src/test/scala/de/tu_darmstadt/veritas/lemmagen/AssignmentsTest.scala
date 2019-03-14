@@ -1,5 +1,8 @@
 package de.tu_darmstadt.veritas.lemmagen
 
+import java.io.File
+
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Problem}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.{Assignments, Constraint, FreshChoice, VariableChoice}
 import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef}
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
@@ -96,6 +99,24 @@ class AssignmentsTest extends FunSuite {
       Seq(FreshChoice(TInt), VariableChoice(world), VariableChoice(world))
     )) {
       assignment4.toSet
+    }
+  }
+
+  test("assignments and lemmas") {
+    import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
+    val problem = new Problem(file)
+    implicit val enquirer = problem.enquirer
+    val projectTableProgress = problem.dsk.properties.find(_.name == "projectTableProgress").get
+    val onePremise = new Lemma("noPremises", Seq(projectTableProgress.premises.last), projectTableProgress.consequences)
+    problem.enquirer.getAllVarTypes(onePremise)
+    println(onePremise)
+    for(functionName <- Seq("welltypedtable", "lookupStore")) {
+      val function = problem.dsk.lookupByFunName(problem.dsk.staticFunctions ++ problem.dsk.dynamicFunctions, functionName).head
+      println(functionName)
+      println(Assignments.generateSimple(function.signature.in, onePremise))
+      println(Assignments.generateSimple(Seq(function.successfulOutType), onePremise))
+      println("----")
     }
   }
 }

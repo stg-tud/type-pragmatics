@@ -11,9 +11,16 @@ case class AnnotatedLemma(lemma: Lemma,
                           postVariables: Set[MetaVar]) {
   def equivalent(right: AnnotatedLemma): Boolean = right match {
     case AnnotatedLemma(rightLemma, rightConstrained, rightPost) =>
-      (LemmaEquivalence.isEquivalent(lemma, rightLemma)
-        && constrainedVariables == rightConstrained
-        && postVariables == rightPost)
+      LemmaEquivalence.findHarmonizingRenaming(lemma, rightLemma) match {
+        case None => false
+        case Some(renaming) =>
+          val rightConstrainedRenamed = rightConstrained.map(renaming)
+          val rightPostRenamed = rightPost.map(renaming)
+          (LemmaEquivalence.isEquivalent(lemma, rightLemma)
+            && constrainedVariables == rightConstrainedRenamed
+            && postVariables == rightPostRenamed)
+      }
+
   }
 }
 
@@ -43,10 +50,7 @@ object AnnotatedLemma {
     refinement match {
       case Predicate(fn, args) => post
       case SuccessfulApplication(fn, args, result) => post + result
-      case Equation(left, FunctionMeta(rightVar)) => replace(post, rightVar, left)
-      case Equation(left, right) =>
-        sys.error("not sure what to do") // TODO
-        post
+      case Equation(left, right) => replace(post, right, left)
     }
   }
 
@@ -56,9 +60,7 @@ object AnnotatedLemma {
         constrainedVariables ++ args.flatMap(FreeVariables.freeVariables(_, Set.empty[MetaVar]))
       case SuccessfulApplication(fn, args, result) =>
         constrainedVariables ++ args.flatMap(FreeVariables.freeVariables(_, Set.empty[MetaVar])) + result
-      case Equation(left, FunctionMeta(rightVar)) => replace(constrainedVariables, rightVar, left)
-      case Equation(left, right) =>
-        sys.error("not sure what to do") // TODO
+      case Equation(left, right) => replace(constrainedVariables, right, left)
     }
   }
 }

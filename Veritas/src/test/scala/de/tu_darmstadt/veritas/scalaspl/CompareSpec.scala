@@ -31,6 +31,7 @@ object CompareSpec extends ScalaSPLSpecification {
   case class Plus(left: Term, right: Term) extends Term
   case class GreaterThan(left: Term, right: Term) extends Term
 
+  @FailableType
   sealed trait OptTerm extends Expression
   case class noTerm() extends OptTerm
   case class someTerm(e: Term) extends OptTerm

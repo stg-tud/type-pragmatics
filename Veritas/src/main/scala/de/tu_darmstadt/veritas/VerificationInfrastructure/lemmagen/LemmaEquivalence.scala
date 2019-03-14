@@ -191,4 +191,14 @@ object LemmaEquivalence {
       require(isEquivalent(rule, ref, false) == equiv)
     equiv
   }
+
+  def findHarmonizingRenaming(ref: TypingRule, rule: TypingRule): Option[Map[MetaVar, MetaVar]] = {
+    reorderTypingRule(ref, rule).flatMap { reordered =>
+      try {
+        Some(FindRenaming(ref, reordered))
+      } catch {
+        case _: RenamingError => None
+      }
+    }.headOption
+  }
 }

@@ -584,6 +584,7 @@ object SQLSpec extends ScalaSPLSpecification {
 
   @Static
   @Recursive(0)
+  @AuxiliaryProperty("projectTypeAttrLMatchesAttrL")
   def projectTypeAttrL(attrl: AttrL, tty: TType): OptTType = (attrl, tty) match {
     case (aempty(), tt) => someTType(ttempty())
     case (acons(a, alr), tt) =>

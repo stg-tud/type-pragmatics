@@ -45,7 +45,7 @@ trait LemmaPrinter {
 
   def printFunctionExp(exp: FunctionExp): Unit = exp match {
     case FunctionExpNot(f) =>
-      printer.write("!")
+      printer.write("\\neg")
       printFunctionExp(f)
     case FunctionExpEq(lhs, rhs) =>
       printBinOpFunctionExp("=", lhs, rhs)

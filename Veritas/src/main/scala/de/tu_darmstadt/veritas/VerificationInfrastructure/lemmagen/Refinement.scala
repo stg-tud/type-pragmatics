@@ -78,21 +78,18 @@ object Refinement {
     override def toString: String = s"Predicate(${predicate.signature.name}, $arguments)"
   }
 
-  case class Equation(left: MetaVar, right: FunctionExpMeta) extends Refinement {
+  case class Equation(left: MetaVar, right: MetaVar) extends Refinement {
     def refine(problem: Problem, lemma: Lemma): Option[Lemma] = {
-      // TODO: could undefine it for some things
-      // if the right side is another MetaVar, we can just rename it to the left side
-      right match {
-        case FunctionMeta(rightVar) =>
-          Some(Lemma.fromTypingRule(LemmaEquivalence.renameVariables(lemma, { mv =>
-            if(mv == rightVar)
-              left
-            else
-              mv
-          })))
-        case _ =>
-          val equation = problem.enquirer.makeEquation(left, right).asInstanceOf[FunctionExpJudgment]
-          Some(lemma.addPremise(equation))
+      // we can just rename it to the left side
+      if(Set(left, right) subsetOf lemma.boundVariables) {
+        Some(Lemma.fromTypingRule(LemmaEquivalence.renameVariables(lemma, { mv =>
+          if (mv == right)
+            left
+          else
+            mv
+        })))
+      } else {
+        None
       }
     }
   }
