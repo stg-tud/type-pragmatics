@@ -76,7 +76,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
       val root_fcparents = acg.getFCParents(acg_sdroot)
       if (root_fcparents.nonEmpty) {
         //collect lemmas for the individual function calls via lemma selection strategy and apply a lemma application
-        LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, SelectAllSelectionStrategy(), root_fcparents.map { case acg.FunctionCall(_, _, fn) => fn }).applyToPG(pg)(obl)
+        LemmaApplicationStrat(dsk, acg_gen, spec_enquirer, acg, SelectAllSelectionStrat(), root_fcparents.map { case acg.FunctionCall(_, _, fn) => fn }).applyToPG(pg)(obl)
       }
     }
 
@@ -156,7 +156,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     var visitednodes: Set[acg.Node] = Set(acg_sdroot) //will not contain leaves; we treat leaves together at the end - do we need to keep track of visited nodes? ACGs are acyclic?
 
     //simple lemma selection strategy for now, refine later
-    val sel_strat = SelectAllSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression]()
+    val sel_strat = SelectAllSelectionStrat[Type, FDef, Prop, Equation, Criteria, Expression]()
 
     //apply tactics to corresponding obligations according to information in acg
     while (curr_acg_nodes.nonEmpty) {
@@ -186,7 +186,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
               //make sure to exclude recursive calls
               val fcnames = (fc_parents map (_.name)).filterNot(fn => acg.toplevel_fun == fn)
 
-              LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
+              LemmaApplicationStrat(dsk, acg_gen, spec_enquirer, acg, sel_strat, fcnames).applyToPG(pg)(currobl)
             }
             // case 3) There are exactly two Boolean distinction children -> apply Boolean distinction
             // first child contains the positive condition
