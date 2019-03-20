@@ -41,17 +41,17 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
 
   def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
-    for(predicate <- getPredicatesInvolving(fn.successfulOutType)) { // TODO: make this exactly one argument of sort?
-      result ++= tryInvokePipeline(makePredicatePreservationGraphConstructor(fn, predicate))
+    for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
+      if(predicate.inTypes.count(_ == fn.successfulOutType) == 1) {
+        result ++= tryInvokePipeline(makePredicatePreservationGraphConstructor(fn, predicate))
+      }
     }
-    if(fn.inTypes.count(_ == fn.successfulOutType) >= 1) {
-      for (relation <- getRelationsInvolving(fn.successfulOutType)) {
-        val matchingIndices = fn.inTypes.zipWithIndex.collect {
-          case (inType, idx) if inType == fn.successfulOutType => idx
-        }
-        for(idx <- matchingIndices) {
-          result ++= tryInvokePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx))
-        }
+    for (relation <- getRelationsInvolving(fn.successfulOutType)) {
+      val matchingIndices = fn.inTypes.zipWithIndex.collect {
+        case (inType, idx) if inType == fn.successfulOutType => idx
+      }
+      for(idx <- matchingIndices) {
+        result ++= tryInvokePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx))
       }
     }
     result.toSeq
