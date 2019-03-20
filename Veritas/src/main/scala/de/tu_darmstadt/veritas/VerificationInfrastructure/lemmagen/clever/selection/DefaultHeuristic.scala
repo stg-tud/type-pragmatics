@@ -40,7 +40,7 @@ class DefaultHeuristic extends SelectionHeuristic {
     // only nodes that constrain all variables
     val filteredNodes = inconclusiveNodes.filter(node => node.lemma.boundVariables == node.constrainedVariables)
     val onlyDominators = filteredNodes.filterNot(node => {
-      node.ancestors.exists(filteredNodes.contains)
+      node.parents.exists(filteredNodes.contains)
     })
     val remainingNodes = selectMostGeneralLemmas(onlyDominators.toSeq)
     if(remainingNodes.nonEmpty)

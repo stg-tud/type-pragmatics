@@ -41,7 +41,7 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
 
   def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
-    for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
+    for(predicate <- getPredicatesInvolving(fn.successfulOutType)) { // TODO: make this exactly one argument of sort?
       result ++= tryInvokePipeline(makePredicatePreservationGraphConstructor(fn, predicate))
     }
     if(fn.inTypes.count(_ == fn.successfulOutType) >= 1) {
