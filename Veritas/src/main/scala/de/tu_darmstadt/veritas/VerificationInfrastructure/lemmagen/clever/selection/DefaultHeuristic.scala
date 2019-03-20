@@ -1,15 +1,15 @@
-package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.extraction
+package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.selection
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaEquivalence}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{Inconclusive, RefinementGraph, RefinementNode}
 
 import scala.collection.mutable
 
-class DefaultHeuristic extends ExtractionHeuristic {
+class DefaultHeuristic extends SelectionHeuristic {
   /**
     * Return true if we can select a subset of premises of ``right`` such that
     * the resulting lemma is equivalent to ``left``. If this is the case,
-    * ``left`` implies ``right``, and thus, ``left`` is more general than ``right``.
+    * ``left`` implies ``right``, and thus, ``left`` is (strictly) more general than ``right``.
     * */
   def moreGeneral(left: Lemma, right: Lemma): Boolean = {
     // if they have the same number of premises, or if left has more premises than right,
@@ -34,7 +34,7 @@ class DefaultHeuristic extends ExtractionHeuristic {
     remainingNodes.toSeq
   }
 
-  def extract(graph: RefinementGraph): Unit = {
+  def select(graph: RefinementGraph): Unit = {
     // get all inconclusive nodes
     val inconclusiveNodes = graph.collectNodes(Inconclusive())
     // only nodes that constrain all variables

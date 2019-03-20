@@ -33,7 +33,7 @@ object ThesisEvaluation {
     override def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline = {
       new VisualizingGeneratorPipeline(
         new File(EvaluationDirectory, s"graphs-$name"),
-        constructor, oracleConsultation, extractionHeuristic, postprocessor)
+        constructor, oracleConsultation, selectionHeuristic, postprocessor)
     }
   }
 

@@ -4,7 +4,7 @@ import java.io.{File, FileWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.GraphConstructor
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.extraction.ExtractionHeuristic
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.selection.SelectionHeuristic
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle.OracleConsultation
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing.Postprocessor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
@@ -14,10 +14,10 @@ import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificatio
 class VisualizingGeneratorPipeline(val directory: File,
                                    graphConstructor: GraphConstructor,
                                    oracleConsultation: OracleConsultation,
-                                   extractionHeuristic: ExtractionHeuristic,
+                                   selectionHeuristic: SelectionHeuristic,
                                    postprocessor: Postprocessor)
   extends LemmaGeneratorPipeline(
-    graphConstructor, oracleConsultation, extractionHeuristic, postprocessor) {
+    graphConstructor, oracleConsultation, selectionHeuristic, postprocessor) {
 
   private def makeDirectory(graph: RefinementGraph): File = {
     val subdirectory = new File(directory, graph.root.lemma.name)
@@ -69,8 +69,8 @@ class VisualizingGeneratorPipeline(val directory: File,
     graph.visualize(new File(makeDirectory(graph), "step2.png"))
   }
 
-  override def invokeExtraction(graph: RefinementGraph): Unit = {
-    super.invokeExtraction(graph)
+  override def invokeSelection(graph: RefinementGraph): Unit = {
+    super.invokeSelection(graph)
     graph.visualize(new File(makeDirectory(graph), "step3.png"))
   }
 

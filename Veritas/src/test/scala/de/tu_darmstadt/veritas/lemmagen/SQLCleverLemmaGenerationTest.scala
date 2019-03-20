@@ -30,7 +30,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
 
   val generator = new CleverLemmaGenerator(problem) {
     override def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline = {
-      new VisualizingGeneratorPipeline(Directory, constructor, oracleConsultation, extractionHeuristic, postprocessor)
+      new VisualizingGeneratorPipeline(Directory, constructor, oracleConsultation, selectionHeuristic, postprocessor)
     }
   }
 
