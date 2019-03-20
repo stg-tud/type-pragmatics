@@ -82,6 +82,8 @@ class GeneratorEvaluator(problem: Problem,
     val countLines = new mutable.ListBuffer[String]()
     val successLemmas = new mutable.HashMap[String, Boolean]()
     val successLines = new mutable.ListBuffer[String]()
+    var totalGeneratedProgress = 0
+    var totalGeneratedPreservation = 0
     sortFunctions((problem.dsk.dynamicFunctions ++ problem.dsk.staticFunctions).toSeq).foreach { function =>
       val lemmas = result.getOrElse(function, Seq())
       val name = function.signature.name
@@ -99,6 +101,8 @@ class GeneratorEvaluator(problem: Problem,
         printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
         printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
         countLines += generateGeneratedLine(function, lemmas)
+        totalGeneratedProgress += progressLemmas(lemmas).size
+        totalGeneratedPreservation += preservationLemmas(lemmas).size
       }
 
       if(function.signature.name != "reduce") {
@@ -113,6 +117,10 @@ class GeneratorEvaluator(problem: Problem,
       successLines += s"\\C{${lemmaName}} &"
       successLines += (if(successLemmas(lemmaName)) "\\checkmark" else "$\\times$") + "\\\\"
     }
+    countLines += "\\addlinespace"
+    countLines += s"total & $totalGeneratedProgress " +
+      s"& $totalGeneratedPreservation &" +
+      s"${totalGeneratedProgress + totalGeneratedPreservation} \\\\"
     printToFile(new File(outputDirectory, "counts-table.tex"), countLines.mkString("\n"))
     printToFile(new File(outputDirectory, "success-table.tex"), successLines.mkString("\n"))
     if(writeSpec) {
