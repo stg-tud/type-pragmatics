@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{Incon
 
 import scala.collection.mutable
 
-class DefaultHeuristic extends SelectionHeuristic {
+class DefaultSelectionHeuristic extends SelectionHeuristic {
   /**
     * Return true if we can select a subset of premises of ``right`` such that
     * the resulting lemma is equivalent to ``left``. If this is the case,

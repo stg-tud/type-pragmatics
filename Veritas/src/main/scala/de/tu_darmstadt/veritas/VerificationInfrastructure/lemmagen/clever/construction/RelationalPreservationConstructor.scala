@@ -15,16 +15,6 @@ class RelationalPreservationConstructor(val problem: Problem,
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def termType: SortRef = function.successfulOutType
-  def generatePredicateArguments(fixedArg: MetaVar): Seq[MetaVar] = {
-    val constraints = predicate.inTypes.zipWithIndex.map {
-      case (inType, idx) =>
-        if (idx == termIndex)
-          Constraint.fixed(fixedArg)
-        else
-          Constraint.fresh(inType)
-    }
-    Assignments.generate(constraints).head
-  }
 
   // --------------------
   // [predicate]([t_1], [t_2])
