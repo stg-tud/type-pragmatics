@@ -50,7 +50,7 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
   }
 
 
-  private def makeCustomVampire(timeout: Int, logic: String) = new TPTPVampireVerifier(timeout, "4.3.0", logic)
+  private def makeCustomVampire(timeout: Int, logic: String) = new TPTPVampireVerifier(timeout, "4.1", logic)
 
   private def makeCustomVampireZ3(timeout: Int) = new Z3VampireVerifier(timeout)
 

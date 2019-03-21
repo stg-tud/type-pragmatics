@@ -88,7 +88,7 @@ object QLSpec extends ScalaSPLSpecification {
   case class T(value: string) extends Aval
 
   @FailableType
-  sealed trait OptAval extends Expression
+  sealed trait OptAval
   case class noAval() extends OptAval
   case class someAval(value: Aval) extends OptAval
 
@@ -102,13 +102,13 @@ object QLSpec extends ScalaSPLSpecification {
     case someAval(aval) => aval
   }
 
-  sealed trait AType extends Expression
+  sealed trait AType extends Expression with Type
   case class YesNo() extends AType
   case class Number() extends AType
   case class Text() extends AType
 
   @FailableType
-  sealed trait OptAType extends Expression
+  sealed trait OptAType
   case class noAType() extends OptAType
   case class someAType(typ: AType) extends OptAType
 
@@ -200,7 +200,7 @@ object QLSpec extends ScalaSPLSpecification {
   case class qmbind(qid: QID, l: Label, atype: AType, qml: QMap) extends QMap
 
   @FailableType
-  sealed trait OptQuestion extends Expression
+  sealed trait OptQuestion
   case class noQuestion() extends OptQuestion
   case class someQuestion(qid: QID, l: Label, atype: AType) extends OptQuestion
 
@@ -258,7 +258,7 @@ object QLSpec extends ScalaSPLSpecification {
   }
 
   @FailableType
-  sealed trait OptQConf extends Expression
+  sealed trait OptQConf
   case class noQConf() extends OptQConf
   case class someQConf(qc: QConf) extends OptQConf
 
@@ -277,7 +277,7 @@ object QLSpec extends ScalaSPLSpecification {
   }
 
   @FailableType
-  sealed trait OptExp extends Expression
+  sealed trait OptExp
   case class noExp() extends OptExp
   case class someExp(exp: Exp) extends OptExp
 
@@ -462,7 +462,7 @@ object QLSpec extends ScalaSPLSpecification {
   case class MC(atm: ATMap, qtm: ATMap) extends MapConf
 
   @FailableType
-  sealed trait OptMapConf extends Context with Type
+  sealed trait OptMapConf
   case class noMapConf() extends OptMapConf
   case class someMapConf(mc: MapConf) extends OptMapConf
 
