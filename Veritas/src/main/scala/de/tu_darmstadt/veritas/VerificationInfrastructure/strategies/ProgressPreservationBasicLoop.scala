@@ -74,7 +74,8 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
   private def findFDefForDSKProp(p: Prop): Option[FDef] = {
     val preservationFDef = dsk.preservationProperties.find(pair => pair._2 contains p).map(_._1)
     val progressFDef = dsk.progressProperties.find(pair => pair._2 contains p).map(_._1)
+    val otherFDef = dsk.auxiliaryProperties.find(pair => pair._2 contains p).map(_._1)
 
-    if (preservationFDef.nonEmpty) preservationFDef else progressFDef
+    if (preservationFDef.nonEmpty) preservationFDef else if (progressFDef.nonEmpty) progressFDef else otherFDef
   }
 }

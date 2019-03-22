@@ -17,7 +17,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                    override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
                    override val spec_enquirer: SpecEnquirer[Def, Formulae],
                    acg: AugmentedCallGraph[Equation, Criteria, Expression],
-                   sel_strat: LemmaSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression])
+                   sel_strat: LemmaSelectionStrat[Type, FDef, Prop, Equation, Criteria, Expression])
   extends DomainSpecificStrategy[Def, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
   override def applyToPG(pg: ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae])(obl: pg.Obligation): ProofGraph[Def, Formulae] with ProofGraphTraversals[Def, Formulae] = {
     //collect function calls from edges (conservatively throw all of them together)
@@ -31,7 +31,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
     if (fnames.isEmpty)
       ApplySolve().applyToPG(pg)(obl)
     else
-      LemmaApplicationStrategy(dsk, acg_gen, spec_enquirer, acg, sel_strat, fnames).applyToPG(pg)(obl)
+      LemmaApplicationStrat(dsk, acg_gen, spec_enquirer, acg, sel_strat, fnames).applyToPG(pg)(obl)
 
     pg
   }

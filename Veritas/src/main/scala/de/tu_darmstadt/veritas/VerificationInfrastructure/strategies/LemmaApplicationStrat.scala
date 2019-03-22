@@ -5,7 +5,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.SpecEnquir
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{FunctionCall, LemmaApplication}
 import de.tu_darmstadt.veritas.scalaspl.util.AugmentedCallGraph
 
-case class LemmaApplicationStrategy[
+case class LemmaApplicationStrat[
 Def,
 Formulae <: Def,
 Type <: Def,
@@ -17,7 +17,7 @@ Expression <: Def](override val dsk: DomainSpecificKnowledge[Type, FDef, Prop],
                    override val acg_gen: String => AugmentedCallGraph[Equation, Criteria, Expression],
                    override val spec_enquirer: SpecEnquirer[Def, Formulae],
                    acg: AugmentedCallGraph[Equation, Criteria, Expression],
-                   sel_strat: LemmaSelectionStrategy[Type, FDef, Prop, Equation, Criteria, Expression],
+                   sel_strat: LemmaSelectionStrat[Type, FDef, Prop, Equation, Criteria, Expression],
                    fnames: Seq[String])
   extends DomainSpecificStrategy[Def, Formulae, Type, FDef, Prop, Equation, Criteria, Expression] {
 
