@@ -271,6 +271,10 @@ object QLSpec extends ScalaSPLSpecification {
     case someQConf(qc) => qc
   }
 
+  def qcappend(qc: QConf, q: Questionnaire): QConf = (qc, q) match {
+    case (QC(am, qm, qs1), qs2) => QC(am, qm, qseq(qs1, qs2))
+  }
+
   @FailableType
   sealed trait OptExp
   case class noExp() extends OptExp
@@ -406,10 +410,8 @@ object QLSpec extends ScalaSPLSpecification {
     case (qseq(qempty(), qs), am, qm) => someQConf(QC(am, qm, qs))
     case (qseq(qs1, qs2), am, qm) =>
       val qcOpt = reduce(qs1, am, qm)
-      if (isSomeQC(qcOpt)) {
-        val qc = getQC(qcOpt)
-        someQConf(QC(getAM(qc), getQM(qc), qseq(getQuest(qc), qs2)))
-      }
+      if (isSomeQC(qcOpt))
+        someQConf(qcappend(getQC(qcOpt), qs2))
       else noQConf()
     case (qcond(constant(B(yes())), qs1, qs2), am, qm) => someQConf(QC(am, qm, qs1))
     case (qcond(constant(B(no())), qs1, qs2), am, qm) => someQConf(QC(am, qm, qs2))
@@ -835,4 +837,5 @@ object QLSpec extends ScalaSPLSpecification {
     require(echeck(atm, unop(uot, constant(av))) == someAType(at))
     require(evalUnOp(uot, av) == someExp(eres))
   } ensuring(echeck(atm, eres) == someAType(at))
+
 }
