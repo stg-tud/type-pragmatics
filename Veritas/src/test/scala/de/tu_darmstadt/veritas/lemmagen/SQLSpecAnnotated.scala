@@ -189,7 +189,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
   @PreservationProperty("attachColToFrontRawPreservesRowCount")
   @Recursive(0, 1)
-  @LemmaGeneratorHint(pattern =Seq("Preservation"),
+  @LemmaGeneratorHint(pattern = Seq("Preservation"),
     additionalPremises = Seq(
       "tt1 == ttcons(_1, _2, ttempty())",
       "sameLength(rt1, rt2)",
