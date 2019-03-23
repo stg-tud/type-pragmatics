@@ -75,7 +75,6 @@ object QLSpec extends ScalaSPLSpecification {
   case class scons(c: char, tail: string) extends string
 
   // QLSyntax
-  // @Open
   trait QID extends Expression
 
   trait GID extends Expression
@@ -355,18 +354,20 @@ object QLSpec extends ScalaSPLSpecification {
       else
         noExp()
     case (binop(e1, op, e2), am) =>
-      if (expIsValue(e1) && expIsValue(e2))
-        evalBinOp(op, getExpValue(e1), getExpValue(e2))
-      else {
-        val eOpt1 = reduceExp(e1, am)
-        if (isSomeExp(eOpt1))
-          someExp(binop(getExp(eOpt1), op, e2))
+      if (expIsValue(e1))
+        if (expIsValue(e2))
+          evalBinOp(op, getExpValue(e1), getExpValue(e2))
         else {
           val eOpt2 = reduceExp(e2, am)
           if (isSomeExp(eOpt2))
             someExp(binop(e1, op, getExp(eOpt2)))
           else noExp()
         }
+      else {
+        val eOpt1 = reduceExp(e1, am)
+        if (isSomeExp(eOpt1))
+          someExp(binop(getExp(eOpt1), op, e2))
+        else noExp()
       }
     case (unop(op, e1), am) =>
       if (expIsValue(e1))
@@ -499,7 +500,7 @@ object QLSpec extends ScalaSPLSpecification {
     case (ltop(), Number(),  Number()) => someAType(YesNo())
     case (andop(), YesNo(),  YesNo()) => someAType(YesNo())
     case (orop(), YesNo(),  YesNo()) => someAType(YesNo())
-    case (eqop(), _,  _) => someAType(YesNo())
+    case (eqop(), _, _) => someAType(YesNo())
     case (_, _, _) => noAType()
   }
 
