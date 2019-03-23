@@ -139,8 +139,9 @@ trait ToScalaSPLSpecificationPrinter {
 
   def printFunctionExp(exp: FunctionExp): Unit = exp match {
     case FunctionExpNot(f) =>
-      printer.write("!")
+      printer.write("!(")
       printFunctionExp(f)
+      printer.write(")")
     case FunctionExpEq(lhs, rhs) =>
       printBinOpFunctionExp("==", lhs, rhs)
     case FunctionExpNeq(lhs, rhs) =>
