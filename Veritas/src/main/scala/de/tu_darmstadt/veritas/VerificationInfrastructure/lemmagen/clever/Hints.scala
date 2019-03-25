@@ -61,6 +61,8 @@ class Hints(problem: Problem, premiseHints: Seq[String], irrelevantVariables: Se
 }
 
 object Hints {
+  def empty(problem: Problem): Hints = new Hints(problem, Seq(), Seq())
+
   def fromDSK(problem: Problem, function: FunctionDef, tag: Seq[String]): Option[Hints] = {
     parseLemmaGeneratorHints(
       problem,

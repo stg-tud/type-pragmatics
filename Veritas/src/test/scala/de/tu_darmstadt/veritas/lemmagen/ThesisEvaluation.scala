@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.lemmagen
 import java.io._
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverLemmaGenerator, LemmaGeneratorPipeline, VisualizingGeneratorPipeline}
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{CleverHintsLemmaGenerator, CleverLemmaGenerator, LemmaGeneratorPipeline, VisualizingGeneratorPipeline}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.GraphConstructor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.evaluation.{GeneralInformation, GeneratorEvaluator}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.NaiveLemmaGenerator
@@ -12,7 +12,6 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.NaiveLe
 object ThesisEvaluation {
   val EvaluationDirectory = new File("evaluation")
 
-  def SQLSpec() = new Problem(new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala"))
   def SQLSpecAnnotated() = new Problem(new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala"))
 
   def evaluateGenerator(problem: Problem, generator: Problem => LemmaGenerator, name: String, writeSpec: Boolean = false): Unit = {
@@ -37,13 +36,22 @@ object ThesisEvaluation {
     }
   }
 
+  def makeCleverHintsLemmaGenerator(problem: Problem, name: String): LemmaGenerator =
+    new CleverHintsLemmaGenerator(problem) {
+      override def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline = {
+        new VisualizingGeneratorPipeline(
+          new File(EvaluationDirectory, s"graphs-$name"),
+          constructor, oracleConsultation, selectionHeuristic, postprocessor)
+      }
+    }
+
   def main(args: Array[String]): Unit = {
-    evaluateGenerator(SQLSpec(),
+    evaluateGenerator(SQLSpecAnnotated(),
       p => new NaiveLemmaGenerator(p), "naive")
-    evaluateGenerator(SQLSpec(),
+    evaluateGenerator(SQLSpecAnnotated(),
       makeCleverLemmaGenerator(_, "clever-no-hints"), "clever-no-hints", writeSpec = true)
     evaluateGenerator(SQLSpecAnnotated(),
-      makeCleverLemmaGenerator(_, "clever-with-hints"), "clever-with-hints", writeSpec = true)
-    writeGeneralInfo(SQLSpecAnnotated()) // TODO: annotated spec?
+      makeCleverHintsLemmaGenerator(_, "clever-with-hints"), "clever-with-hints", writeSpec = true)
+    writeGeneralInfo(SQLSpecAnnotated())
   }
 }

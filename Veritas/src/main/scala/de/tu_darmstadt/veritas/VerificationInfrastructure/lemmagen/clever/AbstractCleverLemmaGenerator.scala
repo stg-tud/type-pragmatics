@@ -82,7 +82,7 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
     lemmas.toMap
   }
 
-  def makeHints(tag: Seq[String], fn: FunctionDef): Option[Hints] = Hints.fromDSK(problem, fn, tag)
+  def makeHints(tag: Seq[String], fn: FunctionDef): Option[Hints]
 
   def makeProgressGraphConstructor(fn: FunctionDef): Option[GraphConstructor] = {
     makeHints(Seq("Progress"), fn).map(hints => new ProgressConstructor(problem, fn, hints))
