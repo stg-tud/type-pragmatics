@@ -55,6 +55,14 @@ class GeneratorEvaluator(problem: Problem,
     lemmas.filter(_.name.contains("Preservation"))
   }
 
+  def predicatePreservationLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
+    preservationLemmas(lemmas).filter(_.name.contains("welltyped"))
+  }
+
+  def relationalPreservationLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
+    preservationLemmas(lemmas).filter(_.name.contains("sameLength"))
+  }
+
   def lemmaMap(lemmas: Map[FunctionDef, Seq[Lemma]]): (Map[FunctionDef, Seq[Lemma]], Map[FunctionDef, Seq[Lemma]]) = {
     val progress = lemmas.map {
       case (fn, lst) => (fn, progressLemmas(lst))
@@ -67,13 +75,15 @@ class GeneratorEvaluator(problem: Problem,
 
   def generateGeneratedLine(function: FunctionDef, lemmas: Seq[Lemma]): String = {
     val generatedProgress = progressLemmas(lemmas)
-    val generatedPreservation = preservationLemmas(lemmas)
-    require((generatedProgress ++ generatedPreservation).toSet == lemmas.toSet)
+    val generatedPredicatePreservation = predicatePreservationLemmas(lemmas)
+    val generatedRelationalPreservation = relationalPreservationLemmas(lemmas)
+    require((generatedProgress ++ generatedPredicatePreservation ++ generatedRelationalPreservation).toSet == lemmas.toSet)
     //val equivalentProgress = equivalent intersect generatedProgress
     //val equivalentPreservation = equivalent intersect generatedPreservation
     s"""${formatFunctionName(function)} &
        | ${generatedProgress.size} &
-       | ${generatedPreservation.size} &
+       | ${generatedPredicatePreservation.size} &
+       | ${generatedRelationalPreservation.size} &
        | ${lemmas.size} \\\\""".stripMargin
   }
 
@@ -83,7 +93,8 @@ class GeneratorEvaluator(problem: Problem,
     val successLemmas = new mutable.HashMap[String, Boolean]()
     val successLines = new mutable.ListBuffer[String]()
     var totalGeneratedProgress = 0
-    var totalGeneratedPreservation = 0
+    var totalGeneratedPredicatePreservation = 0
+    var totalGeneratedRelationalPreservation = 0
     sortFunctions((problem.dsk.dynamicFunctions ++ problem.dsk.staticFunctions).toSeq).foreach { function =>
       val lemmas = result.getOrElse(function, Seq())
       val name = function.signature.name
@@ -100,10 +111,12 @@ class GeneratorEvaluator(problem: Problem,
         // all lemmas
         printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
         printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
-        countLines += generateGeneratedLine(function, lemmas)
         totalGeneratedProgress += progressLemmas(lemmas).size
-        totalGeneratedPreservation += preservationLemmas(lemmas).size
+        totalGeneratedPredicatePreservation += predicatePreservationLemmas(lemmas).size
+        totalGeneratedRelationalPreservation += relationalPreservationLemmas(lemmas).size
       }
+      if(lemmas.nonEmpty || problem.dsk.lemmaGeneratorHints.contains(function))
+        countLines += generateGeneratedLine(function, lemmas)
 
       if(function.signature.name != "reduce") {
         val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
@@ -119,8 +132,9 @@ class GeneratorEvaluator(problem: Problem,
     }
     countLines += "\\addlinespace"
     countLines += s"total & $totalGeneratedProgress " +
-      s"& $totalGeneratedPreservation &" +
-      s"${totalGeneratedProgress + totalGeneratedPreservation} \\\\"
+      s"& $totalGeneratedPredicatePreservation " +
+      s"& $totalGeneratedRelationalPreservation " +
+      s"& ${totalGeneratedProgress + totalGeneratedPredicatePreservation + totalGeneratedRelationalPreservation} \\\\"
     printToFile(new File(outputDirectory, "counts-table.tex"), countLines.mkString("\n"))
     printToFile(new File(outputDirectory, "success-table.tex"), successLines.mkString("\n"))
     if(writeSpec) {
@@ -130,6 +144,8 @@ class GeneratorEvaluator(problem: Problem,
       val (progress, preservation) = lemmaMap(result)
       val updated = ScalaSPLSpecificationOutput.addLemmasToSpecification(input, progress, preservation)
       printToFile(new File(outputDirectory, "UpdatedSpec.scala"), updated)
+      val onlyLemmas = ScalaSPLSpecificationOutput.generateLemmasString(input, progress, preservation)
+      printToFile(new File(outputDirectory, "Lemmas.scala"), onlyLemmas)
     }
     /*writeDynamicFunctions()
     writeStaticFunctions()

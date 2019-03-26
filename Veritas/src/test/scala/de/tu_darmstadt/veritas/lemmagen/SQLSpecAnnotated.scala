@@ -200,7 +200,6 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
     additionalPremises = Seq(
       "tt == ttcons(_1, _2, tt2)"
     ),
-    irrelevantVariables = Seq("_1", "_2")
   )
   @LemmaGeneratorHint(pattern = Seq("Preservation", "sameLength"),
     irrelevantVariables = Seq("rt2")
@@ -428,7 +427,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @PreservationProperty("projectEmptyColPreservesRowCount")
   @Recursive(0)
   @LemmaGeneratorHint(pattern = Seq("Preservation", "welltypedRawtable"),
-    additionalPremises = Seq("_0 == ttempty()"))
+    additionalPremises = Seq("tt == ttempty()"))
   @LemmaGeneratorHint(pattern = Seq("Preservation"),
     irrelevantVariables = Seq("rt1"))
   def projectEmptyCol(rt: RawTable): RawTable = rt match {
