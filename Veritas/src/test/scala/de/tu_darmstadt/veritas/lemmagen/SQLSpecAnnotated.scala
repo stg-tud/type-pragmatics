@@ -523,6 +523,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @LemmaGeneratorHint(irrelevantVariables = Seq(
     "p", "al"
   ))
+  @LemmaGeneratorHint(pattern = Seq("Preservation", "sameLength"), suppress = true)
   def filterRows(rt: RawTable, attrL: AttrL, pred: Pred): RawTable = (rt, attrL, pred) match {
     case (tempty(), _, _) => tempty()
     case (tcons(r, rtr), al, p) =>
