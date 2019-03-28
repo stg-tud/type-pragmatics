@@ -50,11 +50,17 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     printToFile(new File(directory, "dynamic-functions.tex"), names)
   }
 
+  def writeSpec(): Unit = {
+    val spec = scala.io.Source.fromFile(problem.specFile).mkString("")
+    printToFile(new File(directory, "SQLSpecAnnotated.scala"), spec)
+  }
+
   def write(): Unit = {
     writeLemmaClasses()
     writeStaticFunctions()
     writeDynamicFunctions()
     writeBaselineLemmas(new File(directory, "baseline-lemmas.tex"))
+    writeSpec()
   }
 }
 

@@ -107,17 +107,15 @@ class GeneratorEvaluator(problem: Problem,
           LemmaEquivalence.isEquivalent(expected, generated)
         )
       )
-      if(lemmas.nonEmpty) {
+      if(problem.dsk.dynamicFunctions.contains(function) && function.signature.out.name != "Bool") {
         // all lemmas
         printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
         printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
         totalGeneratedProgress += progressLemmas(lemmas).size
         totalGeneratedPredicatePreservation += predicatePreservationLemmas(lemmas).size
         totalGeneratedRelationalPreservation += relationalPreservationLemmas(lemmas).size
-      }
-      if(lemmas.nonEmpty || problem.dsk.lemmaGeneratorHints.contains(function))
         countLines += generateGeneratedLine(function, lemmas)
-
+      }
       if(function.signature.name != "reduce") {
         val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
         sortedExpectedLemmas.foreach { lemma =>
