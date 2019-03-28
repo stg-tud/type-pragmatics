@@ -167,7 +167,7 @@ object QLSpec extends ScalaSPLSpecification {
   case class qempty() extends Questionnaire
   case class qsingle(entry: Entry) extends Questionnaire
   case class qseq(qs1: Questionnaire, qs2: Questionnaire) extends Questionnaire
-  case class qcond(e: Exp, els: Questionnaire, thn: Questionnaire) extends Questionnaire
+  case class qcond(e: Exp, thn: Questionnaire, els: Questionnaire) extends Questionnaire
   case class qgroup(gid: GID, qs: Questionnaire) extends Questionnaire
 
   // QLSemanticsData
@@ -512,7 +512,7 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Static
   @Recursive(1)
-  def echeck(atm: ATMap, exp: Exp): OptAType = (atm, exp) match {
+  def echeck(atmap: ATMap, exp: Exp): OptAType = (atmap, exp) match {
     case (_, constant(B(n))) => someAType(YesNo())
     case (_, constant(Num(n))) => someAType(Number())
     case (_, constant(T(n))) => someAType(Text())
