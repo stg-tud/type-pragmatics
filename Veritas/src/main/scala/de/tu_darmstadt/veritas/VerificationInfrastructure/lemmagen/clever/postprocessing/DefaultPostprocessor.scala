@@ -39,7 +39,7 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
 
   def sortPremises(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.map { lemma =>
-      new Lemma(lemma.name, lemma.premises.sortBy(_.toString.stripPrefix("(")), lemma.consequences)
+      new Lemma(lemma.name, lemma.premises.sortBy(_.toString.stripPrefix("(").stripPrefix("~")), lemma.consequences)
     }
   }
 
