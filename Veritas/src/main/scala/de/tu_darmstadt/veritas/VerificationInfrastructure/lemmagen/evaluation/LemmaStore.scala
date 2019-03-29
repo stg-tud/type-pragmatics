@@ -1,6 +1,7 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.evaluation
 
 import java.io._
+import java.util.Calendar
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaGenerator}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
@@ -22,6 +23,7 @@ class LemmaStore(file: File) {
   def loadOrGenerate(generator: LemmaGenerator): Map[FunctionDef, Seq[Lemma]] = {
     if(!file.exists()) {
       println(s"generating lemmas with $generator ...")
+      println(s"current time: ${Calendar.getInstance().getTime}")
       val lemmas = generator.generateLemmas()
       println(s"writing lemmas to $file ...")
       serialize(lemmas)
