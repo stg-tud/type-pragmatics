@@ -60,18 +60,19 @@ class VisualizingGeneratorPipeline(val directory: File,
 
   override def invokeConstructor(): RefinementGraph = {
     val graph = super.invokeConstructor()
-    graph.visualize(new File(makeDirectory(graph), "step1.png"))
+    graph.visualize(new File(makeDirectory(graph), "step1.dot"))
     graph
   }
 
   override def invokeOracle(graph: RefinementGraph): Unit = {
     super.invokeOracle(graph)
-    graph.visualize(new File(makeDirectory(graph), "step2.png"))
+    graph.visualize(new File(makeDirectory(graph), "step2.dot"))
   }
 
   override def invokeSelection(graph: RefinementGraph): Unit = {
     super.invokeSelection(graph)
-    graph.visualize(new File(makeDirectory(graph), "step3.png"))
+    graph.visualize(new File(makeDirectory(graph), "step3.dot"))
+    graph.visualize(new File(makeDirectory(graph), "graph-small.dot"), detailed = false)
   }
 
   override def invokePostprocessor(graph: RefinementGraph): Seq[Lemma] = {
