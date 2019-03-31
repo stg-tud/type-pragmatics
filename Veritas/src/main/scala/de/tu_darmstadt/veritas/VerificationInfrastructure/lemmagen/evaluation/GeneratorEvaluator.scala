@@ -125,7 +125,7 @@ class GeneratorEvaluator(problem: Problem,
       }
     }
     successLemmas.keys.toSeq.sortBy(_.toLowerCase).foreach {lemmaName =>
-      successLines += s"\\C{${lemmaName}} &"
+      successLines += s"\\cod{${lemmaName}} &"
       successLines += (if(successLemmas(lemmaName)) "\\checkmark" else "$\\times$") + "\\\\"
     }
     countLines += "\\addlinespace"

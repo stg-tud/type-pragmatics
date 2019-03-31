@@ -30,7 +30,7 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     val preservation = problem.dsk.preservationProperties.valuesIterator.flatten.toSet
     val other = problem.dsk.properties -- (progress ++ preservation)
 
-    def names(s: Set[TypingRule]): String = s.toSeq.sortBy(_.name).map(l => s"\\C{${l.name})").mkString(", ")
+    def names(s: Set[TypingRule]): String = s.toSeq.sortBy(_.name).map(l => s"\\cod{${l.name})").mkString(", ")
 
     printToFile(new File(directory, "lemma-classes.tex"),
       s"""

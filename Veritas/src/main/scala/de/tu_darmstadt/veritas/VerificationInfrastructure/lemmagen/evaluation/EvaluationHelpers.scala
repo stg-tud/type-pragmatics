@@ -10,7 +10,7 @@ trait EvaluationHelpers {
   }
 
   def formatFunctionName(f: FunctionDef): String = {
-    s"\\C{${f.signature.name}}"
+    s"\\cod{${f.signature.name}}"
   }
 
   def printToFile(file: File, content: String): Unit = {
