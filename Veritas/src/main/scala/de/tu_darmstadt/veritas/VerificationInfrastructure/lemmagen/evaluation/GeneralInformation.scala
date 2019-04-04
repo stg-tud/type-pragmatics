@@ -50,6 +50,11 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     printToFile(new File(directory, "dynamic-functions.tex"), names)
   }
 
+  def writePreservables(): Unit = {
+    val names = sortFunctions(problem.dsk.preservables.toSeq).map(formatFunctionName).mkString(", ")
+    printToFile(new File(directory, "preservables.tex"), names)
+  }
+
   def writeSpec(): Unit = {
     val spec = scala.io.Source.fromFile(problem.specFile).mkString("")
     printToFile(new File(directory, "SQLSpecAnnotated.scala"), spec)
@@ -59,6 +64,7 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     writeLemmaClasses()
     writeStaticFunctions()
     writeDynamicFunctions()
+    writePreservables()
     writeBaselineLemmas(new File(directory, "baseline-lemmas.tex"))
     writeSpec()
   }

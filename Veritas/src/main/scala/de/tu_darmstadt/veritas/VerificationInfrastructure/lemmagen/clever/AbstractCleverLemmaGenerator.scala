@@ -18,7 +18,7 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
   }
 
   def getPreservablesInvolving(termType: SortRef): Set[FunctionDef] = {
-    enquirer.retrievePredicates(Set(termType)) intersect problem.dsk.preservables
+    enquirer.retrievePreservables(Set(termType))
   }
 
   def getPredicatesInvolving(termType: SortRef): Set[FunctionDef] = {

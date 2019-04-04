@@ -69,16 +69,15 @@ class PreservationStrategy(override val problem: Problem, function: FunctionDef)
     val outType = function.successfulOutType
     if(function.inTypes.count(_ == outType) == 1) {
       val predicates = enquirer
-        .retrievePredicates(Set(function.successfulOutType))
+        .retrievePreservables(Set(function.successfulOutType))
         .filter(_.inTypes == Seq(outType, outType))
       predicates.foreach(predicate => {
         lemmas ++= buildRelationalPreservationLemmas(predicate)
       })
     }
-    val predicates = enquirer.retrievePredicates(Set(outType)).filter(_.isStatic)
-    predicates.foreach({
-      lemmas ++= buildPredicatePreservationLemmas(_)
-    })
+    for(predicate <- enquirer.retrievePreservables(Set(outType)))
+      if(predicate.inTypes.count(_ == outType) == 1)
+       lemmas ++= buildPredicatePreservationLemmas(predicate)
     lemmas
   }
 
