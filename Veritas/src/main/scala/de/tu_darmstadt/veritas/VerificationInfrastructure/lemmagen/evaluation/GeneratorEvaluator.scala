@@ -47,6 +47,17 @@ class GeneratorEvaluator(problem: Problem,
     }.toSet
   }
 
+  def getBaselineLemmaClass(name: String): String = {
+    if(problem.dsk.progressProperties.values.flatten.exists(_.name == name))
+      "progress"
+    else if (problem.dsk.preservationProperties.values.flatten.exists(_.name == name))
+      "preservation"
+    else if (problem.dsk.auxiliaryProperties.values.flatten.exists(_.name == name))
+      "?"
+    else
+      "(unknown)"
+  }
+
   def progressLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.filter(_.name.contains("Progress"))
   }
@@ -124,9 +135,12 @@ class GeneratorEvaluator(problem: Problem,
         }
       }
     }
-    successLemmas.keys.toSeq.sortBy(_.toLowerCase).foreach {lemmaName =>
-      successLines += s"\\cod{${lemmaName}} &"
-      successLines += (if(successLemmas(lemmaName)) "\\checkmark" else "$\\times$") + "\\\\"
+    val baselineOrdering = successLemmas.keys.groupBy(getBaselineLemmaClass).mapValues(it => it.toSeq.sortBy(_.toLowerCase))
+    baselineOrdering.keys.toSeq.sortBy(_.toLowerCase).reverse.foreach { cls =>
+      baselineOrdering(cls).foreach { lemmaName =>
+        successLines += s"\\cod{${lemmaName}} & ${getBaselineLemmaClass(lemmaName)} &"
+        successLines += (if (successLemmas(lemmaName)) "\\checkmark" else "$\\times$") + "\\\\"
+      }
     }
     countLines += "\\addlinespace"
     countLines += s"total & $totalGeneratedProgress " +
