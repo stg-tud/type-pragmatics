@@ -14,9 +14,9 @@ import scala.collection.mutable
 import scala.meta.inputs.Input
 
 class SQLCleverLemmaGenerationTest extends FunSuite {
-  val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
+  //val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
   val Directory = new File("generated")
-  //val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
+  val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
   val problem = new Problem(file)
 
   private def recursivedelete(file: File) {
@@ -28,9 +28,9 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
   if(Directory.exists())
     recursivedelete(Directory)
 
-  val generator = new CleverLemmaGenerator(problem) {
+  val generator = new CleverHintsLemmaGenerator(problem) {
     override def makePipeline(constructor: GraphConstructor): LemmaGeneratorPipeline = {
-      new VisualizingGeneratorPipeline(Directory, constructor, oracleConsultation, extractionHeuristic, postprocessor)
+      new VisualizingGeneratorPipeline(Directory, constructor, oracleConsultation, selectionHeuristic, postprocessor)
     }
   }
 

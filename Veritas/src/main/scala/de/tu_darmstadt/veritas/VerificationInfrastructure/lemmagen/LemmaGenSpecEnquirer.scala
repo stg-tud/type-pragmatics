@@ -11,6 +11,7 @@ class LemmaGenSpecEnquirer(spec: Module, dsk: VeritasDomainSpecificKnowledge) ex
   /** Return SortRefs to all data types that have at least one constructor involving typ */
   def functions: Set[FunctionDef] = dsk.staticFunctions ++ dsk.dynamicFunctions
   def predicates: Set[FunctionDef] = functions.filter(_.signature.out.name == "Bool")
+  def preservables: Set[FunctionDef] = dsk.preservables
   def dataTypes = tdcollector.dataTypes
 
   def staticFunctions: Set[FunctionDef] = dsk.staticFunctions
@@ -27,6 +28,10 @@ class LemmaGenSpecEnquirer(spec: Module, dsk: VeritasDomainSpecificKnowledge) ex
   /** Retrieve all boolean functions that take any of `types` */
   def retrievePredicates(types: Set[SortRef]): Set[FunctionDef] =
     types.flatMap(typ => predicates.filter(_.signature.in.contains(typ)))
+
+  /** Retrieve all boolean functions that are annotated with @Preservable and take any of `types` */
+  def retrievePreservables(types: Set[SortRef]): Set[FunctionDef] =
+    types.flatMap(typ => preservables.filter(_.signature.in.contains(typ)))
 
   /** Return all static and dynamic functions that take any of `types` */
   def retrieveTransformers(types: Set[SortRef]): Set[FunctionDef] =

@@ -30,7 +30,7 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     val preservation = problem.dsk.preservationProperties.valuesIterator.flatten.toSet
     val other = problem.dsk.properties -- (progress ++ preservation)
 
-    def names(s: Set[TypingRule]): String = s.toSeq.sortBy(_.name).map(l => s"\\C{${l.name})").mkString(", ")
+    def names(s: Set[TypingRule]): String = s.toSeq.sortBy(_.name).map(l => s"\\cod{${l.name})").mkString(", ")
 
     printToFile(new File(directory, "lemma-classes.tex"),
       s"""
@@ -50,11 +50,23 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     printToFile(new File(directory, "dynamic-functions.tex"), names)
   }
 
+  def writePreservables(): Unit = {
+    val names = sortFunctions(problem.dsk.preservables.toSeq).map(formatFunctionName).mkString(", ")
+    printToFile(new File(directory, "preservables.tex"), names)
+  }
+
+  def writeSpec(): Unit = {
+    val spec = scala.io.Source.fromFile(problem.specFile).mkString("")
+    printToFile(new File(directory, "SQLSpecAnnotated.scala"), spec)
+  }
+
   def write(): Unit = {
     writeLemmaClasses()
     writeStaticFunctions()
     writeDynamicFunctions()
+    writePreservables()
     writeBaselineLemmas(new File(directory, "baseline-lemmas.tex"))
+    writeSpec()
   }
 }
 

@@ -18,7 +18,7 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
   }
 
   def getPreservablesInvolving(termType: SortRef): Set[FunctionDef] = {
-    enquirer.retrievePredicates(Set(termType)) intersect problem.dsk.preservables
+    enquirer.retrievePreservables(Set(termType))
   }
 
   def getPredicatesInvolving(termType: SortRef): Set[FunctionDef] = {
@@ -42,16 +42,16 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
   def generatePreservationLemmas(fn: FunctionDef): Seq[Lemma] = {
     val result = new mutable.HashSet[Lemma]()
     for(predicate <- getPredicatesInvolving(fn.successfulOutType)) {
-      result ++= tryInvokePipeline(makePredicatePreservationGraphConstructor(fn, predicate))
+      if(predicate.inTypes.count(_ == fn.successfulOutType) == 1) {
+        result ++= tryInvokePipeline(makePredicatePreservationGraphConstructor(fn, predicate))
+      }
     }
-    if(fn.inTypes.count(_ == fn.successfulOutType) >= 1) {
-      for (relation <- getRelationsInvolving(fn.successfulOutType)) {
-        val matchingIndices = fn.inTypes.zipWithIndex.collect {
-          case (inType, idx) if inType == fn.successfulOutType => idx
-        }
-        for(idx <- matchingIndices) {
-          result ++= tryInvokePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx))
-        }
+    for (relation <- getRelationsInvolving(fn.successfulOutType)) {
+      val matchingIndices = fn.inTypes.zipWithIndex.collect {
+        case (inType, idx) if inType == fn.successfulOutType => idx
+      }
+      for(idx <- matchingIndices) {
+        result ++= tryInvokePipeline(makeRelationalPreservationGraphConstructor(fn, relation, idx))
       }
     }
     result.toSeq
@@ -82,7 +82,7 @@ abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGener
     lemmas.toMap
   }
 
-  def makeHints(tag: Seq[String], fn: FunctionDef): Option[Hints] = Hints.fromDSK(problem, fn, tag)
+  def makeHints(tag: Seq[String], fn: FunctionDef): Option[Hints]
 
   def makeProgressGraphConstructor(fn: FunctionDef): Option[GraphConstructor] = {
     makeHints(Seq("Progress"), fn).map(hints => new ProgressConstructor(problem, fn, hints))

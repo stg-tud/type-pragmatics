@@ -32,16 +32,25 @@ class ScalaSPLSpecificationOutput(input: Input,
     }.asPatch
   }
 
-  def makeLemmasString(): String = {
+  def makeLemmasString(preamble: Boolean = true, indent: Boolean = true): String = {
     val writer = new StringWriter()
     val prettyWriter = new PrettyPrintWriter(writer)
-    prettyWriter.indent() // we use a default indentation of 2 spaces
+    if(indent)
+      prettyWriter.indent() // we use a default indentation of 2 spaces
     val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
       override val printer: PrettyPrintWriter = prettyWriter
     }
-    prettyWriter.writeln("// The following lemmas have been automatically generated.")
-    for(lemma <- lemmas) {
+    if(preamble) {
+      prettyWriter.writeln("// The following lemmas have been automatically generated.")
       prettyWriter.newline()
+    }
+    var first = true
+    for(lemma <- lemmas) {
+      if(!first) {
+        prettyWriter.newline()
+      } else {
+        first = false
+      }
       prettyWriter.write("@Property")
       prettyWriter.newline()
       lemmaWriter.printTypingRule(lemma)
@@ -83,17 +92,28 @@ object ScalaSPLSpecificationOutput {
   def addLemmasToSpecification(input: Input,
                                progressLemmas: Map[FunctionDef, Seq[Lemma]],
                                preservationLemmas: Map[FunctionDef, Seq[Lemma]]): String = {
+    makeWriter(input, progressLemmas, preservationLemmas).generate()
+  }
+
+  private def makeWriter(input: Input,
+                        progressLemmas: Map[FunctionDef, Seq[Lemma]],
+                        preservationLemmas: Map[FunctionDef, Seq[Lemma]]): ScalaSPLSpecificationOutput = {
     val annotations = (flattenLemmas(progressLemmas, "ProgressProperty")
       ++ flattenLemmas(preservationLemmas, "PreservationProperty"))
     // sort lemmas by name
     val lemmas = (progressLemmas.flatMap(_._2).toSeq ++ preservationLemmas.flatMap(_._2).toSeq).sortBy(_.name)
-    val writer = new ScalaSPLSpecificationOutput(input, lemmas, annotations)
-    writer.generate()
+    new ScalaSPLSpecificationOutput(input, lemmas, annotations)
   }
 
   def addLemmasToSpecification(input: String,
                                progressLemmas: Map[FunctionDef, Seq[Lemma]],
                                preservationLemmas: Map[FunctionDef, Seq[Lemma]]): String = {
     addLemmasToSpecification(Input.VirtualFile("placeholder.scala", input), progressLemmas, preservationLemmas)
+  }
+
+  def generateLemmasString(input: Input,
+                           progressLemmas: Map[FunctionDef, Seq[Lemma]],
+                           preservationLemmas: Map[FunctionDef, Seq[Lemma]]): String = {
+    makeWriter(input, progressLemmas, preservationLemmas).makeLemmasString(preamble = false, indent = false)
   }
 }

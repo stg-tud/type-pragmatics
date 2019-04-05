@@ -46,7 +46,7 @@ class RefinementNode(val annotatedLemma: AnnotatedLemma) {
     }
   def ancestors: Set[RefinementNode] = (parents ++ parents.flatMap(_.ancestors)).toSet
 
-  def makeDotString(sb: StringBuilder, nodeID: String): Unit = {
+  def makeDotString(sb: StringBuilder, nodeID: String, detailed: Boolean = true): Unit = {
     val color = provabilityStatus match {
       case _ if selected => "green"
       case Unknown() => "gray"
@@ -56,9 +56,13 @@ class RefinementNode(val annotatedLemma: AnnotatedLemma) {
     }
     val notConstrained = lemma.boundVariables -- constrainedVariables
 
-    val label = ("\"" + lemma.toString.replace("\n", "\\n")
-                + s"\\n$provabilityStatus\\nopen=$open\\n"
-                + s"constrained=$constrainedVariables\\nnot constrained=$notConstrained\\npost=$postVariables" + "\"")
+    val label = if(detailed) {
+      ("\"" + lemma.toString.replace("\n", "\\n")
+        + s"\\n$provabilityStatus\\nopen=$open\\n"
+        + s"constrained=$constrainedVariables\\nnot constrained=$notConstrained\\npost=$postVariables" + "\"")
+    } else {
+      "\"\""
+    }
     sb.append(nodeID + s" [shape=box, label=$label, fillcolor=$color, style=filled];\n")
   }
 
@@ -86,29 +90,25 @@ class RefinementGraph(problem: Problem, val root: RefinementNode) {
     nodes.filter(_.provabilityStatus == status)
   }
 
-  def makeDotString(): String = {
+  def makeDotString(detailed: Boolean = true): String = {
     val builder = StringBuilder.newBuilder
     for(node <- nodes) {
-      node.makeDotString(builder, calculateNodeID(node))
+      node.makeDotString(builder, calculateNodeID(node), detailed)
     }
     builder.append("\n")
     for(node <- nodes; (refinement, child) <- node.refinedChildren) {
-      builder.append(s"${calculateNodeID(node)} -> ${calculateNodeID(child)} [label=" + "\"" + refinement + "\"];\n")
+      val label = if(detailed) refinement else ""
+      builder.append(s"${calculateNodeID(node)} -> ${calculateNodeID(child)} [label=" + "\"" + label + "\"];\n")
     }
     "digraph {\ngraph [fontsize = 8];\n" + builder.toString() + "}"
   }
 
-  def visualize(outputPath: File, ext: String = "png"): Unit = {
-    val dotFormatted = makeDotString()
-    val dotFile = new File(outputPath.getParentFile, outputPath.getName.replace(s".$ext", ".dot"))
+  def visualize(dotFile: File, detailed: Boolean = true): Unit = {
+    val dotFormatted = makeDotString(detailed)
     dotFile.createNewFile()
     val writer = new BufferedWriter(new FileWriter(dotFile))
     writer.write(dotFormatted)
     writer.close()
-    // dot -T<fileformat> <pathtodotfile> -o<outputpath>
-    val exitCode = s"dot -T$ext ${dotFile.getAbsolutePath} -o${outputPath.getAbsolutePath}".!
-    if (exitCode != 0)
-      throw new RuntimeException("Refinement Graph could not be visualized. This could be caused by the non-existence of the dot command.")
   }
 
   def refine(node: RefinementNode, refinement: Refinement): RefinementNode = {

@@ -47,12 +47,31 @@ class GeneratorEvaluator(problem: Problem,
     }.toSet
   }
 
+  def getBaselineLemmaClass(name: String): String = {
+    if(problem.dsk.progressProperties.values.flatten.exists(_.name == name))
+      "progress"
+    else if (problem.dsk.preservationProperties.values.flatten.exists(_.name == name))
+      "preservation"
+    else if (problem.dsk.auxiliaryProperties.values.flatten.exists(_.name == name))
+      "?"
+    else
+      "(unknown)"
+  }
+
   def progressLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.filter(_.name.contains("Progress"))
   }
 
   def preservationLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.filter(_.name.contains("Preservation"))
+  }
+
+  def predicatePreservationLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
+    preservationLemmas(lemmas).filter(_.name.contains("welltyped"))
+  }
+
+  def relationalPreservationLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
+    preservationLemmas(lemmas).filter(_.name.contains("sameLength"))
   }
 
   def lemmaMap(lemmas: Map[FunctionDef, Seq[Lemma]]): (Map[FunctionDef, Seq[Lemma]], Map[FunctionDef, Seq[Lemma]]) = {
@@ -67,13 +86,15 @@ class GeneratorEvaluator(problem: Problem,
 
   def generateGeneratedLine(function: FunctionDef, lemmas: Seq[Lemma]): String = {
     val generatedProgress = progressLemmas(lemmas)
-    val generatedPreservation = preservationLemmas(lemmas)
-    require((generatedProgress ++ generatedPreservation).toSet == lemmas.toSet)
+    val generatedPredicatePreservation = predicatePreservationLemmas(lemmas)
+    val generatedRelationalPreservation = relationalPreservationLemmas(lemmas)
+    require((generatedProgress ++ generatedPredicatePreservation ++ generatedRelationalPreservation).toSet == lemmas.toSet)
     //val equivalentProgress = equivalent intersect generatedProgress
     //val equivalentPreservation = equivalent intersect generatedPreservation
     s"""${formatFunctionName(function)} &
        | ${generatedProgress.size} &
-       | ${generatedPreservation.size} &
+       | ${generatedPredicatePreservation.size} &
+       | ${generatedRelationalPreservation.size} &
        | ${lemmas.size} \\\\""".stripMargin
   }
 
@@ -82,6 +103,9 @@ class GeneratorEvaluator(problem: Problem,
     val countLines = new mutable.ListBuffer[String]()
     val successLemmas = new mutable.HashMap[String, Boolean]()
     val successLines = new mutable.ListBuffer[String]()
+    var totalGeneratedProgress = 0
+    var totalGeneratedPredicatePreservation = 0
+    var totalGeneratedRelationalPreservation = 0
     sortFunctions((problem.dsk.dynamicFunctions ++ problem.dsk.staticFunctions).toSeq).foreach { function =>
       val lemmas = result.getOrElse(function, Seq())
       val name = function.signature.name
@@ -94,13 +118,15 @@ class GeneratorEvaluator(problem: Problem,
           LemmaEquivalence.isEquivalent(expected, generated)
         )
       )
-      if(lemmas.nonEmpty) {
+      if(problem.dsk.dynamicFunctions.contains(function) && function.signature.out.name != "Bool") {
         // all lemmas
         printLemmas(new File(outputDirectory, s"generated-$name.txt"), lemmas)
         printLemmas(new File(outputDirectory, s"equivalent-$name.txt"), equivalentLemmas)
+        totalGeneratedProgress += progressLemmas(lemmas).size
+        totalGeneratedPredicatePreservation += predicatePreservationLemmas(lemmas).size
+        totalGeneratedRelationalPreservation += relationalPreservationLemmas(lemmas).size
         countLines += generateGeneratedLine(function, lemmas)
       }
-
       if(function.signature.name != "reduce") {
         val sortedExpectedLemmas = expectedLemmas.toSeq.sortBy(_.name)
         sortedExpectedLemmas.foreach { lemma =>
@@ -109,10 +135,18 @@ class GeneratorEvaluator(problem: Problem,
         }
       }
     }
-    successLemmas.keys.toSeq.sortBy(_.toLowerCase).foreach {lemmaName =>
-      successLines += s"\\C{${lemmaName}} &"
-      successLines += (if(successLemmas(lemmaName)) "\\checkmark" else "$\\times$") + "\\\\"
+    val baselineOrdering = successLemmas.keys.groupBy(getBaselineLemmaClass).mapValues(it => it.toSeq.sortBy(_.toLowerCase))
+    baselineOrdering.keys.toSeq.sortBy(_.toLowerCase).reverse.foreach { cls =>
+      baselineOrdering(cls).foreach { lemmaName =>
+        successLines += s"\\cod{${lemmaName}} & ${getBaselineLemmaClass(lemmaName)} &"
+        successLines += (if (successLemmas(lemmaName)) "\\checkmark" else "$\\times$") + "\\\\"
+      }
     }
+    countLines += "\\addlinespace"
+    countLines += s"total & $totalGeneratedProgress " +
+      s"& $totalGeneratedPredicatePreservation " +
+      s"& $totalGeneratedRelationalPreservation " +
+      s"& ${totalGeneratedProgress + totalGeneratedPredicatePreservation + totalGeneratedRelationalPreservation} \\\\"
     printToFile(new File(outputDirectory, "counts-table.tex"), countLines.mkString("\n"))
     printToFile(new File(outputDirectory, "success-table.tex"), successLines.mkString("\n"))
     if(writeSpec) {
@@ -122,6 +156,8 @@ class GeneratorEvaluator(problem: Problem,
       val (progress, preservation) = lemmaMap(result)
       val updated = ScalaSPLSpecificationOutput.addLemmasToSpecification(input, progress, preservation)
       printToFile(new File(outputDirectory, "UpdatedSpec.scala"), updated)
+      val onlyLemmas = ScalaSPLSpecificationOutput.generateLemmasString(input, progress, preservation)
+      printToFile(new File(outputDirectory, "Lemmas.scala"), onlyLemmas)
     }
     /*writeDynamicFunctions()
     writeStaticFunctions()

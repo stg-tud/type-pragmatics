@@ -189,7 +189,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @PreservationProperty("attachColToFrontRawPreservesWellTypedRaw")
   @PreservationProperty("attachColToFrontRawPreservesRowCount")
   @Recursive(0, 1)
-  @LemmaGeneratorHint(pattern =Seq("Preservation"),
+  @LemmaGeneratorHint(pattern = Seq("Preservation"),
     additionalPremises = Seq(
       "tt1 == ttcons(_1, _2, ttempty())",
       "sameLength(rt1, rt2)",
@@ -200,7 +200,6 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
     additionalPremises = Seq(
       "tt == ttcons(_1, _2, tt2)"
     ),
-    irrelevantVariables = Seq("_1", "_2")
   )
   @LemmaGeneratorHint(pattern = Seq("Preservation", "sameLength"),
     irrelevantVariables = Seq("rt2")
@@ -428,7 +427,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @PreservationProperty("projectEmptyColPreservesRowCount")
   @Recursive(0)
   @LemmaGeneratorHint(pattern = Seq("Preservation", "welltypedRawtable"),
-    additionalPremises = Seq("_0 == ttempty()"))
+    additionalPremises = Seq("tt == ttempty()"))
   @LemmaGeneratorHint(pattern = Seq("Preservation"),
     irrelevantVariables = Seq("rt1"))
   def projectEmptyCol(rt: RawTable): RawTable = rt match {
@@ -523,6 +522,7 @@ object SQLSpecAnnotated extends ScalaSPLSpecification {
   @LemmaGeneratorHint(irrelevantVariables = Seq(
     "p", "al"
   ))
+  @LemmaGeneratorHint(pattern = Seq("Preservation", "sameLength"), suppress = true)
   def filterRows(rt: RawTable, attrL: AttrL, pred: Pred): RawTable = (rt, attrL, pred) match {
     case (tempty(), _, _) => tempty()
     case (tcons(r, rtr), al, p) =>
