@@ -13,6 +13,11 @@ import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificatio
 import scala.collection.mutable
 import scala.meta.inputs.Input
 
+/** GeneratorEvaluator generates lemmas using a `LemmaGenerator` instance and serializes them to `lemmaStoreFile`.
+  * Then, it evaluates the set of generated lemmas and writes its analysis to `outputDirectory`.
+  * If `lemmaStoreFile` exists already, lemma generation is skipped and the generated lemmas are read from
+  * `lemmaStoreFile` instead.
+  */
 class GeneratorEvaluator(problem: Problem,
                          generator: LemmaGenerator,
                          lemmaStoreFile: File,
@@ -89,8 +94,6 @@ class GeneratorEvaluator(problem: Problem,
     val generatedPredicatePreservation = predicatePreservationLemmas(lemmas)
     val generatedRelationalPreservation = relationalPreservationLemmas(lemmas)
     require((generatedProgress ++ generatedPredicatePreservation ++ generatedRelationalPreservation).toSet == lemmas.toSet)
-    //val equivalentProgress = equivalent intersect generatedProgress
-    //val equivalentPreservation = equivalent intersect generatedPreservation
     s"""${formatFunctionName(function)} &
        | ${generatedProgress.size} &
        | ${generatedPredicatePreservation.size} &
@@ -98,6 +101,17 @@ class GeneratorEvaluator(problem: Problem,
        | ${lemmas.size} \\\\""".stripMargin
   }
 
+  /**
+    * Write:
+    *   - counts-table.tex, which contains the number of generated lemmas per dynamic function and class
+    *   - success-table.tex, which compares the generated lemmas against the set of baselines
+    *   - generated-*.txt, which contains the generated lemmas as ScalaSPL and LaTeX
+    *   - equivalent-*.txt, which contains the lemmas that are \approx-equivalent to the respective
+    *                       baseline lemmas as ScalaSPL and LaTeX
+    * In case `writeSpec` is true:
+    *   - Lemmas.scala, which contains all generated lemmas as ScalaSPL
+    *   - UpdatedSpec.scala, which contains the updated ScalaSPL specification with generated lemmas and DSK annotations
+    */
   def evaluate(writeSpec: Boolean = false): Unit = {
     val result = lemmaStore.loadOrGenerate(generator)
     val countLines = new mutable.ListBuffer[String]()
@@ -150,7 +164,6 @@ class GeneratorEvaluator(problem: Problem,
     printToFile(new File(outputDirectory, "counts-table.tex"), countLines.mkString("\n"))
     printToFile(new File(outputDirectory, "success-table.tex"), successLines.mkString("\n"))
     if(writeSpec) {
-      // write updated spec
       val specString = scala.io.Source.fromFile(problem.specFile).mkString("")
       val input = Input.VirtualFile(problem.specFile.getAbsolutePath, specString)
       val (progress, preservation) = lemmaMap(result)
@@ -159,10 +172,6 @@ class GeneratorEvaluator(problem: Problem,
       val onlyLemmas = ScalaSPLSpecificationOutput.generateLemmasString(input, progress, preservation)
       printToFile(new File(outputDirectory, "Lemmas.scala"), onlyLemmas)
     }
-    /*writeDynamicFunctions()
-    writeStaticFunctions()
-    writeLemmaClasses()
-    writeBaselineLemmas(new File(Directory, "baseline-lemmas.txt"))Ü*/
   }
 
 

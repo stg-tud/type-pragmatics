@@ -7,6 +7,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLa
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
+/** Write general information about the case study to the directory `directory`. */
 class GeneralInformation(problem: Problem, directory: File) extends EvaluationHelpers {
   ensureEmpty(directory)
 
@@ -60,6 +61,14 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     printToFile(new File(directory, "SQLSpecAnnotated.scala"), spec)
   }
 
+  /** This writes:
+    *   - lemma-classes.tex, which contains the classification of baseline lemmas
+    *   - static-functions.tex, which contains all functions annotated with @Static
+    *   - dynamic-functions.tex, which contains all functions annotated with @Dynamic
+    *   - preservables.tex, which contains all functions annotated with @Preservable
+    *   - baseline-lemmas.tex, which contains LaTeX commands for all baseline lemmas
+    *   - SQLSpecAnnotated.scala, which contains the original ScalaSPL specification
+    */
   def write(): Unit = {
     writeLemmaClasses()
     writeStaticFunctions()

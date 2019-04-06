@@ -11,6 +11,8 @@ import scalafix.internal.patch.PatchInternals
 import scala.meta._
 import scalafix.v1._
 
+import scala.meta.inputs.Input
+
 /** Update a ScalaSPL specification with a set of generated lemmas and @...Property annotations.
   * This class is implemented using ScalaFix. */
 class ScalaSPLSpecificationOutput(input: Input,
@@ -135,5 +137,14 @@ object ScalaSPLSpecificationOutput {
                            progressLemmas: Map[FunctionDef, Seq[Lemma]],
                            preservationLemmas: Map[FunctionDef, Seq[Lemma]]): String = {
     makeWriter(input, progressLemmas, preservationLemmas).makeLemmasString(preamble = false, indent = false)
+  }
+
+  /** Generate an updated ScalaSPL specification from the given problem and the generated lemmas */
+  def updateSpecification(problem: Problem, generator: LemmaGenerator): String = {
+    val specString = scala.io.Source.fromFile(problem.specFile).mkString("")
+    val input = Input.VirtualFile(problem.specFile.getAbsolutePath, specString)
+    val progress = generator.generateProgressLemmas()
+    val preservation = generator.generatePreservationLemmas()
+    addLemmasToSpecification(input, progress, preservation)
   }
 }

@@ -6,11 +6,7 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
 // TODO what about dsk Annotations? Generics to support them?
-/** Generate LaTeX code for lemmas. The LaTeX code needs the following definitions:
-  *
-  * \usepackage{bussproofs}
-  * \newcommand{\I}[1]{\mathit{#1}}
-  */
+/** Generate LaTeX code for lemmas. */
 trait LaTeXLemmaPrinter {
   val printer: PrettyPrintWriter
 

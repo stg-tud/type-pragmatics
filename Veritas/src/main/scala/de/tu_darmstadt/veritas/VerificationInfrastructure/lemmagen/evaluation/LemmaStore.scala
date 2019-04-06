@@ -6,6 +6,9 @@ import java.util.Calendar
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaGenerator}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
+/** Given a lemma generator, generate the set of lemmas and serialize it to `file`.
+  * If `file` already exists, skip lemma generation and instead read it from `file`.
+  */
 class LemmaStore(file: File) {
   def serialize(lemmas: Map[FunctionDef, Seq[Lemma]]): Unit = {
     val stream = new ObjectOutputStream(new FileOutputStream(file))

@@ -46,7 +46,7 @@ class PredicatePreservationConstructor(val problem: Problem,
     // we add a premise that postulates a successful application of `function`
     val functionApplicationRefinement =
       Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
-    var lemma = functionApplicationRefinement.refine(problem, lemma).getOrElse(lemma)
+    var lemma = functionApplicationRefinement.refine(problem, baseLemma).getOrElse(baseLemma)
     // iteratively build the set of constrained variables
     var constrainedVars = predicateArgs.toSet
     // we find all arguments of `function` with type `termType`.
