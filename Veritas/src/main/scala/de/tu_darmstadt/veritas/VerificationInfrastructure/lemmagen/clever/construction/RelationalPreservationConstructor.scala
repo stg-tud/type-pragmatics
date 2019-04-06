@@ -6,36 +6,35 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{Annot
 import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast.{FunctionExpJudgment, MetaVar, SortRef}
 
+/** Refinement graph constructor for relational preservation lemmas. */
 class RelationalPreservationConstructor(val problem: Problem,
                                         function: FunctionDef,
-                                        predicate: FunctionDef,
-                                        termIndex: Int,
+                                        relation: FunctionDef,
+                                        argIndex: Int,
                                         val hints: Hints) extends LemmaGraphConstructor {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
   def termType: SortRef = function.successfulOutType
 
-  // --------------------
-  // [predicate]([t_1], [t_2])
-  // [producer]([], ...) =  []
-  // producer arguments can be fresh or bound with matching types
-  // the success variable can be any of the arguments of ``predicate``, with matching types
+  // generate fresh variable symbols for the invocation of `function`, as well as for its result
   private val resultVar :: functionArgs = Assignments.generateSimpleSingle(termType +: function.inTypes)
-  private val inVar = functionArgs(termIndex)
+  // retrieve the i-th argument with i = argIndex
+  private val inVar = functionArgs(argIndex)
   require(inVar.sortType == termType)
-  private val predicateArgs = Seq(inVar, resultVar)
+  // build arguments for the relation in consequence
+  private val relationArgs = Seq(inVar, resultVar)
 
   override def invocationArguments: Seq[MetaVar] = functionArgs
 
   def generateBase(): AnnotatedLemma = {
-    val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
+    // build a lemma whose consequence contains an invocation of `relation`
+    val invocationExp = FunctionExpApp(relation.name, Assignments.wrapMetaVars(relationArgs))
     val judgment = FunctionExpJudgment(invocationExp)
-    val baseLemma = new Lemma(s"${function.name}Preservation${predicate.name}$termIndex", Seq(), Seq(judgment))
-    // for each matching in var, add a Predicate refinement
-    var lemma = baseLemma
-    val r = Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
-    lemma = r.refine(problem, lemma).getOrElse(lemma)
+    val baseLemma = new Lemma(s"${function.name}Preservation${relation.name}$argIndex", Seq(), Seq(judgment))
+    // add a successful invocation of `function`
+    val lemma =  Refinement.SuccessfulApplication(function, Assignments.wrapMetaVars(functionArgs), resultVar)
+      .refine(problem, baseLemma).getOrElse(baseLemma)
     AnnotatedLemma(lemma, Set(resultVar), Set(resultVar))
   }
 

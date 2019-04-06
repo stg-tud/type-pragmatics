@@ -7,6 +7,11 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing.DefaultPostprocessor
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
+/** This class instantiates AbstractCleverLemmaGenerator with a Vampire oracle consultation step
+  * and the default selection and postprocessing steps.
+  * However, the lemma generator ignores all hints given in the specification.
+  * This class implements the lemma generation algorithm Clever.
+  */
 class CleverLemmaGenerator(problem: Problem) extends AbstractCleverLemmaGenerator(problem) {
   val oracleConsultation = new VampireOracleConsultation(problem)
   val selectionHeuristic = new DefaultSelectionHeuristic()

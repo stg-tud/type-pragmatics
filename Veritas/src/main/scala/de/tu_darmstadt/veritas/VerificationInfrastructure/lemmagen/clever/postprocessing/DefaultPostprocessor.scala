@@ -6,9 +6,16 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Probl
 import de.tu_darmstadt.veritas.backend.ast.function.{FunctionExpApp, FunctionExpNeq, FunctionMeta}
 import de.tu_darmstadt.veritas.backend.ast.{ExistsJudgment, FunctionExpJudgment, SortRef}
 
+/** Postprocess lemmas:
+  * Reformulate progress lemmas, sort the premises of lemmas, generate unique names for lemmas
+  * and finally return them as a lexicographically sorted sequence.
+  */
 class DefaultPostprocessor(problem: Problem) extends Postprocessor {
   implicit private val enquirer = problem.enquirer
 
+  /** Return a modification of `lemmas`, with all progress lemmas being reformulated
+    * such that their consequence contains an existential formula.
+    */
   def reformulateProgressLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.map(lemma =>
       lemma.consequences.head match {
@@ -17,6 +24,7 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
           val outType = enquirer.dataTypes.collect {
             case (name, (_, constructors)) if constructors.exists(_.name == failConstructorName) => SortRef(name)
           }.head
+          // construct a new consequence
           val successfulOutType = enquirer.retrieveFailableConstructors(outType)._2.in.head
           val (_, successConstructor) = enquirer.retrieveFailableConstructors(outType)
           val assignments = Assignments.generate(Seq(Constraint.fresh(successfulOutType)), lemma.boundVariables)
@@ -29,6 +37,7 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
       })
   }
 
+  /** Return a modification of `lemmas`, in which each lemma is assigned a unique name derived from its hash code  */
   def renameLemmas(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.map { lemma =>
       val code = lemma.hashCode
@@ -37,6 +46,7 @@ class DefaultPostprocessor(problem: Problem) extends Postprocessor {
     }
   }
 
+  /** Return a modification of `lemmas`, in which the premises of each lemma are sorted lexicographically. */
   def sortPremises(lemmas: Seq[Lemma]): Seq[Lemma] = {
     lemmas.map { lemma =>
       new Lemma(lemma.name, lemma.premises.sortBy(_.toString.stripPrefix("(").stripPrefix("~")), lemma.consequences)

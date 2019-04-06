@@ -2,7 +2,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.evaluation
 
 import java.io.{File, FileWriter}
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.ScalaSPLSpecificationOutput
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.ScalaSPLSpecificationOutput
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaEquivalence, LemmaGenerator, Problem}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLaTeXLemmaPrinter
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
