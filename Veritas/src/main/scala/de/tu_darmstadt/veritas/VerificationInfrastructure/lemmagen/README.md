@@ -1,6 +1,6 @@
 # Automated Lemma Generation for Soundness Proofs of Type Systems for DSLs
 
-by @fredreichbier
+by Friedrich Weber, https://github.com/fredreichbier
 
 This package implements three algorithms for automated lemma generation:
 
