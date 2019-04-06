@@ -6,7 +6,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.GraphConstructor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLaTeXLemmaPrinter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import org.scalatest.FunSuite
 
@@ -36,7 +36,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
 
   def printRules(lemmas: Seq[Lemma]) = {
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-    val lemmaPrettyPrinter = new SimpleLemmaPrinter {
+    val lemmaPrettyPrinter = new SimpleLaTeXLemmaPrinter {
       override val printer: PrettyPrintWriter = outputPrettyPrinter
     }
     lemmas.foreach { lemma =>

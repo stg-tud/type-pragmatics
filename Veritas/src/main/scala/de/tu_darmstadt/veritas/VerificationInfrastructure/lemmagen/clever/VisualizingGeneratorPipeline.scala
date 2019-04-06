@@ -7,7 +7,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constr
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.selection.SelectionHeuristic
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle.OracleConsultation
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing.Postprocessor
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLaTeXLemmaPrinter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 
@@ -28,7 +28,7 @@ class VisualizingGeneratorPipeline(val directory: File,
 
   def writeLemmasLaTeX(file: File, lemmas: Seq[Lemma]): Unit = {
     val writer = new FileWriter(file)
-    val latexWriter = new SimpleLemmaPrinter {
+    val latexWriter = new SimpleLaTeXLemmaPrinter {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
     for (lemma <- lemmas) {

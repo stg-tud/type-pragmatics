@@ -3,7 +3,7 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.evaluation
 import java.io.{File, FileWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Problem
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLaTeXLemmaPrinter
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
@@ -12,7 +12,7 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
 
   def writeBaselineLemmas(file: File): Unit = {
     val writer = new FileWriter(file)
-    val latexWriter = new SimpleLemmaPrinter {
+    val latexWriter = new SimpleLaTeXLemmaPrinter {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
     for (lemma <- problem.dsk.properties) {

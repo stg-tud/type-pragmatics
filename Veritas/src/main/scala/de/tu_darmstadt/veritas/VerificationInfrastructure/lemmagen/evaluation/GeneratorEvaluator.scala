@@ -4,7 +4,7 @@ import java.io.{File, FileWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.ScalaSPLSpecificationOutput
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaEquivalence, LemmaGenerator, Problem}
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLaTeXLemmaPrinter
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -27,7 +27,7 @@ class GeneratorEvaluator(problem: Problem,
     val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
-    val latexWriter = new SimpleLemmaPrinter {
+    val latexWriter = new SimpleLaTeXLemmaPrinter {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
     for (lemma <- lemmas) {
