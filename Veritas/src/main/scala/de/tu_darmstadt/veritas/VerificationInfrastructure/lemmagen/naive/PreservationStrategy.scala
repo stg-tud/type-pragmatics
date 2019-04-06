@@ -7,24 +7,26 @@ import de.tu_darmstadt.veritas.backend.ast.function.{FunctionDef, FunctionExpApp
 
 import scala.collection.mutable
 
+/** Refinement Strategy for generating predicate and relational preservation for a specific function */
 class PreservationStrategy(override val problem: Problem, function: FunctionDef)
   extends RefinementStrategy with StrategyHelpers {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
 
   implicit private val enquirer: LemmaGenSpecEnquirer = problem.enquirer
 
-  def buildRelationalPreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
-    // build preservation lemma that postulates that ``predicate`` holds for
+  /** Build a sequence of base relational preservation lemmas for `relation`. */
+  def buildRelationalPreservationLemmas(relation: FunctionDef): Seq[Lemma] = {
+    // build preservation lemma that postulates that `relation` holds for
     // the original term and for the reduction step
     // -------------------------
-    // [predicate]([t_1], [t_2])
-    val predicateArgs = Assignments.generateSimpleSingle(predicate.inTypes)
-    val Seq(termVar, reducedTermVar) = predicateArgs
-    val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
+    // [relation]([t_1], [t_2])
+    val relationArgs = Assignments.generateSimpleSingle(relation.inTypes)
+    val Seq(termVar, reducedTermVar) = relationArgs
+    val invocationExp = FunctionExpApp(relation.name, Assignments.wrapMetaVars(relationArgs))
     val judgment = FunctionExpJudgment(invocationExp)
-    val baseLemma = new Lemma(s"${function.name}${predicate.name}Preservation", Seq(), Seq(judgment))
-    // we now have the conclusion, we just need to choose the input argument accordingly
-    // find the input argument index of the ``producer``
+    val baseLemma = new Lemma(s"${function.name}${relation.name}Preservation", Seq(), Seq(judgment))
+    // we now have the conclusion, we just need to choose the argument t_1 accordingly
+    // find the input argument index of the with matching type
     val termIndex = function.inTypes.indexOf(function.successfulOutType)
     // use fresh or bound variables for all producer arguments,
     // *except* for t_1 which should be t_1
@@ -36,7 +38,9 @@ class PreservationStrategy(override val problem: Problem, function: FunctionDef)
     refine(baseLemma, refinements)
   }
 
+  /** Build a sequence of base predicate preservation lemmas for `predicate`. */
   def buildPredicatePreservationLemmas(predicate: FunctionDef): Seq[Lemma] = {
+    // generate the conclusion first
     // --------------------
     // [predicate]([], ...)
     val outType = function.successfulOutType
@@ -44,37 +48,42 @@ class PreservationStrategy(override val problem: Problem, function: FunctionDef)
     val invocationExp = FunctionExpApp(predicate.name, Assignments.wrapMetaVars(predicateArgs))
     val judgment = FunctionExpJudgment(invocationExp)
     val baseLemma = new Lemma(s"${function.name}${predicate.name}Preservation", Seq(), Seq(judgment))
-    // [producer]([], ...) =  []
-    // producer arguments can be fresh or bound with matching types
-    val producerArgumentsConstraints = Constraint.freshOrBound(function.inTypes)
+    // now add a corresponding premise that invokes `function`:
+    // [function]([], ...) =  []
+    // function arguments can be fresh or bound with matching types
+    val functionArgumentsConstraints = Constraint.freshOrBound(function.inTypes)
     // the success variable can be any of the arguments of ``predicate``, with matching types
     val matchingPredicateArgs = predicateArgs.filter(_.sortType == outType)
     val successVarConstraint = Constraint.Union(matchingPredicateArgs.map(Constraint.Fixed).toSet)
-    // we do not need refinements that postulate that the producer returns its argument
+    // we do not need refinements that postulate that the function returns its argument
     val baseLemmas = refine(baseLemma,
-      selectSuccessfulApplication(baseLemma, function, producerArgumentsConstraints, successVarConstraint)
+      selectSuccessfulApplication(baseLemma, function, functionArgumentsConstraints, successVarConstraint)
       .filterNot(r => r.arguments contains FunctionMeta(r.result)))
+    // add premises that postulate that `predicate` holds:
     // [predicate]([], ...)
     val evolvedLemmas = baseLemmas.flatMap(lemma => {
       val constraints = Constraint.freshOrBound(predicate.inTypes)
       refine(lemma, selectPredicate(lemma, predicate, constraints))
     })
-    /*baseLemmas ++*/ evolvedLemmas
+    evolvedLemmas
   }
 
+  /** Generate all base preservation lemmas. */
   override def generateBase(): Seq[Lemma] = {
-    // find all argument positions which take successful output type
-    // generate 2 types of preservation lemmas:
     val lemmas = new mutable.MutableList[Lemma]()
     val outType = function.successfulOutType
+    // if our successful return sort appears exactly once as an argument sort,
+    // build relational preservation lemmas
     if(function.inTypes.count(_ == outType) == 1) {
-      val predicates = enquirer
+      // find all matching preservable relations
+      val relations = enquirer
         .retrievePreservables(Set(function.successfulOutType))
         .filter(_.inTypes == Seq(outType, outType))
-      predicates.foreach(predicate => {
-        lemmas ++= buildRelationalPreservationLemmas(predicate)
+      relations.foreach(relation => {
+        lemmas ++= buildRelationalPreservationLemmas(relation)
       })
     }
+    // build predicate preservation lemmas
     for(predicate <- enquirer.retrievePreservables(Set(outType)))
       if(predicate.inTypes.count(_ == outType) == 1)
        lemmas ++= buildPredicatePreservationLemmas(predicate)
