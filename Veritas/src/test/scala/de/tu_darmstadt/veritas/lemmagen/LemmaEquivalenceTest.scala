@@ -9,15 +9,11 @@ import de.tu_darmstadt.veritas.scalaspl.dsk.VeritasDomainSpecificKnowledgeBuilde
 import de.tu_darmstadt.veritas.scalaspl.translator.ScalaSPLTranslator
 import org.scalatest.FunSuite
 
+/** Sanity check: check that every baseline lemma is \approx-equivalent to itself */
 class LemmaEquivalenceTest extends FunSuite {
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/scalaspl/SQLSpec.scala")
   val module = new ScalaSPLTranslator().translate(file)
   val dsk = VeritasDomainSpecificKnowledgeBuilder().build(file)
-
-  /*test("Reordering of typing rules") {
-    val enquirer = new VeritasSpecEnquirer(module)
-    val projectTableProgress = dsk.lookupByFunName(dsk.progressProperties, "projectTable")
-  }*/
 
   (dsk.progressProperties.values.flatten ++ dsk.preservationProperties.values.flatten).foreach(rule => {
     test(s"Self-equivalence of ${rule.name}") {

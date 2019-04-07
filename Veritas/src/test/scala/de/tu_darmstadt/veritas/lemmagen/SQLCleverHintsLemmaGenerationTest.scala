@@ -13,8 +13,8 @@ import org.scalatest.FunSuite
 import scala.collection.mutable
 import scala.meta.inputs.Input
 
-class SQLCleverLemmaGenerationTest extends FunSuite {
-  //val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
+/** Test CleverHints lemma generator and write results to directory generated/ */
+class SQLCleverHintsLemmaGenerationTest extends FunSuite {
   val Directory = new File("generated")
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
   val problem = new Problem(file)

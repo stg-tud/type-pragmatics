@@ -30,6 +30,6 @@ trait LemmaGenerator {
     val input = Input.VirtualFile(problem.specFile.getAbsolutePath, specString)
     val progress = generateProgressLemmas()
     val preservation = generatePreservationLemmas()
-    ScalaSPLSpecificationOutput.generateLemmasString(input, progress, preservation)
+    ScalaSPLSpecificationOutput.addLemmasToSpecification(input, progress, preservation)
   }
 }

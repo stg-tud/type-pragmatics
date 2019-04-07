@@ -8,6 +8,7 @@ import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef}
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 import org.scalatest.FunSuite
 
+/** Some small tests for Assignments */
 class AssignmentsTest extends FunSuite {
   val TInt = SortRef("Int")
   val TString = SortRef("String")
