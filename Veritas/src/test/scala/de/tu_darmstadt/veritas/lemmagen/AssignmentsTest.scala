@@ -105,7 +105,7 @@ class AssignmentsTest extends FunSuite {
 
   test("assignments and lemmas") {
     import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
-    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
     val problem = new Problem(file)
     implicit val enquirer = problem.enquirer
     val projectTableProgress = problem.dsk.properties.find(_.name == "projectTableProgress").get
