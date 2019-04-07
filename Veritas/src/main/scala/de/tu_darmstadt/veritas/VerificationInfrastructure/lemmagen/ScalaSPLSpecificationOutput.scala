@@ -2,7 +2,6 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 
 import java.io.StringWriter
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter

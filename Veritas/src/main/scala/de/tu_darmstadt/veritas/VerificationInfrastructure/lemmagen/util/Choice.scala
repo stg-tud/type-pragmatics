@@ -9,7 +9,7 @@ case class FreshChoice(typ: SortRef) extends Choice
 /** Assume we have a set of available variables (along with their types) and a
   * constraint (see Constraint).
   * This object then generates a set of choices for the constraint.
-  * An element of the set is one of the following:
+  * A choice is one of the following:
   *
   *   VariableChoice(mv), which means that the variable `mv` can be chosen
   *   FreshChoice(typ), which means that a fresh variable of type `type` can be chosen
