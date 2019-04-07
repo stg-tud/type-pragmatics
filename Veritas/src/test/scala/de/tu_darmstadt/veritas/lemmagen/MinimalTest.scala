@@ -10,7 +10,7 @@ object MinimalTest {
     val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
     val problem = new Problem(file)
     val generator = new CleverHintsLemmaGenerator(problem)
-    val updatedSpec = ScalaSPLSpecificationOutput.updateSpecification(problem, generator)
+    val updatedSpec = generator.generateAndUpdateSpecification()
     println(updatedSpec)
   }
 }

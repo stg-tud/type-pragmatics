@@ -138,13 +138,4 @@ object ScalaSPLSpecificationOutput {
                            preservationLemmas: Map[FunctionDef, Seq[Lemma]]): String = {
     makeWriter(input, progressLemmas, preservationLemmas).makeLemmasString(preamble = false, indent = false)
   }
-
-  /** Generate an updated ScalaSPL specification from the given problem and the generated lemmas */
-  def updateSpecification(problem: Problem, generator: LemmaGenerator): String = {
-    val specString = scala.io.Source.fromFile(problem.specFile).mkString("")
-    val input = Input.VirtualFile(problem.specFile.getAbsolutePath, specString)
-    val progress = generator.generateProgressLemmas()
-    val preservation = generator.generatePreservationLemmas()
-    addLemmasToSpecification(input, progress, preservation)
-  }
 }

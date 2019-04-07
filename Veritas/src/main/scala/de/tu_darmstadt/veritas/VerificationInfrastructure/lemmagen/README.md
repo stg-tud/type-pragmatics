@@ -17,8 +17,8 @@ val generator = new CleverHintsLemmaGenerator(problem)
 val lemmas = generator.generateLemmas()
 ```
 
-Alternatively, you can write the generated lemmas to an updated ScalaSPL specification as follows:
+Alternatively, you can generate lemmas and produce an updated ScalaSPL specification as follows:
 ```scala
-val updatedSpec = ScalaSPLSpecificationOutput.updateSpecification(problem, generator)
+val updatedSpec = generator.generateAndUpdateSpecification()
 println(updatedSpec)
 ```

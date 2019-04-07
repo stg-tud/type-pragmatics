@@ -3,12 +3,14 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 import scala.collection.mutable
+import scala.meta.inputs.Input
 
 /** Abstract trait for lemma generators for progress and preservation lemmas.
   * This trait is implemented by `NaiveLemmaGenerator`, `CleverLemmaGenerator`
   * and `CleverHintsLemmaGenerator`.
   */
 trait LemmaGenerator {
+  def problem: Problem
   def generateProgressLemmas(): Map[FunctionDef, Seq[Lemma]]
   def generatePreservationLemmas(): Map[FunctionDef, Seq[Lemma]]
 
@@ -20,5 +22,14 @@ trait LemmaGenerator {
     for((fn, lemmas) <- generatePreservationLemmas())
       generatedLemmas(fn) ++= lemmas
     generatedLemmas.toMap
+  }
+
+  /** Generate lemmas and produce an updated ScalaSPL specification */
+  def generateAndUpdateSpecification(): String = {
+    val specString = scala.io.Source.fromFile(problem.specFile).mkString("")
+    val input = Input.VirtualFile(problem.specFile.getAbsolutePath, specString)
+    val progress = generateProgressLemmas()
+    val preservation = generatePreservationLemmas()
+    ScalaSPLSpecificationOutput.generateLemmasString(input, progress, preservation)
   }
 }

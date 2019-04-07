@@ -16,7 +16,7 @@ import scala.collection.mutable
   *    `makeHints` method. Hence, this class is used as a base for
   *    both Clever and CleverHints.
   */
-abstract class AbstractCleverLemmaGenerator(problem: Problem) extends LemmaGenerator {
+abstract class AbstractCleverLemmaGenerator(val problem: Problem) extends LemmaGenerator {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
   implicit private val enquirer = problem.enquirer
 

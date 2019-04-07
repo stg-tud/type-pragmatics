@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, Lemma
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
 /** The NaiveLemmaGenerator implements the Naive algorithm with a fixed maximum number of premises. */
-class NaiveLemmaGenerator(problem: Problem, maxPremises: Int = 4) extends LemmaGenerator {
+class NaiveLemmaGenerator(val problem: Problem, maxPremises: Int = 4) extends LemmaGenerator {
   def preservationFunctions: Set[FunctionDef] = {
     problem.enquirer.dynamicFunctions.filterNot(fn => fn.signature.out.name == "Bool")
   }
