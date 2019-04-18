@@ -15,6 +15,8 @@ libraryDependencies += "net.ruippeixotog" %% "scala-scraper" % "2.1.0"
 
 libraryDependencies += "org.scalameta" %% "scalameta" % "4.1.0"
 
+libraryDependencies += "ch.epfl.scala" % "scalafix-core_2.12" % "0.9.4"
+
 unmanagedJars in Compile += file("lib/scalaz3_2.11-3.0.jar")
 
 assemblyJarName in assembly := "Veritas.jar"

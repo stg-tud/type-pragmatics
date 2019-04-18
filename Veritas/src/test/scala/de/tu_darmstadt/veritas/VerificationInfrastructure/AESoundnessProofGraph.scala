@@ -3,13 +3,14 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure
 import java.io.{File, PrintWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.specqueries.VeritasSpecEnquirer
+import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.ApplySolveToLeaves
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.{CaseDistinction, Solve, StructuralInduction}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.visualizer.Dot
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.inputdsl.{FunctionDSL, SymTreeDSL}
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledgeBuilder
+import de.tu_darmstadt.veritas.scalaspl.dsk.VeritasDomainSpecificKnowledgeBuilder
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 import de.tu_darmstadt.veritas.scalaspl.translator.{FunctionExpressionTranslator, ScalaSPLTranslator}
 import de.tu_darmstadt.veritas.scalaspl.util.ScalaMetaUtils
@@ -22,7 +23,7 @@ class AESoundnessProofGraph(storefile: File) {
   val fullAESpec: Module = new ScalaSPLTranslator().translate(sourcefile)
 
   //collect domain-specific knowledge
-  val builder = DomainSpecificKnowledgeBuilder()
+  val builder = VeritasDomainSpecificKnowledgeBuilder()
   val dsk = builder.build(sourcefile)
 
   val g: ProofGraphXodus[VeritasConstruct, VeritasFormula] with ProofGraphTraversals[VeritasConstruct, VeritasFormula] =
@@ -50,7 +51,7 @@ class AESoundnessProofGraph(storefile: File) {
 
   //apply structural induction on a given induction var to a given obligation and retrieve all resulting obligations
   def applyInductionGetCases(obl: g.Obligation, indvar: MetaVar): Map[String, (g.Obligation, EdgeLabel)] = {
-    val indtac = StructuralInduction(indvar, fullAESpec, specenq)
+    val indtac = StructuralInduction(indvar, specenq)
     val ps = g.applyTactic(obl, indtac)
     val subobls = g.requiredObls(ps)
     indtac.enumerateCases(subobls)
@@ -70,7 +71,7 @@ class AESoundnessProofGraph(storefile: File) {
 
   //apply top-level induction
   val rootobl = g.findObligation("Progress").get
-  val rootobl_edge_map = applyInductionGetCases(rootobl, MetaVar("t1"))
+  val rootobl_edge_map = applyInductionGetCases(rootobl, MetaVar("t"))
 
   val steps = applySolveToAllSub(rootobl)
 
@@ -85,25 +86,25 @@ class AESoundnessProofGraph(storefile: File) {
     override val desc: String = "SMTLib-Vampire verifier"
   }
 
-  val trivial_obls = Seq(rootobl_edge_map("ProgressTrue"), rootobl_edge_map("ProgressFalse"), rootobl_edge_map("ProgressZero")) map (_._1)
-  val stepresultstrivial = for (obl <- trivial_obls) yield {
-    val step = g.appliedStep(obl).get
-    g.verifyProofStep(step, simpleVampire4_1)
-  }
+  //val trivial_obls = Seq(rootobl_edge_map("ProgressTrue"), rootobl_edge_map("ProgressFalse"), rootobl_edge_map("ProgressZero")) map (_._1)
+  //val stepresultstrivial = for (obl <- trivial_obls) yield {
+  //  val step = g.appliedStep(obl).get
+  //  g.verifyProofStep(step, simpleVampire4_1)
+  //}
 
-  val succ_obl = rootobl_edge_map("ProgressSucc")._1
-  val succstep = g.appliedStep(succ_obl).get
-  val stepresultsucc = g.verifyProofStep(succstep, simpleVampire4_1, Some("AE-Inconclusive/Succ"))
+  //val succ_obl = rootobl_edge_map("ProgressSucc")._1
+  //val succstep = g.appliedStep(succ_obl).get
+  //val stepresultsucc = g.verifyProofStep(succstep, simpleVampire4_1, Some("AE-Inconclusive/Succ"))
 
-  val stepresults = stepresultstrivial :+ stepresultsucc
+  //val stepresults = stepresultstrivial :+ stepresultsucc
 
   // print some results for debugging
-  for (sr <- stepresults) sr.status match {
-    case Finished(Proved(ATPResultDetails(_,_, Some(proof), Some(lemmas),_)), _) =>
-      println("Proof: " +  proof)
-      println("Used lemmas: " + lemmas)
-    case s => println(s)
-  }
+  //for (sr <- stepresults) sr.status match {
+  //  case Finished(Proved(ATPResultDetails(_,_, Some(proof), Some(lemmas),_)), _) =>
+  //    println("Proof: " +  proof)
+  //    println("Used lemmas: " + lemmas)
+  //  case s => println(s)
+  //}
 
 
 
@@ -112,7 +113,7 @@ class AESoundnessProofGraph(storefile: File) {
 
   //code below does not compile like this, work in progress
   // pass metavar names
-  val funExpTranslator = new FunctionExpressionTranslator(Seq("vTerm0"))
+  val funExpTranslator = new FunctionExpressionTranslator(Seq("t1"))
 
   def translateFunExp(str: String): TypingRuleJudgment = {
     val term = ScalaMetaUtils.getTerm(str)
@@ -122,13 +123,15 @@ class AESoundnessProofGraph(storefile: File) {
 
 
   val ifcasetactic = CaseDistinction[VeritasConstruct, VeritasFormula](Map(
-    "Truecase" -> Seq[TypingRuleJudgment](translateFunExp("vTerm0 == True()")),
-    "Falsecase" -> Seq[TypingRuleJudgment](translateFunExp("vTerm0 == False()")),
-    "Othercase" -> Seq[TypingRuleJudgment](translateFunExp("(vTerm0 != True()) && (vTerm0 != False())"))), fullAESpec, specenq)
+    "Truecase" -> Seq[TypingRuleJudgment](translateFunExp("t1 == True()")),
+    "Falsecase" -> Seq[TypingRuleJudgment](translateFunExp("t1 == False()")),
+    "Othercase" -> Seq[TypingRuleJudgment](translateFunExp("(t1 != True()) && (t1 != False())"))), specenq)
   val ifcasedistinction = g.applyTactic(ifcase_obl, ifcasetactic)
 
-  val casestep = g.appliedStep(ifcase_obl).get
-  g.verifyProofStep(casestep, simpleVampire4_1_20)
+  //val casestep = g.appliedStep(ifcase_obl).get
+  //g.verifyProofStep(casestep, simpleVampire4_1_20)
+
+  ApplySolveToLeaves().applyToPG(g)(rootobl)
 
 
   def checkConsistency(): Unit = {
@@ -165,13 +168,13 @@ object ConstructAESoundnessGraph extends App {
 
   prettyPrinter.printTypingRule(pg.progress_tr)
 
-  val ifcase_tr: TypingRule = pg.ifcase_obl.goal match {
-    case Goals(Seq(tr),_) => tr
-    case t@TypingRule(_, _, _ ) => t
-  }
+  //val ifcase_tr: TypingRule = pg.ifcase_obl.goal match {
+  //  case Goals(Seq(tr),_) => tr
+  //  case t@TypingRule(_, _, _ ) => t
+  //}
 
 
-  prettyPrinter.printTypingRule(ifcase_tr)
+  //prettyPrinter.printTypingRule(ifcase_tr)
   //val ifelseobl_ui = PG_UI.getObligation("ProgressIfelse")
   //println(PG_UI.getAssembledProblem(ifelseobl_ui, VeritasTransformerBestStrat))
   //since we call pretty printing only for a typing rule and not for an entire model, we need to close the writer

@@ -28,6 +28,8 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   def isImplication(g: Formulae): Boolean
 
+  def isNegation(g: Formulae): Boolean
+
   //expects a function call, from which the function's name can be extracted!
   def isRecursiveFunctionCall(fc: Defs): Boolean
 
@@ -78,10 +80,16 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
   //expects a construct with a named formula and extracts the formula's name
   def getFormulaName(f: Formulae): String
 
+  //get String name from a variable construct
+  def getVarName(f: Defs): String
+
   //query methods for extracting information from specification/goals
 
   //from a given definition, extract all the calls to functions
   def extractFunctionCalls(s: Defs): Seq[Defs]
+
+  //from a given definition, extract all usages of constructors
+  def extractConstructorUsages(s: Defs): Seq[Defs]
 
   // names all variables in given definition nd so that there are no name clashes with free variables in refd
   // returns definition nd with named variables
@@ -100,14 +108,27 @@ trait SpecEnquirer[Defs, Formulae <: Defs] extends Serializable {
 
   def makeInequation(left: Defs, right: Defs): Formulae
 
-  def makeNegation(body: Defs): Formulae
-
-  def makeTypingFunctionExpression(body: Defs): Formulae
+  //expects an unnamed Formulae and generates an appropriate name
+  def makeFormulaName(f: Formulae): String
 
   //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
   def makeNamedGoal(f: Formulae, name: String): Formulae
 
   //expects an unnamed formula or a named one and attaches or overwrites the new name, producing a goal
   def makeNamedAxiom(f: Formulae, name: String): Formulae
+
+  //create an appropriate meta variable term given the string name of the meta variable
+  def makeMVTerm(s: String): Defs
+
+  //conversion functions
+
+  //turns an expression into a formula if possible
+  def convertExpToFormula(body: Defs): Formulae
+
+  // expects an expression that can be turned to a formula and returns its negation
+  // also expects the context into which the new formula shall be embedded.
+  //this may be necessary to avoid clashes of variable names
+  def convertExpToNegFormula(body: Defs, context: Seq[Formulae]): Formulae
+
 
 }

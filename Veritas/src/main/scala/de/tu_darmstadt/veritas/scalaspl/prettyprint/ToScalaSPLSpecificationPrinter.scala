@@ -4,7 +4,7 @@ import de.tu_darmstadt.veritas.backend.ast.function._
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
-import de.tu_darmstadt.veritas.scalaspl.dsk.DomainSpecificKnowledge
+import de.tu_darmstadt.veritas.scalaspl.dsk.VeritasDomainSpecificKnowledge
 
 // TODO what about dsk Annotations? Generics to support them?
 trait ToScalaSPLSpecificationPrinter {
@@ -139,8 +139,9 @@ trait ToScalaSPLSpecificationPrinter {
 
   def printFunctionExp(exp: FunctionExp): Unit = exp match {
     case FunctionExpNot(f) =>
-      printer.write("!")
+      printer.write("!(")
       printFunctionExp(f)
+      printer.write(")")
     case FunctionExpEq(lhs, rhs) =>
       printBinOpFunctionExp("==", lhs, rhs)
     case FunctionExpNeq(lhs, rhs) =>

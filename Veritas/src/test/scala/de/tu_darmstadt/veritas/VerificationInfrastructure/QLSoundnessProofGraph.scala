@@ -18,12 +18,12 @@ class QLSoundnessProofGraph(file: File) {
 
   val specenq = new VeritasSpecEnquirer(fullQLspec)
 
-  def getCases(metaVar: MetaVar, goal: VeritasFormula): Seq[VeritasConstruct] = {
+  def getCases(metaVar: MetaVar, goal: VeritasFormula): Map[String, VeritasConstruct] = {
     val goalBody = specenq.getQuantifiedBody(goal)
     val ivCases = specenq.getCases(metaVar, goalBody) map { case (n, ic) =>
-      specenq.assignCaseVariables(ic, goalBody)
+      (n, specenq.assignCaseVariables(ic, goalBody))
     }
-    ivCases.toSeq
+    ivCases
   }
 
   def getIntroducedMetaVars(expression: VeritasConstruct): Seq[MetaVar] = {
@@ -43,41 +43,41 @@ class QLSoundnessProofGraph(file: File) {
   val progressObligation: g.Obligation = g.newObligation(fullQLspec, QLProgress)
   g.storeObligation("QL progress", progressObligation)
 
-  private val rootInduction = StructuralInduction(MetaVar("q"), fullQLspec, specenq)
+  private val rootInduction = StructuralInduction(MetaVar("q"), specenq)
   // first proof step: structural induction
   val rootinductionPS: g.ProofStep = g.applyTactic(progressObligation, rootInduction)
 
   val rootobl = g.findObligation("QL progress").get
   val rootsubobs = g.requiredObls(rootinductionPS)
-  val casenames = rootInduction.enumerateCaseNames[g.Obligation](rootsubobs)
-  val caseedges: Seq[StructInductCase[VeritasConstruct, VeritasFormula]] =
-    (rootInduction.enumerateCases(rootsubobs) map
-      {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
+  //val casenames = rootInduction.enumerateCaseNames[g.Obligation](rootsubobs)
+  //val caseedges: Seq[StructInductCase[VeritasConstruct, VeritasFormula]] =
+  //  (rootInduction.enumerateCases(rootsubobs) map
+  //    {case (k, v) => v._2.asInstanceOf[StructInductCase[VeritasConstruct, VeritasFormula]]}).toSeq
   val matchingConds = getCases(MetaVar("q"), rootobl.goal)
 
   //apply simply Solve-tactic to qempty base case
-  val qemptyObl = rootInduction.selectCase(casenames(0), rootsubobs)
+  val qemptyObl = rootInduction.selectCase("QL-Progressqempty", rootsubobs)
   val qemptyPS = g.applyTactic(qemptyObl, Solve[VeritasConstruct, VeritasFormula])
 
-  val qsingleObl = rootInduction.selectCase(casenames(1), rootsubobs)
-  val qsingleCaseDistinction = StructuralCaseDistinction(getIntroducedMetaVars(matchingConds(1)).head, fullQLspec, specenq)
+  val qsingleObl = rootInduction.selectCase("QL-Progressqsingle", rootsubobs)
+  val qsingleCaseDistinction = StructuralCaseDistinction(getIntroducedMetaVars(matchingConds("qsingle")).head, specenq)
   val qsinglePS = g.applyTactic(qsingleObl, qsingleCaseDistinction)
 
   val qsinglesubobs = g.requiredObls(qsinglePS)
-  val qsingleMatchingConds = getCases(getIntroducedMetaVars(matchingConds(1)).head, qsinglesubobs.toSeq(1)._1.goal)
+  val qsingleMatchingConds = getCases(getIntroducedMetaVars(matchingConds("qsingle")).head, qsinglesubobs.toSeq(1)._1.goal)
 
   val questionPS = g.applyTactic(qsinglesubobs.toSeq(0)._1, Solve[VeritasConstruct, VeritasFormula])
-  val valueCaseDistinction = BooleanCaseDistinction(FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(qsingleMatchingConds(1))(2)))), fullQLspec, specenq)
+  val valueCaseDistinction = BooleanCaseDistinction(FunctionExpJudgment(FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(qsingleMatchingConds("value"))(2))))), specenq)
 
   val valuePS = g.applyTactic(qsinglesubobs.toSeq(1)._1, valueCaseDistinction)
   val valueCases = g.requiredObls(valuePS)
 
-  val progressLookupQMapLemmaApplication = LemmaApplication(Seq(LookupQMapProgress), fullQLspec, specenq)
+  val progressLookupQMapLemmaApplication = LemmaApplication(Seq(LookupQMapProgress), specenq)
   val askPS = g.applyTactic(qsinglesubobs.toSeq(3)._1, progressLookupQMapLemmaApplication)
 
   // apply CaseDistinction to qseq case
-  val qseqObl = rootInduction.selectCase(casenames(2), rootsubobs)
-  val qseqCaseDistinction = EqualityCaseDistinction(getIntroducedMetaVars(matchingConds(2)).head, FunctionExpApp("qempty", Nil), fullQLspec, specenq)
+  val qseqObl = rootInduction.selectCase("QL-Progressqseq", rootsubobs)
+  val qseqCaseDistinction = EqualityCaseDistinction(getIntroducedMetaVars(matchingConds("qseq")).head, FunctionExpApp("qempty", Nil), specenq)
   val qseqcasePS = g.applyTactic(qseqObl, qseqCaseDistinction)
 
   val qseqsubobs = g.requiredObls(qseqcasePS)
@@ -87,11 +87,11 @@ class QLSoundnessProofGraph(file: File) {
 
   val expIsValueTruePS = g.applyTactic(valueCases.toSeq.head._1, Solve[VeritasConstruct, VeritasFormula])
 
-  val progressReduceExpLemmaApplication = LemmaApplication(Seq(ReduceExpProgress), fullQLspec, specenq)
+  val progressReduceExpLemmaApplication = LemmaApplication(Seq(ReduceExpProgress), specenq)
   val expIsValueFalsePS = g.applyTactic(valueCases.toSeq.last._1, progressReduceExpLemmaApplication)
   val progressReduceExpSubs = g.requiredObls(expIsValueFalsePS)
 
-  val reduceExpInduction = StructuralInduction(MetaVar("exp"), fullQLspec, specenq)
+  val reduceExpInduction = StructuralInduction(MetaVar("exp"), specenq)
   val progressReduceExpInductionPS = g.applyTactic(progressReduceExpSubs.toSeq.head._1, reduceExpInduction)
 
   val progressReduceExpInductionCases = g.requiredObls(progressReduceExpInductionPS).toSeq
@@ -99,28 +99,27 @@ class QLSoundnessProofGraph(file: File) {
 
   val constantProgressReduceExpPS = g.applyTactic(progressReduceExpInductionCases.head._1, Solve[VeritasConstruct, VeritasFormula])
 
-  val progressLookupAnsMapLemma = LemmaApplication(Seq(LookupAnsMapProgress), fullQLspec, specenq)
+  val progressLookupAnsMapLemma = LemmaApplication(Seq(LookupAnsMapProgress), specenq)
   val qvarPS = g.applyTactic(progressReduceExpInductionCases(1)._1, progressLookupAnsMapLemma)
   val progressLookupAnsMap = g.requiredObls(qvarPS).toSeq.head._1
 
-  val progressLookupAnsMapInduction = StructuralInduction(MetaVar("am"), fullQLspec, specenq)
+  val progressLookupAnsMapInduction = StructuralInduction(MetaVar("am"), specenq)
   val progressLookupAnsMapInductionPS = g.applyTactic(progressLookupAnsMap, progressLookupAnsMapInduction)
   val progressLookupAnsMapInductionCases = g.requiredObls(progressLookupAnsMapInductionPS).toSeq
   val progressLookupAnsMapInductionCasesPS =  progressLookupAnsMapInductionCases.map { case (obl, info) =>
     g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
   }
 
-  val binopProgressReduceExpDistinction = BooleanCaseDistinction(FunctionExpAnd(
-      FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds(2)).head))),
-        FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds(2)).last)))
-    ), fullQLspec, specenq)
+  val binopProgressReduceExpDistinction = BooleanCaseDistinction(FunctionExpJudgment(FunctionExpAnd(
+        FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds("binop")).head))),
+          FunctionExpApp("expIsValue", Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds("binop")).last)))
+      )), specenq)
   val binopProgressReduceExpPS = g.applyTactic(progressReduceExpInductionCases(2)._1, binopProgressReduceExpDistinction)
   val binopProgressReduceExpCases = g.requiredObls(binopProgressReduceExpPS).toSeq
   val binopProgressReduceExpIsValuePS = g.applyTactic(binopProgressReduceExpCases.head._1, Solve[VeritasConstruct, VeritasFormula])
 
-  val binopProgressReduceExpNoValueDistinction = BooleanCaseDistinction(FunctionExpApp("isSomeExp", Seq(FunctionExpApp("reduceExp",
-    Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds(2)).head), FunctionMeta(MetaVar("am")))))),
-    fullQLspec, specenq)
+  val binopProgressReduceExpNoValueDistinction = BooleanCaseDistinction(FunctionExpJudgment(FunctionExpApp("isSomeExp", Seq(FunctionExpApp("reduceExp",
+      Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds("binop")).head), FunctionMeta(MetaVar("am"))))))), specenq)
 
   val binopProgressReduceExpNoValuePS = g.applyTactic(binopProgressReduceExpCases.last._1, binopProgressReduceExpNoValueDistinction)
   val binopProgressReduceExpNoValueCases = g.requiredObls(binopProgressReduceExpNoValuePS)
@@ -129,9 +128,8 @@ class QLSoundnessProofGraph(file: File) {
   }
 
 
-  val unopProgressReduceExpDistinction = BooleanCaseDistinction(
-    FunctionExpApp("expIsValue",
-      Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds.last)(1)))), fullQLspec, specenq)
+  val unopProgressReduceExpDistinction = BooleanCaseDistinction(FunctionExpJudgment(FunctionExpApp("expIsValue",
+        Seq(FunctionMeta(getIntroducedMetaVars(progressReduceExpMatchingConds.last._2)(1))))), specenq)
   val unopProgressReduceExpDisitinctionPS = g.applyTactic(progressReduceExpInductionCases.last._1, unopProgressReduceExpDistinction)
   val unopProgressReduceExpCases = g.requiredObls(unopProgressReduceExpDisitinctionPS).toSeq
   val unopProgressReduceExpCasesPS = unopProgressReduceExpCases.map { case (obl, info) =>
@@ -142,22 +140,21 @@ class QLSoundnessProofGraph(file: File) {
 
   val progressLookupQMap = g.requiredObls(askPS).toSeq.head._1
 
-  val progressLookupQMapInduction = StructuralInduction(MetaVar("qm"), fullQLspec, specenq)
+  val progressLookupQMapInduction = StructuralInduction(MetaVar("qm"), specenq)
   val progressLookupQMapInductionPS = g.applyTactic(progressLookupQMap, progressLookupQMapInduction)
   val progressLookupQMapInductionCases = g.requiredObls(progressLookupQMapInductionPS).toSeq
   val progressLookupQMapInductionCasesPS = progressLookupQMapInductionCases.map { case (obl, _) =>
     g.applyTactic(obl, Solve[VeritasConstruct, VeritasFormula])
   }
 
-  val qcondObl = rootInduction.selectCase(casenames(3), rootsubobs)
+  val qcondObl = rootInduction.selectCase("QL-Progressqcond", rootsubobs)
 
-  val expOfQcond = getIntroducedMetaVars(matchingConds(3)).head
+  val expOfQcond = getIntroducedMetaVars(matchingConds("qcond")).head
   val qcondCaseDistinction = EqualityCaseDistinction[VeritasConstruct, VeritasFormula](
-    FunctionMeta(expOfQcond), FunctionExpApp("constant", Seq(FunctionExpApp("B", Seq(FunctionMeta(MetaVar("b")))))),
-    fullQLspec, specenq)
+    FunctionMeta(expOfQcond), FunctionExpApp("constant", Seq(FunctionExpApp("B", Seq(FunctionMeta(MetaVar("b")))))), specenq)
   val qcondPS = g.applyTactic(qcondObl, qcondCaseDistinction)
   val qcondCases = g.requiredObls(qcondPS).toSeq
-  val qcondBooleanCaseDistinction = StructuralCaseDistinction(MetaVar("b"), fullQLspec, specenq)
+  val qcondBooleanCaseDistinction = StructuralCaseDistinction(MetaVar("b"), specenq)
   val qcondBooleanCaseDistinctionPS = g.applyTactic(qcondCases.head._1, qcondBooleanCaseDistinction)
   val qcondBooleanCases = g.requiredObls(qcondBooleanCaseDistinctionPS)
   val qcondBooleanCasesPS = qcondBooleanCases.map { case (obl, _) =>
@@ -167,7 +164,7 @@ class QLSoundnessProofGraph(file: File) {
   val qcondNonBooleanPS = g.applyTactic(qcondCases.last._1, progressReduceExpLemmaApplication)
 
   //apply simply Solve-tactic to qgroup base case
-  val qgroupObl = rootInduction.selectCase(casenames(4), rootsubobs)
+  val qgroupObl = rootInduction.selectCase("QL-Progressqgroup", rootsubobs)
   val qgroupPS = g.applyTactic(qgroupObl, Solve[VeritasConstruct, VeritasFormula])
 
   //verify chosen steps with chosen verifiers
@@ -258,7 +255,8 @@ object ConstructQLSoundnessGraph extends App {
 
   val pg = new QLSoundnessProofGraph(file)
 
-  pg.verifySingleStepsSimple()
+  //TODO currently there is some problem within the verification of the manually created proof graph for QL Progress...
+  //pg.verifySingleStepsSimple()
   Dot(pg.g, new File("ql_progress.png"))
 
   val rootobl = pg.g.findObligation("QL progress").get

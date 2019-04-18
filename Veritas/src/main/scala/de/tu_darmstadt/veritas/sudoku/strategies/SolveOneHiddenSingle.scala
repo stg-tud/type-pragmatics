@@ -10,7 +10,7 @@ import de.tu_darmstadt.veritas.sudoku.{EmptySpec, SudokuField}
   */
 class SolveOneHiddenSingle extends Strategy[EmptySpec, SudokuField] {
   override def applyToPG(pg: ProofGraph[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField])
-                        (obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] = {
+                        (obl: pg.Obligation): ProofGraph[EmptySpec, SudokuField] with ProofGraphTraversals[EmptySpec, SudokuField] = {
     try {
       val ps = pg.applyTactic(obl, RuleOutCandidatesSimple)
       val subobls = pg.requiredObls(ps)

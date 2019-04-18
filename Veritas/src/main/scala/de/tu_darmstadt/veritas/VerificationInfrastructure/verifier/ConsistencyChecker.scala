@@ -1,6 +1,5 @@
 package de.tu_darmstadt.veritas.VerificationInfrastructure.verifier
 
-import de.tu_darmstadt.veritas.VerificationInfrastructure.{EdgeLabel, GenStepResult, StepResultProducer}
 import de.tu_darmstadt.veritas.backend.Configuration
 import de.tu_darmstadt.veritas.backend.Configuration.Problem
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
@@ -20,7 +19,7 @@ case class ConsistencyChecker[Format <: VerifierFormat](config: Configuration, p
         prover.callProver(result) match {
           case Inconclusive(_) => Success(true)
           case Proved(rd) => {
-            println(rd.proofEvidence.get)
+            println("Evidence: " + rd.proofEvidence.get)
             Success(false)
           }
           case _ => Success(false)

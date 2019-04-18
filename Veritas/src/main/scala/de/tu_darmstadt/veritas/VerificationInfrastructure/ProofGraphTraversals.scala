@@ -33,7 +33,8 @@ trait ProofGraphTraversals[Spec, Goal] extends ProofGraph[Spec, Goal] {
   //    newGraph
   //  }
 
-  def obligationDFS(): Seq[Obligation] = {
+  //startobls: set of obligations from which on to look; default is empty set, means the entire set of storedObligations
+  def obligationDFS(startobls: Set[Obligation] = Set()): Seq[Obligation] = {
     val collection: scala.collection.mutable.ListBuffer[Obligation] = scala.collection.mutable.ListBuffer()
 
     def collectObligation(obl: Obligation): Unit = {
@@ -47,15 +48,17 @@ trait ProofGraphTraversals[Spec, Goal] extends ProofGraph[Spec, Goal] {
       }
     }
 
-    for ((_, obl) <- storedObligations) {
+    val obls_to_collect = if (startobls.isEmpty) storedObligations.values else startobls
+
+    for (obl <- obls_to_collect) {
       collectObligation(obl)
     }
     Seq() ++ collection.distinct // only use the first occurrence of an obligation
   }
 
-  def leaves(): Seq[Obligation] = obligations(0)
+  def leaves(startobls: Set[Obligation] = Set()): Seq[Obligation] = obligations(0, startobls)
 
-  def obligations(numberOfSubOblsAllowed: Int): Seq[Obligation] = obligationDFS().filter { obl =>
+  def obligations(numberOfSubOblsAllowed: Int, startobls: Set[Obligation] = Set()): Seq[Obligation] = obligationDFS(startobls).filter { obl =>
     val ps = appliedStep(obl)
     if (ps.nonEmpty) {
       val subobls = requiredObls(ps.get)

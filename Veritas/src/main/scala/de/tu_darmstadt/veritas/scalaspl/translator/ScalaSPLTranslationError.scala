@@ -1,6 +1,6 @@
 package de.tu_darmstadt.veritas.scalaspl.translator
 
-case class ScalaSPLTranslationError(msg: String) extends Error {
+case class ScalaSPLTranslationError(msg: String) extends Error(msg) {
   def this(msg: String, cause: Throwable) {
     this(msg)
     initCause(cause)

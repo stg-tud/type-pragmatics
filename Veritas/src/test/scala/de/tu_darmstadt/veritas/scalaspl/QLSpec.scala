@@ -75,7 +75,6 @@ object QLSpec extends ScalaSPLSpecification {
   case class scons(c: char, tail: string) extends string
 
   // QLSyntax
-  // @Open
   trait QID extends Expression
 
   trait GID extends Expression
@@ -88,7 +87,7 @@ object QLSpec extends ScalaSPLSpecification {
   case class T(value: string) extends Aval
 
   @FailableType
-  sealed trait OptAval extends Expression
+  sealed trait OptAval
   case class noAval() extends OptAval
   case class someAval(value: Aval) extends OptAval
 
@@ -102,13 +101,13 @@ object QLSpec extends ScalaSPLSpecification {
     case someAval(aval) => aval
   }
 
-  sealed trait AType extends Expression
+  sealed trait AType extends Expression with Type
   case class YesNo() extends AType
   case class Number() extends AType
   case class Text() extends AType
 
   @FailableType
-  sealed trait OptAType extends Expression
+  sealed trait OptAType
   case class noAType() extends OptAType
   case class someAType(typ: AType) extends OptAType
 
@@ -122,6 +121,7 @@ object QLSpec extends ScalaSPLSpecification {
     case someAType(atype) => atype
   }
 
+  @Static
   def typeOf(aval: Aval): AType = aval match {
     case B(_) => YesNo()
     case Num(_) => Number()
@@ -167,7 +167,7 @@ object QLSpec extends ScalaSPLSpecification {
   case class qempty() extends Questionnaire
   case class qsingle(entry: Entry) extends Questionnaire
   case class qseq(qs1: Questionnaire, qs2: Questionnaire) extends Questionnaire
-  case class qcond(e: Exp, els: Questionnaire, thn: Questionnaire) extends Questionnaire
+  case class qcond(e: Exp, thn: Questionnaire, els: Questionnaire) extends Questionnaire
   case class qgroup(gid: GID, qs: Questionnaire) extends Questionnaire
 
   // QLSemanticsData
@@ -176,15 +176,17 @@ object QLSpec extends ScalaSPLSpecification {
   case class aempty() extends AnsMap
   case class abind(qid: QID, aval: Aval, al: AnsMap) extends AnsMap
 
+  @Dynamic
   @ProgressProperty("lookupAnsMapProgress")
+  @PreservationProperty("lookupAnsMapPreservation")
   @Recursive(1)
-  def lookupAnsMap(qid: QID, am: AnsMap): OptAval = (qid, am) match {
+  def lookupAnsMap(id: QID, am: AnsMap): OptAval = (id, am) match {
     case (_, aempty()) => noAval()
-    case (qid1, abind(qid2, aval, aml)) =>
-      if (qid1 == qid2)
+    case (qid, abind(qid1, aval, aml)) =>
+      if (qid == qid1)
         someAval(aval)
       else
-        lookupAnsMap(qid1, aml)
+        lookupAnsMap(qid, aml)
   }
 
   def appendAnsMap(am1: AnsMap, am2: AnsMap): AnsMap = (am1, am2) match {
@@ -197,7 +199,7 @@ object QLSpec extends ScalaSPLSpecification {
   case class qmbind(qid: QID, l: Label, atype: AType, qml: QMap) extends QMap
 
   @FailableType
-  sealed trait OptQuestion extends Expression
+  sealed trait OptQuestion
   case class noQuestion() extends OptQuestion
   case class someQuestion(qid: QID, l: Label, atype: AType) extends OptQuestion
 
@@ -221,23 +223,20 @@ object QLSpec extends ScalaSPLSpecification {
     case someQuestion(qid, l, at) => at
   }
 
+  @Dynamic
   @ProgressProperty("lookupQMapProgress")
+  @PreservationProperty("lookupQMapPreservation")
   @Recursive(1)
-  def lookupQMap(qid: QID, qm: QMap): OptQuestion = (qid, qm) match {
+  def lookupQMap(id: QID, qm: QMap): OptQuestion = (id, qm) match {
     case (_, qmempty()) => noQuestion()
-    case (qid1, qmbind(qid2, l, at, qml)) =>
-      if (qid1 == qid2)
+    case (qid, qmbind(qid1, l, at, qml)) =>
+      if (qid == qid1)
         someQuestion(qid, l, at)
       else
-        lookupQMap(qid1, qml)
+        lookupQMap(qid, qml)
   }
 
-  def appendQMap(qm1: QMap, qm2: QMap): QMap = (qm1, qm2) match {
-    case (qmempty(), qm) => qm
-    case (qmbind(qid, l, at, qm), qml) => qmbind(qid, l, at, appendQMap(qm, qml))
-  }
-
-  trait QConf extends Expression
+  sealed trait QConf extends Expression
   case class QC(am: AnsMap, qm: QMap, q: Questionnaire) extends QConf
 
   def getAM(qc: QConf): AnsMap = qc match {
@@ -252,13 +251,13 @@ object QLSpec extends ScalaSPLSpecification {
     case QC(_, _, q) => q
   }
 
-  def isValue(qc: QConf): Boolean = qc match {
-    case QC(_, _, qempty()) => true
-    case QC(_, _, _) => false
+  def isValue(q: Questionnaire): Boolean = q match {
+    case qempty() => true
+    case _ => false
   }
 
   @FailableType
-  sealed trait OptQConf extends Expression
+  sealed trait OptQConf
   case class noQConf() extends OptQConf
   case class someQConf(qc: QConf) extends OptQConf
 
@@ -277,7 +276,7 @@ object QLSpec extends ScalaSPLSpecification {
   }
 
   @FailableType
-  sealed trait OptExp extends Expression
+  sealed trait OptExp
   case class noExp() extends OptExp
   case class someExp(exp: Exp) extends OptExp
 
@@ -313,6 +312,10 @@ object QLSpec extends ScalaSPLSpecification {
     case (l, Text()) => T(askText(l))
   }
 
+  @Dynamic
+  @ProgressProperty("evalBinOpProgress")
+  @PreservationProperty("evalBinOpPreservation")
+  @TopLevelDistinctionHint(0, 1, 2)
   def evalBinOp(op: BinOpT, av1: Aval, av2: Aval): OptExp = (op, av1, av2) match {
     case (addop(), Num(n1), Num(n2)) => someExp(constant(Num(plus(n1, n2))))
     case (subop(), Num(n1), Num(n2)) => someExp(constant(Num(minus(n1, n2))))
@@ -322,32 +325,27 @@ object QLSpec extends ScalaSPLSpecification {
     case (ltop(), Num(n1), Num(n2)) => someExp(constant(B(lt(n1, n2))))
     case (andop(), B(b1), B(b2)) => someExp(constant(B(and(b1, b2))))
     case (orop(), B(b1), B(b2)) => someExp(constant(B(or(b1, b2))))
-    case (eqop(), Num(n1), Num(n2)) =>
-      if(n1 == n2)
+    case (eqop(), a, a1) =>
+      if(a == a1)
         someExp(constant(B(yes())))
       else
         someExp(constant(B(no())))
-    case (eqop(), B(b1), B(b2)) =>
-      if(b1 == b2)
-        someExp(constant(B(yes())))
-      else
-        someExp(constant(B(no())))
-    case (eqop(), T(t1), T(t2)) =>
-      if(t1 == t2)
-        someExp(constant(B(yes())))
-      else
-        someExp(constant(B(no())))
-    case (op, a1, a2) => noExp()
+    case (_, _, _) => noExp()
   }
 
+  @Dynamic
+  @ProgressProperty("evalUnOpProgress")
+  @PreservationProperty("evalUnOpPreservation")
   def evalUnOp(op: UnOpT, av: Aval): OptExp = (op, av) match {
     case (notop(), B(b)) => someExp(constant(B(not(b))))
     case (_, _) => noExp()
   }
 
+  @Dynamic
   @ProgressProperty("reduceExpProgress")
+  @PreservationProperty("reduceExpPreservation")
   @Recursive(0)
-  def reduceExp(exp: Exp, am: AnsMap): OptExp = (exp, am) match {
+  def reduceExp(exp: Exp, amap: AnsMap): OptExp = (exp, amap) match {
     case (constant(av), _) => noExp()
     case (qvar(qid), am) =>
       val avOpt = lookupAnsMap(qid, am)
@@ -356,69 +354,73 @@ object QLSpec extends ScalaSPLSpecification {
       else
         noExp()
     case (binop(e1, op, e2), am) =>
-      if (expIsValue(e1) && expIsValue(e2))
-        evalBinOp(op, getExpValue(e1), getExpValue(e2))
-      else {
-        val eOpt1 = reduceExp(e1, am)
-        if (isSomeExp(eOpt1))
-          someExp(binop(getExp(eOpt1), op, e2))
+      if (expIsValue(e1))
+        if (expIsValue(e2))
+          evalBinOp(op, getExpValue(e1), getExpValue(e2))
         else {
           val eOpt2 = reduceExp(e2, am)
           if (isSomeExp(eOpt2))
             someExp(binop(e1, op, getExp(eOpt2)))
           else noExp()
         }
-      }
-    case (unop(op, e), am) =>
-      if (expIsValue(e))
-        evalUnOp(op, getExpValue(e))
       else {
-        val eOpt = reduceExp(e, am)
+        val eOpt1 = reduceExp(e1, am)
+        if (isSomeExp(eOpt1))
+          someExp(binop(getExp(eOpt1), op, e2))
+        else noExp()
+      }
+    case (unop(op, e1), am) =>
+      if (expIsValue(e1))
+        evalUnOp(op, getExpValue(e1))
+      else {
+        val eOpt = reduceExp(e1, am)
         if (isSomeExp(eOpt))
           someExp(unop(op, getExp(eOpt)))
         else noExp()
       }
   }
 
-  @Recursive(0, 2)
-  @ProgressProperty("reduceProgress")
-  def reduce(qc: QConf): OptQConf = qc match {
-    case (QC(_, _, qempty())) => noQConf()
-    case (QC(am, qm, qsingle(question(qid, l, t)))) =>
+  @Recursive(0)
+  @ProgressProperty("Progress")
+  @PreservationProperty("Preservation")
+  @Dynamic
+  def reduce(q: Questionnaire, ama: AnsMap, qma: QMap): OptQConf = (q, ama, qma) match {
+    case (qempty(), _, _) => noQConf()
+    case (qsingle(question(qid, l, t)), am, qm) =>
       val av = getAnswer(l, t)
       someQConf(QC(abind(qid, av, am), qm, qempty()))
-    case (QC(am, qm, qsingle(value(qid, t, e)))) =>
-      if (expIsValue(e))
-        someQConf(QC(abind(qid, getExpValue(e), am), qm, qempty()))
+    case (qsingle(value(qid, t, exp)), am, qm) =>
+      if (expIsValue(exp))
+        someQConf(QC(abind(qid, getExpValue(exp), am), qm, qempty()))
       else {
-        val eOpt = reduceExp(e, am)
+        val eOpt = reduceExp(exp, am)
         if (isSomeExp(eOpt))
           someQConf(QC(am, qm, qsingle(value(qid, t, getExp(eOpt)))))
         else noQConf()
       }
-    case (QC(am, qm, qsingle(defquestion(qid, l, t)))) =>
+    case (qsingle(defquestion(qid, l, t)), am, qm) =>
       someQConf(QC(am, qmbind(qid, l, t, qm), qempty()))
-    case (QC(am, qm, qsingle(ask(qid)))) =>
+    case (qsingle(ask(qid)), am, qm) =>
       val qOpt = lookupQMap(qid, qm)
       if (isSomeQuestion(qOpt))
         someQConf(QC(am, qm, qsingle(question(qid,
           getQuestionLabel(qOpt),
           getQuestionAType(qOpt)))))
       else noQConf()
-    case (QC(am, qm, qseq(qempty(), qs))) => someQConf(QC(am, qm, qs))
-    case (QC(am, qm, qseq(qs1, qs2))) =>
-      val qcOpt = reduce(QC(am, qm, qs1))
+    case (qseq(qempty(), qs), am, qm) => someQConf(QC(am, qm, qs))
+    case (qseq(qs1, qs2), am, qm) =>
+      val qcOpt = reduce(qs1, am, qm)
       if (isSomeQC(qcOpt))
         someQConf(qcappend(getQC(qcOpt), qs2))
       else noQConf()
-    case (QC(am, qm, qcond(constant(B(yes())), qs1, qs2))) => someQConf(QC(am, qm, qs1))
-    case (QC(am, qm, qcond(constant(B(no())), qs1, qs2))) => someQConf(QC(am, qm, qs2))
-    case (QC(am, qm, qcond(e, qs1, qs2))) =>
+    case (qcond(constant(B(yes())), qs1, qs2), am, qm) => someQConf(QC(am, qm, qs1))
+    case (qcond(constant(B(no())), qs1, qs2), am, qm) => someQConf(QC(am, qm, qs2))
+    case (qcond(e, qs1, qs2), am, qm) =>
       val eOpt = reduceExp(e, am)
       if (isSomeExp(eOpt))
         someQConf(QC(am, qm, qcond(getExp(eOpt), qs1, qs2)))
       else noQConf()
-    case (QC(am, qm, qgroup(_, qs))) => someQConf(QC(am, qm, qs))
+    case (qgroup(_, qs), am, qm) => someQConf(QC(am, qm, qs))
   }
 
   // QLTypeSystem
@@ -427,6 +429,8 @@ object QLSpec extends ScalaSPLSpecification {
   case class atmempty() extends ATMap
   case class atmbind(qid: QID, at: AType, atml: ATMap) extends ATMap
 
+  @Static
+  @Recursive(1)
   def lookupATMap(qid: QID, atm: ATMap): OptAType = (qid, atm) match {
     case (_, atmempty()) => noAType()
     case (qid1, atmbind(qid2, at, atml)) =>
@@ -434,14 +438,18 @@ object QLSpec extends ScalaSPLSpecification {
       else lookupATMap(qid1, atml)
   }
 
+  @Static
+  @Recursive(0)
   def appendATMap(atm1: ATMap, atm2: ATMap): ATMap = (atm1, atm2) match {
     case (atmempty(), atm) => atm
     case (atmbind(qid, at, atm), atml) => atmbind(qid, at, appendATMap(atm, atml))
   }
 
+  @Static
+  @Recursive(0)
   def intersectATM(atm1: ATMap, atm2: ATMap): ATMap = (atm1, atm2) match {
     case (atmempty(), _) => atmempty()
-    case (_, atmempty()) => atmempty()
+    //case (_, atmempty()) => atmempty() //shortcut case is a bit problematic with current ACG construction, maybe fix later
     case (atmbind(qid, at, atm1), atm2) =>
       val atm1atm2 = intersectATM(atm1, atm2)
       val lAT = lookupATMap(qid, atm2)
@@ -454,7 +462,8 @@ object QLSpec extends ScalaSPLSpecification {
   sealed trait MapConf extends Context with Type
   case class MC(atm: ATMap, qtm: ATMap) extends MapConf
 
-  trait OptMapConf extends Context with Type
+  @FailableType
+  sealed trait OptMapConf
   case class noMapConf() extends OptMapConf
   case class someMapConf(mc: MapConf) extends OptMapConf
 
@@ -468,11 +477,15 @@ object QLSpec extends ScalaSPLSpecification {
     case someMapConf(mc) => mc
   }
 
+  @Static
+  @Recursive(0)
   def typeAM(am: AnsMap): ATMap = am match {
     case aempty() => atmempty()
     case abind(qid, av, amr) => atmbind(qid, typeOf(av), typeAM(amr))
   }
 
+  @Static
+  @Recursive(0)
   def typeQM(qm: QMap): ATMap = qm match {
     case qmempty() => atmempty()
     case qmbind(qid, _, at, qmr) => atmbind(qid, at, typeQM(qmr))
@@ -487,18 +500,19 @@ object QLSpec extends ScalaSPLSpecification {
     case (ltop(), Number(),  Number()) => someAType(YesNo())
     case (andop(), YesNo(),  YesNo()) => someAType(YesNo())
     case (orop(), YesNo(),  YesNo()) => someAType(YesNo())
-    case (eqop(), Number(),  Number()) => someAType(YesNo())
-    case (eqop(), YesNo(),  YesNo()) => someAType(YesNo())
-    case (eqop(), Text(),  Text()) => someAType(YesNo())
+    case (eqop(), _, _) => someAType(YesNo())
     case (_, _, _) => noAType()
   }
 
+  @Static
   def checkUnOp(op: UnOpT, at: AType): OptAType = (op, at) match {
     case (notop(), YesNo()) => someAType(YesNo())
     case (_, _) => noAType()
   }
 
-  def echeck(atm: ATMap, exp: Exp): OptAType = (atm, exp) match {
+  @Static
+  @Recursive(1)
+  def echeck(atmap: ATMap, exp: Exp): OptAType = (atmap, exp) match {
     case (_, constant(B(n))) => someAType(YesNo())
     case (_, constant(Num(n))) => someAType(Number())
     case (_, constant(T(n))) => someAType(Text())
@@ -518,75 +532,242 @@ object QLSpec extends ScalaSPLSpecification {
 
   @Axiom
   def Tqempty(atm: ATMap, qm: ATMap): Unit = {
-  } ensuring MC(atm, qm) |- qempty() :: MC(atmempty(), atmempty())
+  } ensuring MC(atm, qm) |- qempty() :: MC(atm, qm)
 
   @Axiom
   def Tquestion(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType): Unit = {
     require(lookupATMap(qid, atm) == noAType())
-  } ensuring MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atmbind(qid, at, atmempty()), atmempty())
+  } ensuring MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atmbind(qid, at, atm), qm)
 
   @Axiom
   def Tvalue(qid: QID, atm: ATMap, exp: Exp, qm: ATMap, at: AType): Unit = {
     require(lookupATMap(qid, atm) == noAType())
     require(echeck(atm, exp) == someAType(at))
-  } ensuring MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atmbind(qid, at, atmempty()), atmempty())
+  } ensuring MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atmbind(qid, at, atm), qm)
 
   @Axiom
   def Tdefquestion(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType): Unit = {
     require(lookupATMap(qid, qm) == noAType())
-  } ensuring MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atmempty(), atmbind(qid, at, atmempty()))
+  } ensuring MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atm, atmbind(qid, at, qm))
 
   @Axiom
   def Task(qid: QID, qm: ATMap, at: AType, atm: ATMap): Unit = {
     require(lookupATMap(qid, qm) == someAType(at))
     require(lookupATMap(qid, atm) == noAType())
-  } ensuring MC(atm, qm) |- qsingle(ask(qid)) :: MC(atmbind(qid, at, atmempty()), atmempty())
+  } ensuring MC(atm, qm) |- qsingle(ask(qid)) :: MC(atmbind(qid, at, atm), qm)
 
   @Axiom
   def Tqseq(atm: ATMap, qm: ATMap, q1: Questionnaire, atm1: ATMap,
       atm2: ATMap, qm1: ATMap, q2: Questionnaire, qm2: ATMap): Unit = {
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
-    require(MC(appendATMap(atm, atm1), appendATMap(qm, qm1)) |- q2 :: MC(atm2, qm2))
-  } ensuring MC(atm, qm) |- qseq(q1, q2) :: MC(appendATMap(atm1, atm2), appendATMap(qm1, qm2))
+    require(MC(atm1, qm1) |- q2 :: MC(atm2, qm2))
+  } ensuring MC(atm, qm) |- qseq(q1, q2) :: MC(atm2, qm2)
 
   @Axiom
   def Tqcond(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
-      atm1: ATMap, qm1: ATMap, q2: Questionnaire, atm2: ATMap, qm2: ATMap): Unit = {
+      atm1: ATMap, qm1: ATMap, q2: Questionnaire): Unit = {
     require(echeck(atm, exp) == someAType(YesNo()))
     require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
-    require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
-  } ensuring MC(atm, qm) |- qcond(exp, q1, q2) :: MC(intersectATM(atm1, atm2), intersectATM(qm1, qm2))
+    require(MC(atm, qm) |- q2 :: MC(atm1, qm1))
+  } ensuring MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atm1, qm1)
 
   @Axiom
   def Tqgroup(atm: ATMap, qm: ATMap, q: Questionnaire, atm1: ATMap, qm1: ATMap, gid: GID): Unit = {
     require(MC(atm, qm) |- q :: MC(atm1, qm1))
   } ensuring (MC(atm, qm) |- qgroup(gid, q) :: MC(atm1, qm1))
 
-  def qcCheck(mc: MapConf, qc: QConf, atm: ATMap): Boolean = ???
+
+  //type inversion axioms
+  @Axiom
+  def Tqempty_inv1(atm: ATMap, qm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require (MC(atm, qm) |- qempty() :: MC(atm1, qm1))
+  } ensuring (atm1 == atm)
 
   @Axiom
-  def TqcCheck(am: AnsMap, atm1: ATMap, atm0: ATMap, qm0: ATMap,
-      qm: QMap, q: Questionnaire, atm2: ATMap, qm2: ATMap): Unit = {
-    require(typeAM(am) == atm1)
-    require(MC(appendATMap(atm0, atm1), appendATMap(qm0, typeQM(qm))) |- q :: MC(atm2 ,qm2))
-  } ensuring qcCheck(MC(atm0, qm0), QC(am, qm, q), appendATMap(atm1, atm2))
+  def Tqempty_inv2(atm: ATMap, qm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require (MC(atm, qm) |- qempty() :: MC(atm1, qm1))
+  } ensuring (qm1 == qm)
 
+
+  @Axiom
+  def Tquestion_inv1(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atm1, qm1))
+  } ensuring (lookupATMap(qid, atm) == noAType())
+
+  @Axiom
+  def Tquestion_inv2(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atm1, qm1))
+  } ensuring (atm1 == atmbind(qid, at, atm))
+
+  @Axiom
+  def Tquestion_inv3(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(question(qid, l, at)) :: MC(atm1, qm1))
+  } ensuring (qm1 == qm)
+
+
+  @Axiom
+  def Tvalue_inv1(qid: QID, atm: ATMap, exp: Exp, qm: ATMap, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atm1, qm1))
+  } ensuring (lookupATMap(qid, atm) == noAType())
+
+  @Axiom
+  def Tvalue_inv2(qid: QID, atm: ATMap, exp: Exp, qm: ATMap, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atm1, qm1))
+  } ensuring (echeck(atm, exp) == someAType(at))
+
+  @Axiom
+  def Tvalue_inv3(qid: QID, atm: ATMap, exp: Exp, qm: ATMap, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atm1, qm1))
+  } ensuring (atm1 == atmbind(qid, at, atm))
+
+  @Axiom
+  def Tvalue_inv4(qid: QID, atm: ATMap, exp: Exp, qm: ATMap, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(value(qid, at, exp)) :: MC(atm1, qm1))
+  } ensuring (qm1 == qm)
+
+
+  @Axiom
+  def Tdefquestion_inv1(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require (MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atm1, qm1))
+  } ensuring (lookupATMap(qid, qm) == noAType())
+
+  @Axiom
+  def Tdefquestion_inv2(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require (MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atm1, qm1))
+  } ensuring (atm1 == atm)
+
+  @Axiom
+  def Tdefquestion_inv3(qid: QID, atm: ATMap, qm: ATMap, l: Label, at: AType, atm1: ATMap, qm1: ATMap): Unit = {
+    require (MC(atm, qm) |- qsingle(defquestion(qid, l, at)) :: MC(atm1, qm1))
+  } ensuring (qm1 == atmbind(qid, at, qm))
+
+
+  @Axiom
+  def Task_inv1(qid: QID, qm: ATMap, at: AType, atm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(ask(qid)) :: MC(atm1, qm1))
+  } ensuring (lookupATMap(qid, atm) == noAType())
+
+  @Axiom
+  def Task_inv2(qid: QID, qm: ATMap, atm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(ask(qid)) :: MC(atm1, qm1))
+  } ensuring (exists ((at: AType) => lookupATMap(qid, qm) == someAType(at)))
+
+  @Axiom
+  def Task_inv3(qid: QID, qm: ATMap, at: AType, atm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(ask(qid)) :: MC(atm1, qm1))
+    require(lookupATMap(qid, qm) == someAType(at))
+  } ensuring (atm1 == atmbind(qid, at, atm))
+
+  @Axiom
+  def Task_inv4(qid: QID, qm: ATMap, atm: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qsingle(ask(qid)) :: MC(atm1, qm1))
+  } ensuring (qm1 == qm)
+
+
+  @Axiom
+  def Tqseq_inv1(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap): Unit = {
+    require(MC(atm, qm) |- qseq(q1, q2) :: MC(atmr, qmr))
+  } ensuring (exists ((atm1: ATMap, qm1: ATMap) => MC(atm, qm) |- q1 :: MC(atm1, qm1)))
+
+  @Axiom
+  def Tqseq_inv2(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qseq(q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+  } ensuring (exists ((atm2: ATMap, qm2: ATMap) => MC(atm1, qm1) |- q2 :: MC(atm2, qm2)))
+
+  @Axiom
+  def Tqseq_inv3(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap, atm2: ATMap, qm2: ATMap): Unit = {
+    require(MC(atm, qm) |- qseq(q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+    require(MC(atm1, qm1) |- q2 :: MC(atm2, qm2))
+  } ensuring (atmr == atm2)
+
+  @Axiom
+  def Tqseq_inv4(atm: ATMap, qm: ATMap, q1: Questionnaire, q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap, atm2: ATMap, qm2: ATMap): Unit = {
+    require(MC(atm, qm) |- qseq(q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+    require(MC(atm1, qm1) |- q2 :: MC(atm2, qm2))
+  } ensuring (qmr == qm2)
+
+
+  @Axiom
+  def Tqcond_inv1(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+             q2: Questionnaire, atmr: ATMap, qmr: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+  } ensuring (echeck(atm, exp) == someAType(YesNo()))
+
+  @Axiom
+  def Tqcond_inv2(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+                  q2: Questionnaire, atmr: ATMap, qmr: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+  } ensuring (exists ((atm1: ATMap, qm1: ATMap) => MC(atm, qm) |- q1 :: MC(atm1, qm1)))
+
+  @Axiom
+  def Tqcond_inv3(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+                  q2: Questionnaire, atmr: ATMap, qmr: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+  } ensuring (exists ((atm1: ATMap, qm1: ATMap) => MC(atm, qm) |- q2 :: MC(atm1, qm1)))
+
+
+  @Axiom
+  def Tqcond_inv4(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+                  q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap, atm2: ATMap, qm2: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+    require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
+  } ensuring (atm1 == atm2)
+
+  @Axiom
+  def Tqcond_inv5(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+                  q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap, atm2: ATMap, qm2: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+    require(MC(atm, qm) |- q2 :: MC(atm2, qm2))
+  } ensuring (qm1 == qm2)
+
+  @Axiom
+  def Tqcond_inv6(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+                  q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+    require(MC(atm, qm) |- q2 :: MC(atm1, qm1))
+  } ensuring (atmr == atm1)
+
+  @Axiom
+  def Tqcond_inv7(atm: ATMap, exp: Exp, qm: ATMap, q1: Questionnaire,
+                  q2: Questionnaire, atmr: ATMap, qmr: ATMap, atm1: ATMap, qm1: ATMap): Unit = {
+    require(MC(atm, qm) |- qcond(exp, q1, q2) :: MC(atmr, qmr))
+    require(MC(atm, qm) |- q1 :: MC(atm1, qm1))
+    require(MC(atm, qm) |- q2 :: MC(atm1, qm1))
+  } ensuring (qmr == qm1)
+
+
+
+  @Axiom
+  def Tqgroup_inv(atm: ATMap, qm: ATMap, q: Questionnaire, atm1: ATMap, qm1: ATMap, gid: GID): Unit = {
+    require(MC(atm, qm) |- qgroup(gid, q) :: MC(atm1, qm1))
+  } ensuring (MC(atm, qm) |- q :: MC(atm1, qm1))
+
+
+
+
+  //Progress property and necessary auxiliary lemmas
   @Property
-  def reduceProgress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap,
+  def Progress(am: AnsMap, qm: QMap, q: Questionnaire, atm: ATMap,
       qtm: ATMap, atm2: ATMap, qtm2: ATMap): Unit = {
-    require(!isValue(QC(am, qm, q)))
+    require(!isValue(q))
     require(typeAM(am) == atm)
     require(typeQM(qm) == qtm)
     require(MC(atm, qtm) |- q :: MC(atm2, qtm2))
   } ensuring exists((am0: AnsMap, qm0: QMap, q0: Questionnaire) =>
-    reduce(QC(am, qm, q)) == someQConf(QC(am0, qm0, q0)))
+    reduce(q, am, qm) == someQConf(QC(am0, qm0, q0)))
 
   @Property
-  def reduceExpProgress(exp: Exp, am: AnsMap, atm: ATMap, at: AType): Unit = {
-    require(!expIsValue(exp))
+  def reduceExpProgress(e: Exp, am: AnsMap, atm: ATMap, at: AType): Unit = {
+    require(!expIsValue(e))
     require(typeAM(am) == atm)
-    require(echeck(atm, exp) == someAType(at))
-  } ensuring exists((exp0: Exp) => reduceExp(exp, am) == someExp(exp0))
+    require(echeck(atm, e) == someAType(at))
+  } ensuring exists((eres: Exp) => reduceExp(e, am) == someExp(eres))
 
   @Property
   def lookupAnsMapProgress(am: AnsMap, atm: ATMap, qid: QID, at: AType): Unit = {
@@ -600,4 +781,61 @@ object QLSpec extends ScalaSPLSpecification {
     require(lookupATMap(qid, qtm) == someAType(at))
   } ensuring exists((qid0: QID, l0: Label, t0: AType) =>
     lookupQMap(qid, qm) == someQuestion(qid0, l0, t0))
+
+  @Property
+  def evalBinOpProgress(atm: ATMap, bot: BinOpT, at: AType, a: Aval, a1: Aval): Unit =  {
+    require(echeck(atm, binop(constant(a), bot, constant(a1))) == someAType(at))
+  } ensuring(exists ((eres: Exp) => evalBinOp(bot, a, a1) == someExp(eres)))
+
+  @Property
+  def evalUnOpProgress(atm: ATMap, uot: UnOpT, at: AType, a: Aval, a1: Aval): Unit =  {
+    require(echeck(atm, unop(uot, constant(a))) == someAType(at))
+  } ensuring(exists ((eres: Exp) => evalUnOp(uot, a) == someExp(eres)))
+
+
+  //Preservation property and necessary auxiliary lemmas
+  @Property
+  def Preservation(atm: ATMap, qtm: ATMap, q: Questionnaire, atm1: ATMap, qtm1: ATMap,
+                   am: AnsMap, qm: QMap, amr: AnsMap, qmr: QMap, qr: Questionnaire, atmr: ATMap, qtmr: ATMap): Unit = {
+    require(MC(atm, qtm) |- q :: MC(atm1, qtm1))
+    require(typeAM(am) == atm)
+    require(typeQM(qm) == qtm)
+    require(reduce(q, am, qm) == someQConf(QC(amr, qmr, qr)))
+    require(atmr == typeAM(amr))
+    require(qtmr == typeQM(qmr))
+  } ensuring (MC(atmr, qtmr) |- qr :: MC(atm1, qtm1))
+
+  @Property
+  def reduceExpPreservation(e: Exp, am: AnsMap, atm: ATMap, at: AType, er: Exp): Unit = {
+    require(echeck(atm, e) == someAType(at))
+    require(typeAM(am) == atm)
+    require(reduceExp(e, am) == someExp(er))
+  } ensuring(echeck(atm, er) == someAType(at))
+
+  @Property
+  def lookupAnsMapPreservation(am: AnsMap, atm: ATMap, qid: QID, at: AType, avr: Aval): Unit = {
+    require(lookupATMap(qid, atm) == someAType(at))
+    require(lookupAnsMap(qid, am) == someAval(avr))
+    require(typeAM(am) == atm)
+  } ensuring(typeOf(avr) == at)
+
+  @Property
+  def lookupQMapPreservation(qm: QMap, atm: ATMap, qid: QID, at: AType, l: Label, t: AType): Unit = {
+    require(lookupATMap(qid, atm) == someAType(at))
+    require(lookupQMap(qid, qm) == someQuestion(qid, l, t))
+    require(typeQM(qm) == atm)
+  } ensuring(at == t)
+
+  @Property
+  def evalBinOpPreservation(atm: ATMap, bot: BinOpT, at: AType, a: Aval, a1: Aval, eres: Exp): Unit = {
+    require(echeck(atm, binop(constant(a), bot, constant(a1))) == someAType(at))
+    require(evalBinOp(bot, a, a1) == someExp(eres))
+  } ensuring(echeck(atm, eres) == someAType(at))
+
+  @Property
+  def evalUnOpPreservation(uot: UnOpT, av: Aval, atm: ATMap, at: AType, eres: Exp): Unit = {
+    require(echeck(atm, unop(uot, constant(av))) == someAType(at))
+    require(evalUnOp(uot, av) == someExp(eres))
+  } ensuring(echeck(atm, eres) == someAType(at))
+
 }

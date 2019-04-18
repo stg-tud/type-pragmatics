@@ -33,12 +33,22 @@ case class StructInductCase[Defs, Formulae <: Defs](casename: String, fixedvars:
 
 }
 
-//TODO the information necessary for this edge might need to be refined
-//TODO rethink the parameters of this EdgeLabel
-case class CaseDistinctionCase[Defs, Formulae <: Defs](casename: String, propInfo: Seq[PropagatableInfo]) extends EdgeLabel {
+case class FunctionCall(fname: String) extends PropagatableInfo {
+  override type P = String
+
+  override def propagateInfo(): String = fname
+}
+
+case class RecursiveCall(fname: String) extends PropagatableInfo {
+  override type P = String
+
+  override def propagateInfo(): String = fname
+}
+
+case class CaseDistinctionCase[Defs, Formulae <: Defs](casename: String, reccalls: Seq[RecursiveCall], functioncalls: Seq[FunctionCall], propInfo: Seq[PropagatableInfo]) extends EdgeLabel {
   override def desc: String = casename
 
-  override def propagateInfoList: Seq[PropagatableInfo] = propInfo
+  override def propagateInfoList: Seq[PropagatableInfo] = propInfo ++ reccalls ++ functioncalls
 
 }
 

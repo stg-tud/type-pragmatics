@@ -35,7 +35,7 @@ object LemmaEquivalence {
   /**
     * Companion object that applies a renaming to a typing rule judgment and returns the result.
     */
-  private object VariableRenamer {
+  object VariableRenamer {
     def apply(vc: TypingRuleJudgment, renaming: MetaVar => MetaVar): TypingRuleJudgment = {
       new VariableRenamer(renaming)(vc)
     }
@@ -62,10 +62,10 @@ object LemmaEquivalence {
         // we have already decided to rename -- this would mean variable shadowing, which
         // we do not support.
         case ExistsJudgment(varlist, _) =>
-          if(varlist.exists(renaming contains _))
+          if(renaming.exists(varlist contains _._2))
             throw RenamingError("Variable shadowing in ExistsJudgment is unsupported")
         case ForallJudgment(varlist, _) =>
-          if(varlist.exists(renaming contains _))
+          if(renaming.exists(varlist contains _._2))
             throw RenamingError("Variable shadowing in ForallJudgment is unsupported")
         case _ =>
       }
@@ -120,58 +120,48 @@ object LemmaEquivalence {
   }
 
   /** Reorder the typing judgments in `rule`, the result being `rule2`, such that `rule` and `rule2`
-    * differ only in the variable namings. If such a reordering cannot be found, raise a `ReorderingError`.
+    * differ only in the variable namings. As there may be more than one possibility, return all such
+    * reorderings.
     */
-  def reorderTypingJudments(ref: Seq[TypingRuleJudgment], rule: Seq[TypingRuleJudgment]): Seq[TypingRuleJudgment] = {
-    // replace all variables with Bottom
-    val ref_bottom = replaceVarsWithBottom(ref)
-    val rule_bottom = replaceVarsWithBottom(rule)
-    // If `ref` and `rule` have the same length and the judgments, if considered as sets,
-    // are equal if their variables are renamed to Bottom, we might be able to reorder
-    // the judgments!
-    if(ref_bottom.toSet == rule_bottom.toSet
-      && ref.length == rule.length) {
-      val remainingRule_bottom: mutable.ListBuffer[Option[TypingRuleJudgment]] = mutable.ListBuffer(rule_bottom.map(Some(_)):_*)
-      ref_bottom.map(judgment_bottom => {
-        val idx = remainingRule_bottom.indexOf(Some(judgment_bottom))
-        if(idx == -1)
-          throw ReorderingError("Same bottom premises, but incompatible shapes")
-        remainingRule_bottom.update(idx, None)
-        rule(idx)
-      })
-    } else {
-      throw ReorderingError("Incompatible shapes")
-    }
+  def reorderTypingJudments(ref: Seq[TypingRuleJudgment], rule: Seq[TypingRuleJudgment]): Set[Seq[TypingRuleJudgment]] = {
+    // highly inefficient, TODO
+    val refBottom = replaceVarsWithBottom(ref)
+    for(permutation <- rule.permutations.toSet if refBottom == replaceVarsWithBottom(permutation))
+      yield permutation
   }
 
   /**
     * Try to reorder the premises and consequences of `rule` such that they only differ from
-    * `ref` by their variable namings. If that is not possible, return None.
+    * `ref` by their variable namings. Return all such TypingRules.
+    * If that is not possible, return the empty set.
     */
-  def reorderTypingRule(ref: TypingRule, rule: TypingRule): Option[TypingRule] = {
-    try {
-      val newPremises = reorderTypingJudments(ref.premises, rule.premises)
-      val newConsequences = reorderTypingJudments(ref.consequences, rule.consequences)
-      Some(TypingRule(rule.name, newPremises, newConsequences))
-    } catch {
-      case _: ReorderingError => None
-    }
+  def reorderTypingRule(ref: TypingRule, rule: TypingRule): Set[TypingRule] = {
+    for(newPremises <- reorderTypingJudments(ref.premises, rule.premises);
+        newConsequences <- reorderTypingJudments(ref.consequences, rule.consequences))
+          yield TypingRule(rule.name, newPremises, newConsequences)
   }
 
   /**
     * Given two rules `ref` and `rule` that differ only in their variable namings,
     * try to find a renaming such that they are equal. Return None if impossible.
     */
-  def renameVariables(ref: TypingRule, rule: TypingRule): Option[TypingRule] = {
+  def harmonizeVariables(ref: TypingRule, rule: TypingRule): Option[TypingRule] = {
     try {
       val renaming = FindRenaming(ref, rule)
-      Some(TypingRule(rule.name,
-        rule.premises.map(VariableRenamer(_, renaming)),
-        rule.consequences.map(VariableRenamer(_, renaming))
-      ))
+      Some(renameVariables(rule, renaming))
     } catch {
       case _: RenamingError => None
     }
+  }
+
+  /**
+    * Rename variables in `rule` according to `renaming` and return the new TypingRule.
+    */
+  def renameVariables(rule: TypingRule, renaming: MetaVar => MetaVar): TypingRule = {
+    TypingRule(rule.name,
+      rule.premises.map(VariableRenamer(_, renaming)),
+      rule.consequences.map(VariableRenamer(_, renaming))
+    )
   }
 
   /**
@@ -183,15 +173,32 @@ object LemmaEquivalence {
     * @param rule compared lemma
     * @return true or false
     */
-  def isEquivalent(ref: TypingRule, rule: TypingRule): Boolean = {
-    reorderTypingRule(ref, rule) match {
-      case Some(reordered) => {
-        renameVariables(ref, reordered) match {
-          case Some(renamed) => renamed.premises == ref.premises && renamed.consequences == ref.consequences
-          case None => false
-        }
+  def isEquivalent(ref: TypingRule, rule: TypingRule, checkSymmetry: Boolean = true): Boolean = {
+    val equiv = reorderTypingRule(ref, rule).exists { reordered =>
+      harmonizeVariables(ref, reordered) match {
+        case Some(renamed) => renamed.premises == ref.premises && renamed.consequences == ref.consequences
+        case None => false
       }
-      case None => false
     }
+    // TODO: Sanity check: check equivalence
+    if(!equiv)
+       require(
+         ref.premises.size != rule.premises.size ||
+         ref.premises.toSet != rule.premises.toSet ||
+         ref.consequences.toSet != rule.consequences.toSet)
+    // TODO: Sanity check: require symmetry
+    if(checkSymmetry)
+      require(isEquivalent(rule, ref, false) == equiv)
+    equiv
+  }
+
+  def findHarmonizingRenaming(ref: TypingRule, rule: TypingRule): Option[Map[MetaVar, MetaVar]] = {
+    reorderTypingRule(ref, rule).flatMap { reordered =>
+      try {
+        Some(FindRenaming(ref, reordered))
+      } catch {
+        case _: RenamingError => None
+      }
+    }.headOption
   }
 }
