@@ -7,10 +7,16 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constr
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.selection.SelectionHeuristic
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle.OracleConsultation
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing.Postprocessor
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLaTeXLemmaPrinter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import de.tu_darmstadt.veritas.scalaspl.prettyprint.SimpleToScalaSPLSpecificationPrinter
 
+/** A LemmaGeneratorPipeline subclass that writes GraphViz visualizations of
+  * refinement graphs to a directory. This class will create a subdirectory
+  * of `directory` which contains dot files visualizing the intermediate
+  * refinement graphs, as well as files `lemmas.scala` and `lemmas.tex`
+  * which contain the selected lemmas.
+  */
 class VisualizingGeneratorPipeline(val directory: File,
                                    graphConstructor: GraphConstructor,
                                    oracleConsultation: OracleConsultation,
@@ -26,9 +32,10 @@ class VisualizingGeneratorPipeline(val directory: File,
     subdirectory
   }
 
+  /** Write LaTeX representations of a sequence of lemmas to a file. */
   def writeLemmasLaTeX(file: File, lemmas: Seq[Lemma]): Unit = {
     val writer = new FileWriter(file)
-    val latexWriter = new SimpleLemmaPrinter {
+    val latexWriter = new SimpleLaTeXLemmaPrinter {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
     for (lemma <- lemmas) {
@@ -39,6 +46,7 @@ class VisualizingGeneratorPipeline(val directory: File,
     writer.close()
   }
 
+  /** Write ScalaSPL representations of a sequence of lemmas to a file. */
   def writeLemmasScalaSPL(file: File, lemmas: Seq[Lemma]): Unit = {
     val writer = new FileWriter(file)
     val lemmaWriter = new SimpleToScalaSPLSpecificationPrinter {
@@ -52,8 +60,7 @@ class VisualizingGeneratorPipeline(val directory: File,
     writer.close()
   }
 
-  def writeLemmas(directory: File, lemmas: Seq[Lemma]) = {
-    // Write lemmas to LaTeX
+  def writeLemmas(directory: File, lemmas: Seq[Lemma]): Unit = {
     writeLemmasLaTeX(new File(directory, "lemmas.tex"), lemmas)
     writeLemmasScalaSPL(new File(directory, "lemmas.scala"), lemmas)
   }

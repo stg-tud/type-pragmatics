@@ -4,6 +4,9 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.LemmaGenSpecE
 import de.tu_darmstadt.veritas.backend.ast.SortRef
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
+/** This object provides the implicit `QueryFunctionClass`, which adds some accessors
+  * to the Veritas `FunctionDef` class.
+  */
 object Query {
   implicit class QueryFunctionDef(val fctn: FunctionDef)(implicit enquirer: LemmaGenSpecEnquirer) {
     def name: String = fctn.signature.name
@@ -17,6 +20,7 @@ object Query {
         outType
     }
 
+    /** Return the indices of all arguments that fulfill `p` */
     def filterArguments(p: SortRef => Boolean): Seq[Int] = inTypes.zipWithIndex.collect {
       case (sort, index) if p(sort) => index
     }

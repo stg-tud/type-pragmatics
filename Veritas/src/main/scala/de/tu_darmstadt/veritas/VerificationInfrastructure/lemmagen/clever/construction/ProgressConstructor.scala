@@ -6,6 +6,7 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{Annot
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.ast.function._
 
+/** Graph constructor for progress refinement graphs. */
 class ProgressConstructor(val problem: Problem,
                           function: FunctionDef,
                           val hints: Hints) extends LemmaGraphConstructor {
@@ -14,6 +15,7 @@ class ProgressConstructor(val problem: Problem,
 
   private val functionArguments = Assignments.generateSimpleSingle(function.inTypes)
   private val baseLemma = {
+    // build a progress lemma that postulates that the function application *does not fail*
     val (failConstructor, _) = enquirer.retrieveFailableConstructors(function.outType)
     val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(functionArguments))
     val failExp = FunctionExpApp(failConstructor.name, Seq())

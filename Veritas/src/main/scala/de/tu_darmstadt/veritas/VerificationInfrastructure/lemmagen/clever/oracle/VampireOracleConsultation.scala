@@ -10,6 +10,7 @@ import de.tu_darmstadt.veritas.backend.ast.function.FunctionExpFalse
 
 import scala.collection.mutable
 
+/** Oracle consultation using Vampire and falsity propagation. */
 class VampireOracleConsultation(val problem: Problem) extends OracleConsultation {
   class StepResult(val status: VerifierStatus[VeritasConstruct, VeritasFormula],
                    val evidence: Option[Evidence], val errorMsg: Option[String])
@@ -23,10 +24,11 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
     }
   }
 
-  def invokeOracle(problem: Problem, lemmas: Set[Lemma], timeout: Integer = 3, logic: String = "tff"): ProvabilityStatus = {
+  /** Invoke Vampire 4.2.2 on `problem`, with additional lemmas and a timeout, and try to prove `false`. */
+  def invokeOracle(problem: Problem, lemmas: Set[Lemma],
+                   timeout: Integer = 3, logic: String = "tff"): ProvabilityStatus = {
     val falseGoal = Goals(Seq(TypingRule("false-goal", Seq(), Seq(FunctionExpJudgment(FunctionExpFalse)))), None)
     val verifier = new TPTPVampireVerifier(timeout, "4.2.2", logic)
-    //val verifier = new ADTVampireVerifier(timeout)
     val assumptions = lemmas.map(lemma => (LemmaApplicationStep(lemma.name), lemma)).toSeq
     // sanity check for distinguishable names
     require(lemmas.map(_.name).size == lemmas.size)
@@ -48,8 +50,10 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
   case class Gray() extends NodeColor
   case class White() extends NodeColor
 
-  // variant of DFS(G) from CLRS
-  def topologicalOrderOfTranspose(graph: RefinementGraph): Seq[RefinementNode] = {
+  /** Compute a topological ordering of the transpose of `graph`.
+    * This implements a variant of DFS(G) from CLRS.
+    */
+   def topologicalOrderOfTranspose(graph: RefinementGraph): Seq[RefinementNode] = {
     val order = new mutable.ListBuffer[RefinementNode]()
     val colors = new mutable.HashMap[RefinementNode, NodeColor]()
     // initialize all noes to white
@@ -75,12 +79,10 @@ class VampireOracleConsultation(val problem: Problem) extends OracleConsultation
     order
   }
 
+  /** Consult the oracle and perform falsity propagation. */
   override def consult(graph: RefinementGraph): Unit = {
-    println(s"${graph.nodes.size} nodes!")
     for(node <- topologicalOrderOfTranspose(graph)) {
       if(node.provabilityStatus == Unknown()) {
-        println(node.lemma)
-        println("-----------------")
         val status = invokeOracle(problem, Set(node.lemma))
         if (status == DirectlyDisproved()) {
           graph.setDisprovedStatusRecursively(node)

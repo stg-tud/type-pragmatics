@@ -4,6 +4,7 @@ import java.io.{File, FileWriter}
 
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
+/** Some helper methods */
 trait EvaluationHelpers {
   def sortFunctions(functions: Seq[FunctionDef]): Seq[FunctionDef] = {
     functions.sortBy(_.signature.name)

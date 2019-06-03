@@ -3,16 +3,17 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.evaluation
 import java.io.{File, FileWriter}
 
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Problem
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLaTeXLemmaPrinter
 import de.tu_darmstadt.veritas.backend.ast.TypingRule
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
+/** Write general information about the case study to the directory `directory`. */
 class GeneralInformation(problem: Problem, directory: File) extends EvaluationHelpers {
   ensureEmpty(directory)
 
   def writeBaselineLemmas(file: File): Unit = {
     val writer = new FileWriter(file)
-    val latexWriter = new SimpleLemmaPrinter {
+    val latexWriter = new SimpleLaTeXLemmaPrinter {
       override val printer: PrettyPrintWriter = new PrettyPrintWriter(writer)
     }
     for (lemma <- problem.dsk.properties) {
@@ -60,6 +61,14 @@ class GeneralInformation(problem: Problem, directory: File) extends EvaluationHe
     printToFile(new File(directory, "SQLSpecAnnotated.scala"), spec)
   }
 
+  /** This writes:
+    *   - lemma-classes.tex, which contains the classification of baseline lemmas
+    *   - static-functions.tex, which contains all functions annotated with @Static
+    *   - dynamic-functions.tex, which contains all functions annotated with @Dynamic
+    *   - preservables.tex, which contains all functions annotated with @Preservable
+    *   - baseline-lemmas.tex, which contains LaTeX commands for all baseline lemmas
+    *   - SQLSpecAnnotated.scala, which contains the original ScalaSPL specification
+    */
   def write(): Unit = {
     writeLemmaClasses()
     writeStaticFunctions()

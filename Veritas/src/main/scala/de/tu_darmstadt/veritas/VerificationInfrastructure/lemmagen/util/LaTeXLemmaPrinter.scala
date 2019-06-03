@@ -6,7 +6,8 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference.Sort
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 
 // TODO what about dsk Annotations? Generics to support them?
-trait LemmaPrinter {
+/** Generate LaTeX code for lemmas. */
+trait LaTeXLemmaPrinter {
   val printer: PrettyPrintWriter
 
   def print(module: Module): String = {
@@ -179,7 +180,7 @@ trait LemmaPrinter {
   }
 }
 
-trait SimpleLemmaPrinter extends LemmaPrinter {
+trait SimpleLaTeXLemmaPrinter extends LaTeXLemmaPrinter {
   def getBindingType(binding: MetaVar): String = binding.typ match {
     case Some(Sort(name)) => s"\\textsf{$name}"
     case _ => "\\textsf{Any}"

@@ -6,6 +6,14 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.oracle
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.postprocessing.Postprocessor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.Lemma
 
+/** A so-called lemma generator pipeline encapsulates the following steps of lemma generation:
+  * 1) refinement graph constructrion
+  * 2) oracle consultation
+  * 3) lemma selection
+  * 4) postprocessing
+  * The method `invokePipeline` invokes all steps in the correct order
+  * and returns a sequence of generated lemmas.
+  */
 class LemmaGeneratorPipeline(graphConstructor: GraphConstructor,
                              oracleConsultation: OracleConsultation,
                              selectionHeuristic: SelectionHeuristic,

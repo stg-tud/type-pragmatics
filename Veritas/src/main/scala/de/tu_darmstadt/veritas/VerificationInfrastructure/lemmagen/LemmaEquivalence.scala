@@ -6,6 +6,7 @@ import de.tu_darmstadt.veritas.backend.util.BackendError
 
 import scala.collection.mutable
 
+/** This object implements our notion of \approx-equivalence which is checked by syntactic transformation only */
 object LemmaEquivalence {
   val Bottom = MetaVar("x")
 
@@ -13,7 +14,7 @@ object LemmaEquivalence {
     * A module transformation that takes a mapping from MetaVar to MetaVar
     * and can be applied to a `TypingRuleJudgment` object to rename all
     * variables in the judgment accordingly.
-    * @param renaming function mapping metavariables to metavaraibles
+    * @param renaming function mapping metavariables to metavariables
     */
   private class VariableRenamer(renaming: MetaVar => MetaVar) extends ModuleTransformation with Serializable {
      def apply(vc: TypingRuleJudgment): TypingRuleJudgment = {
@@ -124,7 +125,7 @@ object LemmaEquivalence {
     * reorderings.
     */
   def reorderTypingJudments(ref: Seq[TypingRuleJudgment], rule: Seq[TypingRuleJudgment]): Set[Seq[TypingRuleJudgment]] = {
-    // highly inefficient, TODO
+    // NOTE: This could be implemented more efficiently.
     val refBottom = replaceVarsWithBottom(ref)
     for(permutation <- rule.permutations.toSet if refBottom == replaceVarsWithBottom(permutation))
       yield permutation
@@ -165,33 +166,26 @@ object LemmaEquivalence {
   }
 
   /**
-    * return true if `ref` and `rule` are "~"-equivalent: This is the case if the variables of `rule`
+    * return true if `ref` and `rule` are \approx-equivalent: This is the case if the variables of `rule`
     * can be renamed (using a bijective renaming), the result being `rule2`,
     * and the premises and consequences of `rule2` can be reordered, the result being `rule3`,
-    * such that `ref` == `rule3` (on the AST leve), disregarding the name.
+    * such that `ref` == `rule3` (on the AST level), disregarding lemma names.
     * @param ref reference lemma
     * @param rule compared lemma
     * @return true or false
     */
-  def isEquivalent(ref: TypingRule, rule: TypingRule, checkSymmetry: Boolean = true): Boolean = {
+  def isEquivalent(ref: TypingRule, rule: TypingRule): Boolean = {
     val equiv = reorderTypingRule(ref, rule).exists { reordered =>
       harmonizeVariables(ref, reordered) match {
         case Some(renamed) => renamed.premises == ref.premises && renamed.consequences == ref.consequences
         case None => false
       }
     }
-    // TODO: Sanity check: check equivalence
-    if(!equiv)
-       require(
-         ref.premises.size != rule.premises.size ||
-         ref.premises.toSet != rule.premises.toSet ||
-         ref.consequences.toSet != rule.consequences.toSet)
-    // TODO: Sanity check: require symmetry
-    if(checkSymmetry)
-      require(isEquivalent(rule, ref, false) == equiv)
     equiv
   }
 
+  /** Helper method: Find a renaming of variables in `rule` such that `rule` and `ref`
+    * are syntactically equal. Return None if no such renaming exists. */
   def findHarmonizingRenaming(ref: TypingRule, rule: TypingRule): Option[Map[MetaVar, MetaVar]] = {
     reorderTypingRule(ref, rule).flatMap { reordered =>
       try {
