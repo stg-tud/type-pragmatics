@@ -8,6 +8,7 @@ import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 
 import scala.collection.mutable
 
+/** Refinement Strategy for generating progress lemmas for a specific function. */
 class ProgressStrategy(override val problem: Problem, function: FunctionDef)
   extends RefinementStrategy with StrategyHelpers {
   import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
@@ -15,10 +16,12 @@ class ProgressStrategy(override val problem: Problem, function: FunctionDef)
   implicit private val enquirer = problem.enquirer
 
   override def generateBase(): Seq[Lemma] = {
+    // retrieve the success constructor for function's failable return sort
     val (_, successConstructor) = enquirer.retrieveFailableConstructors(function.outType)
     // use "result" as name to avoid name clashes with variables that are introduced later
     val successVar = MetaVar("result")
     successVar.typ = Some(TypeInference.Sort(function.successfulOutType.name))
+    // build existential formula for consequence
     val arguments = Assignments.generateSimpleSingle(function.inTypes)
     val invocationExp = FunctionExpApp(function.name, Assignments.wrapMetaVars(arguments))
     val successExp = FunctionExpApp(successConstructor.name, Seq(FunctionMeta(successVar)))

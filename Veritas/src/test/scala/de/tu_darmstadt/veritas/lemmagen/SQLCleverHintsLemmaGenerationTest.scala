@@ -6,15 +6,15 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen._
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.construction.GraphConstructor
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever._
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
-import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLemmaPrinter
+import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.SimpleLaTeXLemmaPrinter
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
 import org.scalatest.FunSuite
 
 import scala.collection.mutable
 import scala.meta.inputs.Input
 
-class SQLCleverLemmaGenerationTest extends FunSuite {
-  //val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
+/** Test CleverHints lemma generator and write results to directory generated/ */
+class SQLCleverHintsLemmaGenerationTest extends FunSuite {
   val Directory = new File("generated")
   val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
   val problem = new Problem(file)
@@ -36,7 +36,7 @@ class SQLCleverLemmaGenerationTest extends FunSuite {
 
   def printRules(lemmas: Seq[Lemma]) = {
     val outputPrettyPrinter = new PrettyPrintWriter(new PrintWriter(System.out))
-    val lemmaPrettyPrinter = new SimpleLemmaPrinter {
+    val lemmaPrettyPrinter = new SimpleLaTeXLemmaPrinter {
       override val printer: PrettyPrintWriter = outputPrettyPrinter
     }
     lemmas.foreach { lemma =>

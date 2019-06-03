@@ -3,7 +3,8 @@ package de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.{Lemma, LemmaGenerator, Problem}
 import de.tu_darmstadt.veritas.backend.ast.function.FunctionDef
 
-class NaiveLemmaGenerator(problem: Problem, maxPremises: Int = 4) extends LemmaGenerator {
+/** The NaiveLemmaGenerator implements the Naive algorithm with a fixed maximum number of premises. */
+class NaiveLemmaGenerator(val problem: Problem, maxPremises: Int = 4) extends LemmaGenerator {
   def preservationFunctions: Set[FunctionDef] = {
     problem.enquirer.dynamicFunctions.filterNot(fn => fn.signature.out.name == "Bool")
   }
@@ -12,6 +13,7 @@ class NaiveLemmaGenerator(problem: Problem, maxPremises: Int = 4) extends LemmaG
     problem.enquirer.dynamicFunctions.filter(fn => problem.enquirer.isFailableType(fn.signature.out))
   }
 
+  /** Use a LimitedDepthLemmaRefinery to generate lemmas according to `strategy`, and return them. */
   def generateWithStrategy(strategy: RefinementStrategy): Seq[Lemma] = {
     val generator = new LimitedDepthLemmaRefinery(problem, strategy, maxPremises)
     generator.generate()

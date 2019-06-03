@@ -8,6 +8,7 @@ import de.tu_darmstadt.veritas.backend.ast.{MetaVar, SortRef}
 import de.tu_darmstadt.veritas.backend.transformation.collect.TypeInference
 import org.scalatest.FunSuite
 
+/** Some small tests for Assignments */
 class AssignmentsTest extends FunSuite {
   val TInt = SortRef("Int")
   val TString = SortRef("String")
@@ -104,7 +105,7 @@ class AssignmentsTest extends FunSuite {
 
   test("assignments and lemmas") {
     import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.util.Query._
-    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecNoAnnotations.scala")
+    val file = new File("src/test/scala/de/tu_darmstadt/veritas/lemmagen/SQLSpecAnnotated.scala")
     val problem = new Problem(file)
     implicit val enquirer = problem.enquirer
     val projectTableProgress = problem.dsk.properties.find(_.name == "projectTableProgress").get

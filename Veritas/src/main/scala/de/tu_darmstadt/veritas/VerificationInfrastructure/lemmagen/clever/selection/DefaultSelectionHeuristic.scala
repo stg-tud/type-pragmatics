@@ -5,9 +5,10 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.{Incon
 
 import scala.collection.mutable
 
+/** Select the lemmas that should be presented to the language designer, and set their selection status accordingly. */
 class DefaultSelectionHeuristic extends SelectionHeuristic {
   /**
-    * Return true if we can select a subset of premises of ``right`` such that
+    * Return true if we can select a strict subset of premises of ``right`` such that
     * the resulting lemma is equivalent to ``left``. If this is the case,
     * ``left`` implies ``right``, and thus, ``left`` is (strictly) more general than ``right``.
     * */
@@ -25,6 +26,8 @@ class DefaultSelectionHeuristic extends SelectionHeuristic {
     false
   }
 
+  /** Given a set of nodes, remove all nodes for which `nodes` contains a more specific variant,
+    * and return a new set. */
   def selectMostGeneralLemmas(nodes: Seq[RefinementNode]): Seq[RefinementNode] = {
     val remainingNodes = new mutable.HashSet[RefinementNode]()
     remainingNodes ++= nodes
@@ -39,14 +42,17 @@ class DefaultSelectionHeuristic extends SelectionHeuristic {
     val inconclusiveNodes = graph.collectNodes(Inconclusive())
     // only nodes that constrain all variables
     val filteredNodes = inconclusiveNodes.filter(node => node.lemma.boundVariables == node.constrainedVariables)
-    val onlyDominators = filteredNodes.filterNot(node => {
+    // remove all nodes for which we can find predecessors in `nodes`
+    val onlyPredecessors = filteredNodes.filterNot(node => {
       node.parents.exists(filteredNodes.contains)
     })
-    val remainingNodes = selectMostGeneralLemmas(onlyDominators.toSeq)
+    // use ``moreGeneral`` to remove all nodes for which `nodes` contains a more specific variant.
+    val remainingNodes = selectMostGeneralLemmas(onlyPredecessors.toSeq)
     if(remainingNodes.nonEmpty)
       for(node <- remainingNodes)
         node.select()
     else
+      // if we have successfully removed all nodes, select the root node.
       graph.root.select()
   }
 }

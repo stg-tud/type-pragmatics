@@ -8,7 +8,12 @@ import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.clever.constr
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.evaluation.{GeneralInformation, GeneratorEvaluator}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.lemmagen.naive.NaiveLemmaGenerator
 
-
+/** This script invokes the Naive, Clever and CleverHints algorithms to generate lemmas
+  * for the Typed SQL specification and evaluates the results against the baseline lemmas.
+  * The results are written to the directory `evaluation`.
+  * If `evaluation/lemmas-xyz.dat` already exists, lemma generation is skipped and the generated
+  * lemmas are instead read from the respective data files.
+  */
 object ThesisEvaluation {
   val EvaluationDirectory = new File("evaluation")
 
