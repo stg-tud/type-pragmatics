@@ -14,8 +14,8 @@ import de.tu_darmstadt.veritas.backend.transformation.lowlevel.FilterGoalModules
 // to change the study parameters, manipulate vals typeEncodings or studyConfiguration in EncodingComparisonStudy below
 
 /**
- * determine the final encoding of module
- */
+  * determine the final encoding of module
+  */
 trait Typing {
   def finalEncoding(m: Module)(implicit config: Configuration): PrettyPrintableFile
 }
@@ -26,10 +26,12 @@ case object FofBare extends Typing {
     ToFof(RewriteFiniteDomainQuantifications(Seq(m)).head)
   }
 }
+
 //fof with type guards
 case object FofGuard extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) = ToFof(m)
 }
+
 //tff encoding
 case object Tff extends Typing {
   override def finalEncoding(m: Module)(implicit config: Configuration) = ToTff(m)(config)
@@ -57,6 +59,12 @@ object BasicTrans extends SeqTrans(
   VarToApp0,
   DesugarLemmas)
 
+object SpecTrans extends SeqTrans(
+  ResolveImports,
+  VarToApp0,
+  DesugarLemmas
+)
+
 object ConstructorTrans extends Alternative(selectConfig(FinalEncoding) {
   case FinalEncoding.BareFOF =>
     GenerateCtorAxiomsUntyped
@@ -76,13 +84,13 @@ object DataTypeTrans extends Alternative(selectConfig(FinalEncoding) {
 
 object FunctionTrans extends Alternative(selectConfig(FinalEncoding) {
   case FinalEncoding.FOOL | FinalEncoding.SMTLib => SeqTrans(FunctionEqToAxiomsWLetIf, TranslateAllTypingJudgments)
-  case FinalEncoding.GuardedFOF | FinalEncoding.TFF | FinalEncoding.BareFOF => 
+  case FinalEncoding.GuardedFOF | FinalEncoding.TFF | FinalEncoding.BareFOF =>
     SeqTrans(FunctionEqToAxiomsSimple, TranslateAllTypingJudgments)
 })
 
 /**
- * determine which different problems are encoded ("Fragestellungen")
- */
+  * determine which different problems are encoded ("Fragestellungen")
+  */
 object ProblemTrans extends Alternative(selectConfig(Problem) {
   case Problem.Consistency =>
     SeqTrans(SplitModulesByGoal(""), MoveDeclsToFront, SetupConsistencyCheck)
@@ -112,9 +120,9 @@ object GuardsTrans extends Alternative(selectConfig(FinalEncoding) {
 })
 
 /**
- * determine whether subformulas in axioms/goals are inlined or named with an additional variable
- * (which adds an equation to the set of premises of axioms/goals)
- */
+  * determine whether subformulas in axioms/goals are inlined or named with an additional variable
+  * (which adds an equation to the set of premises of axioms/goals)
+  */
 object VariableTrans extends Alternative(selectConfig(VariableEncoding) {
   // add InlineEverythingFP?
   case VariableEncoding.Unchanged =>
@@ -166,20 +174,50 @@ object MainTrans extends SeqTrans(
   Fixpoint(SeqTrans(SimplificationTrans, VariableTrans)),
   GuardsTrans,
   // select problem
-  ProblemTrans, 
+  ProblemTrans,
   //selection axioms
   SelectionTrans)
 
+//transformation for TPTP specifications (translates modules that do not have a goal)
+object TPTPSpecTrans extends SeqTrans(
+  SpecTrans,
+  DataTypeTrans,
+  FunctionTrans,
+  // determines whether and which inversion axioms are generated for functions/typing rules
+  // update: always generate function inversion axioms!
+  Alternative(selectConfig(Selection) {
+    case Selection.NoInversion | Selection.NoInversionSelectUsedFP => Identity
+    case _ => TotalFunctionInversionAxioms
+  }),
+  // generate ground guards for some problems
+  Alternative(selectConfig(Problem) {
+    case Problem.Execution | Problem.Counterexample | Problem.Synthesis =>
+      GenerateGroundGuards
+    case _ =>
+      Identity
+  }),
+  // insert type guards for quantified metavariables
+  // variable inlining/extraction
+  // determines whether logical optimizations take place prior to fof/tff encoding
+  Fixpoint(SeqTrans(SimplificationTrans, VariableTrans)),
+  GuardsTrans,
+  // select problem
+  //ProblemTrans,
+  //selection axioms
+  SelectionTrans
+)
+
 object TypingTrans extends AlternativeTyping(selectConfig(FinalEncoding) {
-  case FinalEncoding.BareFOF    => FofBare
+  case FinalEncoding.BareFOF => FofBare
   case FinalEncoding.GuardedFOF => FofGuard
-  case FinalEncoding.TFF        => Tff
-  case FinalEncoding.FOOL       => Fool
-  case FinalEncoding.SMTLib     => SMTLib
+  case FinalEncoding.TFF => Tff
+  case FinalEncoding.FOOL => Fool
+  case FinalEncoding.SMTLib => SMTLib
 })
 
 case class EncodingComparison(vm: VariabilityModel, module: Module) extends Iterable[(Configuration, Seq[PrettyPrintableFile])] {
   private var _lastConfig: Configuration = _
+
   def lastConfig = _lastConfig
 
   def iterator = vm.iterator.map { config =>

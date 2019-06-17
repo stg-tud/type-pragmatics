@@ -120,7 +120,8 @@ class ToTff {
     body.dropRight(1) foreach { md =>
       md match {
         case Axioms(axs)           => axiomlist ++= translateAxioms(axs)
-        case Goals(gs, _)          => throw TransformationError("Found goal in Module which was not at last position!")
+        case Goals(gs, _)          =>
+          throw TransformationError("Found goal in Module which was not at last position!")
         case DataType(_, name, cs) => {}
         case Consts(cs, _)         => {}
         case Sorts(s)              => {}

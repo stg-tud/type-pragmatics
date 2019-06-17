@@ -5,8 +5,7 @@ import java.io.{File, FileWriter, PrintWriter}
 import de.tu_darmstadt.veritas.VerificationInfrastructure.strategies.VeritasProgressPreservationTopLevelStrategy
 import de.tu_darmstadt.veritas.VerificationInfrastructure.tactics.StructuralInduction
 import de.tu_darmstadt.veritas.VerificationInfrastructure.verifier._
-import de.tu_darmstadt.veritas.backend.Configuration
-import de.tu_darmstadt.veritas.backend.Configuration._
+import de.tu_darmstadt.veritas.backend.{MainTrans, TPTPSpecTrans, TypingTrans}
 import de.tu_darmstadt.veritas.backend.ast._
 import de.tu_darmstadt.veritas.backend.util.FreshNames
 import de.tu_darmstadt.veritas.backend.util.prettyprint.PrettyPrintWriter
@@ -76,8 +75,30 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
     }
   }
 
+  private def prepareForTPTP(problem: (VeritasConstruct, VeritasConstruct, VeritasFormula), goalname: String, filepath: String): Unit = {
 
-  private def logProblem(ps: pg.ProofStep, filepath: String): Unit = {
+    val (spec, assms, goal) = problem
+    val config = VeritasTransformerBestStrat.config //configuration for translation
+
+    val specfile = new File(s"$filepath-TPTP/problem_specification")
+    val problemfile = new File(s"$filepath-TPTP/$goalname")
+
+    // translate specification and create file if it does not already exist
+    if (!specfile.exists()) {
+      val specmod = spec match {
+        case Module(n, i, defs) => Module(n, i, defs filterNot (md => md.isInstanceOf[Goals] | md.isInstanceOf[Lemmas]))
+      }
+      val specmods = TPTPSpecTrans(Seq(specmod))(config)
+      val filecontent = specmods.map(m => TypingTrans.finalEncoding(m)(config))
+      writeToFile(specfile, filecontent.head.toPrettyString())
+    }
+
+    //create a file with just goal-specific assumptions and the goal
+    //TODO
+  }
+
+
+  private def logProblem(ps: pg.ProofStep, filepath: String, prepareTPTP: Boolean = false): Unit = {
     val goalobl = pg.targetedObl(ps)
     val goalname = extractGoalName(goalobl.goal)
 
@@ -120,17 +141,20 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
     val transformedProblemSMTLIB = transSMTLIB.translateProblem((aspec, assms, agoal))
     val translatedProblemFileSMTLIB = new File(s"$filepath/$goalname-SMTLIB_Problem")
     writeToFile(translatedProblemFileSMTLIB, transformedProblemSMTLIB.get.toString)
+
+    if (prepareTPTP)
+      prepareForTPTP((aspec, assms, agoal), goalname, filepath)
   }
 
   // print step results on console and log inconclusive problem descriptions as files
-  private def printStepResult(ps: pg.ProofStep, res: pg.StepResult, log_proved: Boolean = false, log_inconclusive: Boolean = true): String =
+  private def printStepResult(ps: pg.ProofStep, res: pg.StepResult, log_proved: Boolean = false, log_inconclusive: Boolean = true, log_for_TPTP: Boolean = false): String =
     res.status match {
       case Finished(stat, ver) =>
         stat match {
           case Proved(ie@InductionSchemeEvidence(_, _, _)) => s"Proved (induction scheme application)."
           case Proved(ATPResultDetails(_, _, _, Some(lems), Some(t))) => {
             if (log_proved) {
-              logProblem(ps, log_proved_path)
+              logProblem(ps, log_proved_path, log_for_TPTP)
             }
 
             s"Proved ($t s). Used lemmas: $lems"
@@ -140,7 +164,7 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
           case Inconclusive(_) => {
             // write pretty printed version of assembled proof problem to a file
             if (log_inconclusive) {
-              logProblem(ps, log_inconclusive_problems_path)
+              logProblem(ps, log_inconclusive_problems_path, log_for_TPTP)
             }
 
             "Inconclusive."
@@ -161,7 +185,7 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
 
   def printAllObligations(): Unit = ppstrat.printAllObligations()
 
-  def verifyAll(provertimeout: Int = 10, log_proved: Boolean = false, log_inconclusive: Boolean = true) = {
+  def verifyAll(provertimeout: Int = 10, log_proved: Boolean = false, log_inconclusive: Boolean = true, prepareForTPTP: Boolean = false) = {
     val indver = new TrustInductionSchemeVerifier[VeritasConstruct, VeritasFormula]()
 
     //decide HERE which Vampire version is to be used for all the steps (that are not induction scheme steps)
@@ -179,13 +203,13 @@ case class ProgressPreservationProofGraphGeneration(sourcepath: String, storepat
     for (obl <- indobls) {
       val ps = pg.appliedStep(obl).get
       val goalname = extractGoalName(obl.goal)
-      println(s"$goalname: " + printStepResult(ps, pg.verifyProofStep(ps, indver, None), log_proved, log_inconclusive))
+      println(s"$goalname: " + printStepResult(ps, pg.verifyProofStep(ps, indver, None), log_proved, log_inconclusive, prepareForTPTP))
     }
 
     for (obl <- noindobls) {
       val ps = pg.appliedStep(obl).get
       val goalname = extractGoalName(obl.goal)
-      println(s"$goalname: " + printStepResult(ps, pg.verifyProofStep(ps, noindver, None), log_proved, log_inconclusive))
+      println(s"$goalname: " + printStepResult(ps, pg.verifyProofStep(ps, noindver, None), log_proved, log_inconclusive, prepareForTPTP))
     }
 
 
